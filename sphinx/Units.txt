@@ -1,0 +1,43 @@
+Units
+=====
+
+The package comes with preformulated Unit classes, including Flash, Distillation, and Centrifuge classes. New Unit classes are easily created by inheritance of the Unit class.
+
+.. toctree::
+   :maxdepth: 2
+
+   Mixer
+   Splitter
+   Pump
+   HX
+   Flash
+   Centrifuge_LLE
+   Distillation
+   MassBalance
+
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|
+|

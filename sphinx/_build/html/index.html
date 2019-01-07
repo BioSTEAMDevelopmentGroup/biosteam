@@ -1,0 +1,211 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>BioSTEAM: The Open-Source Bioprocess Simulation and Techno-Economic Analysis Modules in Python &#8212; BioSTEAM 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Specie" href="Specie.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Specie.html" title="Specie"
+             accesskey="N">next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">BioSTEAM 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">BioSTEAM: The Open-Source Bioprocess Simulation and Techno-Economic Analysis Modules in Python</a><ul>
+<li><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li><a class="reference internal" href="#overview">Overview</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+
+  <h4>Next topic</h4>
+  <p class="topless"><a href="Specie.html"
+                        title="next chapter">Specie</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="biosteam-the-open-source-bioprocess-simulation-and-techno-economic-analysis-modules-in-python">
+<h1>BioSTEAM: The Open-Source Bioprocess Simulation and Techno-Economic Analysis Modules in Python<a class="headerlink" href="#biosteam-the-open-source-bioprocess-simulation-and-techno-economic-analysis-modules-in-python" title="Permalink to this headline">¶</a></h1>
+<p>BioSTEAM is an open source process simulation package in Python for fast and flexible preliminary technoeconomic analysis. It was created and developed by <a class="reference external" href="http://engineeringforsustainability.com/yoelcortespena">Yoel Cortes-Pena</a> and the <a class="reference external" href="http://engineeringforsustainability.com/">Guest Group</a> as part of the <a class="reference external" href="https://cabbi.bio/">Center for Advanced Bioenergy and Bioproducts (CABBI)</a> at the <a class="reference external" href="https://illinois.edu/">University of Illinois at Urbana-Champaign (UIUC)</a>.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Specie.html">Specie</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Chemical.html">Chemical</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Species.html">Species</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Stream.html">Stream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MixedStream.html">MixedStream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit.html">Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="HeatUtility.html">HeatUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="System.html">System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="LookUp.html">LookUp</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utils.html">utils</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exceptions.html">exceptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Units.html">Units</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Mixer.html">Mixer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Splitter.html">Splitter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Pump.html">Pump</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HX.html">HX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Flash.html">Flash</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Centrifuge_LLE.html">Centrifuge_LLE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Distillation.html">Distillation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MassBalance.html">MassBalance</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
+<p>BioSTEAM objects serve as basic building blocks to design and simulate a biorefinery. These include objects that handle material properties, material flows, unit operations, recycle loops and process specifications. To get started, follow the example below:</p>
+<p><strong>Specify the working species</strong> for all streams:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">Species</span><span class="p">,</span> <span class="n">Stream</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Create a stream</strong> passing an ID, flow rates, phase, temperature and pressure:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="go">Stream: s1</span>
+<span class="go"> phase: &#39;l&#39;, T: 300.00 K, P: 101325 Pa</span>
+<span class="go"> flow (kmol/hr): Ethanol   1</span>
+<span class="go">                 Water     2</span>
+</pre></div>
+</div>
+<p><strong>Create a Unit class</strong> passing an ID, IDs for output streams, and any key word arguments specific to the Unit:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam.Units</span> <span class="kn">import</span> <span class="n">Flash</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Specify vapor fraction and pressure conditions</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">F1</span> <span class="o">=</span> <span class="n">Flash</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;F1&#39;</span><span class="p">,</span> <span class="n">outs_ID</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;vapor&#39;</span><span class="p">,</span> <span class="s1">&#39;liquid&#39;</span><span class="p">),</span> <span class="n">V</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Set the input streams</strong>, and check connections as a Graphviz diagram:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">F1</span><span class="o">.</span><span class="n">ins</span> <span class="o">=</span> <span class="n">s1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">F1</span><span class="o">.</span><span class="n">diagram</span>
+</pre></div>
+</div>
+<div class="figure">
+<img alt="_images/F1_flash.png" src="_images/F1_flash.png" />
+</div>
+<p><strong>Run the unit</strong> and see the results:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">F1</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">F1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="go">Flash: F1</span>
+<span class="go">ins...</span>
+<span class="go">[0] s1</span>
+<span class="go">    phase: &#39;l&#39;, T: 300.00 K, P: 101325 Pa</span>
+<span class="go">    flow (kmol/hr): Ethanol   1</span>
+<span class="go">                    Water     2</span>
+<span class="go">outs...</span>
+<span class="go">[0] vapor</span>
+<span class="go">    phase: &#39;g&#39;, T: 357.20 K, P: 101325 Pa</span>
+<span class="go">    flow (kmol/hr): Ethanol   0.761</span>
+<span class="go">                    Water     0.739</span>
+<span class="go">[1] liquid</span>
+<span class="go">    phase: &#39;l&#39;, T: 357.20 K, P: 101325 Pa</span>
+<span class="go">    flow (kmol/hr): Ethanol   0.239</span>
+<span class="go">                    Water     1.26</span>
+</pre></div>
+</div>
+<p>For a more detailed example check out <a class="reference internal" href="Tutorial.html"><span class="doc">Tutorial</span></a>.</p>
+</div>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<div class="figure" id="id1">
+<img alt="_images/UML.png" src="_images/UML.png" />
+<p class="caption"><span class="caption-text"><strong>Figure 1.</strong> A simplified  Unified Modeling Language (UML) class diagram depicts the core classes of BioSTEAM. Only main attributes and methods are included. In aggregation relationships, the labels represent where the aggregates are stored.</span></p>
+</div>
+<p><strong>Classes</strong>:</p>
+<p><a class="reference internal" href="Chemical.html"><span class="doc">Chemical</span></a>: A thermo.Chemical object from the Chemical Engineering Design Library (ChEDL) with minor extensions for compatibility. It contains pure component transport and thermodynamic properties.</p>
+<p><a class="reference internal" href="Specie.html"><span class="doc">Specie</span></a>: Contains user specified pure component transport and thermodynamic information.</p>
+<p><a class="reference internal" href="Species.html"><span class="doc">Species</span></a>: Contains Specie and Chemical objects.</p>
+<p><a class="reference internal" href="Stream.html"><span class="doc">Stream</span></a>: Used to pass material information between units. Stream properties are calculated using ideal mixture rules and pure component data from the Species object.</p>
+<p><a class="reference internal" href="MixedStream.html"><span class="doc">MixedStream</span></a>: An extension of the Stream class that can handle multi-phase flow with phase equilibria.</p>
+<p><a class="reference internal" href="Unit.html"><span class="doc">Unit</span></a>: A base class with an abstract ‘run’ method that changes output streams given parameters and input streams. Other abstract methods including ‘operation’, ‘design’, and ‘cost’ are used after process simulation for design and costing.</p>
+<p><a class="reference internal" href="HeatUtility.html"><span class="doc">HeatUtility</span></a>: Takes care of finding utility requirements for Unit objects.</p>
+<p><a class="reference internal" href="System.html"><span class="doc">System</span></a>: Iteratively runs a network, ‘net’, of units until the recycle stream converges. When a network contains a system, it converges the inner system first and then continues running the remaining elements.</p>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+<li><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Specie.html" title="Specie"
+             >next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">BioSTEAM 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>

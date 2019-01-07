@@ -1,0 +1,612 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Tutorial"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Thermodynamic and material properties are handled by the Species object"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Initiallize a Species object with a list of IDs:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Species:\n",
+      " [Water, Ethanol, Methanol]\n"
+     ]
+    }
+   ],
+   "source": [
+    "from biosteam import Species\n",
+    "sp = Species('Water', 'Ethanol', 'Methanol')\n",
+    "sp.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Species objects have Chemical objects as attributes."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Chemical: Water\n",
+      " phase: 'l', T: 298.15 K, P: 101325 Pa\n"
+     ]
+    }
+   ],
+   "source": [
+    "sp.Water.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Chemical objects contain thermodynamic properties at the given phase, temperature (T), and pressure (P):"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "997.0247522552814"
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "sp.Water.rho # (kg/m3)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "These properties are dependent on temperature (T), pressure (P) and phase:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "971.4427816206321"
+      ]
+     },
+     "execution_count": 4,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "sp.Water.T = 350 # (Kelvin)\n",
+    "sp.Water.rho # (kg/m3)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Material flows are handled by the Stream object"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "First set the working species of all Stream objects:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from biosteam import Stream\n",
+    "Stream.species = sp # From before"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "A Stream is initialized with an ID, flow rates, temperature, pressure and phase:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Stream: fresh\n",
+      " phase: 'l', T: 300 K, P: 101325 Pa\n",
+      " flow (kmol/hr): Water     200\n",
+      "                 Ethanol   156\n",
+      "                 Methanol  337\n"
+     ]
+    }
+   ],
+   "source": [
+    "fresh = Stream(ID='fresh', flow=[1,2,3], units='kg/s', T=300, P=101325)\n",
+    "fresh.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Stream objects contain T, P, and phase dependent properties:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "111074.28067342789"
+      ]
+     },
+     "execution_count": 7,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "fresh.H # kJ/hr with reference at STP"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Unit processes are found in the Units subpackage"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Units are initialized with an ID, and unit specific arguments:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from biosteam.Units import Flash\n",
+    "F1 = Flash('F1', V=0.5, P=101325) # Specify vapor fraction and isobaric conditions"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Set input streams 'ins':"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Flash: F1\n",
+      "\u001b[37m\u001b[2mins...\u001b[0m\n",
+      "[0] fresh\n",
+      "    phase: 'l', T: 300 K, P: 101325 Pa\n",
+      "    flow (kmol/hr): Water     200\n",
+      "                    Ethanol   156\n",
+      "                    Methanol  337\n",
+      "\u001b[37m\u001b[2mouts...\u001b[0m\n",
+      "[0] d1\n",
+      "    phase: 'g', T: 298.15 K, P: 101325 Pa\n",
+      "    flows:  0\n",
+      "[1] d2\n",
+      "    phase: 'l', T: 298.15 K, P: 101325 Pa\n",
+      "    flows:  0\n"
+     ]
+    }
+   ],
+   "source": [
+    "F1.ins = fresh\n",
+    "F1.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "To simulate the flash, use the 'run' method:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Flash: F1\n",
+      "\u001b[37m\u001b[2mins...\u001b[0m\n",
+      "[0] fresh\n",
+      "    phase: 'l', T: 300 K, P: 101325 Pa\n",
+      "    flow (kmol/hr): Water     200\n",
+      "                    Ethanol   156\n",
+      "                    Methanol  337\n",
+      "\u001b[37m\u001b[2mouts...\u001b[0m\n",
+      "[0] d1\n",
+      "    phase: 'g', T: 348.27 K, P: 101325 Pa\n",
+      "    flow (kmol/hr): Water     156\n",
+      "                    Ethanol   142\n",
+      "                    Methanol  311\n",
+      "[1] d2\n",
+      "    phase: 'l', T: 348.27 K, P: 101325 Pa\n",
+      "    flow (kmol/hr): Water     43.8\n",
+      "                    Ethanol   14.4\n",
+      "                    Methanol  26\n"
+     ]
+    }
+   ],
+   "source": [
+    "F1.run()\n",
+    "F1.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Recycle loops and process specifications are handled by System objects"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Create a Mixer object and a Splitter object:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [],
+   "source": [
+    "from biosteam.Units import Mixer, Splitter\n",
+    "M1 = Mixer('M1')\n",
+    "S1 = Splitter('S1', split=0.5) # Split to 0th output stream"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Connect streams and make a recycle loop using \"Pipe\" notation:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "S1"
+      ]
+     },
+     "execution_count": 12,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "[S1-0, fresh]-M1    # M1.ins = [S1.outs[0], fresh]\n",
+    "M1-F1             # F1.ins = M1.outs\n",
+    "F1-1-S1           # S1.ins = F1.outs[1]"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Create System object by specifying an ID, a recycle stream and a network, 'net', of units:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "System: sys1\n",
+      " Recycle: S1-0\n",
+      " Network: (M1, F1, S1)\n",
+      " Convergence Error: mol=0.00e+00, T=0.00e+00\n",
+      " Iterations: 0\n"
+     ]
+    }
+   ],
+   "source": [
+    "from biosteam import System\n",
+    "sys1 = System('sys1', network=(M1, F1, S1), recycle=S1-0) # recycle=S1.outs[0]\n",
+    "sys1.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "View the System object as a Graphviz diagram:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "image/svg+xml": [
+       "<svg height=\"261pt\" viewBox=\"0.00 0.00 487.20 261.24\" width=\"487pt\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n",
+       "<g class=\"graph\" id=\"graph0\" transform=\"scale(1 1) rotate(0) translate(4 257.24)\">\n",
+       "<title>diagram</title>\n",
+       "<polygon fill=\"white\" points=\"-4,4 -4,-257.24 483.203,-257.24 483.203,4 -4,4\" stroke=\"none\"/>\n",
+       "<!-- F1\n",
+       "Flash&#45;&gt;S1\n",
+       "Splitter -->\n",
+       "<g class=\"edge\" id=\"edge2\"><title>F1\n",
+       "Flash:s-&gt;S1\n",
+       "Splitter:w</title>\n",
+       "<path d=\"M36,-88.7401C36,-50.4807 74.191,-52.9698 112.697,-53.6357\" fill=\"none\" stroke=\"black\"/>\n",
+       "<polygon fill=\"black\" points=\"112.965,-57.1385 123,-53.7401 113.036,-50.1388 112.965,-57.1385\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"97.5\" y=\"-57.5401\">d2</text>\n",
+       "</g>\n",
+       "<!-- F1\n",
+       "Flash&#45;&gt;d1 -->\n",
+       "<g class=\"edge\" id=\"edge1\"><title>F1\n",
+       "Flash:n-&gt;d1:w</title>\n",
+       "<path d=\"M36,-170.74C36,-239.917 110.019,-231.74 179.196,-231.74\" fill=\"none\" stroke=\"black\"/>\n",
+       "</g>\n",
+       "<!-- M1\n",
+       "Mixer&#45;&gt;F1\n",
+       "Flash -->\n",
+       "<g class=\"edge\" id=\"edge3\"><title>M1\n",
+       "Mixer:e-&gt;F1\n",
+       "Flash:c</title>\n",
+       "<path d=\"M471.688,-134.74C483.633,-134.74 479.212,-180.113 470.688,-188.48 426.824,-231.536 387.167,-216.367 332.392,-188.48 320.274,-182.311 323.642,-173.707 314.392,-163.74 301.308,-149.641 299.366,-142.589 281.392,-135.74 215.718,-110.714 132.751,-115.553 82.3404,-122.093\" fill=\"none\" stroke=\"black\"/>\n",
+       "<polygon fill=\"black\" points=\"81.8314,-118.63 72.4014,-123.459 82.785,-125.564 81.8314,-118.63\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"202.196\" y=\"-140.54\">d4</text>\n",
+       "</g>\n",
+       "<!-- S1\n",
+       "Splitter&#45;&gt;M1\n",
+       "Mixer -->\n",
+       "<g class=\"edge\" id=\"edge4\"><title>S1\n",
+       "Splitter:c-&gt;M1\n",
+       "Mixer:c</title>\n",
+       "<path d=\"M242.214,-69.7431C275.506,-83.3975 323.306,-103.002 357.692,-117.105\" fill=\"none\" stroke=\"black\"/>\n",
+       "<polygon fill=\"black\" points=\"356.431,-120.371 367.012,-120.928 359.088,-113.895 356.431,-120.371\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"306.892\" y=\"-103.54\">d5</text>\n",
+       "</g>\n",
+       "<!-- S1\n",
+       "Splitter&#45;&gt;d6 -->\n",
+       "<g class=\"edge\" id=\"edge5\"><title>S1\n",
+       "Splitter:c-&gt;d6:w</title>\n",
+       "<path d=\"M242.22,-51.9914C277.777,-50.5495 331.749,-48.7401 378.688,-48.7401\" fill=\"none\" stroke=\"black\"/>\n",
+       "</g>\n",
+       "<!-- fresh&#45;&gt;M1\n",
+       "Mixer -->\n",
+       "<g class=\"edge\" id=\"edge6\"><title>fresh:e-&gt;M1\n",
+       "Mixer:c</title>\n",
+       "<path d=\"M225.196,-177.74C275.7,-177.74 332.09,-160.733 366.988,-148.11\" fill=\"none\" stroke=\"black\"/>\n",
+       "</g>\n",
+       "<!-- F1\n",
+       "Flash -->\n",
+       "<g class=\"node\" id=\"node1\"><title>F1\n",
+       "Flash</title>\n",
+       "<defs>\n",
+       "<linearGradient gradientUnits=\"userSpaceOnUse\" id=\"l_0\" x1=\"0\" x2=\"72\" y1=\"-129.74\" y2=\"-129.74\">\n",
+       "<stop offset=\"0\" style=\"stop-color:white;stop-opacity:1.;\"/>\n",
+       "<stop offset=\"1\" style=\"stop-color:#cdcdcd;stop-opacity:1.;\"/>\n",
+       "</linearGradient>\n",
+       "</defs>\n",
+       "<polygon fill=\"url(#l_0)\" points=\"72,-169.24 0,-169.24 0,-90.2401 72,-90.2401 72,-169.24\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"36\" y=\"-133.54\">F1</text>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"36\" y=\"-118.54\">Flash</text>\n",
+       "</g>\n",
+       "<!-- M1\n",
+       "Mixer -->\n",
+       "<g class=\"node\" id=\"node2\"><title>M1\n",
+       "Mixer</title>\n",
+       "<defs>\n",
+       "<linearGradient gradientUnits=\"userSpaceOnUse\" id=\"l_1\" x1=\"367.142\" x2=\"470.782\" y1=\"-134.74\" y2=\"-134.74\">\n",
+       "<stop offset=\"0\" style=\"stop-color:white;stop-opacity:1.;\"/>\n",
+       "<stop offset=\"1\" style=\"stop-color:#cdcdcd;stop-opacity:1.;\"/>\n",
+       "</linearGradient>\n",
+       "</defs>\n",
+       "<polygon fill=\"url(#l_1)\" points=\"470.782,-134.74 367.142,-188.721 367.142,-80.7588 470.782,-134.74\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"401.688\" y=\"-138.54\">M1</text>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"401.688\" y=\"-123.54\">Mixer</text>\n",
+       "</g>\n",
+       "<!-- S1\n",
+       "Splitter -->\n",
+       "<g class=\"node\" id=\"node3\"><title>S1\n",
+       "Splitter</title>\n",
+       "<defs>\n",
+       "<linearGradient gradientUnits=\"userSpaceOnUse\" id=\"l_2\" x1=\"122.804\" x2=\"241.892\" y1=\"-53.7401\" y2=\"-53.7401\">\n",
+       "<stop offset=\"0\" style=\"stop-color:#bfbfbf;stop-opacity:1.;\"/>\n",
+       "<stop offset=\"1\" style=\"stop-color:white;stop-opacity:1.;\"/>\n",
+       "</linearGradient>\n",
+       "</defs>\n",
+       "<polygon fill=\"url(#l_2)\" points=\"122.804,-53.7401 241.892,0.241193 241.892,-107.721 122.804,-53.7401\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"202.196\" y=\"-57.5401\">S1</text>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"202.196\" y=\"-42.5401\">Splitter</text>\n",
+       "</g>\n",
+       "<!-- d1 -->\n",
+       "<g class=\"node\" id=\"node4\"><title>d1</title>\n",
+       "<polygon fill=\"#79dae8\" points=\"205.696,-247.24 180.696,-247.24 180.696,-216.24 205.696,-216.24 205.696,-210.24 223.696,-231.74 205.696,-253.24 205.696,-247.24\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"202.196\" y=\"-228.04\">d1</text>\n",
+       "</g>\n",
+       "<!-- d6 -->\n",
+       "<g class=\"node\" id=\"node5\"><title>d6</title>\n",
+       "<polygon fill=\"#79dae8\" points=\"405.188,-64.2401 380.188,-64.2401 380.188,-33.2401 405.188,-33.2401 405.188,-27.2401 423.188,-48.7401 405.188,-70.2401 405.188,-64.2401\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"401.688\" y=\"-45.0401\">d6</text>\n",
+       "</g>\n",
+       "<!-- fresh -->\n",
+       "<g class=\"node\" id=\"node6\"><title>fresh</title>\n",
+       "<polygon fill=\"#79dae8\" points=\"206.196,-193.24 180.196,-193.24 180.196,-162.24 206.196,-162.24 206.196,-156.24 224.196,-177.74 206.196,-199.24 206.196,-193.24\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"202.196\" y=\"-174.04\">fresh</text>\n",
+       "</g>\n",
+       "</g>\n",
+       "</svg>"
+      ],
+      "text/plain": [
+       "<IPython.core.display.SVG object>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "sys1.diagram"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Converge the System object:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "System: sys1\n",
+      " Recycle: S1-0\n",
+      " Network: (M1, F1, S1)\n",
+      " Convergence Error: mol=2.42e-01, T=7.26e-02\n",
+      " Iterations: 3\n"
+     ]
+    }
+   ],
+   "source": [
+    "sys1.converge()\n",
+    "sys1.show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Stream: d5  from  S1.outs[0]  to  M1.ins[0]\n",
+      " phase: 'l', T: 348.77 K, P: 101325 Pa\n",
+      " flow (kmol/hr): Water     24.2\n",
+      "                 Ethanol   6.88\n",
+      "                 Methanol  12.7\n"
+     ]
+    }
+   ],
+   "source": [
+    "S1.outs[0].show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.6.5"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}

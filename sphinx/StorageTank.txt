@@ -1,0 +1,7 @@
+StorageTank
+===========
+
+.. module:: biosteam
+
+.. autoclass:: StorageTank
+   :members:

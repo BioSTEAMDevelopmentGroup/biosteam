@@ -1,0 +1,590 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from biosteam import LookUp, Species, Stream, System, MassBalance\n",
+    "from biosteam.Units import Mixer, Splitter, Tank, Pump, Flash"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "Stream.species = Species('Ethanol', 'Water')\n",
+    "LookUp.check_IDconflict = False"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Stream: water\n",
+      " phase: 'l', T: 350.00 K, P: 101325 Pa\n",
+      " mol (kmol/hr): Water   90.6\n"
+     ]
+    }
+   ],
+   "source": [
+    "water = Stream('water',\n",
+    "               flow=[1],\n",
+    "               species=['Water'],\n",
+    "               units='lb/s',\n",
+    "               T=350, P=101325)\n",
+    "water.show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Stream: ethanol\n",
+      " phase: 'l', T: 300.00 K, P: 101325 Pa\n",
+      " mol (kmol/hr): Ethanol   90\n",
+      "                Water     10\n"
+     ]
+    }
+   ],
+   "source": [
+    "ethanol = Stream('ethanol',\n",
+    "                 flow=[90, 10],\n",
+    "                 T=300, P=101325)\n",
+    "ethanol.show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Stream: target\n",
+      " phase: 'l', T: 298.15 K, P: 101325 Pa\n",
+      " mol (kmol/hr): Ethanol   50\n",
+      "                Water     50\n"
+     ]
+    }
+   ],
+   "source": [
+    "target = Stream('target', flow=[50, 50])\n",
+    "target.show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "T1 = Tank('T1'); T2 = Tank('T2')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "P1 = Pump('P1', P=101325); P2 = Pump('P2', P=101325)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "M1 = Mixer('M1'); S1 = Splitter('S1', split=0.5)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "F1 = Flash('F1',\n",
+    "           species_ID=['Ethanol', 'Water'],\n",
+    "           V=0.5, P =101325)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "MB1 = MassBalance('MB1', streams=[0,1], species=['Ethanol', 'Water'])\n",
+    "MB1.ins = [water, ethanol, S1-0]\n",
+    "MB1.outs = [target]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 11,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "water-T1-P1\n",
+    "ethanol-T2-P2\n",
+    "[P1-0, P2-0, S1-0]-M1-F1-1-S1\n",
+    "mixSys = System('mixSys',\n",
+    "               recycle = S1-0,\n",
+    "               net = [MB1, T1, P1, T2, P2, M1, F1, S1])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 12,
+   "metadata": {
+    "scrolled": false
+   },
+   "outputs": [
+    {
+     "data": {
+      "image/svg+xml": [
+       "<svg height=\"195pt\" viewBox=\"0.00 0.00 382.00 195.00\" width=\"382pt\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n",
+       "<g class=\"graph\" id=\"graph0\" transform=\"scale(1 1) rotate(0) translate(4 191)\">\n",
+       "<title>unit</title>\n",
+       "<polygon fill=\"white\" points=\"-4,4 -4,-191 378,-191 378,4 -4,4\" stroke=\"none\"/>\n",
+       "<!-- MB1\n",
+       "MassBalance&#45;&gt;target -->\n",
+       "<g class=\"edge\" id=\"edge4\"><title>MB1\n",
+       "MassBalance:c-&gt;target:w</title>\n",
+       "<path d=\"M237.055,-93.5C262.106,-93.5 294.059,-93.5 322.5,-93.5\" fill=\"none\" stroke=\"black\"/>\n",
+       "</g>\n",
+       "<!-- water&#45;&gt;MB1\n",
+       "MassBalance -->\n",
+       "<g class=\"edge\" id=\"edge1\"><title>water:e-&gt;MB1\n",
+       "MassBalance:c</title>\n",
+       "<path d=\"M59,-165.5C101.55,-165.5 143.429,-136.31 168.242,-115.102\" fill=\"none\" stroke=\"black\"/>\n",
+       "</g>\n",
+       "<!-- ethanol&#45;&gt;MB1\n",
+       "MassBalance -->\n",
+       "<g class=\"edge\" id=\"edge2\"><title>ethanol:e-&gt;MB1\n",
+       "MassBalance:c</title>\n",
+       "<path d=\"M62,-93.5C90.2188,-93.5 121.91,-93.5 146.819,-93.5\" fill=\"none\" stroke=\"black\"/>\n",
+       "</g>\n",
+       "<!-- d6&#45;&gt;MB1\n",
+       "MassBalance -->\n",
+       "<g class=\"edge\" id=\"edge3\"><title>d6:e-&gt;MB1\n",
+       "MassBalance:c</title>\n",
+       "<path d=\"M57,-21.5C100.047,-21.5 142.602,-50.6896 167.839,-71.8976\" fill=\"none\" stroke=\"black\"/>\n",
+       "</g>\n",
+       "<!-- MB1\n",
+       "MassBalance -->\n",
+       "<g class=\"node\" id=\"node1\"><title>MB1\n",
+       "MassBalance</title>\n",
+       "<polygon fill=\"#f0f0f0\" points=\"231,-115 147,-115 147,-72 237,-72 237,-109 231,-115\" stroke=\"black\"/>\n",
+       "<polyline fill=\"none\" points=\"231,-115 231,-109 \" stroke=\"black\"/>\n",
+       "<polyline fill=\"none\" points=\"237,-109 231,-109 \" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"192\" y=\"-97.3\">MB1</text>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"192\" y=\"-82.3\">MassBalance</text>\n",
+       "</g>\n",
+       "<!-- water -->\n",
+       "<g class=\"node\" id=\"node2\"><title>water</title>\n",
+       "<polygon fill=\"#79dae8\" points=\"39.5,-181 10.5,-181 10.5,-150 39.5,-150 39.5,-144 57.5,-165.5 39.5,-187 39.5,-181\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"34\" y=\"-161.8\">water</text>\n",
+       "</g>\n",
+       "<!-- ethanol -->\n",
+       "<g class=\"node\" id=\"node3\"><title>ethanol</title>\n",
+       "<polygon fill=\"#79dae8\" points=\"44,-109 6,-109 6,-78 44,-78 44,-72 62,-93.5 44,-115 44,-109\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"34\" y=\"-89.8\">ethanol</text>\n",
+       "</g>\n",
+       "<!-- d6 -->\n",
+       "<g class=\"node\" id=\"node4\"><title>d6</title>\n",
+       "<polygon fill=\"#79dae8\" points=\"37.5,-37 12.5,-37 12.5,-6 37.5,-6 37.5,-0 55.5,-21.5 37.5,-43 37.5,-37\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"34\" y=\"-17.8\">d6</text>\n",
+       "</g>\n",
+       "<!-- target -->\n",
+       "<g class=\"node\" id=\"node5\"><title>target</title>\n",
+       "<polygon fill=\"#79dae8\" points=\"351.5,-109 322.5,-109 322.5,-78 351.5,-78 351.5,-72 369.5,-93.5 351.5,-115 351.5,-109\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"346\" y=\"-89.8\">target</text>\n",
+       "</g>\n",
+       "</g>\n",
+       "</svg>"
+      ],
+      "text/plain": [
+       "<IPython.core.display.SVG object>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "data": {
+      "image/svg+xml": [
+       "<svg height=\"315pt\" viewBox=\"0.00 0.00 580.20 315.24\" width=\"580pt\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n",
+       "<g class=\"graph\" id=\"graph0\" transform=\"scale(1 1) rotate(0) translate(4 311.24)\">\n",
+       "<title>diagram</title>\n",
+       "<polygon fill=\"white\" points=\"-4,4 -4,-311.24 576.203,-311.24 576.203,4 -4,4\" stroke=\"none\"/>\n",
+       "<!-- F1\n",
+       "Flash&#45;&gt;S1\n",
+       "Splitter -->\n",
+       "<g class=\"edge\" id=\"edge9\"><title>F1\n",
+       "Flash:s-&gt;S1\n",
+       "Splitter:w</title>\n",
+       "<path d=\"M129,-88.7401C129,-50.4807 167.191,-52.9698 205.697,-53.6357\" fill=\"none\" stroke=\"black\"/>\n",
+       "<polygon fill=\"black\" points=\"205.965,-57.1385 216,-53.7401 206.036,-50.1388 205.965,-57.1385\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"190.5\" y=\"-57.5401\">d9</text>\n",
+       "</g>\n",
+       "<!-- F1\n",
+       "Flash&#45;&gt;d8 -->\n",
+       "<g class=\"edge\" id=\"edge8\"><title>F1\n",
+       "Flash:n-&gt;d8:w</title>\n",
+       "<path d=\"M129,-170.74C129,-234.459 208.477,-177.74 272.196,-177.74\" fill=\"none\" stroke=\"black\"/>\n",
+       "</g>\n",
+       "<!-- M1\n",
+       "Mixer&#45;&gt;F1\n",
+       "Flash -->\n",
+       "<g class=\"edge\" id=\"edge5\"><title>M1\n",
+       "Mixer:e-&gt;F1\n",
+       "Flash:c</title>\n",
+       "<path d=\"M564.688,-165.74C576.633,-165.74 572.212,-211.113 563.688,-219.48 519.824,-262.536 478.979,-249.587 425.392,-219.48 415.894,-214.144 383.824,-141.192 374.392,-135.74 341.741,-116.865 236.643,-121.305 175.421,-125.785\" fill=\"none\" stroke=\"black\"/>\n",
+       "<polygon fill=\"black\" points=\"174.964,-122.31 165.259,-126.559 175.496,-129.29 174.964,-122.31\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"295.196\" y=\"-140.54\">d5</text>\n",
+       "</g>\n",
+       "<!-- P1\n",
+       "Pump&#45;&gt;M1\n",
+       "Mixer -->\n",
+       "<g class=\"edge\" id=\"edge3\"><title>P1\n",
+       "Pump:c-&gt;M1\n",
+       "Mixer:c</title>\n",
+       "<path d=\"M320.317,-279.647C336.229,-275.096 357.225,-268.058 374.392,-258.74 402.245,-243.621 430.348,-222.09 452.276,-203.551\" fill=\"none\" stroke=\"black\"/>\n",
+       "<polygon fill=\"black\" points=\"454.75,-206.041 460.064,-196.874 450.194,-200.726 454.75,-206.041\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"399.892\" y=\"-250.54\">d3</text>\n",
+       "</g>\n",
+       "<!-- P2\n",
+       "Pump&#45;&gt;M1\n",
+       "Mixer -->\n",
+       "<g class=\"edge\" id=\"edge4\"><title>P2\n",
+       "Pump:c-&gt;M1\n",
+       "Mixer:c</title>\n",
+       "<path d=\"M320.412,-223.647C352.697,-212.858 410.391,-193.577 450.286,-180.245\" fill=\"none\" stroke=\"black\"/>\n",
+       "<polygon fill=\"black\" points=\"451.644,-183.481 460.019,-176.992 449.425,-176.842 451.644,-183.481\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"399.892\" y=\"-202.54\">d4</text>\n",
+       "</g>\n",
+       "<!-- S1\n",
+       "Splitter&#45;&gt;M1\n",
+       "Mixer -->\n",
+       "<g class=\"edge\" id=\"edge6\"><title>S1\n",
+       "Splitter:c-&gt;M1\n",
+       "Mixer:c</title>\n",
+       "<path d=\"M335.03,-70.4628C356.736,-80.2498 384.038,-93.2989 407.392,-106.74 422.242,-115.287 437.875,-125.554 451.694,-135.109\" fill=\"none\" stroke=\"black\"/>\n",
+       "<polygon fill=\"black\" points=\"449.84,-138.084 460.041,-140.946 453.851,-132.347 449.84,-138.084\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"399.892\" y=\"-110.54\">d6</text>\n",
+       "</g>\n",
+       "<!-- S1\n",
+       "Splitter&#45;&gt;d7 -->\n",
+       "<g class=\"edge\" id=\"edge7\"><title>S1\n",
+       "Splitter:c-&gt;d7:w</title>\n",
+       "<path d=\"M335.229,-53.7401C370.792,-53.7401 424.769,-53.7401 471.688,-53.7401\" fill=\"none\" stroke=\"black\"/>\n",
+       "</g>\n",
+       "<!-- T1\n",
+       "Tank&#45;&gt;P1\n",
+       "Pump -->\n",
+       "<g class=\"edge\" id=\"edge1\"><title>T1\n",
+       "Tank:c-&gt;P1\n",
+       "Pump:c</title>\n",
+       "<path d=\"M151.804,-285.74C179.392,-285.74 227.225,-285.74 259.768,-285.74\" fill=\"none\" stroke=\"black\"/>\n",
+       "<polygon fill=\"black\" points=\"260.167,-289.24 270.167,-285.74 260.167,-282.24 260.167,-289.24\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"190.5\" y=\"-289.54\">d1</text>\n",
+       "</g>\n",
+       "<!-- T2\n",
+       "Tank&#45;&gt;P2\n",
+       "Pump -->\n",
+       "<g class=\"edge\" id=\"edge2\"><title>T2\n",
+       "Tank:c-&gt;P2\n",
+       "Pump:c</title>\n",
+       "<path d=\"M151.804,-231.74C179.392,-231.74 227.225,-231.74 259.768,-231.74\" fill=\"none\" stroke=\"black\"/>\n",
+       "<polygon fill=\"black\" points=\"260.167,-235.24 270.167,-231.74 260.167,-228.24 260.167,-235.24\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"190.5\" y=\"-235.54\">d2</text>\n",
+       "</g>\n",
+       "<!-- ethanol&#45;&gt;T2\n",
+       "Tank -->\n",
+       "<g class=\"edge\" id=\"edge10\"><title>ethanol:e-&gt;T2\n",
+       "Tank:c</title>\n",
+       "<path d=\"M56,-231.74C72.875,-231.74 91.9747,-231.74 106.26,-231.74\" fill=\"none\" stroke=\"black\"/>\n",
+       "</g>\n",
+       "<!-- water&#45;&gt;T1\n",
+       "Tank -->\n",
+       "<g class=\"edge\" id=\"edge11\"><title>water:e-&gt;T1\n",
+       "Tank:c</title>\n",
+       "<path d=\"M53,-285.74C70.9688,-285.74 91.3591,-285.74 106.339,-285.74\" fill=\"none\" stroke=\"black\"/>\n",
+       "</g>\n",
+       "<!-- F1\n",
+       "Flash -->\n",
+       "<g class=\"node\" id=\"node1\"><title>F1\n",
+       "Flash</title>\n",
+       "<defs>\n",
+       "<linearGradient gradientUnits=\"userSpaceOnUse\" id=\"l_0\" x1=\"93\" x2=\"165\" y1=\"-129.74\" y2=\"-129.74\">\n",
+       "<stop offset=\"0\" style=\"stop-color:white;stop-opacity:1.;\"/>\n",
+       "<stop offset=\"1\" style=\"stop-color:#cdcdcd;stop-opacity:1.;\"/>\n",
+       "</linearGradient>\n",
+       "</defs>\n",
+       "<polygon fill=\"url(#l_0)\" points=\"165,-169.24 93,-169.24 93,-90.2401 165,-90.2401 165,-169.24\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"129\" y=\"-133.54\">F1</text>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"129\" y=\"-118.54\">Flash</text>\n",
+       "</g>\n",
+       "<!-- M1\n",
+       "Mixer -->\n",
+       "<g class=\"node\" id=\"node2\"><title>M1\n",
+       "Mixer</title>\n",
+       "<defs>\n",
+       "<linearGradient gradientUnits=\"userSpaceOnUse\" id=\"l_1\" x1=\"460.142\" x2=\"563.782\" y1=\"-165.74\" y2=\"-165.74\">\n",
+       "<stop offset=\"0\" style=\"stop-color:white;stop-opacity:1.;\"/>\n",
+       "<stop offset=\"1\" style=\"stop-color:#cdcdcd;stop-opacity:1.;\"/>\n",
+       "</linearGradient>\n",
+       "</defs>\n",
+       "<polygon fill=\"url(#l_1)\" points=\"563.782,-165.74 460.142,-219.721 460.142,-111.759 563.782,-165.74\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"494.688\" y=\"-169.54\">M1</text>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"494.688\" y=\"-154.54\">Mixer</text>\n",
+       "</g>\n",
+       "<!-- P1\n",
+       "Pump -->\n",
+       "<g class=\"node\" id=\"node3\"><title>P1\n",
+       "Pump</title>\n",
+       "<defs>\n",
+       "<linearGradient gradientUnits=\"userSpaceOnUse\" id=\"l_2\" x1=\"270.196\" x2=\"320.196\" y1=\"-285.74\" y2=\"-285.74\">\n",
+       "<stop offset=\"0\" style=\"stop-color:white;stop-opacity:1.;\"/>\n",
+       "<stop offset=\"1\" style=\"stop-color:#cdcdcd;stop-opacity:1.;\"/>\n",
+       "</linearGradient>\n",
+       "</defs>\n",
+       "<polygon fill=\"url(#l_2)\" points=\"320.196,-307.24 270.196,-307.24 270.196,-264.24 320.196,-264.24 320.196,-307.24\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"295.196\" y=\"-289.54\">P1</text>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"295.196\" y=\"-274.54\">Pump</text>\n",
+       "</g>\n",
+       "<!-- P2\n",
+       "Pump -->\n",
+       "<g class=\"node\" id=\"node4\"><title>P2\n",
+       "Pump</title>\n",
+       "<defs>\n",
+       "<linearGradient gradientUnits=\"userSpaceOnUse\" id=\"l_3\" x1=\"270.196\" x2=\"320.196\" y1=\"-231.74\" y2=\"-231.74\">\n",
+       "<stop offset=\"0\" style=\"stop-color:white;stop-opacity:1.;\"/>\n",
+       "<stop offset=\"1\" style=\"stop-color:#cdcdcd;stop-opacity:1.;\"/>\n",
+       "</linearGradient>\n",
+       "</defs>\n",
+       "<polygon fill=\"url(#l_3)\" points=\"320.196,-253.24 270.196,-253.24 270.196,-210.24 320.196,-210.24 320.196,-253.24\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"295.196\" y=\"-235.54\">P2</text>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"295.196\" y=\"-220.54\">Pump</text>\n",
+       "</g>\n",
+       "<!-- S1\n",
+       "Splitter -->\n",
+       "<g class=\"node\" id=\"node5\"><title>S1\n",
+       "Splitter</title>\n",
+       "<defs>\n",
+       "<linearGradient gradientUnits=\"userSpaceOnUse\" id=\"l_4\" x1=\"215.804\" x2=\"334.892\" y1=\"-53.7401\" y2=\"-53.7401\">\n",
+       "<stop offset=\"0\" style=\"stop-color:#bfbfbf;stop-opacity:1.;\"/>\n",
+       "<stop offset=\"1\" style=\"stop-color:white;stop-opacity:1.;\"/>\n",
+       "</linearGradient>\n",
+       "</defs>\n",
+       "<polygon fill=\"url(#l_4)\" points=\"215.804,-53.7401 334.892,0.241193 334.892,-107.721 215.804,-53.7401\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"295.196\" y=\"-57.5401\">S1</text>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"295.196\" y=\"-42.5401\">Splitter</text>\n",
+       "</g>\n",
+       "<!-- T1\n",
+       "Tank -->\n",
+       "<g class=\"node\" id=\"node6\"><title>T1\n",
+       "Tank</title>\n",
+       "<defs>\n",
+       "<linearGradient gradientUnits=\"userSpaceOnUse\" id=\"l_5\" x1=\"106.5\" x2=\"151.5\" y1=\"-285.74\" y2=\"-285.74\">\n",
+       "<stop offset=\"0\" style=\"stop-color:white;stop-opacity:1.;\"/>\n",
+       "<stop offset=\"1\" style=\"stop-color:#cdcdcd;stop-opacity:1.;\"/>\n",
+       "</linearGradient>\n",
+       "</defs>\n",
+       "<polygon fill=\"url(#l_5)\" points=\"151.5,-307.24 106.5,-307.24 106.5,-264.24 151.5,-264.24 151.5,-307.24\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"129\" y=\"-289.54\">T1</text>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"129\" y=\"-274.54\">Tank</text>\n",
+       "</g>\n",
+       "<!-- T2\n",
+       "Tank -->\n",
+       "<g class=\"node\" id=\"node7\"><title>T2\n",
+       "Tank</title>\n",
+       "<defs>\n",
+       "<linearGradient gradientUnits=\"userSpaceOnUse\" id=\"l_6\" x1=\"106.5\" x2=\"151.5\" y1=\"-231.74\" y2=\"-231.74\">\n",
+       "<stop offset=\"0\" style=\"stop-color:white;stop-opacity:1.;\"/>\n",
+       "<stop offset=\"1\" style=\"stop-color:#cdcdcd;stop-opacity:1.;\"/>\n",
+       "</linearGradient>\n",
+       "</defs>\n",
+       "<polygon fill=\"url(#l_6)\" points=\"151.5,-253.24 106.5,-253.24 106.5,-210.24 151.5,-210.24 151.5,-253.24\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"129\" y=\"-235.54\">T2</text>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"129\" y=\"-220.54\">Tank</text>\n",
+       "</g>\n",
+       "<!-- d7 -->\n",
+       "<g class=\"node\" id=\"node8\"><title>d7</title>\n",
+       "<polygon fill=\"#79dae8\" points=\"498.188,-69.2401 473.188,-69.2401 473.188,-38.2401 498.188,-38.2401 498.188,-32.2401 516.188,-53.7401 498.188,-75.2401 498.188,-69.2401\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"494.688\" y=\"-50.0401\">d7</text>\n",
+       "</g>\n",
+       "<!-- d8 -->\n",
+       "<g class=\"node\" id=\"node9\"><title>d8</title>\n",
+       "<polygon fill=\"#79dae8\" points=\"298.696,-193.24 273.696,-193.24 273.696,-162.24 298.696,-162.24 298.696,-156.24 316.696,-177.74 298.696,-199.24 298.696,-193.24\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"295.196\" y=\"-174.04\">d8</text>\n",
+       "</g>\n",
+       "<!-- ethanol -->\n",
+       "<g class=\"node\" id=\"node10\"><title>ethanol</title>\n",
+       "<polygon fill=\"#79dae8\" points=\"38,-247.24 3.55271e-015,-247.24 3.55271e-015,-216.24 38,-216.24 38,-210.24 56,-231.74 38,-253.24 38,-247.24\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"28\" y=\"-228.04\">ethanol</text>\n",
+       "</g>\n",
+       "<!-- water -->\n",
+       "<g class=\"node\" id=\"node11\"><title>water</title>\n",
+       "<polygon fill=\"#79dae8\" points=\"33.5,-301.24 4.5,-301.24 4.5,-270.24 33.5,-270.24 33.5,-264.24 51.5,-285.74 33.5,-307.24 33.5,-301.24\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"28\" y=\"-282.04\">water</text>\n",
+       "</g>\n",
+       "</g>\n",
+       "</svg>"
+      ],
+      "text/plain": [
+       "<IPython.core.display.SVG object>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    }
+   ],
+   "source": [
+    "mixSys.diagram"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "mixSys.converge()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 14,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "System: mixSys\n",
+      " Recycle: S1-0\n",
+      " Network: (MB1, T1, P1, T2, P2, M1, F1, S1)\n",
+      " Convergence Error: mol = 0.00e+00, T = 0.00e+00\n",
+      " Iterations: 2\n"
+     ]
+    }
+   ],
+   "source": [
+    "mixSys.show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 15,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "array([0., 0.])"
+      ]
+     },
+     "execution_count": 15,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "MB1.mol_in - MB1.mol_out"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Flash: F1\n",
+      "\u001b[37m\u001b[2mins...\u001b[0m\n",
+      "[0] d5  from  M1-0\n",
+      " phase: 'l', T: 325.85 K, P: 101325 Pa\n",
+      " mol (kmol/hr): Ethanol   50\n",
+      "                Water     50\n",
+      "\u001b[37m\u001b[2mouts...\u001b[0m\n",
+      "[0] d8\n",
+      " phase: 'g', T: 353.88 K, P: 101325 Pa\n",
+      " mol (kmol/hr): Ethanol   30.7\n",
+      "                Water     19.3\n",
+      "[1] d9  to  S1-0\n",
+      " phase: 'l', T: 353.88 K, P: 101325 Pa\n",
+      " mol (kmol/hr): Ethanol   19.3\n",
+      "                Water     30.7\n"
+     ]
+    }
+   ],
+   "source": [
+    "F1.show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.6.5"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}

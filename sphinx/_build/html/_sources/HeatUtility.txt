@@ -1,0 +1,9 @@
+HeatUtility
+===========
+
+HeatUtility objects take care of finding utility requirements.
+
+.. module:: biosteam
+
+.. autoclass:: HeatUtility
+   :members:

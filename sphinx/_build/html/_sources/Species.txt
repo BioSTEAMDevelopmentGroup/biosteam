@@ -1,0 +1,9 @@
+Species
+=======
+
+A Species object represents a ChEDL property package based on ideal mixture.
+
+.. module:: biosteam
+
+.. autoclass:: Species
+   :members:

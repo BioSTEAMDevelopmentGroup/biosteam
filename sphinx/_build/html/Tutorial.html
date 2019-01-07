@@ -1,0 +1,628 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Tutorial &#8212; BioSTEAM 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Tutorial</a><ul>
+<li><a class="reference internal" href="#Thermodynamic-and-material-properties-are-handled-by-the-Species-object">Thermodynamic and material properties are handled by the Species object</a></li>
+<li><a class="reference internal" href="#Material-flows-are-handled-by-the-Stream-object">Material flows are handled by the Stream object</a></li>
+<li><a class="reference internal" href="#Unit-processes-are-found-in-the-Units-subpackage">Unit processes are found in the Units subpackage</a></li>
+<li><a class="reference internal" href="#Recycle-loops-and-process-specifications-are-handled-by-System-objects">Recycle loops and process specifications are handled by System objects</a></li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/Tutorial.ipynb.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput,
+div.nbinput div.prompt,
+div.nbinput div.input_area,
+div.nbinput div[class*=highlight],
+div.nbinput div[class*=highlight] pre,
+div.nboutput,
+div.nbinput div.prompt,
+div.nbinput div.output_area,
+div.nboutput div[class*=highlight],
+div.nboutput div[class*=highlight] pre {
+    background: none;
+    border: none;
+    padding: 0 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+/* avoid gaps between output lines */
+div.nboutput div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput,
+div.nboutput {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput,
+    div.nboutput {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput div.prompt pre {
+    color: #303F9F;
+}
+
+/* output prompt */
+div.nboutput div.prompt pre {
+    color: #D84315;
+}
+
+/* all prompts */
+div.nbinput div.prompt,
+div.nboutput div.prompt {
+    min-width: 9ex;
+    padding-top: 0.4em;
+    padding-right: 0.4em;
+    text-align: right;
+    flex: 0;
+}
+@media (max-width: 540px) {
+    div.nbinput div.prompt,
+    div.nboutput div.prompt {
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput div.prompt.empty {
+        padding: 0;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput div.prompt pre,
+div.nboutput div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput div.input_area,
+div.nboutput div.output_area {
+    padding: 0.4em;
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput div.input_area,
+    div.nboutput div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput div.input_area {
+    border: 1px solid #cfcfcf;
+    border-radius: 2px;
+    background: #f7f7f7;
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.pngmath center alignment in output cells */
+div.nboutput div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+</style>
+<div class="section" id="Tutorial">
+<h1>Tutorial<a class="headerlink" href="#Tutorial" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="Thermodynamic-and-material-properties-are-handled-by-the-Species-object">
+<h2>Thermodynamic and material properties are handled by the Species object<a class="headerlink" href="#Thermodynamic-and-material-properties-are-handled-by-the-Species-object" title="Permalink to this headline">¶</a></h2>
+<p>Initiallize a Species object with a list of IDs:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Species</span>
+<span class="n">sp</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Methanol&#39;</span><span class="p">)</span>
+<span class="n">sp</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Species:
+ [Water, Ethanol, Methanol]
+</pre></div></div>
+</div>
+<p>Species objects have Chemical objects as attributes.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">sp</span><span class="o">.</span><span class="n">Water</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Chemical: Water
+ phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
+</pre></div></div>
+</div>
+<p>Chemical objects contain thermodynamic properties at the given phase,
+temperature (T), and pressure (P):</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">sp</span><span class="o">.</span><span class="n">Water</span><span class="o">.</span><span class="n">rho</span> <span class="c1"># (kg/m3)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[3]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>997.0247522552814
+</pre></div>
+</div>
+</div>
+<p>These properties are dependent on temperature (T), pressure (P) and
+phase:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">sp</span><span class="o">.</span><span class="n">Water</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="mi">350</span> <span class="c1"># (Kelvin)</span>
+<span class="n">sp</span><span class="o">.</span><span class="n">Water</span><span class="o">.</span><span class="n">rho</span> <span class="c1"># (kg/m3)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[4]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>971.4427816206321
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Material-flows-are-handled-by-the-Stream-object">
+<h2>Material flows are handled by the Stream object<a class="headerlink" href="#Material-flows-are-handled-by-the-Stream-object" title="Permalink to this headline">¶</a></h2>
+<p>First set the working species of all Stream objects:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Stream</span>
+<span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">sp</span> <span class="c1"># From before</span>
+</pre></div>
+</div>
+</div>
+<p>A Stream is initialized with an ID, flow rates, temperature, pressure
+and phase:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">fresh</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;fresh&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/s&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
+<span class="n">fresh</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Stream: fresh
+ phase: &#39;l&#39;, T: 300 K, P: 101325 Pa
+ flow (kmol/hr): Water     200
+                 Ethanol   156
+                 Methanol  337
+</pre></div></div>
+</div>
+<p>Stream objects contain T, P, and phase dependent properties:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">fresh</span><span class="o">.</span><span class="n">H</span> <span class="c1"># kJ/hr with reference at STP</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[7]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>111074.28067342789
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Unit-processes-are-found-in-the-Units-subpackage">
+<h2>Unit processes are found in the Units subpackage<a class="headerlink" href="#Unit-processes-are-found-in-the-Units-subpackage" title="Permalink to this headline">¶</a></h2>
+<p>Units are initialized with an ID, and unit specific arguments:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">biosteam.Units</span> <span class="k">import</span> <span class="n">Flash</span>
+<span class="n">F1</span> <span class="o">=</span> <span class="n">Flash</span><span class="p">(</span><span class="s1">&#39;F1&#39;</span><span class="p">,</span> <span class="n">V</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span> <span class="c1"># Specify vapor fraction and isobaric conditions</span>
+</pre></div>
+</div>
+</div>
+<p>Set input streams ‘ins’:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">F1</span><span class="o">.</span><span class="n">ins</span> <span class="o">=</span> <span class="n">fresh</span>
+<span class="n">F1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Flash: F1
+<span class="ansi-white-fg">ins...</span>
+[0] fresh
+    phase: &#39;l&#39;, T: 300 K, P: 101325 Pa
+    flow (kmol/hr): Water     200
+                    Ethanol   156
+                    Methanol  337
+<span class="ansi-white-fg">outs...</span>
+[0] d1
+    phase: &#39;g&#39;, T: 298.15 K, P: 101325 Pa
+    flows:  0
+[1] d2
+    phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
+    flows:  0
+</pre></div></div>
+</div>
+<p>To simulate the flash, use the ‘run’ method:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">F1</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+<span class="n">F1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Flash: F1
+<span class="ansi-white-fg">ins...</span>
+[0] fresh
+    phase: &#39;l&#39;, T: 300 K, P: 101325 Pa
+    flow (kmol/hr): Water     200
+                    Ethanol   156
+                    Methanol  337
+<span class="ansi-white-fg">outs...</span>
+[0] d1
+    phase: &#39;g&#39;, T: 348.27 K, P: 101325 Pa
+    flow (kmol/hr): Water     156
+                    Ethanol   142
+                    Methanol  311
+[1] d2
+    phase: &#39;l&#39;, T: 348.27 K, P: 101325 Pa
+    flow (kmol/hr): Water     43.8
+                    Ethanol   14.4
+                    Methanol  26
+</pre></div></div>
+</div>
+</div>
+<div class="section" id="Recycle-loops-and-process-specifications-are-handled-by-System-objects">
+<h2>Recycle loops and process specifications are handled by System objects<a class="headerlink" href="#Recycle-loops-and-process-specifications-are-handled-by-System-objects" title="Permalink to this headline">¶</a></h2>
+<p>Create a Mixer object and a Splitter object:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">biosteam.Units</span> <span class="k">import</span> <span class="n">Mixer</span><span class="p">,</span> <span class="n">Splitter</span>
+<span class="n">M1</span> <span class="o">=</span> <span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M1&#39;</span><span class="p">)</span>
+<span class="n">S1</span> <span class="o">=</span> <span class="n">Splitter</span><span class="p">(</span><span class="s1">&#39;S1&#39;</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span> <span class="c1"># Split to 0th output stream</span>
+</pre></div>
+</div>
+</div>
+<p>Connect streams and make a recycle loop using “Pipe” notation:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="p">[</span><span class="n">S1</span><span class="o">-</span><span class="mi">0</span><span class="p">,</span> <span class="n">fresh</span><span class="p">]</span><span class="o">-</span><span class="n">M1</span>    <span class="c1"># M1.ins = [S1.outs[0], fresh]</span>
+<span class="n">M1</span><span class="o">-</span><span class="n">F1</span>             <span class="c1"># F1.ins = M1.outs</span>
+<span class="n">F1</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">S1</span>           <span class="c1"># S1.ins = F1.outs[1]</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[12]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>S1
+</pre></div>
+</div>
+</div>
+<p>Create System object by specifying an ID, a recycle stream and a
+network, ‘net’, of units:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">System</span>
+<span class="n">sys1</span> <span class="o">=</span> <span class="n">System</span><span class="p">(</span><span class="s1">&#39;sys1&#39;</span><span class="p">,</span> <span class="n">network</span><span class="o">=</span><span class="p">(</span><span class="n">M1</span><span class="p">,</span> <span class="n">F1</span><span class="p">,</span> <span class="n">S1</span><span class="p">),</span> <span class="n">recycle</span><span class="o">=</span><span class="n">S1</span><span class="o">-</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># recycle=S1.outs[0]</span>
+<span class="n">sys1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+System: sys1
+ Recycle: S1-0
+ Network: (M1, F1, S1)
+ Convergence Error: mol=0.00e+00, T=0.00e+00
+ Iterations: 0
+</pre></div></div>
+</div>
+<p>View the System object as a Graphviz diagram:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">sys1</span><span class="o">.</span><span class="n">diagram</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Tutorial_32_0.svg" src="_images/Tutorial_32_0.svg" /></div>
+</div>
+<p>Converge the System object:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">sys1</span><span class="o">.</span><span class="n">converge</span><span class="p">()</span>
+<span class="n">sys1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+System: sys1
+ Recycle: S1-0
+ Network: (M1, F1, S1)
+ Convergence Error: mol=2.42e-01, T=7.26e-02
+ Iterations: 3
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">S1</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Stream: d5  from  S1.outs[0]  to  M1.ins[0]
+ phase: &#39;l&#39;, T: 348.77 K, P: 101325 Pa
+ flow (kmol/hr): Water     24.2
+                 Ethanol   6.88
+                 Methanol  12.7
+</pre></div></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>

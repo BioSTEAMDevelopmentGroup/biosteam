@@ -1,0 +1,13 @@
+pint
+scipy
+IPython
+thermo
+bookkeep
+colorpalette
+pandas
+cashflows
+numpy
+graphviz
+matplotlib
+openpyxl
+nbsphinx

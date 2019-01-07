@@ -1,0 +1,49 @@
+{description_info}
+     
+Arguments
+          
+     ID: str = ''
+         unique identification
+          
+     description: str = ''
+                  user description of unit
+     
+     outs_ID: list[str] = []
+              IDs of output streams
+
+     {kwargs_info}
+
+Instance Attributes
+     
+     kwargs: [dict] Default and user defined keyword arguments
+          
+     user_kwargs: [dict] User defined keyword arguments
+          
+     cached: [dict] Cached data
+
+          {cached_info}
+
+     components: [dict] Unit components
+
+          {components_info}
+
+     results: [dict] Key results 
+               
+          'Design': [dict] 
+
+	       {design_info}
+
+          'Operation': [dict]
+
+	       {operation_info}  
+
+          'OperationCost': [dict]
+
+	       {opcost_info}
+
+          'CapitalCost': [dict] 
+
+	       {capcost_info}
+
+References: 
+     {references_info}

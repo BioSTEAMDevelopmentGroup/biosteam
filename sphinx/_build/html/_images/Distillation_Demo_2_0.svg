@@ -1,0 +1,53 @@
+<svg height="173pt" viewBox="0.00 0.00 338.00 173.00" width="338pt" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g class="graph" id="graph0" transform="scale(1 1) rotate(0) translate(4 169)">
+<title>unit</title>
+<polygon fill="white" points="-4,4 -4,-169 334,-169 334,4 -4,4" stroke="none"/>
+<!-- D1
+Dist&#45;&gt;d32 -->
+<g class="edge" id="edge2"><title>D1
+Dist:n-&gt;d32:w</title>
+<path d="M165,-126.5C165,-179.266 229.734,-143.5 282.5,-143.5" fill="none" stroke="black"/>
+</g>
+<!-- D1
+Dist&#45;&gt;d33 -->
+<g class="edge" id="edge3"><title>D1
+Dist:s-&gt;d33:w</title>
+<path d="M165,-38.5C165,14.266 229.734,-21.5 282.5,-21.5" fill="none" stroke="black"/>
+</g>
+<!-- d31&#45;&gt;D1
+Dist -->
+<g class="edge" id="edge1"><title>d31:e-&gt;D1
+Dist:c</title>
+<path d="M47.5,-82.5C74.8047,-82.5 105.709,-82.5 128.823,-82.5" fill="none" stroke="black"/>
+</g>
+<!-- D1
+Dist -->
+<g class="node" id="node1"><title>D1
+Dist</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_0" x1="129" x2="201" y1="-82.5" y2="-82.5">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_0)" points="201,-125.5 129,-125.5 129,-39.5 201,-39.5 201,-125.5" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="165" y="-86.3">D1</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="165" y="-71.3">Dist</text>
+</g>
+<!-- d31 -->
+<g class="node" id="node2"><title>d31</title>
+<polygon fill="#79dae8" points="29.5,-98 4.5,-98 4.5,-67 29.5,-67 29.5,-61 47.5,-82.5 29.5,-104 29.5,-98" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="26" y="-78.8">d31</text>
+</g>
+<!-- d32 -->
+<g class="node" id="node3"><title>d32</title>
+<polygon fill="#79dae8" points="307.5,-159 282.5,-159 282.5,-128 307.5,-128 307.5,-122 325.5,-143.5 307.5,-165 307.5,-159" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="304" y="-139.8">d32</text>
+</g>
+<!-- d33 -->
+<g class="node" id="node4"><title>d33</title>
+<polygon fill="#79dae8" points="307.5,-37 282.5,-37 282.5,-6 307.5,-6 307.5,-0 325.5,-21.5 307.5,-43 307.5,-37" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="304" y="-17.8">d33</text>
+</g>
+</g>
+</svg>
