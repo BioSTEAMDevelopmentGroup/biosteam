@@ -18,7 +18,7 @@ BioSTEAM
 What is BioSTEAM?
 -----------------
 
-BioSTEAM is an open source process simulation package in Python for fast and flexible preliminary technoeconomic analysis. It was created and developed by `Yoel Cortes-Pena <http://engineeringforsustainability.com/yoelcortespena>`__ and the `Guest Group <http://engineeringforsustainability.com/>`__ as part of the `Center for Advanced Bioenergy and Bioproducts (CABBI) <https://cabbi.bio/>`__ at the `University of Illinois at Urbana-Champaign (UIUC) <https://illinois.edu/>`__. 
+BioSTEAM is an open source process simulation package in Python for fast and flexible preliminary technoeconomic analysis. It was created and developed by `Yoel Cortes-Pena <http://engineeringforsustainability.com/yoelcortespena>`__ as part of the `Guest Group <http://engineeringforsustainability.com/>`__ and the `Center for Advanced Bioenergy and Bioproducts (CABBI) <https://cabbi.bio/>`__ at the `University of Illinois at Urbana-Champaign (UIUC) <https://illinois.edu/>`__. 
 
 
 Installation
