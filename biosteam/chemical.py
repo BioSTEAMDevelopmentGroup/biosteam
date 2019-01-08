@@ -5,7 +5,7 @@ Created on Sat Aug 18 13:50:03 2018
 @author: yoelr
 """
 from thermo.chemical import Chemical as TChem
-from .specie import Specie
+from biosteam.specie import Specie
 
 
 class Chemical(Specie, TChem):

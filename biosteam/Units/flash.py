@@ -11,8 +11,8 @@ import copy
 import numpy as np
 from scipy.optimize import brentq, newton
 from thermo import activity
-from .hx import HXutility
-from .design_tools import (HNATable, FinalValue,
+from biosteam.units.hx import HXutility
+from biosteam.units.design_tools import (HNATable, FinalValue,
                           VesselWeightAndWallThickness, Kvalue)
 
 exp = np.exp

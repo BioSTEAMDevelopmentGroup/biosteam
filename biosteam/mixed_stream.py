@@ -4,13 +4,12 @@ Created on Tue Sep 18 10:28:29 2018
 
 @author: Guest Group
 """
-from colorama import Fore, Style
 from scipy.optimize import least_squares, brentq, minimize_scalar
-from .stream import Stream, nonzero_species, nonmolar_flow_error, mol_flow_dim, mass_flow_dim, vol_flow_dim
-from .utils import get_frac, tuple_array, material_array, reorder
-from .exceptions import EquilibriumError, DimensionError
+from biosteam.stream import Stream, nonzero_species, nonmolar_flow_error, mol_flow_dim, mass_flow_dim, vol_flow_dim
+from biosteam.utils import get_frac, tuple_array, material_array, reorder, CS
+from biosteam.exceptions import EquilibriumError, DimensionError
 from bookkeep import Q_
-from . import np
+from biosteam import np
 import copy
 
 ln = np.log
@@ -1207,9 +1206,9 @@ class MixedStream(Stream):
             if first_phase:
                 spaces = ' ' * (maxlen - 7)
                 beginning = (new_line_spaces[:-1] +
-                             f' {Fore.WHITE}{Style.NORMAL}species' + 
+                             CS.dim(' species' + 
                              spaces + '  ' + flow_units + 
-                             f'{Style.RESET_ALL}\n' + beginning)
+                             '\n') + beginning)
 
             # Put it together
             phases_flowrates_info += beginning + flowrates + end + '\n\n'

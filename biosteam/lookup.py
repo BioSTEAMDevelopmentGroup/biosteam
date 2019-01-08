@@ -4,7 +4,7 @@ Created on Sat Aug 18 14:20:32 2018
 
 @author: yoelr
 """
-from .utils import WeakRefBook, getDict
+from biosteam.utils import WeakRefBook, getDict
 
 
 # %% Flowsheet search

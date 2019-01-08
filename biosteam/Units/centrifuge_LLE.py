@@ -6,7 +6,7 @@ Created on Thu Aug 23 21:23:56 2018
 """
 from biosteam import Unit, MixedStream
 from biosteam.exceptions import DesignError
-from .flash import Flash, EstimateFlash
+from biosteam.units.flash import Flash, EstimateFlash
 import copy
 
 

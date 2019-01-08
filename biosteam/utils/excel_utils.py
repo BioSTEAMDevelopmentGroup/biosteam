@@ -4,10 +4,10 @@ Created on Wed Sep 27 18:02:09 2017
 
 @author: Yoel Rene Cortes-Pena
 """
-from . import np
+from biosteam import np
 from openpyxl import Workbook, load_workbook
 
-# TODO: Must comment!
+__all__ = ['create_excel', 'array', 'col_arrays', 'row_arrays', 'load_workbook', 'Workbook']
 
 # %% Macking excel file
 

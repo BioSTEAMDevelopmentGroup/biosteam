@@ -4,8 +4,8 @@ Created on Wed Sep  5 13:13:41 2018
 
 @author: Guest Group
 """
-from .exceptions import metaError
-from .unit import metaUnit
+from biosteam.exceptions import metaError
+from biosteam.unit import metaUnit
 
 # %% For making Units final
 

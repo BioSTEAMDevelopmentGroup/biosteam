@@ -8,15 +8,15 @@ Created on Sat Aug 18 14:40:28 2018
 import os
 import IPython
 from graphviz import Digraph
-from .exceptions import KE
-from .lookup import LookUp, WeakRefBook
-from .graphics import Graphics, default_graphics
-from .stream import Stream
-from .heat_utility import HeatUtility
-from .utils import get_doc_units, color_scheme, Ins, Outs, MissingStream
+from biosteam.exceptions import KE
+from biosteam.lookup import LookUp, WeakRefBook
+from biosteam.graphics import Graphics, default_graphics
+from biosteam.stream import Stream
+from biosteam.heat_utility import HeatUtility
+from biosteam.utils import get_doc_units, color_scheme, Ins, Outs, MissingStream
 from bookkeep import SmartBook, UnitManager
-from .power_utility import PowerUtility
-from . import np
+from biosteam.power_utility import PowerUtility
+from biosteam import np
 CS = color_scheme
 
 dir_path = os.path.dirname(os.path.realpath(__file__)) + '\\'

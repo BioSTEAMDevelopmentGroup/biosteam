@@ -4,8 +4,8 @@ Created on Sat Nov 10 19:27:01 2018
 
 @author: yoelr
 """
-from .specie import Specie
-from . import np
+from biosteam.specie import Specie
+from biosteam import np
 
 class DissolvedSpecie(Specie):
     """

@@ -5,7 +5,7 @@ Created on Thu Aug 23 22:18:36 2018
 @author: yoelr
 """
 
-from .splitter import Splitter
+from biosteam.units.splitter import Splitter
 from biosteam import Stream, Unit
 from biosteam.exceptions import DesignError
 

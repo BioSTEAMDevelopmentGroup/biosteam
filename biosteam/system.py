@@ -10,12 +10,12 @@ import IPython
 import sys as SYS
 from scipy.optimize import brentq
 from graphviz import Digraph
-from .exceptions import Stop, SolverError
-from .lookup import LookUp
-from .stream import Stream
-from .unit import Unit
-from . import np
-from .utils import organized_list, get_streams, color_scheme
+from biosteam.exceptions import Stop, SolverError
+from biosteam.lookup import LookUp
+from biosteam.stream import Stream
+from biosteam.unit import Unit
+from biosteam import np
+from biosteam.utils import organized_list, get_streams, color_scheme
 CS = color_scheme
 
 # Get the function type
@@ -593,6 +593,9 @@ class System(metaclass= metaSystem):
             self._debug_off()
 
     # Representation
+    def __str__(self):
+        return self.ID
+    
     def __repr__(self):
         return '<' + type(self).__name__ + ': ' + self.ID + '>'
 

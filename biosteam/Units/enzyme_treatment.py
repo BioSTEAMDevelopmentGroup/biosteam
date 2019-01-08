@@ -5,7 +5,7 @@ Created on Thu Aug 23 22:07:01 2018
 @author: yoelr
 """
 from biosteam import Unit
-from .hx import HX
+from biosteam.units.hx import HX
 
 class EnzymeTreatment(Unit):
     _N_outs = 1

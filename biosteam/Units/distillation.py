@@ -9,7 +9,7 @@ from biosteam import Unit, np, MixedStream, Stream
 from biosteam.utils import get_vals, approx2step
 from biosteam.exceptions import biosteam_Error, DesignError
 from scipy.optimize import brentq
-from .hx import HXutility
+from biosteam.units.hx import HXutility
 import matplotlib.pyplot as plt
 
 array = np.array

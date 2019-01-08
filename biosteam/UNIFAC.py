@@ -6,7 +6,7 @@ Created on Mon Apr 16 08:58:41 2018
 @author: Yoel Rene Cortes-Pena
 """
 from thermo.utils import log, exp
-import numpy as np
+from biosteam import np
 import thermo.unifac
 import os
 

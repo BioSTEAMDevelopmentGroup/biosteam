@@ -7,7 +7,7 @@ Created on Thu Aug 23 15:47:26 2018
 
 from biosteam import Unit
 from biosteam.exceptions import DesignError
-from .mixer import Mixer
+from biosteam.units.mixer import Mixer
 from biosteam import np
 
 class Tank(Unit):

@@ -6,8 +6,8 @@ Created on Thu Aug 23 21:43:13 2018
 """
 from biosteam import Unit
 from scipy.optimize import brentq
-from . import Flash_PV, Flash_PQin, Pump, Mixer, HXutility
-from . import np
+from biosteam.units import Flash_PV, Flash_PQin, Pump, Mixer, HXutility
+from biosteam import np
 import copy
 import ht
 log = np.log

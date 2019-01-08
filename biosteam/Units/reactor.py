@@ -5,7 +5,7 @@ Created on Thu Aug 23 22:56:55 2018
 @author: yoelr
 """
 from biosteam import Unit, np
-from . import Tank
+from biosteam.units import Tank
 
 
 class Reactor(Unit):

@@ -6,7 +6,7 @@ Created on Thu Aug 23 14:34:07 2018
 """
 from biosteam import Unit
 from biosteam.meta_classes import metaFinal
-from .mixer import Mixer
+from biosteam.units.mixer import Mixer
 
 
 class Splitter(Unit, metaclass=metaFinal):

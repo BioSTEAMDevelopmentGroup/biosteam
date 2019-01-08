@@ -5,16 +5,16 @@ Created on Sat Aug 18 14:05:10 2018
 
 @author: yoelr
 """
-from . import Q_, units_of_measure
+from biosteam import Q_, units_of_measure
 import copy
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import newton, least_squares
-from .utils import tuple_array, material_array, reorder, get_frac, Sink, Source
-from .lookup import LookUp
-from .species import Species
-from .exceptions import SolverError, DimensionError
-from .UNIFAC import DORTMUND
+from biosteam.utils import tuple_array, material_array, reorder, get_frac, Sink, Source
+from biosteam.lookup import LookUp
+from biosteam.species import Species
+from biosteam.exceptions import SolverError, DimensionError
+from biosteam.UNIFAC import DORTMUND
 
 ln = np.log
 exp = np.exp

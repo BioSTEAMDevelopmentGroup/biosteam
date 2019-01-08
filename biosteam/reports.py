@@ -4,9 +4,9 @@ Created on Sat Nov 17 09:48:34 2018
 
 @author: yoelr
 """
-from .stream import Stream, mol_flow_dim, mass_flow_dim, vol_flow_dim
-from . import Q_, pd, np
-from .exceptions import DimensionError
+from biosteam.stream import Stream, mol_flow_dim, mass_flow_dim, vol_flow_dim
+from biosteam import Q_, pd, np
+from biosteam.exceptions import DimensionError
 
 DataFrame = pd.DataFrame
 ExcelWriter = pd.ExcelWriter

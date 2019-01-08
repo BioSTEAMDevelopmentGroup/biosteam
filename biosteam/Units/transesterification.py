@@ -4,7 +4,7 @@ Created on Thu Aug 23 22:49:58 2018
 
 @author: yoelr
 """
-from .reactor import Reactor
+from biosteam.units.reactor import Reactor
 from biosteam.exceptions import DesignError
 from biosteam import np
 

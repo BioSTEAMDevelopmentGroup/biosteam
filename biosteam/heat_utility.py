@@ -4,13 +4,13 @@ Created on Sat Aug 18 14:25:34 2018
 
 @author: yoelr
 """
-from .exceptions import DimensionError
-from .species import Species
-from .stream import Stream, mol_flow_dim, mass_flow_dim, vol_flow_dim
-from .mixed_stream import MixedStream
-from .utils import get_doc_units
+from biosteam.exceptions import DimensionError
+from biosteam.species import Species
+from biosteam.stream import Stream, mol_flow_dim, mass_flow_dim, vol_flow_dim
+from biosteam.mixed_stream import MixedStream
+from biosteam.utils import get_doc_units
 from bookkeep import SmartBook, UnitManager
-from . import Q_
+from biosteam import Q_
 
 # %% Default Heat Transfer Streams
 

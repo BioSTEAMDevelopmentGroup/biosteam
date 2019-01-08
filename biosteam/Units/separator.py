@@ -5,7 +5,7 @@ Created on Thu Aug 23 15:48:21 2018
 @author: yoelr
 """
 from biosteam import Unit
-from .splitter import Splitter
+from biosteam.units.splitter import Splitter
 
 
 class Separator(Unit):

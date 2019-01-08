@@ -4,10 +4,10 @@ Created on Sat Aug 18 13:42:33 2018
 
 @author: yoelr
 """
-from .chemical import Chemical
-from .specie import Specie
-from . import np, units_of_measure
-from .exceptions import IDconflict
+from biosteam.chemical import Chemical
+from biosteam.specie import Specie
+from biosteam import np, units_of_measure
+from biosteam.exceptions import IDconflict
 
 # TODO: Fix how Dortmund groups are selected in thermo.Chemical. Glycerol defaults to wrong value.
 

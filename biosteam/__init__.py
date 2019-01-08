@@ -5,8 +5,9 @@ Created on Sat Oct 28 17:28:09 2017
 
 @author: Yoel Rene Cortes-Pena
 """
+name = 'biosteam'
 
-__all__ = ['exceptions', 'utils', 'LookUp', 'Specie', 'Chemical', 'DissolvedSpecie', 'Species', 'Stream', 'MixedStream', 'HeatUtility', 'PowerUtility', 'Unit', 'Units', 'System', 'excel_functions', 'ureg', 'Quantity', 'Q_', 'units_of_measure']
+__all__ = ['exceptions', 'utils', 'LookUp', 'Specie', 'Chemical', 'DissolvedSpecie', 'Species', 'Stream', 'MixedStream', 'HeatUtility', 'PowerUtility', 'Unit', 'units', 'System', 'ureg', 'Quantity', 'Q_', 'units_of_measure']
 
 
 # %% Import base utils
@@ -62,7 +63,6 @@ units_of_measure = ReadOnlyBook(MW='g/mol',
 
 # %% Import biosteam classes
 
-from . import excel_functions
 from .lookup import LookUp
 from .specie import Specie
 from .dissolved_specie import DissolvedSpecie
@@ -74,10 +74,10 @@ from .heat_utility import HeatUtility
 from .power_utility import PowerUtility
 from .unit import Unit
 from .system import System
-from . import Units
-from .Units import *
+from . import units
+from .units import *
 
-__all__.extend(Units.__all__)
+__all__.extend(units.__all__)
 
 
 

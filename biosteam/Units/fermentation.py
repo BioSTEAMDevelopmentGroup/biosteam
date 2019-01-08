@@ -4,8 +4,8 @@ Created on Thu Aug 23 22:45:47 2018
 
 @author: yoelr
 """
-from .reactor import BatchReactor
-from .hx import HXutility
+from biosteam.units.reactor import BatchReactor
+from biosteam.units.hx import HXutility
 from biosteam import Stream, np
 from scipy.integrate import odeint
 
