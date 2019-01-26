@@ -1,7 +1,4 @@
-weakref
 colorama
-time
-os
 pint
 scipy
 IPython
