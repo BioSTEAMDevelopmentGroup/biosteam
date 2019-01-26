@@ -12,7 +12,7 @@ setup(
     license='MIT',
     version='0.1a1.dev4',
     description='The Open-Source Bioprocess Simulation and Techno-Economic Analysis Modules',
-    long_description=open('README.rst').read(),
+    long_description=open('README.rst').read().encode('utf-8').strip(),
     author='Yoel Cortes-Pena',
     install_requires=['colorama', 'pint', 'ht', 'fluids',
                       'scipy', 'IPython', 'thermo', 'bookkeep',
