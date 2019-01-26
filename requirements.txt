@@ -1,3 +1,5 @@
+ht
+fluids
 colorama
 pint
 scipy

@@ -14,7 +14,7 @@ setup(
     description='The Open-Source Bioprocess Simulation and Techno-Economic Analysis Modules',
     long_description=open('README.rst').read(),
     author='Yoel Cortes-Pena',
-    install_requires=['colorama', 'pint',
+    install_requires=['colorama', 'pint', 'ht', 'fluids',
                       'scipy', 'IPython', 'thermo', 'bookkeep',
                       'colorpalette', 'array_collections', 'free_properties',
                       'pandas', 'numpy', 'graphviz', 'matplotlib', 'openpyxl'],
