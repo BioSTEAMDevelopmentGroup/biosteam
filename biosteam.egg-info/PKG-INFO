@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: biosteam
-Version: 0.1a1.dev3
+Version: 0.1a1.dev4
 Summary: The Open-Source Bioprocess Simulation and Techno-Economic Analysis Modules
 Home-page: https://github.com/yoelcortes/biosteam
 Author: Yoel Cortes-Pena
@@ -77,7 +77,7 @@ Description: ========
         
         .. code-block:: python
         
-           >>> from biosteam.Units import Flash
+           >>> from biosteam.units import Flash
            >>> # Specify vapor fraction and pressure conditions
            >>> F1 = Flash(ID='F1', ins=s1, outs=('vapor', 'liquid'), V=0.5, P=101325)
         
