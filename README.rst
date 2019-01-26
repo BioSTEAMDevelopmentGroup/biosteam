@@ -126,4 +126,4 @@ Funding
 
 This work was funded by the DOE Center for Advanced Bioenergy and Bioproducts Innovation  (U.S. Department of Energy, Office of Science, Office of Biological and Environmental Research under Award Number DE-SC0018420). Any opinions, findings, and conclusions or recommendations expressed in this publication are those of the author(s) and do not necessarily reflect the views of the U.S. Department of Energy.
 
-This material is based upon work supported by the National Science Foundation Graduate Research Fellowship Program under Grant No. DGE – 1144245. 
+This material is based upon work supported by the National Science Foundation Graduate Research Fellowship Program under Grant No. DGE - 1144245
