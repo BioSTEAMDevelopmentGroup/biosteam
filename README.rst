@@ -68,7 +68,7 @@ BioSTEAM objects serve as basic building blocks to design and simulate a biorefi
 
 .. code-block:: python
 
-   >>> from biosteam.Units import Flash
+   >>> from biosteam.units import Flash
    >>> # Specify vapor fraction and pressure conditions
    >>> F1 = Flash(ID='F1', ins=s1, outs=('vapor', 'liquid'), V=0.5, P=101325)
 
@@ -120,4 +120,11 @@ About the authors
 -----------------
 
 BioSTEAM was created and developed by `Yoel Cortes-Pena <http://engineeringforsustainability.com/yoelcortespena>`__ as part of the `Guest Group <http://engineeringforsustainability.com/>`__ and the `Center for Advanced Bioenergy and Bioproducts (CABBI) <https://cabbi.bio/>`__ at the `University of Illinois at Urbana-Champaign (UIUC) <https://illinois.edu/>`__. 
+
+Funding
+-------
+
+This work was funded by the DOE Center for Advanced Bioenergy and Bioproducts Innovation  (U.S. Department of Energy, Office of Science, Office of Biological and Environmental Research under Award Number DE-SC0018420). Any opinions, findings, and conclusions or recommendations expressed in this publication are those of the author(s) and do not necessarily reflect the views of the U.S. Department of Energy.
+
+This material is based upon work supported by the National Science Foundation Graduate Research Fellowship Program under Grant No. DGE – 1144245. 
 
