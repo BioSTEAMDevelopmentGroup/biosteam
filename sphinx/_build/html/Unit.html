@@ -13,6 +13,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="HeatUtility" href="HeatUtility.html" />
@@ -75,13 +76,13 @@
 <span id="unit"></span><h1>Unit<a class="headerlink" href="#module-biosteam" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.Unit">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Unit</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs_ID=()</em>, <em>ins_ID=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.Unit" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Unit</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/unit.html#Unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Abstract parent class for Unit objects. Child objects must contain setup, run, operation, design and cost methods to setup internal objects, estimate stream outputs of a Unit and find operating, design and cost information. These methods should store information in the ‘results’ dictionary (an instance attribute).</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>ID:</strong> [str] Unique identification</p>
-<p><strong>outs_ID:</strong> tuple[str] IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
-<p><strong>ins_ID:</strong> tuple[str] IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+<p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+<p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
 <p><strong>**kwargs:</strong> Keyword arguments that are accessed by setup, run, operation, design, and cost methods</p>
 </div></blockquote>
 <p><strong>Abstract Attributes</strong></p>
@@ -106,7 +107,7 @@
 <p><strong>operating_days</strong>  = 330: [int] Operation days per year</p>
 <p><strong>lang_factor</strong> = 5.03: [float] Lang factor including working capital from Peters, Timmerhaus, and West (2003)</p>
 <p><strong>bounds</strong> = {} [dict] Values should be tuples with lower and upper bounds.</p>
-<p><strong>instances</strong> = {}: [WeakRefDict] Contains all instances of the Unit class.</p>
+<p><strong>instances</strong> = {}: [WeakRefBook] Contains all instances of the Unit class.</p>
 <p><strong>_N_ins</strong> = 1: [int or None] Expected number of input streams</p>
 <p><strong>_N_outs</strong> = 2: [int or None] Expected number of output streams</p>
 <p><strong>_N_heat_util</strong> = 0: [int] Number of heat utilities</p>
@@ -122,6 +123,12 @@
 <dt id="biosteam.Unit.kwargs">
 <code class="descname">kwargs</code><em class="property"> = {}</em><a class="headerlink" href="#biosteam.Unit.kwargs" title="Permalink to this definition">¶</a></dt>
 <dd><p>[dict] Key word arguments</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Unit.simulate">
+<code class="descname">simulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/unit.html#Unit.simulate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.simulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run simulation, operation, design and cost methods.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -174,7 +181,7 @@
 
 <dl class="method">
 <dt id="biosteam.Unit.show">
-<code class="descname">show</code><span class="sig-paren">(</span><em>**show_units</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.Unit.show" title="Permalink to this definition">¶</a></dt>
+<code class="descname">show</code><span class="sig-paren">(</span><em>**show_units</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/unit.html#Unit.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prints information on unit.</p>
 </dd></dl>
 

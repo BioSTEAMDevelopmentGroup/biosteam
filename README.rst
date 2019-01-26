@@ -18,8 +18,7 @@ BioSTEAM
 What is BioSTEAM?
 -----------------
 
-BioSTEAM is an open source process simulation package in Python for fast and flexible preliminary technoeconomic analysis. It was created and developed by `Yoel Cortes-Pena <http://engineeringforsustainability.com/yoelcortespena>`__ as part of the `Guest Group <http://engineeringforsustainability.com/>`__ and the `Center for Advanced Bioenergy and Bioproducts (CABBI) <https://cabbi.bio/>`__ at the `University of Illinois at Urbana-Champaign (UIUC) <https://illinois.edu/>`__. 
-
+BioSTEAM is an open source process simulation package in Python for fast and flexible preliminary technoeconomic analysis. It is still in its developmental phase with its first alpha release expected in May 2019.
 
 Installation
 ------------
@@ -65,22 +64,13 @@ BioSTEAM objects serve as basic building blocks to design and simulate a biorefi
     flow (kmol/hr): Ethanol   1
                     Water     2
    
-**Create a Unit class** passing an ID, IDs for output streams, and any key word arguments specific to the Unit:
+**Create a Unit class** passing an ID, input streams, IDs for output streams, and any key word arguments specific to the Unit:
 
 .. code-block:: python
 
    >>> from biosteam.Units import Flash
    >>> # Specify vapor fraction and pressure conditions
-   >>> F1 = Flash(ID='F1', outs_ID=('vapor', 'liquid'), V=0.5, P=101325)
-
-**Set the input streams**, and check connections as a Graphviz diagram:
-
-.. code-block:: python
-
-   >>> F1.ins = s1
-   >>> F1.diagram
-
-.. figure:: F1_flash.png
+   >>> F1 = Flash(ID='F1', ins=s1, outs=('vapor', 'liquid'), V=0.5, P=101325)
 
 **Run the unit** and see the results:
 
@@ -126,10 +116,8 @@ please cite BioSTEAM if used in your work. Please also consider contributing
 any changes you make back, and benefit the community.
 
 
-Citation
---------
+About the authors
+-----------------
 
-To cite BioSTEAM in publications use::
+BioSTEAM was created and developed by `Yoel Cortes-Pena <http://engineeringforsustainability.com/yoelcortespena>`__ as part of the `Guest Group <http://engineeringforsustainability.com/>`__ and the `Center for Advanced Bioenergy and Bioproducts (CABBI) <https://cabbi.bio/>`__ at the `University of Illinois at Urbana-Champaign (UIUC) <https://illinois.edu/>`__. 
 
-    Yoel Cortes-Pena (2018). BioSTEAM: The Open-Source Bioprocess Simulation and Technoeconomic Analysis Modules.
-    https://github.com/yoelcortes/biosteam

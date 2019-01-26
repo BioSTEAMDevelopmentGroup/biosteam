@@ -1,7 +1,0 @@
-HX
-==
-
-.. module:: biosteam
-
-.. autoclass:: HX
-   :members:

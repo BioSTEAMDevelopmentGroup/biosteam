@@ -13,6 +13,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Pump" href="Pump.html" />
@@ -34,7 +35,7 @@
           <a href="Mixer.html" title="Mixer"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="Units.html" accesskey="U">Units</a> &#187;</li> 
+          <li class="nav-item nav-item-1"><a href="units.html" accesskey="U">units</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -76,13 +77,13 @@
 <span id="splitter"></span><h1>Splitter<a class="headerlink" href="#module-biosteam" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.Splitter">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Splitter</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs_ID=()</em>, <em>ins_ID=None</em>, <em>split=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.Splitter" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Splitter</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>split=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/splitter.html#Splitter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Splitter" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>An extension of the</em> <a class="reference internal" href="Unit.html"><span class="doc">Unit class</span></a>. Create a splitter that separates mixed streams based on splits.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>ID:</strong> [str] Unique identification. If set as ‘’, a default ID will be chosen.</p>
-<p><strong>outs_ID:</strong> tuple[str] IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
-<p><strong>ins_ID:</strong> tuple[str] IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+<p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+<p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
 <dl class="docutils">
 <dt><strong>split:</strong> Shoulds be one of the following:</dt>
 <dd><ul class="first last simple">
@@ -126,7 +127,7 @@
           <a href="Mixer.html" title="Mixer"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="Units.html" >Units</a> &#187;</li> 
+          <li class="nav-item nav-item-1"><a href="units.html" >units</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

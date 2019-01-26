@@ -761,7 +761,7 @@ class P69_flash(Flash):
         vap, liq = self.outs
         vap.phase = 'g'
         liq.phase = 'l'
-        self._heat_exchanger = he = HXutility(self.ID+' hx', outs_ID=()) 
+        self._heat_exchanger = he = HXutility(self.ID+' hx', outs=()) 
         self.heat_utilities = he.heat_utilities
         he._ins = self._ins
 

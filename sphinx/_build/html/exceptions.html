@@ -13,9 +13,9 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Units" href="Units.html" />
     <link rel="prev" title="utils" href="utils.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
@@ -28,9 +28,6 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="Units.html" title="Units"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
           <a href="utils.html" title="utils"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
@@ -41,9 +38,6 @@
   <h4>Previous topic</h4>
   <p class="topless"><a href="utils.html"
                         title="previous chapter">utils</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="Units.html"
-                        title="next chapter">Units</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -77,50 +71,50 @@
 <p>This module includes classes and functions relating exception handling.</p>
 <p>&#64;author: Yoel Rene Cortes-Pena</p>
 <dl class="exception">
-<dt id="biosteam.exceptions.biosteamError">
-<em class="property">exception </em><code class="descclassname">biosteam.exceptions.</code><code class="descname">biosteamError</code><a class="headerlink" href="#biosteam.exceptions.biosteamError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Base exception in biosteam.</p>
+<dt id="biosteam.exceptions.biosteam_Error">
+<em class="property">exception </em><code class="descclassname">biosteam.exceptions.</code><code class="descname">biosteam_Error</code><a class="reference internal" href="_modules/biosteam/exceptions.html#biosteam_Error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.exceptions.biosteam_Error" title="Permalink to this definition">¶</a></dt>
+<dd><p>General exception in biosteam.</p>
 </dd></dl>
 
 <dl class="exception">
 <dt id="biosteam.exceptions.Stop">
-<em class="property">exception </em><code class="descclassname">biosteam.exceptions.</code><code class="descname">Stop</code><a class="headerlink" href="#biosteam.exceptions.Stop" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><code class="descclassname">biosteam.exceptions.</code><code class="descname">Stop</code><a class="reference internal" href="_modules/biosteam/exceptions.html#Stop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.exceptions.Stop" title="Permalink to this definition">¶</a></dt>
 <dd><p>Exception to Stop code.</p>
 </dd></dl>
 
 <dl class="exception">
 <dt id="biosteam.exceptions.IDconflict">
-<em class="property">exception </em><code class="descclassname">biosteam.exceptions.</code><code class="descname">IDconflict</code><a class="headerlink" href="#biosteam.exceptions.IDconflict" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><code class="descclassname">biosteam.exceptions.</code><code class="descname">IDconflict</code><a class="reference internal" href="_modules/biosteam/exceptions.html#IDconflict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.exceptions.IDconflict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Exception regarding ID conflicts.</p>
 </dd></dl>
 
 <dl class="exception">
 <dt id="biosteam.exceptions.DesignError">
-<em class="property">exception </em><code class="descclassname">biosteam.exceptions.</code><code class="descname">DesignError</code><a class="headerlink" href="#biosteam.exceptions.DesignError" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><code class="descclassname">biosteam.exceptions.</code><code class="descname">DesignError</code><a class="reference internal" href="_modules/biosteam/exceptions.html#DesignError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.exceptions.DesignError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Exception regarding unit design.</p>
 </dd></dl>
 
 <dl class="exception">
 <dt id="biosteam.exceptions.metaError">
-<em class="property">exception </em><code class="descclassname">biosteam.exceptions.</code><code class="descname">metaError</code><a class="headerlink" href="#biosteam.exceptions.metaError" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><code class="descclassname">biosteam.exceptions.</code><code class="descname">metaError</code><a class="reference internal" href="_modules/biosteam/exceptions.html#metaError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.exceptions.metaError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Exception regarding metaclasses.</p>
 </dd></dl>
 
 <dl class="exception">
 <dt id="biosteam.exceptions.SolverError">
-<em class="property">exception </em><code class="descclassname">biosteam.exceptions.</code><code class="descname">SolverError</code><a class="headerlink" href="#biosteam.exceptions.SolverError" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><code class="descclassname">biosteam.exceptions.</code><code class="descname">SolverError</code><a class="reference internal" href="_modules/biosteam/exceptions.html#SolverError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.exceptions.SolverError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Exception regarding solvers.</p>
 </dd></dl>
 
 <dl class="exception">
 <dt id="biosteam.exceptions.EquilibriumError">
-<em class="property">exception </em><code class="descclassname">biosteam.exceptions.</code><code class="descname">EquilibriumError</code><a class="headerlink" href="#biosteam.exceptions.EquilibriumError" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><code class="descclassname">biosteam.exceptions.</code><code class="descname">EquilibriumError</code><a class="reference internal" href="_modules/biosteam/exceptions.html#EquilibriumError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.exceptions.EquilibriumError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Exception regarding equilibrium.</p>
 </dd></dl>
 
 <dl class="exception">
 <dt id="biosteam.exceptions.DimensionError">
-<em class="property">exception </em><code class="descclassname">biosteam.exceptions.</code><code class="descname">DimensionError</code><a class="headerlink" href="#biosteam.exceptions.DimensionError" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><code class="descclassname">biosteam.exceptions.</code><code class="descname">DimensionError</code><a class="reference internal" href="_modules/biosteam/exceptions.html#DimensionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.exceptions.DimensionError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Exception regarding wrong dimensions.</p>
 </dd></dl>
 
@@ -130,9 +124,15 @@
 <dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">biosteam.exceptions.KeyError</span></code></p>
 </dd></dl>
 
+<dl class="exception">
+<dt id="biosteam.exceptions.DesignWarning">
+<em class="property">exception </em><code class="descclassname">biosteam.exceptions.</code><code class="descname">DesignWarning</code><a class="reference internal" href="_modules/biosteam/exceptions.html#DesignWarning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.exceptions.DesignWarning" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exception regarding design constraints.</p>
+</dd></dl>
+
 <dl class="function">
 <dt id="biosteam.exceptions.ignore_wrapper">
-<code class="descclassname">biosteam.exceptions.</code><code class="descname">ignore_wrapper</code><span class="sig-paren">(</span><em>function</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.exceptions.ignore_wrapper" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">biosteam.exceptions.</code><code class="descname">ignore_wrapper</code><span class="sig-paren">(</span><em>function</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/exceptions.html#ignore_wrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.exceptions.ignore_wrapper" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrap function with a try-except clause to ignore any errors.</p>
 </dd></dl>
 
@@ -153,9 +153,6 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li class="right" >
-          <a href="Units.html" title="Units"
-             >next</a> |</li>
         <li class="right" >
           <a href="utils.html" title="utils"
              >previous</a> |</li>

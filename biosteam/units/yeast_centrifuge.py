@@ -6,7 +6,7 @@ Created on Thu Aug 23 22:18:36 2018
 """
 
 from biosteam.units.splitter import Splitter
-from biosteam import Stream, Unit
+from biosteam import Stream, Unit, np
 from biosteam.exceptions import DesignError
 
 
@@ -46,7 +46,7 @@ class YeastCentrifuge(Unit):
         mass_solids = 0
         for s in self.ins:
             mass_solids += s.mass[index]
-        ts = mass_solids.sum() # Total solids
+        ts = np.asarray(mass_solids).sum() # Total solids
         ts *= 0.0011023 # To short tons (2000 lbs/hr)
         if 2 < ts < 40:
             Cost['Centrifuge'] = self.CEPCI*68040/567*ts**0.50

@@ -15,14 +15,13 @@ __all__ = ['exceptions', 'utils', 'LookUp', 'Specie', 'Chemical', 'DissolvedSpec
 import pandas as pd
 import numpy as np
 from bookkeep.unit_registry import ureg, Q_
-from . import exceptions
-from . import utils
-from bookkeep import ReadOnlyBook
+from bookkeep import ReadOnlyBook, SmartBook
 
 # Allias
 Quantity = Q_
 
 # Set number of digits displayed
+np.set_printoptions(suppress=False)
 np.set_printoptions(precision=3) 
 pd.options.display.float_format = '{:.3g}'.format
 pd.set_option('display.max_rows', 35)
@@ -63,6 +62,8 @@ units_of_measure = ReadOnlyBook(MW='g/mol',
 
 # %% Import biosteam classes
 
+from . import exceptions
+from . import utils
 from .lookup import LookUp
 from .specie import Specie
 from .dissolved_specie import DissolvedSpecie
@@ -79,5 +80,4 @@ from .units import *
 
 __all__.extend(units.__all__)
 
-
-
+SmartBook.Warning = exceptions.DesignWarning

@@ -1,4 +1,4 @@
-Units
+units
 =====
 
 The package comes with preformulated Unit classes, including Flash, Distillation, and Centrifuge classes. New Unit classes are easily created by inheritance of the Unit class.
@@ -9,8 +9,10 @@ The package comes with preformulated Unit classes, including Flash, Distillation
    Mixer
    Splitter
    Pump
-   HX
+   HXprocess
+   HXutility
    Flash
+   Fermentation
    Centrifuge_LLE
    Distillation
    MassBalance

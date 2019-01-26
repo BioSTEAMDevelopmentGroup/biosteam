@@ -13,9 +13,10 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="HX" href="HX.html" />
+    <link rel="next" title="HXprocess" href="HXprocess.html" />
     <link rel="prev" title="Splitter" href="Splitter.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
@@ -28,13 +29,13 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="HX.html" title="HX"
+          <a href="HXprocess.html" title="HXprocess"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="Splitter.html" title="Splitter"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="Units.html" accesskey="U">Units</a> &#187;</li> 
+          <li class="nav-item nav-item-1"><a href="units.html" accesskey="U">units</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -43,8 +44,8 @@
   <p class="topless"><a href="Splitter.html"
                         title="previous chapter">Splitter</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="HX.html"
-                        title="next chapter">HX</a></p>
+  <p class="topless"><a href="HXprocess.html"
+                        title="next chapter">HXprocess</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -76,13 +77,13 @@
 <span id="pump"></span><h1>Pump<a class="headerlink" href="#module-biosteam" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.Pump">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Pump</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs_ID=()</em>, <em>ins_ID=None</em>, <em>P=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.Pump" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Pump</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>P=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/pump.html#Pump"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Pump" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>An extension of the</em> <a class="reference internal" href="Unit.html"><span class="doc">Unit class</span></a>. Create a pump that sets the pressure of the 0th output stream.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>ID:</strong> [str] Unique identification. If set as ‘’, a default ID will be chosen.</p>
-<p><strong>outs_ID:</strong> tuple[str] IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
-<p><strong>ins_ID:</strong> tuple[str] IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+<p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+<p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
 <p><strong>P:</strong> <em>[float]</em> Pressure of output stream (Pa). If None, cost pump as increase of pressure to P_startup.</p>
 </div></blockquote>
 <p><strong>ins</strong></p>
@@ -151,13 +152,13 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="HX.html" title="HX"
+          <a href="HXprocess.html" title="HXprocess"
              >next</a> |</li>
         <li class="right" >
           <a href="Splitter.html" title="Splitter"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="Units.html" >Units</a> &#187;</li> 
+          <li class="nav-item nav-item-1"><a href="units.html" >units</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

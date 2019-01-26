@@ -1,9 +1,0 @@
-StreamTable
-===========
-
-A StreamTable object helps manage Stream objects and can print a stream table on excel.
-
-.. module:: biosteam
-
-.. autoclass:: StreamTable
-   :members:

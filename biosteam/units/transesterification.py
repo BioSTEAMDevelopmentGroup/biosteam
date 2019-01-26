@@ -77,7 +77,7 @@ class Transesterification(Reactor):
         out.P = feed.P
 
     def operation(self):
-        self._calc_utility()
+        self.heat_utilities[0](self.Hnet, self.outs[0].T)
 
     def design(self):
         """

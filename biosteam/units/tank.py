@@ -106,6 +106,7 @@ class MixTank(Tank):
     _tau = 1
     _N_ins = 2
     run = Mixer.run
+    bounds = {'Volume': (0.1, 30)}
 
     def design(self):
         """
@@ -120,8 +121,6 @@ class MixTank(Tank):
         * 'Tank': (USD)
         """
         V = self.results['Design']['Volume']
-        if not (0.1 < V < 30):
-            raise DesignError(f"Volume is out of bounds for costing")
         Cost = self.results['Cost']
         Cost['Tank'] = 12080 * V**0.525 * self.CEPCI/525.4
         return Cost

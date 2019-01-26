@@ -119,9 +119,9 @@ class metaUnit(type):
             
         "        **ID:** [str] Unique identification. If set as '', a default ID will be chosen.\n\n" +
 
-        "        **outs_ID:** tuple[str] IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.\n\n" +
+        "        **outs:** tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.\n\n" +
         
-        "        **ins_ID:** tuple[str] IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.")
+        "        **ins:** tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.")
     
             # Set line
             # default_line constitutes a new Unit class
@@ -152,8 +152,8 @@ class metaUnit(type):
                 inputs += ', ' + key + ' = ' + key
     
             # Begin changing __init__ to have kwargs by making a string to execute
-            str2exec = f"def __init__(self, ID='', outs_ID=(), ins_ID=None{kwargs}):\n"
-            str2exec += f"     initfunc(self, ID, outs_ID, ins_ID{inputs})"
+            str2exec = f"def __init__(self, ID='', outs=(), ins=None{kwargs}):\n"
+            str2exec += f"     initfunc(self, ID, outs, ins{inputs})"
     
             # Execute string and replace __init__
             globs = {'initfunc': Unit.__init__,
@@ -210,9 +210,9 @@ class Unit(metaclass=metaUnit):
 
         **ID:** [str] Unique identification
 
-        **outs_ID:** tuple[str] IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.
+        **outs:** tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.
         
-        **ins_ID:** tuple[str] IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.
+        **ins:** tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.
 
         ****kwargs:** Keyword arguments that are accessed by setup, run, operation, design, and cost methods
 
@@ -315,55 +315,59 @@ class Unit(metaclass=metaUnit):
     # Default ID
     _ID = ''  
     
-    # True if unit is in a recycle loop
+    #: [bool] True if unit is in a recycle loop
     _in_loop = False
 
     ### Initialize ###
     
-    def __init__(self, ID='', outs_ID=(), ins_ID=None, **kwargs):
+    def __init__(self, ID='', outs=(), ins=None, **kwargs):
         """Initialize Unit object. See help(type(self)) for accurate signature.
 
         **Parameters**
 
-            ID: [str] Unique identification. If set as '', a default ID will be chosen.
+            **ID:** [str] Unique identification
 
-            outs_ID: tuple[str] IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.
-        
-            ins_ID: tuple[str] IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.
-
-            **kwargs: keyword arguments that are accessed by setup, run, operation, design, and cost methods  
+            **outs:** tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.
+            
+            **ins:** tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.
+    
+            ****kwargs:** Keyword arguments that are accessed by setup, run, operation, design, and cost methods
         
         """
         self.ID = ID
         self.kwargs = kwargs  #: [dict] Key word arguments
-        self._init_ins(ins_ID)
-        self._init_outs(outs_ID)
+        self._init_ins(ins)
+        self._init_outs(outs)
         self._init_results()
         self._init_heat_utils()
         self._init_power_util()
         self.setup()
 
-    def _init_ins(self, ins_ID):
+    def _init_ins(self, ins):
         # Initialize input streams
-        if ins_ID is None:
+        if ins is None:
             self._ins = Ins(self, (MissingStream() for i in range(self._N_ins)))
-        elif isinstance(ins_ID, str):
-            self._ins = Ins(self, (Stream(ins_ID)))
-        elif not ins_ID:
-            self._ins = Ins(self, (Stream('') for ID in range(self._N_ins)))
+        elif isinstance(ins, Stream):
+            self._ins = Ins(self, (ins))
+        elif isinstance(ins, str):
+            self._ins = Ins(self, (Stream(ins)))
+        elif not ins:
+            self._ins = Ins(self, (Stream('') for i in range(self._N_ins)))
         else:
-            self._ins = Ins(self, (Stream(ID) for ID in ins_ID))
+            self._ins = Ins(self, (Stream(i) if isinstance(i, str) else i for i in ins))
     
-    def _init_outs(self, outs_ID):
+    def _init_outs(self, outs):
         # Initialize output streams
-        if isinstance(outs_ID, str):
-            self._outs = Outs(self, (Stream(outs_ID)))
-        elif outs_ID is None:
+        if isinstance(outs, str):
+            self._outs = Outs(self, (Stream(outs)))
+        elif isinstance(outs, Stream):
+            self._outs = Outs(self, (outs))
+        elif outs is None:
             self._outs = Outs(self, (MissingStream() for i in range(self._N_outs)))
-        elif not outs_ID:
-            self._outs = Outs(self, (Stream('') for ID in range(self._N_outs)))
+        elif not outs:
+            self._outs = Outs(self, (Stream('') for i in range(self._N_outs)))
         else:
-            self._outs = Outs(self, (Stream(ID) for ID in outs_ID))
+            self._outs = Outs(self, (Stream(i) if isinstance(i, str) else i for i in outs))
     
     def _init_results(self):
         # Initialize results attribute
@@ -438,6 +442,13 @@ class Unit(metaclass=metaUnit):
     def design(self)->'Design [dict]': return self.results['Design']
     def cost(self)->'Cost [dict]': return self.results['Cost']
 
+    def simulate(self):
+        """Run simulation, operation, design and cost methods."""
+        self.run()
+        self.operation()
+        self.design()
+        self.cost()
+
     @property
     def results(self):
         """[dict] Key results from running Unit methods."""
@@ -487,7 +498,7 @@ class Unit(metaclass=metaUnit):
     # Input and output streams
     @property
     def ins(self):
-        # tuple of input streams
+        # list of input streams
         return self._ins
     @ins.setter
     def ins(self, streams):
@@ -495,7 +506,7 @@ class Unit(metaclass=metaUnit):
         
     @property
     def outs(self):
-        # tuple of output streams
+        # list of output streams
         return self._outs
     @outs.setter
     def outs(self, streams):
@@ -508,7 +519,6 @@ class Unit(metaclass=metaUnit):
         return self._heat_utilities
     @heat_utilities.setter
     def heat_utilities(self, heat_utilities):
-        """list of HeatUtility objects"""
         self._heat_utilities = heat_utilities
 
     @property
@@ -602,12 +612,12 @@ class Unit(metaclass=metaUnit):
     @property
     def _mol_in(self):
         """Molar flows going in (kmol/hr)."""
-        return sum([s.mol for s in self.ins])
+        return sum(s.mol for s in self.ins)
 
     @property
     def _mol_out(self):
         """Molar flows going out (kmol/hr)."""
-        return sum([s.mol for s in self.outs])
+        return sum(s.mol for s in self.outs)
 
     @property
     def _molfrac_in(self):
@@ -622,23 +632,23 @@ class Unit(metaclass=metaUnit):
     @property
     def _molnet_in(self):
         """Net molar flow going in (kmol/hr)."""
-        return sum([s.molnet for s in self.ins])
+        return sum(s.molnet for s in self.ins)
 
     @property
     def _molnet_out(self):
         """Net molar flow going out (kmol/hr)."""
-        return sum([s.molnet for s in self.outs])
+        return sum(s.molnet for s in self.outs)
 
     # Mass flow rates
     @property
     def _mass_in(self):
         """Mass flows going in (kg/hr)."""
-        return sum([s.mass for s in self.ins])
+        return sum(s.mass for s in self.ins)
 
     @property
     def _mass_out(self):
         """Mass flows going out (kg/hr)."""
-        return sum([s.mass for s in self.outs])
+        return sum(s.mass for s in self.outs)
 
     @property
     def _massfrac_in(self):
@@ -653,18 +663,18 @@ class Unit(metaclass=metaUnit):
     @property
     def _massnet_in(self):
         """Net mass flow going in (kg/hr)."""
-        return sum([s.massnet for s in self.ins])
+        return sum(s.massnet for s in self.ins)
 
     @property
     def _massnet_out(self):
         """Net mass flow going out (kg/hr)."""
-        return sum([s.massnet for s in self.outs])
+        return sum(s.massnet for s in self.outs)
 
     # Volumetric flow rates
     @property
     def _vol_in(self):
         """Volumetric flows going in (m3/hr)."""
-        return sum([s.vol for s in self.ins])
+        return sum(s.vol for s in self.ins)
 
     @property
     def _volnet_in(self):
@@ -679,7 +689,7 @@ class Unit(metaclass=metaUnit):
     @property
     def _vol_out(self):
         """Volumetric flows going out (m3/hr)."""
-        return sum([s.vol for s in self.outs])
+        return sum(s.vol for s in self.outs)
 
     @property
     def _volnet_out(self):
@@ -695,12 +705,12 @@ class Unit(metaclass=metaUnit):
     @property
     def _H_in(self):
         """Enthalpy flow going in (kJ/hr)."""
-        return sum([s.H for s in self.ins])
+        return sum(s.H for s in self.ins)
 
     @property
     def _H_out(self):
         """Enthalpy flow going out (kJ/hr)."""
-        return sum([s.H for s in self.outs])
+        return sum(s.H for s in self.outs)
 
     @property
     def _Hf_in(self):

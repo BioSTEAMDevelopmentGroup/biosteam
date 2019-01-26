@@ -13,10 +13,11 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Splitter" href="Splitter.html" />
-    <link rel="prev" title="Units" href="Units.html" /> 
+    <link rel="prev" title="units" href="units.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -31,17 +32,17 @@
           <a href="Splitter.html" title="Splitter"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="Units.html" title="Units"
+          <a href="units.html" title="units"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="Units.html" accesskey="U">Units</a> &#187;</li> 
+          <li class="nav-item nav-item-1"><a href="units.html" accesskey="U">units</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
-  <p class="topless"><a href="Units.html"
-                        title="previous chapter">Units</a></p>
+  <p class="topless"><a href="units.html"
+                        title="previous chapter">units</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="Splitter.html"
                         title="next chapter">Splitter</a></p>
@@ -76,13 +77,13 @@
 <span id="mixer"></span><h1>Mixer<a class="headerlink" href="#module-biosteam" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.Mixer">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Mixer</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs_ID=()</em>, <em>ins_ID=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.Mixer" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Mixer</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/mixer.html#Mixer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Mixer" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>An extension of the</em> <a class="reference internal" href="Unit.html"><span class="doc">Unit class</span></a>. Create a mixer that mixes any number of streams together.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>ID:</strong> [str] Unique identification. If set as ‘’, a default ID will be chosen.</p>
-<p><strong>outs_ID:</strong> tuple[str] IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
-<p><strong>ins_ID:</strong> tuple[str] IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+<p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+<p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
 </div></blockquote>
 <p><strong>ins</strong></p>
 <blockquote>
@@ -113,10 +114,10 @@
           <a href="Splitter.html" title="Splitter"
              >next</a> |</li>
         <li class="right" >
-          <a href="Units.html" title="Units"
+          <a href="units.html" title="units"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="Units.html" >Units</a> &#187;</li> 
+          <li class="nav-item nav-item-1"><a href="units.html" >units</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

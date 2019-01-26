@@ -11,7 +11,7 @@ __all__ = ('get_streams', 'MissingStream', 'Ins', 'Outs', 'Sink', 'Source')
 
 # For later use in this module
 def missing_method(self, *args, **kwargs):
-    raise TypeError(f'Method not supported for {type(self).__name__} objects.')
+    raise TypeError(f'Method not supported for {type(self).__name__} object.')
 
 
 # %% Functions relating streams

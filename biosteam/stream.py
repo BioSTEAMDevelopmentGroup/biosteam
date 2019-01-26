@@ -10,7 +10,8 @@ import copy
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import newton, least_squares
-from biosteam.utils import tuple_array, material_array, reorder, get_frac, Sink, Source
+from biosteam.utils import material_array, property_array, PropertyFactory, \
+                           tuple_array, reorder, get_frac, Sink, Source
 from biosteam.lookup import LookUp
 from biosteam.species import Species
 from biosteam.exceptions import SolverError, DimensionError
@@ -18,6 +19,7 @@ from biosteam.UNIFAC import DORTMUND
 
 ln = np.log
 exp = np.exp
+ndarray = np.ndarray
 #plt.style.use('dark_background')
 #CS = color_scheme
 
@@ -38,13 +40,16 @@ def nonzero_species(index_ID, flow):
     return index, species
 
 
-# %% Flows and units
+# %% Units of measure
 
-nonmolar_flow_error = AttributeError("To set non-molar flow rates, use the 'set_mass' or 'set_vol' method.")
+mol_units = units_of_measure['mol']
+mass_units = units_of_measure['mass']
+vol_units = units_of_measure['vol']
+T_units = units_of_measure['T']
 
-mol_flow_dim = Q_(0, 'kmol/hr').dimensionality
-mass_flow_dim = Q_(0, 'kg/hr').dimensionality
-vol_flow_dim = Q_(0, 'm^3/hr').dimensionality
+mol_flow_dim = Q_(0, mol_units).dimensionality
+mass_flow_dim = Q_(0, mass_units).dimensionality
+vol_flow_dim = Q_(0, vol_units).dimensionality
 
 class ShowFormat:
     __slots__ = ['_T', '_P', '_flow', '_fraction']
@@ -97,7 +102,51 @@ class ShowFormat:
     
     def __repr__(self):
         dummy = '-in fractions-' if self.fraction else ''
-        return f"{type(self).__name__}:\n T ({self.T}), P ({self.P}), flow ({self.flow}) {dummy}"
+        return f"<{type(self).__name__}: T='{self.T}', P='{self.P}', flow='{self.flow}'{dummy}>"
+
+# %% Flow properties
+
+@PropertyFactory
+def MassFlow(self):
+    """Mass flow (kg/hr)."""
+    mol, MW = self.data
+    if mol:
+        return float(mol * MW)
+    else:
+        return 0.
+
+@MassFlow.setter
+def MassFlow(self, value):
+    mol, MW = self.data
+    if value:
+        mol[0] = value/MW
+    else:
+        mol[0] = 0.
+
+@PropertyFactory    
+def VolumetricFlow(self):
+    """Volumetric flow (m^3/hr)."""
+    specie = self.name
+    stream, mol = self.data
+    if mol:
+        specie.T = stream.T
+        specie.P = stream.P
+        specie.phase = stream.phase.lower()
+        return float(getattr(specie, 'Vm') * mol * 1000)
+    else:
+        return 0.
+
+@VolumetricFlow.setter
+def VolumetricFlow(self, value):
+    specie = self.name
+    stream, mol = self.data
+    if value:
+        specie.T = stream.T
+        specie.P = stream.P
+        specie.phase = stream.phase.lower()
+        mol[0] = value/(getattr(specie, 'Vm') * 1000)
+    else:
+        mol[0] = 0.
 
 
 # %% Stream classes
@@ -152,7 +201,7 @@ class metaStream(type):
                 cl._index_CAS = dict(zip(index, CAS))
                 
                 # Set molecular weights for all species
-                cl._MW = np.array(species.get_props(IDs, 'MW'))
+                cl._MW = tuple_array(species.get_props(IDs, 'MW'))
         else:
             raise ValueError('Must pass a Species object')
             
@@ -169,15 +218,15 @@ class metaStream(type):
 
 
 class Stream(metaclass=metaStream):
-    """Create a Stream object that defines a thermodynamic state along with mass and energy flow rates. It contains information on thermodynamic and transport properties of the mixture and its components. A Species object manages material properties for the Stream class. Ideal mixture is assumed for stream properties and excess energies (enthalpy and entropy) are ignored as a simplifying assumption for low pressure processes.
+    """Create a Stream object that defines a thermodynamic state along with material flow rates. Stream objects calculate thermodynamic and transport properties of the mixture and its components. The Species object define the chemical species avalilable for the Stream class. Ideal mixture is assumed for stream properties and excess energies [enthalpy and entropy] are ignored as a simplifying assumption for low pressure processes.
 
 **Parameters**
 
     **ID:** [str] ID of the stream. If ID is '', a default ID will be chosen.
 
-    **flow:** [tuple] Specie flow rates
+    **flow:** [tuple] All flow rates corresponding to `species`.
 
-    **species:** tuple[str] Specie IDs corresponding to the flowrates
+    **species:** tuple[str] or [Species] Species corresponding to `flow`. If empty, assume same species as class.
 
     **units:** [str] The units of the flow rates (only mass, molar, and volumetric flow rates are valid)
 
@@ -187,17 +236,17 @@ class Stream(metaclass=metaStream):
 
     **P:** [float] Pressure (Pa)
 
+    ****flow_pairs:** Specie-flow pairs
+
 **Class Properties**
 
     **species** = Species(): [Species] Contains pure component thermodynamic properties for computing overall properties of Stream instances
-
-    **specie_IDs** = []: tuple[str] A list of IDs of the working/active species used by Stream instances
 
     **show_format**: [ShowFormat] Object with attributes that describe how the show method presents units
 
 **Class Attributes**
 
-    **_default_ID** = ['d', 1]: list[str, int] Default starting letter and current number for ID (class attribute)
+    **_default_ID** = ['d', 1]: list[str, int] Default starting letter and current number for ID.
 
     **units** = {'C': 'kJ/K/hr', 'Cp': 'J/g/K', 'Cpm': 'J/mol/K', 'H': 'kJ/hr', 'S': 'kJ/hr', 'G': 'kJ/hr', 'U': 'kJ/hr', 'A': 'kJ/hr', 'Hf': 'kJ/hr', 'MW': 'g/mol', 'P': 'Pa', 'T': 'K', 'Vm': 'm^3/mol', 'alpha': 'm^2/s', 'k': 'W/m/K', 'mass': 'kg/hr', 'massfrac': 'kg/kg', 'massnet': 'kg/hr', 'mol': 'kmol/hr', 'molfrac': 'kmol/kmol', 'molnet': 'kmol/hr', 'mu': 'Pa*s', 'nu': 'm^2/s', 'rho': 'kg/m^3', 'rhom': 'mol/m^3', 'sigma': 'N/m', 'vol': 'm^3/hr', 'volfrac': 'm^3/m^3', 'volnet': 'm^3/hr'}
     : *[dict]* Units of measure for material properties. Items in this dictionary cannot be changed.
@@ -211,26 +260,26 @@ class Stream(metaclass=metaStream):
        >>> # Set Species object
        >>> Stream.species = Species('Ethanol', 'Water') 
 
-    Create a Stream:
+    Stream objects may be created a variety of ways:
 
     .. code-block:: python
 
-       >>> # Create a stream specifying molar flow rates and species:
-       >>> s1 = Stream(ID='s1', flow=2, species='Water')
+       >>> # Create a stream specifying specie and flow rate pairs:
+       >>> s1 = Stream(ID='s1', Water=2)
        >>> s1.show()
        Stream: s1
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): Water  2
 
-       >>> # Create stream assuming same specie order as given in specie_IDs:
-       >>> s2 = Stream(ID='s2', flow=(1, 2)
+       >>> # Create a stream assuming same specie order as given in specie_IDs:
+       >>> s2 = Stream(ID='s2', flow=(1, 2))
        >>> s2.show()
        Stream: s2
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): Ethanol  1
                         Water    2
 
-       >>> # The flow rate units, phase, temperature and pressure may be specified when initialized as well:
+       >>> # Create a stream passing flow rate units, phase, temperature and pressure:
        >>> s3 = Stream(ID='s3', flow=(0.278, 0.556), units='mol/s', phase='g', T=400, P=101325)
        >>> s3.show()
        Stream: s3
@@ -240,30 +289,31 @@ class Stream(metaclass=metaStream):
 
        >>> # The working units do not change
        >>> s3.mol 
-       array([1., 2.])
+       material_array([1., 2.]) (kmol/hr)
 
-    .. Warning:: Stream objects do not calculate thermodynamic equilibrium. They simply assume the given phase, T and P are correct. To find equilibrium, use a MixedStream object.
+    .. Warning:: Stream objects do not automatically calculate thermodynamic equilibrium. They simply assume the given phase, temperature and pressure are correct. To find equilibrium, use the VLE or LLE method.
 
     .. Note:: All following examples will use the Stream objects created here (s1, s2, and s3) starting from its initial values.
 
-    How the show method presents information can be changed:
+    Use the `show` method to print all specifications with desired units:
 
     .. code-block:: python
 
-       >>> s2.show() # print information
+       >>> # Temperature in degree Celsius
+       >>> s2.show(T='degC')
        Stream: s2 
-        phase: 'l', T: 298.15 K, P: 101325 Pa
-        flow (kmol/hr): Ethanol  1
-                        Water    2
-
-       >>> # Make show method present flow in 'kg/hr'
+        phase: 'l', T: 25. degC, P: 101325 Pa
+        flow (kg/hr): Ethanol  46.1
+                      Water    36
+       
+       >>> # Flow in kg/hr
        >>> s2.show(flow='kg/hr')
        Stream: s2 
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow (kg/hr): Ethanol  46.1
                       Water    36
 
-       >>> # Make show method present flows in fractions
+       >>> # Flow in fractions
        >>> s2.show(fraction=True)
        Stream: s2
         phase: 'l', T: 298.15 K, P: 101325 Pa
@@ -271,86 +321,99 @@ class Stream(metaclass=metaStream):
               Water    0.667
                        3 kmol/hr
 
-    Flow rates can be set by the 'mol' property:
+    Flow rates are stored internally as a material_array in the ‘mol’ attribute. A material_array object is a numpy ndarray which issues a RuntimeWarning when a negative or non-finite number is encountered:
 
     .. code-block:: python
 
-       >>> s2.mol[1] = 18 # Set Water flow rate
+       >>> # Set Water flow rate
+       >>> s2.mol[1] = 18
        >>> s2.mol
-       material_array([1, 18])
+       material_array([1, 18]) (kmol/hr)
+       
+       >>> # A negative flow issues a RuntimeWarning
        >>> s2.mol[1] = -1
-       TypeError: Encountered non-positive or non-finite value -1 in 'material_array' object.
+       __main__:1: RuntimeWarning:
+       Encountered negative or non-finite value in 'material_array' object.
+       
+       >>> # Setting the property sets its values in place
        >>> s2.mol = [1, 2]
        >>> s2.mol
-       material_array([1, 2])
+       material_array([1, 2]) (kmol/hr)
 
     .. Note::
 
-       material_array objects are numpy ndarrays which raise a TypeError when a non-positive or non-finite number is encountered.
+       material_array objects are numpy ndarrays which issue a RuntimeWarning when a negative or non-finite number is encountered.
 
-    Mass and volumetric flow rates are also available, but it cannot be set:
+    Mass and volumetric flow rates are also available as property_arrays of the molar flow rate. As such, they are always up to date with the molar flow rate and altering them also alters the molar flow rate:
 
     .. code-block:: python
 
-       >>> s2.vol # (m^3/hr)
-       tuple_array([0.059, 0.036])
-       >>> s2.vol = [1, 1]
-       AttributeError: can't set attribute
-       >>> s2.vol[0] = 1
-       TypeError: Items in a 'tuple_array' object cannot be changed.
+       >>> # Altering mass or volumetric flows alters the molar flow
+       >>> s2.vol
+       property_array([0.059, 0.036]) (m^3/hr)
+       >>> s2.vol[:] = [1, 1]
+       >>> s2.mol
+       material_array([17.06 , 55.343]) (kmol/hr)
+       
+       >>> # Values are always up to date with the molar flow
+       >>> s2.mol[:] = [1, 2]
+       >>> s2.vol
+       property_array([0.059, 0.036]) (m^3/hr)
 
     .. Note::
 
-       tuple_array objects are numpy ndarrays that do not support item assignment and other magic methods for which items are changed (e.g. '+=', '-=', '*=', '/=').
-
-    To set mass or volumetric flow rates, use the 'set_mass' for 'set_vol' method:
-
-    .. code-block:: python
-
-       >>> s1.set_mass(20 , index=1)
-       >>> s1.mass
-       tuple_array([0., 20])
-       >>> # No need to specify indeces when all flow rates are specified
-       >>> s1.set_mass([0, 36.031])
-       >>> s1.mass
-       tuple_array([0, 36.031])
+       property_array objects are significantly slower than material_array objects. This is because flow rate data is internally stored as molar flow rates. Also, property_array objects are arrays of python objects, which add overhead over the C implementation of numpy. Whenever possible, use the material_array to manage flow rates. 
 
     Some thermodynamic/material properties, including enthalpy and heat capacity, are dependent only on temperature:
 
-       >>> s2.H # Relative to STP
+    .. code-block:: python
+    
+       >>> # Enthalpy (kJ/hr) and heat capacity (kJ/(kg-K))
+       >>> s2.T = 298.15
+       >>> s2.Cp
+       3.200382054794244
+       >>> s2.H 
        0.0
+       
+       >>> # Change of temperature
        >>> s2.T = 310
        >>> s2.H
        3140.9389548625936
        >>> s2.Cp
        3.2590872180092956
-       >>> s2.T = 298.15
-       >>> s2.Cp
-       3.200382054794244
-
+       
+    .. Note:: Thermodynamic energies are relative to 25 degC and 1 atm.
+    
     Some thermodynamic/material properties, including volume and density, are dependent on both temperature and pressure:
 
-      >>> # Current volume and density
-      >>> s1.volnet # flow rate in m^3/hr
-      0.036138079740245625
-      >>> s1.rho # density in kg/m^3
-      997.0247522552814
-      >>> # Change pressure and get properties
-      >>> s1.P *= 4
-      >>> s1.volnet
-      0.036136231155141196
-      >>> s1.rho
-      997.0757560552587
-      >>> # Change temperature and get properties
-      >>> s1.T += 30
-      >>> s1.volnet
-      0.03663597700908213
-      >>> s1.rho
-      983.4747955832584
+    .. code-block:: python
+    
+       >>> # Volumetric flow rate (m^3/hr) and density (kg/m^3)
+       >>> s1.volnet
+       0.036138079740245625
+       >>> s1.rho
+       997.0247522552814
+      
+       >>> # Change of pressure
+       >>> s1.P *= 4
+       >>> s1.volnet
+       0.036136231155141196
+       >>> s1.rho
+       997.0757560552587
+      
+       >>> # Change of temperature
+       >>> s1.T += 30
+       >>> s1.volnet
+       0.03663597700908213
+       >>> s1.rho
+       983.4747955832584
 
-    .. Note::
+    A dictionary of available material properties is available in `Stream.units`. You may also find it useful to use the `help` method to search for a property:
+        
+    .. code-block:: python
 
-         A dictionary of available material properties is available in Stream.units
+       >>> Stream.help('conductivity')
+       Thermal conductivity, k, is dependent on T and P with units, W/m/K, and type, float.
 
     """
     activity_coefficients = DORTMUND
@@ -421,7 +484,28 @@ class Stream(metaclass=metaStream):
     _ID = ''
 
     def __init__(self, ID='', flow=(), species=(), units='kmol/hr',
-                 phase='l', T=298.15, P=101325, **flow_pair):
+                 phase='l', T=298.15, P=101325, **flow_pairs):
+        # Get species ID and set species information
+        if isinstance(species, Species):
+            # Set species as provided
+            self.species = species
+            specie_IDs = ()
+        elif hasattr(species, '__iter__'):
+            specie_IDs = species
+            # Copy class species data (in case it changes)
+            self._species = species = self._species
+            self._specie_IDs = self._specie_IDs
+            self._CAS = self._CAS
+            self._Nspecies = self._Nspecies
+            self._index = self._index
+            self._ID_index = self._ID_index
+            self._index_ID = self._index_ID
+            self._CAS_index = self._CAS_index 
+            self._index_CAS = self._index_CAS
+            self._MW = self._MW
+        else:
+            raise TypeError(f'species must be a Species object, not {type(species).__name__}')
+        
         self.ID = ID
         
         #: Dew point cached
@@ -455,16 +539,16 @@ class Stream(metaclass=metaStream):
         self.P = P  
         
         # Add specie flow pairs
-        species = tuple(species) + tuple(flow_pair.keys())
-        flow = tuple(flow) + tuple(flow_pair.values())
+        specie_IDs = tuple(specie_IDs) + tuple(flow_pairs.keys())
+        flow = tuple(flow) + tuple(flow_pairs.values())
         
         # Match species and flow rates
         l_flow = len(flow)
-        l_species = len(species)
+        l_species = len(specie_IDs)
         if l_species == 0 and l_flow == 0:
             flow = np.zeros(self._Nspecies)
         elif l_species == l_flow:
-            flow = reorder(flow, species, self._specie_IDs)
+            flow = reorder(flow, specie_IDs, self._specie_IDs)
         elif l_flow != self._Nspecies:
             raise ValueError('Length of flowrates must be equal to length of species')
 
@@ -473,14 +557,33 @@ class Stream(metaclass=metaStream):
         flow_wt_units = Q_(flow, units)
         dim = flow_wt_units.dimensionality
         if dim == mol_flow_dim:
-            self._mol = material_array(flow_wt_units.to(self.units['mol']).magnitude)
+            arr = flow_wt_units.to(self.units['mol']).magnitude
+            self._mol = material_array(arr)
         elif dim == mass_flow_dim:
-            self._mol = material_array(flow_wt_units.to(self.units['mass']).magnitude / self._MW)
+            arr = flow_wt_units.to(mass_units).magnitude / self._MW
+            self._mol = material_array(arr)
         elif dim == vol_flow_dim:
             self._mol = material_array(flow)
-            self.set_vol(flow_wt_units.to(self.units['vol']).magnitude)
+            self.set_vol(flow_wt_units.to(vol_units).magnitude)
         else:
             raise DimensionError(f"Dimensions for flow units must be in molar, mass or volumetric flow rates, not '{dim}'.")
+
+        mol = self._mol
+        MW = self._MW
+        
+        # Mass flow rates
+        mass = []
+        for i, ID in enumerate(species.ID):
+            m = MassFlow(ID, (mol[i:i+1], MW[i]))
+            mass.append(m)
+        self._mass = property_array(mass)
+        
+        # Volumetric flow rates    
+        vol = []
+        for i, specie in enumerate(species):
+            v = VolumetricFlow(specie, (self, mol[i:i+1]))
+            vol.append(v)
+        self._vol = property_array(vol)
 
     # Forward pipping
     def __sub__(self, index):
@@ -508,8 +611,10 @@ class Stream(metaclass=metaStream):
 
     @species.setter
     def species(self, species):
+        if self._ID != '':
+            raise AttributeError("can't set attribute")
         # Set Species object and working species
-        if isinstance(species, Species):
+        elif isinstance(species, Species):
             # Set species
             self._species = species
             
@@ -538,7 +643,7 @@ class Stream(metaclass=metaStream):
             self._index_CAS = dict(zip(index, CAS))
             
             # Set molecular weights for all species
-            self._MW = np.array(species.get_props(IDs, 'MW'))
+            self._MW = tuple_array(species.get_props(IDs, 'MW'))
         else:
             raise ValueError('Must pass an instance of Species')
             
@@ -580,7 +685,7 @@ class Stream(metaclass=metaStream):
         >>> s2.MW 
         [46.06844, 18.01528]
         """
-        return np.array(self._MW)
+        return self._MW
 
     ### Flow properties ###
     
@@ -620,7 +725,7 @@ class Stream(metaclass=metaStream):
             indices = [index_dict[ID] for ID in IDs]
         
         return indices
-    get_indx = get_index
+    get_indx = get_index #: Alias of get_index.
     
     # Molar flow
     @property
@@ -628,10 +733,10 @@ class Stream(metaclass=metaStream):
         """Array of molar flow rates by specie (array kmol/hr):
 
         >>> s1.mol
-        material_array([0, 2]) kmol/hr
+        material_array([0, 2]) (kmol/hr)
         >>> s1.mol = [1, 2]
         >>> s1.mol
-        material_array([1, 2]) kmol/hr
+        material_array([1, 2]) (kmol/hr)
         """
         return self._mol
 
@@ -649,7 +754,7 @@ class Stream(metaclass=metaStream):
         >>> s1.molfrac
         tuple_array([0., 1.])
         """
-        return tuple_array(get_frac(self._mol))
+        return get_frac(self._mol).view(tuple_array)
 
     @property
     def molnet(self):
@@ -666,13 +771,13 @@ class Stream(metaclass=metaStream):
         """Array of mass flow rates by specie (array kg/hr)
 
         >>> s1.mass
-        tuple_array([ 0.   , 36.031])
+        property_array([ 0.   , 36.031])
         """
-        return tuple_array(self._mol * self._MW)
+        return self._mass
 
     @mass.setter
     def mass(self, val):
-        raise nonmolar_flow_error
+        self._mass[:] = val
 
     @property
     def massfrac(self):
@@ -681,7 +786,7 @@ class Stream(metaclass=metaStream):
         >>> s1.massfrac
         tuple_array([0, 1])
         """
-        return tuple_array(get_frac(self._mol * self._MW))
+        return get_frac(self._mol * self._MW).view(tuple_array)
 
     @property
     def massnet(self):
@@ -698,15 +803,14 @@ class Stream(metaclass=metaStream):
         """Array of volumetric flow rates by specie (array m^3/hr). T and P dependent.
 
         >>> s2.vol
-        tuple_array([0.059, 0.036])
-
-        .. Note:: Volumetric flow properties do not have a setter.
+        property_array([0.059, 0.036])
+        
         """
-        return tuple_array(self._prop_molar_flow('Vm')*1000)
+        return self._vol
 
     @vol.setter
     def vol(self, val):
-        raise nonmolar_flow_error
+        self._vol[:] = val
 
     @property
     def volfrac(self):
@@ -715,7 +819,6 @@ class Stream(metaclass=metaStream):
         >>> s2.volfrac
         tuple_array([0.619, 0.381])
         """
-        return tuple_array(get_frac(self.vol))
 
     @property
     def volnet(self):
@@ -1793,6 +1896,7 @@ class Stream(metaclass=metaStream):
 
         return s_sum
 
+    # MixedStream compatibility
     def enable_phases(self):
         """Turn stream into a MixedStream object."""
         mS = mixed_stream.MixedStream
@@ -1810,6 +1914,18 @@ class Stream(metaclass=metaStream):
             self.__class__ = Stream
             self.phase = phase
             self._mol = mol
+
+    def VLE(self, specie_IDs=None, LNK=None, HNK=None, P=None,
+            T=None, V=None, x=None, y=None, Qin=None):
+        self.enable_phases()
+        self.VLE(specie_IDs, LNK, HNK, P, T, V, x, y, Qin)
+        
+    def LLE(self, specie_IDs, split=None, lNK=(), LNK=(),
+            P=None, T=None, Qin=None,
+            solvents=(), solvent_split=()):
+        self.enable_phases()
+        self.LLE(specie_IDs, split, lNK, LNK, P, T, Qin,
+                 solvents, solvent_split)
 
     # Representation
     def _info(self, **show_units):
@@ -1911,3 +2027,5 @@ class Stream(metaclass=metaStream):
 
 
 from . import mixed_stream
+
+

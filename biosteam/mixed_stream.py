@@ -5,8 +5,11 @@ Created on Tue Sep 18 10:28:29 2018
 @author: Guest Group
 """
 from scipy.optimize import least_squares, brentq, minimize_scalar
-from biosteam.stream import Stream, nonzero_species, nonmolar_flow_error, mol_flow_dim, mass_flow_dim, vol_flow_dim
-from biosteam.utils import get_frac, tuple_array, material_array, reorder, CS
+from biosteam.species import Species
+from biosteam.stream import Stream, nonzero_species, MassFlow, vol_units, \
+                            mol_flow_dim, mass_flow_dim, vol_flow_dim
+from biosteam.utils import get_frac, tuple_array, material_array, \
+                           PropertyFactory, property_array, reorder, CS
 from biosteam.exceptions import EquilibriumError, DimensionError
 from bookkeep import Q_
 from biosteam import np
@@ -16,12 +19,10 @@ ln = np.log
 exp = np.exp
 
 
-# %% Reused variables
+# %% Dictionaries for finding the right attribute given the phase
 
 phases = ('s', 'l', 'L', 'g')
 range4 = (0, 1, 2, 3)
-
-# %% Dictionaries for finding the right attribute given the phase
 
 # Used for the show method
 letter_phases = {'s': 'solid',
@@ -30,10 +31,20 @@ letter_phases = {'s': 'solid',
                  'g': 'vapor'}
 
 # Used during MixedStream __init__
-index_phases = {0: '_solid_mol',
-                1: '_liquid_mol',
-                2: '_LIQUID_mol',
-                3: '_vapor_mol'}
+molflows_ID = ('_solid_mol',
+               '_liquid_mol',
+               '_LIQUID_mol',
+               '_vapor_mol')
+
+volflows_ID = ('_solid_vol',
+               '_liquid_vol',
+               '_LIQUID_vol',
+               '_vapor_vol')
+
+massflows_ID = ('_solid_mass',
+                '_liquid_mass',
+                '_LIQUID_mass',
+                '_vapor_mass')
 
 # Used throughout
 phases_molflow = {'s': 'solid_mol',
@@ -65,6 +76,35 @@ phases_volfrac = {'s': 'solid_volfrac',
                   'l': 'liquid_volfrac',
                   'L': 'LIQUID_volfrac',
                   'g': 'vapor_volfrac'}
+
+
+# %% Volumetric flow property
+
+@PropertyFactory    
+def VolumetricFlow(self):
+    """Volumetric flow (m^3/hr)."""
+    specie = self.name
+    stream, mol, phase = self.data
+    if mol:
+        specie.T = stream.T
+        specie.P = stream.P
+        specie.phase = phase
+        return float(getattr(specie, 'Vm') * mol[0] * 1000) 
+    else:
+        return 0.
+
+@VolumetricFlow.setter
+def VolumetricFlow(self, value):
+    specie = self.name
+    stream, mol, phase = self.data
+    if value:
+        specie.T = stream.T
+        specie.P = stream.P
+        specie.phase = phase
+        mol[0] = value/(getattr(specie, 'Vm') * 1000)
+    else:
+        mol[0] = 0.
+
 
 # %% MixedStream (4 phase flow)
 
@@ -114,6 +154,27 @@ class MixedStream(Stream):
     _sink = (None, None)
     
     def __init__(self, ID='', solid_flow=(), liquid_flow=(), LIQUID_flow=(), vapor_flow=(), species=(), units='kmol/hr', T=298.15, P=101325):
+        # Get species ID and set species information
+        if isinstance(species, Species):
+            # Set species as provided
+            self.species = species
+            specie_IDs = ()
+        elif hasattr(species, '__iter__'):
+            specie_IDs = species
+            # Copy class species data (in case it changes)
+            self._species = species = self._species
+            self._specie_IDs = self._specie_IDs
+            self._CAS = self._CAS
+            self._Nspecies = self._Nspecies
+            self._index = self._index
+            self._ID_index = self._ID_index
+            self._index_ID = self._index_ID
+            self._CAS_index = self._CAS_index 
+            self._index_CAS = self._index_CAS
+            self._MW = self._MW
+        else:
+            raise TypeError(f'species must be a Species object, not {type(species).__name__}')
+        
         self.ID = ID
         self.T = T
         self.P = P
@@ -121,9 +182,7 @@ class MixedStream(Stream):
         self._bubble_cached = {}
         
         # Match species and flow rates
-        if isinstance(species, str):
-            species = (species,)
-        l_species = len(species)
+        l_species = len(specie_IDs)
         flows = [solid_flow, liquid_flow, LIQUID_flow, vapor_flow]
         for i in range4:
             flow = flows[i]
@@ -131,18 +190,9 @@ class MixedStream(Stream):
             if l_flow == 0:
                 flows[i] = np.zeros(self._Nspecies)
             elif l_species == l_flow:
-                flows[i] = reorder(flow, species, self._specie_IDs)
+                flows[i] = reorder(flow, specie_IDs, self._specie_IDs)
             elif l_flow != self._Nspecies:
-                raise ValueError(
-                    'length of flow rates must be equal to length of species')
-
-        def set_flows():
-            # Set flow rates for all phases
-            self._flows = all_flows = []
-            for i, phase in index_phases.items():
-                flow = material_array(mol_array[i, :])
-                setattr(self, phase, flow)
-                all_flows.append(flow)
+                raise ValueError('length of flow rates must be equal to length of species')
 
         # Set flow rates to the right units
         mol_array = np.array(flows, dtype=np.float64)
@@ -150,39 +200,73 @@ class MixedStream(Stream):
         dim = flow_wt_units.dimensionality
         if dim == mol_flow_dim:
             mol_array = flow_wt_units.to(self.units['mol']).magnitude
-            set_flows()
+            self._set_flows(mol_array)
         elif dim == mass_flow_dim:
-            mol_array = flow_wt_units.to(
-                self.units['mass']).magnitude / self._MW
-            set_flows()
+            mol_array = flow_wt_units.to(self.units['mass']).magnitude / self._MW
+            self._set_flows(mol_array)
         elif dim == vol_flow_dim:
-            set_flows()
+            self._set_flows(mol_array)
             for i, phase in zip(range4, phases):
                 self.set_vol(mol_array[i, :], phase)
         else:
             raise DimensionError(f"Dimensions for flow rate units must be in molar, mass or volumetric flow rates, not '{dim}'.")
 
+    def _set_flows(self, mol_array):
+        """ Set molar, mass and volumetric flow rates for all phases.
+        
+        **Parameters**
+        
+            **mol_array:** Array of molar flow rates (kmol/hr) with species by column and phases ('s', 'l', 'L', 'g') by row.
+        
+        """
+        species = self._species
+        MW = self._MW
+        
+        # Molar flow rates
+        self._molflows = molflows = []
+        mol_array = mol_array.view(material_array)
+        for mol, ID in zip(mol_array, molflows_ID):
+            setattr(self, ID, mol)
+            molflows.append(mol)
+            
+        # Mass flow rates    
+        self._massflows = massflows = []
+        for mol, ID in zip(molflows, massflows_ID):
+            mass = []
+            for i, spID in enumerate(species.ID):
+                m = MassFlow(spID, (mol[i:i+1], MW[i]))
+                mass.append(m)
+            mass = property_array(mass)
+            setattr(self, ID, mass)
+            massflows.append(mass)
+        
+        # Volumetric flow rates    
+        self._volflows = volflows = []   
+        for phase, mol, ID in zip(phases, molflows, volflows_ID):
+            vol = []
+            for i, specie in enumerate(species):
+                v = VolumetricFlow(specie, (self, mol[i:i+1], phase.lower()))
+                vol.append(v)
+            vol = property_array(vol)
+            setattr(self, ID, vol)
+            volflows.append(vol)
+
     @property
     def phase(self):
         """String denoting all phases present"""
         phase = ''
-        if any(self._solid_mol != 0):
-            phase += 's'
-        if any(self._liquid_mol != 0):
-            phase += 'l'
-        if any(self._LIQUID_mol != 0):
-            phase += 'L'
-        if any(self._vapor_mol != 0):
-            phase += 'g'
-        if phase == '':
-            phase = self._default_phase
+        if any(self._solid_mol != 0): phase += 's'
+        if any(self._liquid_mol != 0): phase += 'l'
+        if any(self._LIQUID_mol != 0): phase += 'L'
+        if any(self._vapor_mol != 0): phase += 'g'
+        if phase == '': phase = self._default_phase
         return phase
 
     @phase.setter
     def phase(self, phase):
         if phase not in phases:
             raise ValueError("Phase must be one of the following: 's', 'l', 'L' or 'g'")
-        mol = sum(self._flows)
+        mol = sum(self._molflows)
         self._default_phase = phase
         self.empty()
         setattr(self, phases_molflow[phase], mol)
@@ -280,7 +364,7 @@ class MixedStream(Stream):
     @property
     def solid_molfrac(self):
         """solid phase molar fractions."""
-        return tuple_array(get_frac(self._solid_mol))
+        return get_frac(self._solid_mol).view(tuple_array)
 
     @property
     def solid_molnet(self):
@@ -291,16 +375,16 @@ class MixedStream(Stream):
     @property
     def solid_mass(self):
         """solid phase mass flow rates (kg/hr)."""
-        return tuple_array(self._solid_mol * self._MW)
+        return self._solid_mass
 
     @solid_mass.setter
-    def solid_mass(self):
-        raise nonmolar_flow_error
+    def solid_mass(self, val):
+        self._solid_mass[:] = val
 
     @property
     def solid_massfrac(self):
         """solid phase mass fractions."""
-        return tuple_array(get_frac(self.solid_mass))
+        return get_frac(self.solid_mass).view(tuple_array)
 
     @property
     def solid_massnet(self):
@@ -311,16 +395,16 @@ class MixedStream(Stream):
     @property
     def solid_vol(self):
         """solid phase volumetric flow rates (m3/hr)."""
-        return tuple_array(self._phaseprop_molar_flow('Vm', 's')*1000)
+        return self._solid_vol
 
     @solid_vol.setter
-    def solid_vol(self):
-        raise nonmolar_flow_error
+    def solid_vol(self, val):
+        self._solid_vol[:] = val
 
     @property
     def solid_volfrac(self):
         """solid phase volumetric fractions."""
-        return tuple_array(get_frac(self.solid_vol))
+        return get_frac(self.solid_vol).view(tuple_array)
 
     @property
     def solid_volnet(self):
@@ -342,7 +426,7 @@ class MixedStream(Stream):
     @property
     def liquid_molfrac(self):
         """liquid phase molar fractions."""
-        return tuple_array(get_frac(self._liquid_mol))
+        return get_frac(self._liquid_mol).view(tuple_array)
 
     @property
     def liquid_molnet(self):
@@ -353,16 +437,16 @@ class MixedStream(Stream):
     @property
     def liquid_mass(self):
         """liquid phase mass flow rates (kg/hr)."""
-        return tuple_array(self._liquid_mol * self._MW)
+        return self._liquid_mass
 
     @liquid_mass.setter
-    def liquid_mass(self):
-        raise nonmolar_flow_error
+    def liquid_mass(self, val):
+        self._liquid_mass[:] = val
 
     @property
     def liquid_massfrac(self):
         """liquid phase mass fractions."""
-        return tuple_array(get_frac(self.liquid_mass))
+        return get_frac(self.liquid_mass).view(tuple_array)
 
     @property
     def liquid_massnet(self):
@@ -373,16 +457,16 @@ class MixedStream(Stream):
     @property
     def liquid_vol(self):
         """liquid phase volumetric flow rates (m3/hr)."""
-        return tuple_array(self._phaseprop_molar_flow('Vm', 'l')*1000)
+        return self._liquid_vol
 
     @liquid_vol.setter
-    def liquid_vol(self):
-        raise nonmolar_flow_error
+    def liquid_vol(self, val):
+        self._liquid_vol[:] = val
 
     @property
     def liquid_volfrac(self):
         """liquid phase volumetric fractions."""
-        return tuple_array(get_frac(self.liquid_vol))
+        return get_frac(self.liquid_vol).view(tuple_array)
 
     @property
     def liquid_volnet(self):
@@ -404,7 +488,7 @@ class MixedStream(Stream):
     @property
     def LIQUID_molfrac(self):
         """LIQUID phase molar fractions."""
-        return tuple_array(get_frac(self._LIQUID_mol))
+        return get_frac(self._LIQUID_mol).view(tuple_array)
 
     @property
     def LIQUID_molnet(self):
@@ -415,16 +499,16 @@ class MixedStream(Stream):
     @property
     def LIQUID_mass(self):
         """LIQUID phase mass flow rates (kg/hr)."""
-        return tuple_array(self._LIQUID_mol * self._MW)
+        return self._LIQUID_mass
 
     @LIQUID_mass.setter
-    def LIQUID_mass(self):
-        raise nonmolar_flow_error
+    def LIQUID_mass(self, val):
+        self._LIQUID_mass[:] = val
 
     @property
     def LIQUID_massfrac(self):
         """LIQUID phase mass fractions."""
-        return tuple_array(get_frac(self.LIQUID_mass))
+        return get_frac(self.LIQUID_mass).view(tuple_array)
 
     @property
     def LIQUID_massnet(self):
@@ -435,16 +519,16 @@ class MixedStream(Stream):
     @property
     def LIQUID_vol(self):
         """LIQUID phase volumetric flow rates (m3/hr)."""
-        return tuple_array(self._phaseprop_molar_flow('Vm', 'L')*1000)
+        return self._LIQUID_vol
 
     @LIQUID_vol.setter
-    def LIQUID_vol(self):
-        raise nonmolar_flow_error
+    def LIQUID_vol(self, val):
+        self._LIQUID_vol[:] = val
 
     @property
     def LIQUID_volfrac(self):
         """LIQUID phase volumetric fractions."""
-        return tuple_array(get_frac(self.LIQUID_vol))
+        return get_frac(self.LIQUID_vol).view(tuple_array)
 
     @property
     def LIQUID_volnet(self):
@@ -466,7 +550,7 @@ class MixedStream(Stream):
     @property
     def vapor_molfrac(self):
         """vapor phase molar fractions."""
-        return tuple_array(get_frac(self._vapor_mol))
+        return get_frac(self._vapor_mol).view(tuple_array)
 
     @property
     def vapor_molnet(self):
@@ -477,16 +561,16 @@ class MixedStream(Stream):
     @property
     def vapor_mass(self):
         """vapor phase mass flow rates (kg/hr)."""
-        return tuple_array(self._vapor_mol * self._MW)
+        return self._vapor_mass
 
     @vapor_mass.setter
     def vapor_mass(self, mass):
-        raise nonmolar_flow_error
+        self._vapor_mass[:] = mass
 
     @property
     def vapor_massfrac(self):
         """vapor phase mass fractions."""
-        return tuple_array(get_frac(self.vapor_mass))
+        return get_frac(self.vapor_mass).view(tuple_array)
 
     @property
     def vapor_massnet(self):
@@ -497,21 +581,21 @@ class MixedStream(Stream):
     @property
     def vapor_vol(self):
         """vapor phase volumetric flow rates (m3/hr)."""
-        return tuple_array(self._phaseprop_molar_flow('Vm', 'l')*1000)
+        return self._vapor_vol
 
     @vapor_vol.setter
     def vapor_vol(self, vol):
-        raise nonmolar_flow_error
+        self._vapor_vol[:] = vol
 
     @property
     def vapor_volfrac(self):
         """vapor phase volumetric fractions."""
-        return tuple_array(get_frac(self.vapor_vol))
+        return get_frac(self.vapor_vol).view(tuple_array)
 
     @property
     def vapor_volnet(self):
         """vapor phase net volumetric flow rate (m3/hr)."""
-        return self._phaseprop_molar_flownet('Vm', 'l')*1000
+        return self._phaseprop_molar_flownet('Vm', 'g')*1000
 
     ### Overall ###
 
@@ -522,7 +606,7 @@ class MixedStream(Stream):
         molflow = phases_molflow.get(self.phase)
         if molflow:
             return getattr(self, molflow)
-        return tuple_array(sum(self._flows))
+        return sum(self._molflows).view(tuple_array)
         # return mixed_mol( self._flows )
 
     @mol.setter
@@ -535,42 +619,34 @@ class MixedStream(Stream):
     @property
     def mass(self):
         """Mass flow rates (kmol/hr)."""
-        return tuple_array(sum(self._flows, 0) * self._MW)
-
-    @mass.setter
-    def mass(self, mass):
-        raise nonmolar_flow_error
-
+        return (sum(self._molflows, 0) * self._MW).view(tuple_array)
+    
     @property
     def vol(self):
         """Volumetric flow rates (kmol/hr)."""
-        return tuple_array(self.solid_vol + self.liquid_vol + self.LIQUID_vol + self.vapor_vol)
-
-    @vol.setter
-    def vol(self, vol):
-        raise nonmolar_flow_error
+        return sum(self._volflows).view(tuple_array)
 
     # Fractions
     @property
     def molfrac(self):
         """Molar fractions."""
-        return tuple_array(get_frac(sum(self._flows, 0)))
+        return get_frac(sum(self._molflows, 0)).view(tuple_array)
 
     @property
     def massfrac(self):
         """Mass fractions."""
-        return tuple_array(get_frac(self.mass))
+        return get_frac(self.mass).view(tuple_array)
 
     @property
     def volfrac(self):
         """Volumetric fractions."""
-        return tuple_array(get_frac(self.vol))
+        return get_frac(self.vol).view(tuple_array)
 
     # Net flow rates
     @property
     def molnet(self):
         """Mol net flow rate (kmol/hr)."""
-        return np.array(self._flows).sum()
+        return np.array(self._molflows).sum()
 
     @property
     def massnet(self):
@@ -909,7 +985,7 @@ class MixedStream(Stream):
             # Guess vapor flow rates
             pos = np.where(mol <= 0)
             mol[pos] = 10**-9
-            v = y*V
+            v = y*V*molnet
 
             def V_error(T):
                 nonlocal v
@@ -1169,8 +1245,7 @@ class MixedStream(Stream):
         for phase in phases:
             # Get flow rates of phase in nice structure
             flow_attr = letter_phases[phase] + '_' + flow_type
-            if fraction:
-                flow_attr += 'frac'
+            if fraction: flow_attr += 'frac'
             flow = getattr(self, flow_attr)
             nonzero, species = nonzero_species(index_ID, flow)
             if fraction:
@@ -1186,8 +1261,7 @@ class MixedStream(Stream):
             if phase in 'sg':
                 beginning += ' '
                 new_line_spaces += ' '
-                if fraction:
-                    end = '\n ' + end[1:]
+                if fraction: end = '\n ' + end[1:]
 
             # Set flow rates info
             flowrates = ''
@@ -1207,8 +1281,8 @@ class MixedStream(Stream):
                 spaces = ' ' * (maxlen - 7)
                 beginning = (new_line_spaces[:-1] +
                              CS.dim(' species' + 
-                             spaces + '  ' + flow_units + 
-                             '\n') + beginning)
+                             spaces + '  ' + flow_units) + 
+                             '\n' + beginning)
 
             # Put it together
             phases_flowrates_info += beginning + flowrates + end + '\n\n'

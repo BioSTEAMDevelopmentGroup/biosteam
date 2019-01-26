@@ -13,10 +13,11 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Distillation" href="Distillation.html" />
-    <link rel="prev" title="Flash" href="Flash.html" /> 
+    <link rel="prev" title="Fermentation" href="Fermentation.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -31,17 +32,17 @@
           <a href="Distillation.html" title="Distillation"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="Flash.html" title="Flash"
+          <a href="Fermentation.html" title="Fermentation"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="Units.html" accesskey="U">Units</a> &#187;</li> 
+          <li class="nav-item nav-item-1"><a href="units.html" accesskey="U">units</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
-  <p class="topless"><a href="Flash.html"
-                        title="previous chapter">Flash</a></p>
+  <p class="topless"><a href="Fermentation.html"
+                        title="previous chapter">Fermentation</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="Distillation.html"
                         title="next chapter">Distillation</a></p>
@@ -76,15 +77,15 @@
 <span id="centrifuge-lle"></span><h1>Centrifuge_LLE<a class="headerlink" href="#module-biosteam" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.Centrifuge_LLE">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Centrifuge_LLE</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs_ID=()</em>, <em>ins_ID=None</em>, <em>specie_IDs=None</em>, <em>split=None</em>, <em>lNK=()</em>, <em>LNK=()</em>, <em>solvents=()</em>, <em>solvent_split=()</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.Centrifuge_LLE" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Centrifuge_LLE</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>specie_IDs=None</em>, <em>split=None</em>, <em>lNK=()</em>, <em>LNK=()</em>, <em>solvents=()</em>, <em>solvent_split=()</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/centrifuge_LLE.html#Centrifuge_LLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Centrifuge_LLE" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>An extension of the</em> <a class="reference internal" href="Unit.html"><span class="doc">Unit class</span></a>. Create an equlibrium based centrifuge with the option of having liquid non-keys and LIQUID non-keys completly separate into their respective phases.</p>
 <p>Equation for f.o.b cost:</p>
-<p><img class="math" src="_images/math/8142f7ea516e1aacf3985005d6397d9b0ecf8b4f.png" alt="C_{fob}^{2007} = 28100 Q^{0.574} (0.1 &lt; Q &lt; 100 \frac{m^3}{h})"/></p>
+<p><span class="math notranslate nohighlight">\(C_{fob}^{2007} = 28100 Q^{0.574} (0.1 &lt; Q &lt; 100 \frac{m^3}{h})\)</span></p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>ID:</strong> [str] Unique identification. If set as ‘’, a default ID will be chosen.</p>
-<p><strong>outs_ID:</strong> tuple[str] IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
-<p><strong>ins_ID:</strong> tuple[str] IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+<p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+<p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
 <p><strong>specie_IDs:</strong> <em>tuple[str]</em> IDs of equilibrium species</p>
 <p><strong>split:</strong> <em>tuple[float]</em> Initial guess split fractions of equilibrium specise to the ‘liquid’ phase.</p>
 <p><strong>lNK:</strong> <em>tuple[str]</em> Species assumed to completely remain in the ‘liquid’ phase.</p>
@@ -139,10 +140,10 @@
           <a href="Distillation.html" title="Distillation"
              >next</a> |</li>
         <li class="right" >
-          <a href="Flash.html" title="Flash"
+          <a href="Fermentation.html" title="Fermentation"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="Units.html" >Units</a> &#187;</li> 
+          <li class="nav-item nav-item-1"><a href="units.html" >units</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

@@ -54,10 +54,11 @@ class Species:
         
         # Set Specie object attributes
         for n in ID:
+            n = n.replace('_', ' ')
             try:
                 specie = cls(n)
             except:
-                specie = Specie(n)
+                raise Exception(f"Chemical, '{n}', not defined in databank.")
             setattr(self, n, specie)
 
     def __setattr__(self, ID, specie):

@@ -13,6 +13,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="LookUp" href="LookUp.html" />
@@ -76,7 +77,7 @@
 <p>System objects manage recycle loops. It takes care of bringing a chemical process to steady state.</p>
 <span class="target" id="module-biosteam"></span><dl class="class">
 <dt id="biosteam.System">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">System</code><span class="sig-paren">(</span><em>ID</em>, <em>network=()</em>, <em>recycle=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.System" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">System</code><span class="sig-paren">(</span><em>ID</em>, <em>network=()</em>, <em>recycle=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/system.html#System"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a System object that can iteratively run each element in a network of BioSTREAM objects until the recycle stream is converged. A network can have function, Unit and/or System objects. When the network contains an inner System object, it converges/solves it in each loop/iteration.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -92,8 +93,8 @@
 </div></blockquote>
 <dl class="attribute">
 <dt id="biosteam.System.color_scheme">
-<code class="descname">color_scheme</code><em class="property"> = &lt;ColorScheme: [31m[1mexception[0m, [34m[1minfo[0m, [36m[1mnote[0m, [38;2;255;218;185mrequest[0m, [37m[22mdim[0m, [0mreset[0m, [4mul[0m, [38;2;247;79;79mnum[0m, [38;2;137;225;137mstr[0m&gt;</em><a class="headerlink" href="#biosteam.System.color_scheme" title="Permalink to this definition">¶</a></dt>
-<dd><p>[ColorScheme] Manages syntax coloring for the debug method.</p>
+<code class="descname">color_scheme</code><em class="property"> = &lt;Palette: [31m[1mexception[0m, [34m[1minfo[0m, [36m[1mnote[0m, [38;2;184;134;11mdark_warning[0m, [38;2;255;215;0mwarning[0m, [38;2;255;218;185mrequest[0m, [37m[22mdim[0m, [0mreset[0m, [4mul[0m, [38;2;247;79;79mnum[0m, [38;2;137;225;137mstr[0m&gt;</em><a class="headerlink" href="#biosteam.System.color_scheme" title="Permalink to this definition">¶</a></dt>
+<dd><p>[ColorPalette] Manages syntax coloring for the debug method.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -141,12 +142,12 @@
 <dl class="method">
 <dt id="biosteam.System.converge">
 <code class="descname">converge</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.System.converge" title="Permalink to this definition">¶</a></dt>
-<dd><p>Converge the system recycle using an iterative solver.</p>
+<dd><p>Converge the system recycle using an iterative solver (Wegstein by default).</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.System.set_spec">
-<code class="descname">set_spec</code><span class="sig-paren">(</span><em>func</em>, <em>var_setter</em>, <em>var_min</em>, <em>var_max</em>, <em>brentq_kwargs={'xtol': 1e-06}</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.System.set_spec" title="Permalink to this definition">¶</a></dt>
+<code class="descname">set_spec</code><span class="sig-paren">(</span><em>func</em>, <em>var_setter</em>, <em>var_min</em>, <em>var_max</em>, <em>brentq_kwargs={'xtol': 1e-06}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/system.html#System.set_spec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.set_spec" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrap a bounded solver around the converge method. The solver varies a variable until the desired spec is satisfied.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -160,19 +161,19 @@
 
 <dl class="method">
 <dt id="biosteam.System.run_results">
-<code class="descname">run_results</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.System.run_results" title="Permalink to this definition">¶</a></dt>
+<code class="descname">run_results</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/system.html#System.run_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.run_results" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run all design basis algorithms (operation, design, and cost methods) for all units.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.System.debug">
-<code class="descname">debug</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.System.debug" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run method in a debbuger. Just try it!</p>
+<code class="descname">debug</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/system.html#System.debug"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.debug" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convege in debug mode. Just try it!</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.System.show">
-<code class="descname">show</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.System.show" title="Permalink to this definition">¶</a></dt>
+<code class="descname">show</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/system.html#System.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print all specifications.</p>
 </dd></dl>
 

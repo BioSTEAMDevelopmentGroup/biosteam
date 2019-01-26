@@ -199,7 +199,7 @@ def stream_table(streams, Flow='kmol/hr', **props) -> 'DataFrame':
         i += 1
     
     # Add spaces for readability
-    species = species.copy()
+    species = list(species).copy()
     for i in range(m):
         species[i] = '- ' + species[i]
     

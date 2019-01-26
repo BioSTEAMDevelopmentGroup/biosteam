@@ -13,6 +13,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" /> 
   </head><body>
@@ -61,13 +62,13 @@
 <span id="multieffectevaporator"></span><h1>MultiEffectEvaporator<a class="headerlink" href="#module-biosteam" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.MultiEffectEvaporator">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">MultiEffectEvaporator</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs_ID=()</em>, <em>ins_ID=None</em>, <em>component='Water'</em>, <em>P=(101325</em>, <em>)</em>, <em>V=0.5</em>, <em>P_liq=101325</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.MultiEffectEvaporator" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">MultiEffectEvaporator</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>component='Water'</em>, <em>P=(101325</em>, <em>)</em>, <em>V=0.5</em>, <em>P_liq=101325</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/multi_effect_evaporator.html#MultiEffectEvaporator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.MultiEffectEvaporator" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>An extension of the</em> <a class="reference internal" href="Unit.html"><span class="doc">Unit class</span></a>. Creates evaporatorators with pressures given by P (a list of pressures). Adjusts first evaporator vapor fraction to satisfy an overall fraction evaporated. All evaporators after the first have zero duty. Condenses the vapor coming out of the last evaporator. Pumps all liquid streams to prevent back flow in later parts. All liquid evaporated is ultimately recondensed.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>ID:</strong> [str] Unique identification. If set as ‘’, a default ID will be chosen.</p>
-<p><strong>outs_ID:</strong> tuple[str] IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
-<p><strong>ins_ID:</strong> tuple[str] IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+<p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+<p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
 <blockquote>
 <div><p><strong>component:</strong> <em>[str]</em> Component being evaporated</p>
 <p><strong>P:</strong> <em>[tuple]</em> Pressures describing each evaporator (Pa)</p>

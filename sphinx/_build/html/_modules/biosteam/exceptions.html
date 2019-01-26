@@ -1,0 +1,149 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>biosteam.exceptions &#8212; BioSTEAM 0.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for biosteam.exceptions</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python3</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Mon Apr 16 11:49:52 2018</span>
+
+<span class="sd">This module includes classes and functions relating exception handling.</span>
+
+<span class="sd">@author: Yoel Rene Cortes-Pena</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">warnings</span> <span class="k">import</span> <span class="n">warn</span>
+
+<span class="c1"># %% Biosteam errors</span>
+
+<div class="viewcode-block" id="biosteam_Error"><a class="viewcode-back" href="../../exceptions.html#biosteam.exceptions.biosteam_Error">[docs]</a><span class="k">class</span> <span class="nc">biosteam_Error</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;General exception in biosteam.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="Stop"><a class="viewcode-back" href="../../exceptions.html#biosteam.exceptions.Stop">[docs]</a><span class="k">class</span> <span class="nc">Stop</span><span class="p">(</span><span class="n">biosteam_Error</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Exception to Stop code.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="IDconflict"><a class="viewcode-back" href="../../exceptions.html#biosteam.exceptions.IDconflict">[docs]</a><span class="k">class</span> <span class="nc">IDconflict</span><span class="p">(</span><span class="n">biosteam_Error</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Exception regarding ID conflicts.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="DesignError"><a class="viewcode-back" href="../../exceptions.html#biosteam.exceptions.DesignError">[docs]</a><span class="k">class</span> <span class="nc">DesignError</span><span class="p">(</span><span class="n">biosteam_Error</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Exception regarding unit design.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="metaError"><a class="viewcode-back" href="../../exceptions.html#biosteam.exceptions.metaError">[docs]</a><span class="k">class</span> <span class="nc">metaError</span><span class="p">(</span><span class="n">biosteam_Error</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Exception regarding metaclasses.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="SolverError"><a class="viewcode-back" href="../../exceptions.html#biosteam.exceptions.SolverError">[docs]</a><span class="k">class</span> <span class="nc">SolverError</span><span class="p">(</span><span class="n">biosteam_Error</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Exception regarding solvers.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="EquilibriumError"><a class="viewcode-back" href="../../exceptions.html#biosteam.exceptions.EquilibriumError">[docs]</a><span class="k">class</span> <span class="nc">EquilibriumError</span><span class="p">(</span><span class="n">biosteam_Error</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Exception regarding equilibrium.&quot;&quot;&quot;</span></div>
+
+
+<div class="viewcode-block" id="DimensionError"><a class="viewcode-back" href="../../exceptions.html#biosteam.exceptions.DimensionError">[docs]</a><span class="k">class</span> <span class="nc">DimensionError</span><span class="p">(</span><span class="n">biosteam_Error</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Exception regarding wrong dimensions.&quot;&quot;&quot;</span></div>
+
+
+<span class="c1"># Python&#39;s built in KeyError quotes the message, used as a by-pass for the debbuger</span>
+<span class="n">KE</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="s1">&#39;KeyError&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">biosteam_Error</span><span class="p">,</span> <span class="p">),</span> <span class="p">{})</span>
+
+<span class="c1"># %% Biosteam Warnings</span>
+
+<div class="viewcode-block" id="DesignWarning"><a class="viewcode-back" href="../../exceptions.html#biosteam.exceptions.DesignWarning">[docs]</a><span class="k">class</span> <span class="nc">DesignWarning</span><span class="p">(</span><span class="ne">Warning</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Exception regarding design constraints.&quot;&quot;&quot;</span></div>
+
+
+<span class="c1"># %% Exception handling</span>
+
+<div class="viewcode-block" id="ignore_wrapper"><a class="viewcode-back" href="../../exceptions.html#biosteam.exceptions.ignore_wrapper">[docs]</a><span class="k">def</span> <span class="nf">ignore_wrapper</span><span class="p">(</span><span class="n">function</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Wrap function with a try-except clause to ignore any errors.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">ignore_function</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">function</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+    <span class="k">return</span> <span class="n">ignore_function</span></div>
+
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>

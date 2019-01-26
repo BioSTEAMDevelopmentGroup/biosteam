@@ -1,0 +1,450 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>biosteam.utils.other_utils &#8212; BioSTEAM 0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for biosteam.utils.other_utils</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Wed Dec  5 17:24:01 2018</span>
+
+<span class="sd">This module includes arbitrary classes and functions.</span>
+
+<span class="sd">@author: Guest Group</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">np</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="c1">#from multiprocessing import Process</span>
+<span class="c1">#import threading</span>
+<span class="c1">#import _thread</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;approx2step&#39;</span><span class="p">,</span> <span class="s1">&#39;copy_attr&#39;</span><span class="p">,</span> <span class="s1">&#39;get_attr&#39;</span><span class="p">,</span> <span class="s1">&#39;autodoc&#39;</span><span class="p">,</span> <span class="s1">&#39;TextManager&#39;</span><span class="p">,</span> <span class="s1">&#39;autopep8_all&#39;</span><span class="p">,</span> <span class="s1">&#39;replace_all&#39;</span><span class="p">,</span> <span class="s1">&#39;count_all&#39;</span><span class="p">,</span> <span class="s1">&#39;length_all&#39;</span><span class="p">,</span> <span class="s1">&#39;Timer&#39;</span><span class="p">,</span> <span class="s1">&#39;run_in_parallel&#39;</span><span class="p">)</span>
+
+<span class="c1"># %% Small functions</span>
+
+<div class="viewcode-block" id="approx2step"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.approx2step">[docs]</a><span class="k">def</span> <span class="nf">approx2step</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">dx</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Approximate value, val, to closest increment/step, dx, starting from x0.&quot;&quot;&quot;</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">val</span> <span class="o">&lt;</span> <span class="n">x0</span><span class="p">:</span>
+            <span class="k">break</span>
+        <span class="n">x0</span> <span class="o">+=</span> <span class="n">dx</span>
+    <span class="k">return</span> <span class="n">x0</span></div>
+
+<span class="c1"># %% For managing objects</span>
+
+<div class="viewcode-block" id="copy_attr"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.copy_attr">[docs]</a><span class="k">def</span> <span class="nf">copy_attr</span><span class="p">(</span><span class="n">obj0</span><span class="p">,</span> <span class="n">obj1</span><span class="p">,</span> <span class="o">*</span><span class="n">attrs</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Copy specified attributes &#39;attrs&#39; from obj1 to obj0.&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">obj0</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj1</span><span class="p">,</span> <span class="n">attr</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="get_attr"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.get_attr">[docs]</a><span class="k">def</span> <span class="nf">get_attr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="o">*</span><span class="n">attrs</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;list[attributes]&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Get a list of attributes, &#39;attrs&#39;, from obj.&quot;&quot;&quot;</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">attr</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">out</span></div>
+
+
+
+<span class="c1"># %% For making Sphinx docs</span>
+
+<div class="viewcode-block" id="autodoc"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.autodoc">[docs]</a><span class="k">def</span> <span class="nf">autodoc</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Make Sphinx documentation txt file in the specified path.&quot;&quot;&quot;</span>
+    <span class="c1"># Return if there is no docstring</span>
+    <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__doc__</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span>
+
+    <span class="c1"># Skeleton doc</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;</span><span class="si">{name}</span><span class="se">\n</span><span class="s1">&#39;</span>
+    <span class="n">header</span> <span class="o">+=</span> <span class="s1">&#39;=&#39;</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span>
+    <span class="n">module</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;.. module:: </span><span class="si">{cls.__module__}</span><span class="se">\n\n</span><span class="s1">&#39;</span>
+    <span class="n">autoclass</span> <span class="o">=</span> <span class="s2">&quot;.. autoclass:: </span><span class="si">{name}</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="n">members</span> <span class="o">=</span> <span class="s2">&quot;   :members:&quot;</span>
+    <span class="n">skeleton_doc</span> <span class="o">=</span> <span class="n">header</span> <span class="o">+</span> <span class="n">module</span> <span class="o">+</span> <span class="n">autoclass</span> <span class="o">+</span> <span class="n">members</span>
+
+    <span class="c1"># Set class name for document</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span>
+    <span class="n">doc</span> <span class="o">=</span> <span class="n">skeleton_doc</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{name}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+    <span class="c1"># Write file</span>
+    <span class="n">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{path}</span><span class="s2">/</span><span class="si">{name}</span><span class="s2">.txt&quot;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+    <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+    <span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<span class="c1"># %% Text management</span>
+
+<div class="viewcode-block" id="TextManager"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.TextManager">[docs]</a><span class="k">class</span> <span class="nc">TextManager</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Create a TextManager object that can read a document, store its content and update the document.</span>
+
+<span class="sd">    **Parameters**</span>
+
+<span class="sd">        document: [str] Name of the document</span>
+
+<span class="sd">        directory: [str] Relative location of the document</span>
+
+<span class="sd">    **Instance variables**</span>
+
+<span class="sd">        content: [str] Content of the document</span>
+
+<span class="sd">        document: [str] Name of the document</span>
+<span class="sd">        </span>
+<span class="sd">        original: [str] Original document</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">document</span><span class="p">,</span> <span class="n">directory</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">document</span> <span class="o">=</span> <span class="n">directory</span> <span class="o">+</span> <span class="n">document</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">refresh</span><span class="p">()</span>
+
+<div class="viewcode-block" id="TextManager.refresh"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.TextManager.refresh">[docs]</a>    <span class="k">def</span> <span class="nf">refresh</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reads the document and stores its files in content.&quot;&quot;&quot;</span>
+        <span class="n">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">document</span><span class="p">,</span> <span class="s1">&#39;r+&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">content</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">original</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span>
+        <span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="TextManager.replace"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.TextManager.replace">[docs]</a>    <span class="k">def</span> <span class="nf">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">old</span><span class="o">=</span><span class="p">[],</span> <span class="n">new</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="sd">&quot;&quot;&quot;Replace old strings in self.content with new.</span>
+
+<span class="sd">        **Parameters**</span>
+
+<span class="sd">            old: list[str] strings to be replaced</span>
+<span class="sd">    </span>
+<span class="sd">            new: list[str] new strings that replace old ones</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">old</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="n">old</span> <span class="o">=</span> <span class="p">[</span><span class="n">old</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">new</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="n">new</span> <span class="o">=</span> <span class="p">[</span><span class="n">new</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">old</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">new</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;inputs must have the same length&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">old</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">content</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">old</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">new</span><span class="p">[</span><span class="n">i</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="TextManager.autopep8"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.TextManager.autopep8">[docs]</a>    <span class="k">def</span> <span class="nf">autopep8</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Fix content to follow PEP 8.&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">autopep8</span> <span class="k">import</span> <span class="n">fix_code</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">content</span> <span class="o">=</span> <span class="n">fix_code</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TextManager.restart"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.TextManager.restart">[docs]</a>    <span class="k">def</span> <span class="nf">restart</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Undo any changes made to content.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">content</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">original</span></div>
+
+<div class="viewcode-block" id="TextManager.update"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.TextManager.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Writes content in document&quot;&quot;&quot;</span>
+        <span class="n">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">document</span><span class="p">,</span> <span class="s1">&#39;w+&#39;</span><span class="p">)</span>
+        <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+        <span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">f</span><span class="s1">&#39;&lt;Text_manager: </span><span class="si">{self.document}</span><span class="s1">&gt;&#39;</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">content</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="autopep8_all"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.autopep8_all">[docs]</a><span class="k">def</span> <span class="nf">autopep8_all</span><span class="p">(</span><span class="n">directory</span><span class="o">=</span><span class="s2">&quot;.</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;autopep8 all files in new for every document and subfolder document ending with .py and .ipynb in the specified directory&quot;&quot;&quot;</span>
+    <span class="n">fileIDs</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">fsdecode</span><span class="p">(</span><span class="n">file</span><span class="p">)</span> <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">directory</span><span class="p">)]</span>
+    <span class="k">for</span> <span class="n">fileID</span> <span class="ow">in</span> <span class="n">fileIDs</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;.&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fileID</span> <span class="ow">and</span> <span class="s1">&#39;__&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fileID</span> <span class="ow">and</span> <span class="n">fileID</span> <span class="o">!=</span> <span class="s1">&#39;Sphinx&#39;</span><span class="p">:</span>
+            <span class="n">autopep8_all</span><span class="p">(</span><span class="n">directory</span> <span class="o">+</span> <span class="n">fileID</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fileID</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.py&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">fileID</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.ipynb&#39;</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">TextManager</span><span class="p">(</span><span class="n">fileID</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span>
+            <span class="n">x</span><span class="o">.</span><span class="n">autopep8</span><span class="p">()</span>
+            <span class="n">x</span><span class="o">.</span><span class="n">update</span><span class="p">()</span></div>
+
+<span class="k">def</span> <span class="nf">get_files</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
+    <span class="n">fileIDs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">fsdecode</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+            <span class="n">fileIDs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+    <span class="k">return</span> <span class="n">fileIDs</span>
+
+<div class="viewcode-block" id="replace_all"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.replace_all">[docs]</a><span class="k">def</span> <span class="nf">replace_all</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">,</span> <span class="n">directory</span><span class="o">=</span><span class="s2">&quot;.</span><span class="se">\\\\</span><span class="s2">&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Replaces strings in old with strings in new for every document and subfolder document ending with .py and .ipynb in the specified directory&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">fileIDs</span> <span class="o">=</span> <span class="n">get_files</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">return</span>
+    
+    <span class="k">for</span> <span class="n">fileID</span> <span class="ow">in</span> <span class="n">fileIDs</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;.&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fileID</span> <span class="ow">and</span> <span class="s1">&#39;__&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fileID</span> <span class="ow">and</span> <span class="n">fileID</span> <span class="o">!=</span> <span class="s1">&#39;Sphinx&#39;</span><span class="p">:</span>
+            <span class="n">replace_all</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">,</span> <span class="n">directory</span> <span class="o">+</span> <span class="n">fileID</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fileID</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.py&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">fileID</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.ipynb&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">fileID</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.rst&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">fileID</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.txt&#39;</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">TextManager</span><span class="p">(</span><span class="n">fileID</span><span class="p">,</span> <span class="n">directory</span><span class="p">)</span>
+                <span class="n">x</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
+                <span class="n">x</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">UnicodeDecodeError</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;{repr(x)} could not read file.&#39;</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="k">except</span> <span class="ne">NotADirectoryError</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;{repr(x)} could not read file.&#39;</span><span class="p">)</span>
+                <span class="k">continue</span></div>
+
+
+<span class="k">def</span> <span class="nf">length_all</span><span class="p">(</span><span class="n">directory</span><span class="o">=</span><span class="s1">&#39;.</span><span class="se">\\\\</span><span class="s1">&#39;</span><span class="p">):</span>
+    <span class="n">N</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">fileIDs</span> <span class="o">=</span> <span class="n">get_files</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">fileID</span> <span class="ow">in</span> <span class="n">fileIDs</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;.&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fileID</span> <span class="ow">and</span> <span class="s1">&#39;__&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fileID</span> <span class="ow">and</span> <span class="n">fileID</span> <span class="o">!=</span> <span class="s1">&#39;Sphinx&#39;</span><span class="p">:</span>
+            <span class="n">N</span> <span class="o">+=</span> <span class="n">length_all</span><span class="p">(</span><span class="n">directory</span> <span class="o">+</span> <span class="n">fileID</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fileID</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.py&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">fileID</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.ipynb&#39;</span><span class="p">):</span>
+            <span class="n">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">directory</span> <span class="o">+</span> <span class="n">fileID</span><span class="p">,</span> <span class="s1">&#39;r+&#39;</span><span class="p">)</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="n">N</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+            <span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">N</span>
+
+
+<span class="k">def</span> <span class="nf">count_all</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">directory</span><span class="o">=</span><span class="s1">&#39;.</span><span class="se">\\\\</span><span class="s1">&#39;</span><span class="p">):</span>
+    <span class="n">N_lines</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">fileIDs</span> <span class="o">=</span> <span class="n">get_files</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">fileID</span> <span class="ow">in</span> <span class="n">fileIDs</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;.&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fileID</span> <span class="ow">and</span> <span class="n">fileID</span> <span class="o">!=</span> <span class="s1">&#39;Sphinx&#39;</span><span class="p">:</span>
+            <span class="n">N_lines</span> <span class="o">+=</span> <span class="n">count_all</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">directory</span> <span class="o">+</span> <span class="n">fileID</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fileID</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.py&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">fileID</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.ipynb&#39;</span><span class="p">):</span>
+            <span class="n">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">directory</span> <span class="o">+</span> <span class="n">fileID</span><span class="p">,</span> <span class="s1">&#39;r+&#39;</span><span class="p">)</span>
+            <span class="n">content</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="n">N_lines</span> <span class="o">+=</span> <span class="n">content</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+            <span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">N_lines</span>
+
+<span class="c1"># %% Timer</span>
+
+<div class="viewcode-block" id="Timer"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.Timer">[docs]</a><span class="k">class</span> <span class="nc">Timer</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Create a Timer class with tic toc functions that measure elapsed time.&quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;tictoc&#39;</span><span class="p">,</span> <span class="s1">&#39;_start&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tictoc</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1">#: [list] elapsed times from tic toc functions</span>
+
+<div class="viewcode-block" id="Timer.toc"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.Timer.toc">[docs]</a>    <span class="k">def</span> <span class="nf">toc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Record time interval since last &#39;tic&#39; in self.tictoc.&quot;&quot;&quot;</span>
+        <span class="c1"># Appends time difference</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tictoc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Must run &#39;tic&#39; before &#39;toc&#39;.&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Timer.tic"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.Timer.tic">[docs]</a>    <span class="k">def</span> <span class="nf">tic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Start timer.&quot;&quot;&quot;</span>
+        <span class="c1"># Marks the beginning of a time interval</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">average</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The mean value of elapsed time&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tictoc</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">f</span><span class="s2">&quot;&lt;{type(self).__name__}, average=</span><span class="si">{self.average:.3g}</span><span class="s2">&gt;&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">f</span><span class="s2">&quot;{type(self).__name__}: </span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> 
+                <span class="n">f</span><span class="s2">&quot; tictoc: </span><span class="si">{self.tictoc}</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>
+                <span class="n">f</span><span class="s2">&quot; average: </span><span class="si">{self.average}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">())</span></div>
+        
+        
+<span class="c1"># %% Iterative solvers</span>
+
+<span class="k">def</span> <span class="nf">PI_iteration</span><span class="p">(</span><span class="n">process_function</span><span class="p">,</span> <span class="n">state_function</span><span class="p">,</span> <span class="n">Kp</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span>
+                 <span class="n">invtau</span><span class="p">,</span> <span class="n">xtol</span><span class="p">,</span> <span class="n">maxiter</span><span class="o">=</span><span class="mi">150</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Iteratively solves a function using feedback PI control. The process is split in two parts, the process function and the state function. The process function depends on the process state and returns the output that must converge. The state function updates the process state accoring to the error from the process function and the PI settings (gain and integral time constant).</span>
+
+
+<span class="sd">    **Parameters**</span>
+
+<span class="sd">        state_function = updates the state of the process according to the input</span>
+
+<span class="sd">        process_function = returns iterated output</span>
+
+<span class="sd">        Kp = gain</span>
+
+<span class="sd">        x0 = initial guess where process_function(x0) = x0</span>
+
+<span class="sd">        bal_tau = inverse of integral time constant </span>
+
+<span class="sd">        xtol = margin of allowable error</span>
+
+<span class="sd">    Returns:</span>
+
+<span class="sd">        it = the number of iterations</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">run</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">it</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">int_err</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">run</span><span class="p">:</span>
+        <span class="n">x1</span> <span class="o">=</span> <span class="n">process_function</span><span class="p">()</span>
+        <span class="n">err</span> <span class="o">=</span> <span class="n">x1</span> <span class="o">-</span> <span class="n">x0</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">err</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">int_err</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">err</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">int_err</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">int_err</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">int_err</span> <span class="o">+=</span> <span class="n">invtau</span> <span class="o">*</span> <span class="n">err</span>
+        <span class="n">state_function</span><span class="p">(</span><span class="n">x1</span> <span class="o">+</span> <span class="n">Kp</span><span class="o">*</span><span class="p">(</span><span class="n">err</span> <span class="o">+</span> <span class="n">int_err</span><span class="p">))</span>
+        <span class="n">x0</span> <span class="o">=</span> <span class="n">x1</span>
+        <span class="n">it</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">it</span> <span class="o">&gt;</span> <span class="n">maxiter</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;PI_iteration did not converge&#39;</span><span class="p">)</span>
+            <span class="k">break</span>
+        <span class="n">run</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">err</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">xtol</span>
+    <span class="k">return</span> <span class="n">it</span>
+
+<span class="c1"># def PI_control(function, set_point, x0, Kp = 0.05, invtau = 0.5, xtol = 0.1, maxiter = 100):</span>
+<span class="c1">#      &quot;&quot;&quot;</span>
+<span class="c1">#      PI Control Solver</span>
+
+<span class="c1">#      Returns:</span>
+
+<span class="c1">#           it = the number of iterations</span>
+
+<span class="c1">#      Input arguments:</span>
+
+<span class="c1">#           function = the process to be iterated</span>
+
+<span class="c1">#           set_point = iteration Stops once function output reaches the set point within xtol</span>
+
+<span class="c1">#           x0 = initial condition of function input</span>
+
+<span class="c1">#           Kp = gain</span>
+
+<span class="c1">#           invtau = inverse of integral time constant</span>
+
+<span class="c1">#           xtol = margin of allowable error</span>
+<span class="c1">#      &quot;&quot;&quot;</span>
+<span class="c1">#      err = xtol + 1</span>
+<span class="c1">#      it = 0</span>
+<span class="c1">#      int_err = 0</span>
+<span class="c1">#      while abs(err) &gt; xtol:</span>
+<span class="c1">#           y = function(x0)</span>
+<span class="c1">#           err = set_point - y</span>
+<span class="c1">#           if (err &lt; 0 and int_err &gt; 0) or (err &gt; 0 and int_err &lt; 0):</span>
+<span class="c1">#                int_err = 0</span>
+<span class="c1">#           int_err += invtau * err</span>
+<span class="c1">#           x0 = x0 + Kp*(err + int_err)</span>
+<span class="c1">#           it += 1</span>
+<span class="c1">#           if it &gt; maxiter:</span>
+<span class="c1">#                raise Exception(&#39;PI_solver did not converge&#39;)</span>
+<span class="c1">#                break</span>
+<span class="c1">#      return it</span>
+
+<span class="c1"># %% Parallel processing and threading</span>
+
+<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="k">import</span> <span class="n">Process</span>
+<div class="viewcode-block" id="run_in_parallel"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.run_in_parallel">[docs]</a><span class="k">def</span> <span class="nf">run_in_parallel</span><span class="p">(</span><span class="n">fns</span><span class="p">,</span> <span class="n">argss</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Run functions in parallel.</span>
+<span class="sd">    </span>
+<span class="sd">    **Parameters**</span>
+<span class="sd">    </span>
+<span class="sd">        fns: iterable[function] Functions to run in parallel</span>
+<span class="sd">    </span>
+<span class="sd">        argss: iterable[tuple] Arguments for functions</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">proc</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">fn</span><span class="p">,</span> <span class="n">args</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">fns</span><span class="p">,</span> <span class="n">argss</span><span class="p">):</span>
+          <span class="n">p</span> <span class="o">=</span> <span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">fn</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">)</span>
+          <span class="n">p</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+          <span class="n">proc</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">proc</span><span class="p">:</span>
+          <span class="n">p</span><span class="o">.</span><span class="n">join</span><span class="p">()</span></div>
+<span class="c1">#</span>
+<span class="c1"># def input_with_timeout(prompt, timeout= 5):</span>
+<span class="c1">#     timer = threading.Timer(timeout, _thread.interrupt_main)</span>
+<span class="c1">#     astring = None</span>
+<span class="c1">#     try:</span>
+<span class="c1">#          timer.start()</span>
+<span class="c1">#          astring = input(prompt)</span>
+<span class="c1">#     except KeyboardInterrupt:</span>
+<span class="c1">#          pass</span>
+<span class="c1">#     timer.cancel()</span>
+<span class="c1">#     return astring</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>

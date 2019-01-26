@@ -8,45 +8,15 @@ from biosteam.exceptions import DimensionError
 from biosteam.species import Species
 from biosteam.stream import Stream, mol_flow_dim, mass_flow_dim, vol_flow_dim
 from biosteam.mixed_stream import MixedStream
-from biosteam.utils import get_doc_units
 from bookkeep import SmartBook, UnitManager
 from biosteam import Q_
 
 # %% Default Heat Transfer Streams
 
-CoolingAir_species = Species('Nitrogen', 'Oxygen',
-                              'Water', 'CO2', 'Argon')
+CoolingAir = Species('Nitrogen', 'Oxygen',
+                     'Water', 'CO2', 'Argon')
 
-def CoolingAir(*args, **kwargs):
-    stream = object.__new__(Stream)
-    stream.species = CoolingAir_species
-    stream.__init__(*args, **kwargs)
-    return stream
-
-Water_species = Species('Water')
-
-def Water(*args, **kwargs):
-    stream = object.__new__(Stream)
-    stream.species = Water_species
-    stream.__init__(*args, **kwargs)
-    return stream
-
-def UtilStream(specie_ID, *args, **kwargs):
-    stream = object.__new__(Stream)
-    stream.species = Species([specie_ID])
-    stream.__init__(*args, **kwargs)
-    return stream
-
-def create_hx_agent(self, ID, specie_ID, T, P, phase):
-    ID = '*'+ID
-    self._fresh = UtilStream(specie_ID,
-                            ID=ID,
-                            flow=[1],
-                            T=T,
-                            P=P,
-                            phase=phase)
-    self._liq = UtilStream(specie_ID, ID, phase='l')
-    self._vap = UtilStream(specie_ID, ID, phase='g')
+Water = Species('Water')
 
 # %% Utilities
 
@@ -122,25 +92,25 @@ class HeatUtility:
     def _set_CoolingAir(self):
         """Set cooling air as the utility."""
         ID = '*Cooling Air'
-        self._fresh = CoolingAir(ID,
+        self._fresh = Stream(ID, species=CoolingAir,
                                 flow=[0.7809, 0.2095, 0.004, 0.0004, 0.0093],
                                 T=305.372,
                                 P=101325,
                                 phase='g')
-        self._liq = CoolingAir(ID, phase='l')
-        self._vap = CoolingAir(ID, phase='g')
+        self._liq = Stream(ID, species=CoolingAir, phase='l')
+        self._vap = Stream(ID, species=CoolingAir,phase='g')
 
 
     def _set_Water(self, ID, T, P, phase):
         """Set water as the utility."""
         ID = '*'+ID
-        self._fresh = Water(ID,
-                           flow=[1],
-                           T=T,
-                           P=P,
-                           phase=phase)
-        self._liq = Water(ID, phase='l')
-        self._vap = Water(ID, phase='g')
+        self._fresh = Stream(ID, species=Water,
+                             flow=[1],
+                             T=T,
+                             P=P,
+                             phase=phase)
+        self._liq = Stream(ID, species=Water, phase='l')
+        self._vap = Stream(ID, species=Water, phase='g')
 
     # Default Heat Transfer agents
     def _default_cooling_agent(self, duty, T_pinch):

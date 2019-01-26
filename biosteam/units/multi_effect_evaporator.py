@@ -84,31 +84,32 @@ class MultiEffectEvaporator(Unit):
         
         # Create components
         n = len(P) # Number of evaporators
-        evap = Flash_PV('Evaporator', outs_ID=('vap', 'liq'), component=component, P=P[0])
+        evap = Flash_PV('Evaporator0', outs=('vap', 'liq'),
+                        component=component, P=P[0])
         evap.ins = ins
         evaporators = [evap]
         for i in range(1, n):
-            evap = Flash_PQin('Evaporator', outs_ID=('vap', 'liq', 'utility'),
+            evap = Flash_PQin('Evaporator' + str(i),
+                              outs=('vap', 'liq', 'utility'),
                               component=component, P=P[i], Qin=0)
             evaporators.append(evap)
-        condenser = HXutility('Condenser', outs_ID='condensate', V=0)
-        pumps = Pump('Pump', outs_ID=('liq',)*(n+1), P=P_liq)
-        mixer = Mixer('Mixer', outs_ID='liq')
+        condenser = HXutility('Condenser', outs='condensate', V=0)
+        pumps = Pump('Pump', outs=('liq',)*(n+1), P=P_liq)
+        mixer = Mixer('Mixer', outs='liq')
 
+        evap0 = evaporators[0]
         def V_error(v1):
             # Run first evaporator
             v_test = v1
-            evap = evaporators[0]
-            evap.kwargs['V'] = v1
-            evap.run()
+            evap0.kwargs['V'] = v1
+            evap0.run()
             # Put liquid first, then vapor side stream
-            ins = [evap.outs[1], evap.outs[0]]
+            ins = [evap0.outs[1], evap0.outs[0]]
             for i in range(1, n):
                 evap = evaporators[i]
                 evap.ins = ins
                 evap.run()
-                v_test = v_test + (1-v_test) * \
-                    evap._V
+                v_test += (1-v_test) * evap._V
                 # Put liquid first, then vapor side stream
                 ins = [evap.outs[1], evap.outs[0]]
             return V - v_test
@@ -133,7 +134,7 @@ class MultiEffectEvaporator(Unit):
         pumps = components['pumps']
         mixer = components['mixer']
         brentq(self._V_error, 0.001, 0.999, xtol=0.0001)
-
+        
         # Condensing vapor from last effector
         outs_vap = evaporators[-1].outs[0]
         condenser.ins = [outs_vap]

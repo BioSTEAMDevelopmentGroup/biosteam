@@ -12,7 +12,7 @@ from scipy.optimize import brentq
 from graphviz import Digraph
 from biosteam.exceptions import Stop, SolverError
 from biosteam.lookup import LookUp
-from biosteam.stream import Stream
+from biosteam.stream import Stream, mol_units, T_units
 from biosteam.unit import Unit
 from biosteam import np
 from biosteam.utils import organized_list, get_streams, color_scheme
@@ -36,7 +36,6 @@ def evaluate(command=None):
     elif command == 'exit':
         raise Stop
 
-    # Evaluate command, if error ask to raise error or try again
     try:
         # Build locals dictionary for evaluating command
         lcs = {} 
@@ -67,12 +66,10 @@ def evaluate(command=None):
 def system_debug(self, func):
     """Unit class run method decorator for debugging system."""
     def wrapper(*args):
+        # Run method, show info and ask to evaluate
         print()
-        # Run the method
         func(*args)
-        # Show information
         self.show()
-        # Ask to continue or evaluate user input
         evaluate()
     wrapper.__name__ = func.__name__
     wrapper.__doc__ = func.__doc__
@@ -159,7 +156,7 @@ class metaSystem(type):
 
 # %% Process flow
 
-class System(metaclass= metaSystem):
+class System(metaclass=metaSystem):
     """Create a System object that can iteratively run each element in a network of BioSTREAM objects until the recycle stream is converged. A network can have function, Unit and/or System objects. When the network contains an inner System object, it converges/solves it in each loop/iteration.
 
     **Parameters**
@@ -185,7 +182,7 @@ class System(metaclass= metaSystem):
 
     ### Class attributes ###
     
-    #: [ColorScheme] Manages syntax coloring for the debug method.
+    #: [ColorPalette] Manages syntax coloring for the debug method.
     color_scheme = CS
     
     # [iter] Maximum number of iterations for converge method
@@ -320,13 +317,11 @@ class System(metaclass= metaSystem):
         U = {}  # Contains units by ID
         UD = {}  # Contains full description (ID and line) by ID
         for unit in self.units:
-            # If unit is not important (no ID), ignore the unit
             if unit.ID == '':
-                continue
+                continue  # Ignore Unit
             
-            # If MassBalance, display separately
             if not unit._Graphics.in_system:
-                unit.diagram
+                unit.diagram   # Display separately
                 continue
             
             # Fill dictionaries
@@ -335,29 +330,24 @@ class System(metaclass= metaSystem):
             U[unit.ID] = unit
             UD[unit.ID] = name
             
-            # Initialize graphics and make node with attributes
+            # Initialize graphics and make Unit node with attributes
             unit._Graphics.node_function(unit)
             f.attr('node', **unit._Graphics.node)
             f.node(name)
-
-        # Names for all units
+            
         keys = UD.keys()
-
-        # Get all streams
         streams = self.streams
 
-        # Set attributes for graph
+        # Set attributes for graph and streams
         f.attr('node', shape='rarrow', fillcolor='#79dae8', style='filled')
         f.attr('graph', splines='normal', overlap='orthoyx',
                outputorder='edgesfirst', nodesep='0.15', maxiter='10000')
         f.attr('edge', dir='foward')
 
         for stream in streams:
-            # If stream is not important (no ID), ignore the stream
             if stream.ID == '' or stream.ID == 'Missing Stream':
-                continue
+                continue  # Ignore stream
 
-            # Get source and sink unit for the stream
             oU, oi = stream._source
             dU, di = stream._sink
 
@@ -366,7 +356,7 @@ class System(metaclass= metaSystem):
                 # Stream is not attached to anything
                 continue
             elif oU not in keys:
-                # Fresh stream case
+                # Feed stream case
                 f.attr('node', shape='rarrow', fillcolor='#79dae8',
                        style='filled', orientation='0', width='0.6',
                        height='0.6', color='black')
@@ -393,7 +383,6 @@ class System(metaclass= metaSystem):
                        **edge_in[di], **edge_out[oi])
                 f.edge(UD[oU], UD[dU], label=stream.ID)
 
-        # Display graph
         x = IPython.display.SVG(f.pipe(format='svg'))
         IPython.display.display(x)
 
@@ -412,7 +401,7 @@ class System(metaclass= metaSystem):
     # Methods for convering the recycle stream
     def _fixed_point(self):
         """Converge system recycle using inner and outer loops with fixed-point iteration."""
-        # Define used attributes to not have to look up self dictionary
+        # Reused attributes
         recycle = self.recycle
         run = self._run
         solver_error = self.solver_error
@@ -442,7 +431,7 @@ class System(metaclass= metaSystem):
 
     def _Wegstein(self):
         """Converge the system recycle iteratively using Wegstein's method."""
-        # Define used attributes to not have to look up self dictionary
+        # Reused attributes
         recycle = self.recycle
         run = self._run
         mol_tol = self.mol_tol
@@ -574,7 +563,7 @@ class System(metaclass= metaSystem):
             sys.converge = sys.converge._original
     
     def debug(self):
-        """Run method in a debbuger. Just try it!"""
+        """Convege in debug mode. Just try it!"""
         self._debug_on()
         try:
             evaluate()
@@ -612,13 +601,13 @@ class System(metaclass= metaSystem):
 
         spec = x['spec_error']
         if spec:
-            error_info += f'\n Specification Error: {spec:.3g}'
+            error_info += f'\n specification error: {spec:.3g}'
 
         if recycle:
-            error_info = f"\n Convergence Error: mol={x['mol_error']:.2e}, T={x['T_error']:.2e}"
+            error_info += f"\n convergence error: mol={x['mol_error']:.2e} ({mol_units}), T={x['T_error']:.2e} ({T_units})"
 
         if spec or recycle:
-            error_info += f"\n Iterations: {x['iter']}"
+            error_info += f"\n iterations: {x['iter']}"
 
         return error_info
 
@@ -628,135 +617,10 @@ class System(metaclass= metaSystem):
             recycle = ''
         else:
             unit, i = self.recycle._source
-            recycle = f"\n Recycle: {unit}-{i}"
+            recycle = f"\n recycle: {unit}-{i}"
         error = self._error_info()
+        network = str(tuple(str(n) for n in self._network)).replace("'", "")
         return (f"System: {self.ID}"
                 + str(recycle) + '\n'
-                + f" Network: {self._network}"
+                + f" network: {network}"
                 + str(error))
-
-# # Use a controlled iteration algorithm to reach steady state faster
-# # Very similar to PI control with unwinding
-# # f'(x) is always positive
-# # Add small gain to reach steady state faster
-# # Add small integral error to prevent residual steady state error
-
-# invtau = self.invtau
-# Kp = self.Kp
-# len_ = recycle._Nspecies + 1
-# x0 = np.zeros(len_)
-# x1 = np.zeros(len_)
-# int_err = np.zeros(len_)
-
-# while True:
-#       # Get before and after
-#       x0[:-1] = mol_old = copy.copy(recycle.mol)
-#       x0[-1] = T_old = recycle.T
-#       _simple_run()
-#       simple_iter += 1
-#       x1[:-1] = recycle.mol
-#       x1[-1] = recycle.T
-
-#       err = x1 - x0
-
-#       # Discard error when there is oscillation
-#       int_err[np.logical_or( np.logical_and(err < 0, int_err > 0),
-#                             np.logical_and(err > 0, int_err < 0) )] = 0
-
-#       # Set new guess using proportional and integral terms
-#       int_err += invtau * err
-#       dummy = x0 + Kp*(err + int_err)
-#       recycle.mol = dummy[:-1]
-#       recycle.T = dummy[-1]
-
-#       # Check convergence
-#       mol_error = sum(abs(recycle.mol - mol_old))
-#       T_error = abs(recycle.T - T_old)
-#       if mol_error < simple_mol_tol and T_error < simple_T_tol:
-#           break
-#       if simple_iter > maxiter:
-#           set_solver_error()
-#           raise SolverError(f'Could not simple_converge\n'
-#                             + f' Error: mol = {mol_error: .2e}, T = {T_error: .2e}')
-# set_solver_error()
-
-# def tune_Kp(self, Kp_accuracy = 0.01):
-#      recycle = self.recycle
-#      mol_ = copy.copy(recycle.mol)
-#      T_ = recycle.T
-
-#      def restart():
-#           recycle.mol = mol_
-#           recycle.T = T_
-#           error['iter'] = 0
-#           error['simple_iter'] = 0
-
-#      error = self.solver_error
-#      converge = self.converge
-
-#      converge()
-#      Nloops = error['simple_iter']
-#      mol_error = error['mol_error']/self.mol_tol
-#      T_error = error['T_error']/self.T_tol
-#      sum_err = mol_error + T_error
-#      restart()
-
-#      it = 0
-#      Tuning = True
-#      increasing = True
-#      decreasing = True
-#      while Tuning:
-#           it += 1
-#           if it >= 50:
-#                break
-
-#           if increasing:
-#                # Try increasing
-#                self.Kp += Kp_accuracy
-#                error['simple_iter'] = 0
-#                converge()
-#                Nloops_new = error['simple_iter']
-#                if Nloops_new < Nloops:
-#                     Nloops = Nloops_new
-#                     sum_err = error['mol_error']/self.mol_tol + error['T_error']/self.T_tol
-#                     decreasing = False
-#                     restart()
-#                     continue
-#                elif Nloops_new == Nloops:
-#                     sum_err_new = error['mol_error']/self.mol_tol + error['T_error']/self.T_tol
-#                     if sum_err_new  < sum_err:
-#                          sum_err = sum_err_new
-#                          decreasing = False
-#                          restart()
-#                          continue
-#                else:
-#                     self.Kp -= Kp_accuracy
-#                increasing = False
-#                restart()
-
-#           if decreasing:
-#                # Try decreasing
-#                self.Kp -= Kp_accuracy
-#                error['simple_iter'] = 0
-#                converge()
-#                Nloops_new = error['simple_iter']
-#                if Nloops_new < Nloops:
-#                     Nloops = Nloops_new
-#                     sum_err = error['mol_error']/self.mol_tol + error['T_error']/self.T_tol
-#                     decreasing = True
-#                     increasing = False
-#                     restart()
-#                     continue
-#                elif Nloops_new == Nloops:
-#                     sum_err_new = error['mol_error']/self.mol_tol + error['T_error']/self.T_tol
-#                     if sum_err_new  < sum_err:
-#                          sum_err = sum_err_new
-#                          decreasing = True
-#                          increasing = False
-#                          restart()
-#                          continue
-#                else:
-#                    self.Kp += Kp_accuracy
-
-#           Tuning = False
-#           restart()

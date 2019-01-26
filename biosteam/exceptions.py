@@ -47,6 +47,11 @@ class DimensionError(biosteam_Error):
 # Python's built in KeyError quotes the message, used as a by-pass for the debbuger
 KE = type('KeyError', (biosteam_Error, ), {})
 
+# %% Biosteam Warnings
+
+class DesignWarning(Warning):
+    """Exception regarding design constraints."""
+
 
 # %% Exception handling
 

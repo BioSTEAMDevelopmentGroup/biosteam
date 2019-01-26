@@ -1,0 +1,186 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>biosteam.lookup &#8212; BioSTEAM 0.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for biosteam.lookup</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Sat Aug 18 14:20:32 2018</span>
+
+<span class="sd">@author: yoelr</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">biosteam.utils</span> <span class="k">import</span> <span class="n">WeakRefBook</span><span class="p">,</span> <span class="n">getDict</span>
+
+
+<span class="c1"># %% Flowsheet search</span>
+<span class="k">class</span> <span class="nc">metaLookUp</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Meta class for defining the LookUp call.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">ID</span><span class="p">:</span> <span class="s1">&#39;item ID&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;item&#39;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return requested item from LookUp&#39;s weakref dictionaries.</span>
+
+<span class="sd">        **Parameters**</span>
+
+<span class="sd">             **ID:** [str] ID of the requested item.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">dct_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;system&#39;</span><span class="p">,</span> <span class="s1">&#39;line&#39;</span><span class="p">,</span> <span class="s1">&#39;unit&#39;</span><span class="p">,</span> <span class="s1">&#39;stream&#39;</span><span class="p">):</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">dct_name</span><span class="p">)[</span><span class="n">ID</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">obj</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">obj</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">check_ID</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_check_ID</span>
+
+    <span class="nd">@check_ID</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">check_ID</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">boolean</span><span class="p">):</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_check_ID</span> <span class="o">=</span> <span class="n">boolean</span>
+        <span class="k">for</span> <span class="n">dct_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;system&#39;</span><span class="p">,</span> <span class="s1">&#39;line&#39;</span><span class="p">,</span> <span class="s1">&#39;unit&#39;</span><span class="p">,</span> <span class="s1">&#39;stream&#39;</span><span class="p">):</span>
+            <span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">dct_name</span><span class="p">)</span><span class="o">.</span><span class="n">check_ID</span> <span class="o">=</span> <span class="n">boolean</span>
+
+
+<div class="viewcode-block" id="LookUp"><a class="viewcode-back" href="../../LookUp.html#biosteam.LookUp">[docs]</a><span class="k">class</span> <span class="nc">LookUp</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">metaLookUp</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This class stores weekrefs for all systems, units, streams and lines (Unit classes) in class attribute dictionaries. As BioSTEAM objects are created, weakrefs are automatically added to the dictionaries. When called, it looks up the item in the dictionaries and returns it.</span>
+
+<span class="sd">    **Parameters**</span>
+
+<span class="sd">        **ID:** [str] ID of the requested item.</span>
+
+<span class="sd">    **Return**</span>
+
+<span class="sd">        Requested item or None.</span>
+
+<span class="sd">    **Class Attributes**</span>
+
+<span class="sd">        check_ID = False: [bool] if True, no object ID can be specified twice, preventing objects with the same name. If false, two or more objects can exist with the same ID.</span>
+
+<span class="sd">        stream = {}: [WeakRefBook] Dictionary of Stream objects.</span>
+
+<span class="sd">        unit = {}: [WeakRefBook] Dictionary of Unit objects.</span>
+
+<span class="sd">        system = {}: [WeakRefBook] Dictionary of System objects.</span>
+
+<span class="sd">        line = {}: [getDict] Dictionary of lines and Unit classes (each line contains a list of Unit classes that inhearit from the same line).</span>
+
+<span class="sd">    .. Note::</span>
+<span class="sd">        Does not create a new object when called. Simply returns requested item.</span>
+
+<span class="sd">     &quot;&quot;&quot;</span>
+    <span class="c1"># [bool] if True, no object ID can be specified twice, preventing objects with the same name. If false, two or more objects can exist with the same ID.</span>
+    <span class="n">_check_ID</span> <span class="o">=</span> <span class="kc">False</span>  
+    
+    <span class="c1"># [WeakRefBook] Dictionary of systems</span>
+    <span class="n">system</span> <span class="o">=</span> <span class="n">WeakRefBook</span><span class="p">()</span>  
+    
+    <span class="c1"># [getDict] Dictionary of lines (each line contains a list of Unit classes that inhearit from the same line)</span>
+    <span class="n">line</span> <span class="o">=</span> <span class="n">getDict</span><span class="p">()</span>        
+    
+    <span class="c1"># [WeakRefBook] Dictionary of units</span>
+    <span class="n">unit</span> <span class="o">=</span> <span class="n">WeakRefBook</span><span class="p">()</span>    
+    
+    <span class="c1"># [WeakRefBook] Dictionary of streams</span>
+    <span class="n">stream</span> <span class="o">=</span> <span class="n">WeakRefBook</span><span class="p">()</span>  
+
+    <span class="c1"># Filler init function for Sphinx documentation</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">ID</span><span class="p">:</span> <span class="s1">&#39;item ID&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;item&#39;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return requested item from LookUp&#39;s weakref dictionaries.</span>
+
+<span class="sd">        **Parameters**</span>
+
+<span class="sd">             ID: [str] ID of the requested item.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LookUp.empty"><a class="viewcode-back" href="../../LookUp.html#biosteam.LookUp.empty">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">empty</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">dct_name</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Empty the specified dictionary. This prevents ID conflicts.</span>
+
+<span class="sd">        **Parameters**</span>
+
+<span class="sd">             dct_name: [str] Name of dictionary to be emptied. Can be &#39;system&#39;, &#39;unit&#39;, &#39;stream&#39;, or &#39;all&#39; for all dictionaries mentioned.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">dct_name</span> <span class="o">==</span> <span class="s1">&#39;all&#39;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">dct_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;system&#39;</span><span class="p">,</span> <span class="s1">&#39;unit&#39;</span><span class="p">,</span> <span class="s1">&#39;stream&#39;</span><span class="p">):</span>
+                <span class="bp">cls</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">dct_name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">dct_name</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_WeakRefBook</span><span class="p">(</span><span class="n">dct_name</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">dct_name</span> <span class="o">==</span> <span class="s1">&#39;stream&#39;</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">.Stream</span> <span class="k">import</span> <span class="n">Stream</span>
+            <span class="n">Stream</span><span class="o">.</span><span class="n">_default_ID</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>

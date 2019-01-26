@@ -13,9 +13,10 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="utils" href="utils.html" />
+    <link rel="next" title="units" href="units.html" />
     <link rel="prev" title="System" href="System.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
@@ -28,7 +29,7 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="utils.html" title="utils"
+          <a href="units.html" title="units"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="System.html" title="System"
@@ -42,8 +43,8 @@
   <p class="topless"><a href="System.html"
                         title="previous chapter">System</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="utils.html"
-                        title="next chapter">utils</a></p>
+  <p class="topless"><a href="units.html"
+                        title="next chapter">units</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -76,7 +77,7 @@
 <p>The LookUp class allows the user to find any BioSTEAM object during debbuging or at the console level.</p>
 <span class="target" id="module-biosteam"></span><dl class="class">
 <dt id="biosteam.LookUp">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">LookUp</code><span class="sig-paren">(</span><em>ID: item ID</em><span class="sig-paren">)</span> &#x2192; item<a class="headerlink" href="#biosteam.LookUp" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">LookUp</code><span class="sig-paren">(</span><em>ID: item ID</em><span class="sig-paren">)</span> &#x2192; item<a class="reference internal" href="_modules/biosteam/lookup.html#LookUp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.LookUp" title="Permalink to this definition">¶</a></dt>
 <dd><p>This class stores weekrefs for all systems, units, streams and lines (Unit classes) in class attribute dictionaries. As BioSTEAM objects are created, weakrefs are automatically added to the dictionaries. When called, it looks up the item in the dictionaries and returns it.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -87,9 +88,9 @@
 <p><strong>Class Attributes</strong></p>
 <blockquote>
 <div><p>check_ID = False: [bool] if True, no object ID can be specified twice, preventing objects with the same name. If false, two or more objects can exist with the same ID.</p>
-<p>stream = {}: [WeakRefDict] Dictionary of Stream objects.</p>
-<p>unit = {}: [WeakRefDict] Dictionary of Unit objects.</p>
-<p>system = {}: [WeakRefDict] Dictionary of System objects.</p>
+<p>stream = {}: [WeakRefBook] Dictionary of Stream objects.</p>
+<p>unit = {}: [WeakRefBook] Dictionary of Unit objects.</p>
+<p>system = {}: [WeakRefBook] Dictionary of System objects.</p>
 <p>line = {}: [getDict] Dictionary of lines and Unit classes (each line contains a list of Unit classes that inhearit from the same line).</p>
 </div></blockquote>
 <div class="admonition note">
@@ -98,7 +99,7 @@
 </div>
 <dl class="classmethod">
 <dt id="biosteam.LookUp.empty">
-<em class="property">classmethod </em><code class="descname">empty</code><span class="sig-paren">(</span><em>dct_name='all'</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.LookUp.empty" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="descname">empty</code><span class="sig-paren">(</span><em>dct_name='all'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/lookup.html#LookUp.empty"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.LookUp.empty" title="Permalink to this definition">¶</a></dt>
 <dd><p>Empty the specified dictionary. This prevents ID conflicts.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -125,7 +126,7 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="utils.html" title="utils"
+          <a href="units.html" title="units"
              >next</a> |</li>
         <li class="right" >
           <a href="System.html" title="System"

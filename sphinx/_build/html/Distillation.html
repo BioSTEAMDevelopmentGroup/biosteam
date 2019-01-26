@@ -13,6 +13,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="MassBalance" href="MassBalance.html" />
@@ -34,7 +35,7 @@
           <a href="Centrifuge_LLE.html" title="Centrifuge_LLE"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="Units.html" accesskey="U">Units</a> &#187;</li> 
+          <li class="nav-item nav-item-1"><a href="units.html" accesskey="U">units</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -76,13 +77,13 @@
 <span id="distillation"></span><h1>Distillation<a class="headerlink" href="#module-biosteam" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.Distillation">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Distillation</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs_ID=()</em>, <em>ins_ID=None</em>, <em>P=101325</em>, <em>LHK=None</em>, <em>y_top=None</em>, <em>x_bot=None</em>, <em>k=1.25</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.Distillation" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Distillation</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>P=101325</em>, <em>LHK=None</em>, <em>y_top=None</em>, <em>x_bot=None</em>, <em>k=1.25</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/distillation.html#Distillation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Distillation" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>An extension of the</em> <a class="reference internal" href="Unit.html"><span class="doc">Unit class</span></a>. Create a Distillation column that assumes all light and heavy non keys separate to the top and bottoms product respectively. McCabe-Thiele analysis is used to find both the number of stages and the reflux ratio given a ratio of actual reflux to minimum reflux [1]. This assumption is good for both binary distillation of highly polar compounds and ternary distillation assuming complete separation of light non-keys and heavy non-keys with large differences in boiling points. Preliminary analysis showed that the theoretical number of stages using this method on Methanol/Glycerol/Water systems is off by less than +-1 stage. Other methods, such as the Fenske-Underwood-Gilliland method, are more suitable for hydrocarbons. The Murphree efficiency is based on the modified O’Connell correlation [2]. The diameter is based on tray separation and flooding velocity [1].</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>ID:</strong> [str] Unique identification. If set as ‘’, a default ID will be chosen.</p>
-<p><strong>outs_ID:</strong> tuple[str] IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
-<p><strong>ins_ID:</strong> tuple[str] IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+<p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+<p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
 <p><strong>LHK:</strong> <em>tuple[str]</em> Light and heavy keys</p>
 <p><strong>P:</strong> <em>[float]</em> Operating pressure (Pa)</p>
 <p><strong>y_top:</strong> <em>[float]</em> Molar fraction of light key in the distillate</p>
@@ -146,8 +147,8 @@
 <li>‘Rectifier stages’: (#)</li>
 <li>‘Stripper stages’: (#)</li>
 <li>‘Actual stages’: (#)</li>
-<li>‘Column height’: (ft)</li>
-<li>‘Column diameter’: (ft)</li>
+<li>‘Height’: (ft)</li>
+<li>‘Diameter’: (ft)</li>
 <li>‘Wall thickness’: (in)</li>
 <li>‘Weight’: (lb)</li>
 </ul>
@@ -182,7 +183,7 @@
 
 <dl class="method">
 <dt id="biosteam.Distillation.plot_stages">
-<code class="descname">plot_stages</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.Distillation.plot_stages" title="Permalink to this definition">¶</a></dt>
+<code class="descname">plot_stages</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/distillation.html#Distillation.plot_stages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Distillation.plot_stages" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the McCabe Thiele Diagram.</p>
 </dd></dl>
 
@@ -270,6 +271,12 @@
 <dd><p>Prints information on unit.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="biosteam.Distillation.simulate">
+<code class="descname">simulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.Distillation.simulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run simulation, operation, design and cost methods.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="biosteam.Distillation.tray_material">
 <code class="descname">tray_material</code><a class="headerlink" href="#biosteam.Distillation.tray_material" title="Permalink to this definition">¶</a></dt>
@@ -314,7 +321,7 @@
           <a href="Centrifuge_LLE.html" title="Centrifuge_LLE"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="Units.html" >Units</a> &#187;</li> 
+          <li class="nav-item nav-item-1"><a href="units.html" >units</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

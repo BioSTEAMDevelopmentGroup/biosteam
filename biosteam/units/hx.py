@@ -524,8 +524,7 @@ class HXutility(HX):
         # Make out2
         vap_out = util._vap
         liq_out = util._liq
-        out2 = MixedStream('u_out')
-        out2.species = in2.species
+        out2 = MixedStream('u_out', species=in2.species)
         out2.T = liq_out.T
         out2.P = liq_out.P
         out2.liquid_mol = liq_out.mol
@@ -544,7 +543,7 @@ class HXprocess(HX):
             * [str] 'Concentric tubes'
     
         **Type:** [str] Must be one of the following:
-            * None: Rigorously transfers heat until pinch temperature
+            * None: Rigorously transfers heat until pinch temperature (not implemented yet)
             * 'ss': Sensible-sensible fluids heat exchanger
             * 'll': Latent-latent fluids heat exchanger
             * 'ls': Latent-sensible fluids heat exchanger
@@ -692,7 +691,7 @@ class HXprocess(HX):
             delH1 = s1_out._phaseprop_molar_flownet('Hvapm', 'l')
             delH2 = s2_out._phaseprop_molar_flownet('Hvapm', 'g')                
         else:
-            raise TypeError(f'{type(self).__name__} objects are only suitable for latent heat streams.')
+            raise ValueError(f"No latent heat streams available for heat exchange with Type='ll'.")
         
         # sc: Stream that completely changes phase
         # sp: Stream that partialy changes phase

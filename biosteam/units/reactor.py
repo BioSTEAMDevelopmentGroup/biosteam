@@ -10,19 +10,19 @@ from biosteam.units import Tank
 
 class Reactor(Unit):
     """Abstract class for reactors."""
-    _N_heat_util = 1
-    _tau = 1
     
-    # Residence time property
-    tau = Tank.tau 
-    
-    def _calc_utility(self):
-        self.heat_utilities[0](self.Hnet, self.outs[0].T)
 
 # %% Reactor classes
     
 class BatchReactor(Reactor):
     
+    _N_heat_util = 1
+    
+    # Residence time property
+    _tau = 1
+    tau = Tank.tau 
+    
+    # Exponential scaling
     C_0 = None #: Original Price
     V_0 = None #: Original Volume
     exp = None #: Scaling exponent
