@@ -50,15 +50,15 @@ BioSTEAM objects serve as basic building blocks to design and simulate a biorefi
 
 .. code-block:: python
      
-   >>> from biosteam import Species, Stream
-   >>> Stream.species = Species('Ethanol', 'Water') 
+from biosteam import Species, Stream
+Stream.species = Species('Ethanol', 'Water') 
 
 **Create a stream** passing an ID, flow rates, phase, temperature and pressure:
 
 .. code-block:: python
 
-   >>> s1 = Stream(ID='s1', flow=(1, 2), units='kmol/hr', T=300, P=101325)
-   >>> s1.show()
+s1 = Stream(ID='s1', flow=(1, 2), units='kmol/hr', T=300, P=101325)
+s1.show()
    Stream: s1
     phase: 'l', T: 300.00 K, P: 101325 Pa
     flow (kmol/hr): Ethanol   1
@@ -68,16 +68,16 @@ BioSTEAM objects serve as basic building blocks to design and simulate a biorefi
 
 .. code-block:: python
 
-   >>> from biosteam.units import Flash
-   >>> # Specify vapor fraction and pressure conditions
-   >>> F1 = Flash(ID='F1', ins=s1, outs=('vapor', 'liquid'), V=0.5, P=101325)
+from biosteam.units import Flash
+# Specify vapor fraction and pressure conditions
+F1 = Flash(ID='F1', ins=s1, outs=('vapor', 'liquid'), V=0.5, P=101325)
 
 **Run the unit** and see the results:
 
 .. code-block:: python
 
-   >>> F1.run()
-   >>> F1.show()
+F1.run()
+F1.show()
    Flash: F1
    ins...
    [0] s1
@@ -127,4 +127,3 @@ Funding
 This work was funded by the DOE Center for Advanced Bioenergy and Bioproducts Innovation  (U.S. Department of Energy, Office of Science, Office of Biological and Environmental Research under Award Number DE-SC0018420). Any opinions, findings, and conclusions or recommendations expressed in this publication are those of the author(s) and do not necessarily reflect the views of the U.S. Department of Energy.
 
 This material is based upon work supported by the National Science Foundation Graduate Research Fellowship Program under Grant No. DGE – 1144245. 
-
