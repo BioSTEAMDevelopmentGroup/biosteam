@@ -4,11 +4,9 @@ Created on Thu Aug 23 21:43:13 2018
 
 @author: yoelr
 """
-from biosteam import Unit
+from biosteam import Unit, Stream, np
 from scipy.optimize import brentq
 from biosteam.units import Flash_PV, Flash_PQin, Pump, Mixer, HXutility
-from biosteam import np
-import copy
 import ht
 log = np.log
 exp = np.exp
@@ -80,13 +78,11 @@ class MultiEffectEvaporator(Unit):
         component, P, V, P_liq = (self.kwargs[i]
                                   for i in ('component', 'P', 'V', 'P_liq'))
         [out_wt_solids, liq] = self.outs
-        ins = self.ins
         
         # Create components
         n = len(P) # Number of evaporators
         evap = Flash_PV('Evaporator0', outs=('vap', 'liq'),
                         component=component, P=P[0])
-        evap.ins = ins
         evaporators = [evap]
         for i in range(1, n):
             evap = Flash_PQin('Evaporator' + str(i),
@@ -122,20 +118,20 @@ class MultiEffectEvaporator(Unit):
                                   for i in ('component', 'P', 'V', 'P_liq'))
         [out_wt_solids, liq] = self.outs
         ins = self.ins
-        ins = [copy.copy(stream) for stream in ins]
 
         n = len(P)  # Number of evaporators
 
         # Set-up components
         components = self.components
         evaporators = components['evaporators']
-        evaporators[0].ins = ins
+        evaporators[0].ins = [Stream.like(i, '*') for i in ins]
         condenser = components['condenser']
         pumps = components['pumps']
         mixer = components['mixer']
         brentq(self._V_error, 0.001, 0.999, xtol=0.0001)
         
         # Condensing vapor from last effector
+        
         outs_vap = evaporators[-1].outs[0]
         condenser.ins = [outs_vap]
         condenser.run()

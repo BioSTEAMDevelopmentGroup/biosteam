@@ -17,9 +17,10 @@ BioSTEAM is an open source process simulation package in Python for fast and fle
    Stream
    MixedStream
    Unit
+   PowerUtility
    HeatUtility
    System
-   LookUp
+   find
    units
    utils
    exceptions

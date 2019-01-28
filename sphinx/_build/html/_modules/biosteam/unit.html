@@ -64,7 +64,7 @@
 <span class="kn">import</span> <span class="nn">IPython</span>
 <span class="kn">from</span> <span class="nn">graphviz</span> <span class="k">import</span> <span class="n">Digraph</span>
 <span class="kn">from</span> <span class="nn">biosteam.exceptions</span> <span class="k">import</span> <span class="n">KE</span>
-<span class="kn">from</span> <span class="nn">biosteam.lookup</span> <span class="k">import</span> <span class="n">LookUp</span><span class="p">,</span> <span class="n">WeakRefBook</span>
+<span class="kn">from</span> <span class="nn">biosteam.find</span> <span class="k">import</span> <span class="n">find</span><span class="p">,</span> <span class="n">WeakRefBook</span>
 <span class="kn">from</span> <span class="nn">biosteam.graphics</span> <span class="k">import</span> <span class="n">Graphics</span><span class="p">,</span> <span class="n">default_graphics</span>
 <span class="kn">from</span> <span class="nn">biosteam.stream</span> <span class="k">import</span> <span class="n">Stream</span>
 <span class="kn">from</span> <span class="nn">biosteam.heat_utility</span> <span class="k">import</span> <span class="n">HeatUtility</span>
@@ -149,7 +149,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_CEPCI</span> <span class="o">=</span> <span class="mf">567.5</span> <span class="c1"># Chemical engineering plant cost index (567.5 at 2017)</span>
     <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">clsname</span><span class="p">,</span> <span class="n">superclasses</span><span class="p">,</span> <span class="n">new_definitions</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Prepare unit methods with wrappers for error notification, and add kwargs as key word arguments to __init__. Also initiallize by adding new Unit class to the LookUp.line dictionary.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Prepare unit methods with wrappers for error notification, and add kwargs as key word arguments to __init__. Also initiallize by adding new Unit class to the find.line dictionary.&quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">Unit_is_done</span><span class="p">:</span>
             <span class="c1"># Abstract Unit class</span>
@@ -190,12 +190,12 @@
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">new_definitions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_Graphics&#39;</span><span class="p">):</span>
                     <span class="bp">cls</span><span class="o">.</span><span class="n">_Graphics</span> <span class="o">=</span> <span class="n">Graphics</span><span class="p">()</span>
     
-            <span class="c1"># Add class to LookUp line dictionary</span>
+            <span class="c1"># Add class to find line dictionary</span>
             <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">line</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">default_line</span><span class="p">:</span> <span class="c1"># Do not include abstract Unit classes</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">LookUp</span><span class="o">.</span><span class="n">line</span><span class="p">[</span><span class="bp">cls</span><span class="o">.</span><span class="n">line</span><span class="p">]:</span>
-                    <span class="n">LookUp</span><span class="o">.</span><span class="n">line</span><span class="p">[</span><span class="bp">cls</span><span class="o">.</span><span class="n">line</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-                <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span> <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">LookUp</span><span class="o">.</span><span class="n">line</span><span class="p">[</span><span class="bp">cls</span><span class="o">.</span><span class="n">line</span><span class="p">]]:</span>
-                    <span class="n">LookUp</span><span class="o">.</span><span class="n">line</span><span class="p">[</span><span class="bp">cls</span><span class="o">.</span><span class="n">line</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">find</span><span class="o">.</span><span class="n">line</span><span class="p">[</span><span class="bp">cls</span><span class="o">.</span><span class="n">line</span><span class="p">]:</span>
+                    <span class="n">find</span><span class="o">.</span><span class="n">line</span><span class="p">[</span><span class="bp">cls</span><span class="o">.</span><span class="n">line</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span> <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">find</span><span class="o">.</span><span class="n">line</span><span class="p">[</span><span class="bp">cls</span><span class="o">.</span><span class="n">line</span><span class="p">]]:</span>
+                    <span class="n">find</span><span class="o">.</span><span class="n">line</span><span class="p">[</span><span class="bp">cls</span><span class="o">.</span><span class="n">line</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
                     
             <span class="c1"># Key word arguments to replace</span>
             <span class="n">kwargs</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
@@ -526,7 +526,7 @@
     <span class="k">def</span> <span class="nf">ID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
         <span class="c1"># Remove old reference to this object</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span> <span class="ow">and</span> <span class="n">ID</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
-            <span class="k">del</span> <span class="n">LookUp</span><span class="o">.</span><span class="n">unit</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ID</span><span class="p">]</span>
+            <span class="k">del</span> <span class="n">find</span><span class="o">.</span><span class="n">unit</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ID</span><span class="p">]</span>
             <span class="k">del</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">instances</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ID</span><span class="p">]</span>
 
         <span class="c1"># Get current default ID</span>
@@ -546,8 +546,8 @@
         <span class="c1"># Add instance to class instance dictionary</span>
         <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">instances</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
 
-        <span class="c1"># Add ID to LookUp dictionary</span>
-        <span class="n">LookUp</span><span class="o">.</span><span class="n">unit</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="c1"># Add ID to find dictionary</span>
+        <span class="n">find</span><span class="o">.</span><span class="n">unit</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="n">ID</span>
 
     <span class="c1"># Input and output streams</span>

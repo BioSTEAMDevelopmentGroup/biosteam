@@ -66,7 +66,7 @@
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">brentq</span>
 <span class="kn">from</span> <span class="nn">graphviz</span> <span class="k">import</span> <span class="n">Digraph</span>
 <span class="kn">from</span> <span class="nn">biosteam.exceptions</span> <span class="k">import</span> <span class="n">Stop</span><span class="p">,</span> <span class="n">SolverError</span>
-<span class="kn">from</span> <span class="nn">biosteam.lookup</span> <span class="k">import</span> <span class="n">LookUp</span>
+<span class="kn">from</span> <span class="nn">biosteam.find</span> <span class="k">import</span> <span class="n">find</span>
 <span class="kn">from</span> <span class="nn">biosteam.stream</span> <span class="k">import</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">mol_units</span><span class="p">,</span> <span class="n">T_units</span>
 <span class="kn">from</span> <span class="nn">biosteam.unit</span> <span class="k">import</span> <span class="n">Unit</span>
 <span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">np</span>
@@ -83,7 +83,7 @@
 <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="n">command</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Evaluate a command and request user input for next command. If no command, return. This function is used for debugging a System object.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">command</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">command</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="n">CS</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Enter to continue or type to evaluate:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">CS</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;&gt;&gt;&gt; &quot;</span><span class="p">))</span> 
+        <span class="n">command</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="n">CS</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Enter to continue or type to evaluate:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;&gt;&gt;&gt; &quot;</span><span class="p">)</span> 
         
     <span class="c1"># Done evaluating if no command, exit debugger if &#39;exit&#39;</span>
     <span class="k">if</span> <span class="n">command</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
@@ -95,11 +95,11 @@
         <span class="c1"># Build locals dictionary for evaluating command</span>
         <span class="n">lcs</span> <span class="o">=</span> <span class="p">{}</span> 
         <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;stream&#39;</span><span class="p">,</span> <span class="s1">&#39;unit&#39;</span><span class="p">,</span> <span class="s1">&#39;system&#39;</span><span class="p">):</span>
-            <span class="n">dct</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">LookUp</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+            <span class="n">dct</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">find</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
             <span class="n">lcs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">dct</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">lcs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="n">lcs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">lcs</span><span class="p">[</span><span class="n">key</span><span class="p">]()</span>
-        <span class="n">lcs</span><span class="p">[</span><span class="s1">&#39;LookUp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">LookUp</span>
+        <span class="n">lcs</span><span class="p">[</span><span class="s1">&#39;find&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">find</span>
         
         <span class="c1"># Evaluate command and print</span>
         <span class="n">out</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="p">{},</span> <span class="n">lcs</span><span class="p">)</span>
@@ -109,7 +109,7 @@
     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
         <span class="c1"># Print exception and ask to raise error or continue evaluating</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">CS</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">{type(err).__name__}:&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">f</span><span class="s1">&#39; {str(err)}&#39;</span><span class="p">)</span>
-        <span class="n">command</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="n">CS</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Enter to raise error or type to evaluate:&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">CS</span><span class="o">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&gt;&gt;&gt; &quot;</span><span class="p">))</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="n">CS</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Enter to raise error or type to evaluate:&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&gt;&gt;&gt; &quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">command</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">err</span>
         <span class="n">evaluate</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
@@ -121,11 +121,11 @@
 <span class="k">def</span> <span class="nf">system_debug</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Unit class run method decorator for debugging system.&quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
-        <span class="c1"># Run method, show info and ask to evaluate</span>
-        <span class="nb">print</span><span class="p">()</span>
-        <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="c1"># Run method and ask to evaluate</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">CS</span><span class="o">.</span><span class="n">next</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Next: &#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">f</span><span class="s1">&#39;{type(self).__name__} </span><span class="si">{self}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="n">evaluate</span><span class="p">()</span>
+        <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+        
     <span class="n">wrapper</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="vm">__name__</span>
     <span class="n">wrapper</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="vm">__doc__</span>
     <span class="n">wrapper</span><span class="o">.</span><span class="n">_original</span> <span class="o">=</span> <span class="n">func</span>
@@ -148,10 +148,10 @@
 <span class="k">def</span> <span class="nf">wait</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Make you wait a second and prints dots.&quot;&quot;&quot;</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
-    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.3</span><span class="p">)</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.15</span><span class="p">)</span>
     <span class="k">for</span> <span class="nb">iter</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">notify_run_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
@@ -160,7 +160,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">recycle</span><span class="p">:</span>
             <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver_error</span><span class="p">[</span><span class="s1">&#39;iter&#39;</span><span class="p">]</span>
-            <span class="nb">input</span><span class="p">(</span><span class="n">CS</span><span class="o">.</span><span class="n">note</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;        Finished loop #</span><span class="si">{x}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">))</span>
+            <span class="nb">input</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;        Finished loop #</span><span class="si">{x}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">wrapper</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="vm">__name__</span>
@@ -172,17 +172,10 @@
 <span class="k">def</span> <span class="nf">notify_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Decorate a convege method of systems within a system for debugging.&quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Running {type(self).__name__} &#39;</span><span class="si">{self.ID}</span><span class="s2">&#39;&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="n">wait</span><span class="p">()</span>
-        <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot; finished!&quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.4</span><span class="p">)</span>
-        <span class="n">err_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_error_info</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">err_info</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">err_info</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">CS</span><span class="o">.</span><span class="n">next</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Next: &#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">f</span><span class="s1">&#39;{type(self).__name__} </span><span class="si">{self}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="n">evaluate</span><span class="p">()</span>
+        <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        
     <span class="n">wrapper</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="vm">__name__</span>
     <span class="n">wrapper</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="vm">__doc__</span>
     <span class="n">wrapper</span><span class="o">.</span><span class="n">_original</span> <span class="o">=</span> <span class="n">func</span>
@@ -237,9 +230,6 @@
 
     <span class="c1">### Class attributes ###</span>
     
-    <span class="c1">#: [ColorPalette] Manages syntax coloring for the debug method.</span>
-    <span class="n">color_scheme</span> <span class="o">=</span> <span class="n">CS</span>
-    
     <span class="c1"># [iter] Maximum number of iterations for converge method</span>
     <span class="n">maxiter</span> <span class="o">=</span> <span class="mi">100</span>
     
@@ -291,7 +281,7 @@
 
     <span class="nd">@ID</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">ID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
-        <span class="n">LookUp</span><span class="o">.</span><span class="n">system</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="n">find</span><span class="o">.</span><span class="n">system</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="n">ID</span>
 
     <span class="nd">@property</span>
@@ -621,7 +611,6 @@
         <span class="sd">&quot;&quot;&quot;Convege in debug mode. Just try it!&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_debug_on</span><span class="p">()</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">evaluate</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">converge</span><span class="p">()</span>
         <span class="k">except</span> <span class="n">Stop</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_debug_off</span><span class="p">()</span>

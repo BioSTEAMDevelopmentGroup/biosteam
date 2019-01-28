@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from scipy.optimize import newton, least_squares
 from biosteam.utils import material_array, property_array, PropertyFactory, \
                            tuple_array, reorder, get_frac, Sink, Source
-from biosteam.lookup import LookUp
+from biosteam.find import find
 from biosteam.species import Species
 from biosteam.exceptions import SolverError, DimensionError
 from biosteam.UNIFAC import DORTMUND
@@ -658,7 +658,7 @@ class Stream(metaclass=metaStream):
     def ID(self, ID):
         # Remove old reference to this object
         if self._ID != '' and ID != '':
-            del LookUp.stream[self._ID]
+            del find.stream[self._ID]
 
         # Get current default ID
         Stream = type(self)
@@ -674,8 +674,8 @@ class Stream(metaclass=metaStream):
             Stream._default_ID[1] += 1
             ID = letter + str(number)
 
-        # Add ID to LookUp dictionary and set it
-        LookUp.stream[ID] = self
+        # Add ID to find dictionary and set it
+        find.stream[ID] = self
         self._ID = ID
 
     @property

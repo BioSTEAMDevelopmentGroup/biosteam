@@ -7,96 +7,74 @@ Created on Sat Aug 18 15:04:55 2018
 import time
 import copy
 import IPython
-import sys as SYS
 from scipy.optimize import brentq
 from graphviz import Digraph
 from biosteam.exceptions import Stop, SolverError
-from biosteam.lookup import LookUp
+from biosteam.find import find
 from biosteam.stream import Stream, mol_units, T_units
-from biosteam.unit import Unit
+from biosteam.unit import Unit, notify_error
 from biosteam import np
 from biosteam.utils import organized_list, get_streams, color_scheme
 CS = color_scheme
 
 # Get the function type
-def m(): pass
-function = type(m)
-del m
+function = type(find)
 
 # %% Debugging and exception handling
 
-def evaluate(command=None):
-    """Evaluate a command and request user input for next command. If no command, return. This function is used for debugging a System object."""
-    if command is None:
-        command = input(CS.info("Enter to continue or type to evaluate:\n") + CS.request(">>> ")) 
-        
+def evaluate(self, command=None):
+    """Evaluate a command and request user input for next command. If no command, return. This function is used for debugging a System object."""    
     # Done evaluating if no command, exit debugger if 'exit'
+    if command is None:
+        Next = CS.next('Next: ') + f'{repr(self)}\n'
+        info = CS.info("Enter to continue or type to evaluate:\n")
+        command = input(Next + info + ">>> ")
+    
     if command == '':
         return 
     elif command == 'exit':
         raise Stop
-
-    try:
+    
+    if command:
         # Build locals dictionary for evaluating command
         lcs = {} 
         for attr in ('stream', 'unit', 'system'):
-            dct = getattr(LookUp, attr)
+            dct = getattr(find, attr)
             lcs.update(dct)
         for key in lcs.keys():
             lcs[key] = lcs[key]()
-        lcs['LookUp'] = LookUp
-        
-        # Evaluate command and print
-        out = eval(command, {}, lcs)
-        if out is not None:
-            print(out)
-    
-    except Exception as err:
-        # Print exception and ask to raise error or continue evaluating
-        print(CS.exception(f'\n{type(err).__name__}:') + f' {str(err)}')
-        command = input(CS.info(f"Enter to raise error or type to evaluate:") + CS.request("\n>>> "))
-        if command == '':
-            raise err
-        evaluate(command)
-    
-    else:
-        # If successful, continue evaluating
-        evaluate()
+        lcs['find'] = find
+        try:
+            out = eval(command, {}, lcs)            
+        except Exception as err:
+            # Print exception and ask to raise error or continue evaluating
+            err = CS.exception(f'{type(err).__name__}:') + f' {str(err)}\n\n'
+            info = CS.info(f"Enter to raise error or type to evaluate:\n")
+            command = input(err + info + ">>> ")
+            if command == '':
+                raise err
+            evaluate(self, command)        
+        else:
+            # If successful, continue evaluating
+            if out is None:
+                if '.show(' not in command:
+                    print('\n')
+            else:
+                print(out)
+            command = input(">>> ")
+            evaluate(self, command)
 
-def system_debug(self, func):
-    """Unit class run method decorator for debugging system."""
-    def wrapper(*args):
-        # Run method, show info and ask to evaluate
-        print()
-        func(*args)
-        self.show()
-        evaluate()
+def method_debug(self, func):
+    """Method decorator for debugging system."""
+    def wrapper(*args, **kwargs):
+        # Run method and ask to evaluate
+        evaluate(self)
+        func(*args, **kwargs)
+        
     wrapper.__name__ = func.__name__
     wrapper.__doc__ = func.__doc__
     wrapper._original = func
     return wrapper
-
-
-def add_func_debugger(self, func):
-    """Decorate instance methods to provide a location summary when an error occurs."""
-    def wrapper(*args, **kwargs):
-        try:
-            func(*args, **kwargs)
-        except Exception as e:
-            out = str(e) + '\n ' + self._info()
-            raise type(e)(out).with_traceback(SYS.exc_info()[2])
-    wrapper.__name__ = func.__name__
-    wrapper.__doc__ = func.__doc__
-    return wrapper
-
-
-def wait(start=''):
-    """Make you wait a second and prints dots."""
-    print(start, end='')
-    time.sleep(0.3)
-    for iter in range(3):
-        print('.', end='')
-        time.sleep(0.2)
 
 
 def notify_run_wrapper(self, func):
@@ -105,7 +83,7 @@ def notify_run_wrapper(self, func):
         if self.recycle:
             func(*args, **kwargs)
             x = self.solver_error['iter']
-            input(CS.note(f'        Finished loop #{x}\n'))
+            input(f'        Finished loop #{x}\n')
         else:
             func(*args, **kwargs)
     wrapper.__name__ = func.__name__
@@ -114,49 +92,9 @@ def notify_run_wrapper(self, func):
     return wrapper
 
 
-def notify_wrapper(self, func):
-    """Decorate a convege method of systems within a system for debugging."""
-    def wrapper(*args, **kwargs):
-        print(f"\nRunning {type(self).__name__} '{self.ID}'", end='')
-        wait()
-        func(*args, **kwargs)
-        print(f" finished!", end='')
-        time.sleep(0.4)
-        err_info = self._error_info()
-        if err_info:
-            print(err_info)
-        else:
-            print()
-        evaluate()
-    wrapper.__name__ = func.__name__
-    wrapper.__doc__ = func.__doc__
-    wrapper._original = func
-    return wrapper
-
-
-# %% Metaclass for System format
-
-class metaSystem(type):
-    
-    @property
-    def converge_method(cls):
-        """Iterative convergence method ('Wegstein', or 'fixed point')."""
-        return cls.converge.__name__[1:]
-
-    @converge_method.setter
-    def converge_method(cls, method):
-        method = method.lower().replace('-', '').replace(' ', '')
-        if 'wegstein' in method:
-            cls.converge = cls._Wegstein
-        elif 'fixedpoint' in method:
-            cls.converge = cls._fixed_point
-        else:
-            raise ValueError(f"Only 'Wegstein' and 'fixed point' methods are valid, not '{method}'")
-
-
 # %% Process flow
 
-class System(metaclass=metaSystem):
+class System:
     """Create a System object that can iteratively run each element in a network of BioSTREAM objects until the recycle stream is converged. A network can have function, Unit and/or System objects. When the network contains an inner System object, it converges/solves it in each loop/iteration.
 
     **Parameters**
@@ -182,9 +120,6 @@ class System(metaclass=metaSystem):
 
     ### Class attributes ###
     
-    #: [ColorPalette] Manages syntax coloring for the debug method.
-    color_scheme = CS
-    
     # [iter] Maximum number of iterations for converge method
     maxiter = 100
     
@@ -209,12 +144,6 @@ class System(metaclass=metaSystem):
         #: list[Stream] All streams in the network
         self._streams = ()
 
-        #: list[Unit] all outer Unit elements of the network
-        self._surface_units = []
-
-        #: list[System] all outer System elements of the network
-        self._systems = []
-
         self.ID = ID
         self.network = network
         self.recycle = recycle
@@ -236,7 +165,7 @@ class System(metaclass=metaSystem):
 
     @ID.setter
     def ID(self, ID):
-        LookUp.system[ID] = self
+        find.system[ID] = self
         self._ID = ID
 
     @property
@@ -249,7 +178,7 @@ class System(metaclass=metaSystem):
         if isinstance(stream, Stream):
             self._recycle = stream
         elif stream is None:
-            self.converge = self._run
+            self._converge = self._run
         else:
             raise ValueError(f"Recycle stream must be a Stream instance or None, not {type(stream).__name__}.")
 
@@ -265,22 +194,20 @@ class System(metaclass=metaSystem):
         self._network = tuple(network)
         
         # Sort network into surface_units and systems
-        _surface_units = self._surface_units
-        _systems = self._systems
+        units = []
+        systems = []
         for i in network:
             if isinstance(i, Unit):
-                _surface_units.append(i)
+                units.append(i)
             elif isinstance(i, System):
-                _systems.append(i)
+                systems.append(i)
             elif not isinstance(i, function):
                 raise ValueError(f"Only Unit, System, and function objects are valid network elements, not '{type(i).__name__}'")
-        self._surface_units = list(set(_surface_units))
-        self._systems = _systems
+        units = list(set(units))
         
         # Set all stream and units
-        units = copy.copy(self._surface_units)
         streams = get_streams(units)
-        for sys in _systems:
+        for sys in systems:
             units += sys._units
             streams += sys._streams
         self._units = units = organized_list(units)
@@ -294,15 +221,17 @@ class System(metaclass=metaSystem):
     @property
     def converge_method(self):
         """Iterative convergence method ('Wegstein', or 'fixed point')."""
-        return self.converge.__name__[1:]
+        return self._converge.__name__[1:]
 
     @converge_method.setter
     def converge_method(self, method):
+        if self.recycle is None:
+            raise ValueError("Cannot set converge method when no recyle is specified")
         method = method.lower().replace('-', '').replace(' ', '')
         if 'wegstein' in method:
-            self.converge = self._Wegstein
+            self._converge = self._Wegstein
         elif 'fixedpoint' in method:
-            self.converge = self._fixed_point
+            self._converge = self._fixed_point
         else:
             raise ValueError(f"Only 'Wegstein' and 'fixed point' methods are valid, not '{method}'")
 
@@ -497,10 +426,13 @@ class System(metaclass=metaSystem):
             recycle.T = x1[-1]
         set_solver_error()
     
-    #: Converge the system recycle using an iterative solver (Wegstein by default). 
-    converge = _Wegstein
+    _converge = _Wegstein
+    
+    @notify_error
+    def converge(self):
+        """Converge the system recycle using an iterative solver (Wegstein by default)."""
+        return self._converge()
 
-    # Solving specification
     def set_spec(self, func, var_setter, var_min, var_max, brentq_kwargs={'xtol': 10**-6}):
         """Wrap a bounded solver around the converge method. The solver varies a variable until the desired spec is satisfied.
 
@@ -517,8 +449,7 @@ class System(metaclass=metaSystem):
              brentq_kwargs: [dict] Key word arguments passed to scipy.optimize.brentq solver.
 
         """
-        brentq_ = add_func_debugger(self, brentq)
-        converge = self.converge
+        converge = self._converge
         solver_error = self.solver_error
 
         def error(val):
@@ -534,9 +465,18 @@ class System(metaclass=metaSystem):
                 return
             min_ = var_min()
             max_ = var_max()
-            brentq_(error, min_, max_, **brentq_kwargs)
+            brentq(error, min_, max_, **brentq_kwargs)
 
-        self.converge = converge_spec
+        self._converge = converge_spec
+
+    def reset(self):
+        """Reset all process streams to zero flow."""
+        self.solver_error = {'mol_error': 0,
+                             'T_error': 0,
+                             'spec_error': 0,
+                             'iter': 0}
+        for stream in self.streams:
+            if stream.source[0]: stream.empty()
 
     def run_results(self):
         """Run all design basis algorithms (operation, design, and cost methods) for all units."""
@@ -549,25 +489,33 @@ class System(metaclass=metaSystem):
     def _debug_on(self):
         """Turn on debug mode."""
         self._run = notify_run_wrapper(self, self._run)
-        for unit in self._surface_units:
-            unit.run = system_debug(unit, unit.run)
-        for sys in self._systems:
-            sys.converge = notify_wrapper(sys, sys.converge)
+        self._network = network = list(self._network)
+        for i, item in enumerate(network):
+            if isinstance(item, Unit):
+                item.run = method_debug(item, item.run)
+            elif isinstance(item, System):
+                item.converge = method_debug(item, item.converge)
+            elif isinstance(item, function):
+                network[i] = method_debug(item, item)
 
     def _debug_off(self):
         """Turn off debug mode."""
         self._run = self._run._original
-        for unit in self._surface_units:
-            unit.run = unit.run._original
-        for sys in self._systems:
-            sys.converge = sys.converge._original
+        network = self._network
+        for i, item in enumerate(network):
+            if isinstance(item, Unit):
+                item.run = item.run._original
+            elif isinstance(item, System):
+                item.converge = item.converge._original
+            elif isinstance(item, function):
+                network[i] = item._original
+        self._network = tuple(network)
     
     def debug(self):
         """Convege in debug mode. Just try it!"""
         self._debug_on()
         try:
-            evaluate()
-            self.converge()
+            self._converge()
         except Stop:
             self._debug_off()
         except Exception as error:

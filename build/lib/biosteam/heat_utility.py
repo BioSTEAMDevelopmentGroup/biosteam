@@ -79,14 +79,12 @@ class HeatUtility:
         """
         if duty_positive:
             T_exit = T_pinch + dT
-            if T_limit:
-                if T_limit > T_exit:
-                    T_exit = T_limit
+            if T_limit and T_limit > T_exit:
+                T_exit = T_limit
         else:
             T_exit = T_pinch - dT
-            if T_limit:
-                if T_limit < T_exit:
-                    T_exit = T_limit
+            if T_limit and T_limit < T_exit:
+                T_exit = T_limit
         return T_exit
 
     def _set_CoolingAir(self):

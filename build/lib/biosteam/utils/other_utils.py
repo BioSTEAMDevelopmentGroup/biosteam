@@ -103,6 +103,9 @@ class TextManager:
         self.original = self.content
         file.close()
 
+    def to_utf8(self):
+        self.content = self.content.encode('utf-8').strip()
+
     def replace(self, old=[], new=[]):
         """Replace old strings in self.content with new.
 

@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>LookUp &#8212; BioSTEAM 0.1 documentation</title>
+    <title>find &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" src="_static/documentation_options.js"></script>
@@ -48,7 +48,7 @@
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="_sources/LookUp.txt"
+      <li><a href="_sources/find.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
@@ -72,40 +72,16 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="lookup">
-<h1>LookUp<a class="headerlink" href="#lookup" title="Permalink to this headline">¶</a></h1>
-<p>The LookUp class allows the user to find any BioSTEAM object during debbuging or at the console level.</p>
-<span class="target" id="module-biosteam"></span><dl class="class">
-<dt id="biosteam.LookUp">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">LookUp</code><span class="sig-paren">(</span><em>ID: item ID</em><span class="sig-paren">)</span> &#x2192; item<a class="reference internal" href="_modules/biosteam/lookup.html#LookUp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.LookUp" title="Permalink to this definition">¶</a></dt>
-<dd><p>This class stores weekrefs for all systems, units, streams and lines (Unit classes) in class attribute dictionaries. As BioSTEAM objects are created, weakrefs are automatically added to the dictionaries. When called, it looks up the item in the dictionaries and returns it.</p>
+  <div class="section" id="module-biosteam.find">
+<span id="find"></span><h1>find<a class="headerlink" href="#module-biosteam.find" title="Permalink to this headline">¶</a></h1>
+<p>As BioSTEAM objects are created, weakrefs are automatically added to dictionaries. When find is called, it looks up the item in the dictionaries and returns it. The find function allows the user to find any BioSTEAM object during debbuging or at the console level.</p>
+<dl class="function">
+<dt id="biosteam.find.find">
+<code class="descclassname">biosteam.find.</code><code class="descname">find</code><span class="sig-paren">(</span><em>item_ID</em><span class="sig-paren">)</span> &#x2192; item<a class="reference internal" href="_modules/biosteam/find.html#find"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.find.find" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return requested biosteam item.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
-<div><strong>ID:</strong> [str] ID of the requested item.</div></blockquote>
-<p><strong>Return</strong></p>
-<blockquote>
-<div>Requested item or None.</div></blockquote>
-<p><strong>Class Attributes</strong></p>
-<blockquote>
-<div><p>check_ID = False: [bool] if True, no object ID can be specified twice, preventing objects with the same name. If false, two or more objects can exist with the same ID.</p>
-<p>stream = {}: [WeakRefBook] Dictionary of Stream objects.</p>
-<p>unit = {}: [WeakRefBook] Dictionary of Unit objects.</p>
-<p>system = {}: [WeakRefBook] Dictionary of System objects.</p>
-<p>line = {}: [getDict] Dictionary of lines and Unit classes (each line contains a list of Unit classes that inhearit from the same line).</p>
-</div></blockquote>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Does not create a new object when called. Simply returns requested item.</p>
-</div>
-<dl class="classmethod">
-<dt id="biosteam.LookUp.empty">
-<em class="property">classmethod </em><code class="descname">empty</code><span class="sig-paren">(</span><em>dct_name='all'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/lookup.html#LookUp.empty"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.LookUp.empty" title="Permalink to this definition">¶</a></dt>
-<dd><p>Empty the specified dictionary. This prevents ID conflicts.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div>dct_name: [str] Name of dictionary to be emptied. Can be ‘system’, ‘unit’, ‘stream’, or ‘all’ for all dictionaries mentioned.</div></blockquote>
-</dd></dl>
-
+<div><strong>item_ID:</strong> [str] ID of the requested item.</div></blockquote>
 </dd></dl>
 
 </div>

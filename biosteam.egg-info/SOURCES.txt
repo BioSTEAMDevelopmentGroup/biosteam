@@ -6,9 +6,9 @@ biosteam/__init__.py
 biosteam/chemical.py
 biosteam/dissolved_specie.py
 biosteam/exceptions.py
+biosteam/find.py
 biosteam/graphics.py
 biosteam/heat_utility.py
-biosteam/lookup.py
 biosteam/meta_classes.py
 biosteam/mixed_stream.py
 biosteam/my_units_defs.txt

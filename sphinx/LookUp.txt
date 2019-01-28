@@ -1,8 +1,0 @@
-LookUp
-======
-The LookUp class allows the user to find any BioSTEAM object during debbuging or at the console level.
-
-.. module:: biosteam
-
-.. autoclass:: LookUp
-   :members:

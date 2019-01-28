@@ -28,4 +28,4 @@ CS.reset = ansicolor(Style.RESET_ALL, ID='reset')
 CS.ul = Color(style='underline')
 CS.num = Color('rednum', '#f74f4f')
 CS.str = Color('greenstr', '#89e189')
-
+CS.next = CS.info

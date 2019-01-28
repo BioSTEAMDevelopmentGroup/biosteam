@@ -7,7 +7,7 @@ Created on Sat Oct 28 17:28:09 2017
 """
 name = 'biosteam'
 
-__all__ = ['exceptions', 'utils', 'LookUp', 'Specie', 'Chemical', 'DissolvedSpecie', 'Species', 'Stream', 'MixedStream', 'HeatUtility', 'PowerUtility', 'Unit', 'units', 'System', 'ureg', 'Quantity', 'Q_', 'units_of_measure']
+__all__ = ['exceptions', 'utils', 'find', 'Specie', 'Chemical', 'DissolvedSpecie', 'Species', 'Stream', 'MixedStream', 'HeatUtility', 'PowerUtility', 'Unit', 'units', 'System', 'ureg', 'Quantity', 'Q_', 'units_of_measure']
 
 
 # %% Import base utils
@@ -64,7 +64,7 @@ units_of_measure = ReadOnlyBook(MW='g/mol',
 
 from . import exceptions
 from . import utils
-from .lookup import LookUp
+from .find import find
 from .specie import Specie
 from .dissolved_specie import DissolvedSpecie
 from .chemical import Chemical

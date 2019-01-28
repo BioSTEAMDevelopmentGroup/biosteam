@@ -9,7 +9,7 @@ import os
 import IPython
 from graphviz import Digraph
 from biosteam.exceptions import KE
-from biosteam.lookup import LookUp, WeakRefBook
+from biosteam.find import find, WeakRefBook
 from biosteam.graphics import Graphics, default_graphics
 from biosteam.stream import Stream
 from biosteam.heat_utility import HeatUtility
@@ -24,8 +24,8 @@ dir_path = os.path.dirname(os.path.realpath(__file__)) + '\\'
 
 #%% Decorators and functions
 
-def notify_error_unit(func):
-    """Decorate Unit class run method to provide a location summary when an error occurs."""
+def notify_error(func):
+    """Decorate class method to provide a location summary when an error occurs."""
     if hasattr(func, '_original'):
         func = func._original
 
@@ -38,14 +38,15 @@ def notify_error_unit(func):
             msg = str(e).strip('\n').replace(location + ': ', '')
             
             # Add location to message
-            out = location + f' {func.__name__}:\n' + msg 
+            if not ('@' in msg and ':\n' in msg):
+                msg = location + f' {func.__name__}:\n' + msg                 
             
             # Raise exception with same traceback but new message
             import sys
             if type(e) is KeyError:
-                raise KE(out).with_traceback(sys.exc_info()[2])
+                raise KE(msg).with_traceback(sys.exc_info()[2])
             else:
-                raise type(e)(out).with_traceback(sys.exc_info()[2])
+                raise type(e)(msg).with_traceback(sys.exc_info()[2])
     
     wrapper.__name__ = func.__name__
     wrapper.__doc__ = func.__doc__
@@ -94,7 +95,7 @@ class metaUnit(type):
     """
     _CEPCI = 567.5 # Chemical engineering plant cost index (567.5 at 2017)
     def __new__(mcl, clsname, superclasses, new_definitions):
-        """Prepare unit methods with wrappers for error notification, and add kwargs as key word arguments to __init__. Also initiallize by adding new Unit class to the LookUp.line dictionary."""
+        """Prepare unit methods with wrappers for error notification, and add kwargs as key word arguments to __init__. Also initiallize by adding new Unit class to the find.line dictionary."""
 
         if not Unit_is_done:
             # Abstract Unit class
@@ -103,8 +104,7 @@ class metaUnit(type):
             # Add error notification wrapper to every new unit method
             for method_name in ('setup', 'run', 'operation', 'design', 'cost'):
                 if new_definitions.get(method_name):
-                    new_definitions[method_name] = notify_error_unit(
-                        new_definitions[method_name])
+                    new_definitions[method_name] = notify_error(new_definitions[method_name])
     
             # Make new Unit class
             cls = type.__new__(mcl, clsname, superclasses, new_definitions)
@@ -135,12 +135,12 @@ class metaUnit(type):
                 if not new_definitions.get('_Graphics'):
                     cls._Graphics = Graphics()
     
-            # Add class to LookUp line dictionary
+            # Add class to find line dictionary
             if cls.line is not default_line: # Do not include abstract Unit classes
-                if not LookUp.line[cls.line]:
-                    LookUp.line[cls.line] = []
-                if cls.__name__ not in [cls.__name__ for cls in LookUp.line[cls.line]]:
-                    LookUp.line[cls.line].append(cls)
+                if not find.line[cls.line]:
+                    find.line[cls.line] = []
+                if cls.__name__ not in [cls.__name__ for cls in find.line[cls.line]]:
+                    find.line[cls.line].append(cls)
                     
             # Key word arguments to replace
             kwargs = ''
@@ -471,7 +471,7 @@ class Unit(metaclass=metaUnit):
     def ID(self, ID):
         # Remove old reference to this object
         if self._ID != '' and ID != '':
-            del LookUp.unit[self._ID]
+            del find.unit[self._ID]
             del type(self).instances[self._ID]
 
         # Get current default ID
@@ -491,8 +491,8 @@ class Unit(metaclass=metaUnit):
         # Add instance to class instance dictionary
         type(self).instances[ID] = self
 
-        # Add ID to LookUp dictionary
-        LookUp.unit[ID] = self
+        # Add ID to find dictionary
+        find.unit[ID] = self
         self._ID = ID
 
     # Input and output streams

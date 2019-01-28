@@ -177,7 +177,6 @@
                                   <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;V&#39;</span><span class="p">,</span> <span class="s1">&#39;P_liq&#39;</span><span class="p">))</span>
         <span class="p">[</span><span class="n">out_wt_solids</span><span class="p">,</span> <span class="n">liq</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">ins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span>
-        <span class="n">ins</span> <span class="o">=</span> <span class="p">[</span><span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span> <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="n">ins</span><span class="p">]</span>
 
         <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>  <span class="c1"># Number of evaporators</span>
 
@@ -212,6 +211,7 @@
         <span class="n">mixer</span><span class="o">.</span><span class="n">ins</span> <span class="o">=</span> <span class="n">outs_liq</span>
         <span class="n">mixer</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
         <span class="n">liq</span><span class="o">.</span><span class="n">copy_like</span><span class="p">(</span><span class="n">mixer</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ins</span> <span class="o">=</span> <span class="n">ins</span>
 
     <span class="k">def</span> <span class="nf">_lazy_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>

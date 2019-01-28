@@ -17,9 +17,10 @@ BioSTEAM is an open source process simulation package in Python for fast and fle
    Stream
    MixedStream
    Unit
+   PowerUtility
    HeatUtility
    System
-   LookUp
+   find
    units
    utils
    exceptions
@@ -75,7 +76,7 @@ BioSTEAM objects serve as basic building blocks to design and simulate a biorefi
 
 .. code-block:: python
 
-   >>> from biosteam.Units import Flash
+   >>> from biosteam.units import Flash
    >>> # Specify vapor fraction and pressure conditions
    >>> F1 = Flash(ID='F1', outs=('vapor', 'liquid'), V=0.5, P=101325)
 

@@ -134,14 +134,12 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">duty_positive</span><span class="p">:</span>
             <span class="n">T_exit</span> <span class="o">=</span> <span class="n">T_pinch</span> <span class="o">+</span> <span class="n">dT</span>
-            <span class="k">if</span> <span class="n">T_limit</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">T_limit</span> <span class="o">&gt;</span> <span class="n">T_exit</span><span class="p">:</span>
-                    <span class="n">T_exit</span> <span class="o">=</span> <span class="n">T_limit</span>
+            <span class="k">if</span> <span class="n">T_limit</span> <span class="ow">and</span> <span class="n">T_limit</span> <span class="o">&gt;</span> <span class="n">T_exit</span><span class="p">:</span>
+                <span class="n">T_exit</span> <span class="o">=</span> <span class="n">T_limit</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">T_exit</span> <span class="o">=</span> <span class="n">T_pinch</span> <span class="o">-</span> <span class="n">dT</span>
-            <span class="k">if</span> <span class="n">T_limit</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">T_limit</span> <span class="o">&lt;</span> <span class="n">T_exit</span><span class="p">:</span>
-                    <span class="n">T_exit</span> <span class="o">=</span> <span class="n">T_limit</span>
+            <span class="k">if</span> <span class="n">T_limit</span> <span class="ow">and</span> <span class="n">T_limit</span> <span class="o">&lt;</span> <span class="n">T_exit</span><span class="p">:</span>
+                <span class="n">T_exit</span> <span class="o">=</span> <span class="n">T_limit</span>
         <span class="k">return</span> <span class="n">T_exit</span>
 
     <span class="k">def</span> <span class="nf">_set_CoolingAir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

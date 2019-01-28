@@ -86,9 +86,10 @@
 <li class="toctree-l1"><a class="reference internal" href="Stream.html">Stream</a></li>
 <li class="toctree-l1"><a class="reference internal" href="MixedStream.html">MixedStream</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Unit.html">Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="PowerUtility.html">PowerUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="HeatUtility.html">HeatUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="System.html">System</a></li>
-<li class="toctree-l1"><a class="reference internal" href="LookUp.html">LookUp</a></li>
+<li class="toctree-l1"><a class="reference internal" href="find.html">find</a></li>
 <li class="toctree-l1"><a class="reference internal" href="units.html">units</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="Mixer.html">Mixer</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Splitter.html">Splitter</a></li>
@@ -139,7 +140,7 @@
 </pre></div>
 </div>
 <p><strong>Create a Unit class</strong> passing an ID, IDs for output streams, and any key word arguments specific to the Unit:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam.Units</span> <span class="kn">import</span> <span class="n">Flash</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam.units</span> <span class="kn">import</span> <span class="n">Flash</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Specify vapor fraction and pressure conditions</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">F1</span> <span class="o">=</span> <span class="n">Flash</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;F1&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;vapor&#39;</span><span class="p">,</span> <span class="s1">&#39;liquid&#39;</span><span class="p">),</span> <span class="n">V</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
 </pre></div>

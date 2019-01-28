@@ -774,7 +774,7 @@ class P69_flash(Flash):
     _simple_run = run
 
     def operation(self):
-        ms = MixedStream.sum(MixedStream(), self.outs)
+        ms = MixedStream.sum(MixedStream(species=self.outs[0].species), self.outs)
         self._heat_exchanger.outs = ms
         self._heat_exchanger.operation()
         
