@@ -18,6 +18,7 @@ def find(item_ID) -> 'item':
     for dct in dictionaries:
         obj = dct[item_ID]
         if obj: return obj
+    print(f"No registered item '{item_ID}'")
 
 # [WeakRefBook] Dictionary of systems
 find.system = WeakRefBook()  
