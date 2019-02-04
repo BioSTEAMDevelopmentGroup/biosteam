@@ -37,12 +37,12 @@ class Splitter(Unit, metaclass=metaFinal):
         self._init_ins(ins_ID)
         self._init_outs(outs_ID)
 
-    def _run(self)
+    def _run(self):
         # Unpack
         split = self.kwargs['split']
         top, bot = self.outs
         if len(self.ins) > 1:
-            Mixer.run(self)
+            Mixer._run(self)
         else:
             top.copy_like(self.ins[0])
         bot.copy_like(top)
@@ -60,7 +60,7 @@ class InvSplitter(Unit, metaclass=metaFinal):
         self._init_ins(ins_ID)
         self._init_outs(outs_ID)
         
-    def _run(self)
+    def _run(self):
         feed = self.ins[0]
         feed.mol = self._mol_out
         for out in self.outs:

@@ -26,8 +26,7 @@ class Tank(Unit):
     def tau(self, tau):
         self._tau = tau
 
-    def _run(self)
-        self.outs[0].copy_like(self.ins[0])
+    def _run(self):        self.outs[0].copy_like(self.ins[0])
 
 
 class StorageTank(Tank):
@@ -49,7 +48,7 @@ Thessalonika, Greece, 2008 (book in Greek).
     #: [float] residence time (hr)
     _tau = 4*7*24
 
-    def design(self):
+    def _design(self):
         """
         * 'Volume': Volume of vessel (m^3)
         * 'N_vessel': Number of vessels ()
@@ -73,7 +72,7 @@ Thessalonika, Greece, 2008 (book in Greek).
             raise DesignError(f"Volume is out of bounds for costing")
         return cost
 
-    def cost(self):
+    def _cost(self):
         """
         * 'Tank': (USD)
         """
@@ -105,10 +104,10 @@ class MixTank(Tank):
     """
     _tau = 1
     _N_ins = 2
-    run = Mixer.run
+    _run = Mixer._run
     bounds = {'Volume': (0.1, 30)}
 
-    def design(self):
+    def _design(self):
         """
         * 'Volume': (m^3)
         """
@@ -116,7 +115,7 @@ class MixTank(Tank):
         Design['Volume'] = self._tau * self._volnet_out / 0.8
         return Design
 
-    def cost(self):
+    def _cost(self):
         """
         * 'Tank': (USD)
         """
@@ -131,13 +130,12 @@ class PCT(MixTank):
     _N_outs = 2
     kwargs = {'T': 298.15, 'phase': 'l'}
 
-    def setup(self):
+    def _setup(self):
         """Set temperature and phase"""
         self.outs[0].T = self.kwargs['T']
         self.outs[0].phase = self.kwargs['phase']
 
-    def _run(self)
-        # All input streams must be the same phase
+    def _run(self):        # All input streams must be the same phase
         out = self.outs[0]
         out.mol = self._mol_in
         out.P = self.ins[0].P

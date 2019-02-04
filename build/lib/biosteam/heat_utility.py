@@ -4,57 +4,289 @@ Created on Sat Aug 18 14:25:34 2018
 
 @author: yoelr
 """
-from biosteam.exceptions import DimensionError
+from biosteam.exceptions import DimensionError, biosteamError
 from biosteam.species import Species
 from biosteam.stream import Stream, mol_flow_dim, mass_flow_dim, vol_flow_dim
-from biosteam.mixed_stream import MixedStream
 from bookkeep import SmartBook, UnitManager
-from biosteam import Q_
+from biosteam import Q_, pd, np
 
-# %% Default Heat Transfer Streams
+# Costs from Table 17.1 in Warren D.  Seider et al.-Product and Process Design Principles_ Synthesis, Analysis and Evaluation-Wiley (2016)
+# ^This table was made using data from Busche, 1995
+# Entry temperature conditions of coolants taken from Table 12.1 in Warren, 2016
 
-CoolingAir = Species('Nitrogen', 'Oxygen',
-                     'Water', 'CO2', 'Argon')
+array = np.array
+
+# %% Default Heat Transfer species
 
 Water = Species('Water')
 
-# %% Utilities
+# %% Data for cooling utilities 
+
+_columns = ('Type', 'species', 'molar fraction', 'T (K)',
+            'P (Pa)', 'phase', 'T_limit (K)',
+            'price (USD/kJ)', 'price (USD/kg)')
+
+_cooling_index = ('Cooling water',
+                  'Chilled water',
+                  'Chilled Brine')
+
+_cooling_water = ('sensible',      # Type [str]: {'sensible', 'latent'}
+                  Water,           # species [Species]
+                  (1,),            # flow: [tuple]
+                  305.372,         # T (K)
+                  101325,          # P (Pa)
+                  'liq',           # phase: {'g', 'l'}
+                  324.817,         # T limit (K)
+                  0,               # price (USD/GJ)
+                  2.708e-5)        # price (USD/kg)
+
+_chilled_water = ('sensible',
+                  Water,
+                  (1,),
+                  280.372,
+                  101325,
+                  'liq',
+                  300.372,
+                  -5e-6,
+                  0)
+
+_chilled_brine = ('sensible',
+                  Water,
+                  (1,),
+                  255.372,
+                  101325,
+                  'liq',
+                  275.372,
+                  -8.145e-6,
+                  0)
+
+
+# %% Data for heating utilities
+
+_heating_index = ('Low pressure steam',
+                  'Medium pressure steam',
+                  'High pressure steam')
+
+_low_pressure_steam = ('latent',
+                       Water,
+                       (1,),
+                       411.494,
+                       344738.0,
+                       'gas',
+                       None,
+                       0,
+                       0.01320)
+
+_medium_pressure_steam = ('latent',
+                          Water,
+                          (1,),
+                          454.484,
+                          1034214.0,
+                          'gas',
+                          None,
+                          0,
+                          0.01530)
+
+_high_pressure_steam = ('latent',
+                        Water,
+                        (1,),
+                        508.858,
+                        3102642.0,
+                        'gas',
+                        None,
+                        0,
+                        0.01760)
+
+
+# %% Utility classes
 
 
 class HeatUtility:
     """Create an HeatUtility object that can choose a utility stream and calculate utility requirements. It can calculate required flow rate, temperature, or phase change of utility. Calculations assume counter current flow rate."""
-    __slots__ = ('_fresh', '_vap', '_liq', '_phase_ch', '_cost', 
-                 '_T_limit', 'results', '_user_specified')
+    __slots__ = ('_fresh', '_vap', '_liq', 'results')
     dT = 5  #: [float] Pinch temperature difference
     
     #: Units of measure for results dictionary
     _units = UnitManager([], Duty='kJ/hr', Flow='kg/hr', Cost='USD/hr')
 
-    def __init__(self):
-        self.results = SmartBook(self._units, Cost=0, Flow=0, Duty=0)
-        self._T_limit = None
-        self._user_specified = False
+    #: All cooling utilities available
+    cooling_agents = pd.DataFrame([_cooling_water,
+                                   _chilled_water,
+                                   _chilled_brine],
+                                  columns=_columns,
+                                  index=_cooling_index).transpose()
 
-    def define_utility(self, fresh, vap, liq, phase_ch, cost, T_limit=None):
-        """Define utility streams and operation method.
+    #: All heating utilities available
+    heating_agents = pd.DataFrame([_low_pressure_steam,
+                                   _medium_pressure_steam,
+                                   _high_pressure_steam],
+                                  columns=_columns,
+                                  index=_heating_index).transpose()
+
+    def __init__(self, source):
+        self.results = SmartBook(self._units, Cost=0, Flow=0, Duty=0, source=source)
+
+    def _init_streams(self, ID, flow, species, T, P, phase):
+        """Initialize utility streams."""
+        ID = '*'+ID
+        self._fresh = Stream(ID, species=species,
+                             flow=flow,
+                             T=T,
+                             P=P,
+                             phase=phase)
+        self._liq = Stream(ID, species=species, phase='l')
+        self._vap = Stream(ID, species=species, phase='g')
+
+    def __call__(self, duty:'kJ/hr', T_in:'K', T_out:'K'=None) -> 'results [dict]':
+        """Return dictionary of utility requirements given the essential parameters.
         
         **Parameters**
+        
+            **duty:** [float] Unit duty requirement (kJ/hr)
             
-            **fresh:** [Stream] entering utility stream
-
-            **vap:** [Stream] exiting utility vapor
-
-            **liq:** [Stream] exiting utility liquid
-
-            **phase_ch:** [bool] True if utility changes phase
-
-            **cost:** [function] Calculates net cost in $/hr
-
-            **T_limit:** [float] Minimum/maximum exit temperature for sensible heat transfer agents
+            **T_in:** [float] Entering process stream temperature (K)
+            
+            **T_out:** [float] Exit process stream temperature (K)
+        
+        **Returns**
+            * 'ID': ID of utility ()
+            * 'Duty': Unit duty requirement (kJ/hr)
+            * 'Flow': HeatUtility flow rate (kg/hr)
+            * 'Cost': Cost of utility (USD/hr)
         
         """
-        self._fresh, self._vap, self._liq, self._phase_ch, self._T_limit = fresh, vap, liq, phase_ch, T_limit
-        self._user_specified = True
+        r = self.results
+        
+        # Set pinch and operating temperature
+        if T_out is None:
+            T_pinch = T_op = T_in
+        else:
+            T_pinch, T_op = self._get_pinch(duty, T_in, T_out)
+        
+        
+        # Select heat transfer agent
+        if duty < 0:
+            Type, price_duty, price_mass, T_limit = self._select_cooling_agent(T_op)
+        elif duty > 0:
+            Type, price_duty, price_mass, T_limit = self._select_heating_agent(T_op)
+        else:
+            return r
+        
+        # Calculate utility flow rate requirement
+        if Type == 'sensible':
+            self._update_flow_wt_pinch_T(duty, T_pinch, T_limit)
+        elif Type == 'latent':
+            self._update_flow_wt_phase_change(duty)
+        else:
+            raise biosteamError(f"Invalid heat transfer agent '{self._fresh.ID[1:]}'.")
+        
+        # Update and return results
+        ID = self._fresh.ID.replace('*','')
+        r['ID'] = ID
+        r['Flow'] = mass = self._fresh.massnet
+        r['Duty'] = duty
+        r['Cost'] = price_duty*duty + price_mass*mass
+        return r
+
+    @staticmethod
+    def _get_pinch(duty, T_in, T_out) -> '(T_pinch, T_op)':
+        """Return pinch temperature and operating temperature."""
+        if duty < 0:
+            return (T_in, T_out) if T_in > T_out else (T_out, T_in)
+        else:
+            return (T_in, T_out) if T_in < T_out else (T_out, T_in)
+    
+    # Selection of a heat transfer agent
+    def _select_cooling_agent(self, T_pinch):
+        """Select a cooling agent that works at the pinch temperature and return relevant information.
+        
+        **Parameters**
+
+             **T_pinch:**  [float] Pinch temperature of process stream (K)
+        
+        **Returns**
+        
+            **Type:** [str] {'latent', 'sensible'}
+            
+            **price_duty:** [float] (USD/kJ)
+            
+            **price_mass:** [float] (USD/kg)
+            
+            **T_limit:** [float] Maximum or minimum temperature of agent (K)
+        
+        """
+        dt = 2*self.dT
+        T_max = T_pinch - dt
+        cooling_agents = self.cooling_agents
+        for ID in cooling_agents:
+            ca = cooling_agents[ID]
+            Type, species, flow, T, P, phase, T_limit, price_duty, price_mass = ca
+            if T_max > T:
+                self._init_streams(ID, flow, species, T, P, phase[0])
+                return Type, price_duty, price_mass, T_limit
+        raise biosteamError(f'No cooling agent that can cool under {T_pinch} K')
+            
+    def _select_heating_agent(self, T_pinch):
+        """Select a heating agent that works at the pinch temperature and return relevant information.
+        
+        **Parameters**
+
+             **T_pinch:**  [float] Pinch temperature of process stream (K)
+        
+        **Returns**
+        
+            **Type:** [str] {'latent', 'sensible'}
+            
+            **price_duty:** [float] (USD/kJ)
+            
+            **price_mass:** [float] (USD/kg)
+            
+            **T_limit:** [float] Maximum or minimum temperature of agent (K)
+        
+        """
+        dt = 2*self.dT
+        T_min = T_pinch + dt
+        heating_agents = self.heating_agents
+        for ID in heating_agents:
+            ha = heating_agents[ID]
+            Type, species, flow, T, P, phase, T_limit, price_duty, price_mass = ha
+            if T_min < T:
+                self._init_streams(ID, flow, species, T, P, phase[0])
+                return Type, price_duty, price_mass, T_limit
+        raise biosteamError(f'No heating agent that can heat over {T_pinch} K')
+
+    # Main Calculations
+    def _update_flow_wt_pinch_T(self, duty, T_pinch, T_limit):
+        """Set utility Temperature at the pinch, calculate and set minimum net flowrate of the utility to satisfy duty and update."""
+        f, v, l = self._fresh, self._vap, self._liq
+        v.P = l.P = f.P
+        if f.phase == 'l':
+            l.copy_like(f)
+            u = l
+        else:
+            v.copy_like(f)
+            u = v
+        u.T = self._T_exit(T_pinch, self.dT, T_limit, duty > 0)
+        self._update_utility_flow(f, u, duty)
+        f.mol = u.mol
+
+    def _update_flow_wt_phase_change(self, duty):
+        """Change phase of utility, calculate and set minimum net flowrate of the utility to satisfy duty and update."""
+        f, v, l = self._fresh, self._vap, self._liq
+        v.P = l.P = f.P
+        v.T = l.T = f.T
+        f_is_liq = f.phase == 'l'
+        duty_positive = duty > 0
+        if duty_positive and not f_is_liq:
+            u = l
+        elif duty_positive < 0 and f_is_liq:
+            u = v
+        else:
+            sign = 'positive' if duty_positive else 'negative'
+            raise ValueError(
+                f"Fresh utility stream phase is '{f.phase}' while duty is {sign}, consider switching phase")
+        self._update_utility_flow(f, u, duty)
+        f.mol = u.mol
 
     # Subcalculations
     @staticmethod
@@ -87,178 +319,15 @@ class HeatUtility:
                 T_exit = T_limit
         return T_exit
 
-    def _set_CoolingAir(self):
-        """Set cooling air as the utility."""
-        ID = '*Cooling Air'
-        self._fresh = Stream(ID, species=CoolingAir,
-                                flow=[0.7809, 0.2095, 0.004, 0.0004, 0.0093],
-                                T=305.372,
-                                P=101325,
-                                phase='g')
-        self._liq = Stream(ID, species=CoolingAir, phase='l')
-        self._vap = Stream(ID, species=CoolingAir,phase='g')
-
-
-    def _set_Water(self, ID, T, P, phase):
-        """Set water as the utility."""
-        ID = '*'+ID
-        self._fresh = Stream(ID, species=Water,
-                             flow=[1],
-                             T=T,
-                             P=P,
-                             phase=phase)
-        self._liq = Stream(ID, species=Water, phase='l')
-        self._vap = Stream(ID, species=Water, phase='g')
-
-    # Default Heat Transfer agents
-    def _default_cooling_agent(self, duty, T_pinch):
-        """Select a cooling agent that works at set temperature"""
-        # Costs from Table 17.1 in Warren D.  Seider et al.-Product and Process Design Principles_ Synthesis, Analysis and Evaluation-Wiley (2016)
-        # ^This table was made using data from Busche, 1995
-        # Entry temperature conditions of coolants taken from Table 12.1 in Warren, 2016
-        dt = 2*self.dT
-        if T_pinch > 305.372 + dt:
-            self._set_Water('Cooling Water', 305.372, 101325, 'l')
-            def cost(): return self._fresh.massnet*0.027/997
-            self._cost = cost
-            self._T_limit = 324.817
-        elif T_pinch > 280.372 + dt:
-            self._set_Water('Chilled Water', 280.372, 101325, 'l')
-            def cost(): return -duty/10**6 * 5  # in $ per gigajoule
-            self._cost = cost
-        elif T_pinch > 255.372 + dt:
-            self._set_Water('Chilled Brine', 255.372, 101325, 'l')
-            def cost(): return -duty/10**6 * 8.145  # in $ per gigajoule
-            self._cost = cost
-        else:
-            raise Exception(f'No deault cooling agent that can cool under {T_pinch} K')
-
-    def _default_heating_agent(self, T_pinch):
-        """Select a heating agent that works at set temperature"""
-        # Costs from Table 17.1 in Warren D.  Seider et al.-Product and Process Design Principles_ Synthesis, Analysis and Evaluation-Wiley (2016)
-        # ^This table was made using data from Busche, 1995
-        # Entry temperature conditions of coolants taken from Table 12.1 in Warren, 2016
-        dt = 2*self.dT
-        if T_pinch < 411.494 - dt:
-            self._set_Water('Low Pressure Steam', 411.494, 344738.0, 'g')
-            self._cost = lambda: self._fresh.massnet*0.01320
-        elif T_pinch < 454.484 - dt:
-            self._set_Water('Medium Pressure Steam', 454.484, 1034214.0, 'g')
-            self._cost = lambda: self._fresh.massnet*0.01530
-        elif T_pinch < 508.858 - dt:
-            self._set_Water('High Pressure Steam', 508.859, 3102642.0, 'g')
-            self._cost = lambda: self._fresh.massnet*0.01760
-        else:
-            raise Exception(f'No default heating agent that can heat over {T_pinch} K')
-
-    # Main Calculations
-    def _update_flow_wt_pinch_T(self, duty, T_pinch):
-        """Set utility Temperature at the pinch, calculate and set minimum net flowrate of the utility to satisfy duty and update."""
-        f, v, l = self._fresh, self._vap, self._liq
-        v.P = l.P = f.P
-        if f.phase == 'l':
-            l.copy_like(f)
-            u = l
-        else:
-            v.copy_like(f)
-            u = v
-        u.T = self._T_exit(T_pinch, self.dT, self._T_limit, duty > 0)
-        self._update_utility_flow(f, u, duty)
-        f.mol = u.mol
-
-    def _update_flow_wt_phase_change(self, duty):
-        """Change phase of utility, calculate and set minimum net flowrate of the utility to satisfy duty and update."""
-        f, v, l = self._fresh, self._vap, self._liq
-        v.P = l.P = f.P
-        v.T = l.T = f.T
-        f_is_liq = f.phase == 'l'
-        duty_positive = duty > 0
-        if duty_positive and not f_is_liq:
-            u = l
-        elif duty_positive < 0 and f_is_liq:
-            u = v
-        else:
-            sign = 'positive' if duty_positive else 'negative'
-            raise ValueError(
-                f"Fresh utility stream phase is '{f.phase}' while duty is {sign}, consider switching phase")
-        self._update_utility_flow(f, u, duty)
-        f.mol = u.mol
-
-    @staticmethod
-    def _get_pinch(duty, T_in, T_out) -> '(T_pinch, T_op)':
-        """Return pinch temperature and operating temperature."""
-        if duty < 0:
-            return (T_in, T_out) if T_in > T_out else (T_out, T_in)
-        else:
-            return (T_in, T_out) if T_in < T_out else (T_out, T_in)
-
-    def _default_run(self, duty, T_pinch, T_op):
-        """Select a heat transfer agent, calculate and set required utility."""
-        # Select heating agent
-        if duty < 0:
-            self._default_cooling_agent(duty, T_op)
-        else:
-            self._default_heating_agent(T_op)
-        
-        # Calculate utility flow rate requirement
-        if self._fresh.phase == 'l':
-            self._update_flow_wt_pinch_T(duty, T_pinch)
-        else:
-            self._update_flow_wt_phase_change(duty)
-
-    def __call__(self, duty:'kJ/hr', T_in:'K', T_out:'K'=None) -> 'results [dict]':
-        """Return dictionary of utility requirements given the essential parameters.
-        
-        **Parameters**
-        
-            **duty:** [float] Unit duty requirement (kJ/hr)
-            
-            **T_in:** [float] Entering process stream temperature (K)
-            
-            **T_out:** [float] Exit process stream temperature (K)
-        
-        **Returns**
-            * 'HeatUtility': Name of utility ()
-            * 'Duty': Unit duty requirement (kJ/hr)
-            * 'Flow': HeatUtility flow rate (kg/hr)
-            * 'Cost': Cost of utility (USD/hr)
-        
-        """
-        # Set pinch and operating temperature
-        if T_out is None:
-            T_pinch = T_op = T_in
-        else:
-            T_pinch, T_op = self._get_pinch(duty, T_in, T_out)
-        
-        if self._user_specified:
-            # Run utility as set by user
-            if self._phase_ch:
-                self._update_flow_wt_phase_change(duty)
-            else:
-                self._update_flow_wt_pinch_T(duty, T_pinch)
-        else:
-            # Choose a utility stream and find flow rate and exit temperature/phase
-            self._default_run(duty, T_pinch, T_op)
-        
-        # Update and return results
-        r = self.results
-        u_T = self._fresh.T
-        name = self._fresh.ID.replace('*','')
-        r['HeatUtility'] = f'{name} at {u_T:.0f} K'
-        r['Flow'] = self._fresh.massnet
-        r['Duty'] = duty
-        r['Cost'] = self._cost()
-        return r
-
     # Representation
     def _info(self, **show_units):
+        """Return string related to specifications"""
         # Get units of measure
         su = show_units
         r = self.results
         Duty = su.get('Duty') or su.get('duty') or r.units['Duty']
         Flow = su.get('Flow') or su.get('flow') or r.units['Flow']
         Cost = su.get('Cost') or su.get('cost') or r.units['Cost']
-        T = su.get('T') or 'K'
         
         # Select flow dimensionality
         flow_dim = Q_(0, Flow).dimensionality
@@ -279,19 +348,19 @@ class HeatUtility:
             duty = Q_(r['Duty'], r.units['Duty']).to(Duty).magnitude
             flow = Q_(flownet, flowunits).to(Flow).magnitude
             cost = Q_(r['Cost'], r.units['Cost']).to(Cost).magnitude
-            u_T = Q_(self._fresh.T, 'K').to(T).magnitude
-            name = self._fresh.ID.replace('*','')
-            return (f'{type(self).__name__}: {name} at T={u_T:.0f} {T}\n'
+            ID = r['ID']
+            return (f'{type(self).__name__}: {ID}\n'
                    +f' Duty:{duty: .3g} {Duty}\n'
                    +f' Flow:{flow: .3g} {Flow}\n'
                    +f' Cost:{cost: .3g} {Cost}')
         else:
             return (f'{type(self).__name__}: None\n'
-                   +f' Duty: None\n'
-                   +f' Flow: None\n'
-                   +f' Cost: None')
+                   +f' Duty: 0\n'
+                   +f' Flow: 0\n'
+                   +f' Cost: 0')
 
     def show(self, **show_units):
+        """Print all specifications"""
         print(self._info(**show_units))
 
     def __repr__(self):

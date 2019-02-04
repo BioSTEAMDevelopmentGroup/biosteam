@@ -9,11 +9,6 @@ from bookkeep import SmartBook, UnitManager, Q_
 class PowerUtility:
     """Create an PowerUtility object that can calculates the cost of power.
     
-    **Parameters**
-    
-        price: [float] Price of power ($/kW-hr)
-    
-    
     **__call__()**
     
         Return dictionary of utility requirements given the essential parameters.
@@ -26,13 +21,17 @@ class PowerUtility:
             * 'Power': Unit duty requirement (kW)
             * 'Cost': Cost of utility (USD/hr)
     
+    **Class Parameters**
+    
+        **price:** ($/kW-hr)
+    
     """
     _units = UnitManager([], Power='kW', Cost='USD/hr')
-    __slots__ = ('results', 'price')
+    __slots__ = ('results',)
+    price = 0.0782
     
-    def __init__(self, price=0.0782):
-        self.results = SmartBook(self._units)
-        self.price = price # $/kW-hr
+    def __init__(self, source):
+        self.results = SmartBook(self._units, source=source)
     
     def __call__(self, power:'kW'):
         """Return dictionary of utility requirements given the essential parameters.

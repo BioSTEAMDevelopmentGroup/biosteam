@@ -37,7 +37,7 @@ class MassBalance(Unit, metaclass=metaFinal):
               'exact': True,
               'balance': 'flow'}
 
-    def setup(self):
+    def _setup(self):
         exact = self.kwargs['exact']
         balance = self.kwargs['balance']
         self._cached = cached = {}
@@ -62,7 +62,7 @@ class MassBalance(Unit, metaclass=metaFinal):
         cached['bal_index'] = [sp_index[specie] for specie in specie_IDs]
         cached['linalg_solver'] = solver
 
-    def _run(self)
+    def _run(self):
         """Solve mass balance by iteration."""
         # SOLVING BY ITERATION TAKES 15 LOOPS FOR 2 STREAMS
         # SOLVING BY LEAST-SQUARES TAKES 40 LOOPS
@@ -138,8 +138,6 @@ class MassBalance(Unit, metaclass=metaFinal):
             for factor, s in zip(x_new, vary):
                 s.mol = s.mol * factor
 
-    _simple_run = run
-
     # Setting input and output streams do not change sources or sinks
     @property
     def ins(self):
@@ -183,8 +181,7 @@ class EnergyBalance(Unit, metaclass=metaFinal):
     """
     _Graphics = MassBalance._Graphics
     
-    def _run(self)
-        # Get arguments
+    def _run(self):        # Get arguments
         ins = self.ins.copy()
         outs = self.outs.copy()
         kwargs = self.kwargs

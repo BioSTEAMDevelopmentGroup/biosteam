@@ -15,7 +15,7 @@ __all__ = ('getDict', 'WeakRefBook', 'get_doc_units', 'merge', 'get_vals')
 # %% Dictionary Classes
 
 class getDict(dict):
-    """Create a dictionary that uses the 'get' method instead of the built-in item getter ('__getitem__')."""
+    """Create a dictionary that return None instead of raising a KeyError."""
 
     def __getitem__(self, key):
         return self.get(key)

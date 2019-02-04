@@ -4,15 +4,14 @@ Created on Sat Aug 18 15:04:55 2018
 
 @author: yoelr
 """
-import time
 import copy
 import IPython
 from scipy.optimize import brentq
 from graphviz import Digraph
-from biosteam.exceptions import Stop, SolverError
+from biosteam.exceptions import Stop, SolverError, notify_error
 from biosteam.find import find
 from biosteam.stream import Stream, mol_units, T_units
-from biosteam.unit import Unit, notify_error
+from biosteam.unit import Unit
 from biosteam import np
 from biosteam.utils import organized_list, get_streams, color_scheme
 CS = color_scheme
@@ -105,14 +104,6 @@ class System:
 
          **recycle:** [Stream] A tear stream for the recycle loop.
 
-    **Class Attributes**
-
-         **maxtier** = 100: [int] Maximum number of iterations for converge method.
-
-         **mol_tol** = 0.55: [float] Absolute material tolerance (kmol/hr) of converge method.
-
-         **T_tol** = 0.55: [float] Absolute temperature tolerance (K) of converge method.
-
     """
     ### Instance attributes ###
     
@@ -120,14 +111,10 @@ class System:
 
     ### Class attributes ###
     
-    # [iter] Maximum number of iterations for converge method
-    maxiter = 100
-    
-    # [float] Absolute material tolerance (kmol/hr) of converge method
-    mol_tol = 0.55
-    
-    # [float] Absolute temperature tolerance (K) of converge method
-    T_tol = 0.55
+    #: [dict] Dictionary of convergence options regarding maximum number of iterations and molar flow rate and temperature tolerances
+    options = {'maximum number of iterations': 100, 
+               'molar tolerance (kmol/hr)': 0.55, 
+               'temperature tolerance (K)': 0.55} 
     
     # [float] Error of the spec objective function
     _spec_error = None
@@ -178,7 +165,7 @@ class System:
         if isinstance(stream, Stream):
             self._recycle = stream
         elif stream is None:
-            self._converge = self._run
+            self._converge_method = self._run
         else:
             raise ValueError(f"Recycle stream must be a Stream instance or None, not {type(stream).__name__}.")
 
@@ -221,7 +208,7 @@ class System:
     @property
     def converge_method(self):
         """Iterative convergence method ('Wegstein', or 'fixed point')."""
-        return self._converge.__name__[1:]
+        return self._converge_method.__name__[1:]
 
     @converge_method.setter
     def converge_method(self, method):
@@ -229,9 +216,9 @@ class System:
             raise ValueError("Cannot set converge method when no recyle is specified")
         method = method.lower().replace('-', '').replace(' ', '')
         if 'wegstein' in method:
-            self._converge = self._Wegstein
+            self._converge_method = self._Wegstein
         elif 'fixedpoint' in method:
-            self._converge = self._fixed_point
+            self._converge_method = self._fixed_point
         else:
             raise ValueError(f"Only 'Wegstein' and 'fixed point' methods are valid, not '{method}'")
 
@@ -320,9 +307,9 @@ class System:
         """Rigorous run each element of the system."""
         for a in self._network:
             if isinstance(a, Unit):
-                a.run()
+                a._run()
             elif isinstance(a, System):
-                a.converge()
+                a._converge()
             elif isinstance(a, function):
                 a()
         self.solver_error['iter'] += 1
@@ -334,9 +321,7 @@ class System:
         recycle = self.recycle
         run = self._run
         solver_error = self.solver_error
-        T_tol = self.T_tol
-        mol_tol = self.mol_tol
-        maxiter = self.maxiter
+        maxiter, mol_tol, T_tol = tuple(self.options.values())
 
         def set_solver_error():
             solver_error['mol_error'] = mol_error
@@ -363,10 +348,7 @@ class System:
         # Reused attributes
         recycle = self.recycle
         run = self._run
-        mol_tol = self.mol_tol
-        T_tol = self.T_tol
-        solver_error = self.solver_error
-        maxiter = self.maxiter
+        maxiter, mol_tol, T_tol = tuple(self.options.values())
         solver_error = self.solver_error
 
         def set_solver_error():
@@ -426,12 +408,13 @@ class System:
             recycle.T = x1[-1]
         set_solver_error()
     
-    _converge = _Wegstein
+    # Default converge method
+    _converge_method = _Wegstein
     
     @notify_error
-    def converge(self):
+    def _converge(self):
         """Converge the system recycle using an iterative solver (Wegstein by default)."""
-        return self._converge()
+        return self._converge_method()
 
     def set_spec(self, func, var_setter, var_min, var_max, brentq_kwargs={'xtol': 10**-6}):
         """Wrap a bounded solver around the converge method. The solver varies a variable until the desired spec is satisfied.
@@ -449,25 +432,20 @@ class System:
              brentq_kwargs: [dict] Key word arguments passed to scipy.optimize.brentq solver.
 
         """
-        converge = self._converge
+        converge = self._converge_method
         solver_error = self.solver_error
 
         def error(val):
             var_setter(val)
             converge()
-            solver_error['spec_error'] = func()
-            return solver_error['spec_error']
+            solver_error['spec_error'] = e = func()
+            return e
 
         def converge_spec():
             converge()
-            solver_error['spec_error'] = func()
-            if abs(solver_error['spec_error']) < brentq_kwargs['xtol']:
-                return
-            min_ = var_min()
-            max_ = var_max()
-            brentq(error, min_, max_, **brentq_kwargs)
+            brentq(error, var_min(), var_max(), **brentq_kwargs)
 
-        self._converge = converge_spec
+        self._converge_method = converge_spec
 
     def reset(self):
         """Reset all process streams to zero flow."""
@@ -478,12 +456,18 @@ class System:
         for stream in self.streams:
             if stream.source[0]: stream.empty()
 
-    def run_results(self):
-        """Run all design basis algorithms (operation, design, and cost methods) for all units."""
-        for unit in self.units:
-            unit.operation()
-            unit.design()
-            unit.cost()
+    def simulate(self):
+        """Converge the network and simulate all units."""
+        for u in self.units:
+            if u._kwargs != u.kwargs:
+                u._setup()
+                u._kwargs = copy(u.kwargs)
+        self._converge()
+        for u in self.units:
+            u._operation()
+            u._design()
+            u._cost()
+            u._summary()
         
     # Debugging
     def _debug_on(self):
@@ -492,9 +476,9 @@ class System:
         self._network = network = list(self._network)
         for i, item in enumerate(network):
             if isinstance(item, Unit):
-                item.run = method_debug(item, item.run)
+                item._run = method_debug(item, item._run)
             elif isinstance(item, System):
-                item.converge = method_debug(item, item.converge)
+                item._converge = method_debug(item, item._converge)
             elif isinstance(item, function):
                 network[i] = method_debug(item, item)
 
@@ -504,9 +488,9 @@ class System:
         network = self._network
         for i, item in enumerate(network):
             if isinstance(item, Unit):
-                item.run = item.run._original
+                item._run = item._run._original
             elif isinstance(item, System):
-                item.converge = item.converge._original
+                item._converge = item._converge._original
             elif isinstance(item, function):
                 network[i] = item._original
         self._network = tuple(network)
@@ -515,7 +499,7 @@ class System:
         """Convege in debug mode. Just try it!"""
         self._debug_on()
         try:
-            self._converge()
+            self._converge_method()
         except Stop:
             self._debug_off()
         except Exception as error:

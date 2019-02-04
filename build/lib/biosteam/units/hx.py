@@ -5,7 +5,7 @@ Created on Thu Aug 23 14:38:34 2018
 @author: yoelr
 """
 from biosteam import Unit, Stream, MixedStream
-from biosteam.exceptions import biosteam_Error
+from biosteam.exceptions import biosteamError
 from fluids import nearest_pipe
 import ht
 import numpy as np
@@ -337,7 +337,7 @@ class HX(Unit):
         """
         return Q/(U*LMTD*ft)        
 
-    def design(self):
+    def _design(self):
         """
         * 'Area': (ft^2)
         * 'Overall heat transfer coefficient':  (kW/m^2/K)
@@ -404,7 +404,7 @@ class HX(Unit):
         Design['Total tube length'] = L
         return Design
 
-    def cost(self):
+    def _cost(self):
         """
         'Heat exchanger': (USD)
         """
@@ -457,7 +457,9 @@ class HXutility(HX):
         User defines at least one:
             * T: [float] Temperature of output stream (K).
             * V: [float] Vapor fraction of output stream.
-         
+        
+        rigorous: [bool] If true, calculate vapor liquid equilibrium
+        
         U: Should be one of the following:
             * [float] Overall heat transfer coefficent (kW/m^2/K)
             * [str] 'Tabulated'
@@ -475,28 +477,38 @@ class HXutility(HX):
     
     kwargs = {'T': None,
               'V': None,
+              'rigorous': False,
               'U': 'Tabulated'}
     
-    def _run(self)
+    def _run(self):
         feed = self.ins[0]
         s = self.outs[0]
         s.copy_like(feed)
         kwargs = self.kwargs
         T = kwargs['T']
         V = kwargs['V']
-        if T is not None:
-            s.T = T
-        if V is not None:
-            if V == 1:
-                s.phase = 'g'
-            elif V == 0:
-                s.phase = 'l'
-            else:
-                s.enable_phases()
-                s.VLE(V=V, P=s.P)
+        V_given = V is not None 
+        if not (T or V_given):
+            raise ValueError("Must pass at least one of the following kwargs: 'T', 'V'")
+        if kwargs['rigorous']:
+            s.VLE(V=V, T=T)
+        else:
+            if V_given:
+                if V == 0:
+                    s.phase = 'l'
+                elif V == 1:
+                    s.phase = 'g'
+                else:
+                    s.enable_phases()
+                    vapmol = s.vapor_mol
+                    liqmol = s.liquid_mol
+                    mol = vapmol + liqmol
+                    vapmol[:] = mol*V
+                    liqmol[:] = mol - vapmol
+            if T: s.T = T
     
-    def operation(self):
-        # Set duty
+    def _operation(self):
+        # Set duty and run heat utility
         util = self.heat_utilities[0]
         self._Duty = util(self._H_out-self._H_in,
                           self.ins[0].T, self.outs[0].T)['Duty']
@@ -569,6 +581,7 @@ class HXprocess(HX):
         [1] Output process fluid 2
     
     """
+    _N_heat_util = 0
     _N_ins = 2
     _N_outs = 2
     dT = 5 #: [float] Pinch temperature difference.
@@ -583,7 +596,7 @@ class HXprocess(HX):
         s_out1, s_out2  = self.outs
         return s_in1, s_in2, s_out1, s_out2
     
-    def _run(self)
+    def _run(self):
         hx = True # If false, a stream is empty and no heat exchanger occurs
         for si, so in zip(self.ins, self.outs):
             if si.molnet <= 0.001:
@@ -633,17 +646,22 @@ class HXprocess(HX):
         LNK = kwargs['LNK']
         HNK = kwargs['HNK']
         
+        # Arguments for dew and bubble point
+        index = s1_out.get_index(specie_IDs)
+        z = s1_out.mol[index]/s1_out.molnet
+        P = s1_out.P
+        
         if s2_out.T > s1_in.T:
             # Stream s1 is boiling
             boiling = True
             s1_out.phase = 'g'
-            s1_out.T = s1_out.dew_point(specie_IDs)[0]
+            s1_out.T = s1_out._dew_point(specie_IDs, z, P)[0]
             T_pinch = s1_in.T + dT # Minimum
         else:
             # Stream s1 is condensing
             boiling = False
             s1_out.phase = 'l'
-            s1_out.T = s1_out.bubble_point(specie_IDs)[0]
+            s1_out.T = s1_out._bubble_point(specie_IDs, z, P)[0]
             T_pinch = s1_in.T - dT # Maximum
         
         # Calculate maximum latent heat and new temperature of sensible stream
@@ -651,15 +669,15 @@ class HXprocess(HX):
         T_s2_new = s2_out.T + Duty/s2_out.C
         s1_out.copy_like(s1_in)
         
-        # Partial boiling if temperature falls below pinch
         if boiling and T_s2_new < T_pinch:
+            # Partial boiling if temperature falls below pinch
             H0 = s2_in.H
             s2_out.T = T_pinch
             delH1 = H0 - s2_out.H
             s1_out.enable_phases()
             s1_out.VLE(specie_IDs, LNK, HNK, Qin=delH1)
-        # Partial condensation if temperature goes above pinch
         elif not boiling and T_s2_new > T_pinch:
+            # Partial condensation if temperature goes above pinch
             H0 = s2_in.H
             s2_out.T = T_pinch
             delH1 = H0 - s2_out.H
@@ -704,16 +722,21 @@ class HXprocess(HX):
             sc_out = s1_out
             sp_out = s2_out
         
+        # Arguments for dew and bubble point
+        index = sc_out.get_index(specie_IDs)
+        z = sc_out.mol[index]/sc_out.molnet
+        P = sc_out.P
+        
         if sc_out._isboiling:
             sc_out.phase = 'g'
-            sc_out.T = sc_out.dew_point(specie_IDs)[0]
+            sc_out.T = sc_out._dew_point(specie_IDs, z, P)[0]
         else:
             sc_out.phase = 'l'
-            sc_out.T = sc_out.bubble_point(specie_IDs)[0]
+            sc_out.T = sc_out._bubble_point(specie_IDs, z, P)[0]
         
         Duty = (sc_in.H-sc_out.H)
         sp_out.VLE(specie_IDs, LNK, HNK, Qin=Duty)
         self._Duty = abs(Duty)
     
-    def operation(self):
+    def _operation(self):
         return self.results['Operation']

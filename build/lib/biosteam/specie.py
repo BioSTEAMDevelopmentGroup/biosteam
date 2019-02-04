@@ -6,6 +6,7 @@ Created on Sat Aug 18 13:26:29 2018
 """
 from scipy import integrate
 from math import log
+from bookkeep import ReadOnlyBook
 from biosteam import Q_, units_of_measure
 
 R = 8.3144598  # Universal gas constant (J/mol-K)
@@ -85,18 +86,37 @@ class Specie(metaclass=metaSpecie):
          **P_ref** = 101325: Reference pressure (Pa)
 
     """
-    # [dict] Units of measure for material properties (class attribute). Items in this dictionary cannot be changed.
-    units = units_of_measure
+    #: [dict] Units of measure for material properties (class attribute). 
+    units = ReadOnlyBook(MW='g/mol',
+                         T='K',
+                         P='Pa',
+                         H='J/mol',
+                         S='J/mol',
+                         G='J/mol',
+                         U='J/mol',
+                         A='J/mol',
+                         Hf='J/mol',
+                         Vm='m^3/mol',
+                         Cpm='J/mol',
+                         Cp='J/g',
+                         rho='kg/m^3',
+                         rhom='mol/m^3',
+                         nu='m^2/s',
+                         mu='Pa*s',
+                         sigma='N/m',
+                         k='W/m/K',
+                         alpha='m^2/s')
+    
     phase_ref = 'l' # Reference phase
     P_ref = 101325  # Reference pressure (Pa)
     T_ref = 298.15  # Reference temperature (K)
-    S_ref = 0       # Reference entropy (kJ/hr)
-    H_ref = 0       # Reference enthalpy (kJ/hr)
+    S_ref = 0       # Reference entropy (kJ/kmol)
+    H_ref = 0       # Reference enthalpy (kJ/kmol)
     #: Method for taking the integral of Cp
     _func_integral = staticmethod(_func_int_average)
     MW = 1 # Arbitrary molecular weight (g/mol)
 
-    def prop_quantity(self, prop_ID):
+    def quantity(self, prop_ID):
         """Return a material property as a Quantity object as described in the `pint package <https://pint.readthedocs.io/en/latest/>`__ 
 
         **Parameters**
@@ -271,16 +291,33 @@ class Specie(metaclass=metaSpecie):
         return child
 
     # Representation
-    def _info(self):
-        """Information on self"""
-        return f"{type(self).__name__}: {self.ID}\n phase: '{self.phase}', T: {self.T:.2f} K, P: {self.P:.0f} Pa"
+    def _info(self, **show_units):
+        """Return string with all specifications."""
+        units = self.units
+        T_units = show_units.get('T')
+        P_units = show_units.get('P')
+        
+        # Default units
+        T_units = T_units or 'K'
+        P_units = P_units or 'Pa'
+        
+        # First line
+        info = f"{type(self).__name__}: {self.ID}\n"
+        
+        # Second line (thermo)
+        T = Q_(self.T, units['T']).to(T_units).magnitude
+        P = Q_(self.P, units['P']).to(P_units).magnitude
+        info += f" phase: '{self.phase}', T: {T:.5g} {T_units}, P: {P:.6g} {P_units}"
+        
+        return info
 
     def __str__(self):
         return self.ID
 
-    def show(self):
+    def show(self, **show_units):
         """print information on self"""
-        print(self._info())
+        print(self._info(**show_units))
 
     def __repr__(self):
         return f'<{type(self).__name__}: {self.ID}>'
+

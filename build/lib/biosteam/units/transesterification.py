@@ -36,7 +36,7 @@ class Transesterification(Reactor):
     _N_outs = 1
     _N_heat_util = 1
 
-    def _run(self)
+    def _run(self):
         feed, fresh_Methanol = self.ins
         out = self.outs[0]
         eff, r, T, catalyst_molfrac = (self.kwargs[i] for i in (
@@ -76,10 +76,10 @@ class Transesterification(Reactor):
         out.T = T
         out.P = feed.P
 
-    def operation(self):
+    def _operation(self):
         self.heat_utilities[0](self.Hnet, self.outs[0].T)
 
-    def design(self):
+    def _design(self):
         """
         * 'Volume': (m^3)
         """
@@ -87,7 +87,7 @@ class Transesterification(Reactor):
         Design['Volume'] = self._tau * self._volnet_out / 0.8
         return Design
         
-    def cost(self):
+    def _cost(self):
         """
         * 'Reactor': (USD)
         """

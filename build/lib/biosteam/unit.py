@@ -7,8 +7,9 @@ Created on Sat Aug 18 14:40:28 2018
 
 import os
 import IPython
+from copy import copy
 from graphviz import Digraph
-from biosteam.exceptions import KE
+from biosteam.exceptions import notify_error
 from biosteam.find import find, WeakRefBook
 from biosteam.graphics import Graphics, default_graphics
 from biosteam.stream import Stream
@@ -20,39 +21,6 @@ from biosteam import np
 CS = color_scheme
 
 dir_path = os.path.dirname(os.path.realpath(__file__)) + '\\'
-
-
-#%% Decorators and functions
-
-def notify_error(func):
-    """Decorate class method to provide a location summary when an error occurs."""
-    if hasattr(func, '_original'):
-        func = func._original
-
-    def wrapper(self):
-        try:
-            return func(self)
-        except Exception as e:
-            # biosteam_Warnings already include location, so it is removed
-            location = f'@{type(self).__name__} {self.ID}'
-            msg = str(e).strip('\n').replace(location + ': ', '')
-            
-            # Add location to message
-            if not ('@' in msg and ':\n' in msg):
-                msg = location + f' {func.__name__}:\n' + msg                 
-            
-            # Raise exception with same traceback but new message
-            import sys
-            if type(e) is KeyError:
-                raise KE(msg).with_traceback(sys.exc_info()[2])
-            else:
-                raise type(e)(msg).with_traceback(sys.exc_info()[2])
-    
-    wrapper.__name__ = func.__name__
-    wrapper.__doc__ = func.__doc__
-    wrapper._original = func
-    wrapper.__annotations__ = func.__annotations__
-    return wrapper
 
 
 # %% Unit metaclass
@@ -102,7 +70,7 @@ class metaUnit(type):
             cls = type.__new__(mcl, clsname, superclasses, new_definitions)
         else:
             # Add error notification wrapper to every new unit method
-            for method_name in ('setup', 'run', 'operation', 'design', 'cost'):
+            for method_name in ('_setup', '_run', '_operation', '_design', '_cost'):
                 if new_definitions.get(method_name):
                     new_definitions[method_name] = notify_error(new_definitions[method_name])
     
@@ -152,7 +120,7 @@ class metaUnit(type):
                 inputs += ', ' + key + ' = ' + key
     
             # Begin changing __init__ to have kwargs by making a string to execute
-            str2exec = f"def __init__(self, ID='', outs=(), ins=None{kwargs}):\n"
+            str2exec =  f"def __init__(self, ID='', outs=(), ins=None{kwargs}):\n"
             str2exec += f"     initfunc(self, ID, outs, ins{inputs})"
     
             # Execute string and replace __init__
@@ -164,17 +132,13 @@ class metaUnit(type):
 
         #: Dictionary of weak references to instances of this class
         cls._instances = WeakRefBook(check_ID=False)
-        for method_name in ('operation', 'design', 'cost'):
-            method = getattr(cls, method_name)
-            annotations = method.__annotations__
-            if not annotations:
-                annotations['return'] = method_name.capitalize() + ' [dict]'
 
         # Get units of measure of each key method
-        units = {}
-        get_doc_units(units, cls.operation.__doc__)
-        get_doc_units(units, cls.design.__doc__)
-        get_doc_units(units, cls.cost.__doc__)
+        units = {'Utility cost': 'USD/hr',
+                 'Purchase cost': 'USD'}
+        get_doc_units(units, cls._operation.__doc__)
+        get_doc_units(units, cls._design.__doc__)
+        get_doc_units(units, cls._cost.__doc__)
         cls._results_UnitsOfMeasure = UnitManager([], **units)
         
         return cls
@@ -220,20 +184,23 @@ class Unit(metaclass=metaUnit):
 
         **kwargs** = {}: Default keyword arguments.
 
-        **setup()**
-            Create components and cached data. 
+        **_init():**
+            Initialize components.
+        
+        **_setup()**
+            Create cached data from kwargs. 
 
-        **run()**
+        **_run()**
             Run rigorous simulation.
 
-        **operation()** -> Operation [dict]
-            Update results and return dictionary of operation requirements.
+        **_operation()**
+            Update results "Operation" dictionary with operation requirements.
 
-        **design()** -> Design [dict]
-            Update results and return dictionary of design requirements.
+        **_design()**
+            Update results "Design" dictionary with design requirements.
 
-        **cost()** -> Cost [dict]
-            Update results and return dictionary of costs.
+        **_cost()**
+            Update results "Cost" dictionary with itemized cost.
 
     **Class Attributes** 
 
@@ -247,9 +214,9 @@ class Unit(metaclass=metaUnit):
         
         **instances** = {}: [WeakRefBook] Contains all instances of the Unit class.
         
-        **_N_ins** = 1: [int or None] Expected number of input streams
+        **_N_ins** = 1: [int] Expected number of input streams
 
-        **_N_outs** = 2: [int or None] Expected number of output streams
+        **_N_outs** = 2: [int] Expected number of output streams
 
         **_N_heat_util** = 0: [int] Number of heat utilities  
 
@@ -335,16 +302,18 @@ class Unit(metaclass=metaUnit):
         
         """
         self.ID = ID
+        self._kwargs = copy(kwargs) # Copy to check for setup
         self.kwargs = kwargs  #: [dict] Key word arguments
         self._init_ins(ins)
         self._init_outs(outs)
         self._init_results()
         self._init_heat_utils()
         self._init_power_util()
-        self.setup()
+        self._init()
+        self._setup()
 
     def _init_ins(self, ins):
-        # Initialize input streams
+        """Initialize input streams."""
         if ins is None:
             self._ins = Ins(self, (MissingStream() for i in range(self._N_ins)))
         elif isinstance(ins, Stream):
@@ -357,7 +326,7 @@ class Unit(metaclass=metaUnit):
             self._ins = Ins(self, (Stream(i) if isinstance(i, str) else i for i in ins))
     
     def _init_outs(self, outs):
-        # Initialize output streams
+        """Initialize output streams."""
         if isinstance(outs, str):
             self._outs = Outs(self, (Stream(outs)))
         elif isinstance(outs, Stream):
@@ -370,28 +339,26 @@ class Unit(metaclass=metaUnit):
             self._outs = Outs(self, (Stream(i) if isinstance(i, str) else i for i in outs))
     
     def _init_results(self):
-        # Initialize results attribute
+        """Initialize results attribute."""
         units = self._results_UnitsOfMeasure
         bounds = self.bounds
         empty = {}
         self._results = SmartBook(units, bounds, source=self, inclusive=empty,
             Operation=SmartBook(units, bounds, source=self, inclusive=empty),
             Design=SmartBook(units, bounds, source=self, inclusive=empty),
-            Cost=SmartBook(units, bounds, source=self, inclusive=empty))
+            Cost=SmartBook(units, bounds, source=self, inclusive=empty),
+            Summary=SmartBook(units, bounds, source=self, inclusive=empty))
     
     def _init_heat_utils(self):
-        # Initialize heat utilities
+        """Initialize heat utilities."""
         _N_heat_util = self._N_heat_util
-        if _N_heat_util:
-            utilities = [HeatUtility() for i in range(_N_heat_util)]
-        else:
-            utilities = None
+        utilities = [HeatUtility(self) for i in range(_N_heat_util)]
         self._heat_utilities = utilities
         
     def _init_power_util(self):
-        # Initialize power utility
+        """Initialize power utility."""
         if self._power_util:
-            self._power_utility = PowerUtility()
+            self._power_utility = PowerUtility(self)
     
     # Forward pipping
     def __sub__(self, other):
@@ -432,22 +399,49 @@ class Unit(metaclass=metaUnit):
     # Backwards pipping
     __pow__ = __sub__
     __rpow__ = __rsub__
-    def __neg__(self):
-        return self.ins
     
     # Abstract methods
-    def setup(self): pass
-    def _run(self) pass
-    def operation(self)->'Operation [dict]': return self.results['Operation']
-    def design(self)->'Design [dict]': return self.results['Design']
-    def cost(self)->'Cost [dict]': return self.results['Cost']
+    def _init(self): pass
+    def _setup(self): pass
+    def _run(self): pass
+    def _operation(self): pass
+    def _design(self): pass
+    def _cost(self): pass
 
     def simulate(self):
-        """Run simulation, operation, design and cost methods."""
-        self.run()
-        self.operation()
-        self.design()
-        self.cost()
+        """Run rigourous simulation and determine all design requirements."""
+        if self._kwargs != self.kwargs:
+            self._setup()
+            self._kwargs = copy(self.kwargs)
+        self._run()
+        self._operation()
+        self._design()
+        self._cost()
+        self._summary()
+
+    # Summary
+    def _operating_cost(self):                
+        """Sum of all utility costs (USD/hr)."""
+        heat_utilities = self.heat_utilities
+        power_utility = self.power_utility
+        
+        cost = 0
+        if heat_utilities:
+            cost = sum(util.results['Cost'] for util in self.heat_utilities)
+        if power_utility:
+            cost += self.power_utility.results['Cost']
+        return cost
+        
+    def _capital_cost(self):
+        """The sum of all costs calculated by the cost method (USD)."""
+        return sum(self.results['Cost'].values())
+
+    def _summary(self):
+        """Update results "Summary" dictionary with total utility costs and purchase price."""
+        Summary = self.results['Summary']
+        Summary['Utility cost'] = self._operating_cost()
+        Summary['Purchase cost'] = self._capital_cost()
+        return Summary
 
     @property
     def results(self):
@@ -586,25 +580,6 @@ class Unit(metaclass=metaUnit):
         # Display digraph on console
         x = IPython.display.SVG(f.pipe(format='svg'))
         IPython.display.display(x)
-
-    # Costs
-    @property
-    def operating_cost(self) -> 'USD/hr':                
-        """Sum of all utility costs."""
-        cost = 0
-        heat_utilities = self.heat_utilities
-        power_utility = self.power_utility
-        
-        if heat_utilities:
-            cost = sum(util.results['Cost'] for util in self.heat_utilities)
-        if power_utility:
-            cost += self.power_utility.results['Cost']
-        return cost
-        
-    @property
-    def capital_cost(self) -> 'USD':
-        """The sum of all costs calculated by the cost method."""
-        return sum(self.results['Cost'].values())
     
     ### Net input and output flows ###
     

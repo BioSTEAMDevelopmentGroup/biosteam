@@ -7,25 +7,32 @@ Created on Sat Nov 17 09:48:34 2018
 from biosteam.stream import Stream, mol_flow_dim, mass_flow_dim, vol_flow_dim
 from biosteam import Q_, pd, np
 from biosteam.exceptions import DimensionError
+import copy
 
 DataFrame = pd.DataFrame
 ExcelWriter = pd.ExcelWriter
 
+__all__ = ('stream_table', 'save_reports', 'report_cost',
+           'report_results', 'report_heat_utilities', 'report_power_utilities')
+
 # %% Helpful functions
 
-def units_wt_cost(units):
+def _units_wt_cost(units):
     """Remove units that do not have capital or operating cost."""
     r = 0
+    units = list(units)
     for i in range(len(units)):
         i -= r
         unit = units[i]
-        ci = unit.capital_cost
-        co = unit.operating_cost
+        Summary = unit.results['Summary']
+        ci = Summary['Purchase cost']
+        co = Summary['Utility cost']
         if not (ci or co):
             del units[i]
             r += 1
+    return units
 
-def unit_sort(units):
+def _units_sort_by_cost(units):
     """Sort by first grouping units by type and then order groups by maximum capital."""
     unit_types = list({type(u).__name__ for u in units})
     type_dict = {ut:[] for ut in unit_types}
@@ -33,51 +40,71 @@ def unit_sort(units):
         ut = type(u).__name__
         type_dict[ut].append(u)
     units = []
-    unit_types.sort(key=lambda ut: max(u.capital_cost for u in type_dict[ut]), reverse=True)
+    unit_types.sort(key=lambda ut: max(u.results['Summary']['Purchase cost'] for u in type_dict[ut]), reverse=True)
     for key in unit_types:
         ulist = type_dict[key]
-        ulist.sort(key=lambda x: x.capital_cost, reverse=True)
+        ulist.sort(key=lambda x: x.results['Summary']['Purchase cost'], reverse=True)
         units += ulist
     return units
 
+def save_reports(reports, file='Report.xlsx'):
+    """Save a list of reports as an excel file.
+    
+    **Parameters**
+    
+        **reports:** iterable[DataFrame]
+        
+    """
+    writer = ExcelWriter(file)
+    n_row = 1
+    for r in reports:
+        label = r.columns.name
+        r.to_excel(writer, startrow=n_row, index_label=label)
+        n_row += len(r.index) + 2
+    
 
 # %% Units
 
-def unit_report(units, name='Unit Report.xlsx'):
-    """Return a unit report as a pandas DataFrame object.
+def report_results(units):
+    """Return a list of results reports for each unit type.
 
-    **Parameters**:
+    **Parameters**
 
-        **units:** array_like[Unit]
-         
-    **Returns**
+        **units:** iterable[Unit]
+        
+    **Returns:**
     
-        **unit_report:** [DataFrame] Units as columns with all results as rows.
-
+        **reports:** list[DataFrame]
+    
     """
-    units_wt_cost(units)
-    units = unit_sort(units)
-    ur = units[0].results
-    keys = tuple(ur.nested_keys())
-    report = ur.table()
-    writer = ExcelWriter(name)
+    units = _units_wt_cost(units)
+    units.sort(key=(lambda u: type(u).__name__))
+    
+    # First report and set keys to compare with
+    r = units[0].results
+    keys = tuple(r.nested_keys())
+    report = r.table()
     del units[0]
-    n_row = 1
+    
+    # Make a list of reports, keeping all results with same keys in one report
+    reports = []
     for u in units:
-        ur = u.results
-        new_keys = tuple(ur.nested_keys())
+        r = u.results
+        new_keys = tuple(r.nested_keys())
         if new_keys == keys:
-            report = pd.concat( (report, ur.table(with_units=False)), axis=1)
+            report = pd.concat((report, r.table(with_units=False)), axis=1)
         else:
-            label = report.columns.name
-            report.to_excel(writer, startrow=n_row, index_label=label)
-            n_row += len(report.index) + 2
-            report = ur.table()
+            reports.append(report)
+            report = r.table()
             keys = new_keys
     
+    # Add the last report
+    reports.append(report)
     
-def unit_table(units) -> 'DataFrame':
-    """Return a unit table as a pandas DataFrame object.
+    return reports
+    
+def report_cost(units):
+    """Return a cost report as a pandas DataFrame object.
 
     **Parameters**:
 
@@ -89,21 +116,17 @@ def unit_table(units) -> 'DataFrame':
             * 'Unit Type': Type of unit
             * 'CI (10^6 USD)': Capital investment
             * 'OC (10^6 USD/yr)': Annual operating cost
-            * '% TCI': Percent of total capital investment
-            * '% TOC': Percent of operating cost
 
     """
     columns = ('Type',
               f'CI (10^6 USD)',
-              f'OC (10^6 USD/yr)',
-              f'% TCI',
-              f'% TOC')
-    units_wt_cost(units)
-    units = unit_sort(units)
+              f'OC (10^6 USD/yr)')
+    units = _units_wt_cost(units)
+    units = _units_sort_by_cost(units)
     
     # Initialize data
     N_units = len(units)
-    array = np.empty((N_units, 5), dtype=object)
+    array = np.empty((N_units, 3), dtype=object)
     IDs = []
     types = array[0:, 0]
     C_cap = array[0:, 1]
@@ -112,16 +135,78 @@ def unit_table(units) -> 'DataFrame':
     # Get data
     for i in range(N_units):
         unit = units[i]
+        Summary = unit.results['Summary']
         types[i] = type(unit).__name__
-        C_cap[i] = unit.capital_cost * unit.lang_factor / 1e6
-        C_op[i] = unit.operating_cost * unit.operating_days * 24  / 1e6
+        C_cap[i] = Summary['Purchase cost'] * unit.lang_factor / 1e6
+        C_op[i] = Summary['Utility cost'] * unit.operating_days * 24  / 1e6
         IDs.append(unit.ID)
     
-    # Make data frame
-    array[0:, 3] = C_cap/sum(C_cap)*100
-    array[0:, 4] = C_op/sum(C_op)*100
-    return DataFrame(array, columns=columns, index=IDs)
+    return DataFrame(array, columns=columns, index=IDs)    
+
+def report_heat_utilities(units):
+    """Return a list of utility reports for each heat utility source.
     
+    **Parameters**
+    
+        **units:** iterable[units]
+        
+    **Returns**
+    
+        **reports:** list[DataFrame]
+        
+    """
+    # Sort heat utilities by unit type, then by utility Type
+    units = sorted(units, key=(lambda u: type(u).__name__))
+    heat_utils = []
+    for u in units:
+        heat_utils.extend(u.heat_utilities)
+    try:
+        heat_utils.sort(key=lambda hu: hu.results['ID'])
+    except KeyError:
+        for hu in heat_utils:
+            if not hasattr(hu.results, 'ID'):
+                raise ValueError(f'HeatUtility from {hu.results.source} is empty.')
+    
+    # First report and set Type to compare with
+    hu = heat_utils[0]
+    r = hu.results
+    Type = r['ID']
+    r = copy.copy(r)
+    del r['ID']
+    report = r.table()
+    del heat_utils[0]
+    
+    # Make a list of reports, keeping all results with same Type in one report
+    reports = []
+    for hu in heat_utils:
+        r = hu.results
+        Type_new = r['ID']
+        r = copy.copy(r)
+        del r['ID']
+        if Type == Type_new:
+            report = pd.concat((report, r.table(with_units=False)), axis=1)
+        else:
+            report.columns.name = Type
+            reports.append(report)
+            report = r.table(with_units=True)
+            Type = Type_new
+    
+    # Add the last report
+    report.columns.name = Type
+    reports.append(report)
+    return reports
+    
+
+def report_power_utilities(units, **units_of_measure):
+    # Sort power utilities by unit type
+    units = sorted(units, key=(lambda u: type(u).__name__))
+    power_utils = tuple(u.power_utility for u in units if u.power_utility)
+    pu = power_utils[0]
+    report = pu.results.table()
+    for pu in power_utils:
+        report = pd.concat((report, pu.results.table(with_units=False)), axis=1)
+    return report
+
 # %% Streams
 
 def stream_table(streams, Flow='kmol/hr', **props) -> 'DataFrame':

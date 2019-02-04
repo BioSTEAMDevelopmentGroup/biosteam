@@ -123,20 +123,17 @@ class Pump(Unit):
             raise ValueError(f"Material must be one of the following: {dummy}")
         self._F_Mstr = material  
         
-    def setup(self):
-        P = self.kwargs['P']
-        if P:
-            self.outs[0].P = P
-
-    def _run(self)
+    def _run(self):
         ins = self.ins
         outs = self.outs
+        P = self.kwargs['P']
         for i, o in zip(ins, outs):
             o.mol = i.mol
             o.T = i.T
             o.phase = i.phase
+            if P: o.P = P
     
-    def operation(self):
+    def _operation(self):
         """
         * 'Type': [str] Pump type
         * 'Ideal power': (hp)
@@ -178,7 +175,7 @@ class Pump(Unit):
         self.power_utility(power/1.341)
         return Oper
     
-    def cost(self):
+    def _cost(self):
         """
         * 'Pump': (USD)
         * 'Motor': (USD)

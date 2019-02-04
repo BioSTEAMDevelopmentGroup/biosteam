@@ -9,13 +9,12 @@ This module includes arbitrary classes and functions.
 
 from biosteam import np
 import time
-import os
 
 #from multiprocessing import Process
 #import threading
 #import _thread
 
-__all__ = ('approx2step', 'copy_attr', 'get_attr', 'autodoc', 'TextManager', 'autopep8_all', 'replace_all', 'count_all', 'length_all', 'Timer', 'run_in_parallel')
+__all__ = ('approx2step', 'copy_attr', 'get_attr', 'Timer', 'run_in_parallel')
 
 # %% Small functions
 
@@ -42,182 +41,6 @@ def get_attr(obj, *attrs: str) -> 'list[attributes]':
         out.append(getattr(obj, attr))
     return out
 
-
-
-# %% For making Sphinx docs
-
-def autodoc(cls, path: str):
-    """Make Sphinx documentation txt file in the specified path."""
-    # Return if there is no docstring
-    if cls.__doc__ is None:
-        return
-    name = cls.__name__
-
-    # Skeleton doc
-    header = f'{name}\n'
-    header += '='*len(name) + '\n\n'
-    module = f'.. module:: {cls.__module__}\n\n'
-    autoclass = ".. autoclass:: {name}\n"
-    members = "   :members:"
-    skeleton_doc = header + module + autoclass + members
-
-    # Set class name for document
-    name = cls.__name__
-    doc = skeleton_doc.replace('{name}', name)
-
-    # Write file
-    file = open(f"{path}/{name}.txt", 'w')
-    file.write(doc)
-    file.close()
-
-
-# %% Text management
-
-class TextManager:
-    """Create a TextManager object that can read a document, store its content and update the document.
-
-    **Parameters**
-
-        document: [str] Name of the document
-
-        directory: [str] Relative location of the document
-
-    **Instance variables**
-
-        content: [str] Content of the document
-
-        document: [str] Name of the document
-        
-        original: [str] Original document
-
-    """
-
-    def __init__(self, document, directory=""):
-        self.document = directory + document
-        self.refresh()
-
-    def refresh(self):
-        """Reads the document and stores its files in content."""
-        file = open(self.document, 'r+')
-        self.content = file.read()
-        self.original = self.content
-        file.close()
-
-    def to_utf8(self):
-        self.content = self.content.encode('utf-8').strip().decode()
-
-    def replace(self, old=[], new=[]):
-        """Replace old strings in self.content with new.
-
-        **Parameters**
-
-            old: list[str] strings to be replaced
-    
-            new: list[str] new strings that replace old ones
-        """
-        if type(old) != list:
-            old = [old]
-        if type(new) != list:
-            new = [new]
-        if len(old) != len(new):
-            raise ValueError('inputs must have the same length')
-        for i in range(len(old)):
-            self.content = self.content.replace(old[i], new[i])
-
-    def autopep8(self):
-        """Fix content to follow PEP 8."""
-        from autopep8 import fix_code
-        self.content = fix_code(self.content)
-
-    def restart(self):
-        """Undo any changes made to content."""
-        self.content = self.original
-
-    def update(self):
-        """Writes content in document"""
-        file = open(self.document, 'w+')
-        file.write(self.content)
-        file.close()
-
-    def __repr__(self):
-        return (f'<Text_manager: {self.document}>')
-    
-    def show(self):
-        print(self)
-        print(self.content)
-
-
-
-def autopep8_all(directory=".\\"):
-    """autopep8 all files in new for every document and subfolder document ending with .py and .ipynb in the specified directory"""
-    fileIDs = [os.fsdecode(file) for file in os.listdir(directory)]
-    for fileID in fileIDs:
-        if '.' not in fileID and '__' not in fileID and fileID != 'Sphinx':
-            autopep8_all(directory + fileID + '\\')
-        if fileID.endswith('.py') or fileID.endswith('.ipynb'):
-            x = TextManager(fileID, directory)
-            x.autopep8()
-            x.update()
-
-def get_files(directory):
-    fileIDs = []
-    for file in os.listdir(directory):
-        try:
-            file = os.fsdecode(file)
-            fileIDs.append(file)
-        except:
-            pass
-    return fileIDs
-
-def replace_all(old, new, directory=".\\\\"):
-    """Replaces strings in old with strings in new for every document and subfolder document ending with .py and .ipynb in the specified directory"""
-    try:
-        fileIDs = get_files(directory)
-    except:
-        return
-    
-    for fileID in fileIDs:
-        if '.' not in fileID and '__' not in fileID and fileID != 'Sphinx':
-            replace_all(old, new, directory + fileID + '\\')
-        if fileID.endswith('.py') or fileID.endswith('.ipynb') or fileID.endswith('.rst') or fileID.endswith('.txt'):
-            try:
-                x = TextManager(fileID, directory)
-                x.replace(old, new)
-                x.update()
-            except UnicodeDecodeError:
-                print(f'{repr(x)} could not read file.')
-                continue
-            except NotADirectoryError:
-                print(f'{repr(x)} could not read file.')
-                continue
-
-
-def length_all(directory='.\\\\'):
-    N = 0
-    fileIDs = get_files(directory)
-    for fileID in fileIDs:
-        if '.' not in fileID and '__' not in fileID and fileID != 'Sphinx':
-            N += length_all(directory + fileID + '\\')
-        if fileID.endswith('.py') or fileID.endswith('.ipynb'):
-            file = open(directory + fileID, 'r+')
-            content = file.read()
-            N += len(content)
-            file.close()
-    return N
-
-
-def count_all(string, directory='.\\\\'):
-    N_lines = 0
-    fileIDs = get_files(directory)
-    for fileID in fileIDs:
-        if '.' not in fileID and fileID != 'Sphinx':
-            N_lines += count_all(string, directory + fileID + '\\')
-        if fileID.endswith('.py') or fileID.endswith('.ipynb'):
-            file = open(directory + fileID, 'r+')
-            content = file.read()
-            N_lines += content.count(string)
-            file.close()
-    return N_lines
 
 # %% Timer
 

@@ -31,7 +31,6 @@ biosteam/units/balance.py
 biosteam/units/centrifuge_LLE.py
 biosteam/units/clarifier.py
 biosteam/units/crushing_mill.py
-biosteam/units/delete_me.py
 biosteam/units/design_tools.py
 biosteam/units/distillation.py
 biosteam/units/enzyme_treatment.py

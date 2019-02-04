@@ -63,7 +63,7 @@ class DissolvedSpecie(Specie):
             k_d = obj.k if obj.k else k_d
             mu_d = obj.mu if obj.mu else mu_d
             sigma_d = obj.sigma if obj.sigma else sigma_d
-            Hfm_d = obj.Hfm if obj.Hfm else Hfm_d
+            Hfm_d = obj.Hf if obj.Hf else Hfm_d
         
         # Set all values
         self.CAS = CAS if CAS else ID

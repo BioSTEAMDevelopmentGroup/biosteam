@@ -36,9 +36,9 @@ class Fermentation(BatchReactor):
         
         [3] D. Humbird, R. Davis, L. Tao, C. Kinchin, D. Hsu, and A. Aden National. Renewable Energy Laboratory Golden, Colorado. P. Schoen, J. Lukas, B. Olthof, M. Worley, D. Sexton, and D. Dudgeon. Harris Group Inc. Seattle, Washington and Atlanta, Georgia. Process Design and Economics for Biochemical Conversion of Lignocellulosic Biomass to Ethanol Dilute-Acid Pretreatment and Enzymatic Hydrolysis of Corn Stover. May 2011. Technical Report NREL/TP-5100-47764"""
         
-    kwargs = {'tau': None,
-              'efficiency': None}  # Reaction time
-    _N_heat_util = None
+    kwargs = {'tau': None, # Reaction time
+              'efficiency': None}  # Theoretical efficiency
+    _N_heat_util = 0
     _power_util = True
     
     #: Cleaning and unloading time
@@ -68,7 +68,7 @@ class Fermentation(BatchReactor):
     #: Base agitator power (hp)
     A_p = 30 
     
-    #: tuple of kinetic parameters for Oliveria's kinetic model: (mu_m1, mu_m2, Ks1, Ks2, Pm1, Pm2, Xm, Y_PS, a)
+    #: tuple of kinetic parameters for the kinetic model. Default constants are fitted for Oliveria's model (mu_m1, mu_m2, Ks1, Ks2, Pm1, Pm2, Xm, Y_PS, a)
     kinetic_constants = (0.39,  # mu_m1
                          1.16,  # mu_m2
                          1.94,  # Ks1
@@ -79,8 +79,12 @@ class Fermentation(BatchReactor):
                          0.45,  # Y_PS
                          0.16)  # a
 
-    def setup(self):
+    def _init(self):
         self._cooler = HXutility(ID=self.ID+' cooler', outs=())
+    
+    def _setup(self):
+        if not self.kwargs['tau']:
+            raise ValueError(f"Reaction time must be larger than 0, not '{self.kwargs['tau']}'")
 
     def _calc_efficiency(self, feed, tau):
         # Get initial concentrations
@@ -151,7 +155,7 @@ class Fermentation(BatchReactor):
         return (dXdt, dPdt, dSdt)
         
 
-    def run(self):
+    def _run(self):
         # 90% efficiency of fermentation
         # assume no Glycerol produced
         # no ethanol lost with CO2
@@ -165,7 +169,7 @@ class Fermentation(BatchReactor):
         
         # Species involved in reaction
         species = ['Ethanol', 'Glucose', 'Sucrose', 'Water']
-        e, g, s, w = indx = out.get_indx(species)
+        e, g, s, w = indx = out.get_index(species)
         glucose = out.mol[indx[1]]
         sucrose = out.mol[indx[2]]
         
@@ -177,18 +181,21 @@ class Fermentation(BatchReactor):
         out.T = 32 + 273.15
         
         # Fermentation
-        self.results['Operation']['Efficiency'] = eff = kwargs.get('efficiency') or self._calc_efficiency(out, kwargs['tau'])
+        self.results['Operation']['Efficiency'] = eff = (
+            kwargs.get('efficiency')
+            or self._calc_efficiency(out, kwargs['tau'])
+            )
         fermented = eff*(glucose + new_glucose)
         ch_glucose = - fermented
         ch_Ethanol = 0.5111*fermented * mw_glucose/mw_Ethanol
-        co2 = out.get_indx('CO2')
+        co2 = out.get_index('CO2')
         changes = [ch_Ethanol, ch_glucose]
         out.mol[[e, g]] += changes
         CO2.mol[co2] = (1-0.5111)*fermented * mw_glucose/44.0095
         CO2.phase = 'g'
         CO2.T = out.T
     
-    def design(self):
+    def _design(self):
         """
         * 'Number of reactors': (#)
         * 'Reactor volume':  (m3)
@@ -212,13 +219,14 @@ class Fermentation(BatchReactor):
         self.heat_utilities[0](self.Hnet/N, self.outs[0].T)
         results = hx.heat_utilities[0].results
         hx._Duty = results['Duty']
+        results['Duty'] *= N
         results['Cost'] *= N
         results['Flow'] *= N
-        hx.design()
-        hx.cost()
+        hx._design()
+        hx._cost()
         return Design
     
-    def cost(self):
+    def _cost(self):
         """
         * 'Reactors': (USD)
         * 'Coolers': (USD)

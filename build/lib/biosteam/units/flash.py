@@ -159,7 +159,7 @@ class Flash(Unit):
             raise ValueError(f"Vessel material must be one of the following: {dummy}")
         self._F_Mstr = vessel_material  
 
-    def setup(self):
+    def _setup(self):
         vap, liq = self.outs
         vap.phase = 'g'
         liq.phase = 'l'
@@ -170,7 +170,7 @@ class Flash(Unit):
         he._ins = self._ins
         he-ms
 
-    def _run(self)
+    def _run(self):
         # Unpack
         vap, liq = self.outs
         feed = self.ins[0]
@@ -230,10 +230,10 @@ class Flash(Unit):
         ph1.mol[pos] = V*molnet*ph1_molfrac
         ph2.mol[pos] = _mol_in[pos] - ph1.mol[pos]
 
-    def operation(self):
-        self._heat_exchanger.operation()
+    def _operation(self):
+        self._heat_exchanger._operation()
 
-    def design(self):
+    def _design(self):
         """
         * 'Length': (ft)
         * 'Diameter': (ft)
@@ -255,10 +255,10 @@ class Flash(Unit):
         else:
             raise ValueError( f"SepType must be either 'Horizontal' or 'Vertical', not '{self.SepType}'")
         
-        self._heat_exchanger.design()
+        self._heat_exchanger._design()
         return out
 
-    def cost(self):
+    def _cost(self):
         """
         * 'Vessel': (USD)
         * 'Heat exchanger': (USD)
@@ -283,14 +283,14 @@ class Flash(Unit):
             ValueError(f"SepType ({type_}) must be either 'Vertical', 'Horizontal' or 'Default'.")
             
         Cost['Vessel'] = CE/500*(C_v+C_pl)
-        Cost['Heat exchanger'] = self._heat_exchanger.cost()['Heat exchanger']
+        Cost['Heat exchanger'] = self._heat_exchanger._cost()['Heat exchanger']
         return Cost
 
     def _design_parameters(self):
         # Retrieve run_args and properties
         vap, liq = self.outs[0:2]
-        v = vap.prop_quantity
-        l = liq.prop_quantity
+        v = vap.quantity
+        l = liq.quantity
         rhov = v('rho').to('lb/ft3').magnitude  # VapDensity
         rhol = l('rho').to('lb/ft3').magnitude  # LLiqDensity
         P = l('P').to('psi').magnitude  # Pressure
@@ -317,7 +317,7 @@ class Flash(Unit):
         for sp_ID, x in zip(specie_IDs, xs):
             if x > 0.1:
                 specie = getattr(liq._species, sp_ID)
-                # TODO: Verify unifac groups determine if glycol and/or amine
+                # TODO: Verify unifac groups to determine if glycol and/or amine
                 dct = specie.UNIFAC_groups
                 keys = dct.keys()
                 if 14 in keys:
@@ -450,14 +450,14 @@ class Flash(Unit):
             outerIter += 1
             At = pi*(D**2)/4.0
 
-            # Calculate Low Liq.  Area
-            Hlll = round(0.5*D + 7.0)      # D is in ft but Hlll is in inches
-            Hlll = Hlll/12.0
+            # Calculate Lower Liquid Area
+            Hlll = round(0.5*D + 7.0)  
+            Hlll = Hlll/12.0 # D is in ft but Hlll is in inches
             X = Hlll/D
             Y = HNATable(1, X)
             Alll = Y*At
 
-            # Calculate the Vap.  disengagement area, Av
+            # Calculate the Vapor  disengagement area, Av
             Hv = 0.2*D
             if int(Mist) == 1 and Hv <= 2.0:
                 Hv = 2.0
@@ -604,13 +604,13 @@ class EstimateFlash(Flash):
               'bot_solvents': [],  # list of species that correspond to bot_split
               'bot_split': []}  # list of splits for bot_solvents
 
-    def setup(self):
+    def _setup(self):
         self._heat_exchanger = he = HXutility(self.ID+' hx', outs_ID=()) 
         self.heat_utilities = he.heat_utilities
         he._ins = self._ins
         he.outs = self._outs
 
-    def _run(self)
+    def _run(self):
         feed = self.ins[0]
         top, bot = self.outs
         Kspecies, Ks, top_solvents, top_split, bot_solvents, bot_split = (
@@ -642,7 +642,7 @@ class Flash_PQin(Unit):
               'Qin': 0,
               'P': 101325}
 
-    def setup(self):
+    def _setup(self):
         # Unpack
         component, P = (self.kwargs[i] for i in ('component', 'P'))
         vapor, liquid = self.outs[:2]
@@ -667,7 +667,7 @@ class Flash_PQin(Unit):
         cached['liquid_H'] = liquid.H
         cached['no_ph_ch'] = no_ph_ch
 
-    def _run(self)
+    def _run(self):
         # Unpack
         feed = self.ins[0]
         component, Qin = (self.kwargs[i] for i in ('component', 'Qin'))
@@ -717,7 +717,7 @@ class Flash_PV(Unit):
               'V': 'Vapor fraction',
               'P': 'Operating pressure (Pa)'}
 
-    def setup(self):
+    def _setup(self):
         # Unpack
         vapor, liquid = self.outs
         component, P = (self.kwargs[i] for i in ('component', 'P'))
@@ -729,7 +729,7 @@ class Flash_PV(Unit):
         vapor.__dict__.update(phase='g', T=Tf, P=P)
         liquid.__dict__.update(phase='l', T=Tf, P=P)
 
-    def _run(self)
+    def _run(self):
         # Unpack
         feed = self.ins[0]
         component, V = (self.kwargs[i] for i in ('component', 'V'))
@@ -741,7 +741,7 @@ class Flash_PV(Unit):
         liquid.mol = copy.copy(feed.mol)
         liquid.mol[index] = (1-V)*feed.mol[index]
 
-    operation = HXutility.operation
+    _operation = HXutility._operation
 
 class P69_flash(Flash):
     kwargs = {'split': [],  # component split fractions
@@ -750,7 +750,7 @@ class P69_flash(Flash):
               'T': 298.15,  # operating temperature (K)
               'P': 101325}  # operating pressure (Pa)
     
-    def setup(self):
+    def _setup(self):
         # Unpack
         top, bot = self.outs
         top.phase, bot.phase, Tf, Pf = (
@@ -761,20 +761,19 @@ class P69_flash(Flash):
         vap, liq = self.outs
         vap.phase = 'g'
         liq.phase = 'l'
-        self._heat_exchanger = he = HXutility(self.ID+' hx', outs=()) 
+        self._heat_exchanger = he = HXutility(self.ID+' hx', outs=None) 
         self.heat_utilities = he.heat_utilities
         he._ins = self._ins
 
-    def _run(self)
+    def _run(self):
         split = self.kwargs['split']
         top, bot = self.outs
         net_mol = self._mol_in
         top.mol = net_mol*split
         bot.mol = net_mol - top.mol
-    _simple_run = run
 
-    def operation(self):
+    def _operation(self):
         ms = MixedStream.sum(MixedStream(species=self.outs[0].species), self.outs)
         self._heat_exchanger.outs = ms
-        self._heat_exchanger.operation()
+        self._heat_exchanger._operation()
         

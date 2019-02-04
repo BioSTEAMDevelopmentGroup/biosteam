@@ -34,15 +34,15 @@ class YeastCentrifuge(Unit):
     kwargs = {'split': None,
               'solids': None}
     
-    run = Splitter.run
+    _run = Splitter._run
     
-    def cost(self):
+    def _cost(self):
         """
         * 'Centrifuge': (USD)
         """
         Cost = self.results['Cost']
         solids = self.kwargs['solids']
-        index = Stream.get_index(solids)
+        index = self.outs[0].get_index(solids)
         mass_solids = 0
         for s in self.ins:
             mass_solids += s.mass[index]
