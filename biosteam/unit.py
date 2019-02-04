@@ -417,7 +417,7 @@ class Unit(metaclass=metaUnit):
         self._operation()
         self._design()
         self._cost()
-        self._summarize()
+        self._summary()
 
     # Summary
     def _operating_cost(self):                
@@ -436,11 +436,12 @@ class Unit(metaclass=metaUnit):
         """The sum of all costs calculated by the cost method (USD)."""
         return sum(self.results['Cost'].values())
 
-    def _summarize(self):
+    def _summary(self):
         """Update results "Summary" dictionary with total utility costs and purchase price."""
         Summary = self.results['Summary']
         Summary['Utility cost'] = self._operating_cost()
         Summary['Purchase cost'] = self._capital_cost()
+        return Summary
 
     @property
     def results(self):

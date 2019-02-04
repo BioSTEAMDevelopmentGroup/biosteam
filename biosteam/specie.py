@@ -6,6 +6,7 @@ Created on Sat Aug 18 13:26:29 2018
 """
 from scipy import integrate
 from math import log
+from bookkeep import ReadOnlyBook
 from biosteam import Q_, units_of_measure
 
 R = 8.3144598  # Universal gas constant (J/mol-K)
@@ -85,8 +86,27 @@ class Specie(metaclass=metaSpecie):
          **P_ref** = 101325: Reference pressure (Pa)
 
     """
-    # [dict] Units of measure for material properties (class attribute). Items in this dictionary cannot be changed.
-    units = units_of_measure
+    #: [dict] Units of measure for material properties (class attribute). 
+    units = ReadOnlyBook(MW='g/mol',
+                         T='K',
+                         P='Pa',
+                         H='J/mol',
+                         S='J/mol',
+                         G='J/mol',
+                         U='J/mol',
+                         A='J/mol',
+                         Hf='J/mol',
+                         Vm='m^3/mol',
+                         Cpm='J/mol',
+                         Cp='J/g',
+                         rho='kg/m^3',
+                         rhom='mol/m^3',
+                         nu='m^2/s',
+                         mu='Pa*s',
+                         sigma='N/m',
+                         k='W/m/K',
+                         alpha='m^2/s')
+    
     phase_ref = 'l' # Reference phase
     P_ref = 101325  # Reference pressure (Pa)
     T_ref = 298.15  # Reference temperature (K)
@@ -96,7 +116,7 @@ class Specie(metaclass=metaSpecie):
     _func_integral = staticmethod(_func_int_average)
     MW = 1 # Arbitrary molecular weight (g/mol)
 
-    def prop_quantity(self, prop_ID):
+    def quantity(self, prop_ID):
         """Return a material property as a Quantity object as described in the `pint package <https://pint.readthedocs.io/en/latest/>`__ 
 
         **Parameters**

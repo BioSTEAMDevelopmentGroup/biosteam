@@ -467,7 +467,7 @@ class System:
             u._operation()
             u._design()
             u._cost()
-            u._summarize()
+            u._summary()
         
     # Debugging
     def _debug_on(self):

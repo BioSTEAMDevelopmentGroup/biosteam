@@ -413,7 +413,7 @@ class Stream(metaclass=metaStream):
     """
     activity_coefficients = DORTMUND
 
-    # [dict] Units of measure for material properties (class attribute). Items in this dictionary cannot be changed.
+    # [dict] Units of measure for material properties (class attribute). 
     units = units_of_measure
 
     # Utils information regarding properties

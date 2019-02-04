@@ -9,7 +9,7 @@ from biosteam.specie import Specie
 
 
 class Chemical(Specie, TChem):
-    """An extension on the ChEDL thermo Chemical class through inheritance of the Specie class. The enthalpy property, 'H', now ignores excess ethalpies and calculates based on latent heats and heat capacities at a constant pressure of 101325. All thermodynamic energies are now calculated properties and not attributes.
+    """An extension of the ChEDL thermo Chemical class. The enthalpy property, 'H', does not account for excess ethalpy, it is simply based on latent heats and heat capacities at a constant pressure of 101325. All thermodynamic energies are now calculated properties and not attributes. 
 
 `Read the docs for thermo.Chemical for accurate documentation. <http://thermo.readthedocs.io/en/latest/thermo.chemical.html>`__"""
 
