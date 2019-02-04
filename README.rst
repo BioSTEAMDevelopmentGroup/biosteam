@@ -18,7 +18,7 @@ BioSTEAM
 What is BioSTEAM?
 -----------------
 
-BioSTEAM is an open source process simulation package in Python for fast and flexible preliminary technoeconomic analysis. It is still in its developmental phase with its first alpha release expected in May 2019.
+BioSTEAM is an open source process simulation package in Python for fast and flexible preliminary technoeconomic analysis. It is still in its developmental phase with its first alpha release expected in June 2019.
 
 Installation
 ------------
