@@ -75,7 +75,8 @@
     <span class="sd">&quot;&quot;&quot;Return tuple of Stream objects from an iterable of Unit objects.&quot;&quot;&quot;</span>
     <span class="n">streams</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">:</span>
-        <span class="n">streams</span> <span class="o">+=</span> <span class="n">u</span><span class="o">.</span><span class="n">_ins</span> <span class="o">+</span> <span class="n">u</span><span class="o">.</span><span class="n">_outs</span>
+        <span class="n">streams</span> <span class="o">+=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">u</span><span class="o">.</span><span class="n">_ins</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">MissingStream</span><span class="p">)]</span>
+        <span class="n">streams</span> <span class="o">+=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">u</span><span class="o">.</span><span class="n">_outs</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">MissingStream</span><span class="p">)]</span>
     <span class="k">return</span> <span class="n">streams</span></div>
 
 
@@ -106,7 +107,7 @@
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sink</span><span class="p">,</span> <span class="n">streams</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sink</span> <span class="o">=</span> <span class="n">sink</span> <span class="c1">#: Unit where inputs are attached</span>
-        <span class="k">if</span> <span class="n">streams</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">streams</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">streams</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">):</span>
                 <span class="n">streams</span> <span class="o">=</span> <span class="p">(</span><span class="n">streams</span><span class="p">,)</span>
             <span class="n">ID</span> <span class="o">=</span> <span class="n">sink</span><span class="o">.</span><span class="n">ID</span>

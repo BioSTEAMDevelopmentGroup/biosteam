@@ -60,7 +60,7 @@
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">MixedStream</span>
-<span class="kn">from</span> <span class="nn">biosteam.exceptions</span> <span class="k">import</span> <span class="n">biosteam_Error</span>
+<span class="kn">from</span> <span class="nn">biosteam.exceptions</span> <span class="k">import</span> <span class="n">biosteamError</span>
 <span class="kn">from</span> <span class="nn">fluids</span> <span class="k">import</span> <span class="n">nearest_pipe</span>
 <span class="kn">import</span> <span class="nn">ht</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -509,7 +509,7 @@
 
 <span class="sd">    **Parameters**</span>
 
-<span class="sd">        User defines at least one:</span>
+<span class="sd">        User defines at only one:</span>
 <span class="sd">            * T: [float] Temperature of output stream (K).</span>
 <span class="sd">            * V: [float] Vapor fraction of output stream.</span>
 <span class="sd">         </span>
@@ -532,16 +532,26 @@
               <span class="s1">&#39;V&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
               <span class="s1">&#39;U&#39;</span><span class="p">:</span> <span class="s1">&#39;Tabulated&#39;</span><span class="p">}</span>
     
+    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;T&#39;</span><span class="p">]</span>
+        <span class="n">V</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;V&#39;</span><span class="p">]</span>
+        <span class="n">T_given</span> <span class="o">=</span> <span class="n">T</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_V_given</span> <span class="o">=</span> <span class="n">V_given</span> <span class="o">=</span> <span class="n">V</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">T_given</span> <span class="ow">and</span> <span class="n">V_given</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Must pass either &#39;T&#39; or &#39;V&#39;, not both&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="p">(</span><span class="n">T_given</span> <span class="ow">or</span> <span class="n">V_given</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Must pass either &#39;T&#39; of &#39;V&#39;&quot;</span><span class="p">)</span>
+            
+    
     <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">s</span><span class="o">.</span><span class="n">copy_like</span><span class="p">(</span><span class="n">feed</span><span class="p">)</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span>
-        <span class="n">T</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;T&#39;</span><span class="p">]</span>
-        <span class="n">V</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;V&#39;</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">T</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">s</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span>
-        <span class="k">if</span> <span class="n">V</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_V_given</span><span class="p">:</span>
+            <span class="n">V</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;V&#39;</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">V</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">s</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span>
             <span class="k">elif</span> <span class="n">V</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -549,6 +559,8 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">s</span><span class="o">.</span><span class="n">enable_phases</span><span class="p">()</span>
                 <span class="n">s</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">V</span><span class="o">=</span><span class="n">V</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;T&#39;</span><span class="p">]</span>
     
     <span class="k">def</span> <span class="nf">operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Set duty</span>
@@ -688,17 +700,22 @@
         <span class="n">LNK</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;LNK&#39;</span><span class="p">]</span>
         <span class="n">HNK</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;HNK&#39;</span><span class="p">]</span>
         
+        <span class="c1"># Arguments for dew and bubble point</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">s1_out</span><span class="o">.</span><span class="n">get_index</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">)</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="n">s1_out</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">/</span><span class="n">s1_out</span><span class="o">.</span><span class="n">molnet</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="n">s1_out</span><span class="o">.</span><span class="n">P</span>
+        
         <span class="k">if</span> <span class="n">s2_out</span><span class="o">.</span><span class="n">T</span> <span class="o">&gt;</span> <span class="n">s1_in</span><span class="o">.</span><span class="n">T</span><span class="p">:</span>
             <span class="c1"># Stream s1 is boiling</span>
             <span class="n">boiling</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="n">s1_out</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span>
-            <span class="n">s1_out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">s1_out</span><span class="o">.</span><span class="n">dew_point</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">s1_out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">s1_out</span><span class="o">.</span><span class="n">_dew_point</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">P</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">T_pinch</span> <span class="o">=</span> <span class="n">s1_in</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">dT</span> <span class="c1"># Minimum</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Stream s1 is condensing</span>
             <span class="n">boiling</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="n">s1_out</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
-            <span class="n">s1_out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">s1_out</span><span class="o">.</span><span class="n">bubble_point</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">s1_out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">s1_out</span><span class="o">.</span><span class="n">_bubble_point</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">P</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">T_pinch</span> <span class="o">=</span> <span class="n">s1_in</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="n">dT</span> <span class="c1"># Maximum</span>
         
         <span class="c1"># Calculate maximum latent heat and new temperature of sensible stream</span>
@@ -706,15 +723,15 @@
         <span class="n">T_s2_new</span> <span class="o">=</span> <span class="n">s2_out</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">Duty</span><span class="o">/</span><span class="n">s2_out</span><span class="o">.</span><span class="n">C</span>
         <span class="n">s1_out</span><span class="o">.</span><span class="n">copy_like</span><span class="p">(</span><span class="n">s1_in</span><span class="p">)</span>
         
-        <span class="c1"># Partial boiling if temperature falls below pinch</span>
         <span class="k">if</span> <span class="n">boiling</span> <span class="ow">and</span> <span class="n">T_s2_new</span> <span class="o">&lt;</span> <span class="n">T_pinch</span><span class="p">:</span>
+            <span class="c1"># Partial boiling if temperature falls below pinch</span>
             <span class="n">H0</span> <span class="o">=</span> <span class="n">s2_in</span><span class="o">.</span><span class="n">H</span>
             <span class="n">s2_out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T_pinch</span>
             <span class="n">delH1</span> <span class="o">=</span> <span class="n">H0</span> <span class="o">-</span> <span class="n">s2_out</span><span class="o">.</span><span class="n">H</span>
             <span class="n">s1_out</span><span class="o">.</span><span class="n">enable_phases</span><span class="p">()</span>
             <span class="n">s1_out</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">,</span> <span class="n">LNK</span><span class="p">,</span> <span class="n">HNK</span><span class="p">,</span> <span class="n">Qin</span><span class="o">=</span><span class="n">delH1</span><span class="p">)</span>
-        <span class="c1"># Partial condensation if temperature goes above pinch</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="n">boiling</span> <span class="ow">and</span> <span class="n">T_s2_new</span> <span class="o">&gt;</span> <span class="n">T_pinch</span><span class="p">:</span>
+            <span class="c1"># Partial condensation if temperature goes above pinch</span>
             <span class="n">H0</span> <span class="o">=</span> <span class="n">s2_in</span><span class="o">.</span><span class="n">H</span>
             <span class="n">s2_out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T_pinch</span>
             <span class="n">delH1</span> <span class="o">=</span> <span class="n">H0</span> <span class="o">-</span> <span class="n">s2_out</span><span class="o">.</span><span class="n">H</span>
@@ -759,12 +776,17 @@
             <span class="n">sc_out</span> <span class="o">=</span> <span class="n">s1_out</span>
             <span class="n">sp_out</span> <span class="o">=</span> <span class="n">s2_out</span>
         
+        <span class="c1"># Arguments for dew and bubble point</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">sc_out</span><span class="o">.</span><span class="n">get_index</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">)</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="n">sc_out</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">/</span><span class="n">sc_out</span><span class="o">.</span><span class="n">molnet</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="n">sc_out</span><span class="o">.</span><span class="n">P</span>
+        
         <span class="k">if</span> <span class="n">sc_out</span><span class="o">.</span><span class="n">_isboiling</span><span class="p">:</span>
             <span class="n">sc_out</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span>
-            <span class="n">sc_out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">sc_out</span><span class="o">.</span><span class="n">dew_point</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">sc_out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">sc_out</span><span class="o">.</span><span class="n">_dew_point</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">P</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">sc_out</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
-            <span class="n">sc_out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">sc_out</span><span class="o">.</span><span class="n">bubble_point</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">sc_out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">sc_out</span><span class="o">.</span><span class="n">_bubble_point</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">P</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         
         <span class="n">Duty</span> <span class="o">=</span> <span class="p">(</span><span class="n">sc_in</span><span class="o">.</span><span class="n">H</span><span class="o">-</span><span class="n">sc_out</span><span class="o">.</span><span class="n">H</span><span class="p">)</span>
         <span class="n">sp_out</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">,</span> <span class="n">LNK</span><span class="p">,</span> <span class="n">HNK</span><span class="p">,</span> <span class="n">Qin</span><span class="o">=</span><span class="n">Duty</span><span class="p">)</span>

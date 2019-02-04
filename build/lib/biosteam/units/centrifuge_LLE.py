@@ -60,7 +60,7 @@ class Centrifuge_LLE(Unit):
         if self.kwargs['specie_IDs'] is None:
             self.kwargs['specie_IDs'] = liq.specie_IDs
 
-    def run(self):
+    def _run(self)
         liq, LIQ = self.outs
         feed = self.ins[0]
 

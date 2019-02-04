@@ -16,7 +16,7 @@ class EnzymeTreatment(Unit):
         T = self.kwargs['T']
         self.outs[0].T = T
         
-    def run(self):
+    def _run(self)
         feed = self.ins[0]
         out = self.outs[0]
         out.mol = self._mol_in

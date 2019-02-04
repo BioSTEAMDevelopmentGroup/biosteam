@@ -37,7 +37,7 @@ class Splitter(Unit, metaclass=metaFinal):
         self._init_ins(ins_ID)
         self._init_outs(outs_ID)
 
-    def run(self):
+    def _run(self)
         # Unpack
         split = self.kwargs['split']
         top, bot = self.outs
@@ -60,7 +60,7 @@ class InvSplitter(Unit, metaclass=metaFinal):
         self._init_ins(ins_ID)
         self._init_outs(outs_ID)
         
-    def run(self):
+    def _run(self)
         feed = self.ins[0]
         feed.mol = self._mol_out
         for out in self.outs:

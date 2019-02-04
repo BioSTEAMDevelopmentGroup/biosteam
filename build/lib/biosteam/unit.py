@@ -437,7 +437,7 @@ class Unit(metaclass=metaUnit):
     
     # Abstract methods
     def setup(self): pass
-    def run(self): pass
+    def _run(self) pass
     def operation(self)->'Operation [dict]': return self.results['Operation']
     def design(self)->'Design [dict]': return self.results['Design']
     def cost(self)->'Cost [dict]': return self.results['Cost']

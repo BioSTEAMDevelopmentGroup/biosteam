@@ -69,7 +69,8 @@
                            <span class="n">tuple_array</span><span class="p">,</span> <span class="n">reorder</span><span class="p">,</span> <span class="n">get_frac</span><span class="p">,</span> <span class="n">Sink</span><span class="p">,</span> <span class="n">Source</span>
 <span class="kn">from</span> <span class="nn">biosteam.find</span> <span class="k">import</span> <span class="n">find</span>
 <span class="kn">from</span> <span class="nn">biosteam.species</span> <span class="k">import</span> <span class="n">Species</span>
-<span class="kn">from</span> <span class="nn">biosteam.exceptions</span> <span class="k">import</span> <span class="n">SolverError</span><span class="p">,</span> <span class="n">DimensionError</span>
+<span class="kn">from</span> <span class="nn">biosteam.exceptions</span> <span class="k">import</span> <span class="n">SolverError</span><span class="p">,</span> <span class="n">EquilibriumError</span><span class="p">,</span> \
+                                <span class="n">DimensionError</span>
 <span class="kn">from</span> <span class="nn">biosteam.UNIFAC</span> <span class="k">import</span> <span class="n">DORTMUND</span>
 
 <span class="n">ln</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span>
@@ -158,6 +159,7 @@
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">dummy</span> <span class="o">=</span> <span class="s1">&#39;-in fractions-&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fraction</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
         <span class="k">return</span> <span class="n">f</span><span class="s2">&quot;&lt;{type(self).__name__}: T=&#39;</span><span class="si">{self.T}</span><span class="s2">&#39;, P=&#39;</span><span class="si">{self.P}</span><span class="s2">&#39;, flow=&#39;</span><span class="si">{self.flow}</span><span class="s2">&#39;</span><span class="si">{dummy}</span><span class="s2">&gt;&quot;</span>
+
 
 <span class="c1"># %% Flow properties</span>
 
@@ -538,6 +540,9 @@
     <span class="c1">#: Default ID</span>
     <span class="n">_ID</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 
+    <span class="c1">#: Species in LLE</span>
+    <span class="n">_species_eq</span> <span class="o">=</span> <span class="kc">None</span>
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="p">(),</span> <span class="n">species</span><span class="o">=</span><span class="p">(),</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">,</span>
                  <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">298.15</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="o">**</span><span class="n">flow_pairs</span><span class="p">):</span>
         <span class="c1"># Get species ID and set species information</span>
@@ -619,7 +624,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span> <span class="o">=</span> <span class="n">material_array</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="n">vol_flow_dim</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span> <span class="o">=</span> <span class="n">material_array</span><span class="p">(</span><span class="n">flow</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">set_vol</span><span class="p">(</span><span class="n">flow_wt_units</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">vol_units</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_vol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">flow_wt_units</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">vol_units</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">DimensionError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Dimensions for flow units must be in molar, mass or volumetric flow rates, not &#39;</span><span class="si">{dim}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
 
@@ -874,7 +879,8 @@
 <span class="sd">        &gt;&gt;&gt; s2.volfrac</span>
 <span class="sd">        tuple_array([0.619, 0.381])</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
+        <span class="k">return</span> <span class="n">get_frac</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vol</span><span class="p">)</span>
+        
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">volnet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Net volumetric flow rate (m^3/hr). T and P dependent.</span>
@@ -885,67 +891,6 @@
 <span class="sd">        97.32699378482434</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prop_molar_flownet</span><span class="p">(</span><span class="s1">&#39;Vm&#39;</span><span class="p">)</span><span class="o">*</span><span class="mi">1000</span>
-
-    <span class="c1"># Set non-molar flows</span>
-<div class="viewcode-block" id="Stream.set_mass"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.set_mass">[docs]</a>    <span class="k">def</span> <span class="nf">set_mass</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_flow</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Set flow rates by mass in kg/hr.</span>
-
-<span class="sd">        **Parameters**</span>
-
-<span class="sd">             mass_flow: [array_like] Mass flow rates.</span>
-
-<span class="sd">             index: array_like[int] Indeces of species corresponding to mass flow rates.</span>
-
-<span class="sd">        .. code-block:: python</span>
-
-<span class="sd">           &gt;&gt;&gt; s1.set_mass(20 , index = 1)</span>
-<span class="sd">           &gt;&gt;&gt; s1.mass</span>
-<span class="sd">           tuple_array([0., 20])</span>
-<span class="sd">           &gt;&gt;&gt; # No need to specify indeces when all flow rates are specified</span>
-<span class="sd">           &gt;&gt;&gt; s1.set_mass([0, 36.031])</span>
-<span class="sd">           &gt;&gt;&gt; s1.mass</span>
-<span class="sd">           tuple_array([0, 36.031])</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">mass_flow</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_MW</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">mass_flow</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_MW</span><span class="p">[</span><span class="n">index</span><span class="p">]</span></div>
-    
-<div class="viewcode-block" id="Stream.set_vol"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.set_vol">[docs]</a>    <span class="k">def</span> <span class="nf">set_vol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vol_flow</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Set flow rates by volume in m^3/hr.</span>
-
-<span class="sd">        **Parameters**</span>
-
-<span class="sd">             vol_flow: [array_like] Volumetric flow rates.</span>
-
-<span class="sd">             index: array_like[int] Indeces of species corresponding to volumetric flow rates.</span>
-
-<span class="sd">        .. code-block:: python</span>
-
-<span class="sd">           &gt;&gt;&gt; s1.set_vol(20 , index = 1)</span>
-<span class="sd">           &gt;&gt;&gt; s1.vol</span>
-<span class="sd">           tuple_array([0., 20])</span>
-<span class="sd">           &gt;&gt;&gt; # No need to specify indeces when all flow rates are specified</span>
-<span class="sd">           &gt;&gt;&gt; s1.set_vol([0, 1])</span>
-<span class="sd">           &gt;&gt;&gt; s1.vol</span>
-<span class="sd">           tuple_array([0, 1])</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">vol_flow</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vol_flow</span><span class="p">)</span>
-        <span class="n">species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">species</span>
-        <span class="k">if</span> <span class="n">index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">Vms</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">get_props</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_specie_IDs</span><span class="p">,</span> <span class="s1">&#39;Vm&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">vol_flow</span> <span class="o">/</span> <span class="n">Vms</span> <span class="o">/</span> <span class="mi">1000</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">index_sp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index_ID</span>
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="s1">&#39;__len__&#39;</span><span class="p">):</span>
-                <span class="n">specie_IDs</span> <span class="o">=</span> <span class="p">(</span><span class="n">index_sp</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">index</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">specie_IDs</span> <span class="o">=</span> <span class="n">index_sp</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-            <span class="n">Vms</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">get_props</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">,</span> <span class="s1">&#39;Vm&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
-                                    <span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">vol_flow</span> <span class="o">/</span> <span class="n">Vms</span> <span class="o">/</span> <span class="mi">1000</span></div>
 
     <span class="c1">### Energy flows ###</span>
 
@@ -970,8 +915,7 @@
     <span class="k">def</span> <span class="nf">H</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">H</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mol</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">H</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Cannot set nonzero enthalpy &quot;</span>
-                                <span class="o">+</span><span class="n">f</span><span class="s2">&quot;to empty stream &#39;</span><span class="si">{self.ID}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Cannot set nonzero enthalpy to empty stream.&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">return</span>
 
@@ -987,8 +931,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">+=</span> <span class="p">(</span><span class="n">H</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">)</span><span class="o">/</span><span class="n">C</span>
             <span class="n">it</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">if</span> <span class="n">it</span> <span class="o">&gt;</span> <span class="mi">40</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Could not solve temperature &quot;</span>
-                                 <span class="o">+</span><span class="n">f</span><span class="s2">&quot;for given enthalpy in stream &#39;</span><span class="si">{self.ID}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Could not solve temperature given enthalpy&quot;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">Hf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1193,7 +1136,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">nonzero_species</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_index_ID</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mol</span><span class="p">)</span>
     
-<div class="viewcode-block" id="Stream.prop_quantity"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.prop_quantity">[docs]</a>    <span class="k">def</span> <span class="nf">prop_quantity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">):</span>
+<div class="viewcode-block" id="Stream.quantity"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.quantity">[docs]</a>    <span class="k">def</span> <span class="nf">quantity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a property as a Quantity object as described in the `pint package &lt;https://pint.readthedocs.io/en/latest/&gt;`__ </span>
 
 <span class="sd">        **Parameters**</span>
@@ -1202,14 +1145,14 @@
 
 <span class="sd">        Example:</span>
 
-<span class="sd">        &gt;&gt;&gt; s1.prop_quantity(&#39;Cp&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1.quantity(&#39;Cp&#39;)</span>
 <span class="sd">        &lt;Quantity(4.180597021827335, &#39;joule / gram / kelvin&#39;)&gt;</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">Q_</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="p">[</span><span class="n">prop_ID</span><span class="p">])</span></div>
 
     <span class="c1"># Sensitivity analysis</span>
-    <span class="k">def</span> <span class="nf">_prop_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">,</span> <span class="n">var_ID</span><span class="p">,</span> <span class="n">var_vals</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">,</span> <span class="n">var_ID</span><span class="p">,</span> <span class="n">var_vals</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return an array of property values at &#39;var_vals&#39;.</span>
 
 <span class="sd">        **Parameters**</span>
@@ -1224,10 +1167,10 @@
 
 <span class="sd">        Example</span>
 
-<span class="sd">        &gt;&gt;&gt; s1._prop_table( &#39;H&#39;, &#39;T&#39;, [298.15, 299.15, 300.15, 301.15, 302.15])</span>
+<span class="sd">        &gt;&gt;&gt; s1._table( &#39;H&#39;, &#39;T&#39;, [298.15, 299.15, 300.15, 301.15, 302.15])</span>
 <span class="sd">        array([  0.   ,  65.041, 130.231, 195.569, 261.055])</span>
 
-<span class="sd">        &gt;&gt;&gt; s1._prop_table( &#39;rho&#39;, &#39;mol&#39; , [0, 1, 2, 3, 4], index = 0) # vary the amount of Ethanol</span>
+<span class="sd">        &gt;&gt;&gt; s1._table( &#39;rho&#39;, &#39;mol&#39; , [0, 1, 2, 3, 4], index = 0) # vary the amount of Ethanol</span>
 <span class="sd">        array([997.025, 866.43 , 835.659, 821.904, 814.109])</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1252,7 +1195,7 @@
         <span class="n">set_var</span><span class="p">(</span><span class="n">x0</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">y</span>
 
-<div class="viewcode-block" id="Stream.prop_plot"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.prop_plot">[docs]</a>    <span class="k">def</span> <span class="nf">prop_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">,</span> <span class="n">var_ID</span><span class="p">,</span> <span class="n">var_vals</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Stream.plot"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.plot">[docs]</a>    <span class="k">def</span> <span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">,</span> <span class="n">var_ID</span><span class="p">,</span> <span class="n">var_vals</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Make a plot of a property vs a variable.</span>
 
 <span class="sd">        **Parameters**</span>
@@ -1267,13 +1210,13 @@
 
 <span class="sd">        Example</span>
 
-<span class="sd">        &gt;&gt;&gt; s1.prop_plot( &#39;H&#39;, &#39;T&#39;, [298.15, 299.15, 300.15, 301.15, 302.15])</span>
+<span class="sd">        &gt;&gt;&gt; s1.plot( &#39;H&#39;, &#39;T&#39;, [298.15, 299.15, 300.15, 301.15, 302.15])</span>
 
 <span class="sd">        .. image:: prop_plot.png</span>
 <span class="sd">           :scale: 70 %</span>
 <span class="sd">           :align: center</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prop_table</span><span class="p">(</span><span class="n">prop_ID</span><span class="p">,</span> <span class="n">var_ID</span><span class="p">,</span> <span class="n">var_vals</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_table</span><span class="p">(</span><span class="n">prop_ID</span><span class="p">,</span> <span class="n">var_ID</span><span class="p">,</span> <span class="n">var_vals</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">var_vals</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
         <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span>
         <span class="k">if</span> <span class="n">index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1282,7 +1225,7 @@
         <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="n">prop_ID</span> <span class="o">+</span> <span class="s1">&#39; (&#39;</span> <span class="o">+</span> <span class="n">units</span><span class="p">[</span><span class="n">prop_ID</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span></div>
 
     <span class="c1"># Derivative of a property and sensivity analysis</span>
-<div class="viewcode-block" id="Stream.prop_derivative"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.prop_derivative">[docs]</a>    <span class="k">def</span> <span class="nf">prop_derivative</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">,</span> <span class="n">var_ID</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Stream.derivative"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.derivative">[docs]</a>    <span class="k">def</span> <span class="nf">derivative</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">,</span> <span class="n">var_ID</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the derivative of property &#39;prop_ID&#39; and variable &#39;var_ID&#39;. If the property given by var_ID is an array, use index to specify which element.</span>
 
 <span class="sd">         **Parameters**</span>
@@ -1295,7 +1238,7 @@
 
 <span class="sd">        Example</span>
 
-<span class="sd">        &gt;&gt;&gt; s1.prop_derivative(&#39;rho&#39;, &#39;T&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1.derivative(&#39;rho&#39;, &#39;T&#39;)</span>
 <span class="sd">        -0.4010588564718449</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1319,7 +1262,7 @@
         <span class="n">set_var</span><span class="p">(</span><span class="n">x0</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">yf</span><span class="o">-</span><span class="n">y0</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">xf</span><span class="o">-</span><span class="n">x0</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">_prop_derivative_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">,</span> <span class="n">var_ID</span><span class="p">,</span> <span class="n">var_vals</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_derivative_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">,</span> <span class="n">var_ID</span><span class="p">,</span> <span class="n">var_vals</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return an array of property derivatives at &#39;var_vals&#39; </span>
 
 <span class="sd">        **Parameters**</span>
@@ -1334,7 +1277,7 @@
 
 <span class="sd">        Example</span>
 
-<span class="sd">        &gt;&gt;&gt; s1._prop_derivative_table(&#39;rho&#39;, &#39;T&#39;, [298.15, 300.15, 302.15, 304.15, 306.15, 308.15])</span>
+<span class="sd">        &gt;&gt;&gt; s1._derivative_table(&#39;rho&#39;, &#39;T&#39;, [298.15, 300.15, 302.15, 304.15, 306.15, 308.15])</span>
 <span class="sd">        array([-0.401, -0.408, -0.415, -0.422, -0.429, -0.436])</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1368,7 +1311,7 @@
         <span class="n">set_var</span><span class="p">(</span><span class="n">x0</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">y</span>
 
-<div class="viewcode-block" id="Stream.prop_derivative_plot"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.prop_derivative_plot">[docs]</a>    <span class="k">def</span> <span class="nf">prop_derivative_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">,</span> <span class="n">var_ID</span><span class="p">,</span> <span class="n">var_vals</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Stream.derivative_plot"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.derivative_plot">[docs]</a>    <span class="k">def</span> <span class="nf">derivative_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">,</span> <span class="n">var_ID</span><span class="p">,</span> <span class="n">var_vals</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a property derivative plot.</span>
 
 <span class="sd">        **Parameters**</span>
@@ -1389,7 +1332,7 @@
 <span class="sd">           :scale: 70 %</span>
 <span class="sd">           :align: center</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prop_derivative_table</span><span class="p">(</span><span class="n">prop_ID</span><span class="p">,</span> <span class="n">var_ID</span><span class="p">,</span> <span class="n">var_vals</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_derivative_table</span><span class="p">(</span><span class="n">prop_ID</span><span class="p">,</span> <span class="n">var_ID</span><span class="p">,</span> <span class="n">var_vals</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">var_vals</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
         <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span>
         <span class="k">if</span> <span class="n">index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1500,44 +1443,19 @@
         <span class="k">return</span> <span class="n">specie_IDs</span><span class="p">,</span> <span class="n">index</span>
 
     <span class="c1"># Equilibrium</span>
-    <span class="k">def</span> <span class="nf">_default_eq_args</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">P</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return default arguments for equilibrium calculations.&quot;&quot;&quot;</span>
-        <span class="c1"># Make sure species and compositions are ok</span>
-        <span class="n">bol1</span> <span class="o">=</span> <span class="n">z</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">;</span> <span class="n">bol2</span> <span class="o">=</span> <span class="n">specie_IDs</span> <span class="ow">is</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">bol1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">bol2</span><span class="p">):</span>
-            <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_index</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">)</span>
-            <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-            <span class="n">z</span> <span class="o">=</span> <span class="n">mol</span><span class="o">/</span><span class="nb">sum</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="p">(</span><span class="ow">not</span> <span class="n">bol1</span> <span class="ow">and</span> <span class="n">bol2</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Composition was given with out specie IDs.&#39;</span><span class="p">)</span>
-        
+    <span class="k">def</span> <span class="nf">_default_eq_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return default arguments for equilibrium calculations.&quot;&quot;&quot;</span>        
         <span class="c1"># Choose species that have UNIFAC groups</span>
-        <span class="k">if</span> <span class="n">specie_IDs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1"># Get the molar fraction for those species that are not zero</span>
-            <span class="n">specie_IDs</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_equilibrium_species</span><span class="p">()</span>
-            <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-            <span class="n">z</span> <span class="o">=</span> <span class="n">mol</span><span class="o">/</span><span class="nb">sum</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
-            <span class="n">index</span> <span class="o">=</span> <span class="n">z</span><span class="o">!=</span><span class="mi">0</span>
-            <span class="n">specie_IDs</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">sp</span> <span class="k">for</span> <span class="n">sp</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span><span class="p">)</span>
-            <span class="n">z</span> <span class="o">=</span> <span class="n">z</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">specie_IDs</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_equilibrium_species</span><span class="p">()</span>
         
-        <span class="c1"># Default to self pressure</span>
-        <span class="k">if</span> <span class="n">P</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span>
-        <span class="k">return</span> <span class="n">specie_IDs</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">P</span>
+        <span class="c1"># Get the molar fraction for those species that are not zero</span>
+        <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="n">mol</span><span class="o">/</span><span class="nb">sum</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">specie_IDs</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span>
     
-<div class="viewcode-block" id="Stream.bubble_point"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.bubble_point">[docs]</a>    <span class="k">def</span> <span class="nf">bubble_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Bubble point given x and P. If no parameters are given, assume same composition as self.</span>
-
-<span class="sd">        **Parameters**</span>
-
-<span class="sd">            **specie_IDs:** iterable[str] Species corresponding to x.</span>
-
-<span class="sd">            **x:** [array_like] The composition of the liquid phase.</span>
-
-<span class="sd">            **P:** [float] The pressure in Pascals.</span>
+<div class="viewcode-block" id="Stream.bubble_point"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.bubble_point">[docs]</a>    <span class="k">def</span> <span class="nf">bubble_point</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Bubble point at current composition and Pressure.</span>
 
 <span class="sd">        **Returns**</span>
 
@@ -1547,29 +1465,48 @@
 <span class="sd">             </span>
 <span class="sd">            **eq_species:** tuple[str] Species in equilibrium.</span>
 
-<span class="sd">        &gt;&gt;&gt; s1.bubble_point(specie_IDs = (&#39;Ethanol&#39;, &#39;Water&#39;),</span>
-<span class="sd">        ...                 x = (0.6, 0.4), P = 101325)</span>
+<span class="sd">        &gt;&gt;&gt; stream = Stream(flow=(0.6, 0.4),</span>
+<span class="sd">        ...                 species=Species(&#39;Ethanol&#39;, &#39;Water&#39;))</span>
+<span class="sd">        &gt;&gt;&gt; stream.bubble_point()</span>
 <span class="sd">        (352.2820850833474, array([0.703, 0.297]), (&#39;Ethanol&#39;, &#39;Water&#39;))</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># If given just one specie, return Tsat</span>
-        <span class="k">if</span> <span class="n">specie_IDs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-                <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="p">)</span><span class="o">.</span><span class="n">Tsat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">specie_IDs</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">Tsat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">1</span><span class="p">,)),</span> <span class="n">specie_IDs</span>
-        
         <span class="c1"># If just one specie in equilibrium, return Tsat</span>
-        <span class="n">specie_IDs</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_eq_args</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">specie_IDs</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_eq_args</span><span class="p">()</span>
+        <span class="n">N_species</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">N_species</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">Tsat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">specie_IDs</span>
+        <span class="k">elif</span> <span class="n">N_species</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">EquilibriumError</span><span class="p">(</span><span class="s1">&#39;No species available for phase equilibrium&#39;</span><span class="p">)</span>
         
         <span class="c1"># Solve and return bubble point</span>
         <span class="n">x</span><span class="p">,</span> <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bubble_point</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">specie_IDs</span></div>
     
     <span class="k">def</span> <span class="nf">_bubble_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">P</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Same as bubble_point but does not return equilibrium species.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Bubble point at given composition and Pressure</span>
+
+<span class="sd">        **Parameters**</span>
+
+<span class="sd">            **specie_IDs:** iterable[str] Species corresponding to x.</span>
+
+<span class="sd">            **x:** [array_like] The composition of the liquid phase.</span>
+
+<span class="sd">            **P:** [float] The pressure in Pascals.</span>
+<span class="sd">        </span>
+<span class="sd">        **Returns**</span>
+
+<span class="sd">            **T_bubble:** [float] The bubble point temperature</span>
+
+<span class="sd">            **y:** [numpy ndarray] The composition of the vapor phase considering only the equilibrium species.</span>
+<span class="sd">             </span>
+<span class="sd">            **eq_species:** tuple[str] Species in equilibrium.</span>
+
+<span class="sd">        &gt;&gt;&gt; s1._bubble_point(specie_IDs=(&#39;Ethanol&#39;, &#39;Water&#39;),</span>
+<span class="sd">        ...                 x=(0.6, 0.4), P=101325)</span>
+<span class="sd">        (352.2820850833474, array([0.703, 0.297]), (&#39;Ethanol&#39;, &#39;Water&#39;))</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Setup functions to calculate vapor pressure and activity coefficients</span>
         <span class="n">sp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span>
         <span class="n">_get_Psat</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">_get_Psat</span>
@@ -1605,7 +1542,36 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_bubble_cached</span><span class="p">[</span><span class="n">specie_IDs</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T_bubble</span><span class="p">,</span> <span class="n">y_bubble</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">T_bubble</span><span class="p">,</span> <span class="n">y_bubble</span>
 
-<div class="viewcode-block" id="Stream.dew_point"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.dew_point">[docs]</a>    <span class="k">def</span> <span class="nf">dew_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Stream.dew_point"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.dew_point">[docs]</a>    <span class="k">def</span> <span class="nf">dew_point</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dew point at current composition and Pressure.</span>
+<span class="sd">        </span>
+<span class="sd">        **Returns**</span>
+
+<span class="sd">            **T_dew:** [float] The dew point temperature</span>
+
+<span class="sd">            **x:** [numpy array] The composition of the liquid phase considering only the equilibrium species.</span>
+<span class="sd">             </span>
+<span class="sd">            **eq_species:** tuple[str] Species in equilibrium.</span>
+
+<span class="sd">        &gt;&gt;&gt; stream = Stream(flow=(0.5, 0.5),</span>
+<span class="sd">        ...                 species=Species(&#39;Ethanol&#39;, &#39;Water&#39;))</span>
+<span class="sd">        &gt;&gt;&gt; stream.dew_point()</span>
+<span class="sd">        (353.7420742149825, array([0.556, 0.444]), (&#39;Ethanol&#39;, &#39;Water&#39;))</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># If just one specie in equilibrium, return Tsat</span>
+        <span class="n">specie_IDs</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_eq_args</span><span class="p">()</span>
+        <span class="n">N_species</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">N_species</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">Tsat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">specie_IDs</span>
+        <span class="k">elif</span> <span class="n">N_species</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">EquilibriumError</span><span class="p">(</span><span class="s1">&#39;No species available for phase equilibrium&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Solve and return dew point</span>
+        <span class="n">y</span><span class="p">,</span> <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dew_point</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">y</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">specie_IDs</span></div>
+    
+    <span class="k">def</span> <span class="nf">_dew_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">P</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Dew point given y and P.</span>
 
 <span class="sd">        **Parameters**</span>
@@ -1628,26 +1594,7 @@
 <span class="sd">        &gt;&gt;&gt; s1.dew_point(specie_IDs = (&#39;Ethanol&#39;, &#39;Water&#39;),</span>
 <span class="sd">        ...              y = (0.5, 0.5, P = 101325)</span>
 <span class="sd">        (353.7420742149825, array([0.556, 0.444]), (&#39;Ethanol&#39;, &#39;Water&#39;))</span>
-
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># If given just one specie, get Tsat</span>
-        <span class="k">if</span> <span class="n">specie_IDs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-                <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="p">)</span><span class="o">.</span><span class="n">Tsat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">specie_IDs</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">Tsat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="mi">1</span><span class="p">,)),</span> <span class="n">specie_IDs</span>
-        
-        <span class="c1"># If just one specie in equilibrium, return Tsat</span>
-        <span class="n">specie_IDs</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_eq_args</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">Tsat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">specie_IDs</span>
-        
-        <span class="c1"># Solve and return dew point</span>
-        <span class="n">y</span><span class="p">,</span> <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dew_point</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">y</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">specie_IDs</span></div>
-    
-    <span class="k">def</span> <span class="nf">_dew_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">P</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Same as bubble_point but does not return equilibrium species.&quot;&quot;&quot;</span>
         <span class="c1"># Setup functions to calculate vapor pressure and activity coefficients</span>
         <span class="n">sp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span>
         <span class="n">_get_Psat</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">_get_Psat</span>
@@ -1745,14 +1692,14 @@
 
 <span class="sd">        Example</span>
 
-<span class="sd">        &gt;&gt;&gt; Stream.help(&#39;k&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; Stream._helplist(&#39;k&#39;)</span>
 <span class="sd">        [&#39;k&#39;, &#39;thermal conductivity&#39;, &#39;TP&#39;, &#39;W/m/K&#39;, &#39;float&#39;]</span>
 
-<span class="sd">        &gt;&gt;&gt; Stream.help(&#39;viscosity&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; Stream._helplist(&#39;viscosity&#39;)</span>
 <span class="sd">        [[&#39;nu&#39;, &#39;kinematic viscosity&#39;, &#39;TP&#39;, &#39;m^2/s&#39;, &#39;float&#39;],</span>
 <span class="sd">         [&#39;mu&#39;, &#39;hydraulic viscosity&#39;, &#39;TP&#39;, &#39;Pa*s&#39;, &#39;float&#39;]]</span>
 
-<span class="sd">        &gt;&gt;&gt; Stream.help(&#39;kmol/hr&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; Stream._helplist(&#39;kmol/hr&#39;)</span>
 <span class="sd">        [[&#39;mol&#39;, &#39;molar flow rates&#39;, &#39;&#39;, &#39;kmol/hr&#39;, &#39;np.array&#39;],</span>
 <span class="sd">         [&#39;molnet&#39;, &#39;net molar flow rate&#39;, &#39;&#39;, &#39;kmol/hr&#39;, &#39;float&#39;]]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1861,7 +1808,6 @@
         <span class="k">while</span> <span class="nb">abs</span><span class="p">(</span><span class="n">T</span> <span class="o">-</span> <span class="n">T_guess</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.01</span><span class="p">:</span>
             <span class="c1"># Calculate</span>
             <span class="n">H_</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">H</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">streams</span><span class="p">)</span>
-            <span class="n">C</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">C</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">streams</span><span class="p">)</span>
             <span class="n">T</span> <span class="o">=</span> <span class="n">T_guess</span> <span class="o">+</span> <span class="p">(</span><span class="n">H_</span><span class="o">-</span> <span class="n">H</span><span class="p">)</span><span class="o">/</span><span class="n">C</span>
             
             <span class="c1"># Check iteration</span>
@@ -1970,17 +1916,17 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="n">phase</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span> <span class="o">=</span> <span class="n">mol</span></div>
 
-    <span class="k">def</span> <span class="nf">VLE</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">LNK</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">HNK</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="Stream.VLE"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.VLE">[docs]</a>    <span class="k">def</span> <span class="nf">VLE</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">LNK</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">HNK</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">V</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Qin</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">enable_phases</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">,</span> <span class="n">LNK</span><span class="p">,</span> <span class="n">HNK</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">Qin</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">,</span> <span class="n">LNK</span><span class="p">,</span> <span class="n">HNK</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">Qin</span><span class="p">)</span></div>
         
-    <span class="k">def</span> <span class="nf">LLE</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lNK</span><span class="o">=</span><span class="p">(),</span> <span class="n">LNK</span><span class="o">=</span><span class="p">(),</span>
+<div class="viewcode-block" id="Stream.LLE"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.LLE">[docs]</a>    <span class="k">def</span> <span class="nf">LLE</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lNK</span><span class="o">=</span><span class="p">(),</span> <span class="n">LNK</span><span class="o">=</span><span class="p">(),</span>
             <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Qin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
             <span class="n">solvents</span><span class="o">=</span><span class="p">(),</span> <span class="n">solvent_split</span><span class="o">=</span><span class="p">()):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">enable_phases</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">LLE</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">lNK</span><span class="p">,</span> <span class="n">LNK</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">Qin</span><span class="p">,</span>
-                 <span class="n">solvents</span><span class="p">,</span> <span class="n">solvent_split</span><span class="p">)</span>
+                 <span class="n">solvents</span><span class="p">,</span> <span class="n">solvent_split</span><span class="p">)</span></div>
 
     <span class="c1"># Representation</span>
     <span class="k">def</span> <span class="nf">_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">show_units</span><span class="p">):</span>
@@ -2007,14 +1953,10 @@
 
         <span class="c1"># Default units</span>
         <span class="n">show_format</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">show_format</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">T_units</span><span class="p">:</span>
-            <span class="n">T_units</span> <span class="o">=</span> <span class="n">show_format</span><span class="o">.</span><span class="n">T</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">P_units</span><span class="p">:</span>
-            <span class="n">P_units</span> <span class="o">=</span> <span class="n">show_format</span><span class="o">.</span><span class="n">P</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">flow_units</span><span class="p">:</span>
-            <span class="n">flow_units</span> <span class="o">=</span> <span class="n">show_format</span><span class="o">.</span><span class="n">flow</span>
-        <span class="k">if</span> <span class="n">fraction</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">fraction</span> <span class="o">=</span> <span class="n">show_format</span><span class="o">.</span><span class="n">fraction</span>
+        <span class="n">T_units</span> <span class="o">=</span> <span class="n">T_units</span> <span class="ow">or</span> <span class="n">show_format</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">P_units</span> <span class="o">=</span> <span class="n">P_units</span> <span class="ow">or</span> <span class="n">show_format</span><span class="o">.</span><span class="n">P</span>
+        <span class="n">flow_units</span> <span class="o">=</span> <span class="n">flow_units</span> <span class="ow">or</span> <span class="n">show_format</span><span class="o">.</span><span class="n">flow</span>
+        <span class="n">fraction</span> <span class="o">=</span> <span class="n">fraction</span> <span class="ow">or</span> <span class="n">show_format</span><span class="o">.</span><span class="n">fraction</span>
         
         <span class="c1"># Second line (thermo)</span>
         <span class="n">T</span> <span class="o">=</span> <span class="n">Q_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">units</span><span class="p">[</span><span class="s1">&#39;T&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">T_units</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
@@ -2082,8 +2024,6 @@
 
 
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">mixed_stream</span>
-
-
 </pre></div>
 
           </div>

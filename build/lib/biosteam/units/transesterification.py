@@ -36,7 +36,7 @@ class Transesterification(Reactor):
     _N_outs = 1
     _N_heat_util = 1
 
-    def run(self):
+    def _run(self)
         feed, fresh_Methanol = self.ins
         out = self.outs[0]
         eff, r, T, catalyst_molfrac = (self.kwargs[i] for i in (

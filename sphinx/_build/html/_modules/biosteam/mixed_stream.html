@@ -197,6 +197,7 @@
 
 <span class="sd">         :doc:`MixedStream Example`</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#: Species in LLE</span>
     <span class="n">_species_eq</span> <span class="o">=</span> <span class="kc">None</span>
     
     <span class="c1">#: The default phase when flow rates are zero.</span>
@@ -262,7 +263,8 @@
         <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="n">vol_flow_dim</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_set_flows</span><span class="p">(</span><span class="n">mol_array</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">phase</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">range4</span><span class="p">,</span> <span class="n">phases</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">set_vol</span><span class="p">(</span><span class="n">mol_array</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:],</span> <span class="n">phase</span><span class="p">)</span>
+                <span class="n">volflow</span> <span class="o">=</span> <span class="n">phases_volflow</span><span class="p">[</span><span class="n">phase</span><span class="p">]</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">volflow</span><span class="p">,</span> <span class="n">mol_array</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:])</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">DimensionError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Dimensions for flow rate units must be in molar, mass or volumetric flow rates, not &#39;</span><span class="si">{dim}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
 
@@ -325,84 +327,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_default_phase</span> <span class="o">=</span> <span class="n">phase</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
         <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phases_molflow</span><span class="p">[</span><span class="n">phase</span><span class="p">],</span> <span class="n">mol</span><span class="p">)</span>
-        
-    <span class="c1"># Set non-molar flows</span>
-    <span class="k">def</span> <span class="nf">set_mass</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mass_flow</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Set flow rates by mass in kg/hr.</span>
-
-<span class="sd">        **Parameters**</span>
-
-<span class="sd">             **mass_flow:** [array_like] Mass flow rates.</span>
-
-<span class="sd">             **phase:** [str] Can be &#39;s&#39; (solid) &#39;l&#39; (liquid), &#39;L&#39; (LIQUID), or &#39;g&#39; (gas).</span>
-
-<span class="sd">             **index:** array_like[int] Indeces of species corresponding to mass flow rates.</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">phase</span><span class="p">:</span>
-            <span class="n">phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase</span>
-        <span class="n">mol</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phases_molflow</span><span class="p">[</span><span class="n">phase</span><span class="p">])</span>
-        <span class="k">if</span> <span class="n">index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">mass_flow</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_MW</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">mass_flow</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_MW</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-
-    <span class="k">def</span> <span class="nf">set_vol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vol_flow</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Set flow rates by mass in m3/hr.</span>
-
-<span class="sd">        **Parameters**</span>
-
-<span class="sd">             **vol_flow:** [array_like] Volumetric flow rates</span>
-
-<span class="sd">             **phase:** [str] Can be &#39;s&#39; (solid) &#39;l&#39; (liquid), &#39;L&#39; (LIQUID), or &#39;g&#39; (gas).</span>
-
-<span class="sd">             **index:** array_like[int] Indeces of species corresponding to volumetric flow rates</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">phase</span><span class="p">:</span>
-            <span class="n">phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase</span>
-        <span class="k">if</span> <span class="n">index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1"># Set index as all indeces</span>
-            <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index</span>
-
-        <span class="c1"># Set up species and attributes</span>
-        <span class="n">mol</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phases_molflow</span><span class="p">[</span><span class="n">phase</span><span class="p">])</span>
-        <span class="n">_species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span>
-        <span class="n">_specie_IDs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_specie_IDs</span>
-        <span class="n">phase</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span>
-        <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span>
-
-        <span class="c1"># Prevent indexing with a list if one index</span>
-        <span class="n">has_length</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="s1">&#39;__len__&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">has_length</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">index</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">index</span> <span class="o">=</span> <span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">has_length</span> <span class="o">=</span> <span class="kc">False</span>
-
-        <span class="c1"># Set molar flow rate by volumetric flow and molar volume</span>
-        <span class="k">if</span> <span class="n">has_length</span><span class="p">:</span>
-            <span class="c1"># Multiple indeces</span>
-            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">vol</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">vol_flow</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">vol</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">mol</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">specie</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">_species</span><span class="p">,</span> <span class="n">_specie_IDs</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-                    <span class="n">specie</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span>
-                    <span class="n">specie</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span>
-                    <span class="n">specie</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="n">phase</span>
-                    <span class="n">mol</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">vol</span> <span class="o">/</span> <span class="p">(</span><span class="n">specie</span><span class="o">.</span><span class="n">Vm</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># One index</span>
-            <span class="n">vol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">vol_flow</span><span class="p">)</span>  <span class="c1"># In case its a list or tupple</span>
-            <span class="k">if</span> <span class="n">vol_flow</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">specie</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">_species</span><span class="p">,</span> <span class="n">_specie_IDs</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
-                <span class="n">specie</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span>
-                <span class="n">specie</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span>
-                <span class="n">specie</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="n">phase</span>
-                <span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">vol</span> <span class="o">/</span> <span class="p">(</span><span class="n">specie</span><span class="o">.</span><span class="n">Vm</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)</span>
 
     <span class="c1">### Solids ###</span>
 
@@ -814,8 +738,8 @@
 
     <span class="c1"># Vapor-liquid equilibrium</span>
 <div class="viewcode-block" id="MixedStream.VLE"><a class="viewcode-back" href="../../MixedStream.html#biosteam.MixedStream.VLE">[docs]</a>    <span class="k">def</span> <span class="nf">VLE</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">LNK</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">HNK</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">V</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Qin</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Partition flow rates into vapor and liquid phases by equilibrium.</span>
+            <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">V</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Qin</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Partition flow rates into vapor and liquid phases by equilibrium. Pressure defaults to current pressure.</span>
 
 <span class="sd">        **Parameters**</span>
 
@@ -1116,7 +1040,7 @@
 
     <span class="c1"># LIQUID-liquid equilibrium</span>
 <div class="viewcode-block" id="MixedStream.LLE"><a class="viewcode-back" href="../../MixedStream.html#biosteam.MixedStream.LLE">[docs]</a>    <span class="k">def</span> <span class="nf">LLE</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lNK</span><span class="o">=</span><span class="p">(),</span> <span class="n">LNK</span><span class="o">=</span><span class="p">(),</span>
-            <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Qin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Qin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
             <span class="n">solvents</span><span class="o">=</span><span class="p">(),</span> <span class="n">solvent_split</span><span class="o">=</span><span class="p">()):</span>
         <span class="sd">&quot;&quot;&quot;Partition flow rates into liquid and LIQUID phases by equilibrium.</span>
 
@@ -1166,6 +1090,9 @@
         <span class="k">elif</span> <span class="n">Qin</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">H</span> <span class="o">+=</span> <span class="n">Qin</span>
             <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span>
+        
         <span class="k">if</span> <span class="n">P</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1344,6 +1271,12 @@
             <span class="n">first_phase</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="k">return</span> <span class="n">basic_info</span> <span class="o">+</span> <span class="n">phases_flowrates_info</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span></div>
+
+
+<span class="n">Stream</span><span class="o">.</span><span class="n">VLE</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">MixedStream</span><span class="o">.</span><span class="n">VLE</span><span class="o">.</span><span class="vm">__doc__</span>
+<span class="n">Stream</span><span class="o">.</span><span class="n">LLE</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">MixedStream</span><span class="o">.</span><span class="n">LLE</span><span class="o">.</span><span class="vm">__doc__</span>
+<span class="n">MixedStream</span><span class="o">.</span><span class="n">mu</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">Stream</span><span class="o">.</span><span class="n">mu</span><span class="o">.</span><span class="vm">__doc__</span>
+
 
 </pre></div>
 

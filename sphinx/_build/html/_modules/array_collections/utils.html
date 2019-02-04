@@ -99,6 +99,7 @@
 
 <div class="viewcode-block" id="get_frac"><a class="viewcode-back" href="../../utils.html#biosteam.utils.get_frac">[docs]</a><span class="k">def</span> <span class="nf">get_frac</span><span class="p">(</span><span class="n">array</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Normalized array&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Normalize array to a magnitude of 1. If magnitude is zero, all fractions will have equal value.&quot;&quot;&quot;</span>
+    <span class="n">array</span> <span class="o">=</span> <span class="n">array</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
     <span class="n">sum_array</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">sum_array</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">l</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>

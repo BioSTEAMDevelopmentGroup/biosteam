@@ -67,57 +67,77 @@
 
 <span class="c1"># %% Biosteam errors</span>
 
-<div class="viewcode-block" id="biosteam_Error"><a class="viewcode-back" href="../../exceptions.html#biosteam.exceptions.biosteam_Error">[docs]</a><span class="k">class</span> <span class="nc">biosteam_Error</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+<div class="viewcode-block" id="biosteamError"><a class="viewcode-back" href="../../exceptions.html#biosteam.biosteamError">[docs]</a><span class="k">class</span> <span class="nc">biosteamError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;General exception in biosteam.&quot;&quot;&quot;</span></div>
 
 
-<div class="viewcode-block" id="Stop"><a class="viewcode-back" href="../../exceptions.html#biosteam.exceptions.Stop">[docs]</a><span class="k">class</span> <span class="nc">Stop</span><span class="p">(</span><span class="n">biosteam_Error</span><span class="p">):</span>
+<div class="viewcode-block" id="Stop"><a class="viewcode-back" href="../../exceptions.html#biosteam.Stop">[docs]</a><span class="k">class</span> <span class="nc">Stop</span><span class="p">(</span><span class="n">biosteamError</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Exception to Stop code.&quot;&quot;&quot;</span></div>
 
 
-<div class="viewcode-block" id="IDconflict"><a class="viewcode-back" href="../../exceptions.html#biosteam.exceptions.IDconflict">[docs]</a><span class="k">class</span> <span class="nc">IDconflict</span><span class="p">(</span><span class="n">biosteam_Error</span><span class="p">):</span>
+<div class="viewcode-block" id="IDconflict"><a class="viewcode-back" href="../../exceptions.html#biosteam.IDconflict">[docs]</a><span class="k">class</span> <span class="nc">IDconflict</span><span class="p">(</span><span class="n">biosteamError</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Exception regarding ID conflicts.&quot;&quot;&quot;</span></div>
 
 
-<div class="viewcode-block" id="DesignError"><a class="viewcode-back" href="../../exceptions.html#biosteam.exceptions.DesignError">[docs]</a><span class="k">class</span> <span class="nc">DesignError</span><span class="p">(</span><span class="n">biosteam_Error</span><span class="p">):</span>
+<div class="viewcode-block" id="DesignError"><a class="viewcode-back" href="../../exceptions.html#biosteam.DesignError">[docs]</a><span class="k">class</span> <span class="nc">DesignError</span><span class="p">(</span><span class="n">biosteamError</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Exception regarding unit design.&quot;&quot;&quot;</span></div>
 
 
-<div class="viewcode-block" id="metaError"><a class="viewcode-back" href="../../exceptions.html#biosteam.exceptions.metaError">[docs]</a><span class="k">class</span> <span class="nc">metaError</span><span class="p">(</span><span class="n">biosteam_Error</span><span class="p">):</span>
+<div class="viewcode-block" id="metaError"><a class="viewcode-back" href="../../exceptions.html#biosteam.metaError">[docs]</a><span class="k">class</span> <span class="nc">metaError</span><span class="p">(</span><span class="n">biosteamError</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Exception regarding metaclasses.&quot;&quot;&quot;</span></div>
 
 
-<div class="viewcode-block" id="SolverError"><a class="viewcode-back" href="../../exceptions.html#biosteam.exceptions.SolverError">[docs]</a><span class="k">class</span> <span class="nc">SolverError</span><span class="p">(</span><span class="n">biosteam_Error</span><span class="p">):</span>
+<div class="viewcode-block" id="SolverError"><a class="viewcode-back" href="../../exceptions.html#biosteam.SolverError">[docs]</a><span class="k">class</span> <span class="nc">SolverError</span><span class="p">(</span><span class="n">biosteamError</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Exception regarding solvers.&quot;&quot;&quot;</span></div>
 
 
-<div class="viewcode-block" id="EquilibriumError"><a class="viewcode-back" href="../../exceptions.html#biosteam.exceptions.EquilibriumError">[docs]</a><span class="k">class</span> <span class="nc">EquilibriumError</span><span class="p">(</span><span class="n">biosteam_Error</span><span class="p">):</span>
+<div class="viewcode-block" id="EquilibriumError"><a class="viewcode-back" href="../../exceptions.html#biosteam.EquilibriumError">[docs]</a><span class="k">class</span> <span class="nc">EquilibriumError</span><span class="p">(</span><span class="n">biosteamError</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Exception regarding equilibrium.&quot;&quot;&quot;</span></div>
 
 
-<div class="viewcode-block" id="DimensionError"><a class="viewcode-back" href="../../exceptions.html#biosteam.exceptions.DimensionError">[docs]</a><span class="k">class</span> <span class="nc">DimensionError</span><span class="p">(</span><span class="n">biosteam_Error</span><span class="p">):</span>
+<div class="viewcode-block" id="DimensionError"><a class="viewcode-back" href="../../exceptions.html#biosteam.DimensionError">[docs]</a><span class="k">class</span> <span class="nc">DimensionError</span><span class="p">(</span><span class="n">biosteamError</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Exception regarding wrong dimensions.&quot;&quot;&quot;</span></div>
 
 
 <span class="c1"># Python&#39;s built in KeyError quotes the message, used as a by-pass for the debbuger</span>
-<span class="n">KE</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="s1">&#39;KeyError&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">biosteam_Error</span><span class="p">,</span> <span class="p">),</span> <span class="p">{})</span>
+<span class="n">KE</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="s1">&#39;KeyError&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">biosteamError</span><span class="p">,</span> <span class="p">),</span> <span class="p">{})</span>
 
 <span class="c1"># %% Biosteam Warnings</span>
 
-<div class="viewcode-block" id="DesignWarning"><a class="viewcode-back" href="../../exceptions.html#biosteam.exceptions.DesignWarning">[docs]</a><span class="k">class</span> <span class="nc">DesignWarning</span><span class="p">(</span><span class="ne">Warning</span><span class="p">):</span>
+<div class="viewcode-block" id="DesignWarning"><a class="viewcode-back" href="../../exceptions.html#biosteam.DesignWarning">[docs]</a><span class="k">class</span> <span class="nc">DesignWarning</span><span class="p">(</span><span class="ne">Warning</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Exception regarding design constraints.&quot;&quot;&quot;</span></div>
+    
+<span class="c1">#%% Decorators and functions</span>
 
+<div class="viewcode-block" id="notify_error"><a class="viewcode-back" href="../../exceptions.html#biosteam.notify_error">[docs]</a><span class="k">def</span> <span class="nf">notify_error</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Decorate class method to provide a location summary when an error occurs.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="s1">&#39;_original&#39;</span><span class="p">):</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="n">_original</span>
 
-<span class="c1"># %% Exception handling</span>
-
-<div class="viewcode-block" id="ignore_wrapper"><a class="viewcode-back" href="../../exceptions.html#biosteam.exceptions.ignore_wrapper">[docs]</a><span class="k">def</span> <span class="nf">ignore_wrapper</span><span class="p">(</span><span class="n">function</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Wrap function with a try-except clause to ignore any errors.&quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">ignore_function</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">function</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="k">pass</span>
-    <span class="k">return</span> <span class="n">ignore_function</span></div>
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># biosteam_Warnings already include location, so it is removed</span>
+            <span class="n">location</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;@{type(self).__name__} </span><span class="si">{self}</span><span class="s1">&#39;</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">location</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            
+            <span class="c1"># Add location to message</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="s1">&#39;@&#39;</span> <span class="ow">in</span> <span class="n">msg</span> <span class="ow">and</span> <span class="s1">&#39;:</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="ow">in</span> <span class="n">msg</span><span class="p">):</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="n">location</span> <span class="o">+</span> <span class="n">f</span><span class="s1">&#39;.</span><span class="si">{func.__name__}</span><span class="s1">:</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">msg</span>                 
+            
+            <span class="c1"># Raise exception with same traceback but new message</span>
+            <span class="kn">import</span> <span class="nn">sys</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="ow">is</span> <span class="ne">KeyError</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">KE</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span><span class="o">.</span><span class="n">with_traceback</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)(</span><span class="n">msg</span><span class="p">)</span><span class="o">.</span><span class="n">with_traceback</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[</span><span class="mi">2</span><span class="p">])</span>
+    
+    <span class="n">wrapper</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="vm">__name__</span>
+    <span class="n">wrapper</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="vm">__doc__</span>
+    <span class="n">wrapper</span><span class="o">.</span><span class="n">_original</span> <span class="o">=</span> <span class="n">func</span>
+    <span class="n">wrapper</span><span class="o">.</span><span class="vm">__annotations__</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="vm">__annotations__</span>
+    <span class="k">return</span> <span class="n">wrapper</span></div>
 
 
 

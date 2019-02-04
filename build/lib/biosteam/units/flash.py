@@ -170,7 +170,7 @@ class Flash(Unit):
         he._ins = self._ins
         he-ms
 
-    def run(self):
+    def _run(self)
         # Unpack
         vap, liq = self.outs
         feed = self.ins[0]
@@ -610,7 +610,7 @@ class EstimateFlash(Flash):
         he._ins = self._ins
         he.outs = self._outs
 
-    def run(self):
+    def _run(self)
         feed = self.ins[0]
         top, bot = self.outs
         Kspecies, Ks, top_solvents, top_split, bot_solvents, bot_split = (
@@ -667,7 +667,7 @@ class Flash_PQin(Unit):
         cached['liquid_H'] = liquid.H
         cached['no_ph_ch'] = no_ph_ch
 
-    def run(self):
+    def _run(self)
         # Unpack
         feed = self.ins[0]
         component, Qin = (self.kwargs[i] for i in ('component', 'Qin'))
@@ -729,7 +729,7 @@ class Flash_PV(Unit):
         vapor.__dict__.update(phase='g', T=Tf, P=P)
         liquid.__dict__.update(phase='l', T=Tf, P=P)
 
-    def run(self):
+    def _run(self)
         # Unpack
         feed = self.ins[0]
         component, V = (self.kwargs[i] for i in ('component', 'V'))
@@ -765,7 +765,7 @@ class P69_flash(Flash):
         self.heat_utilities = he.heat_utilities
         he._ins = self._ins
 
-    def run(self):
+    def _run(self)
         split = self.kwargs['split']
         top, bot = self.outs
         net_mol = self._mol_in

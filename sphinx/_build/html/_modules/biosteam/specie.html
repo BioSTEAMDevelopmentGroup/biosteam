@@ -326,19 +326,36 @@
         <span class="k">return</span> <span class="n">child</span></div>
 
     <span class="c1"># Representation</span>
-    <span class="k">def</span> <span class="nf">_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Information on self&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">f</span><span class="s2">&quot;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="se">\n</span><span class="s2"> phase: &#39;</span><span class="si">{self.phase}</span><span class="s2">&#39;, T: </span><span class="si">{self.T:.2f}</span><span class="s2"> K, P: </span><span class="si">{self.P:.0f}</span><span class="s2"> Pa&quot;</span>
+    <span class="k">def</span> <span class="nf">_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">show_units</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return string with all specifications.&quot;&quot;&quot;</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span>
+        <span class="n">T_units</span> <span class="o">=</span> <span class="n">show_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">)</span>
+        <span class="n">P_units</span> <span class="o">=</span> <span class="n">show_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;P&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Default units</span>
+        <span class="n">T_units</span> <span class="o">=</span> <span class="n">T_units</span> <span class="ow">or</span> <span class="s1">&#39;K&#39;</span>
+        <span class="n">P_units</span> <span class="o">=</span> <span class="n">P_units</span> <span class="ow">or</span> <span class="s1">&#39;Pa&#39;</span>
+        
+        <span class="c1"># First line</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="se">\n</span><span class="s2">&quot;</span>
+        
+        <span class="c1"># Second line (thermo)</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">Q_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">units</span><span class="p">[</span><span class="s1">&#39;T&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">T_units</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="n">Q_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">units</span><span class="p">[</span><span class="s1">&#39;P&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">P_units</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
+        <span class="n">info</span> <span class="o">+=</span> <span class="n">f</span><span class="s2">&quot; phase: &#39;</span><span class="si">{self.phase}</span><span class="s2">&#39;, T: </span><span class="si">{T:.5g}</span><span class="s2"> </span><span class="si">{T_units}</span><span class="s2">, P: </span><span class="si">{P:.6g}</span><span class="s2"> </span><span class="si">{P_units}</span><span class="s2">&quot;</span>
+        
+        <span class="k">return</span> <span class="n">info</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span>
 
-<div class="viewcode-block" id="Specie.show"><a class="viewcode-back" href="../../Specie.html#biosteam.Specie.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Specie.show"><a class="viewcode-back" href="../../Specie.html#biosteam.Specie.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">show_units</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;print information on self&quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">())</span></div>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="o">**</span><span class="n">show_units</span><span class="p">))</span></div>
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="s1">&gt;&#39;</span></div>
+
 </pre></div>
 
           </div>

@@ -26,7 +26,7 @@ class Tank(Unit):
     def tau(self, tau):
         self._tau = tau
 
-    def run(self):
+    def _run(self)
         self.outs[0].copy_like(self.ins[0])
 
 
@@ -136,7 +136,7 @@ class PCT(MixTank):
         self.outs[0].T = self.kwargs['T']
         self.outs[0].phase = self.kwargs['phase']
 
-    def run(self):
+    def _run(self)
         # All input streams must be the same phase
         out = self.outs[0]
         out.mol = self._mol_in

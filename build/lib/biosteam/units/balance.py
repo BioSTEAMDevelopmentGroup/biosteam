@@ -62,7 +62,7 @@ class MassBalance(Unit, metaclass=metaFinal):
         cached['bal_index'] = [sp_index[specie] for specie in specie_IDs]
         cached['linalg_solver'] = solver
 
-    def run(self):
+    def _run(self)
         """Solve mass balance by iteration."""
         # SOLVING BY ITERATION TAKES 15 LOOPS FOR 2 STREAMS
         # SOLVING BY LEAST-SQUARES TAKES 40 LOOPS
@@ -183,7 +183,7 @@ class EnergyBalance(Unit, metaclass=metaFinal):
     """
     _Graphics = MassBalance._Graphics
     
-    def run(self):
+    def _run(self)
         # Get arguments
         ins = self.ins.copy()
         outs = self.outs.copy()

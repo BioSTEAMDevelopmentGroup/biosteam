@@ -344,8 +344,8 @@
     <span class="k">def</span> <span class="nf">_design_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Retrieve run_args and properties</span>
         <span class="n">vap</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span>
-        <span class="n">v</span> <span class="o">=</span> <span class="n">vap</span><span class="o">.</span><span class="n">prop_quantity</span>
-        <span class="n">l</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">prop_quantity</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">vap</span><span class="o">.</span><span class="n">quantity</span>
+        <span class="n">l</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">quantity</span>
         <span class="n">rhov</span> <span class="o">=</span> <span class="n">v</span><span class="p">(</span><span class="s1">&#39;rho&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;lb/ft3&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>  <span class="c1"># VapDensity</span>
         <span class="n">rhol</span> <span class="o">=</span> <span class="n">l</span><span class="p">(</span><span class="s1">&#39;rho&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;lb/ft3&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>  <span class="c1"># LLiqDensity</span>
         <span class="n">P</span> <span class="o">=</span> <span class="n">l</span><span class="p">(</span><span class="s1">&#39;P&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;psi&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>  <span class="c1"># Pressure</span>
@@ -372,7 +372,7 @@
         <span class="k">for</span> <span class="n">sp_ID</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">,</span> <span class="n">xs</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="mf">0.1</span><span class="p">:</span>
                 <span class="n">specie</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">liq</span><span class="o">.</span><span class="n">_species</span><span class="p">,</span> <span class="n">sp_ID</span><span class="p">)</span>
-                <span class="c1"># TODO: Verify unifac groups determine if glycol and/or amine</span>
+                <span class="c1"># TODO: Verify unifac groups to determine if glycol and/or amine</span>
                 <span class="n">dct</span> <span class="o">=</span> <span class="n">specie</span><span class="o">.</span><span class="n">UNIFAC_groups</span>
                 <span class="n">keys</span> <span class="o">=</span> <span class="n">dct</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
                 <span class="k">if</span> <span class="mi">14</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
@@ -505,14 +505,14 @@
             <span class="n">outerIter</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="n">At</span> <span class="o">=</span> <span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="n">D</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mf">4.0</span>
 
-            <span class="c1"># Calculate Low Liq.  Area</span>
-            <span class="n">Hlll</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="mf">0.5</span><span class="o">*</span><span class="n">D</span> <span class="o">+</span> <span class="mf">7.0</span><span class="p">)</span>      <span class="c1"># D is in ft but Hlll is in inches</span>
-            <span class="n">Hlll</span> <span class="o">=</span> <span class="n">Hlll</span><span class="o">/</span><span class="mf">12.0</span>
+            <span class="c1"># Calculate Lower Liquid Area</span>
+            <span class="n">Hlll</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="mf">0.5</span><span class="o">*</span><span class="n">D</span> <span class="o">+</span> <span class="mf">7.0</span><span class="p">)</span>  
+            <span class="n">Hlll</span> <span class="o">=</span> <span class="n">Hlll</span><span class="o">/</span><span class="mf">12.0</span> <span class="c1"># D is in ft but Hlll is in inches</span>
             <span class="n">X</span> <span class="o">=</span> <span class="n">Hlll</span><span class="o">/</span><span class="n">D</span>
             <span class="n">Y</span> <span class="o">=</span> <span class="n">HNATable</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span>
             <span class="n">Alll</span> <span class="o">=</span> <span class="n">Y</span><span class="o">*</span><span class="n">At</span>
 
-            <span class="c1"># Calculate the Vap.  disengagement area, Av</span>
+            <span class="c1"># Calculate the Vapor  disengagement area, Av</span>
             <span class="n">Hv</span> <span class="o">=</span> <span class="mf">0.2</span><span class="o">*</span><span class="n">D</span>
             <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">Mist</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">Hv</span> <span class="o">&lt;=</span> <span class="mf">2.0</span><span class="p">:</span>
                 <span class="n">Hv</span> <span class="o">=</span> <span class="mf">2.0</span>

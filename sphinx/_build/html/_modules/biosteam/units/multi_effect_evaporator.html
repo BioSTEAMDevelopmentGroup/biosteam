@@ -59,11 +59,9 @@
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Unit</span>
+<span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">np</span>
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">brentq</span>
 <span class="kn">from</span> <span class="nn">biosteam.units</span> <span class="k">import</span> <span class="n">Flash_PV</span><span class="p">,</span> <span class="n">Flash_PQin</span><span class="p">,</span> <span class="n">Pump</span><span class="p">,</span> <span class="n">Mixer</span><span class="p">,</span> <span class="n">HXutility</span>
-<span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">np</span>
-<span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">ht</span>
 <span class="n">log</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span>
 <span class="n">exp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span>
@@ -135,13 +133,11 @@
         <span class="n">component</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">P_liq</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
                                   <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;V&#39;</span><span class="p">,</span> <span class="s1">&#39;P_liq&#39;</span><span class="p">))</span>
         <span class="p">[</span><span class="n">out_wt_solids</span><span class="p">,</span> <span class="n">liq</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">ins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span>
         
         <span class="c1"># Create components</span>
         <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">P</span><span class="p">)</span> <span class="c1"># Number of evaporators</span>
         <span class="n">evap</span> <span class="o">=</span> <span class="n">Flash_PV</span><span class="p">(</span><span class="s1">&#39;Evaporator0&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;vap&#39;</span><span class="p">,</span> <span class="s1">&#39;liq&#39;</span><span class="p">),</span>
                         <span class="n">component</span><span class="o">=</span><span class="n">component</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">P</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">evap</span><span class="o">.</span><span class="n">ins</span> <span class="o">=</span> <span class="n">ins</span>
         <span class="n">evaporators</span> <span class="o">=</span> <span class="p">[</span><span class="n">evap</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
             <span class="n">evap</span> <span class="o">=</span> <span class="n">Flash_PQin</span><span class="p">(</span><span class="s1">&#39;Evaporator&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span>
@@ -183,13 +179,14 @@
         <span class="c1"># Set-up components</span>
         <span class="n">components</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span>
         <span class="n">evaporators</span> <span class="o">=</span> <span class="n">components</span><span class="p">[</span><span class="s1">&#39;evaporators&#39;</span><span class="p">]</span>
-        <span class="n">evaporators</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ins</span> <span class="o">=</span> <span class="n">ins</span>
+        <span class="n">evaporators</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ins</span> <span class="o">=</span> <span class="p">[</span><span class="n">Stream</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ins</span><span class="p">]</span>
         <span class="n">condenser</span> <span class="o">=</span> <span class="n">components</span><span class="p">[</span><span class="s1">&#39;condenser&#39;</span><span class="p">]</span>
         <span class="n">pumps</span> <span class="o">=</span> <span class="n">components</span><span class="p">[</span><span class="s1">&#39;pumps&#39;</span><span class="p">]</span>
         <span class="n">mixer</span> <span class="o">=</span> <span class="n">components</span><span class="p">[</span><span class="s1">&#39;mixer&#39;</span><span class="p">]</span>
         <span class="n">brentq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_V_error</span><span class="p">,</span> <span class="mf">0.001</span><span class="p">,</span> <span class="mf">0.999</span><span class="p">,</span> <span class="n">xtol</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">)</span>
         
         <span class="c1"># Condensing vapor from last effector</span>
+        
         <span class="n">outs_vap</span> <span class="o">=</span> <span class="n">evaporators</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">condenser</span><span class="o">.</span><span class="n">ins</span> <span class="o">=</span> <span class="p">[</span><span class="n">outs_vap</span><span class="p">]</span>
         <span class="n">condenser</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
@@ -211,7 +208,6 @@
         <span class="n">mixer</span><span class="o">.</span><span class="n">ins</span> <span class="o">=</span> <span class="n">outs_liq</span>
         <span class="n">mixer</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
         <span class="n">liq</span><span class="o">.</span><span class="n">copy_like</span><span class="p">(</span><span class="n">mixer</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ins</span> <span class="o">=</span> <span class="n">ins</span>
 
     <span class="k">def</span> <span class="nf">_lazy_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>

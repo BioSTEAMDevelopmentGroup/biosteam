@@ -72,6 +72,7 @@
  | <a href="#N"><strong>N</strong></a>
  | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
+ | <a href="#Q"><strong>Q</strong></a>
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
@@ -143,7 +144,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="utils.html#module-biosteam.utils">biosteam.utils (module)</a>
 </li>
-      <li><a href="exceptions.html#biosteam.exceptions.biosteam_Error">biosteam_Error</a>
+      <li><a href="exceptions.html#biosteam.exceptions.biosteamError">biosteamError</a>
 </li>
       <li><a href="Stream.html#biosteam.Stream.bubble_point">bubble_point() (biosteam.Stream method)</a>
 </li>
@@ -184,6 +185,8 @@
       <li><a href="Species.html#biosteam.Species.combine">combine() (biosteam.Species class method)</a>
 </li>
       <li><a href="System.html#biosteam.System.converge">converge() (biosteam.System method)</a>
+</li>
+      <li><a href="System.html#biosteam.System.converge_method">converge_method (biosteam.System attribute)</a>
 </li>
       <li><a href="utils.html#biosteam.utils.copy_attr">copy_attr() (in module biosteam.utils)</a>
 </li>
@@ -235,6 +238,10 @@
 </li>
       <li><a href="HeatUtility.html#biosteam.HeatUtility.define_utility">define_utility() (biosteam.HeatUtility method)</a>
 </li>
+      <li><a href="Stream.html#biosteam.Stream.derivative">derivative() (biosteam.Stream method)</a>
+</li>
+      <li><a href="Stream.html#biosteam.Stream.derivative_plot">derivative_plot() (biosteam.Stream method)</a>
+</li>
       <li><a href="Centrifuge_LLE.html#biosteam.Centrifuge_LLE.design">design() (biosteam.Centrifuge_LLE method)</a>
 
       <ul>
@@ -251,10 +258,10 @@
         <li><a href="StorageTank.html#biosteam.StorageTank.design">(biosteam.StorageTank method)</a>
 </li>
       </ul></li>
-      <li><a href="exceptions.html#biosteam.exceptions.DesignError">DesignError</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="exceptions.html#biosteam.exceptions.DesignError">DesignError</a>
+</li>
       <li><a href="exceptions.html#biosteam.exceptions.DesignWarning">DesignWarning</a>
 </li>
       <li><a href="Stream.html#biosteam.Stream.dew_point">dew_point() (biosteam.Stream method)</a>
@@ -431,8 +438,6 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="exceptions.html#biosteam.exceptions.ignore_wrapper">ignore_wrapper() (in module biosteam.exceptions)</a>
-</li>
       <li><a href="utils.html#biosteam.utils.Workbook.index">index() (biosteam.utils.Workbook method)</a>
 </li>
       <li><a href="MassBalance.html#biosteam.MassBalance.ins">ins (biosteam.MassBalance attribute)</a>
@@ -487,10 +492,10 @@
 </li>
       <li><a href="MixedStream.html#biosteam.MixedStream.LIQUID_molfrac">LIQUID_molfrac (biosteam.MixedStream attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="MixedStream.html#biosteam.MixedStream.liquid_molfrac">liquid_molfrac (biosteam.MixedStream attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="MixedStream.html#biosteam.MixedStream.LIQUID_molnet">LIQUID_molnet (biosteam.MixedStream attribute)</a>
 </li>
       <li><a href="MixedStream.html#biosteam.MixedStream.liquid_molnet">liquid_molnet (biosteam.MixedStream attribute)</a>
@@ -508,7 +513,11 @@
       <li><a href="MixedStream.html#biosteam.MixedStream.liquid_volnet">liquid_volnet (biosteam.MixedStream attribute)</a>
 </li>
       <li><a href="MixedStream.html#biosteam.MixedStream.LLE">LLE() (biosteam.MixedStream method)</a>
+
+      <ul>
+        <li><a href="Stream.html#biosteam.Stream.LLE">(biosteam.Stream method)</a>
 </li>
+      </ul></li>
       <li><a href="utils.html#biosteam.utils.load_workbook">load_workbook() (in module biosteam.utils)</a>
 </li>
   </ul></td>
@@ -597,6 +606,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="Stream.html#biosteam.Stream.nonzero_species">nonzero_species (biosteam.Stream attribute)</a>
 </li>
+      <li><a href="exceptions.html#biosteam.exceptions.notify_error">notify_error() (in module biosteam.exceptions)</a>
+</li>
       <li><a href="Stream.html#biosteam.Stream.nu">nu (biosteam.Stream attribute)</a>
 </li>
   </ul></td>
@@ -641,6 +652,8 @@
         <li><a href="Stream.html#biosteam.Stream.phase">(biosteam.Stream attribute)</a>
 </li>
       </ul></li>
+      <li><a href="Stream.html#biosteam.Stream.plot">plot() (biosteam.Stream method)</a>
+</li>
       <li><a href="Distillation.html#biosteam.Distillation.plot_stages">plot_stages() (biosteam.Distillation method)</a>
 </li>
       <li><a href="Distillation.html#biosteam.Distillation.power_utility">power_utility (biosteam.Distillation attribute)</a>
@@ -649,29 +662,27 @@
         <li><a href="Unit.html#biosteam.Unit.power_utility">(biosteam.Unit attribute)</a>
 </li>
       </ul></li>
-      <li><a href="PowerUtility.html#biosteam.PowerUtility">PowerUtility (class in biosteam)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="PowerUtility.html#biosteam.PowerUtility">PowerUtility (class in biosteam)</a>
+</li>
       <li><a href="Stream.html#biosteam.Stream.Pr">Pr (biosteam.Stream attribute)</a>
 </li>
-      <li><a href="Stream.html#biosteam.Stream.prop_derivative">prop_derivative() (biosteam.Stream method)</a>
-</li>
-      <li><a href="Stream.html#biosteam.Stream.prop_derivative_plot">prop_derivative_plot() (biosteam.Stream method)</a>
-</li>
-      <li><a href="Stream.html#biosteam.Stream.prop_plot">prop_plot() (biosteam.Stream method)</a>
-</li>
       <li><a href="Specie.html#biosteam.Specie.prop_quantity">prop_quantity() (biosteam.Specie method)</a>
-
-      <ul>
-        <li><a href="Stream.html#biosteam.Stream.prop_quantity">(biosteam.Stream method)</a>
 </li>
-      </ul></li>
       <li><a href="utils.html#biosteam.utils.property_array">property_array (class in biosteam.utils)</a>
 </li>
       <li><a href="utils.html#biosteam.utils.PropertyFactory">PropertyFactory() (in module biosteam.utils)</a>
 </li>
       <li><a href="Pump.html#biosteam.Pump">Pump (class in biosteam)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Q">Q</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="Stream.html#biosteam.Stream.quantity">quantity() (biosteam.Stream method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -695,9 +706,11 @@
 </li>
       <li><a href="utils.html#biosteam.utils.TextManager.replace">replace() (biosteam.utils.TextManager method)</a>
 </li>
+      <li><a href="utils.html#biosteam.utils.replace_all">replace_all() (in module biosteam.utils)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="utils.html#biosteam.utils.replace_all">replace_all() (in module biosteam.utils)</a>
+      <li><a href="System.html#biosteam.System.reset">reset() (biosteam.System method)</a>
 </li>
       <li><a href="utils.html#biosteam.utils.TextManager.restart">restart() (biosteam.utils.TextManager method)</a>
 </li>
@@ -737,13 +750,9 @@
 </li>
       <li><a href="Flash.html#biosteam.Flash.SepType">SepType (biosteam.Flash attribute)</a>
 </li>
-      <li><a href="Stream.html#biosteam.Stream.set_mass">set_mass() (biosteam.Stream method)</a>
-</li>
       <li><a href="Species.html#biosteam.Species.set_props">set_props() (biosteam.Species method)</a>
 </li>
       <li><a href="System.html#biosteam.System.set_spec">set_spec() (biosteam.System method)</a>
-</li>
-      <li><a href="Stream.html#biosteam.Stream.set_vol">set_vol() (biosteam.Stream method)</a>
 </li>
       <li><a href="utils.html#biosteam.utils.Workbook.sheetnames">sheetnames (biosteam.utils.Workbook attribute)</a>
 </li>
@@ -779,10 +788,10 @@
 </li>
       <li><a href="MixedStream.html#biosteam.MixedStream.solid_mass">solid_mass (biosteam.MixedStream attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="MixedStream.html#biosteam.MixedStream.solid_massfrac">solid_massfrac (biosteam.MixedStream attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="MixedStream.html#biosteam.MixedStream.solid_massnet">solid_massnet (biosteam.MixedStream attribute)</a>
 </li>
       <li><a href="MixedStream.html#biosteam.MixedStream.solid_mol">solid_mol (biosteam.MixedStream attribute)</a>
@@ -922,7 +931,11 @@
       <li><a href="Distillation.html#biosteam.Distillation.vessel_material">vessel_material (biosteam.Distillation attribute)</a>
 </li>
       <li><a href="MixedStream.html#biosteam.MixedStream.VLE">VLE() (biosteam.MixedStream method)</a>
+
+      <ul>
+        <li><a href="Stream.html#biosteam.Stream.VLE">(biosteam.Stream method)</a>
 </li>
+      </ul></li>
       <li><a href="Stream.html#biosteam.Stream.Vm">Vm (biosteam.Stream attribute)</a>
 </li>
       <li><a href="MixedStream.html#biosteam.MixedStream.vol">vol (biosteam.MixedStream attribute)</a>

@@ -38,7 +38,7 @@ class HX(Unit):
         self._cached = {'s_tube': Stream('s_tube'),
                         's_shell': Stream('s_shell')}
 
-    def run(self):
+    def _run(self)
         feed = self.ins[0]
         s = self.outs[0]
         s.mol = feed.mol

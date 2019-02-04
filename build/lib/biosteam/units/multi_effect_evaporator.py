@@ -113,7 +113,7 @@ class MultiEffectEvaporator(Unit):
         self.components = {'evaporators': evaporators,
                            'condenser': condenser, 'pumps': pumps, 'mixer': mixer}
 
-    def run(self):
+    def _run(self)
         component, P, V, P_liq = (self.kwargs[i]
                                   for i in ('component', 'P', 'V', 'P_liq'))
         [out_wt_solids, liq] = self.outs

@@ -311,7 +311,7 @@ class Dist(Unit):
         vap.mol[LNK_index] = LNK_mol
         liq.mol[HNK_index] = HNK_mol
     
-    def run(self):
+    def _run(self)
         # Run mass balance
         self._mass_balance()
         

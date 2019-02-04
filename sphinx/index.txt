@@ -65,12 +65,12 @@ BioSTEAM objects serve as basic building blocks to design and simulate a biorefi
 
 .. code-block:: python
 
-   >>> s1 = Stream(ID='s1', flow=(1, 2), units='kmol/hr', T=300, P=101325)
+   >>> s1 = Stream(ID='s1', flow=(100, 200), units='kmol/hr', T=300, P=101325)
    >>> s1.show()
    Stream: s1
     phase: 'l', T: 300.00 K, P: 101325 Pa
-    flow (kmol/hr): Ethanol   1
-                    Water     2
+    flow (kmol/hr): Ethanol   100
+                    Water     200
    
 **Create a Unit class** passing an ID, IDs for output streams, and any key word arguments specific to the Unit:
 
@@ -89,27 +89,27 @@ BioSTEAM objects serve as basic building blocks to design and simulate a biorefi
 
 .. figure:: F1_flash.png
 
-**Run the unit** and see the results:
+**Simulate the unit** and see the results:
 
 .. code-block:: python
 
-   >>> F1.run()
+   >>> F1.simulate()
    >>> F1.show()
    Flash: F1
    ins...
    [0] s1
        phase: 'l', T: 300.00 K, P: 101325 Pa
-       flow (kmol/hr): Ethanol   1
-                       Water     2
+       flow (kmol/hr): Ethanol   100
+                       Water     200
    outs...
    [0] vapor
        phase: 'g', T: 357.20 K, P: 101325 Pa
-       flow (kmol/hr): Ethanol   0.761
-                       Water     0.739
+       flow (kmol/hr): Ethanol   76.1
+                       Water     73.9
    [1] liquid
        phase: 'l', T: 357.20 K, P: 101325 Pa
-       flow (kmol/hr): Ethanol   0.239
-                       Water     1.26
+       flow (kmol/hr): Ethanol   23.9
+                       Water     126.
 
 For a more detailed example check out :doc:`Tutorial`.
 

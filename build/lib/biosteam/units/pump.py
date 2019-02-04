@@ -128,7 +128,7 @@ class Pump(Unit):
         if P:
             self.outs[0].P = P
 
-    def run(self):
+    def _run(self)
         ins = self.ins
         outs = self.outs
         for i, o in zip(ins, outs):

@@ -477,7 +477,7 @@ class HXutility(HX):
               'V': None,
               'U': 'Tabulated'}
     
-    def run(self):
+    def _run(self)
         feed = self.ins[0]
         s = self.outs[0]
         s.copy_like(feed)
@@ -583,7 +583,7 @@ class HXprocess(HX):
         s_out1, s_out2  = self.outs
         return s_in1, s_in2, s_out1, s_out2
     
-    def run(self):
+    def _run(self)
         hx = True # If false, a stream is empty and no heat exchanger occurs
         for si, so in zip(self.ins, self.outs):
             if si.molnet <= 0.001:

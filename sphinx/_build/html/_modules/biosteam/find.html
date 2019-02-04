@@ -72,7 +72,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">dct</span> <span class="ow">in</span> <span class="n">dictionaries</span><span class="p">:</span>
         <span class="n">obj</span> <span class="o">=</span> <span class="n">dct</span><span class="p">[</span><span class="n">item_ID</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">obj</span><span class="p">:</span> <span class="k">return</span> <span class="n">obj</span></div>
+        <span class="k">if</span> <span class="n">obj</span><span class="p">:</span> <span class="k">return</span> <span class="n">obj</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;No registered item &#39;</span><span class="si">{item_ID}</span><span class="s2">&#39;&quot;</span><span class="p">)</span></div>
 
 <span class="c1"># [WeakRefBook] Dictionary of systems</span>
 <span class="n">find</span><span class="o">.</span><span class="n">system</span> <span class="o">=</span> <span class="n">WeakRefBook</span><span class="p">()</span>  
@@ -86,17 +87,10 @@
 <span class="c1"># [WeakRefBook] Dictionary of streams</span>
 <span class="n">find</span><span class="o">.</span><span class="n">stream</span> <span class="o">=</span> <span class="n">WeakRefBook</span><span class="p">()</span>  
 
-<span class="c1"># [dict] Easter eggs</span>
-<span class="n">find</span><span class="o">.</span><span class="n">_easter_eggs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Yoel&#39;</span><span class="p">:</span> <span class="s2">&quot;Benevolent dictator for life&quot;</span><span class="p">,</span>
-                     <span class="s1">&#39;BDFL&#39;</span><span class="p">:</span> <span class="s1">&#39;Yoel&#39;</span><span class="p">,</span>
-                     <span class="s1">&#39;Guest Group&#39;</span><span class="p">:</span> <span class="s2">&quot;A happy bunch&quot;</span><span class="p">,</span>
-                     <span class="s1">&#39;A happy bunch&#39;</span><span class="p">:</span> <span class="s1">&#39;Guest Group&#39;</span><span class="p">}</span>
-
 <span class="n">dictionaries</span> <span class="o">=</span> <span class="p">(</span><span class="n">find</span><span class="o">.</span><span class="n">system</span><span class="p">,</span>
                 <span class="n">find</span><span class="o">.</span><span class="n">line</span><span class="p">,</span>
                 <span class="n">find</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span>
-                <span class="n">find</span><span class="o">.</span><span class="n">stream</span><span class="p">,</span>
-                <span class="n">find</span><span class="o">.</span><span class="n">_easter_eggs</span><span class="p">)</span>
+                <span class="n">find</span><span class="o">.</span><span class="n">stream</span><span class="p">)</span>
 
 </pre></div>
 
