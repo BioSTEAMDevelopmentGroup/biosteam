@@ -32,7 +32,7 @@ class MolecularSieve(Unit):
         [1] Process Design and Economics for Biochemical Conversion of Lignocellulosic Biomass to Ethanol Dilute-Acid Pretreatment and Enzymatic Hydrolysis of Corn Stover. D. Humbird, R. Davis, L. Tao, C. Kinchin, D. Hsu, and A. Aden (National Renewable Energy Laboratory Golden, Colorado). P. Schoen, J. Lukas, B. Olthof, M. Worley, D. Sexton, and D. Dudgeon (Harris Group Inc. Seattle, Washington and Atlanta, Georgia)
     """
     kwargs = Splitter.kwargs
-    run = Splitter.run
+    _run = Splitter._run
     _power_util = True
     
     #: Original Price (USD)
@@ -44,7 +44,7 @@ class MolecularSieve(Unit):
     #: Scaling exponent
     exp = 0.60 
     
-    def cost(self):
+    def _cost(self):
         """
         * 'Molecular Sieve Cost': (USD)
         * 'Pressure Filter Pressing': (USD)

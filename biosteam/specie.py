@@ -90,8 +90,8 @@ class Specie(metaclass=metaSpecie):
     phase_ref = 'l' # Reference phase
     P_ref = 101325  # Reference pressure (Pa)
     T_ref = 298.15  # Reference temperature (K)
-    S_ref = 0       # Reference entropy (kJ/hr)
-    H_ref = 0       # Reference enthalpy (kJ/hr)
+    S_ref = 0       # Reference entropy (kJ/kmol)
+    H_ref = 0       # Reference enthalpy (kJ/kmol)
     #: Method for taking the integral of Cp
     _func_integral = staticmethod(_func_int_average)
     MW = 1 # Arbitrary molecular weight (g/mol)
@@ -271,16 +271,33 @@ class Specie(metaclass=metaSpecie):
         return child
 
     # Representation
-    def _info(self):
-        """Information on self"""
-        return f"{type(self).__name__}: {self.ID}\n phase: '{self.phase}', T: {self.T:.2f} K, P: {self.P:.0f} Pa"
+    def _info(self, **show_units):
+        """Return string with all specifications."""
+        units = self.units
+        T_units = show_units.get('T')
+        P_units = show_units.get('P')
+        
+        # Default units
+        T_units = T_units or 'K'
+        P_units = P_units or 'Pa'
+        
+        # First line
+        info = f"{type(self).__name__}: {self.ID}\n"
+        
+        # Second line (thermo)
+        T = Q_(self.T, units['T']).to(T_units).magnitude
+        P = Q_(self.P, units['P']).to(P_units).magnitude
+        info += f" phase: '{self.phase}', T: {T:.5g} {T_units}, P: {P:.6g} {P_units}"
+        
+        return info
 
     def __str__(self):
         return self.ID
 
-    def show(self):
+    def show(self, **show_units):
         """print information on self"""
-        print(self._info())
+        print(self._info(**show_units))
 
     def __repr__(self):
         return f'<{type(self).__name__}: {self.ID}>'
+

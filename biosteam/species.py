@@ -177,16 +177,14 @@ class Species:
         if isinstance(specie_IDs, str):
             specie = getattr(self, specie_IDs)
             for attr, val in zip(TPphase, (T, P, phase)):
-                if val:
-                    setattr(specie, attr, val)
+                if val: setattr(specie, attr, val)
             return getattr(specie, prop_ID)
         else:
             props = []
             for ID in specie_IDs:
                 specie = getattr(self, ID)
                 for attr, val in zip(TPphase, (T, P, phase)):
-                    if val:
-                        setattr(specie, attr, val)
+                    if val: setattr(specie, attr, val)
                 props.append(getattr(specie, prop_ID))
         return props
 

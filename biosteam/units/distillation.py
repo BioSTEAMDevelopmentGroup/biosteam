@@ -7,7 +7,7 @@ Created on Thu Aug 23 19:33:20 2018
 """
 from biosteam import Unit, np, MixedStream, Stream
 from biosteam.utils import get_vals, approx2step
-from biosteam.exceptions import biosteam_Error, DesignError
+from biosteam.exceptions import biosteamError, DesignError
 from scipy.optimize import brentq
 from biosteam.units.hx import HXutility
 import matplotlib.pyplot as plt
@@ -232,8 +232,11 @@ class Dist(Unit):
             raise ValueError(f"Vessel material must be one of the following: {dummy}")
         self._F_Mstr = vessel_material  
 
+    def _init(self):
+        self._condenser = HXutility(self.ID+' condenser', None)
+        self._boiler = HXutility(self.ID+' boiler', None)
 
-    def setup(self):
+    def _setup(self):
         vap, liq = self.outs
         kwargs = self.kwargs
         self._cached = cached = {}
@@ -272,11 +275,6 @@ class Dist(Unit):
                 raise ValueError(f"Intermediate volatile specie, '{vap._specie_IDs[i]}', between light and heavy key, ['{LK}', '{HK}'].")
     
         self._update_composition_requirement(kwargs['y_top'], kwargs['x_bot'])
-        self._setup_components()
-        
-    def _setup_components(self):
-        self._condenser = HXutility(self.ID+' condenser', None)
-        self._boiler = HXutility(self.ID+' boiler', None)
     
     def _update_composition_requirement(self, y_top, x_bot):
         # Set light and heavy key compositions at top and bottoms product
@@ -311,8 +309,7 @@ class Dist(Unit):
         vap.mol[LNK_index] = LNK_mol
         liq.mol[HNK_index] = HNK_mol
     
-    def run(self):
-        # Run mass balance
+    def _run(self):        # Run mass balance
         self._mass_balance()
         
         # Unpack arguments
@@ -708,9 +705,9 @@ class Dist(Unit):
                           T=condensate.T, P=condensate.P)
         ms1.vapor_mol = distillate.mol
         s_in-condenser-ms1
-        condenser.operation()
-        condenser.design()
-        condenser.cost()
+        condenser._operation()
+        condenser._design()
+        condenser._cost()
         
     def _calc_boiler(self):
         bottoms = self.outs[1]
@@ -722,11 +719,11 @@ class Dist(Unit):
                           T=boil_up.T, P=boil_up.P)
         ms1.liquid_mol = bottoms.mol
         s_in-boiler-ms1
-        boiler.operation()
-        boiler.design()
-        boiler.cost()
+        boiler._operation()
+        boiler._design()
+        boiler._cost()
         
-    def cost(self):
+    def _cost(self):
         """
         * 'Trays': (USD)
         * 'Tower': (USD)
@@ -754,7 +751,7 @@ class Distillation(Dist):
     _N_heat_util = 2
     is_divided = False #: [bool] True if the stripper and rectifier are two separate columns.    
     
-    def operation(self):
+    def _operation(self):
         """
         * 'Theoretical feed stage': (#)
         * 'Theoretical stages': (#)
@@ -792,7 +789,7 @@ class Distillation(Dist):
                 liq_mol += s.liquid_mol
                 vap_mol += s.vapor_mol
             else:
-                raise biosteam_Error(f'Invalid phase encountered in stream {s.ID}')
+                raise biosteamError(f'Invalid phase encountered in stream {s.ID}')
         cached['feed_liqmol'] = liq_mol
         cached['feed_vapmol'] = vap_mol
         LHK_mol = liq_mol[LHK_index] + vap_mol[LHK_index]
@@ -905,14 +902,14 @@ class Distillation(Dist):
             cached['condensate'] = condensate = type(liq)(flow=condensate_molfrac,
                                                           species=vle_top, T=vap.T, P=vap.P)
             condensate.mol *= L_Rmol
-            mu = condensate.prop_quantity('mu').to('mPa*s').magnitude
+            mu = condensate.quantity('mu').to('mPa*s').magnitude
             K_light = y_stages[-1]/x_stages[-1] 
             K_heavy = (1-y_stages[-1])/(1-x_stages[-1] )
             alpha = K_light/K_heavy
             cached['Rectifying Section Efficiency'] = E_rectifier = self._calc_MurphreeEfficiency(mu, alpha, L_Rmol, V_Rmol)
             
             # Calculate Murphree Efficiency for stripping section
-            mu = liq.prop_quantity('mu').to('mPa*s').magnitude
+            mu = liq.quantity('mu').to('mPa*s').magnitude
             cached['V_Smol'] = V_Smol = (R+1)*vap_molnet - sum(vap_mol)
             cached['L_Smol'] = L_Smol = R*vap_molnet + sum(liq_mol) 
             K_light = y_stages[0]/x_stages[0] 
@@ -926,7 +923,7 @@ class Distillation(Dist):
             N_stripper = np.ceil( (N_stages-mid_stage)/E_stripper )
         return N_rectifier, N_stripper
 
-    def design(self):
+    def _design(self):
         """
         Divided column:
             * 'Rectifier stages': (#)
@@ -966,12 +963,12 @@ class Distillation(Dist):
         R = Operation['Reflux']
         condensate = cached['condensate']
         rho_L = condensate.rho
-        sigma = condensate.prop_quantity('sigma').to('dyn/cm').magnitude
+        sigma = condensate.quantity('sigma').to('dyn/cm').magnitude
         L = condensate.massnet
         V = L*(R+1)/R
         vapor_stream = type(distillate).like(distillate)
         vapor_stream.mol *= R+1
-        V_vol = vapor_stream.prop_quantity('volnet').to('m^3/s').magnitude
+        V_vol = vapor_stream.quantity('volnet').to('m^3/s').magnitude
         rho_V = distillate.rho
         F_LV = self._calc_FlowParameter(L, V, rho_V, rho_L)
         C_sbf = self._calc_MaxCapacityParameter(TS, F_LV)
@@ -993,12 +990,12 @@ class Distillation(Dist):
         cached['boil_up'] = boil_up = type(distillate)(flow=boil_up_flow,
               species=cached['vle_bot'], T=bottoms.T, P=bottoms.P, phase='g')
         V = boil_up.massnet
-        V_vol = boil_up.prop_quantity('volnet').to('m^3/s').magnitude
+        V_vol = boil_up.quantity('volnet').to('m^3/s').magnitude
         rho_V = boil_up.rho
         L = sum(bottoms._MW*bottoms.molfrac*L_mol) # To get liquid going down
         F_LV = self._calc_FlowParameter(L, V, rho_V, rho_L)
         C_sbf = self._calc_MaxCapacityParameter(TS, F_LV)
-        sigma = bottoms.prop_quantity('sigma').to('dyn/cm').magnitude
+        sigma = bottoms.quantity('sigma').to('dyn/cm').magnitude
         F_F = self.F_F
         A_ha = self.A_ha
         U_f = self._calc_MaxVaporVelocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha)
@@ -1026,7 +1023,7 @@ class Distillation(Dist):
             Design['Weight'] = self._calc_Weight(Di, H, tv, rho_M)
         return Design
         
-    def cost(self):
+    def _cost(self):
         """
         Divided column:
             * 'Stripper trays': (USD)
@@ -1042,7 +1039,7 @@ class Distillation(Dist):
             * 'Boiler': (USD)
         """
         if not self.is_divided:
-            return super().cost()
+            return super()._cost()
         
         Design = self.results['Design']
         Cost = self.results['Cost']
@@ -1115,10 +1112,10 @@ class Stripper(Dist):
     __doc__ = column_doc.replace('{Column Type}', 'Stripper')
     _N_heat_util = 1    
     
-    def _setup_components(self):
+    def _init(self):
         self._boiler = HXutility(self.ID+' boiler', None)
     
-    def operation(self):
+    def _operation(self):
         """
         * 'Theoretical feed stage': (#)
         * 'Theoretical stages': (#)
@@ -1226,7 +1223,7 @@ class Stripper(Dist):
             return N_stages/stage_efficiency
         else:
             # Calculate Murphree Efficiency for stripping section
-            mu = liq.prop_quantity('mu').to('mPa*s').magnitude
+            mu = liq.quantity('mu').to('mPa*s').magnitude
             cached['V_mol'] = V_mol = B*sum(liq.mol[LHK_index])
             cached['L_mol'] = L_mol = liq.molnet + V_mol
             K_light = y_stages[0]/x_stages[0] 
@@ -1235,7 +1232,7 @@ class Stripper(Dist):
             cached['Stripping Section Efficiency'] = E_stripper = self._calc_MurphreeEfficiency(mu, alpha, L_mol, V_mol)
         return np.ceil(N_stages/E_stripper)
     
-    def design(self):
+    def _design(self):
         """
             * 'Actual stages': (#)
             * 'Height': (ft)
@@ -1264,12 +1261,12 @@ class Stripper(Dist):
         cached['boil_up'] = boil_up = type(distillate)(flow=boil_up_flow,
               species=cached['vle_bot'], T=bottoms.T, P=bottoms.P, phase='g')
         V = boil_up.massnet
-        V_vol = boil_up.prop_quantity('volnet').to('m^3/s').magnitude
+        V_vol = boil_up.quantity('volnet').to('m^3/s').magnitude
         rho_V = boil_up.rho
         L = sum(bottoms._MW*bottoms.molfrac*L_mol) # To get liquid going down
         F_LV = self._calc_FlowParameter(L, V, rho_V, rho_L)
         C_sbf = self._calc_MaxCapacityParameter(TS, F_LV)
-        sigma = bottoms.prop_quantity('sigma').to('dyn/cm').magnitude
+        sigma = bottoms.quantity('sigma').to('dyn/cm').magnitude
         F_F = self.F_F
         A_ha = self.A_ha
         U_f = self._calc_MaxVaporVelocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha)

@@ -23,9 +23,9 @@ class RotaryVacuumFilter(Unit):
         flow *= 52.91
         return flow/filter_rate
         
-    run = Splitter.run
+    _run = Splitter._run
     
-    def design(self):
+    def _design(self):
         """
         'Area': (ft^2)
         'Individual area': (ft^2)
@@ -34,7 +34,7 @@ class RotaryVacuumFilter(Unit):
         area = self._calc_Area(flow, self.filter_rate)
         self.results['Design']['Area'] = area
         
-    def cost(self):
+    def _cost(self):
         """
         'Cost': (USD)
         """

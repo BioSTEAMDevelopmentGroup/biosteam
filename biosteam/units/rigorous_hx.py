@@ -5,7 +5,7 @@ Created on Sun Nov 18 18:27:37 2018
 @author: yoelr
 """
 from biosteam import Unit, Stream, MixedStream
-from biosteam.exceptions import biosteam_Error
+from biosteam.exceptions import biosteamError
 from biosteam.utils import SmartBook
 from fluids import nearest_pipe
 import ht
@@ -33,24 +33,23 @@ class HX(Unit):
     _N_heat_util = 1
     kwargs = {'T': None}
 
-    def setup(self):
+    def _setup(self):
         self.outs[0].T = self.kwargs['T']
         self._cached = {'s_tube': Stream('s_tube'),
                         's_shell': Stream('s_shell')}
 
-    def run(self):
-        feed = self.ins[0]
+    def _run(self):        feed = self.ins[0]
         s = self.outs[0]
         s.mol = feed.mol
         s.P = feed.P
         s.phase = feed.phase
 
-    def operation(self):
+    def _operation(self):
         util = self.heat_utilities[0]
         util(self._H_out-self._H_in, self.ins[0].T, self.outs[0].T)
         return self.results['Operation']
 
-    def design(self):
+    def _design(self):
         """
         * 'Total Area': (m^2)
         * 'Clean total Area' : (m^2)
@@ -291,5 +290,5 @@ class HX(Unit):
         Design['Thickness'] = tx
         return Design
     
-    def cost(self):
+    def _cost(self):
         self.results['Cost']

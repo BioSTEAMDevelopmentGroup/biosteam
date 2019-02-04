@@ -14,7 +14,8 @@ from biosteam.utils import material_array, property_array, PropertyFactory, \
                            tuple_array, reorder, get_frac, Sink, Source
 from biosteam.find import find
 from biosteam.species import Species
-from biosteam.exceptions import SolverError, DimensionError
+from biosteam.exceptions import SolverError, EquilibriumError, \
+                                DimensionError
 from biosteam.UNIFAC import DORTMUND
 
 ln = np.log
@@ -103,6 +104,7 @@ class ShowFormat:
     def __repr__(self):
         dummy = '-in fractions-' if self.fraction else ''
         return f"<{type(self).__name__}: T='{self.T}', P='{self.P}', flow='{self.flow}'{dummy}>"
+
 
 # %% Flow properties
 
@@ -236,20 +238,13 @@ class Stream(metaclass=metaStream):
 
     **P:** [float] Pressure (Pa)
 
+    **price:** [float] (USD/kg)
+    
     ****flow_pairs:** Specie-flow pairs
 
 **Class Properties**
 
     **species** = Species(): [Species] Contains pure component thermodynamic properties for computing overall properties of Stream instances
-
-    **show_format**: [ShowFormat] Object with attributes that describe how the show method presents units
-
-**Class Attributes**
-
-    **_default_ID** = ['d', 1]: list[str, int] Default starting letter and current number for ID.
-
-    **units** = {'C': 'kJ/K/hr', 'Cp': 'J/g/K', 'Cpm': 'J/mol/K', 'H': 'kJ/hr', 'S': 'kJ/hr', 'G': 'kJ/hr', 'U': 'kJ/hr', 'A': 'kJ/hr', 'Hf': 'kJ/hr', 'MW': 'g/mol', 'P': 'Pa', 'T': 'K', 'Vm': 'm^3/mol', 'alpha': 'm^2/s', 'k': 'W/m/K', 'mass': 'kg/hr', 'massfrac': 'kg/kg', 'massnet': 'kg/hr', 'mol': 'kmol/hr', 'molfrac': 'kmol/kmol', 'molnet': 'kmol/hr', 'mu': 'Pa*s', 'nu': 'm^2/s', 'rho': 'kg/m^3', 'rhom': 'mol/m^3', 'sigma': 'N/m', 'vol': 'm^3/hr', 'volfrac': 'm^3/m^3', 'volnet': 'm^3/hr'}
-    : *[dict]* Units of measure for material properties. Items in this dictionary cannot be changed.
 
 **Examples**
 
@@ -483,8 +478,11 @@ class Stream(metaclass=metaStream):
     #: Default ID
     _ID = ''
 
+    #: Species in LLE
+    _species_eq = None
+
     def __init__(self, ID='', flow=(), species=(), units='kmol/hr',
-                 phase='l', T=298.15, P=101325, **flow_pairs):
+                 phase='l', T=298.15, P=101325, *, price=0, **flow_pairs):
         # Get species ID and set species information
         if isinstance(species, Species):
             # Set species as provided
@@ -492,17 +490,9 @@ class Stream(metaclass=metaStream):
             specie_IDs = ()
         elif hasattr(species, '__iter__'):
             specie_IDs = species
+            species = self._species
             # Copy class species data (in case it changes)
-            self._species = species = self._species
-            self._specie_IDs = self._specie_IDs
-            self._CAS = self._CAS
-            self._Nspecies = self._Nspecies
-            self._index = self._index
-            self._ID_index = self._ID_index
-            self._index_ID = self._index_ID
-            self._CAS_index = self._CAS_index 
-            self._index_CAS = self._index_CAS
-            self._MW = self._MW
+            self._copy_species(self)
         else:
             raise TypeError(f'species must be a Species object, not {type(species).__name__}')
         
@@ -564,7 +554,7 @@ class Stream(metaclass=metaStream):
             self._mol = material_array(arr)
         elif dim == vol_flow_dim:
             self._mol = material_array(flow)
-            self.set_vol(flow_wt_units.to(vol_units).magnitude)
+            self._vol[:] = flow_wt_units.to(vol_units).magnitude
         else:
             raise DimensionError(f"Dimensions for flow units must be in molar, mass or volumetric flow rates, not '{dim}'.")
 
@@ -584,6 +574,22 @@ class Stream(metaclass=metaStream):
             v = VolumetricFlow(specie, (self, mol[i:i+1]))
             vol.append(v)
         self._vol = property_array(vol)
+        
+        #: (USD/kg)
+        self.price = price
+
+    def _copy_species(self, stream):
+        """Copy species data from stream."""
+        self._species = stream._species
+        self._specie_IDs = stream._specie_IDs
+        self._CAS = stream._CAS
+        self._Nspecies = stream._Nspecies
+        self._index = stream._index
+        self._ID_index = stream._ID_index
+        self._index_ID = stream._index_ID
+        self._CAS_index = stream._CAS_index 
+        self._index_CAS = stream._index_CAS
+        self._MW = stream._MW
 
     # Forward pipping
     def __sub__(self, index):
@@ -689,8 +695,7 @@ class Stream(metaclass=metaStream):
 
     ### Flow properties ###
     
-    @classmethod
-    def get_index(cls, IDs, CAS=False):
+    def get_index(self, IDs, CAS=False):
         """Get flow indeces of specified species.
 
         **Parameters**
@@ -715,9 +720,9 @@ class Stream(metaclass=metaStream):
 
         """
         if CAS:
-            index_dict = cls._CAS_index
+            index_dict = self._CAS_index
         else:
-            index_dict = cls._ID_index
+            index_dict = self._ID_index
         
         if type(IDs) is str:
             indices = index_dict[IDs]
@@ -725,7 +730,6 @@ class Stream(metaclass=metaStream):
             indices = [index_dict[ID] for ID in IDs]
         
         return indices
-    get_indx = get_index #: Alias of get_index.
     
     # Molar flow
     @property
@@ -819,7 +823,8 @@ class Stream(metaclass=metaStream):
         >>> s2.volfrac
         tuple_array([0.619, 0.381])
         """
-
+        return get_frac(self._vol)
+        
     @property
     def volnet(self):
         """Net volumetric flow rate (m^3/hr). T and P dependent.
@@ -830,67 +835,6 @@ class Stream(metaclass=metaStream):
         97.32699378482434
         """
         return self._prop_molar_flownet('Vm')*1000
-
-    # Set non-molar flows
-    def set_mass(self, mass_flow, index=None):
-        """Set flow rates by mass in kg/hr.
-
-        **Parameters**
-
-             mass_flow: [array_like] Mass flow rates.
-
-             index: array_like[int] Indeces of species corresponding to mass flow rates.
-
-        .. code-block:: python
-
-           >>> s1.set_mass(20 , index = 1)
-           >>> s1.mass
-           tuple_array([0., 20])
-           >>> # No need to specify indeces when all flow rates are specified
-           >>> s1.set_mass([0, 36.031])
-           >>> s1.mass
-           tuple_array([0, 36.031])
-
-        """
-        if index is None:
-            self.mol = mass_flow / self._MW
-        else:
-            self.mol[index] = mass_flow / self._MW[index]
-    
-    def set_vol(self, vol_flow, index=None):
-        """Set flow rates by volume in m^3/hr.
-
-        **Parameters**
-
-             vol_flow: [array_like] Volumetric flow rates.
-
-             index: array_like[int] Indeces of species corresponding to volumetric flow rates.
-
-        .. code-block:: python
-
-           >>> s1.set_vol(20 , index = 1)
-           >>> s1.vol
-           tuple_array([0., 20])
-           >>> # No need to specify indeces when all flow rates are specified
-           >>> s1.set_vol([0, 1])
-           >>> s1.vol
-           tuple_array([0, 1])
-
-        """
-        vol_flow = np.array(vol_flow)
-        species = self.species
-        if index is None:
-            Vms = species.get_props(self._specie_IDs, 'Vm', self.T, self.P, self.phase)
-            self.mol = vol_flow / Vms / 1000
-        else:
-            index_sp = self._index_ID
-            if hasattr(index, '__len__'):
-                specie_IDs = (index_sp[i] for i in index)
-            else:
-                specie_IDs = index_sp[index]
-            Vms = species.get_props(specie_IDs, 'Vm', self.T,
-                                    self.P, self.phase)
-            self.mol[index] = vol_flow / Vms / 1000
 
     ### Energy flows ###
 
@@ -915,8 +859,7 @@ class Stream(metaclass=metaStream):
     def H(self, H):
         if all(self.mol == 0):
             if H != 0:
-                raise ValueError(f"Cannot set nonzero enthalpy "
-                                +f"to empty stream '{self.ID}'.")
+                raise ValueError(f"Cannot set nonzero enthalpy to empty stream.")
             else:
                 return
 
@@ -932,8 +875,7 @@ class Stream(metaclass=metaStream):
             self.T += (H - self.H)/C
             it += 1
             if it > 40:
-                raise SolverError(f"Could not solve temperature "
-                                 +f"for given enthalpy in stream '{self.ID}'")
+                raise SolverError(f"Could not solve temperature given enthalpy")
 
     @property
     def Hf(self):
@@ -1138,7 +1080,7 @@ class Stream(metaclass=metaStream):
         """
         return nonzero_species(self._index_ID, self.mol)
     
-    def prop_quantity(self, prop_ID):
+    def quantity(self, prop_ID):
         """Return a property as a Quantity object as described in the `pint package <https://pint.readthedocs.io/en/latest/>`__ 
 
         **Parameters**
@@ -1147,14 +1089,17 @@ class Stream(metaclass=metaStream):
 
         Example:
 
-        >>> s1.prop_quantity('Cp')
+        >>> s1.quantity('Cp')
         <Quantity(4.180597021827335, 'joule / gram / kelvin')>
 
         """
-        return Q_(getattr(self, prop_ID), self.units[prop_ID])
+        attr = getattr(self, prop_ID)
+        if isinstance(attr, ndarray):
+            attr = np.array(attr.astype(float))
+        return Q_(attr, self.units[prop_ID])
 
     # Sensitivity analysis
-    def _prop_table(self, prop_ID, var_ID, var_vals, index=None):
+    def _table(self, prop_ID, var_ID, var_vals, index=None):
         """Return an array of property values at 'var_vals'.
 
         **Parameters**
@@ -1169,10 +1114,10 @@ class Stream(metaclass=metaStream):
 
         Example
 
-        >>> s1._prop_table( 'H', 'T', [298.15, 299.15, 300.15, 301.15, 302.15])
+        >>> s1._table( 'H', 'T', [298.15, 299.15, 300.15, 301.15, 302.15])
         array([  0.   ,  65.041, 130.231, 195.569, 261.055])
 
-        >>> s1._prop_table( 'rho', 'mol' , [0, 1, 2, 3, 4], index = 0) # vary the amount of Ethanol
+        >>> s1._table( 'rho', 'mol' , [0, 1, 2, 3, 4], index = 0) # vary the amount of Ethanol
         array([997.025, 866.43 , 835.659, 821.904, 814.109])
         """
         if index is not None:
@@ -1197,7 +1142,7 @@ class Stream(metaclass=metaStream):
         set_var(x0)
         return y
 
-    def prop_plot(self, prop_ID, var_ID, var_vals, index=None):
+    def plot(self, prop_ID, var_ID, var_vals, index=None):
         """Make a plot of a property vs a variable.
 
         **Parameters**
@@ -1212,13 +1157,13 @@ class Stream(metaclass=metaStream):
 
         Example
 
-        >>> s1.prop_plot( 'H', 'T', [298.15, 299.15, 300.15, 301.15, 302.15])
+        >>> s1.plot( 'H', 'T', [298.15, 299.15, 300.15, 301.15, 302.15])
 
         .. image:: prop_plot.png
            :scale: 70 %
            :align: center
         """
-        y = self._prop_table(prop_ID, var_ID, var_vals, index)
+        y = self._table(prop_ID, var_ID, var_vals, index)
         plt.plot(var_vals, y)
         units = self.units
         if index is not None:
@@ -1227,7 +1172,7 @@ class Stream(metaclass=metaStream):
         plt.ylabel(prop_ID + ' (' + units[prop_ID] + ')', fontsize=16)
 
     # Derivative of a property and sensivity analysis
-    def prop_derivative(self, prop_ID, var_ID, index=None):
+    def derivative(self, prop_ID, var_ID, index=None):
         """Return the derivative of property 'prop_ID' and variable 'var_ID'. If the property given by var_ID is an array, use index to specify which element.
 
          **Parameters**
@@ -1240,7 +1185,7 @@ class Stream(metaclass=metaStream):
 
         Example
 
-        >>> s1.prop_derivative('rho', 'T')
+        >>> s1.derivative('rho', 'T')
         -0.4010588564718449
 
         """
@@ -1264,7 +1209,7 @@ class Stream(metaclass=metaStream):
         set_var(x0)
         return (yf-y0)/(xf-x0)
 
-    def _prop_derivative_table(self, prop_ID, var_ID, var_vals, index=None):
+    def _derivative_table(self, prop_ID, var_ID, var_vals, index=None):
         """Return an array of property derivatives at 'var_vals' 
 
         **Parameters**
@@ -1279,7 +1224,7 @@ class Stream(metaclass=metaStream):
 
         Example
 
-        >>> s1._prop_derivative_table('rho', 'T', [298.15, 300.15, 302.15, 304.15, 306.15, 308.15])
+        >>> s1._derivative_table('rho', 'T', [298.15, 300.15, 302.15, 304.15, 306.15, 308.15])
         array([-0.401, -0.408, -0.415, -0.422, -0.429, -0.436])
 
         """
@@ -1313,7 +1258,7 @@ class Stream(metaclass=metaStream):
         set_var(x0)
         return y
 
-    def prop_derivative_plot(self, prop_ID, var_ID, var_vals, index=None):
+    def derivative_plot(self, prop_ID, var_ID, var_vals, index=None):
         """Return a property derivative plot.
 
         **Parameters**
@@ -1334,7 +1279,7 @@ class Stream(metaclass=metaStream):
            :scale: 70 %
            :align: center
         """
-        y = self._prop_derivative_table(prop_ID, var_ID, var_vals, index)
+        y = self._derivative_table(prop_ID, var_ID, var_vals, index)
         plt.plot(var_vals, y)
         units = self.units
         if index is not None:
@@ -1380,12 +1325,12 @@ class Stream(metaclass=metaStream):
         s = stream
         phase = s.phase
         if len(phase) == 1:
-            out = Stream(ID, flow=s.mol, phase=phase, T=s.T, P=s.P)
+            out = Stream(ID, flow=s.mol, species=stream.species, phase=phase, T=s.T, P=s.P)
         else:
             MS = mixed_stream.MixedStream
             out = MS(ID, solid_flow=s.solid_mol, liquid_flow=s.liquid_mol,
                      LIQUID_flow=s.LIQUID_mol, vapor_flow=s.vapor_mol,
-                     T=s.T, P=s.P)
+                     species=stream.species, T=s.T, P=s.P)
         return out
     
     def copy_like(self, stream):
@@ -1399,7 +1344,9 @@ class Stream(metaclass=metaStream):
                         [Water,   2]
         """
         phase = stream.phase
-        if len(phase) == 1:    
+        if len(phase) == 1:
+            if self._species is not stream._species:
+                self._copy_species(stream)
             self.mol = copy.copy(stream.mol)
             self.P = stream.P
             self.phase = phase
@@ -1445,44 +1392,19 @@ class Stream(metaclass=metaStream):
         return specie_IDs, index
 
     # Equilibrium
-    def _default_eq_args(self, specie_IDs, z, P):
-        """Return default arguments for equilibrium calculations."""
-        # Make sure species and compositions are ok
-        bol1 = z is None; bol2 = specie_IDs is None
-        if (bol1 and not bol2):
-            index = self.get_index(specie_IDs)
-            mol = self.mol[index]
-            z = mol/sum(mol)
-        elif (not bol1 and bol2):
-            raise ValueError('Composition was given with out specie IDs.')
-        
+    def _default_eq_args(self):
+        """Return default arguments for equilibrium calculations."""        
         # Choose species that have UNIFAC groups
-        if specie_IDs is None:
-            # Get the molar fraction for those species that are not zero
-            specie_IDs, index = self._equilibrium_species()
-            mol = self.mol[index]
-            z = mol/sum(mol)
-        else:
-            z = np.asarray(z)
-            index = z!=0
-            specie_IDs = tuple(sp for sp, i in zip(specie_IDs, index) if i)
-            z = z[index]
+        specie_IDs, index = self._equilibrium_species()
         
-        # Default to self pressure
-        if P is None:
-            P = self.P
-        return specie_IDs, z, P
+        # Get the molar fraction for those species that are not zero
+        mol = self.mol[index]
+        z = mol/sum(mol)
+
+        return specie_IDs, z, self.P
     
-    def bubble_point(self, specie_IDs=None, x=None, P=None):
-        """Bubble point given x and P. If no parameters are given, assume same composition as self.
-
-        **Parameters**
-
-            **specie_IDs:** iterable[str] Species corresponding to x.
-
-            **x:** [array_like] The composition of the liquid phase.
-
-            **P:** [float] The pressure in Pascals.
+    def bubble_point(self):
+        """Bubble point at current composition and Pressure.
 
         **Returns**
 
@@ -1492,29 +1414,48 @@ class Stream(metaclass=metaStream):
              
             **eq_species:** tuple[str] Species in equilibrium.
 
-        >>> s1.bubble_point(specie_IDs = ('Ethanol', 'Water'),
-        ...                 x = (0.6, 0.4), P = 101325)
+        >>> stream = Stream(flow=(0.6, 0.4),
+        ...                 species=Species('Ethanol', 'Water'))
+        >>> stream.bubble_point()
         (352.2820850833474, array([0.703, 0.297]), ('Ethanol', 'Water'))
 
         """
-        # If given just one specie, return Tsat
-        if specie_IDs is not None:
-            if isinstance(specie_IDs, str):
-                return getattr(self.species, specie_IDs).Tsat(self.P), 1, specie_IDs
-            if len(specie_IDs) == 1:
-                return getattr(self.species, specie_IDs[0]).Tsat(self.P), np.array((1,)), specie_IDs
-        
         # If just one specie in equilibrium, return Tsat
-        specie_IDs, x, P = self._default_eq_args(specie_IDs, x, P)
-        if len(specie_IDs) == 1:
+        specie_IDs, x, P = self._default_eq_args()
+        N_species = len(specie_IDs)
+        if N_species == 1:
             return getattr(self.species, specie_IDs[0]).Tsat(self.P), 1, specie_IDs
+        elif N_species == 0:
+            raise EquilibriumError('No species available for phase equilibrium')
         
         # Solve and return bubble point
         x, P = self._bubble_point(specie_IDs, x, P)
         return x, P, specie_IDs
     
     def _bubble_point(self, specie_IDs, x, P):
-        """Same as bubble_point but does not return equilibrium species."""
+        """Bubble point at given composition and Pressure
+
+        **Parameters**
+
+            **specie_IDs:** iterable[str] Species corresponding to x.
+
+            **x:** [array_like] The composition of the liquid phase.
+
+            **P:** [float] The pressure in Pascals.
+        
+        **Returns**
+
+            **T_bubble:** [float] The bubble point temperature
+
+            **y:** [numpy ndarray] The composition of the vapor phase considering only the equilibrium species.
+             
+            **eq_species:** tuple[str] Species in equilibrium.
+
+        >>> s1._bubble_point(specie_IDs=('Ethanol', 'Water'),
+        ...                 x=(0.6, 0.4), P=101325)
+        (352.2820850833474, array([0.703, 0.297]), ('Ethanol', 'Water'))
+        
+        """
         # Setup functions to calculate vapor pressure and activity coefficients
         sp = self._species
         _get_Psat = sp._get_Psat
@@ -1550,7 +1491,36 @@ class Stream(metaclass=metaStream):
         self._bubble_cached[specie_IDs] = (P, T_bubble, y_bubble, x)
         return T_bubble, y_bubble
 
-    def dew_point(self, specie_IDs=None, y=None, P=None):
+    def dew_point(self):
+        """Dew point at current composition and Pressure.
+        
+        **Returns**
+
+            **T_dew:** [float] The dew point temperature
+
+            **x:** [numpy array] The composition of the liquid phase considering only the equilibrium species.
+             
+            **eq_species:** tuple[str] Species in equilibrium.
+
+        >>> stream = Stream(flow=(0.5, 0.5),
+        ...                 species=Species('Ethanol', 'Water'))
+        >>> stream.dew_point()
+        (353.7420742149825, array([0.556, 0.444]), ('Ethanol', 'Water'))
+        
+        """
+        # If just one specie in equilibrium, return Tsat
+        specie_IDs, y, P = self._default_eq_args()
+        N_species = len(specie_IDs)
+        if N_species == 1:
+            return getattr(self.species, specie_IDs[0]).Tsat(self.P), 1, specie_IDs
+        elif N_species == 0:
+            raise EquilibriumError('No species available for phase equilibrium')
+        
+        # Solve and return dew point
+        y, P = self._dew_point(specie_IDs, y, P)
+        return y, P, specie_IDs
+    
+    def _dew_point(self, specie_IDs, y, P):
         """Dew point given y and P.
 
         **Parameters**
@@ -1573,26 +1543,7 @@ class Stream(metaclass=metaStream):
         >>> s1.dew_point(specie_IDs = ('Ethanol', 'Water'),
         ...              y = (0.5, 0.5, P = 101325)
         (353.7420742149825, array([0.556, 0.444]), ('Ethanol', 'Water'))
-
         """
-        # If given just one specie, get Tsat
-        if specie_IDs is not None:
-            if isinstance(specie_IDs, str):
-                return getattr(self.species, specie_IDs).Tsat(self.P), 1, specie_IDs
-            if len(specie_IDs) == 1:
-                return getattr(self.species, specie_IDs[0]).Tsat(self.P), np.array((1,)), specie_IDs
-        
-        # If just one specie in equilibrium, return Tsat
-        specie_IDs, y, P = self._default_eq_args(specie_IDs, y, P)
-        if len(specie_IDs) == 1:
-            return getattr(self.species, specie_IDs[0]).Tsat(self.P), 1, specie_IDs
-        
-        # Solve and return dew point
-        y, P = self._dew_point(specie_IDs, y, P)
-        return y, P, specie_IDs
-    
-    def _dew_point(self, specie_IDs, y, P):
-        """Same as bubble_point but does not return equilibrium species."""
         # Setup functions to calculate vapor pressure and activity coefficients
         sp = self._species
         _get_Psat = sp._get_Psat
@@ -1690,14 +1641,14 @@ class Stream(metaclass=metaStream):
 
         Example
 
-        >>> Stream.help('k')
+        >>> Stream._helplist('k')
         ['k', 'thermal conductivity', 'TP', 'W/m/K', 'float']
 
-        >>> Stream.help('viscosity')
+        >>> Stream._helplist('viscosity')
         [['nu', 'kinematic viscosity', 'TP', 'm^2/s', 'float'],
          ['mu', 'hydraulic viscosity', 'TP', 'Pa*s', 'float']]
 
-        >>> Stream.help('kmol/hr')
+        >>> Stream._helplist('kmol/hr')
         [['mol', 'molar flow rates', '', 'kmol/hr', 'np.array'],
          ['molnet', 'net molar flow rate', '', 'kmol/hr', 'float']]
         """
@@ -1806,7 +1757,6 @@ class Stream(metaclass=metaStream):
         while abs(T - T_guess) > 0.01:
             # Calculate
             H_ = sum(s.H for s in streams)
-            C = sum(s.C for s in streams)
             T = T_guess + (H_- H)/C
             
             # Check iteration
@@ -1920,12 +1870,12 @@ class Stream(metaclass=metaStream):
         self.enable_phases()
         self.VLE(specie_IDs, LNK, HNK, P, T, V, x, y, Qin)
         
-    def LLE(self, specie_IDs, split=None, lNK=(), LNK=(),
-            P=None, T=None, Qin=None,
-            solvents=(), solvent_split=()):
+    def LLE(self, specie_IDs=None, split=None, lNK=(), LNK=(),
+            solvents=(), solvent_split=(),
+            P=None, T=None, Qin=None):
         self.enable_phases()
-        self.LLE(specie_IDs, split, lNK, LNK, P, T, Qin,
-                 solvents, solvent_split)
+        self.LLE(specie_IDs, split, lNK, LNK,
+                 solvents, solvent_split, P, T, Qin)
 
     # Representation
     def _info(self, **show_units):
@@ -1952,14 +1902,10 @@ class Stream(metaclass=metaStream):
 
         # Default units
         show_format = self.show_format
-        if not T_units:
-            T_units = show_format.T
-        if not P_units:
-            P_units = show_format.P
-        if not flow_units:
-            flow_units = show_format.flow
-        if fraction is None:
-            fraction = show_format.fraction
+        T_units = T_units or show_format.T
+        P_units = P_units or show_format.P
+        flow_units = flow_units or show_format.flow
+        fraction = fraction or show_format.fraction
         
         # Second line (thermo)
         T = Q_(self.T, units['T']).to(T_units).magnitude
@@ -2027,5 +1973,3 @@ class Stream(metaclass=metaStream):
 
 
 from . import mixed_stream
-
-

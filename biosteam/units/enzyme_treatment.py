@@ -12,16 +12,15 @@ class EnzymeTreatment(Unit):
     _N_heat_util = 1
     kwargs = {'T': 298.15}  # operating temperature (K)
     
-    def setup(self):
+    def _setup(self):
         T = self.kwargs['T']
         self.outs[0].T = T
         
-    def run(self):
+    def _run(self):
         feed = self.ins[0]
         out = self.outs[0]
         out.mol = self._mol_in
         out.phase = feed.phase
         out.P = feed.P
-    _simple_run = run
     
-    operation = HX.operation
+    _operation = HX._operation

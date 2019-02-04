@@ -51,7 +51,7 @@ class Centrifuge_LLE(Unit):
 
     bounds = {'Flow rate': (0.1, 100)}
 
-    def setup(self):
+    def _setup(self):
         liq, LIQ = self.outs
         self._cached = cached = {}
         liq.phase = 'l'
@@ -60,7 +60,7 @@ class Centrifuge_LLE(Unit):
         if self.kwargs['specie_IDs'] is None:
             self.kwargs['specie_IDs'] = liq.specie_IDs
 
-    def run(self):
+    def _run(self):
         liq, LIQ = self.outs
         feed = self.ins[0]
 
@@ -76,7 +76,7 @@ class Centrifuge_LLE(Unit):
         liq.T = LIQ.T = ms.T
         liq.P = LIQ.P = ms.P
 
-    def design(self):
+    def _design(self):
         """
         * 'Flow rate': (m^3/hr)
         """
@@ -84,7 +84,7 @@ class Centrifuge_LLE(Unit):
         Design['Flow rate'] = self._volnet_out
         return Design
 
-    def cost(self):
+    def _cost(self):
         """
         * 'Vessel cost': (USD)
         """
@@ -96,7 +96,7 @@ class Centrifuge_LLE(Unit):
         return Cost
 
 class Centrifuge_LLE_Lazy(Centrifuge_LLE):
-    _N_heat_util = 1
+    _N_heat_util = 0
     kwargs = {'Kspecies': [],  # list of species that correspond to Ks
               'Ks': [],  # list of molar ratio partition coefficinets,
               # Ks = y/x, where y and x are molar ratios of two different phases
@@ -105,9 +105,9 @@ class Centrifuge_LLE_Lazy(Centrifuge_LLE):
               'bot_solvents': [],  # list of species that correspond to bot_split
               'bot_split': []}  # list of splits for bot_solvents
 
-    def setup(self):
+    def _setup(self):
         pass
 
-    run = EstimateFlash.run
+    _run = EstimateFlash._run
     _simple_run = EstimateFlash._simple_run
     

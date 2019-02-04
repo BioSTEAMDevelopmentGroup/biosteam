@@ -142,6 +142,7 @@ class MixedStream(Stream):
 
          :doc:`MixedStream Example`
     """
+    #: Species in LLE
     _species_eq = None
     
     #: The default phase when flow rates are zero.
@@ -207,7 +208,8 @@ class MixedStream(Stream):
         elif dim == vol_flow_dim:
             self._set_flows(mol_array)
             for i, phase in zip(range4, phases):
-                self.set_vol(mol_array[i, :], phase)
+                volflow = phases_volflow[phase]
+                setattr(self, volflow, mol_array[i, :])
         else:
             raise DimensionError(f"Dimensions for flow rate units must be in molar, mass or volumetric flow rates, not '{dim}'.")
 
@@ -270,84 +272,6 @@ class MixedStream(Stream):
         self._default_phase = phase
         self.empty()
         setattr(self, phases_molflow[phase], mol)
-        
-    # Set non-molar flows
-    def set_mass(self, mass_flow, index=None, phase=None):
-        """Set flow rates by mass in kg/hr.
-
-        **Parameters**
-
-             **mass_flow:** [array_like] Mass flow rates.
-
-             **phase:** [str] Can be 's' (solid) 'l' (liquid), 'L' (LIQUID), or 'g' (gas).
-
-             **index:** array_like[int] Indeces of species corresponding to mass flow rates.
-
-        """
-        if not phase:
-            phase = self.phase
-        mol = getattr(self, phases_molflow[phase])
-        if index is None:
-            mol[:] = mass_flow / self._MW
-        else:
-            mol[index] = mass_flow / self._MW[index]
-
-    def set_vol(self, vol_flow, index=None, phase=None):
-        """Set flow rates by mass in m3/hr.
-
-        **Parameters**
-
-             **vol_flow:** [array_like] Volumetric flow rates
-
-             **phase:** [str] Can be 's' (solid) 'l' (liquid), 'L' (LIQUID), or 'g' (gas).
-
-             **index:** array_like[int] Indeces of species corresponding to volumetric flow rates
-
-        """
-        if not phase:
-            phase = self.phase
-        if index is None:
-            # Set index as all indeces
-            index = self._index
-
-        # Set up species and attributes
-        mol = getattr(self, phases_molflow[phase])
-        _species = self._species
-        _specie_IDs = self._specie_IDs
-        phase = phase.lower()
-        P = self.P
-        T = self.T
-
-        # Prevent indexing with a list if one index
-        has_length = hasattr(index, '__len__')
-        if has_length:
-            if len(index) == 1:
-                index = index[0]
-                has_length = False
-
-        # Set molar flow rate by volumetric flow and molar volume
-        if has_length:
-            # Multiple indeces
-            for i, vol in zip(index, vol_flow):
-                if vol == 0:
-                    mol[i] = 0
-                else:
-                    specie = getattr(_species, _specie_IDs[i])
-                    specie.P = P
-                    specie.T = T
-                    specie.phase = phase
-                    mol[i] = vol / (specie.Vm * 1000)
-        else:
-            # One index
-            vol = np.asarray(vol_flow)  # In case its a list or tupple
-            if vol_flow == 0:
-                mol[index] = 0
-            else:
-                specie = getattr(_species, _specie_IDs[index])
-                specie.P = P
-                specie.T = T
-                specie.phase = phase
-                mol[index] = vol / (specie.Vm * 1000)
 
     ### Solids ###
 
@@ -735,6 +659,8 @@ class MixedStream(Stream):
 
     def copy_like(self, stream):
         """Copy mol, T, P, and phase of stream to self."""
+        if self._species is not stream._species:
+            self._copy_species(stream)
         if isinstance(stream, MixedStream):
             self.solid_mol = copy.copy(stream.solid_mol)
             self.liquid_mol = copy.copy(stream.liquid_mol)
@@ -759,8 +685,8 @@ class MixedStream(Stream):
 
     # Vapor-liquid equilibrium
     def VLE(self, specie_IDs=None, LNK=None, HNK=None, P=None,
-            T=None, V=None, x=None, y=None, Qin=None):
-        """Partition flow rates into vapor and liquid phases by equilibrium.
+            T=None, V=None, x=None, y=None, Qin=0):
+        """Partition flow rates into vapor and liquid phases by equilibrium. Pressure defaults to current pressure.
 
         **Parameters**
 
@@ -1060,30 +986,48 @@ class MixedStream(Stream):
             return 
 
     # LIQUID-liquid equilibrium
-    def LLE(self, specie_IDs, split=None, lNK=(), LNK=(),
-            P=None, T=None, Qin=None,
-            solvents=(), solvent_split=()):
+    def LLE(self, specie_IDs=None, split=None, lNK=(), LNK=(),
+            solvents=(), solvent_split=(),
+            P=None, T=None, Qin=0):
         """Partition flow rates into liquid and LIQUID phases by equilibrium.
 
-        **Parameters**
+        **Optional Parameters**
 
-             **specie_IDs:** *tuple[str]* IDs of equilibrium species
+            **specie_IDs:** *tuple[str]* IDs of equilibrium species
+            
+            **split:** *tuple[float]* Initial guess split fractions of each specie to the 'liquid'
 
-             **split:** *tuple[float]* Initial guess split fractions of each specie to the 'liquid' phase.
+            **lNK:** *tuple[str]* Species assumed to completely remain in the 'liquid' phase.
 
-             **lNK:** *tuple[str]* Species assumed to completely remain in the 'liquid' phase.
+            **LNK:** *tuple[str]* Species assumed to completely remain in the 'LIQUID' phase.
 
-             **LNK:** *tuple[str]* Species assumed to completely remain in the 'LIQUID' phase.
+            **solvents:** *tuple[str]* Species corresponding to specified solvent_split
 
-             **solvents:** *tuple[str]* Species corresponding to specified solvent_split
+            **solvent_split:** *tuple[float]* Split fractions of each specie to the 'liquid' phase.                
+            
+            **Qin:** *[float]* Energy input (kJ/hr)
+            
+            **T:** *[float]* Operating temperature (K)
+            
+            **P:** *[float]* Operating pressure (Pa)    
 
-             **solvent_split:** *tuple[float]* Split fractions of each specie to the 'liquid' phase.
+        .. Note:
+           lNK and LNK are not taken into account for equilibrium. Assumes constant pressure and temperatrue if none are provided.
 
         """
         ### Set Up ###
 
         # Set up indeces for both equilibrium and non-equilibrium species
         sp_index = self._ID_index
+        if specie_IDs is None:
+            specie_IDs, _ = self._equilibrium_species()
+        
+        specie_IDs = list(specie_IDs)
+        for specie in specie_IDs:
+            if (specie in solvents) or (specie in lNK) or (specie in LNK):
+                specie_IDs.remove(specie)
+        specie_IDs = tuple(specie_IDs)
+        
         index = [sp_index[specie] for specie in specie_IDs]
         lNK_index = [sp_index[specie] for specie in lNK]
         LNK_index = [sp_index[specie] for specie in LNK]
@@ -1093,17 +1037,31 @@ class MixedStream(Stream):
         Nspecies = len(specie_IDs)
         min_ = np.zeros(Nspecies)
 
-        # Make sure they are given as arrays
-        if hasattr(self, '_lL_split') and self._species_eq == specie_IDs:
-            split = self._lL_split  # cached split
-        else:
-            self._species_eq = specie_IDs
-        split = np.array(split)
-        solvent_split = np.array(solvent_split)
-
         # Set up activity coefficients
         activity_IDs = specie_IDs + solvents
         act_coef = self.activity_coefficients
+
+        # Make sure splits are given as arrays
+        if hasattr(self, '_lL_split') and self._species_eq == specie_IDs:
+            split = self._lL_split  # cached split
+        else:
+            if split is None:
+                species = self.species
+                split_dipoles = [getattr(species, ID).dipole for ID in specie_IDs]
+                solvent_dipoles = [getattr(species, ID).dipole for ID in solvents]
+                dipoles = split_dipoles + solvent_dipoles
+                split_dipoles = np.array(split_dipoles)
+                try:
+                    split = split_dipoles/max(dipoles)
+                except TypeError as TE:
+                    missing_dipoles = []
+                    for i, is_missing in enumerate(split_dipoles==None):
+                        if is_missing:
+                            missing_dipoles.append(specie_IDs[i])
+                    raise EquilibriumError(f'Cannot make estimate for split. Missing dipole values for species: {missing_dipoles}')
+            self._species_eq = specie_IDs
+        split = np.array(split)
+        solvent_split = np.array(solvent_split)
 
         # Equilibrium by constant temperature or with duty
         if T:
@@ -1111,6 +1069,9 @@ class MixedStream(Stream):
         elif Qin:
             self.H += Qin
             T = self.T
+        else:
+            T = self.T
+        
         if P:
             self.P = P
         else:
@@ -1132,7 +1093,7 @@ class MixedStream(Stream):
         LNK_mol = all_mol[LNK_index]
 
         ### Solve ###
-
+        
         # Error function
         def guess_error(l_guess):
             # Error function for constant T and P, where l represents 'l' liquid flow rates
@@ -1153,11 +1114,18 @@ class MixedStream(Stream):
         # Solve
         sol = least_squares(guess_error, l_guess, bounds=(min_, mol))
         l_guess = sol.x
+        l_guess[pos] = 0
         split = l_guess/mol
-        split[pos] = 0
-        self._lL_split = split
+        
+        # Make sure two phases are given
+        xl = l_guess/sum(l_guess)
+        L_guess = mol-l_guess
+        xL = L_guess/sum(L_guess)
+        if (xl - xL < 0.1).all():
+            raise EquilibriumError('Could not solve equilibrium, please input better split guesses')
 
         # Set results
+        self._lL_split = split
         liquid_mol[index] = l_guess
         liquid_mol[lNK_index] = lNK_mol
         liquid_mol[LNK_index] = 0
@@ -1289,4 +1257,10 @@ class MixedStream(Stream):
             first_phase = False
 
         return basic_info + phases_flowrates_info[:-2]
+
+
+Stream.VLE.__doc__ = MixedStream.VLE.__doc__
+Stream.LLE.__doc__ = MixedStream.LLE.__doc__
+MixedStream.mu.__doc__ = Stream.mu.__doc__
+
 
