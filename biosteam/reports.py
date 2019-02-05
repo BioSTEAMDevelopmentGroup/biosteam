@@ -291,3 +291,5 @@ def stream_table(streams, Flow='kmol/hr', **props) -> 'DataFrame':
     # Make data frame object
     index = ('Source', 'Sink', 'Phase')  + tuple(prop_molar_keys) + (f'Flow ({Flow})', 'Composition:') + tuple(species)
     return DataFrame(array, columns=IDs, index=index)
+
+

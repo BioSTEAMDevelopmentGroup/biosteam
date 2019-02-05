@@ -9,7 +9,7 @@
     <title>HXutility &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -77,7 +77,7 @@
 <h1>HXutility<a class="headerlink" href="#hxutility" title="Permalink to this headline">¶</a></h1>
 <span class="target" id="module-biosteam"></span><dl class="class">
 <dt id="biosteam.HXutility">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">HXutility</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>T=None</em>, <em>V=None</em>, <em>U='Tabulated'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/hx.html#HXutility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.HXutility" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">HXutility</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>T=None</em>, <em>V=None</em>, <em>rigorous=False</em>, <em>U='Tabulated'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/hx.html#HXutility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.HXutility" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>An extension of the</em> <a class="reference internal" href="Unit.html"><span class="doc">Unit class</span></a>. Create a heat exchanger that changes temperature of the output stream using a heat utility.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -85,12 +85,15 @@
 <p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
 <p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
 <dl class="docutils">
-<dt>User defines at only one:</dt>
+<dt>User defines at least one:</dt>
 <dd><ul class="first last simple">
 <li>T: [float] Temperature of output stream (K).</li>
 <li>V: [float] Vapor fraction of output stream.</li>
 </ul>
 </dd>
+</dl>
+<p>rigorous: [bool] If true, calculate vapor liquid equilibrium</p>
+<dl class="docutils">
 <dt>U: Should be one of the following:</dt>
 <dd><ul class="first last simple">
 <li>[float] Overall heat transfer coefficent (kW/m^2/K)</li>
@@ -137,7 +140,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

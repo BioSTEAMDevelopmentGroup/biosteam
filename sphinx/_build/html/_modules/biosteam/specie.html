@@ -9,7 +9,7 @@
     <title>biosteam.specie &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
@@ -61,6 +61,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">integrate</span>
 <span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">log</span>
+<span class="kn">from</span> <span class="nn">bookkeep</span> <span class="k">import</span> <span class="n">ReadOnlyBook</span>
 <span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Q_</span><span class="p">,</span> <span class="n">units_of_measure</span>
 
 <span class="n">R</span> <span class="o">=</span> <span class="mf">8.3144598</span>  <span class="c1"># Universal gas constant (J/mol-K)</span>
@@ -140,18 +141,37 @@
 <span class="sd">         **P_ref** = 101325: Reference pressure (Pa)</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># [dict] Units of measure for material properties (class attribute). Items in this dictionary cannot be changed.</span>
-    <span class="n">units</span> <span class="o">=</span> <span class="n">units_of_measure</span>
+    <span class="c1">#: [dict] Units of measure for material properties (class attribute). </span>
+    <span class="n">units</span> <span class="o">=</span> <span class="n">ReadOnlyBook</span><span class="p">(</span><span class="n">MW</span><span class="o">=</span><span class="s1">&#39;g/mol&#39;</span><span class="p">,</span>
+                         <span class="n">T</span><span class="o">=</span><span class="s1">&#39;K&#39;</span><span class="p">,</span>
+                         <span class="n">P</span><span class="o">=</span><span class="s1">&#39;Pa&#39;</span><span class="p">,</span>
+                         <span class="n">H</span><span class="o">=</span><span class="s1">&#39;J/mol&#39;</span><span class="p">,</span>
+                         <span class="n">S</span><span class="o">=</span><span class="s1">&#39;J/mol&#39;</span><span class="p">,</span>
+                         <span class="n">G</span><span class="o">=</span><span class="s1">&#39;J/mol&#39;</span><span class="p">,</span>
+                         <span class="n">U</span><span class="o">=</span><span class="s1">&#39;J/mol&#39;</span><span class="p">,</span>
+                         <span class="n">A</span><span class="o">=</span><span class="s1">&#39;J/mol&#39;</span><span class="p">,</span>
+                         <span class="n">Hf</span><span class="o">=</span><span class="s1">&#39;J/mol&#39;</span><span class="p">,</span>
+                         <span class="n">Vm</span><span class="o">=</span><span class="s1">&#39;m^3/mol&#39;</span><span class="p">,</span>
+                         <span class="n">Cpm</span><span class="o">=</span><span class="s1">&#39;J/mol&#39;</span><span class="p">,</span>
+                         <span class="n">Cp</span><span class="o">=</span><span class="s1">&#39;J/g&#39;</span><span class="p">,</span>
+                         <span class="n">rho</span><span class="o">=</span><span class="s1">&#39;kg/m^3&#39;</span><span class="p">,</span>
+                         <span class="n">rhom</span><span class="o">=</span><span class="s1">&#39;mol/m^3&#39;</span><span class="p">,</span>
+                         <span class="n">nu</span><span class="o">=</span><span class="s1">&#39;m^2/s&#39;</span><span class="p">,</span>
+                         <span class="n">mu</span><span class="o">=</span><span class="s1">&#39;Pa*s&#39;</span><span class="p">,</span>
+                         <span class="n">sigma</span><span class="o">=</span><span class="s1">&#39;N/m&#39;</span><span class="p">,</span>
+                         <span class="n">k</span><span class="o">=</span><span class="s1">&#39;W/m/K&#39;</span><span class="p">,</span>
+                         <span class="n">alpha</span><span class="o">=</span><span class="s1">&#39;m^2/s&#39;</span><span class="p">)</span>
+    
     <span class="n">phase_ref</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span> <span class="c1"># Reference phase</span>
     <span class="n">P_ref</span> <span class="o">=</span> <span class="mi">101325</span>  <span class="c1"># Reference pressure (Pa)</span>
     <span class="n">T_ref</span> <span class="o">=</span> <span class="mf">298.15</span>  <span class="c1"># Reference temperature (K)</span>
-    <span class="n">S_ref</span> <span class="o">=</span> <span class="mi">0</span>       <span class="c1"># Reference entropy (kJ/hr)</span>
-    <span class="n">H_ref</span> <span class="o">=</span> <span class="mi">0</span>       <span class="c1"># Reference enthalpy (kJ/hr)</span>
+    <span class="n">S_ref</span> <span class="o">=</span> <span class="mi">0</span>       <span class="c1"># Reference entropy (kJ/kmol)</span>
+    <span class="n">H_ref</span> <span class="o">=</span> <span class="mi">0</span>       <span class="c1"># Reference enthalpy (kJ/kmol)</span>
     <span class="c1">#: Method for taking the integral of Cp</span>
     <span class="n">_func_integral</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">_func_int_average</span><span class="p">)</span>
     <span class="n">MW</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1"># Arbitrary molecular weight (g/mol)</span>
 
-<div class="viewcode-block" id="Specie.prop_quantity"><a class="viewcode-back" href="../../Specie.html#biosteam.Specie.prop_quantity">[docs]</a>    <span class="k">def</span> <span class="nf">prop_quantity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">):</span>
+<div class="viewcode-block" id="Specie.quantity"><a class="viewcode-back" href="../../Specie.html#biosteam.Specie.quantity">[docs]</a>    <span class="k">def</span> <span class="nf">quantity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a material property as a Quantity object as described in the `pint package &lt;https://pint.readthedocs.io/en/latest/&gt;`__ </span>
 
 <span class="sd">        **Parameters**</span>
@@ -378,7 +398,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

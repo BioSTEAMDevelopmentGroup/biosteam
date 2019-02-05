@@ -9,7 +9,7 @@
     <title>PowerUtility &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -76,11 +76,8 @@
 <span id="powerutility"></span><h1>PowerUtility<a class="headerlink" href="#module-biosteam" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.PowerUtility">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">PowerUtility</code><span class="sig-paren">(</span><em>price=0.0782</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/power_utility.html#PowerUtility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.PowerUtility" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">PowerUtility</code><span class="sig-paren">(</span><em>source</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/power_utility.html#PowerUtility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.PowerUtility" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create an PowerUtility object that can calculates the cost of power.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div>price: [float] Price of power ($/kW-hr)</div></blockquote>
 <p><strong>__call__()</strong></p>
 <blockquote>
 <div><p>Return dictionary of utility requirements given the essential parameters.</p>
@@ -96,6 +93,9 @@
 </dd>
 </dl>
 </div></blockquote>
+<p><strong>Class Parameters</strong></p>
+<blockquote>
+<div><strong>price:</strong> ($/kW-hr)</div></blockquote>
 </dd></dl>
 
 </div>
@@ -126,7 +126,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

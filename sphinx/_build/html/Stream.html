@@ -9,7 +9,7 @@
     <title>Stream &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -77,7 +77,7 @@
 <p>A Stream object represents a material flow in a chemical process.</p>
 <span class="target" id="module-biosteam"></span><dl class="class">
 <dt id="biosteam.Stream">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Stream</code><span class="sig-paren">(</span><em>ID=''</em>, <em>flow=()</em>, <em>species=()</em>, <em>units='kmol/hr'</em>, <em>phase='l'</em>, <em>T=298.15</em>, <em>P=101325</em>, <em>**flow_pairs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/stream.html#Stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Stream</code><span class="sig-paren">(</span><em>ID=''</em>, <em>flow=()</em>, <em>species=()</em>, <em>units='kmol/hr'</em>, <em>phase='l'</em>, <em>T=298.15</em>, <em>P=101325</em>, <em>*</em>, <em>price=0</em>, <em>**flow_pairs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/stream.html#Stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Stream object that defines a thermodynamic state along with material flow rates. Stream objects calculate thermodynamic and transport properties of the mixture and its components. The Species object define the chemical species avalilable for the Stream class. Ideal mixture is assumed for stream properties and excess energies [enthalpy and entropy] are ignored as a simplifying assumption for low pressure processes.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -88,19 +88,12 @@
 <p><strong>phase:</strong> [str] ‘l’ for liquid, ‘g’ for gas</p>
 <p><strong>T:</strong> [float] Temperature (K)</p>
 <p><strong>P:</strong> [float] Pressure (Pa)</p>
+<p><strong>price:</strong> [float] (USD/kg)</p>
 <p><strong>**flow_pairs:</strong> Specie-flow pairs</p>
 </div></blockquote>
 <p><strong>Class Properties</strong></p>
 <blockquote>
-<div><p><strong>species</strong> = Species(): [Species] Contains pure component thermodynamic properties for computing overall properties of Stream instances</p>
-<p><strong>show_format</strong>: [ShowFormat] Object with attributes that describe how the show method presents units</p>
-</div></blockquote>
-<p><strong>Class Attributes</strong></p>
-<blockquote>
-<div><p><strong>_default_ID</strong> = [‘d’, 1]: list[str, int] Default starting letter and current number for ID.</p>
-<p><strong>units</strong> = {‘C’: ‘kJ/K/hr’, ‘Cp’: ‘J/g/K’, ‘Cpm’: ‘J/mol/K’, ‘H’: ‘kJ/hr’, ‘S’: ‘kJ/hr’, ‘G’: ‘kJ/hr’, ‘U’: ‘kJ/hr’, ‘A’: ‘kJ/hr’, ‘Hf’: ‘kJ/hr’, ‘MW’: ‘g/mol’, ‘P’: ‘Pa’, ‘T’: ‘K’, ‘Vm’: ‘m^3/mol’, ‘alpha’: ‘m^2/s’, ‘k’: ‘W/m/K’, ‘mass’: ‘kg/hr’, ‘massfrac’: ‘kg/kg’, ‘massnet’: ‘kg/hr’, ‘mol’: ‘kmol/hr’, ‘molfrac’: ‘kmol/kmol’, ‘molnet’: ‘kmol/hr’, ‘mu’: ‘Pa*s’, ‘nu’: ‘m^2/s’, ‘rho’: ‘kg/m^3’, ‘rhom’: ‘mol/m^3’, ‘sigma’: ‘N/m’, ‘vol’: ‘m^3/hr’, ‘volfrac’: ‘m^3/m^3’, ‘volnet’: ‘m^3/hr’}
-: <em>[dict]</em> Units of measure for material properties. Items in this dictionary cannot be changed.</p>
-</div></blockquote>
+<div><strong>species</strong> = Species(): [Species] Contains pure component thermodynamic properties for computing overall properties of Stream instances</div></blockquote>
 <p><strong>Examples</strong></p>
 <blockquote>
 <div><p>Before making a stream, set the species using a Species object:</p>
@@ -287,6 +280,18 @@
 </dd></dl>
 
 <dl class="attribute">
+<dt id="biosteam.Stream.price">
+<code class="descname">price</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.Stream.price" title="Permalink to this definition">¶</a></dt>
+<dd><p>(USD/kg)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.cost">
+<code class="descname">cost</code><a class="headerlink" href="#biosteam.Stream.cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cost of stream (USD/hr)</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="biosteam.Stream.ID">
 <code class="descname">ID</code><a class="headerlink" href="#biosteam.Stream.ID" title="Permalink to this definition">¶</a></dt>
 <dd><p>Unique identification (str). If set as ‘’, it will choose a default ID.</p>
@@ -302,9 +307,9 @@
 </div>
 </dd></dl>
 
-<dl class="classmethod">
+<dl class="method">
 <dt id="biosteam.Stream.get_index">
-<em class="property">classmethod </em><code class="descname">get_index</code><span class="sig-paren">(</span><em>IDs</em>, <em>CAS=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/stream.html#Stream.get_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.get_index" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_index</code><span class="sig-paren">(</span><em>IDs</em>, <em>CAS=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/stream.html#Stream.get_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.get_index" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get flow indeces of specified species.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -324,12 +329,6 @@
 <span class="go">[0, 1]</span>
 </pre></div>
 </div>
-</dd></dl>
-
-<dl class="classmethod">
-<dt id="biosteam.Stream.get_indx">
-<em class="property">classmethod </em><code class="descname">get_indx</code><span class="sig-paren">(</span><em>IDs</em>, <em>CAS=False</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.Stream.get_indx" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias of get_index.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -887,43 +886,43 @@
 
 <dl class="method">
 <dt id="biosteam.Stream.VLE">
-<code class="descname">VLE</code><span class="sig-paren">(</span><em>specie_IDs=None</em>, <em>LNK=None</em>, <em>HNK=None</em>, <em>P=None</em>, <em>T=None</em>, <em>V=None</em>, <em>x=None</em>, <em>y=None</em>, <em>Qin=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/stream.html#Stream.VLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.VLE" title="Permalink to this definition">¶</a></dt>
+<code class="descname">VLE</code><span class="sig-paren">(</span><em>specie_IDs=None</em>, <em>LNK=None</em>, <em>HNK=None</em>, <em>P=None</em>, <em>Qin=None</em>, <em>T=None</em>, <em>V=None</em>, <em>x=None</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/stream.html#Stream.VLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.VLE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Partition flow rates into vapor and liquid phases by equilibrium. Pressure defaults to current pressure.</p>
-<p><strong>Parameters</strong></p>
+<p><strong>Optional parameters</strong></p>
 <blockquote>
-<div><dl class="docutils">
-<dt><strong>User defines two:</strong></dt>
+<div><p><strong>P:</strong> [float] Operating pressure (Pa)</p>
+<p><strong>specie_IDs:</strong> [list] IDs of equilibrium species</p>
+<p><strong>LNK:</strong> list[str] Light non-keys</p>
+<p><strong>HNK:</strong> list[str] Heavy non-keys</p>
+<dl class="docutils">
+<dt><strong>User may define one:</strong></dt>
 <dd><ul class="first last simple">
-<li><strong>Qin:</strong> <em>[float]</em> Energy input (kJ/hr)</li>
-<li><strong>V:</strong> <em>[float]</em> Overall molar vapor fraction</li>
-<li><strong>T:</strong> <em>[float]</em> Operating temperature (K)</li>
-<li><strong>P:</strong> <em>[float]</em> Operating pressure (Pa)</li>
-<li><strong>x:</strong> <em>[numpy array]</em> Molar composition of liquid (for binary mixture)</li>
-<li><strong>y:</strong> <em>[numpy array]</em> Molar composition of vapor (for binary mixture)</li>
+<li><strong>Qin:</strong> [float] Energy input (kJ/hr)</li>
+<li><strong>T:</strong> [float] Operating temperature (K)</li>
+<li><strong>V:</strong> [float] Overall molar vapor fraction</li>
+<li><strong>x:</strong> [numpy array] Molar composition of liquid (for binary mixture)</li>
+<li><strong>y:</strong> [numpy array] Molar composition of vapor (for binary mixture)</li>
 </ul>
 </dd>
 </dl>
-<p><strong>Optional</strong></p>
-<blockquote>
-<div><p><strong>specie_IDs:</strong> <em>[list]</em> IDs of equilibrium species</p>
-<p><strong>LNK:</strong> <em>list[str]</em> Light non-keys</p>
-<p><strong>HNK:</strong> <em>list[str]</em> Heavy non-keys</p>
-</div></blockquote>
 </div></blockquote>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.Stream.LLE">
-<code class="descname">LLE</code><span class="sig-paren">(</span><em>specie_IDs</em>, <em>split=None</em>, <em>lNK=()</em>, <em>LNK=()</em>, <em>P=None</em>, <em>T=None</em>, <em>Qin=None</em>, <em>solvents=()</em>, <em>solvent_split=()</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/stream.html#Stream.LLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.LLE" title="Permalink to this definition">¶</a></dt>
+<code class="descname">LLE</code><span class="sig-paren">(</span><em>specie_IDs=None</em>, <em>split=None</em>, <em>lNK=()</em>, <em>LNK=()</em>, <em>solvents=()</em>, <em>solvent_split=()</em>, <em>P=None</em>, <em>T=None</em>, <em>Qin=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/stream.html#Stream.LLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.LLE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Partition flow rates into liquid and LIQUID phases by equilibrium.</p>
-<p><strong>Parameters</strong></p>
+<p><strong>Optional Parameters</strong></p>
 <blockquote>
 <div><p><strong>specie_IDs:</strong> <em>tuple[str]</em> IDs of equilibrium species</p>
-<p><strong>split:</strong> <em>tuple[float]</em> Initial guess split fractions of each specie to the ‘liquid’ phase.</p>
+<p><strong>split:</strong> <em>tuple[float]</em> Initial guess split fractions of each specie to the ‘liquid’</p>
 <p><strong>lNK:</strong> <em>tuple[str]</em> Species assumed to completely remain in the ‘liquid’ phase.</p>
 <p><strong>LNK:</strong> <em>tuple[str]</em> Species assumed to completely remain in the ‘LIQUID’ phase.</p>
 <p><strong>solvents:</strong> <em>tuple[str]</em> Species corresponding to specified solvent_split</p>
 <p><strong>solvent_split:</strong> <em>tuple[float]</em> Split fractions of each specie to the ‘liquid’ phase.</p>
+<p><strong>Qin:</strong> <em>[float]</em> Energy input (kJ/hr)</p>
+<p><strong>T:</strong> <em>[float]</em> Operating temperature (K)</p>
+<p><strong>P:</strong> <em>[float]</em> Operating pressure (Pa)</p>
 </div></blockquote>
 </dd></dl>
 
@@ -963,7 +962,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

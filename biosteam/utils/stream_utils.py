@@ -20,8 +20,8 @@ def get_streams(units):
     """Return tuple of Stream objects from an iterable of Unit objects."""
     streams = []
     for u in units:
-        streams += [i for i in u._ins if not isinstance(i, MissingStream)]
-        streams += [i for i in u._outs if not isinstance(i, MissingStream)]
+        streams.extend([i for i in u._ins if not isinstance(i, MissingStream)])
+        streams.extend([i for i in u._outs if not isinstance(i, MissingStream)])
     return streams
 
 

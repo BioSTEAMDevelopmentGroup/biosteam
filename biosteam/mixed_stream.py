@@ -685,26 +685,25 @@ class MixedStream(Stream):
 
     # Vapor-liquid equilibrium
     def VLE(self, specie_IDs=None, LNK=None, HNK=None, P=None,
-            T=None, V=None, x=None, y=None, Qin=0):
+            Qin=None, T=None, V=None, x=None, y=None):
         """Partition flow rates into vapor and liquid phases by equilibrium. Pressure defaults to current pressure.
 
-        **Parameters**
+        **Optional parameters**
 
-            **User defines two:**
-                * **Qin:** *[float]* Energy input (kJ/hr)
-                * **V:** *[float]* Overall molar vapor fraction
-                * **T:** *[float]* Operating temperature (K)
-                * **P:** *[float]* Operating pressure (Pa)
-                * **x:** *[numpy array]* Molar composition of liquid (for binary mixture)
-                * **y:** *[numpy array]* Molar composition of vapor (for binary mixture)     
-
-            **Optional**
-
-                **specie_IDs:** *[list]* IDs of equilibrium species
+            **P:** [float] Operating pressure (Pa)
+                
+            **specie_IDs:** [list] IDs of equilibrium species
                  
-                **LNK:** *list[str]* Light non-keys
+            **LNK:** list[str] Light non-keys
     
-                **HNK:** *list[str]* Heavy non-keys
+            **HNK:** list[str] Heavy non-keys
+
+            **User may define one:**
+                * **Qin:** [float] Energy input (kJ/hr)
+                * **T:** [float] Operating temperature (K)
+                * **V:** [float] Overall molar vapor fraction
+                * **x:** [numpy array] Molar composition of liquid (for binary mixture)
+                * **y:** [numpy array] Molar composition of vapor (for binary mixture)     
 
         .. Note:
            LNK and HNK are not taken into account for equilibrium. Assumes constant pressure if no pressure is provided.
@@ -713,15 +712,16 @@ class MixedStream(Stream):
         ### Decide what kind of equilibrium to run ###
         
         Nspecs = 0
-        for i in (P, T, x, y, V, Qin):
+        for i in (P, T, x, y, V):
             Nspecs += (i is not None)
         
         raise_error = False
-        if Nspecs > 1:
-            if Nspecs == 2 and not P:
-                raise_error = True
-            elif Nspecs > 2:
-                raise_error = True
+        if Nspecs == 0:
+            Qin = 0
+        elif Nspecs == 2 and not P:
+            raise_error = True
+        elif Nspecs > 2:
+            raise_error = True
         
         if T is not None:
             self.T = T
@@ -954,7 +954,7 @@ class MixedStream(Stream):
             liquid_mol[index] = 0
             self.T = T_dew
             H_dew = self.H
-            if Hin > H_dew:
+            if Hin >= H_dew:
                 self.H = Hin
                 return
 
@@ -963,7 +963,7 @@ class MixedStream(Stream):
             liquid_mol[index] = mol
             self.T = T_bubble
             H_bubble = self.H
-            if Hin < H_bubble:
+            if Hin <= H_bubble:
                 self.H = Hin
                 return
 

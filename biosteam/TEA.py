@@ -1,28 +1,34 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sat Aug 18 15:21:16 2018
+Created on Mon Feb  4 19:38:37 2019
 
-@author: yoelr
+@author: Guest Group
 """
 
+from . import pd
+
+DataFrame = pd.DataFrame
 
 class TEA:
-    def __init__(self, sys, project_length=15, IRR=0.10):
-        self.sys = sys
-        self.project_length = project_length
-        self.IRR = IRR
-
+    
+    options = DataFrame()
+    
+    def __init__(self, system):
+        self.system = system
+        
     def operating_cost(self):
         pass
-
+    
     def capital_cost(self):
         pass
-
-    def NPV(self):
-        op_cost = self.operating_cost()
-        cap_cost = self.capital_cost()
+    
+    def cash_flow(self):
         pass
-
-    def TEA(self):
-        self.run_results()
-        return self.NPV()
+    
+    def NPV(self):
+        pass
+    
+    def MFSP(self, stream):
+        pass
+    
+    

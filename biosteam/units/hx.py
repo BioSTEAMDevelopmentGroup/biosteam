@@ -20,15 +20,15 @@ p2 = np.polyfit(x,y,2)
 
 # Materials of Construction Shell/Tube	       a and b in Eq. (16.44)
 F_Mdict =  {'Carbon steel/carbon steel':       (0, 0),
-            'Carbon steel/brass':	            (1.08, 0.05),
-            'Carbon steel/stainles steel':	  (1.75, 0.13),
-            'Carbon steel/Monel':	            (2.1, 0.13),
+            'Carbon steel/brass':	           (1.08, 0.05),
+            'Carbon steel/stainles steel':	   (1.75, 0.13),
+            'Carbon steel/Monel':	           (2.1, 0.13),
             'Carbon steel/titanium':	       (5.2, 0.16),
             'Carbon steel/Cr-Mo steel':        (1.55, 0.05),
             'Cr-Mo steel/Cr-Mo steel':	       (1.7, 0.07),
             'Stainless steel/stainless steel': (2.7, 0.07),
-            'Monel/Monel':	                 (3.3, 0.08),
-            'Titanium/titanium':	            (9.6, 0.06)}
+            'Monel/Monel':	                   (3.3, 0.08),
+            'Titanium/titanium':	           (9.6, 0.06)}
 
 # Purchase price
 Cb_dict = {'Floating head':

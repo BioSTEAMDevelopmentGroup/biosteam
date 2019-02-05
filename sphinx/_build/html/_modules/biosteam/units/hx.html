@@ -9,7 +9,7 @@
     <title>biosteam.units.hx &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="../../../_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
@@ -75,15 +75,15 @@
 
 <span class="c1"># Materials of Construction Shell/Tube	       a and b in Eq. (16.44)</span>
 <span class="n">F_Mdict</span> <span class="o">=</span>  <span class="p">{</span><span class="s1">&#39;Carbon steel/carbon steel&#39;</span><span class="p">:</span>       <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
-            <span class="s1">&#39;Carbon steel/brass&#39;</span><span class="p">:</span>	            <span class="p">(</span><span class="mf">1.08</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">),</span>
-            <span class="s1">&#39;Carbon steel/stainles steel&#39;</span><span class="p">:</span>	  <span class="p">(</span><span class="mf">1.75</span><span class="p">,</span> <span class="mf">0.13</span><span class="p">),</span>
-            <span class="s1">&#39;Carbon steel/Monel&#39;</span><span class="p">:</span>	            <span class="p">(</span><span class="mf">2.1</span><span class="p">,</span> <span class="mf">0.13</span><span class="p">),</span>
+            <span class="s1">&#39;Carbon steel/brass&#39;</span><span class="p">:</span>	           <span class="p">(</span><span class="mf">1.08</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">),</span>
+            <span class="s1">&#39;Carbon steel/stainles steel&#39;</span><span class="p">:</span>	   <span class="p">(</span><span class="mf">1.75</span><span class="p">,</span> <span class="mf">0.13</span><span class="p">),</span>
+            <span class="s1">&#39;Carbon steel/Monel&#39;</span><span class="p">:</span>	           <span class="p">(</span><span class="mf">2.1</span><span class="p">,</span> <span class="mf">0.13</span><span class="p">),</span>
             <span class="s1">&#39;Carbon steel/titanium&#39;</span><span class="p">:</span>	       <span class="p">(</span><span class="mf">5.2</span><span class="p">,</span> <span class="mf">0.16</span><span class="p">),</span>
             <span class="s1">&#39;Carbon steel/Cr-Mo steel&#39;</span><span class="p">:</span>        <span class="p">(</span><span class="mf">1.55</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">),</span>
             <span class="s1">&#39;Cr-Mo steel/Cr-Mo steel&#39;</span><span class="p">:</span>	       <span class="p">(</span><span class="mf">1.7</span><span class="p">,</span> <span class="mf">0.07</span><span class="p">),</span>
             <span class="s1">&#39;Stainless steel/stainless steel&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">2.7</span><span class="p">,</span> <span class="mf">0.07</span><span class="p">),</span>
-            <span class="s1">&#39;Monel/Monel&#39;</span><span class="p">:</span>	                 <span class="p">(</span><span class="mf">3.3</span><span class="p">,</span> <span class="mf">0.08</span><span class="p">),</span>
-            <span class="s1">&#39;Titanium/titanium&#39;</span><span class="p">:</span>	            <span class="p">(</span><span class="mf">9.6</span><span class="p">,</span> <span class="mf">0.06</span><span class="p">)}</span>
+            <span class="s1">&#39;Monel/Monel&#39;</span><span class="p">:</span>	                   <span class="p">(</span><span class="mf">3.3</span><span class="p">,</span> <span class="mf">0.08</span><span class="p">),</span>
+            <span class="s1">&#39;Titanium/titanium&#39;</span><span class="p">:</span>	           <span class="p">(</span><span class="mf">9.6</span><span class="p">,</span> <span class="mf">0.06</span><span class="p">)}</span>
 
 <span class="c1"># Purchase price</span>
 <span class="n">Cb_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Floating head&#39;</span><span class="p">:</span>
@@ -392,7 +392,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">Q</span><span class="o">/</span><span class="p">(</span><span class="n">U</span><span class="o">*</span><span class="n">LMTD</span><span class="o">*</span><span class="n">ft</span><span class="p">)</span>        
 
-    <span class="k">def</span> <span class="nf">design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        * &#39;Area&#39;: (ft^2)</span>
 <span class="sd">        * &#39;Overall heat transfer coefficient&#39;:  (kW/m^2/K)</span>
@@ -459,7 +459,7 @@
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Total tube length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">L</span>
         <span class="k">return</span> <span class="n">Design</span>
 
-    <span class="k">def</span> <span class="nf">cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        &#39;Heat exchanger&#39;: (USD)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -509,10 +509,12 @@
 
 <span class="sd">    **Parameters**</span>
 
-<span class="sd">        User defines at only one:</span>
+<span class="sd">        User defines at least one:</span>
 <span class="sd">            * T: [float] Temperature of output stream (K).</span>
 <span class="sd">            * V: [float] Vapor fraction of output stream.</span>
-<span class="sd">         </span>
+<span class="sd">        </span>
+<span class="sd">        rigorous: [bool] If true, calculate vapor liquid equilibrium</span>
+<span class="sd">        </span>
 <span class="sd">        U: Should be one of the following:</span>
 <span class="sd">            * [float] Overall heat transfer coefficent (kW/m^2/K)</span>
 <span class="sd">            * [str] &#39;Tabulated&#39;</span>
@@ -530,40 +532,38 @@
     
     <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;T&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
               <span class="s1">&#39;V&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+              <span class="s1">&#39;rigorous&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
               <span class="s1">&#39;U&#39;</span><span class="p">:</span> <span class="s1">&#39;Tabulated&#39;</span><span class="p">}</span>
     
-    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span>
-        <span class="n">T</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;T&#39;</span><span class="p">]</span>
-        <span class="n">V</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;V&#39;</span><span class="p">]</span>
-        <span class="n">T_given</span> <span class="o">=</span> <span class="n">T</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_V_given</span> <span class="o">=</span> <span class="n">V_given</span> <span class="o">=</span> <span class="n">V</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">T_given</span> <span class="ow">and</span> <span class="n">V_given</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Must pass either &#39;T&#39; or &#39;V&#39;, not both&quot;</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="ow">not</span> <span class="p">(</span><span class="n">T_given</span> <span class="ow">or</span> <span class="n">V_given</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Must pass either &#39;T&#39; of &#39;V&#39;&quot;</span><span class="p">)</span>
-            
-    
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">s</span><span class="o">.</span><span class="n">copy_like</span><span class="p">(</span><span class="n">feed</span><span class="p">)</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span>
-        
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_V_given</span><span class="p">:</span>
-            <span class="n">V</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;V&#39;</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">V</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">s</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span>
-            <span class="k">elif</span> <span class="n">V</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">s</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">s</span><span class="o">.</span><span class="n">enable_phases</span><span class="p">()</span>
-                <span class="n">s</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">V</span><span class="o">=</span><span class="n">V</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;T&#39;</span><span class="p">]</span>
+        <span class="n">V</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;V&#39;</span><span class="p">]</span>
+        <span class="n">V_given</span> <span class="o">=</span> <span class="n">V</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> 
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">T</span> <span class="ow">or</span> <span class="n">V_given</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Must pass at least one of the following kwargs: &#39;T&#39;, &#39;V&#39;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;rigorous&#39;</span><span class="p">]:</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">V</span><span class="o">=</span><span class="n">V</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">s</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;T&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">V_given</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">V</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
+                <span class="k">elif</span> <span class="n">V</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">s</span><span class="o">.</span><span class="n">enable_phases</span><span class="p">()</span>
+                    <span class="n">vapmol</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">vapor_mol</span>
+                    <span class="n">liqmol</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">liquid_mol</span>
+                    <span class="n">mol</span> <span class="o">=</span> <span class="n">vapmol</span> <span class="o">+</span> <span class="n">liqmol</span>
+                    <span class="n">vapmol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">mol</span><span class="o">*</span><span class="n">V</span>
+                    <span class="n">liqmol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">mol</span> <span class="o">-</span> <span class="n">vapmol</span>
+            <span class="k">if</span> <span class="n">T</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span>
     
-    <span class="k">def</span> <span class="nf">operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Set duty</span>
+    <span class="k">def</span> <span class="nf">_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Set duty and run heat utility</span>
         <span class="n">util</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_Duty</span> <span class="o">=</span> <span class="n">util</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_H_out</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_H_in</span><span class="p">,</span>
                           <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)[</span><span class="s1">&#39;Duty&#39;</span><span class="p">]</span>
@@ -636,6 +636,7 @@
 <span class="sd">        [1] Output process fluid 2</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_N_heat_util</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">dT</span> <span class="o">=</span> <span class="mi">5</span> <span class="c1">#: [float] Pinch temperature difference.</span>
@@ -650,7 +651,7 @@
         <span class="n">s_out1</span><span class="p">,</span> <span class="n">s_out2</span>  <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="k">return</span> <span class="n">s_in1</span><span class="p">,</span> <span class="n">s_in2</span><span class="p">,</span> <span class="n">s_out1</span><span class="p">,</span> <span class="n">s_out2</span>
     
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">hx</span> <span class="o">=</span> <span class="kc">True</span> <span class="c1"># If false, a stream is empty and no heat exchanger occurs</span>
         <span class="k">for</span> <span class="n">si</span><span class="p">,</span> <span class="n">so</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">si</span><span class="o">.</span><span class="n">molnet</span> <span class="o">&lt;=</span> <span class="mf">0.001</span><span class="p">:</span>
@@ -792,7 +793,7 @@
         <span class="n">sp_out</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">,</span> <span class="n">LNK</span><span class="p">,</span> <span class="n">HNK</span><span class="p">,</span> <span class="n">Qin</span><span class="o">=</span><span class="n">Duty</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_Duty</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">Duty</span><span class="p">)</span>
     
-    <span class="k">def</span> <span class="nf">operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Operation&#39;</span><span class="p">]</span></div>
 </pre></div>
 
@@ -816,7 +817,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

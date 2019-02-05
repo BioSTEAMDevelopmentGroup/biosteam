@@ -102,21 +102,66 @@ _high_pressure_steam = ('latent',
 
 
 class HeatUtility:
-    """Create an HeatUtility object that can choose a utility stream and calculate utility requirements. It can calculate required flow rate, temperature, or phase change of utility. Calculations assume counter current flow rate."""
+    """Create an HeatUtility object that can choose a utility stream and calculate utility requirements. It can calculate required flow rate, temperature, or phase change of utility. Calculations assume counter current flow rate.
+    
+    **Parameters**
+    
+        **source:** [Object or str] source of the heat utility
+    
+    **Class Attributes**
+    
+        **cooling_agents:** [DataFrame] All heating utilities available
+        
+        **heating_agents:** [DataFrame] All heating utilities available
+    
+    **Examples**
+    
+        Create a heat utility with a source:
+            
+        .. code-block:: python
+        
+           >>> heat_util = HeatUtility('Flash')
+           >>> heat_util.show()
+           HeatUtility: None
+            Duty: 0
+            Flow: 0
+            Cost: 0
+        
+        Calculate utility requirement by calling it with a duty (kJ/hr) and temperature (K):
+            
+        .. code-block:: python
+        
+           >>> heat_util(1000, 300, 350)
+           {'Cost': 0.00607 (USD/hr),
+            'Flow': 0.46 (kg/hr),
+            'Duty': 1e+03 (kJ/hr),
+            'ID': Low pressure steam}
+       
+        All results are cached:
+            
+        .. code-block:: python
+        
+           >>> heat_util.results
+           {'Cost': 0.00607 (USD/hr),
+            'Flow': 0.46 (kg/hr),
+            'Duty': 1e+03 (kJ/hr),
+            'ID': Low pressure steam}
+           
+    """
     __slots__ = ('_fresh', '_vap', '_liq', 'results')
     dT = 5  #: [float] Pinch temperature difference
     
     #: Units of measure for results dictionary
     _units = UnitManager([], Duty='kJ/hr', Flow='kg/hr', Cost='USD/hr')
 
-    #: All cooling utilities available
+    # All cooling utilities available
     cooling_agents = pd.DataFrame([_cooling_water,
                                    _chilled_water,
                                    _chilled_brine],
                                   columns=_columns,
                                   index=_cooling_index).transpose()
 
-    #: All heating utilities available
+    # All heating utilities available
     heating_agents = pd.DataFrame([_low_pressure_steam,
                                    _medium_pressure_steam,
                                    _high_pressure_steam],

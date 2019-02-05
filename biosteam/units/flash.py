@@ -412,8 +412,8 @@ class Flash(Unit):
             LD = Ht/D
 
         # Find maximum and normal liquid level
-        #Hhll = Hs + Hh + Hlll
-        #Hnll = Hh + Hlll
+        # Hhll = Hs + Hh + Hlll
+        # Hnll = Hh + Hlll
 
         # Results
         d = self.results['Design']
@@ -573,13 +573,13 @@ class Flash(Unit):
                 converged = True
 
         # Calculate normal liquid level and High liquid level
-        #Hhll = D - Hv
-        #if (Hhll < 0.0):
-        #    Hhll = 0.0
-        #Anll = Alll + Vh/L
-        #X = Anll/At
-        #Y = HNATable(2, X)
-        #Hnll = Y*D
+        # Hhll = D - Hv
+        # if (Hhll < 0.0):
+        #     Hhll = 0.0
+        # Anll = Alll + Vh/L
+        # X = Anll/At
+        # Y = HNATable(2, X)
+        # Hnll = Y*D
         
         # Results
         d = self.results['Design']

@@ -198,12 +198,19 @@ class System:
             units += sys._units
             streams += sys._streams
         self._units = units = organized_list(units)
-        self._streams = organized_list(streams)
+        self._streams = streams = organized_list(streams)
         
         # Stamp unit in a loop
         if self.recycle:
             for u in units:
                 u._in_loop = True
+                
+        # Important for TEA
+        self.feeds = tuple(filter(lambda s: not s.source[0] and s.sink[0],
+                                  streams)) #: tuple[Stream]
+        self.products = tuple(filter(lambda s: s.source[0] and not s.sink[0],
+                                     streams)) #: tuple[Stream]
+            
 
     @property
     def converge_method(self):

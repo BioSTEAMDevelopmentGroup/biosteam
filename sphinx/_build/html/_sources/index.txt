@@ -36,8 +36,6 @@ Overview
  
 :doc:`Chemical`: A thermo.Chemical object from the Chemical Engineering Design Library (ChEDL) with minor extensions for compatibility. It contains pure component transport and thermodynamic properties.
 
-:doc:`Specie`: Abstract parent class for Specie objects
-
 :doc:`Species`: Contains Specie and Chemical objects.
 
 :doc:`Stream`: Used to pass material information between units. Stream properties are calculated using ideal mixture rules and pure component data from the Species object.
@@ -52,66 +50,9 @@ Overview
 Getting Started
 ---------------
 
-BioSTEAM objects serve as basic building blocks to design and simulate a biorefinery. These include objects that handle material properties, material flows, unit operations, recycle loops and process specifications. To get started, follow the example below:
+BioSTEAM objects serve as basic building blocks to design and simulate a biorefinery. These include objects that handle material properties, material flows, unit operations, recycle loops and process specifications.
 
-**Specify the working species** for all streams:
-
-.. code-block:: python
-     
-   >>> from biosteam import Species, Stream
-   >>> Stream.species = Species('Ethanol', 'Water') 
-
-**Create a stream** passing an ID, flow rates, phase, temperature and pressure:
-
-.. code-block:: python
-
-   >>> s1 = Stream(ID='s1', flow=(1, 2), units='kmol/hr', T=300, P=101325)
-   >>> s1.show()
-   Stream: s1
-    phase: 'l', T: 300.00 K, P: 101325 Pa
-    flow (kmol/hr): Ethanol   1
-                    Water     2
-   
-**Create a Unit class** passing an ID, IDs for output streams, and any key word arguments specific to the Unit:
-
-.. code-block:: python
-
-   >>> from biosteam.units import Flash
-   >>> # Specify vapor fraction and pressure conditions
-   >>> F1 = Flash(ID='F1', outs=('vapor', 'liquid'), V=0.5, P=101325)
-
-**Set the input streams**, and check connections as a Graphviz diagram:
-
-.. code-block:: python
-
-   >>> F1.ins = s1
-   >>> F1.diagram
-
-.. figure:: F1_flash.png
-
-**Run the unit** and see the results:
-
-.. code-block:: python
-
-   >>> F1.run()
-   >>> F1.show()
-   Flash: F1
-   ins...
-   [0] s1
-       phase: 'l', T: 300.00 K, P: 101325 Pa
-       flow (kmol/hr): Ethanol   1
-                       Water     2
-   outs...
-   [0] vapor
-       phase: 'g', T: 357.20 K, P: 101325 Pa
-       flow (kmol/hr): Ethanol   0.761
-                       Water     0.739
-   [1] liquid
-       phase: 'l', T: 357.20 K, P: 101325 Pa
-       flow (kmol/hr): Ethanol   0.239
-                       Water     1.26
-
-For a more detailed example check out :doc:`Tutorial`.
+To get started, follow the :doc:`Tutorial`.
 
 
 Indices and tables

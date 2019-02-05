@@ -9,7 +9,7 @@
     <title>biosteam.stream &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
@@ -293,20 +293,13 @@
 
 <span class="sd">    **P:** [float] Pressure (Pa)</span>
 
+<span class="sd">    **price:** [float] (USD/kg)</span>
+<span class="sd">    </span>
 <span class="sd">    ****flow_pairs:** Specie-flow pairs</span>
 
 <span class="sd">**Class Properties**</span>
 
 <span class="sd">    **species** = Species(): [Species] Contains pure component thermodynamic properties for computing overall properties of Stream instances</span>
-
-<span class="sd">    **show_format**: [ShowFormat] Object with attributes that describe how the show method presents units</span>
-
-<span class="sd">**Class Attributes**</span>
-
-<span class="sd">    **_default_ID** = [&#39;d&#39;, 1]: list[str, int] Default starting letter and current number for ID.</span>
-
-<span class="sd">    **units** = {&#39;C&#39;: &#39;kJ/K/hr&#39;, &#39;Cp&#39;: &#39;J/g/K&#39;, &#39;Cpm&#39;: &#39;J/mol/K&#39;, &#39;H&#39;: &#39;kJ/hr&#39;, &#39;S&#39;: &#39;kJ/hr&#39;, &#39;G&#39;: &#39;kJ/hr&#39;, &#39;U&#39;: &#39;kJ/hr&#39;, &#39;A&#39;: &#39;kJ/hr&#39;, &#39;Hf&#39;: &#39;kJ/hr&#39;, &#39;MW&#39;: &#39;g/mol&#39;, &#39;P&#39;: &#39;Pa&#39;, &#39;T&#39;: &#39;K&#39;, &#39;Vm&#39;: &#39;m^3/mol&#39;, &#39;alpha&#39;: &#39;m^2/s&#39;, &#39;k&#39;: &#39;W/m/K&#39;, &#39;mass&#39;: &#39;kg/hr&#39;, &#39;massfrac&#39;: &#39;kg/kg&#39;, &#39;massnet&#39;: &#39;kg/hr&#39;, &#39;mol&#39;: &#39;kmol/hr&#39;, &#39;molfrac&#39;: &#39;kmol/kmol&#39;, &#39;molnet&#39;: &#39;kmol/hr&#39;, &#39;mu&#39;: &#39;Pa*s&#39;, &#39;nu&#39;: &#39;m^2/s&#39;, &#39;rho&#39;: &#39;kg/m^3&#39;, &#39;rhom&#39;: &#39;mol/m^3&#39;, &#39;sigma&#39;: &#39;N/m&#39;, &#39;vol&#39;: &#39;m^3/hr&#39;, &#39;volfrac&#39;: &#39;m^3/m^3&#39;, &#39;volnet&#39;: &#39;m^3/hr&#39;}</span>
-<span class="sd">    : *[dict]* Units of measure for material properties. Items in this dictionary cannot be changed.</span>
 
 <span class="sd">**Examples**</span>
 
@@ -475,7 +468,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">activity_coefficients</span> <span class="o">=</span> <span class="n">DORTMUND</span>
 
-    <span class="c1"># [dict] Units of measure for material properties (class attribute). Items in this dictionary cannot be changed.</span>
+    <span class="c1"># [dict] Units of measure for material properties (class attribute). </span>
     <span class="n">units</span> <span class="o">=</span> <span class="n">units_of_measure</span>
 
     <span class="c1"># Utils information regarding properties</span>
@@ -544,7 +537,7 @@
     <span class="n">_species_eq</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="p">(),</span> <span class="n">species</span><span class="o">=</span><span class="p">(),</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">,</span>
-                 <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">298.15</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="o">**</span><span class="n">flow_pairs</span><span class="p">):</span>
+                 <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">298.15</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">price</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">flow_pairs</span><span class="p">):</span>
         <span class="c1"># Get species ID and set species information</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">Species</span><span class="p">):</span>
             <span class="c1"># Set species as provided</span>
@@ -552,17 +545,9 @@
             <span class="n">specie_IDs</span> <span class="o">=</span> <span class="p">()</span>
         <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">):</span>
             <span class="n">specie_IDs</span> <span class="o">=</span> <span class="n">species</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span>
             <span class="c1"># Copy class species data (in case it changes)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="o">=</span> <span class="n">species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_specie_IDs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_specie_IDs</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_CAS</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_CAS</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_Nspecies</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Nspecies</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_ID_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID_index</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_index_ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index_ID</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_CAS_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_CAS_index</span> 
-            <span class="bp">self</span><span class="o">.</span><span class="n">_index_CAS</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index_CAS</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_MW</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_MW</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_copy_species</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;species must be a Species object, not {type(species).__name__}&#39;</span><span class="p">)</span>
         
@@ -644,6 +629,27 @@
             <span class="n">v</span> <span class="o">=</span> <span class="n">VolumetricFlow</span><span class="p">(</span><span class="n">specie</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]))</span>
             <span class="n">vol</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_vol</span> <span class="o">=</span> <span class="n">property_array</span><span class="p">(</span><span class="n">vol</span><span class="p">)</span>
+        
+        <span class="c1">#: (USD/kg)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">price</span> <span class="o">=</span> <span class="n">price</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Cost of stream (USD/hr)&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">price</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">massnet</span>
+
+    <span class="k">def</span> <span class="nf">_copy_species</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Copy species data from stream.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_species</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_specie_IDs</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_specie_IDs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_CAS</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_CAS</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Nspecies</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_Nspecies</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ID_index</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_ID_index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_index_ID</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_index_ID</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_CAS_index</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_CAS_index</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">_index_CAS</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_index_CAS</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_MW</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_MW</span>
 
     <span class="c1"># Forward pipping</span>
     <span class="k">def</span> <span class="nf">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
@@ -749,8 +755,7 @@
 
     <span class="c1">### Flow properties ###</span>
     
-<div class="viewcode-block" id="Stream.get_index"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.get_index">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">get_index</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">IDs</span><span class="p">,</span> <span class="n">CAS</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="Stream.get_index"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.get_index">[docs]</a>    <span class="k">def</span> <span class="nf">get_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">IDs</span><span class="p">,</span> <span class="n">CAS</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get flow indeces of specified species.</span>
 
 <span class="sd">        **Parameters**</span>
@@ -775,9 +780,9 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">CAS</span><span class="p">:</span>
-            <span class="n">index_dict</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_CAS_index</span>
+            <span class="n">index_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_CAS_index</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">index_dict</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_ID_index</span>
+            <span class="n">index_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID_index</span>
         
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">IDs</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
             <span class="n">indices</span> <span class="o">=</span> <span class="n">index_dict</span><span class="p">[</span><span class="n">IDs</span><span class="p">]</span>
@@ -785,7 +790,6 @@
             <span class="n">indices</span> <span class="o">=</span> <span class="p">[</span><span class="n">index_dict</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="k">for</span> <span class="n">ID</span> <span class="ow">in</span> <span class="n">IDs</span><span class="p">]</span>
         
         <span class="k">return</span> <span class="n">indices</span></div>
-    <span class="n">get_indx</span> <span class="o">=</span> <span class="n">get_index</span> <span class="c1">#: Alias of get_index.</span>
     
     <span class="c1"># Molar flow</span>
     <span class="nd">@property</span>
@@ -1149,7 +1153,10 @@
 <span class="sd">        &lt;Quantity(4.180597021827335, &#39;joule / gram / kelvin&#39;)&gt;</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">Q_</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="p">[</span><span class="n">prop_ID</span><span class="p">])</span></div>
+        <span class="n">attr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">ndarray</span><span class="p">):</span>
+            <span class="n">attr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">attr</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">Q_</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="p">[</span><span class="n">prop_ID</span><span class="p">])</span></div>
 
     <span class="c1"># Sensitivity analysis</span>
     <span class="k">def</span> <span class="nf">_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">,</span> <span class="n">var_ID</span><span class="p">,</span> <span class="n">var_vals</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -1378,12 +1385,12 @@
         <span class="n">s</span> <span class="o">=</span> <span class="n">stream</span>
         <span class="n">phase</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">phase</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">phase</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">out</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">mol</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="n">phase</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">mol</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">stream</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="n">phase</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">MS</span> <span class="o">=</span> <span class="n">mixed_stream</span><span class="o">.</span><span class="n">MixedStream</span>
             <span class="n">out</span> <span class="o">=</span> <span class="n">MS</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">solid_flow</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">solid_mol</span><span class="p">,</span> <span class="n">liquid_flow</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">liquid_mol</span><span class="p">,</span>
                      <span class="n">LIQUID_flow</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">LIQUID_mol</span><span class="p">,</span> <span class="n">vapor_flow</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">vapor_mol</span><span class="p">,</span>
-                     <span class="n">T</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
+                     <span class="n">species</span><span class="o">=</span><span class="n">stream</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">out</span></div>
     
 <div class="viewcode-block" id="Stream.copy_like"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.copy_like">[docs]</a>    <span class="k">def</span> <span class="nf">copy_like</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">):</span>
@@ -1397,7 +1404,9 @@
 <span class="sd">                        [Water,   2]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">phase</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">phase</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">phase</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>    
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">phase</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">stream</span><span class="o">.</span><span class="n">_species</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_copy_species</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">mol</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">P</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="n">phase</span>
@@ -1917,16 +1926,16 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span> <span class="o">=</span> <span class="n">mol</span></div>
 
 <div class="viewcode-block" id="Stream.VLE"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.VLE">[docs]</a>    <span class="k">def</span> <span class="nf">VLE</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">LNK</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">HNK</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">V</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Qin</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <span class="n">Qin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">V</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">enable_phases</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">,</span> <span class="n">LNK</span><span class="p">,</span> <span class="n">HNK</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">Qin</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">,</span> <span class="n">LNK</span><span class="p">,</span> <span class="n">HNK</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">Qin</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span></div>
         
-<div class="viewcode-block" id="Stream.LLE"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.LLE">[docs]</a>    <span class="k">def</span> <span class="nf">LLE</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lNK</span><span class="o">=</span><span class="p">(),</span> <span class="n">LNK</span><span class="o">=</span><span class="p">(),</span>
-            <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Qin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">solvents</span><span class="o">=</span><span class="p">(),</span> <span class="n">solvent_split</span><span class="o">=</span><span class="p">()):</span>
+<div class="viewcode-block" id="Stream.LLE"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.LLE">[docs]</a>    <span class="k">def</span> <span class="nf">LLE</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lNK</span><span class="o">=</span><span class="p">(),</span> <span class="n">LNK</span><span class="o">=</span><span class="p">(),</span>
+            <span class="n">solvents</span><span class="o">=</span><span class="p">(),</span> <span class="n">solvent_split</span><span class="o">=</span><span class="p">(),</span>
+            <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Qin</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">enable_phases</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">LLE</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">lNK</span><span class="p">,</span> <span class="n">LNK</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">Qin</span><span class="p">,</span>
-                 <span class="n">solvents</span><span class="p">,</span> <span class="n">solvent_split</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">LLE</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">lNK</span><span class="p">,</span> <span class="n">LNK</span><span class="p">,</span>
+                 <span class="n">solvents</span><span class="p">,</span> <span class="n">solvent_split</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">Qin</span><span class="p">)</span></div>
 
     <span class="c1"># Representation</span>
     <span class="k">def</span> <span class="nf">_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">show_units</span><span class="p">):</span>
@@ -2046,7 +2055,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

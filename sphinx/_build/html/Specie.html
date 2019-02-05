@@ -9,7 +9,7 @@
     <title>Specie &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -93,9 +93,15 @@
 <p><strong>T_ref</strong> = 298.15: Reference temperature (K)</p>
 <p><strong>P_ref</strong> = 101325: Reference pressure (Pa)</p>
 </div></blockquote>
+<dl class="attribute">
+<dt id="biosteam.Specie.units">
+<code class="descname">units</code><em class="property"> = {'A': 'J/mol', 'Cp': 'J/g', 'Cpm': 'J/mol', 'G': 'J/mol', 'H': 'J/mol', 'Hf': 'J/mol', 'MW': 'g/mol', 'P': 'Pa', 'S': 'J/mol', 'T': 'K', 'U': 'J/mol', 'Vm': 'm^3/mol', 'alpha': 'm^2/s', 'k': 'W/m/K', 'mu': 'Pa*s', 'nu': 'm^2/s', 'rho': 'kg/m^3', 'rhom': 'mol/m^3', 'sigma': 'N/m'}</em><a class="headerlink" href="#biosteam.Specie.units" title="Permalink to this definition">¶</a></dt>
+<dd><p>[dict] Units of measure for material properties (class attribute).</p>
+</dd></dl>
+
 <dl class="method">
-<dt id="biosteam.Specie.prop_quantity">
-<code class="descname">prop_quantity</code><span class="sig-paren">(</span><em>prop_ID</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/specie.html#Specie.prop_quantity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Specie.prop_quantity" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.Specie.quantity">
+<code class="descname">quantity</code><span class="sig-paren">(</span><em>prop_ID</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/specie.html#Specie.quantity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Specie.quantity" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a material property as a Quantity object as described in the <a class="reference external" href="https://pint.readthedocs.io/en/latest/">pint package</a></p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -162,7 +168,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

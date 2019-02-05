@@ -9,7 +9,7 @@
     <title>Fermentation &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -158,7 +158,7 @@
 <dl class="attribute">
 <dt id="biosteam.Fermentation.kinetic_constants">
 <code class="descname">kinetic_constants</code><em class="property"> = (0.39, 1.16, 1.94, 2.6, 88.1, 126.5, 114, 0.45, 0.16)</em><a class="headerlink" href="#biosteam.Fermentation.kinetic_constants" title="Permalink to this definition">¶</a></dt>
-<dd><p>tuple of kinetic parameters for Oliveria’s kinetic model: (mu_m1, mu_m2, Ks1, Ks2, Pm1, Pm2, Xm, Y_PS, a)</p>
+<dd><p>tuple of kinetic parameters for the kinetic model. Default constants are fitted for Oliveria’s model (mu_m1, mu_m2, Ks1, Ks2, Pm1, Pm2, Xm, Y_PS, a)</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -195,28 +195,6 @@
 </div></blockquote>
 </dd></dl>
 
-<dl class="method">
-<dt id="biosteam.Fermentation.design">
-<code class="descname">design</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span> &#x2192; Design [dict]<a class="headerlink" href="#biosteam.Fermentation.design" title="Permalink to this definition">¶</a></dt>
-<dd><ul class="simple">
-<li>‘Number of reactors’: (#)</li>
-<li>‘Reactor volume’:  (m3)</li>
-<li>‘Cycle time’: (hr)</li>
-<li>‘Loading time’: (hr)</li>
-<li>‘Total dead time’: (hr)</li>
-</ul>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.Fermentation.cost">
-<code class="descname">cost</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span> &#x2192; Cost [dict]<a class="headerlink" href="#biosteam.Fermentation.cost" title="Permalink to this definition">¶</a></dt>
-<dd><ul class="simple">
-<li>‘Reactors’: (USD)</li>
-<li>‘Coolers’: (USD)</li>
-<li>‘Agitators’: (USD)</li>
-</ul>
-</dd></dl>
-
 </dd></dl>
 
 </div>
@@ -248,7 +226,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

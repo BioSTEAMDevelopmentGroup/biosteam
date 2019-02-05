@@ -9,7 +9,7 @@
     <title>biosteam.units.balance &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="../../../_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
@@ -92,7 +92,7 @@
               <span class="s1">&#39;exact&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
               <span class="s1">&#39;balance&#39;</span><span class="p">:</span> <span class="s1">&#39;flow&#39;</span><span class="p">}</span>
 
-    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">exact</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;exact&#39;</span><span class="p">]</span>
         <span class="n">balance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;balance&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span> <span class="o">=</span> <span class="n">cached</span> <span class="o">=</span> <span class="p">{}</span>
@@ -117,7 +117,7 @@
         <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;bal_index&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">sp_index</span><span class="p">[</span><span class="n">specie</span><span class="p">]</span> <span class="k">for</span> <span class="n">specie</span> <span class="ow">in</span> <span class="n">specie_IDs</span><span class="p">]</span>
         <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;linalg_solver&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">solver</span>
 
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Solve mass balance by iteration.&quot;&quot;&quot;</span>
         <span class="c1"># SOLVING BY ITERATION TAKES 15 LOOPS FOR 2 STREAMS</span>
         <span class="c1"># SOLVING BY LEAST-SQUARES TAKES 40 LOOPS</span>
@@ -193,8 +193,6 @@
             <span class="k">for</span> <span class="n">factor</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">x_new</span><span class="p">,</span> <span class="n">vary</span><span class="p">):</span>
                 <span class="n">s</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">mol</span> <span class="o">*</span> <span class="n">factor</span>
 
-    <span class="n">_simple_run</span> <span class="o">=</span> <span class="n">run</span>
-
     <span class="c1"># Setting input and output streams do not change sources or sinks</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ins</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -238,8 +236,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_Graphics</span> <span class="o">=</span> <span class="n">MassBalance</span><span class="o">.</span><span class="n">_Graphics</span>
     
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Get arguments</span>
+    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>        <span class="c1"># Get arguments</span>
         <span class="n">ins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="n">outs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span>
@@ -294,7 +291,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

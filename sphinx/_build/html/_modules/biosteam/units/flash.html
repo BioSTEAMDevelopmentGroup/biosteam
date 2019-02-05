@@ -9,7 +9,7 @@
     <title>biosteam.units.flash &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="../../../_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
@@ -214,7 +214,7 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Vessel material must be one of the following: </span><span class="si">{dummy}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_F_Mstr</span> <span class="o">=</span> <span class="n">vessel_material</span>  
 
-    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">vap</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">vap</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span>
         <span class="n">liq</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
@@ -225,7 +225,7 @@
         <span class="n">he</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span>
         <span class="n">he</span><span class="o">-</span><span class="n">ms</span>
 
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Unpack</span>
         <span class="n">vap</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -285,10 +285,10 @@
         <span class="n">ph1</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">=</span> <span class="n">V</span><span class="o">*</span><span class="n">molnet</span><span class="o">*</span><span class="n">ph1_molfrac</span>
         <span class="n">ph2</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">=</span> <span class="n">_mol_in</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">-</span> <span class="n">ph1</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">operation</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">_operation</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        * &#39;Length&#39;: (ft)</span>
 <span class="sd">        * &#39;Diameter&#39;: (ft)</span>
@@ -310,10 +310,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span> <span class="n">f</span><span class="s2">&quot;SepType must be either &#39;Horizontal&#39; or &#39;Vertical&#39;, not &#39;</span><span class="si">{self.SepType}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
         
-        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">design</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">out</span>
 
-    <span class="k">def</span> <span class="nf">cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        * &#39;Vessel&#39;: (USD)</span>
 <span class="sd">        * &#39;Heat exchanger&#39;: (USD)</span>
@@ -338,7 +338,7 @@
             <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;SepType (</span><span class="si">{type_}</span><span class="s2">) must be either &#39;Vertical&#39;, &#39;Horizontal&#39; or &#39;Default&#39;.&quot;</span><span class="p">)</span>
             
         <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Vessel&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">CE</span><span class="o">/</span><span class="mi">500</span><span class="o">*</span><span class="p">(</span><span class="n">C_v</span><span class="o">+</span><span class="n">C_pl</span><span class="p">)</span>
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">cost</span><span class="p">()[</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
+        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">_cost</span><span class="p">()[</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">Cost</span>
 
     <span class="k">def</span> <span class="nf">_design_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -467,8 +467,8 @@
             <span class="n">LD</span> <span class="o">=</span> <span class="n">Ht</span><span class="o">/</span><span class="n">D</span>
 
         <span class="c1"># Find maximum and normal liquid level</span>
-        <span class="c1">#Hhll = Hs + Hh + Hlll</span>
-        <span class="c1">#Hnll = Hh + Hlll</span>
+        <span class="c1"># Hhll = Hs + Hh + Hlll</span>
+        <span class="c1"># Hnll = Hh + Hlll</span>
 
         <span class="c1"># Results</span>
         <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
@@ -628,13 +628,13 @@
                 <span class="n">converged</span> <span class="o">=</span> <span class="kc">True</span>
 
         <span class="c1"># Calculate normal liquid level and High liquid level</span>
-        <span class="c1">#Hhll = D - Hv</span>
-        <span class="c1">#if (Hhll &lt; 0.0):</span>
-        <span class="c1">#    Hhll = 0.0</span>
-        <span class="c1">#Anll = Alll + Vh/L</span>
-        <span class="c1">#X = Anll/At</span>
-        <span class="c1">#Y = HNATable(2, X)</span>
-        <span class="c1">#Hnll = Y*D</span>
+        <span class="c1"># Hhll = D - Hv</span>
+        <span class="c1"># if (Hhll &lt; 0.0):</span>
+        <span class="c1">#     Hhll = 0.0</span>
+        <span class="c1"># Anll = Alll + Vh/L</span>
+        <span class="c1"># X = Anll/At</span>
+        <span class="c1"># Y = HNATable(2, X)</span>
+        <span class="c1"># Hnll = Y*D</span>
         
         <span class="c1"># Results</span>
         <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
@@ -659,13 +659,13 @@
               <span class="s1">&#39;bot_solvents&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of species that correspond to bot_split</span>
               <span class="s1">&#39;bot_split&#39;</span><span class="p">:</span> <span class="p">[]}</span>  <span class="c1"># list of splits for bot_solvents</span>
 
-    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span> <span class="o">=</span> <span class="n">he</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="o">+</span><span class="s1">&#39; hx&#39;</span><span class="p">,</span> <span class="n">outs_ID</span><span class="o">=</span><span class="p">())</span> 
         <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span> <span class="o">=</span> <span class="n">he</span><span class="o">.</span><span class="n">heat_utilities</span>
         <span class="n">he</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span>
         <span class="n">he</span><span class="o">.</span><span class="n">outs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span>
 
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">top</span><span class="p">,</span> <span class="n">bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">Kspecies</span><span class="p">,</span> <span class="n">Ks</span><span class="p">,</span> <span class="n">top_solvents</span><span class="p">,</span> <span class="n">top_split</span><span class="p">,</span> <span class="n">bot_solvents</span><span class="p">,</span> <span class="n">bot_split</span> <span class="o">=</span> <span class="p">(</span>
@@ -697,7 +697,7 @@
               <span class="s1">&#39;Qin&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
               <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="mi">101325</span><span class="p">}</span>
 
-    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Unpack</span>
         <span class="n">component</span><span class="p">,</span> <span class="n">P</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">))</span>
         <span class="n">vapor</span><span class="p">,</span> <span class="n">liquid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
@@ -722,7 +722,7 @@
         <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;liquid_H&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">liquid</span><span class="o">.</span><span class="n">H</span>
         <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;no_ph_ch&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">no_ph_ch</span>
 
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Unpack</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">component</span><span class="p">,</span> <span class="n">Qin</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="s1">&#39;Qin&#39;</span><span class="p">))</span>
@@ -772,7 +772,7 @@
               <span class="s1">&#39;V&#39;</span><span class="p">:</span> <span class="s1">&#39;Vapor fraction&#39;</span><span class="p">,</span>
               <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="s1">&#39;Operating pressure (Pa)&#39;</span><span class="p">}</span>
 
-    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Unpack</span>
         <span class="n">vapor</span><span class="p">,</span> <span class="n">liquid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">component</span><span class="p">,</span> <span class="n">P</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">))</span>
@@ -784,7 +784,7 @@
         <span class="n">vapor</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">phase</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">Tf</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">P</span><span class="p">)</span>
         <span class="n">liquid</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">phase</span><span class="o">=</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">Tf</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">P</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Unpack</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">component</span><span class="p">,</span> <span class="n">V</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="s1">&#39;V&#39;</span><span class="p">))</span>
@@ -796,7 +796,7 @@
         <span class="n">liquid</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">)</span>
         <span class="n">liquid</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">V</span><span class="p">)</span><span class="o">*</span><span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
 
-    <span class="n">operation</span> <span class="o">=</span> <span class="n">HXutility</span><span class="o">.</span><span class="n">operation</span>
+    <span class="n">_operation</span> <span class="o">=</span> <span class="n">HXutility</span><span class="o">.</span><span class="n">_operation</span>
 
 <span class="k">class</span> <span class="nc">P69_flash</span><span class="p">(</span><span class="n">Flash</span><span class="p">):</span>
     <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;split&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># component split fractions</span>
@@ -805,7 +805,7 @@
               <span class="s1">&#39;T&#39;</span><span class="p">:</span> <span class="mf">298.15</span><span class="p">,</span>  <span class="c1"># operating temperature (K)</span>
               <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="mi">101325</span><span class="p">}</span>  <span class="c1"># operating pressure (Pa)</span>
     
-    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Unpack</span>
         <span class="n">top</span><span class="p">,</span> <span class="n">bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">top</span><span class="o">.</span><span class="n">phase</span><span class="p">,</span> <span class="n">bot</span><span class="o">.</span><span class="n">phase</span><span class="p">,</span> <span class="n">Tf</span><span class="p">,</span> <span class="n">Pf</span> <span class="o">=</span> <span class="p">(</span>
@@ -816,22 +816,21 @@
         <span class="n">vap</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">vap</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span>
         <span class="n">liq</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span> <span class="o">=</span> <span class="n">he</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="o">+</span><span class="s1">&#39; hx&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">())</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span> <span class="o">=</span> <span class="n">he</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="o">+</span><span class="s1">&#39; hx&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> 
         <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span> <span class="o">=</span> <span class="n">he</span><span class="o">.</span><span class="n">heat_utilities</span>
         <span class="n">he</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span>
 
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">split</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;split&#39;</span><span class="p">]</span>
         <span class="n">top</span><span class="p">,</span> <span class="n">bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">net_mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol_in</span>
         <span class="n">top</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">net_mol</span><span class="o">*</span><span class="n">split</span>
         <span class="n">bot</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">net_mol</span> <span class="o">-</span> <span class="n">top</span><span class="o">.</span><span class="n">mol</span>
-    <span class="n">_simple_run</span> <span class="o">=</span> <span class="n">run</span>
 
-    <span class="k">def</span> <span class="nf">operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">ms</span> <span class="o">=</span> <span class="n">MixedStream</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">MixedStream</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">species</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">outs</span> <span class="o">=</span> <span class="n">ms</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">operation</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">_operation</span><span class="p">()</span>
         
 </pre></div>
 
@@ -855,7 +854,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

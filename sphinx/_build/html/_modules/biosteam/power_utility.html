@@ -9,7 +9,7 @@
     <title>biosteam.power_utility &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
@@ -64,11 +64,6 @@
 <div class="viewcode-block" id="PowerUtility"><a class="viewcode-back" href="../../PowerUtility.html#biosteam.PowerUtility">[docs]</a><span class="k">class</span> <span class="nc">PowerUtility</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Create an PowerUtility object that can calculates the cost of power.</span>
 <span class="sd">    </span>
-<span class="sd">    **Parameters**</span>
-<span class="sd">    </span>
-<span class="sd">        price: [float] Price of power ($/kW-hr)</span>
-<span class="sd">    </span>
-<span class="sd">    </span>
 <span class="sd">    **__call__()**</span>
 <span class="sd">    </span>
 <span class="sd">        Return dictionary of utility requirements given the essential parameters.</span>
@@ -81,13 +76,17 @@
 <span class="sd">            * &#39;Power&#39;: Unit duty requirement (kW)</span>
 <span class="sd">            * &#39;Cost&#39;: Cost of utility (USD/hr)</span>
 <span class="sd">    </span>
+<span class="sd">    **Class Parameters**</span>
+<span class="sd">    </span>
+<span class="sd">        **price:** ($/kW-hr)</span>
+<span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_units</span> <span class="o">=</span> <span class="n">UnitManager</span><span class="p">([],</span> <span class="n">Power</span><span class="o">=</span><span class="s1">&#39;kW&#39;</span><span class="p">,</span> <span class="n">Cost</span><span class="o">=</span><span class="s1">&#39;USD/hr&#39;</span><span class="p">)</span>
-    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;results&#39;</span><span class="p">,</span> <span class="s1">&#39;price&#39;</span><span class="p">)</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;results&#39;</span><span class="p">,)</span>
+    <span class="n">price</span> <span class="o">=</span> <span class="mf">0.0782</span>
     
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">price</span><span class="o">=</span><span class="mf">0.0782</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="n">SmartBook</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">price</span> <span class="o">=</span> <span class="n">price</span> <span class="c1"># $/kW-hr</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="n">SmartBook</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">)</span>
     
     <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">power</span><span class="p">:</span><span class="s1">&#39;kW&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return dictionary of utility requirements given the essential parameters.</span>
@@ -155,7 +154,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

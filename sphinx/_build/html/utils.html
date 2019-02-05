@@ -9,7 +9,7 @@
     <title>utils &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -240,7 +240,7 @@
 </div></blockquote>
 <p><strong>Examples</strong></p>
 <blockquote>
-<div><p>The PropertyFactory is an FreeProperty class creator that functions just like Python ‘property’ objects. Use the PropertyFactory to create a Weight class which calculates weight based on density and volume:</p>
+<div><p>The PropertyFactory is a FreeProperty class creator that functions similar to Python ‘property’ objects. Use the PropertyFactory to create a Weight class which calculates weight based on density and volume:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">getter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="gp">... </span>   <span class="sd">&#39;&#39;&#39;Weight (kg) based on volume (m^3).&#39;&#39;&#39;</span>
 <span class="gp">... </span>   <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
@@ -416,76 +416,6 @@
 <dt id="biosteam.utils.get_attr">
 <code class="descclassname">biosteam.utils.</code><code class="descname">get_attr</code><span class="sig-paren">(</span><em>obj</em>, <em>*attrs</em><span class="sig-paren">)</span> &#x2192; list[attributes]<a class="reference internal" href="_modules/biosteam/utils/other_utils.html#get_attr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.utils.get_attr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a list of attributes, ‘attrs’, from obj.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="biosteam.utils.autodoc">
-<code class="descclassname">biosteam.utils.</code><code class="descname">autodoc</code><span class="sig-paren">(</span><em>cls</em>, <em>path: str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/utils/other_utils.html#autodoc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.utils.autodoc" title="Permalink to this definition">¶</a></dt>
-<dd><p>Make Sphinx documentation txt file in the specified path.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="biosteam.utils.TextManager">
-<em class="property">class </em><code class="descclassname">biosteam.utils.</code><code class="descname">TextManager</code><span class="sig-paren">(</span><em>document</em>, <em>directory=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/utils/other_utils.html#TextManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.utils.TextManager" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a TextManager object that can read a document, store its content and update the document.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><p>document: [str] Name of the document</p>
-<p>directory: [str] Relative location of the document</p>
-</div></blockquote>
-<p><strong>Instance variables</strong></p>
-<blockquote>
-<div><p>content: [str] Content of the document</p>
-<p>document: [str] Name of the document</p>
-<p>original: [str] Original document</p>
-</div></blockquote>
-<dl class="method">
-<dt id="biosteam.utils.TextManager.refresh">
-<code class="descname">refresh</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/utils/other_utils.html#TextManager.refresh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.utils.TextManager.refresh" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reads the document and stores its files in content.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.utils.TextManager.replace">
-<code class="descname">replace</code><span class="sig-paren">(</span><em>old=[]</em>, <em>new=[]</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/utils/other_utils.html#TextManager.replace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.utils.TextManager.replace" title="Permalink to this definition">¶</a></dt>
-<dd><p>Replace old strings in self.content with new.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><p>old: list[str] strings to be replaced</p>
-<p>new: list[str] new strings that replace old ones</p>
-</div></blockquote>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.utils.TextManager.autopep8">
-<code class="descname">autopep8</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/utils/other_utils.html#TextManager.autopep8"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.utils.TextManager.autopep8" title="Permalink to this definition">¶</a></dt>
-<dd><p>Fix content to follow PEP 8.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.utils.TextManager.restart">
-<code class="descname">restart</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/utils/other_utils.html#TextManager.restart"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.utils.TextManager.restart" title="Permalink to this definition">¶</a></dt>
-<dd><p>Undo any changes made to content.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.utils.TextManager.update">
-<code class="descname">update</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/utils/other_utils.html#TextManager.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.utils.TextManager.update" title="Permalink to this definition">¶</a></dt>
-<dd><p>Writes content in document</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="biosteam.utils.autopep8_all">
-<code class="descclassname">biosteam.utils.</code><code class="descname">autopep8_all</code><span class="sig-paren">(</span><em>directory='.\\'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/utils/other_utils.html#autopep8_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.utils.autopep8_all" title="Permalink to this definition">¶</a></dt>
-<dd><p>autopep8 all files in new for every document and subfolder document ending with .py and .ipynb in the specified directory</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="biosteam.utils.replace_all">
-<code class="descclassname">biosteam.utils.</code><code class="descname">replace_all</code><span class="sig-paren">(</span><em>old</em>, <em>new</em>, <em>directory='.\\\\'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/utils/other_utils.html#replace_all"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.utils.replace_all" title="Permalink to this definition">¶</a></dt>
-<dd><p>Replaces strings in old with strings in new for every document and subfolder document ending with .py and .ipynb in the specified directory</p>
 </dd></dl>
 
 <dl class="class">
@@ -672,7 +602,7 @@ and the returned workbook will be read-only.</p>
 
 <dl class="class">
 <dt id="biosteam.utils.Workbook">
-<em class="property">class </em><code class="descclassname">biosteam.utils.</code><code class="descname">Workbook</code><span class="sig-paren">(</span><em>write_only=False</em>, <em>iso_dates=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/openpyxl/workbook/workbook.html#Workbook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.utils.Workbook" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.utils.</code><code class="descname">Workbook</code><span class="sig-paren">(</span><em>write_only=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/openpyxl/workbook/workbook.html#Workbook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.utils.Workbook" title="Permalink to this definition">¶</a></dt>
 <dd><p>Workbook is the container for all other parts of the document.</p>
 <dl class="method">
 <dt id="biosteam.utils.Workbook.get_active_sheet">
@@ -964,7 +894,7 @@ worksheets can only be copied within the workbook that they belong</p>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

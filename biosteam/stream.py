@@ -578,6 +578,11 @@ class Stream(metaclass=metaStream):
         #: (USD/kg)
         self.price = price
 
+    @property
+    def cost(self):
+        """Cost of stream (USD/hr)"""
+        return self.price*self.massnet
+
     def _copy_species(self, stream):
         """Copy species data from stream."""
         self._species = stream._species
@@ -1866,9 +1871,9 @@ class Stream(metaclass=metaStream):
             self._mol = mol
 
     def VLE(self, specie_IDs=None, LNK=None, HNK=None, P=None,
-            T=None, V=None, x=None, y=None, Qin=None):
+            Qin=None, T=None, V=None, x=None, y=None):
         self.enable_phases()
-        self.VLE(specie_IDs, LNK, HNK, P, T, V, x, y, Qin)
+        self.VLE(specie_IDs, LNK, HNK, P, Qin, T, V, x, y)
         
     def LLE(self, specie_IDs=None, split=None, lNK=(), LNK=(),
             solvents=(), solvent_split=(),

@@ -9,7 +9,7 @@
     <title>BioSTEAM: The Open-Source Bioprocess Simulation and Techno-Economic Analysis Modules in Python &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -115,7 +115,6 @@
 </div>
 <p><strong>Classes</strong>:</p>
 <p><a class="reference internal" href="Chemical.html"><span class="doc">Chemical</span></a>: A thermo.Chemical object from the Chemical Engineering Design Library (ChEDL) with minor extensions for compatibility. It contains pure component transport and thermodynamic properties.</p>
-<p><a class="reference internal" href="Specie.html"><span class="doc">Specie</span></a>: Abstract parent class for Specie objects</p>
 <p><a class="reference internal" href="Species.html"><span class="doc">Species</span></a>: Contains Specie and Chemical objects.</p>
 <p><a class="reference internal" href="Stream.html"><span class="doc">Stream</span></a>: Used to pass material information between units. Stream properties are calculated using ideal mixture rules and pure component data from the Species object.</p>
 <p><a class="reference internal" href="MixedStream.html"><span class="doc">MixedStream</span></a>: An extension of the Stream class that can handle multi-phase flow with phase equilibria.</p>
@@ -124,56 +123,8 @@
 </div>
 <div class="section" id="getting-started">
 <h2>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
-<p>BioSTEAM objects serve as basic building blocks to design and simulate a biorefinery. These include objects that handle material properties, material flows, unit operations, recycle loops and process specifications. To get started, follow the example below:</p>
-<p><strong>Specify the working species</strong> for all streams:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">Species</span><span class="p">,</span> <span class="n">Stream</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p><strong>Create a stream</strong> passing an ID, flow rates, phase, temperature and pressure:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-<span class="go">Stream: s1</span>
-<span class="go"> phase: &#39;l&#39;, T: 300.00 K, P: 101325 Pa</span>
-<span class="go"> flow (kmol/hr): Ethanol   1</span>
-<span class="go">                 Water     2</span>
-</pre></div>
-</div>
-<p><strong>Create a Unit class</strong> passing an ID, IDs for output streams, and any key word arguments specific to the Unit:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam.units</span> <span class="kn">import</span> <span class="n">Flash</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Specify vapor fraction and pressure conditions</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">F1</span> <span class="o">=</span> <span class="n">Flash</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;F1&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;vapor&#39;</span><span class="p">,</span> <span class="s1">&#39;liquid&#39;</span><span class="p">),</span> <span class="n">V</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
-</pre></div>
-</div>
-<p><strong>Set the input streams</strong>, and check connections as a Graphviz diagram:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">F1</span><span class="o">.</span><span class="n">ins</span> <span class="o">=</span> <span class="n">s1</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">F1</span><span class="o">.</span><span class="n">diagram</span>
-</pre></div>
-</div>
-<div class="figure">
-<img alt="_images/F1_flash.png" src="_images/F1_flash.png" />
-</div>
-<p><strong>Run the unit</strong> and see the results:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">F1</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">F1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-<span class="go">Flash: F1</span>
-<span class="go">ins...</span>
-<span class="go">[0] s1</span>
-<span class="go">    phase: &#39;l&#39;, T: 300.00 K, P: 101325 Pa</span>
-<span class="go">    flow (kmol/hr): Ethanol   1</span>
-<span class="go">                    Water     2</span>
-<span class="go">outs...</span>
-<span class="go">[0] vapor</span>
-<span class="go">    phase: &#39;g&#39;, T: 357.20 K, P: 101325 Pa</span>
-<span class="go">    flow (kmol/hr): Ethanol   0.761</span>
-<span class="go">                    Water     0.739</span>
-<span class="go">[1] liquid</span>
-<span class="go">    phase: &#39;l&#39;, T: 357.20 K, P: 101325 Pa</span>
-<span class="go">    flow (kmol/hr): Ethanol   0.239</span>
-<span class="go">                    Water     1.26</span>
-</pre></div>
-</div>
-<p>For a more detailed example check out <a class="reference internal" href="Tutorial.html"><span class="doc">Tutorial</span></a>.</p>
+<p>BioSTEAM objects serve as basic building blocks to design and simulate a biorefinery. These include objects that handle material properties, material flows, unit operations, recycle loops and process specifications.</p>
+<p>To get started, follow the <a class="reference internal" href="Tutorial.html"><span class="doc">Tutorial</span></a>.</p>
 </div>
 </div>
 <div class="section" id="indices-and-tables">
@@ -208,7 +159,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

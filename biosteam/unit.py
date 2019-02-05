@@ -222,7 +222,6 @@ class Unit(metaclass=metaUnit):
 
         **_power_util** = False: [bool] If True, a PowerUtility object is created for every instance.
         
-
         .. Note:
 
            The Unit class is an instance of metaUnit, which takes class definitions (defined in abstract attributes) to set key word arguments, decorate methods, and register new classes.

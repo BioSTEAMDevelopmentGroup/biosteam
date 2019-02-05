@@ -9,7 +9,7 @@
     <title>biosteam.unit &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
@@ -62,6 +62,7 @@
 
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">IPython</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">copy</span>
 <span class="kn">from</span> <span class="nn">graphviz</span> <span class="k">import</span> <span class="n">Digraph</span>
 <span class="kn">from</span> <span class="nn">biosteam.exceptions</span> <span class="k">import</span> <span class="n">notify_error</span>
 <span class="kn">from</span> <span class="nn">biosteam.find</span> <span class="k">import</span> <span class="n">find</span><span class="p">,</span> <span class="n">WeakRefBook</span>
@@ -124,7 +125,7 @@
             <span class="bp">cls</span> <span class="o">=</span> <span class="nb">type</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">clsname</span><span class="p">,</span> <span class="n">superclasses</span><span class="p">,</span> <span class="n">new_definitions</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Add error notification wrapper to every new unit method</span>
-            <span class="k">for</span> <span class="n">method_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;setup&#39;</span><span class="p">,</span> <span class="s1">&#39;run&#39;</span><span class="p">,</span> <span class="s1">&#39;operation&#39;</span><span class="p">,</span> <span class="s1">&#39;design&#39;</span><span class="p">,</span> <span class="s1">&#39;cost&#39;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">method_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;_setup&#39;</span><span class="p">,</span> <span class="s1">&#39;_run&#39;</span><span class="p">,</span> <span class="s1">&#39;_operation&#39;</span><span class="p">,</span> <span class="s1">&#39;_design&#39;</span><span class="p">,</span> <span class="s1">&#39;_cost&#39;</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">new_definitions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">method_name</span><span class="p">):</span>
                     <span class="n">new_definitions</span><span class="p">[</span><span class="n">method_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">notify_error</span><span class="p">(</span><span class="n">new_definitions</span><span class="p">[</span><span class="n">method_name</span><span class="p">])</span>
     
@@ -186,17 +187,13 @@
 
         <span class="c1">#: Dictionary of weak references to instances of this class</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_instances</span> <span class="o">=</span> <span class="n">WeakRefBook</span><span class="p">(</span><span class="n">check_ID</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">method_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;operation&#39;</span><span class="p">,</span> <span class="s1">&#39;design&#39;</span><span class="p">,</span> <span class="s1">&#39;cost&#39;</span><span class="p">):</span>
-            <span class="n">method</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">method_name</span><span class="p">)</span>
-            <span class="n">annotations</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="vm">__annotations__</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">annotations</span><span class="p">:</span>
-                <span class="n">annotations</span><span class="p">[</span><span class="s1">&#39;return&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">method_name</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39; [dict]&#39;</span>
 
         <span class="c1"># Get units of measure of each key method</span>
-        <span class="n">units</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">get_doc_units</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">operation</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
-        <span class="n">get_doc_units</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">design</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
-        <span class="n">get_doc_units</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">cost</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Utility cost&#39;</span><span class="p">:</span> <span class="s1">&#39;USD/hr&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;Purchase cost&#39;</span><span class="p">:</span> <span class="s1">&#39;USD&#39;</span><span class="p">}</span>
+        <span class="n">get_doc_units</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_operation</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
+        <span class="n">get_doc_units</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_design</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
+        <span class="n">get_doc_units</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_cost</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_results_UnitsOfMeasure</span> <span class="o">=</span> <span class="n">UnitManager</span><span class="p">([],</span> <span class="o">**</span><span class="n">units</span><span class="p">)</span>
         
         <span class="k">return</span> <span class="bp">cls</span>
@@ -242,20 +239,23 @@
 
 <span class="sd">        **kwargs** = {}: Default keyword arguments.</span>
 
-<span class="sd">        **setup()**</span>
-<span class="sd">            Create components and cached data. </span>
+<span class="sd">        **_init():**</span>
+<span class="sd">            Initialize components.</span>
+<span class="sd">        </span>
+<span class="sd">        **_setup()**</span>
+<span class="sd">            Create cached data from kwargs. </span>
 
-<span class="sd">        **run()**</span>
+<span class="sd">        **_run()**</span>
 <span class="sd">            Run rigorous simulation.</span>
 
-<span class="sd">        **operation()** -&gt; Operation [dict]</span>
-<span class="sd">            Update results and return dictionary of operation requirements.</span>
+<span class="sd">        **_operation()**</span>
+<span class="sd">            Update results &quot;Operation&quot; dictionary with operation requirements.</span>
 
-<span class="sd">        **design()** -&gt; Design [dict]</span>
-<span class="sd">            Update results and return dictionary of design requirements.</span>
+<span class="sd">        **_design()**</span>
+<span class="sd">            Update results &quot;Design&quot; dictionary with design requirements.</span>
 
-<span class="sd">        **cost()** -&gt; Cost [dict]</span>
-<span class="sd">            Update results and return dictionary of costs.</span>
+<span class="sd">        **_cost()**</span>
+<span class="sd">            Update results &quot;Cost&quot; dictionary with itemized cost.</span>
 
 <span class="sd">    **Class Attributes** </span>
 
@@ -269,15 +269,14 @@
 <span class="sd">        </span>
 <span class="sd">        **instances** = {}: [WeakRefBook] Contains all instances of the Unit class.</span>
 <span class="sd">        </span>
-<span class="sd">        **_N_ins** = 1: [int or None] Expected number of input streams</span>
+<span class="sd">        **_N_ins** = 1: [int] Expected number of input streams</span>
 
-<span class="sd">        **_N_outs** = 2: [int or None] Expected number of output streams</span>
+<span class="sd">        **_N_outs** = 2: [int] Expected number of output streams</span>
 
 <span class="sd">        **_N_heat_util** = 0: [int] Number of heat utilities  </span>
 
 <span class="sd">        **_power_util** = False: [bool] If True, a PowerUtility object is created for every instance.</span>
 <span class="sd">        </span>
-
 <span class="sd">        .. Note:</span>
 
 <span class="sd">           The Unit class is an instance of metaUnit, which takes class definitions (defined in abstract attributes) to set key word arguments, decorate methods, and register new classes.</span>
@@ -357,13 +356,15 @@
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="c1"># Copy to check for setup</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>  <span class="c1">#: [dict] Key word arguments</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_ins</span><span class="p">(</span><span class="n">ins</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_outs</span><span class="p">(</span><span class="n">outs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_results</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_heat_utils</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_power_util</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_init_ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ins</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize input streams.&quot;&quot;&quot;</span>
@@ -399,21 +400,19 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_results</span> <span class="o">=</span> <span class="n">SmartBook</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">inclusive</span><span class="o">=</span><span class="n">empty</span><span class="p">,</span>
             <span class="n">Operation</span><span class="o">=</span><span class="n">SmartBook</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">inclusive</span><span class="o">=</span><span class="n">empty</span><span class="p">),</span>
             <span class="n">Design</span><span class="o">=</span><span class="n">SmartBook</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">inclusive</span><span class="o">=</span><span class="n">empty</span><span class="p">),</span>
-            <span class="n">Cost</span><span class="o">=</span><span class="n">SmartBook</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">inclusive</span><span class="o">=</span><span class="n">empty</span><span class="p">))</span>
+            <span class="n">Cost</span><span class="o">=</span><span class="n">SmartBook</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">inclusive</span><span class="o">=</span><span class="n">empty</span><span class="p">),</span>
+            <span class="n">Summary</span><span class="o">=</span><span class="n">SmartBook</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">inclusive</span><span class="o">=</span><span class="n">empty</span><span class="p">))</span>
     
     <span class="k">def</span> <span class="nf">_init_heat_utils</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize heat utilities.&quot;&quot;&quot;</span>
         <span class="n">_N_heat_util</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_N_heat_util</span>
-        <span class="k">if</span> <span class="n">_N_heat_util</span><span class="p">:</span>
-            <span class="n">utilities</span> <span class="o">=</span> <span class="p">[</span><span class="n">HeatUtility</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">_N_heat_util</span><span class="p">)]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">utilities</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">utilities</span> <span class="o">=</span> <span class="p">[</span><span class="n">HeatUtility</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">_N_heat_util</span><span class="p">)]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span> <span class="o">=</span> <span class="n">utilities</span>
         
     <span class="k">def</span> <span class="nf">_init_power_util</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize power utility.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_power_util</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span> <span class="o">=</span> <span class="n">PowerUtility</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span> <span class="o">=</span> <span class="n">PowerUtility</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
     
     <span class="c1"># Forward pipping</span>
     <span class="k">def</span> <span class="nf">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
@@ -454,22 +453,49 @@
     <span class="c1"># Backwards pipping</span>
     <span class="fm">__pow__</span> <span class="o">=</span> <span class="fm">__sub__</span>
     <span class="fm">__rpow__</span> <span class="o">=</span> <span class="fm">__rsub__</span>
-    <span class="k">def</span> <span class="nf">__neg__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span>
     
     <span class="c1"># Abstract methods</span>
-    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span>
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span>
-    <span class="k">def</span> <span class="nf">operation</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">-&gt;</span><span class="s1">&#39;Operation [dict]&#39;</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Operation&#39;</span><span class="p">]</span>
-    <span class="k">def</span> <span class="nf">design</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">-&gt;</span><span class="s1">&#39;Design [dict]&#39;</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
-    <span class="k">def</span> <span class="nf">cost</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">-&gt;</span><span class="s1">&#39;Cost [dict]&#39;</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
+    <span class="k">def</span> <span class="nf">_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span>
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span>
+    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span>
+    <span class="k">def</span> <span class="nf">_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span>
+    <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span>
+    <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span>
 
 <div class="viewcode-block" id="Unit.simulate"><a class="viewcode-back" href="../../Unit.html#biosteam.Unit.simulate">[docs]</a>    <span class="k">def</span> <span class="nf">simulate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Run simulation, operation, design and cost methods.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">operation</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">design</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="p">()</span></div>
+        <span class="sd">&quot;&quot;&quot;Run rigourous simulation and determine all design requirements.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_setup</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_operation</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">()</span></div>
+
+    <span class="c1"># Summary</span>
+    <span class="k">def</span> <span class="nf">_operating_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>                
+        <span class="sd">&quot;&quot;&quot;Sum of all utility costs (USD/hr).&quot;&quot;&quot;</span>
+        <span class="n">heat_utilities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span>
+        <span class="n">power_utility</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">power_utility</span>
+        
+        <span class="n">cost</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">heat_utilities</span><span class="p">:</span>
+            <span class="n">cost</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">util</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">util</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">power_utility</span><span class="p">:</span>
+            <span class="n">cost</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">power_utility</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">cost</span>
+        
+    <span class="k">def</span> <span class="nf">_capital_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The sum of all costs calculated by the cost method (USD).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update results &quot;Summary&quot; dictionary with total utility costs and purchase price.&quot;&quot;&quot;</span>
+        <span class="n">Summary</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Summary&#39;</span><span class="p">]</span>
+        <span class="n">Summary</span><span class="p">[</span><span class="s1">&#39;Utility cost&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operating_cost</span><span class="p">()</span>
+        <span class="n">Summary</span><span class="p">[</span><span class="s1">&#39;Purchase cost&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_capital_cost</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">Summary</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -608,25 +634,6 @@
         <span class="c1"># Display digraph on console</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">IPython</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">SVG</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;svg&#39;</span><span class="p">))</span>
         <span class="n">IPython</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-
-    <span class="c1"># Costs</span>
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">operating_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;USD/hr&#39;</span><span class="p">:</span>                
-        <span class="sd">&quot;&quot;&quot;Sum of all utility costs.&quot;&quot;&quot;</span>
-        <span class="n">cost</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">heat_utilities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span>
-        <span class="n">power_utility</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">power_utility</span>
-        
-        <span class="k">if</span> <span class="n">heat_utilities</span><span class="p">:</span>
-            <span class="n">cost</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">util</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">util</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">power_utility</span><span class="p">:</span>
-            <span class="n">cost</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">power_utility</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">cost</span>
-        
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">capital_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;USD&#39;</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;The sum of all costs calculated by the cost method.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
     
     <span class="c1">### Net input and output flows ###</span>
     
@@ -847,7 +854,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

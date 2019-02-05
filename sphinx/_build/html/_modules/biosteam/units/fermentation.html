@@ -9,7 +9,7 @@
     <title>biosteam.units.fermentation &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="../../../_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
@@ -91,9 +91,9 @@
 <span class="sd">        </span>
 <span class="sd">        [3] D. Humbird, R. Davis, L. Tao, C. Kinchin, D. Hsu, and A. Aden National. Renewable Energy Laboratory Golden, Colorado. P. Schoen, J. Lukas, B. Olthof, M. Worley, D. Sexton, and D. Dudgeon. Harris Group Inc. Seattle, Washington and Atlanta, Georgia. Process Design and Economics for Biochemical Conversion of Lignocellulosic Biomass to Ethanol Dilute-Acid Pretreatment and Enzymatic Hydrolysis of Corn Stover. May 2011. Technical Report NREL/TP-5100-47764&quot;&quot;&quot;</span>
         
-    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;tau&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-              <span class="s1">&#39;efficiency&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>  <span class="c1"># Reaction time</span>
-    <span class="n">_N_heat_util</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;tau&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="c1"># Reaction time</span>
+              <span class="s1">&#39;efficiency&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>  <span class="c1"># Theoretical efficiency</span>
+    <span class="n">_N_heat_util</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">_power_util</span> <span class="o">=</span> <span class="kc">True</span>
     
     <span class="c1">#: Cleaning and unloading time</span>
@@ -123,7 +123,7 @@
     <span class="c1">#: Base agitator power (hp)</span>
     <span class="n">A_p</span> <span class="o">=</span> <span class="mi">30</span> 
     
-    <span class="c1">#: tuple of kinetic parameters for Oliveria&#39;s kinetic model: (mu_m1, mu_m2, Ks1, Ks2, Pm1, Pm2, Xm, Y_PS, a)</span>
+    <span class="c1">#: tuple of kinetic parameters for the kinetic model. Default constants are fitted for Oliveria&#39;s model (mu_m1, mu_m2, Ks1, Ks2, Pm1, Pm2, Xm, Y_PS, a)</span>
     <span class="n">kinetic_constants</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.39</span><span class="p">,</span>  <span class="c1"># mu_m1</span>
                          <span class="mf">1.16</span><span class="p">,</span>  <span class="c1"># mu_m2</span>
                          <span class="mf">1.94</span><span class="p">,</span>  <span class="c1"># Ks1</span>
@@ -134,8 +134,12 @@
                          <span class="mf">0.45</span><span class="p">,</span>  <span class="c1"># Y_PS</span>
                          <span class="mf">0.16</span><span class="p">)</span>  <span class="c1"># a</span>
 
-    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cooler</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="o">+</span><span class="s1">&#39; cooler&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">())</span>
+    
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;tau&#39;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Reaction time must be larger than 0, not &#39;</span><span class="si">{self.kwargs[&#39;tau&#39;]}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_calc_efficiency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feed</span><span class="p">,</span> <span class="n">tau</span><span class="p">):</span>
         <span class="c1"># Get initial concentrations</span>
@@ -206,7 +210,7 @@
         <span class="k">return</span> <span class="p">(</span><span class="n">dXdt</span><span class="p">,</span> <span class="n">dPdt</span><span class="p">,</span> <span class="n">dSdt</span><span class="p">)</span></div>
         
 
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># 90% efficiency of fermentation</span>
         <span class="c1"># assume no Glycerol produced</span>
         <span class="c1"># no ethanol lost with CO2</span>
@@ -220,7 +224,7 @@
         
         <span class="c1"># Species involved in reaction</span>
         <span class="n">species</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Glucose&#39;</span><span class="p">,</span> <span class="s1">&#39;Sucrose&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">]</span>
-        <span class="n">e</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">indx</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">get_indx</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+        <span class="n">e</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">indx</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">get_index</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
         <span class="n">glucose</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">indx</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span>
         <span class="n">sucrose</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">indx</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
         
@@ -232,18 +236,21 @@
         <span class="n">out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="mi">32</span> <span class="o">+</span> <span class="mf">273.15</span>
         
         <span class="c1"># Fermentation</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Operation&#39;</span><span class="p">][</span><span class="s1">&#39;Efficiency&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">eff</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;efficiency&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_efficiency</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;tau&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Operation&#39;</span><span class="p">][</span><span class="s1">&#39;Efficiency&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">eff</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;efficiency&#39;</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_efficiency</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;tau&#39;</span><span class="p">])</span>
+            <span class="p">)</span>
         <span class="n">fermented</span> <span class="o">=</span> <span class="n">eff</span><span class="o">*</span><span class="p">(</span><span class="n">glucose</span> <span class="o">+</span> <span class="n">new_glucose</span><span class="p">)</span>
         <span class="n">ch_glucose</span> <span class="o">=</span> <span class="o">-</span> <span class="n">fermented</span>
         <span class="n">ch_Ethanol</span> <span class="o">=</span> <span class="mf">0.5111</span><span class="o">*</span><span class="n">fermented</span> <span class="o">*</span> <span class="n">mw_glucose</span><span class="o">/</span><span class="n">mw_Ethanol</span>
-        <span class="n">co2</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">get_indx</span><span class="p">(</span><span class="s1">&#39;CO2&#39;</span><span class="p">)</span>
+        <span class="n">co2</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">get_index</span><span class="p">(</span><span class="s1">&#39;CO2&#39;</span><span class="p">)</span>
         <span class="n">changes</span> <span class="o">=</span> <span class="p">[</span><span class="n">ch_Ethanol</span><span class="p">,</span> <span class="n">ch_glucose</span><span class="p">]</span>
         <span class="n">out</span><span class="o">.</span><span class="n">mol</span><span class="p">[[</span><span class="n">e</span><span class="p">,</span> <span class="n">g</span><span class="p">]]</span> <span class="o">+=</span> <span class="n">changes</span>
         <span class="n">CO2</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">co2</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="mf">0.5111</span><span class="p">)</span><span class="o">*</span><span class="n">fermented</span> <span class="o">*</span> <span class="n">mw_glucose</span><span class="o">/</span><span class="mf">44.0095</span>
         <span class="n">CO2</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span>
         <span class="n">CO2</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">T</span>
     
-    <span class="k">def</span> <span class="nf">design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        * &#39;Number of reactors&#39;: (#)</span>
 <span class="sd">        * &#39;Reactor volume&#39;:  (m3)</span>
@@ -267,13 +274,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">Hnet</span><span class="o">/</span><span class="n">N</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="n">results</span> <span class="o">=</span> <span class="n">hx</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">results</span>
         <span class="n">hx</span><span class="o">.</span><span class="n">_Duty</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Duty&#39;</span><span class="p">]</span>
+        <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Duty&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">N</span>
         <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">N</span>
         <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Flow&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">N</span>
-        <span class="n">hx</span><span class="o">.</span><span class="n">design</span><span class="p">()</span>
-        <span class="n">hx</span><span class="o">.</span><span class="n">cost</span><span class="p">()</span>
+        <span class="n">hx</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
+        <span class="n">hx</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">Design</span>
     
-    <span class="k">def</span> <span class="nf">cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        * &#39;Reactors&#39;: (USD)</span>
 <span class="sd">        * &#39;Coolers&#39;: (USD)</span>
@@ -315,7 +323,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

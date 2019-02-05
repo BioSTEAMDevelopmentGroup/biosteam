@@ -9,7 +9,7 @@
     <title>System &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -85,12 +85,12 @@
 <p><strong>network:</strong> iterable[Unit, function and/or System] A network that is run element by element until the recycle converges.</p>
 <p><strong>recycle:</strong> [Stream] A tear stream for the recycle loop.</p>
 </div></blockquote>
-<p><strong>Class Attributes</strong></p>
-<blockquote>
-<div><p><strong>maxtier</strong> = 100: [int] Maximum number of iterations for converge method.</p>
-<p><strong>mol_tol</strong> = 0.55: [float] Absolute material tolerance (kmol/hr) of converge method.</p>
-<p><strong>T_tol</strong> = 0.55: [float] Absolute temperature tolerance (K) of converge method.</p>
-</div></blockquote>
+<dl class="attribute">
+<dt id="biosteam.System.options">
+<code class="descname">options</code><em class="property"> = {'maximum number of iterations': 100, 'molar tolerance (kmol/hr)': 0.55, 'temperature tolerance (K)': 0.55}</em><a class="headerlink" href="#biosteam.System.options" title="Permalink to this definition">¶</a></dt>
+<dd><p>[dict] Dictionary of convergence options regarding maximum number of iterations and molar flow rate and temperature tolerances</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="biosteam.System.solver_error">
 <code class="descname">solver_error</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.System.solver_error" title="Permalink to this definition">¶</a></dt>
@@ -140,12 +140,6 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.System.converge">
-<code class="descname">converge</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.System.converge" title="Permalink to this definition">¶</a></dt>
-<dd><p>Converge the system recycle using an iterative solver (Wegstein by default).</p>
-</dd></dl>
-
-<dl class="method">
 <dt id="biosteam.System.set_spec">
 <code class="descname">set_spec</code><span class="sig-paren">(</span><em>func</em>, <em>var_setter</em>, <em>var_min</em>, <em>var_max</em>, <em>brentq_kwargs={'xtol': 1e-06}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/system.html#System.set_spec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.set_spec" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrap a bounded solver around the converge method. The solver varies a variable until the desired spec is satisfied.</p>
@@ -166,9 +160,9 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.System.run_results">
-<code class="descname">run_results</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/system.html#System.run_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.run_results" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run all design basis algorithms (operation, design, and cost methods) for all units.</p>
+<dt id="biosteam.System.simulate">
+<code class="descname">simulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/system.html#System.simulate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.simulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converge the network and simulate all units.</p>
 </dd></dl>
 
 <dl class="method">
@@ -213,7 +207,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

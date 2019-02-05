@@ -9,7 +9,7 @@
     <title>biosteam.units.distillation &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="../../../_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
@@ -287,8 +287,11 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Vessel material must be one of the following: </span><span class="si">{dummy}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_F_Mstr</span> <span class="o">=</span> <span class="n">vessel_material</span>  
 
+    <span class="k">def</span> <span class="nf">_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_condenser</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="o">+</span><span class="s1">&#39; condenser&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_boiler</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="o">+</span><span class="s1">&#39; boiler&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">vap</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span> <span class="o">=</span> <span class="n">cached</span> <span class="o">=</span> <span class="p">{}</span>
@@ -327,11 +330,6 @@
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Intermediate volatile specie, &#39;</span><span class="si">{vap._specie_IDs[i]}</span><span class="s2">&#39;, between light and heavy key, [&#39;</span><span class="si">{LK}</span><span class="s2">&#39;, &#39;</span><span class="si">{HK}</span><span class="s2">&#39;].&quot;</span><span class="p">)</span>
     
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_composition_requirement</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;y_top&#39;</span><span class="p">],</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;x_bot&#39;</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_components</span><span class="p">()</span>
-        
-    <span class="k">def</span> <span class="nf">_setup_components</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_condenser</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="o">+</span><span class="s1">&#39; condenser&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_boiler</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="o">+</span><span class="s1">&#39; boiler&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     
     <span class="k">def</span> <span class="nf">_update_composition_requirement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y_top</span><span class="p">,</span> <span class="n">x_bot</span><span class="p">):</span>
         <span class="c1"># Set light and heavy key compositions at top and bottoms product</span>
@@ -366,8 +364,7 @@
         <span class="n">vap</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LNK_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">LNK_mol</span>
         <span class="n">liq</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">HNK_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">HNK_mol</span>
     
-    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Run mass balance</span>
+    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>        <span class="c1"># Run mass balance</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mass_balance</span><span class="p">()</span>
         
         <span class="c1"># Unpack arguments</span>
@@ -763,9 +760,9 @@
                           <span class="n">T</span><span class="o">=</span><span class="n">condensate</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">condensate</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
         <span class="n">ms1</span><span class="o">.</span><span class="n">vapor_mol</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">mol</span>
         <span class="n">s_in</span><span class="o">-</span><span class="n">condenser</span><span class="o">-</span><span class="n">ms1</span>
-        <span class="n">condenser</span><span class="o">.</span><span class="n">operation</span><span class="p">()</span>
-        <span class="n">condenser</span><span class="o">.</span><span class="n">design</span><span class="p">()</span>
-        <span class="n">condenser</span><span class="o">.</span><span class="n">cost</span><span class="p">()</span>
+        <span class="n">condenser</span><span class="o">.</span><span class="n">_operation</span><span class="p">()</span>
+        <span class="n">condenser</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
+        <span class="n">condenser</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
         
     <span class="k">def</span> <span class="nf">_calc_boiler</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">bottoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
@@ -777,11 +774,11 @@
                           <span class="n">T</span><span class="o">=</span><span class="n">boil_up</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">boil_up</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
         <span class="n">ms1</span><span class="o">.</span><span class="n">liquid_mol</span> <span class="o">=</span> <span class="n">bottoms</span><span class="o">.</span><span class="n">mol</span>
         <span class="n">s_in</span><span class="o">-</span><span class="n">boiler</span><span class="o">-</span><span class="n">ms1</span>
-        <span class="n">boiler</span><span class="o">.</span><span class="n">operation</span><span class="p">()</span>
-        <span class="n">boiler</span><span class="o">.</span><span class="n">design</span><span class="p">()</span>
-        <span class="n">boiler</span><span class="o">.</span><span class="n">cost</span><span class="p">()</span>
+        <span class="n">boiler</span><span class="o">.</span><span class="n">_operation</span><span class="p">()</span>
+        <span class="n">boiler</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
+        <span class="n">boiler</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
         
-    <span class="k">def</span> <span class="nf">cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        * &#39;Trays&#39;: (USD)</span>
 <span class="sd">        * &#39;Tower&#39;: (USD)</span>
@@ -809,7 +806,7 @@
     <span class="n">_N_heat_util</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">is_divided</span> <span class="o">=</span> <span class="kc">False</span> <span class="c1">#: [bool] True if the stripper and rectifier are two separate columns.    </span>
     
-    <span class="k">def</span> <span class="nf">operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        * &#39;Theoretical feed stage&#39;: (#)</span>
 <span class="sd">        * &#39;Theoretical stages&#39;: (#)</span>
@@ -981,7 +978,7 @@
             <span class="n">N_stripper</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span> <span class="p">(</span><span class="n">N_stages</span><span class="o">-</span><span class="n">mid_stage</span><span class="p">)</span><span class="o">/</span><span class="n">E_stripper</span> <span class="p">)</span>
         <span class="k">return</span> <span class="n">N_rectifier</span><span class="p">,</span> <span class="n">N_stripper</span>
 
-    <span class="k">def</span> <span class="nf">design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Divided column:</span>
 <span class="sd">            * &#39;Rectifier stages&#39;: (#)</span>
@@ -1081,7 +1078,7 @@
             <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Weight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_Weight</span><span class="p">(</span><span class="n">Di</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">tv</span><span class="p">,</span> <span class="n">rho_M</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">Design</span>
         
-    <span class="k">def</span> <span class="nf">cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Divided column:</span>
 <span class="sd">            * &#39;Stripper trays&#39;: (USD)</span>
@@ -1097,7 +1094,7 @@
 <span class="sd">            * &#39;Boiler&#39;: (USD)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_divided</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">cost</span><span class="p">()</span>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
         
         <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
         <span class="n">Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
@@ -1170,10 +1167,10 @@
     <span class="vm">__doc__</span> <span class="o">=</span> <span class="n">column_doc</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;{Column Type}&#39;</span><span class="p">,</span> <span class="s1">&#39;Stripper&#39;</span><span class="p">)</span>
     <span class="n">_N_heat_util</span> <span class="o">=</span> <span class="mi">1</span>    
     
-    <span class="k">def</span> <span class="nf">_setup_components</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_boiler</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="o">+</span><span class="s1">&#39; boiler&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     
-    <span class="k">def</span> <span class="nf">operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        * &#39;Theoretical feed stage&#39;: (#)</span>
 <span class="sd">        * &#39;Theoretical stages&#39;: (#)</span>
@@ -1290,7 +1287,7 @@
             <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;Stripping Section Efficiency&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">E_stripper</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_MurphreeEfficiency</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">L_mol</span><span class="p">,</span> <span class="n">V_mol</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">N_stages</span><span class="o">/</span><span class="n">E_stripper</span><span class="p">)</span>
     
-    <span class="k">def</span> <span class="nf">design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">            * &#39;Actual stages&#39;: (#)</span>
 <span class="sd">            * &#39;Height&#39;: (ft)</span>
@@ -1367,7 +1364,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

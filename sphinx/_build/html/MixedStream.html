@@ -9,7 +9,7 @@
     <title>MixedStream &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -372,43 +372,43 @@
 
 <dl class="method">
 <dt id="biosteam.MixedStream.VLE">
-<code class="descname">VLE</code><span class="sig-paren">(</span><em>specie_IDs=None</em>, <em>LNK=None</em>, <em>HNK=None</em>, <em>P=None</em>, <em>T=None</em>, <em>V=None</em>, <em>x=None</em>, <em>y=None</em>, <em>Qin=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/mixed_stream.html#MixedStream.VLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.MixedStream.VLE" title="Permalink to this definition">¶</a></dt>
+<code class="descname">VLE</code><span class="sig-paren">(</span><em>specie_IDs=None</em>, <em>LNK=None</em>, <em>HNK=None</em>, <em>P=None</em>, <em>Qin=None</em>, <em>T=None</em>, <em>V=None</em>, <em>x=None</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/mixed_stream.html#MixedStream.VLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.MixedStream.VLE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Partition flow rates into vapor and liquid phases by equilibrium. Pressure defaults to current pressure.</p>
-<p><strong>Parameters</strong></p>
+<p><strong>Optional parameters</strong></p>
 <blockquote>
-<div><dl class="docutils">
-<dt><strong>User defines two:</strong></dt>
+<div><p><strong>P:</strong> [float] Operating pressure (Pa)</p>
+<p><strong>specie_IDs:</strong> [list] IDs of equilibrium species</p>
+<p><strong>LNK:</strong> list[str] Light non-keys</p>
+<p><strong>HNK:</strong> list[str] Heavy non-keys</p>
+<dl class="docutils">
+<dt><strong>User may define one:</strong></dt>
 <dd><ul class="first last simple">
-<li><strong>Qin:</strong> <em>[float]</em> Energy input (kJ/hr)</li>
-<li><strong>V:</strong> <em>[float]</em> Overall molar vapor fraction</li>
-<li><strong>T:</strong> <em>[float]</em> Operating temperature (K)</li>
-<li><strong>P:</strong> <em>[float]</em> Operating pressure (Pa)</li>
-<li><strong>x:</strong> <em>[numpy array]</em> Molar composition of liquid (for binary mixture)</li>
-<li><strong>y:</strong> <em>[numpy array]</em> Molar composition of vapor (for binary mixture)</li>
+<li><strong>Qin:</strong> [float] Energy input (kJ/hr)</li>
+<li><strong>T:</strong> [float] Operating temperature (K)</li>
+<li><strong>V:</strong> [float] Overall molar vapor fraction</li>
+<li><strong>x:</strong> [numpy array] Molar composition of liquid (for binary mixture)</li>
+<li><strong>y:</strong> [numpy array] Molar composition of vapor (for binary mixture)</li>
 </ul>
 </dd>
 </dl>
-<p><strong>Optional</strong></p>
-<blockquote>
-<div><p><strong>specie_IDs:</strong> <em>[list]</em> IDs of equilibrium species</p>
-<p><strong>LNK:</strong> <em>list[str]</em> Light non-keys</p>
-<p><strong>HNK:</strong> <em>list[str]</em> Heavy non-keys</p>
-</div></blockquote>
 </div></blockquote>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.MixedStream.LLE">
-<code class="descname">LLE</code><span class="sig-paren">(</span><em>specie_IDs</em>, <em>split=None</em>, <em>lNK=()</em>, <em>LNK=()</em>, <em>P=None</em>, <em>T=None</em>, <em>Qin=0</em>, <em>solvents=()</em>, <em>solvent_split=()</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/mixed_stream.html#MixedStream.LLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.MixedStream.LLE" title="Permalink to this definition">¶</a></dt>
+<code class="descname">LLE</code><span class="sig-paren">(</span><em>specie_IDs=None</em>, <em>split=None</em>, <em>lNK=()</em>, <em>LNK=()</em>, <em>solvents=()</em>, <em>solvent_split=()</em>, <em>P=None</em>, <em>T=None</em>, <em>Qin=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/mixed_stream.html#MixedStream.LLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.MixedStream.LLE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Partition flow rates into liquid and LIQUID phases by equilibrium.</p>
-<p><strong>Parameters</strong></p>
+<p><strong>Optional Parameters</strong></p>
 <blockquote>
 <div><p><strong>specie_IDs:</strong> <em>tuple[str]</em> IDs of equilibrium species</p>
-<p><strong>split:</strong> <em>tuple[float]</em> Initial guess split fractions of each specie to the ‘liquid’ phase.</p>
+<p><strong>split:</strong> <em>tuple[float]</em> Initial guess split fractions of each specie to the ‘liquid’</p>
 <p><strong>lNK:</strong> <em>tuple[str]</em> Species assumed to completely remain in the ‘liquid’ phase.</p>
 <p><strong>LNK:</strong> <em>tuple[str]</em> Species assumed to completely remain in the ‘LIQUID’ phase.</p>
 <p><strong>solvents:</strong> <em>tuple[str]</em> Species corresponding to specified solvent_split</p>
 <p><strong>solvent_split:</strong> <em>tuple[float]</em> Split fractions of each specie to the ‘liquid’ phase.</p>
+<p><strong>Qin:</strong> <em>[float]</em> Energy input (kJ/hr)</p>
+<p><strong>T:</strong> <em>[float]</em> Operating temperature (K)</p>
+<p><strong>P:</strong> <em>[float]</em> Operating pressure (Pa)</p>
 </div></blockquote>
 </dd></dl>
 
@@ -442,7 +442,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

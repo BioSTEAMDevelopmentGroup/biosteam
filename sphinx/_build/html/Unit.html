@@ -9,7 +9,7 @@
     <title>Unit &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -89,16 +89,18 @@
 <blockquote>
 <div><p><strong>kwargs</strong> = {}: Default keyword arguments.</p>
 <dl class="docutils">
-<dt><strong>setup()</strong></dt>
-<dd>Create components and cached data.</dd>
-<dt><strong>run()</strong></dt>
+<dt><strong>_init():</strong></dt>
+<dd>Initialize components.</dd>
+<dt><strong>_setup()</strong></dt>
+<dd>Create cached data from kwargs.</dd>
+<dt><strong>_run()</strong></dt>
 <dd>Run rigorous simulation.</dd>
-<dt><strong>operation()</strong> -&gt; Operation [dict]</dt>
-<dd>Update results and return dictionary of operation requirements.</dd>
-<dt><strong>design()</strong> -&gt; Design [dict]</dt>
-<dd>Update results and return dictionary of design requirements.</dd>
-<dt><strong>cost()</strong> -&gt; Cost [dict]</dt>
-<dd>Update results and return dictionary of costs.</dd>
+<dt><strong>_operation()</strong></dt>
+<dd>Update results “Operation” dictionary with operation requirements.</dd>
+<dt><strong>_design()</strong></dt>
+<dd>Update results “Design” dictionary with design requirements.</dd>
+<dt><strong>_cost()</strong></dt>
+<dd>Update results “Cost” dictionary with itemized cost.</dd>
 </dl>
 </div></blockquote>
 <p><strong>Class Attributes</strong></p>
@@ -108,8 +110,8 @@
 <p><strong>lang_factor</strong> = 5.03: [float] Lang factor including working capital from Peters, Timmerhaus, and West (2003)</p>
 <p><strong>bounds</strong> = {} [dict] Values should be tuples with lower and upper bounds.</p>
 <p><strong>instances</strong> = {}: [WeakRefBook] Contains all instances of the Unit class.</p>
-<p><strong>_N_ins</strong> = 1: [int or None] Expected number of input streams</p>
-<p><strong>_N_outs</strong> = 2: [int or None] Expected number of output streams</p>
+<p><strong>_N_ins</strong> = 1: [int] Expected number of input streams</p>
+<p><strong>_N_outs</strong> = 2: [int] Expected number of output streams</p>
 <p><strong>_N_heat_util</strong> = 0: [int] Number of heat utilities</p>
 <p><strong>_power_util</strong> = False: [bool] If True, a PowerUtility object is created for every instance.</p>
 </div></blockquote>
@@ -128,7 +130,7 @@
 <dl class="method">
 <dt id="biosteam.Unit.simulate">
 <code class="descname">simulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/unit.html#Unit.simulate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.simulate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run simulation, operation, design and cost methods.</p>
+<dd><p>Run rigourous simulation and determine all design requirements.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -159,18 +161,6 @@
 <dt id="biosteam.Unit.diagram">
 <code class="descname">diagram</code><a class="headerlink" href="#biosteam.Unit.diagram" title="Permalink to this definition">¶</a></dt>
 <dd><p><a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz diagram</a> of unit</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.Unit.operating_cost">
-<code class="descname">operating_cost</code><a class="headerlink" href="#biosteam.Unit.operating_cost" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sum of all utility costs.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.Unit.capital_cost">
-<code class="descname">capital_cost</code><a class="headerlink" href="#biosteam.Unit.capital_cost" title="Permalink to this definition">¶</a></dt>
-<dd><p>The sum of all costs calculated by the cost method.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -215,7 +205,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

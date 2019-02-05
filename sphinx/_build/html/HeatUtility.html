@@ -9,7 +9,7 @@
     <title>HeatUtility &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -77,27 +77,48 @@
 <p>HeatUtility objects take care of finding utility requirements.</p>
 <span class="target" id="module-biosteam"></span><dl class="class">
 <dt id="biosteam.HeatUtility">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">HeatUtility</code><a class="reference internal" href="_modules/biosteam/heat_utility.html#HeatUtility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.HeatUtility" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">HeatUtility</code><span class="sig-paren">(</span><em>source</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/heat_utility.html#HeatUtility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.HeatUtility" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create an HeatUtility object that can choose a utility stream and calculate utility requirements. It can calculate required flow rate, temperature, or phase change of utility. Calculations assume counter current flow rate.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><strong>source:</strong> [Object or str] source of the heat utility</div></blockquote>
+<p><strong>Class Attributes</strong></p>
+<blockquote>
+<div><p><strong>cooling_agents:</strong> [DataFrame] All heating utilities available</p>
+<p><strong>heating_agents:</strong> [DataFrame] All heating utilities available</p>
+</div></blockquote>
+<p><strong>Examples</strong></p>
+<blockquote>
+<div><p>Create a heat utility with a source:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">heat_util</span> <span class="o">=</span> <span class="n">HeatUtility</span><span class="p">(</span><span class="s1">&#39;Flash&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">heat_util</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="go">HeatUtility: None</span>
+<span class="go"> Duty: 0</span>
+<span class="go"> Flow: 0</span>
+<span class="go"> Cost: 0</span>
+</pre></div>
+</div>
+<p>Calculate utility requirement by calling it with a duty (kJ/hr) and temperature (K):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">heat_util</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">350</span><span class="p">)</span>
+<span class="go">{&#39;Cost&#39;: 0.00607 (USD/hr),</span>
+<span class="go"> &#39;Flow&#39;: 0.46 (kg/hr),</span>
+<span class="go"> &#39;Duty&#39;: 1e+03 (kJ/hr),</span>
+<span class="go"> &#39;ID&#39;: Low pressure steam}</span>
+</pre></div>
+</div>
+<p>All results are cached:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">heat_util</span><span class="o">.</span><span class="n">results</span>
+<span class="go">{&#39;Cost&#39;: 0.00607 (USD/hr),</span>
+<span class="go"> &#39;Flow&#39;: 0.46 (kg/hr),</span>
+<span class="go"> &#39;Duty&#39;: 1e+03 (kJ/hr),</span>
+<span class="go"> &#39;ID&#39;: Low pressure steam}</span>
+</pre></div>
+</div>
+</div></blockquote>
 <dl class="attribute">
 <dt id="biosteam.HeatUtility.dT">
 <code class="descname">dT</code><em class="property"> = 5</em><a class="headerlink" href="#biosteam.HeatUtility.dT" title="Permalink to this definition">¶</a></dt>
 <dd><p>[float] Pinch temperature difference</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.HeatUtility.define_utility">
-<code class="descname">define_utility</code><span class="sig-paren">(</span><em>fresh</em>, <em>vap</em>, <em>liq</em>, <em>phase_ch</em>, <em>cost</em>, <em>T_limit=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/heat_utility.html#HeatUtility.define_utility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.HeatUtility.define_utility" title="Permalink to this definition">¶</a></dt>
-<dd><p>Define utility streams and operation method.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><p><strong>fresh:</strong> [Stream] entering utility stream</p>
-<p><strong>vap:</strong> [Stream] exiting utility vapor</p>
-<p><strong>liq:</strong> [Stream] exiting utility liquid</p>
-<p><strong>phase_ch:</strong> [bool] True if utility changes phase</p>
-<p><strong>cost:</strong> [function] Calculates net cost in $/hr</p>
-<p><strong>T_limit:</strong> [float] Minimum/maximum exit temperature for sensible heat transfer agents</p>
-</div></blockquote>
 </dd></dl>
 
 <dl class="method">
@@ -113,13 +134,19 @@
 <dl class="docutils">
 <dt><strong>Returns</strong></dt>
 <dd><ul class="first last simple">
-<li>‘HeatUtility’: Name of utility ()</li>
+<li>‘ID’: ID of utility ()</li>
 <li>‘Duty’: Unit duty requirement (kJ/hr)</li>
 <li>‘Flow’: HeatUtility flow rate (kg/hr)</li>
 <li>‘Cost’: Cost of utility (USD/hr)</li>
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.HeatUtility.show">
+<code class="descname">show</code><span class="sig-paren">(</span><em>**show_units</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/heat_utility.html#HeatUtility.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.HeatUtility.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print all specifications</p>
 </dd></dl>
 
 </dd></dl>
@@ -152,7 +179,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>
