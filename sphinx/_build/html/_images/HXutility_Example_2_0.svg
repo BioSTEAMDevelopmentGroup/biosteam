@@ -1,0 +1,36 @@
+<svg height="146pt" viewBox="0.00 0.00 281.79 146.07" width="282pt" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g class="graph" id="graph0" transform="scale(1 1) rotate(0) translate(4 142.067)">
+<title>unit</title>
+<polygon fill="white" points="-4,4 -4,-142.067 277.792,-142.067 277.792,4 -4,4" stroke="none"/>
+<!-- hx
+HXutility&#45;&gt;product -->
+<g class="edge" id="edge2"><title>hx
+HXutility:c-&gt;product:w</title>
+<path d="M171.118,-69.0333C188.288,-69.0333 209.388,-69.0333 228.292,-69.0333" fill="none" stroke="black"/>
+</g>
+<!-- feed&#45;&gt;hx
+HXutility -->
+<g class="edge" id="edge1"><title>feed:e-&gt;hx
+HXutility:c</title>
+<path d="M43.292,-69.0333C62.1956,-69.0333 83.2961,-69.0333 100.466,-69.0333" fill="none" stroke="black"/>
+</g>
+<!-- hx
+HXutility -->
+<g class="node" id="node1"><title>hx
+HXutility</title>
+<ellipse cx="135.792" cy="-69.0333" fill="#fad6d8" rx="34.7923" ry="34.7923" stroke="none"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="135.792" y="-72.8333">hx</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="135.792" y="-57.8333">HXutility</text>
+</g>
+<!-- feed -->
+<g class="node" id="node2"><title>feed</title>
+<polygon fill="#79dae8" points="25.292,-84.5333 0.291953,-84.5333 0.291953,-53.5333 25.292,-53.5333 25.292,-47.5333 43.292,-69.0333 25.292,-90.5333 25.292,-84.5333" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="21.792" y="-65.3333">feed</text>
+</g>
+<!-- product -->
+<g class="node" id="node3"><title>product</title>
+<polygon fill="#79dae8" points="255.292,-84.5333 228.292,-84.5333 228.292,-53.5333 255.292,-53.5333 255.292,-47.5333 273.292,-69.0333 255.292,-90.5333 255.292,-84.5333" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="250.792" y="-65.3333">product</text>
+</g>
+</g>
+</svg>

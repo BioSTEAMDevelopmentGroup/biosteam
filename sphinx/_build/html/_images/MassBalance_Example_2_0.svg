@@ -1,0 +1,60 @@
+<svg height="195pt" viewBox="0.00 0.00 382.00 195.00" width="382pt" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g class="graph" id="graph0" transform="scale(1 1) rotate(0) translate(4 191)">
+<title>unit</title>
+<polygon fill="white" points="-4,4 -4,-191 378,-191 378,4 -4,4" stroke="none"/>
+<!-- MB1
+MassBalance&#45;&gt;target -->
+<g class="edge" id="edge4"><title>MB1
+MassBalance:c-&gt;target:w</title>
+<path d="M237.055,-93.5C262.106,-93.5 294.059,-93.5 322.5,-93.5" fill="none" stroke="black"/>
+</g>
+<!-- water&#45;&gt;MB1
+MassBalance -->
+<g class="edge" id="edge1"><title>water:e-&gt;MB1
+MassBalance:c</title>
+<path d="M59,-165.5C101.55,-165.5 143.429,-136.31 168.242,-115.102" fill="none" stroke="black"/>
+</g>
+<!-- ethanol&#45;&gt;MB1
+MassBalance -->
+<g class="edge" id="edge2"><title>ethanol:e-&gt;MB1
+MassBalance:c</title>
+<path d="M62,-93.5C90.2188,-93.5 121.91,-93.5 146.819,-93.5" fill="none" stroke="black"/>
+</g>
+<!-- d26&#45;&gt;MB1
+MassBalance -->
+<g class="edge" id="edge3"><title>d26:e-&gt;MB1
+MassBalance:c</title>
+<path d="M57,-21.5C100.047,-21.5 142.602,-50.6896 167.839,-71.8976" fill="none" stroke="black"/>
+</g>
+<!-- MB1
+MassBalance -->
+<g class="node" id="node1"><title>MB1
+MassBalance</title>
+<polygon fill="#f0f0f0" points="231,-115 147,-115 147,-72 237,-72 237,-109 231,-115" stroke="black"/>
+<polyline fill="none" points="231,-115 231,-109 " stroke="black"/>
+<polyline fill="none" points="237,-109 231,-109 " stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="192" y="-97.3">MB1</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="192" y="-82.3">MassBalance</text>
+</g>
+<!-- water -->
+<g class="node" id="node2"><title>water</title>
+<polygon fill="#79dae8" points="39.5,-181 10.5,-181 10.5,-150 39.5,-150 39.5,-144 57.5,-165.5 39.5,-187 39.5,-181" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="34" y="-161.8">water</text>
+</g>
+<!-- ethanol -->
+<g class="node" id="node3"><title>ethanol</title>
+<polygon fill="#79dae8" points="44,-109 6,-109 6,-78 44,-78 44,-72 62,-93.5 44,-115 44,-109" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="34" y="-89.8">ethanol</text>
+</g>
+<!-- d26 -->
+<g class="node" id="node4"><title>d26</title>
+<polygon fill="#79dae8" points="37.5,-37 12.5,-37 12.5,-6 37.5,-6 37.5,-0 55.5,-21.5 37.5,-43 37.5,-37" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="34" y="-17.8">d26</text>
+</g>
+<!-- target -->
+<g class="node" id="node5"><title>target</title>
+<polygon fill="#79dae8" points="351.5,-109 322.5,-109 322.5,-78 351.5,-78 351.5,-72 369.5,-93.5 351.5,-115 351.5,-109" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="346" y="-89.8">target</text>
+</g>
+</g>
+</svg>

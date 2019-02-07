@@ -20,8 +20,8 @@ def get_streams(units):
     """Return tuple of Stream objects from an iterable of Unit objects."""
     streams = []
     for u in units:
-        streams += [i for i in u._ins if not isinstance(i, MissingStream)]
-        streams += [i for i in u._outs if not isinstance(i, MissingStream)]
+        streams.extend([i for i in u._ins if not isinstance(i, MissingStream)])
+        streams.extend([i for i in u._outs if not isinstance(i, MissingStream)])
     return streams
 
 
@@ -84,7 +84,7 @@ class Ins(list):
             stream._sink = (ID, index)
         elif isinstance(index, slice):
             self._clear_sink(ID)
-            self._set_sink(ID)
+            self._fix_sink(ID)
         else:
             raise TypeError(f'Only intergers and slices are valid indeces for {type(self).__name__} objects')
         super().__setitem__(index, stream)

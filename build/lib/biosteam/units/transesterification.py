@@ -22,6 +22,20 @@ class Transesterification(Reactor):
         
         **T:** Operating temperature (K)
     
+    **ins**
+    
+        [0] Lipid feed
+        
+        [1] Fresh methanol and catalyst
+        
+    **outs**
+    
+        [0] Product
+    
+    **Examples**
+    
+        :doc:`Transesterification Example`
+    
     """
     
     kwargs = {'efficiency': None,  # fraction of theoretical conversion

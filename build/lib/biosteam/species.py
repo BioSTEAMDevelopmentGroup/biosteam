@@ -162,7 +162,7 @@ class Species:
     
     @classmethod
     def combine(cls, *others):
-        """Combine Specie\Chemical\Species objects into a new Species object."""
+        """Combine Specie/Chemical/Species objects into a new Species object."""
         new = cls()
         for other in others:
             if isinstance(other, Specie):

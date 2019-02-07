@@ -172,38 +172,28 @@ class metaStream(type):
 
     @species.setter
     def species(cls, species):
-        # Set Species object and working species
+        # Set Species object and related parameters
         if isinstance(species, Species):
+            IDs = species.ID
+            CAS = species.CAS
+            Nspecies = len(IDs)
+            index = np.array(range(Nspecies))
+            ID_index = dict(zip(IDs, index))
+            index_ID = dict(zip(index, IDs))
+            CAS_index = dict(zip(CAS, index))
+            index_CAS = dict(zip(index, CAS))
+            MW = tuple_array(species.get_props(IDs, 'MW'))
             for cl in type(cls).__instances:
-                # Set species
                 cl._species = species
-                
-                # ID of all species
-                cl._specie_IDs = IDs = species.ID
-                
-                # CAS of all species
-                cl._CAS = CAS = species.CAS
-                
-                # Number of species
-                cl._Nspecies = len(IDs)  
-                
-                # Indexes of the species (for flow rates)
-                cl._index = index = np.array(range(cls._Nspecies))
-                
-                # Dictionary of ID to index
-                cl._ID_index = dict(zip(IDs, index))
-                
-                # Dictionary of index to ID
-                cl._index_ID = dict(zip(index, IDs))
-                
-                # Dictionary of CAS to index
-                cl._CAS_index = dict(zip(CAS, index))
-                
-                # Dictionary of index to CAS 
-                cl._index_CAS = dict(zip(index, CAS))
-                
-                # Set molecular weights for all species
-                cl._MW = tuple_array(species.get_props(IDs, 'MW'))
+                cl._specie_IDs =IDs
+                cl._CAS = CAS
+                cl._Nspecies = Nspecies
+                cl._index = index
+                cl._ID_index = ID_index
+                cl._index_ID = index_ID
+                cl._CAS_index = CAS_index
+                cl._index_CAS = index_CAS
+                cl._MW = MW
         else:
             raise ValueError('Must pass a Species object')
             
@@ -472,6 +462,15 @@ class Stream(metaclass=metaStream):
     #: Species order for mass balance
     _specie_IDs = ()
 
+    #: CAS order for mass balance
+    _CAS = ()
+
+    #: Dictionary to look up index by CAS
+    _CAS_index = {}
+    
+    #: Dictionary to look up CAS by index
+    _index_CAS = {}
+
     # [list] Default starting letter and current number for ID (class attribute)
     _default_ID = ['d', 1]
 
@@ -486,7 +485,7 @@ class Stream(metaclass=metaStream):
         # Get species ID and set species information
         if isinstance(species, Species):
             # Set species as provided
-            self.species = species
+            self._set_species(species)
             specie_IDs = ()
         elif hasattr(species, '__iter__'):
             specie_IDs = species
@@ -575,8 +574,21 @@ class Stream(metaclass=metaStream):
             vol.append(v)
         self._vol = property_array(vol)
         
-        #: (USD/kg)
+        #: Price of stream (USD/kg)
         self.price = price
+
+    def _set_species(self, species):
+        """Set Species object and related information."""
+        self._species = species
+        self._specie_IDs = IDs = species.ID
+        self._CAS = CAS = species.CAS
+        self._Nspecies = len(IDs)  
+        self._index = index = np.array(range(self._Nspecies))
+        self._ID_index = dict(zip(IDs, index))
+        self._index_ID = dict(zip(index, IDs))
+        self._CAS_index = dict(zip(CAS, index))
+        self._index_CAS = dict(zip(index, CAS))
+        self._MW = tuple_array(species.get_props(IDs, 'MW'))
 
     def _copy_species(self, stream):
         """Copy species data from stream."""
@@ -614,45 +626,7 @@ class Stream(metaclass=metaStream):
     def species(self):
         """[Species] Contains pure component thermodynamic properties for computing overall properties of Stream instances."""
         return self._species
-
-    @species.setter
-    def species(self, species):
-        if self._ID != '':
-            raise AttributeError("can't set attribute")
-        # Set Species object and working species
-        elif isinstance(species, Species):
-            # Set species
-            self._species = species
-            
-            # ID of all species
-            self._specie_IDs = IDs = species.ID
-            
-            # CAS of all species
-            self._CAS = CAS = species.CAS
-            
-            # Number of species
-            self._Nspecies = len(IDs)  
-            
-            # Indexes of the species (for flow rates)
-            self._index = index = np.array(range(self._Nspecies))
-            
-            # Dictionary of ID to index
-            self._ID_index = dict(zip(IDs, index))
-            
-            # Dictionary of index to ID
-            self._index_ID = dict(zip(index, IDs))
-            
-            # Dictionary of CAS to index
-            self._CAS_index = dict(zip(CAS, index))
-            
-            # Dictionary of index to CAS 
-            self._index_CAS = dict(zip(index, CAS))
-            
-            # Set molecular weights for all species
-            self._MW = tuple_array(species.get_props(IDs, 'MW'))
-        else:
-            raise ValueError('Must pass an instance of Species')
-            
+    
     show_format = metaStream.show_format
     
     @property
@@ -662,6 +636,10 @@ class Stream(metaclass=metaStream):
 
     @ID.setter
     def ID(self, ID):
+        if '*' in ID:
+            self._ID = ID
+            return
+        
         # Remove old reference to this object
         if self._ID != '' and ID != '':
             del find.stream[self._ID]
@@ -683,6 +661,11 @@ class Stream(metaclass=metaStream):
         # Add ID to find dictionary and set it
         find.stream[ID] = self
         self._ID = ID
+
+    @property
+    def cost(self):
+        """Cost of stream (USD/hr)"""
+        return self.price*self.massnet
 
     @property
     def MW(self):
@@ -1853,7 +1836,9 @@ class Stream(metaclass=metaStream):
         if type(self) is not mS:
             default_phase = self.phase
             self.__class__ = mS
-            self.__init__(T=self.T, P=self.P)
+            ID = self._ID
+            self.__init__(ID='*',T=self.T, P=self.P)
+            self._ID = ID
             self._default_phase = default_phase
             self.mol = self._mol
 
@@ -1866,9 +1851,9 @@ class Stream(metaclass=metaStream):
             self._mol = mol
 
     def VLE(self, specie_IDs=None, LNK=None, HNK=None, P=None,
-            T=None, V=None, x=None, y=None, Qin=None):
+            Qin=None, T=None, V=None, x=None, y=None):
         self.enable_phases()
-        self.VLE(specie_IDs, LNK, HNK, P, T, V, x, y, Qin)
+        self.VLE(specie_IDs, LNK, HNK, P, Qin, T, V, x, y)
         
     def LLE(self, specie_IDs=None, split=None, lNK=(), LNK=(),
             solvents=(), solvent_split=(),

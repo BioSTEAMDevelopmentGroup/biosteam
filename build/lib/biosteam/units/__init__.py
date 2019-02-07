@@ -6,6 +6,7 @@ Created on Sun Apr 15 20:39:46 2018
 @author: Yoel Rene Cortes-Pena
 """
 import numpy as np
+from biosteam.graphics import Graphics
 from .mixer import Mixer
 from .splitter import Splitter, InvSplitter
 from .pump import Pump
@@ -53,26 +54,37 @@ node = Dist._Graphics.node
 node['width'] = '1'
 node['height'] = '1.2'
 
-# Heat exchangers
-HX._Graphics.node['shape'] = 'circle'
-HX._Graphics.node['color'] = 'none'
-HX._Graphics.node['margin'] = '0'
+# Single stream heat exchanger
+HXutility._Graphics = Graphics()
+HXutility._Graphics.node['shape'] = 'circle'
+HXutility._Graphics.node['color'] = 'none'
+HXutility._Graphics.node['margin'] = '0'
 
-def HX_node_graphics(hx):
-    g_ins = all([True if s.phase == 'g' else False for s in hx.ins])
-    l_ins = all([True if s.phase == 'l'else False for s in hx.ins])
-    g_outs = all([True if s.phase == 'g' else False for s in hx.outs])
-    l_outs = all([True if s.phase == 'l' else False for s in hx.outs])
-    T_ins = np.array([s.T for s in hx.ins])
-    T_outs = np.array([s.T for s in hx.outs])
-    if all(T_ins > T_outs) or (g_ins and l_outs):
+def HXutility_node(hx):
+    si = hx.ins[0]
+    so = hx.outs[0]
+    gi = si.phase == 'g'
+    li = so.phase == 'l'
+    go = so.phase == 'g'
+    lo = so.phase == 'l'
+    Ti = si.T
+    To = so.T
+    if Ti > To or (gi and lo):
         hx._Graphics.node['fillcolor'] = '#cfecf0'
-    elif all(T_ins < T_outs) or (l_ins and g_outs):
+    elif Ti < To or (li and go):
         hx._Graphics.node['fillcolor'] = '#fad6d8'
     else:
         hx._Graphics.node['fillcolor'] = '#cfecf0:#fad6d8'
 
-HX._Graphics.node_function = HX_node_graphics
+HXutility._Graphics.node_function = HXutility_node
+
+# Double stream heat exchanger
+HXprocess._Graphics = Graphics()
+HXprocess._Graphics.node['shape'] = 'circle'
+HXprocess._Graphics.node['color'] = 'none'
+HXprocess._Graphics.node['margin'] = '0'
+HXprocess._Graphics.node['gradientangle'] = '90'
+HXprocess._Graphics.node['fillcolor'] = '#cfecf0:#fad6d8'
 
 # Mixer
 Mixer._Graphics.node['shape'] = 'triangle'

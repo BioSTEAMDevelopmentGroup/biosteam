@@ -25,6 +25,42 @@ class PowerUtility:
     
         **price:** ($/kW-hr)
     
+    **Examples**
+    
+        Create a PowerUtility object:
+        
+        .. code-block:: python
+        
+           >>> from biosteam import PowerUtility
+           >>> pu = PowerUtility()
+           >>> pu
+           <PowerUtility: None>
+           
+        Call object to calculate cost:
+            
+        .. code-block:: python
+        
+           >>> pu(power=500)
+           {'Power': 500 (kW),
+            'Cost': 30 (USD/hr)}
+           
+        PowerUtility objects retain results:
+            
+        .. code-block:: python
+        
+           >>> pu
+           <PowerUtility: 500 kW, 30 USD/hr>
+           >>> pu.results
+           {'Power': 500 (kW),
+            'Cost': 30 (USD/hr)}
+           
+        See the object with different units:
+            
+        .. code-block:: python
+        
+           >>> pu.show(Power='BTU/s', Cost='USD/yr')
+           PowerUtility: Power=474 BTU/s, Cost=2.63e+05 USD/yr
+    
     """
     _units = UnitManager([], Power='kW', Cost='USD/hr')
     __slots__ = ('results',)

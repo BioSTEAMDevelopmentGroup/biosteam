@@ -37,8 +37,6 @@ class StorageTank(Tank):
         V &= \\tau Q \\\\
         C_{fob}^{2007} &= 250000 + 94.2 V (2*10^3 < V < 50*10^3 m^3) \\\\
 
-    **Parameters**
-
     **References**
 
         [1] I.K. Kookos, Preliminary Chemical Process Synthesis and Design, Tziolas Publishing,
@@ -89,13 +87,9 @@ class MixTank(Tank):
 
     .. math::
 
-       V = \\frac{\\tau* Q}{0.8}
+       V &= \\frac{\\tau* Q}{0.8}
 
-       C_{fob}^{2007} = 12080 * V^{0.525} (0.1 < V < 30 m^3)
-
-    **Parameters**
-
-         tau: [float] residence time (hr)
+       C_{fob}^{2007} &= 12080 * V^{0.525} (0.1 < V < 30 m^3)
 
     References
 

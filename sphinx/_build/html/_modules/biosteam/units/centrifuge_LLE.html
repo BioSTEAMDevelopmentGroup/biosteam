@@ -1,0 +1,198 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>biosteam.units.centrifuge_LLE &#8212; BioSTEAM 0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for biosteam.units.centrifuge_LLE</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Thu Aug 23 21:23:56 2018</span>
+
+<span class="sd">@author: yoelr</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">MixedStream</span>
+<span class="kn">from</span> <span class="nn">biosteam.exceptions</span> <span class="k">import</span> <span class="n">DesignError</span>
+<span class="kn">from</span> <span class="nn">biosteam.units.flash</span> <span class="k">import</span> <span class="n">Flash</span><span class="p">,</span> <span class="n">EstimateFlash</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+
+<div class="viewcode-block" id="Centrifuge_LLE"><a class="viewcode-back" href="../../../Centrifuge_LLE.html#biosteam.Centrifuge_LLE">[docs]</a><span class="k">class</span> <span class="nc">Centrifuge_LLE</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Create an equlibrium based centrifuge with the option of having liquid non-keys and LIQUID non-keys completly separate into their respective phases.</span>
+
+<span class="sd">    Equation for f.o.b cost:</span>
+
+<span class="sd">    :math:`C_{fob}^{2007} = 28100 Q^{0.574} (0.1 &lt; Q &lt; 100 \frac{m^3}{h})` </span>
+
+<span class="sd">    **Parameters**</span>
+
+<span class="sd">        **specie_IDs:** *tuple[str]* IDs of equilibrium species</span>
+<span class="sd">    </span>
+<span class="sd">        **split:** *tuple[float]* Initial guess split fractions of equilibrium specise to the &#39;liquid&#39; phase.</span>
+<span class="sd">    </span>
+<span class="sd">        **lNK:** *tuple[str]* Species assumed to completely remain in the &#39;liquid&#39; phase.</span>
+<span class="sd">    </span>
+<span class="sd">        **LNK:** *tuple[str]* Species assumed to completely remain in the &#39;LIQUID&#39; phase.</span>
+<span class="sd">    </span>
+<span class="sd">        **solvents:** *tuple[str]* Species corresponding to specified solvent_split.</span>
+<span class="sd">    </span>
+<span class="sd">        **solvent_split:** *tuple[float]* Split fractions of each specie to the &#39;liquid&#39; phase.</span>
+<span class="sd">         </span>
+<span class="sd">    **ins**</span>
+<span class="sd">    </span>
+<span class="sd">        [0] Input stream</span>
+<span class="sd">        </span>
+<span class="sd">    **outs**</span>
+<span class="sd">    </span>
+<span class="sd">        [0] &#39;liquid&#39; phase stream</span>
+<span class="sd">        </span>
+<span class="sd">        [1] &#39;LIQUID&#39; phase stream</span>
+<span class="sd">    </span>
+<span class="sd">    **Examples**</span>
+<span class="sd">    </span>
+<span class="sd">        :doc:`Centrifuge_LLE Example`</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;specie_IDs&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+              <span class="s1">&#39;split&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+              <span class="s1">&#39;lNK&#39;</span><span class="p">:</span> <span class="p">(),</span>
+              <span class="s1">&#39;LNK&#39;</span><span class="p">:</span> <span class="p">(),</span>
+              <span class="s1">&#39;solvents&#39;</span><span class="p">:</span> <span class="p">(),</span>
+              <span class="s1">&#39;solvent_split&#39;</span><span class="p">:</span> <span class="p">()}</span>
+
+    <span class="n">bounds</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mi">100</span><span class="p">)}</span>
+
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">liq</span><span class="p">,</span> <span class="n">LIQ</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span> <span class="o">=</span> <span class="n">cached</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">liq</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
+        <span class="n">LIQ</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;L&#39;</span>
+        <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;mixed stream&#39;</span><span class="p">]</span> <span class="o">=</span>  <span class="n">MixedStream</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;specie_IDs&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;specie_IDs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">specie_IDs</span>
+
+    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">liq</span><span class="p">,</span> <span class="n">LIQ</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+        <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span>
+        <span class="n">LLE_kwargs</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">ms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span><span class="p">[</span><span class="s1">&#39;mixed stream&#39;</span><span class="p">]</span>
+        <span class="n">ms</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+        <span class="n">ms</span><span class="o">.</span><span class="n">liquid_mol</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span>
+        <span class="n">ms</span><span class="o">.</span><span class="n">LLE</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="n">feed</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>  <span class="o">**</span><span class="n">LLE_kwargs</span><span class="p">)</span>
+        <span class="n">liq</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">liquid_mol</span>
+        <span class="n">LIQ</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">LIQUID_mol</span>
+        <span class="n">liq</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">LIQ</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">liq</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">LIQ</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">P</span>
+
+    <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        * &#39;Flow rate&#39;: (m^3/hr)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_volnet_out</span>
+        <span class="k">return</span> <span class="n">Design</span>
+
+    <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        * &#39;Vessel cost&#39;: (USD)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
+        <span class="n">Cost</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
+        <span class="n">Q</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">]</span>
+        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Vessel cost&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">28100</span> <span class="o">*</span> <span class="n">Q</span> <span class="o">**</span> <span class="mf">0.574</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">CEPCI</span><span class="o">/</span><span class="mf">525.4</span>
+        <span class="k">return</span> <span class="n">Cost</span></div>
+
+<span class="k">class</span> <span class="nc">Centrifuge_LLE_Lazy</span><span class="p">(</span><span class="n">Centrifuge_LLE</span><span class="p">):</span>
+    <span class="n">_N_heat_util</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Kspecies&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of species that correspond to Ks</span>
+              <span class="s1">&#39;Ks&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of molar ratio partition coefficinets,</span>
+              <span class="c1"># Ks = y/x, where y and x are molar ratios of two different phases</span>
+              <span class="s1">&#39;top_solvents&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of species that correspond to top_split</span>
+              <span class="s1">&#39;top_split&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of splits for top_solvents</span>
+              <span class="s1">&#39;bot_solvents&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of species that correspond to bot_split</span>
+              <span class="s1">&#39;bot_split&#39;</span><span class="p">:</span> <span class="p">[]}</span>  <span class="c1"># list of splits for bot_solvents</span>
+
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="n">_run</span> <span class="o">=</span> <span class="n">EstimateFlash</span><span class="o">.</span><span class="n">_run</span>
+    <span class="n">_simple_run</span> <span class="o">=</span> <span class="n">EstimateFlash</span><span class="o">.</span><span class="n">_simple_run</span>
+    
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>

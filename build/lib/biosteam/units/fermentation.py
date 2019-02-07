@@ -10,7 +10,8 @@ from biosteam import Stream, np
 from scipy.integrate import odeint
 
 class Fermentation(BatchReactor):
-    """Create a Fermentation object which models batch fermentation for the production of 1st generation ethanol using yeast [1, 2]. Number of batches are selected based a loading time per volume ratio, *f*, assuming no influent surge time. Similation is based on reaction time, *tau*. Cleaning and unloading time, *tau_0*, and fraction of working volume, *V_wf*, are muttable properties. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3].
+    """
+    Create a Fermentation object which models batch fermentation for the production of 1st generation ethanol using yeast [1, 2]. Only sucrose and glucose are taken into account. Conversion is based on reaction time, *tau*. Number of batches are selected based a loading time per volume ratio, *f*, assuming no influent surge time. Cleaning and unloading time, *tau_0*, and fraction of working volume, *V_wf*, are muttable properties. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3].
     
     **Parameters**
     
@@ -34,7 +35,17 @@ class Fermentation(BatchReactor):
         
         [2] S.C. Oliveira, H.F. De Castro, A.E.S. Visconti, R. Giudici. Continuous ethanol fermentation in a tower reactor with flocculating yeast recycle: scale-up effects on process performance, kinetic parameters and model predictions. Bioprocess Engineering 20 (1999) 525-530
         
-        [3] D. Humbird, R. Davis, L. Tao, C. Kinchin, D. Hsu, and A. Aden National. Renewable Energy Laboratory Golden, Colorado. P. Schoen, J. Lukas, B. Olthof, M. Worley, D. Sexton, and D. Dudgeon. Harris Group Inc. Seattle, Washington and Atlanta, Georgia. Process Design and Economics for Biochemical Conversion of Lignocellulosic Biomass to Ethanol Dilute-Acid Pretreatment and Enzymatic Hydrolysis of Corn Stover. May 2011. Technical Report NREL/TP-5100-47764"""
+        [3] D. Humbird, R. Davis, L. Tao, C. Kinchin, D. Hsu, and A. Aden National. Renewable Energy Laboratory Golden, Colorado. P. Schoen, J. Lukas, B. Olthof, M. Worley, D. Sexton, and D. Dudgeon. Harris Group Inc. Seattle, Washington and Atlanta, Georgia. Process Design and Economics for Biochemical Conversion of Lignocellulosic Biomass to Ethanol Dilute-Acid Pretreatment and Enzymatic Hydrolysis of Corn Stover. May 2011. Technical Report NREL/TP-5100-47764
+        
+    .. note::
+        
+        A specie with CAS 'Yeast' must be present in species.
+        
+    **Examples**
+    
+        :doc:`Fermentation Example`
+        
+    """
         
     kwargs = {'tau': None, # Reaction time
               'efficiency': None}  # Theoretical efficiency
@@ -95,7 +106,7 @@ class Fermentation(BatchReactor):
         mass = feed.mass
         volnet = feed.volnet
         concentration_in = mass/volnet
-        X0, P0, S0 = [concentration_in[i] for i in (y, e, s)]
+        X0, P0, S0 = (concentration_in[i] for i in (y, e, s))
         X0 = 5
         
         # Integrate to get final concentration
@@ -156,20 +167,19 @@ class Fermentation(BatchReactor):
         
 
     def _run(self):
-        # 90% efficiency of fermentation
-        # assume no Glycerol produced
-        # no ethanol lost with CO2
+        # Assume no Glycerol produced
+        # No ethanol lost with CO2
         mw_Ethanol = 46.06844
         mw_glucose = 180.156
 
         # Unpack
         kwargs = self.kwargs
-        out, CO2 = self.outs
-        out.sum(out, self.ins)
+        out, CO2 = self._outs
+        out.sum(out, self._ins)
         
         # Species involved in reaction
-        species = ['Ethanol', 'Glucose', 'Sucrose', 'Water']
-        e, g, s, w = indx = out.get_index(species)
+        species = ['64-17-5', '492-61-5', '57-50-1', '7732-18-5']
+        e, g, s, w = indx = out.get_index(species, CAS=True)
         glucose = out.mol[indx[1]]
         sucrose = out.mol[indx[2]]
         
@@ -188,7 +198,7 @@ class Fermentation(BatchReactor):
         fermented = eff*(glucose + new_glucose)
         ch_glucose = - fermented
         ch_Ethanol = 0.5111*fermented * mw_glucose/mw_Ethanol
-        co2 = out.get_index('CO2')
+        co2 = out.get_index(('124-38-9',), CAS=True)
         changes = [ch_Ethanol, ch_glucose]
         out.mol[[e, g]] += changes
         CO2.mol[co2] = (1-0.5111)*fermented * mw_glucose/44.0095

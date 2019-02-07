@@ -20,15 +20,15 @@ p2 = np.polyfit(x,y,2)
 
 # Materials of Construction Shell/Tube	       a and b in Eq. (16.44)
 F_Mdict =  {'Carbon steel/carbon steel':       (0, 0),
-            'Carbon steel/brass':	            (1.08, 0.05),
-            'Carbon steel/stainles steel':	  (1.75, 0.13),
-            'Carbon steel/Monel':	            (2.1, 0.13),
+            'Carbon steel/brass':	           (1.08, 0.05),
+            'Carbon steel/stainles steel':	   (1.75, 0.13),
+            'Carbon steel/Monel':	           (2.1, 0.13),
             'Carbon steel/titanium':	       (5.2, 0.16),
             'Carbon steel/Cr-Mo steel':        (1.55, 0.05),
             'Cr-Mo steel/Cr-Mo steel':	       (1.7, 0.07),
             'Stainless steel/stainless steel': (2.7, 0.07),
-            'Monel/Monel':	                 (3.3, 0.08),
-            'Titanium/titanium':	            (9.6, 0.06)}
+            'Monel/Monel':	                   (3.3, 0.08),
+            'Titanium/titanium':	           (9.6, 0.06)}
 
 # Purchase price
 Cb_dict = {'Floating head':
@@ -473,6 +473,10 @@ class HXutility(HX):
     
         [0] Output stream
 
+    **Examples**
+    
+        :doc:`HXutility Example`
+    
     """
     
     kwargs = {'T': None,
@@ -491,7 +495,12 @@ class HXutility(HX):
         if not (T or V_given):
             raise ValueError("Must pass at least one of the following kwargs: 'T', 'V'")
         if kwargs['rigorous']:
-            s.VLE(V=V, T=T)
+            if T and V_given:
+                raise ValueError("May only pass either temperature, 'T', or vapor fraction 'V', in a rigorous simulation.")
+            if V_given:
+                s.VLE(V=V)
+            else:
+                s.VLE(T=T)
         else:
             if V_given:
                 if V == 0:
@@ -505,7 +514,8 @@ class HXutility(HX):
                     mol = vapmol + liqmol
                     vapmol[:] = mol*V
                     liqmol[:] = mol - vapmol
-            if T: s.T = T
+            if T:
+                s.T = T
     
     def _operation(self):
         # Set duty and run heat utility
@@ -555,10 +565,10 @@ class HXprocess(HX):
             * [str] 'Concentric tubes'
     
         **Type:** [str] Must be one of the following:
-            * None: Rigorously transfers heat until pinch temperature (not implemented yet)
-            * 'ss': Sensible-sensible fluids heat exchanger
-            * 'll': Latent-latent fluids heat exchanger
-            * 'ls': Latent-sensible fluids heat exchanger
+            * **None:** Rigorously transfers heat until pinch temperature **-not implemented yet-**
+            * **'ss':** Sensible-sensible fluids heat exchanger. Heat is exchanged until the pinch temperature is reached.
+            * **'ll':** Latent-latent fluids heat exchanger. Heat is exchanged until one fluid completely changes phase.
+            * **'ls':** Latent-sensible fluids heat exchanger. Heat is exchanged until either the pinch temperature is reached or the latent fluid completely changes phase.
     
         **Optional**
         
@@ -579,6 +589,10 @@ class HXprocess(HX):
         [0] Output process fluid 1
         
         [1] Output process fluid 2
+    
+    **Examples**
+    
+        :doc:`HXprocess Example`
     
     """
     _N_heat_util = 0
@@ -647,7 +661,10 @@ class HXprocess(HX):
         HNK = kwargs['HNK']
         
         # Arguments for dew and bubble point
-        index = s1_out.get_index(specie_IDs)
+        if specie_IDs:
+            index = s1_out.get_index(specie_IDs)
+        else:
+            specie_IDs, index = s1_out._equilibrium_species()
         z = s1_out.mol[index]/s1_out.molnet
         P = s1_out.P
         
@@ -674,15 +691,20 @@ class HXprocess(HX):
             H0 = s2_in.H
             s2_out.T = T_pinch
             delH1 = H0 - s2_out.H
-            s1_out.enable_phases()
             s1_out.VLE(specie_IDs, LNK, HNK, Qin=delH1)
         elif not boiling and T_s2_new > T_pinch:
             # Partial condensation if temperature goes above pinch
             H0 = s2_in.H
             s2_out.T = T_pinch
             delH1 = H0 - s2_out.H
-            s1_out.enable_phases()
             s1_out.VLE(specie_IDs, LNK, HNK, Qin=delH1)
+        elif boiling:
+            s1_out.phase ='g'
+            s2_out.T = T_s2_new
+        elif not boiling:
+            s1_out.phase = 'l'
+            s2_out.T = T_s2_new
+        
         self._Duty = Duty
     
     def _run_ll(self):
@@ -718,24 +740,33 @@ class HXprocess(HX):
             sc_out = s2_out
             sp_out = s1_out
         else:
-            sc_in = s2_in
+            sc_in = s1_in
             sc_out = s1_out
             sp_out = s2_out
         
         # Arguments for dew and bubble point
-        index = sc_out.get_index(specie_IDs)
+        if specie_IDs:
+            specie_IDs_ = specie_IDs
+            index = sc_out.get_index(specie_IDs)
+        else:
+            specie_IDs_, index = sc_out._equilibrium_species()
         z = sc_out.mol[index]/sc_out.molnet
         P = sc_out.P
         
         if sc_out._isboiling:
             sc_out.phase = 'g'
-            sc_out.T = sc_out._dew_point(specie_IDs, z, P)[0]
+            sc_out.T = sc_out._dew_point(specie_IDs_, z, P)[0]
         else:
             sc_out.phase = 'l'
-            sc_out.T = sc_out._bubble_point(specie_IDs, z, P)[0]
+            sc_out.T = sc_out._bubble_point(specie_IDs_, z, P)[0]
+        
+        # Arguments for VLE
+        if not specie_IDs:
+            specie_IDs, _ = sp_out._equilibrium_species()
         
         Duty = (sc_in.H-sc_out.H)
         sp_out.VLE(specie_IDs, LNK, HNK, Qin=Duty)
+        
         self._Duty = abs(Duty)
     
     def _operation(self):

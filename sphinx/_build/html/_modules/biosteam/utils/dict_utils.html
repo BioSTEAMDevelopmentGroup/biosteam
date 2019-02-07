@@ -1,0 +1,200 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>biosteam.utils.dict_utils &#8212; BioSTEAM 0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for biosteam.utils.dict_utils</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Wed Dec  5 17:03:08 2018</span>
+
+<span class="sd">This module includes classes and functions relating dictionaries.</span>
+
+<span class="sd">@author: Guest Group</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">biosteam.exceptions</span> <span class="k">import</span> <span class="n">IDconflict</span>
+<span class="kn">from</span> <span class="nn">weakref</span> <span class="k">import</span> <span class="n">ref</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;getDict&#39;</span><span class="p">,</span> <span class="s1">&#39;WeakRefBook&#39;</span><span class="p">,</span> <span class="s1">&#39;get_doc_units&#39;</span><span class="p">,</span> <span class="s1">&#39;merge&#39;</span><span class="p">,</span> <span class="s1">&#39;get_vals&#39;</span><span class="p">)</span>
+
+
+<span class="c1"># %% Dictionary Classes</span>
+
+<div class="viewcode-block" id="getDict"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.getDict">[docs]</a><span class="k">class</span> <span class="nc">getDict</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a dictionary that return None instead of raising a KeyError.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;], &#39;</span><span class="p">,</span> <span class="s1">&#39;],</span><span class="se">\n</span><span class="s1"> &#39;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="WeakRefBook"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.WeakRefBook">[docs]</a><span class="k">class</span> <span class="nc">WeakRefBook</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a WeakRefBook object that stores only weak references. When item getter is used, it returns the call of the weak reference. If the key does not exist, it returns None. When check_ID is True, an IDconflict error will be raised when setting with a key/ID already occupied by an object.</span>
+
+<span class="sd">    **Parameters**</span>
+
+<span class="sd">         **check_ID:** [bool] if True, no key/ID can be specified twice.</span>
+
+<span class="sd">         **kwargs: [dict] Key-value pairs to initialize dictionary.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;check_ID&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">check_ID</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">check_ID</span> <span class="o">=</span> <span class="n">check_ID</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span>
+
+    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_ID</span> <span class="ow">and</span> <span class="bp">self</span><span class="p">[</span><span class="n">ID</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="n">IDconflict</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;A &#39;{type(obj).__name__}&#39; object with key/ID, &#39;</span><span class="si">{ID}</span><span class="s2">&#39;, already exists. Add a &#39;*&#39; to ID to ignore possible conflicts.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">ref</span><span class="p">:</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="n">ref</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="kc">None</span><span class="p">)()</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;{type(self).__name__}{tuple(self.keys())}&#39;</span></div>
+
+
+<span class="c1"># %% Dictionary functions</span>
+
+<div class="viewcode-block" id="get_doc_units"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.get_doc_units">[docs]</a><span class="k">def</span> <span class="nf">get_doc_units</span><span class="p">(</span><span class="n">udict</span><span class="p">,</span> <span class="n">doc</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Update dictionary of units of measure from docstring.</span>
+<span class="sd">    </span>
+<span class="sd">    **Parameters**</span>
+<span class="sd">    </span>
+<span class="sd">        **doc:** [str] Keys must be in single quotes, &#39;&#39;, and units of measure must follow in parentesis, ().</span>
+
+<span class="sd">    **Returns**</span>
+<span class="sd">    </span>
+<span class="sd">        udict: [dict] Units of meaure.</span>
+
+<span class="sd">    Example:</span>
+<span class="sd">        </span>
+<span class="sd">        .. code-block:: python</span>
+<span class="sd">        </span>
+<span class="sd">           &gt;&gt;&gt; get_units({},</span>
+<span class="sd">           ...           &#39;&#39;&#39;</span>
+<span class="sd">           ...           &#39;Duty&#39;: (kJ/hr)</span>
+<span class="sd">           ...           &#39;T&#39;: Temperature (K) </span>
+<span class="sd">           ...           &#39;&#39;&#39;)</span>
+<span class="sd">           {&#39;Duty&#39;: &#39;kJ/hr&#39;, &#39;T&#39;: &#39;K&#39;}, {&#39;T&#39;: &#39;Temperature&#39;}</span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">doc</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">udict</span>
+    <span class="n">doc_list</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">)</span>
+    <span class="k">del</span> <span class="n">doc_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">doc_list</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)):</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">i</span><span class="o">*</span><span class="mi">2</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">doc_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="n">doc_list</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+        
+        <span class="c1"># Get units</span>
+        <span class="n">par1</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">)</span>
+        <span class="n">par2</span> <span class="o">=</span> <span class="n">val</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">par1</span><span class="o">==-</span><span class="mi">1</span> <span class="ow">or</span> <span class="n">par2</span><span class="o">==-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">unit</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">unit</span> <span class="o">=</span> <span class="n">val</span><span class="p">[</span><span class="n">par1</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span><span class="n">par2</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">unit</span><span class="p">:</span>
+            <span class="n">udict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">unit</span>        </div>
+        
+
+<div class="viewcode-block" id="merge"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.merge">[docs]</a><span class="k">def</span> <span class="nf">merge</span><span class="p">(</span><span class="o">*</span><span class="n">dict_args</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Merged dictionary&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Given any number of dictionaries, shallow copy and merge into a new dictionary, precedence goes to key value pairs in latter dicts.&quot;&quot;&quot;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">dictionary</span> <span class="ow">in</span> <span class="n">dict_args</span><span class="p">:</span>
+        <span class="n">result</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">dictionary</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="get_vals"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.get_vals">[docs]</a><span class="k">def</span> <span class="nf">get_vals</span><span class="p">(</span><span class="n">dct</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">*</span><span class="n">keys</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;generator(dict values)&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Get all key values as a generator.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">dct</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">)</span></div>
+
+
+
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>

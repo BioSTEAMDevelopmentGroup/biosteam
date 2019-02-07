@@ -41,6 +41,10 @@ class Centrifuge_LLE(Unit):
         
         [1] 'LIQUID' phase stream
     
+    **Examples**
+    
+        :doc:`Centrifuge_LLE Example`
+    
     """
     kwargs = {'specie_IDs': None,
               'split': None,
