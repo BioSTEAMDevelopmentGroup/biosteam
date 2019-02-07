@@ -1,7 +1,0 @@
-Pump
-====
-
-.. module:: biosteam
-
-.. autoclass:: Pump
-   :members:

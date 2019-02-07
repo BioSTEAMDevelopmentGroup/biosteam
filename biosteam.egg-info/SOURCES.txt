@@ -49,6 +49,7 @@ biosteam/units/separator.py
 biosteam/units/settler.py
 biosteam/units/splitter.py
 biosteam/units/tank.py
+biosteam/units/test.py
 biosteam/units/transesterification.py
 biosteam/units/yeast_centrifuge.py
 biosteam/utils/__init__.py
