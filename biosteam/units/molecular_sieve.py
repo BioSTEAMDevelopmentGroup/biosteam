@@ -30,6 +30,11 @@ class MolecularSieve(Unit):
     **References**
     
         [1] Process Design and Economics for Biochemical Conversion of Lignocellulosic Biomass to Ethanol Dilute-Acid Pretreatment and Enzymatic Hydrolysis of Corn Stover. D. Humbird, R. Davis, L. Tao, C. Kinchin, D. Hsu, and A. Aden (National Renewable Energy Laboratory Golden, Colorado). P. Schoen, J. Lukas, B. Olthof, M. Worley, D. Sexton, and D. Dudgeon (Harris Group Inc. Seattle, Washington and Atlanta, Georgia)
+    
+    **Examples**
+    
+        :doc:`MolecularSieve Example`
+    
     """
     kwargs = Splitter.kwargs
     _run = Splitter._run

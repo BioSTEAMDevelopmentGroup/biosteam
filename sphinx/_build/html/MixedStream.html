@@ -86,14 +86,14 @@
 <p><strong>liquid_flow:</strong> [array_like] liquid flow rates by specie</p>
 <p><strong>LIQUID_flow:</strong> [array_like] LIQUID flow rates by specie</p>
 <p><strong>vapor_flow:</strong> [array_like] vapor flow rates by specie</p>
-<p><strong>species:</strong> tuple[str] Specie IDs corresponding to the flowrates</p>
+<p><strong>species:</strong> tuple[str] or [Species] Species corresponding to <cite>flow</cite> parameters. If empty, assume same species as class.</p>
 <p><strong>units:</strong> [str] The units of the flow rates (only mass, molar, and volumetric flow rates are valid)</p>
 <p><strong>T:</strong> [float] Temperature (K)</p>
 <p><strong>P:</strong> [float] Pressure (Pa)</p>
 </div></blockquote>
 <p><strong>Examples</strong></p>
 <blockquote>
-<div><a class="reference internal" href="MixedStream Example.html"><span class="doc">Example: MixedStream</span></a></div></blockquote>
+<div><a class="reference internal" href="MixedStream Example.html"><span class="doc">MixedStream</span></a></div></blockquote>
 <dl class="attribute">
 <dt id="biosteam.MixedStream.phase">
 <code class="descname">phase</code><a class="headerlink" href="#biosteam.MixedStream.phase" title="Permalink to this definition">¶</a></dt>

@@ -80,7 +80,7 @@
 
 
 <div class="viewcode-block" id="WeakRefBook"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.WeakRefBook">[docs]</a><span class="k">class</span> <span class="nc">WeakRefBook</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Create a WeakRefBook object that stores only weak references. When item getter is used, it returns the call of the weak reference. If the key does not exist, it returns None. When check_ID is True, an IDconflict error will be raised when setting with a key/ID already occupied by an object. To bypass this check, include &#39;*&#39; to the key/ID.</span>
+    <span class="sd">&quot;&quot;&quot;Create a WeakRefBook object that stores only weak references. When item getter is used, it returns the call of the weak reference. If the key does not exist, it returns None. When check_ID is True, an IDconflict error will be raised when setting with a key/ID already occupied by an object.</span>
 
 <span class="sd">    **Parameters**</span>
 
@@ -98,9 +98,7 @@
             <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span>
 
     <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
-        <span class="k">if</span> <span class="s1">&#39;*&#39;</span> <span class="ow">in</span> <span class="n">ID</span><span class="p">:</span>
-            <span class="k">pass</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_ID</span> <span class="ow">and</span> <span class="bp">self</span><span class="p">[</span><span class="n">ID</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_ID</span> <span class="ow">and</span> <span class="bp">self</span><span class="p">[</span><span class="n">ID</span><span class="p">]:</span>
             <span class="k">raise</span> <span class="n">IDconflict</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;A &#39;{type(obj).__name__}&#39; object with key/ID, &#39;</span><span class="si">{ID}</span><span class="s2">&#39;, already exists. Add a &#39;*&#39; to ID to ignore possible conflicts.&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">ref</span><span class="p">:</span>
             <span class="n">obj</span> <span class="o">=</span> <span class="n">ref</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>

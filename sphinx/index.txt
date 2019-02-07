@@ -8,23 +8,6 @@ BioSTEAM: The Open-Source Bioprocess Simulation and Techno-Economic Analysis Mod
 
 BioSTEAM is an open source process simulation package in Python for fast and flexible preliminary technoeconomic analysis.
 
-.. toctree::
-   :maxdepth: 2
-   
-   Specie
-   Chemical
-   Species
-   Stream
-   MixedStream
-   Unit
-   PowerUtility
-   HeatUtility
-   System
-   find
-   units
-   utils
-   exceptions
-   
 Overview
 --------
 
@@ -32,8 +15,9 @@ Overview
 
    **Figure 1.** A simplified  Unified Modeling Language (UML) class diagram depicts the core classes of BioSTEAM. Only main attributes and methods are included. In aggregation relationships, the labels represent where the aggregates are stored.
 
-**Classes**:
- 
+Main Classes:
+-------------
+
 :doc:`Chemical`: A thermo.Chemical object from the Chemical Engineering Design Library (ChEDL) with minor extensions for compatibility. It contains pure component transport and thermodynamic properties.
 
 :doc:`Species`: Contains Specie and Chemical objects.
@@ -52,8 +36,76 @@ Getting Started
 
 BioSTEAM objects serve as basic building blocks to design and simulate a biorefinery. These include objects that handle material properties, material flows, unit operations, recycle loops and process specifications.
 
-To get started, follow the :doc:`Tutorial`.
+.. toctree::
+   :maxdepth: 2
 
+   Tutorial
+   Creating a Unit
+   Using -pipe- notation
+
+Base classes
+------------
+
+.. toctree::
+   :maxdepth: 2
+   
+   Specie
+   DissolvedSpecie
+   Chemical
+   Species
+   Stream
+   MixedStream
+   Unit
+   PowerUtility
+   HeatUtility
+   System
+   find
+   reports
+   utils
+   exceptions
+   units
+
+Unit Operations
+---------------
+
+.. toctree::
+   :maxdepth: 1
+
+   Centrifuge_LLE
+   Distillation
+   Fermentation
+   Flash
+   HXprocess
+   HXutility
+   MassBalance
+   MixTank
+   Mixer
+   MolecularSieve
+   MultiEffectEvaporator
+   Pump
+   Splitter
+   StorageTank
+   Transesterification
+
+Unit Examples
+-------------
+
+.. toctree::
+   :maxdepth: 1
+
+   Centrifuge_LLE Example
+   Distillation Example
+   Fermentation Example
+   Flash Example
+   HXprocess Example
+   HXutility Example
+   MassBalance Example
+   Mixer Example
+   MolecularSieve Example
+   Pump Example
+   Splitter Example
+   Transesterification Example
+   
 
 Indices and tables
 ==================

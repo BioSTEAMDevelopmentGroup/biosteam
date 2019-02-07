@@ -64,10 +64,12 @@ units_of_measure = ReadOnlyBook(MW='g/mol',
 
 from . import exceptions
 from . import utils
+from . import reports
+from . import chemical
 from .find import find
 from .specie import Specie
 from .dissolved_specie import DissolvedSpecie
-from .chemical import Chemical
+from .chemical import *
 from .species import Species
 from .stream import Stream
 from .mixed_stream import MixedStream
@@ -77,7 +79,9 @@ from .unit import Unit
 from .system import System
 from . import units
 from .units import *
+from .reports import *
 
 __all__.extend(units.__all__)
-
+__all__.extend(reports.__all__)
+__all__.extend(chemical.__all__)
 SmartBook.Warning = exceptions.DesignWarning

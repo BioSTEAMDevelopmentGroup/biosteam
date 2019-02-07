@@ -87,23 +87,27 @@
 <span class="k">class</span> <span class="nc">metaUnit</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Unit metaclass for wrapping up methods with error notifiers, adding key word arguments, and keeping track for Unit lines and inheritance. Also adds the instances attribute to keep track of instances of the class.</span>
 
-<span class="sd">    **Class definitions**</span>
+<span class="sd">    **Optional class definitions**</span>
 
-<span class="sd">        kwargs = {}: [dict] Default keyword arguments</span>
+<span class="sd">        **kwargs** = {}: [dict] Default keyword arguments</span>
 
-<span class="sd">        setup(): Create components and cached data during initialization</span>
+<span class="sd">        **_init():**</span>
+<span class="sd">            Initialize components.</span>
+<span class="sd">        </span>
+<span class="sd">        **_setup()**</span>
+<span class="sd">            Create cached data from kwargs. </span>
 
-<span class="sd">        run(): Run rigorous simulation</span>
+<span class="sd">        **_run()**</span>
+<span class="sd">            Run rigorous simulation.</span>
 
-<span class="sd">        operation(): Find operation requirements</span>
+<span class="sd">        **_operation()**</span>
+<span class="sd">            Update results &quot;Operation&quot; dictionary with operation requirements.</span>
 
-<span class="sd">        design(): Find design requirements</span>
+<span class="sd">        **_design()**</span>
+<span class="sd">            Update results &quot;Design&quot; dictionary with design requirements.</span>
 
-<span class="sd">        cost(): Find capital and annual cost</span>
-
-<span class="sd">        .. Note::</span>
-
-<span class="sd">           All definitions are optional</span>
+<span class="sd">        **_cost()**</span>
+<span class="sd">            Update results &quot;Cost&quot; dictionary with itemized cost.</span>
 
 <span class="sd">    **Class Attributes**</span>
 <span class="sd">    </span>
@@ -114,6 +118,7 @@
 <span class="sd">        instances = {}: Dictionary of weak references to instances of this class</span>
 
 <span class="sd">        line = [Defaults as the class name of the first child class]: [str] Name denoting the type of Unit class</span>
+
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_CEPCI</span> <span class="o">=</span> <span class="mf">567.5</span> <span class="c1"># Chemical engineering plant cost index (567.5 at 2017)</span>
@@ -237,7 +242,7 @@
 
 <span class="sd">    **Abstract Attributes**</span>
 
-<span class="sd">        **kwargs** = {}: Default keyword arguments.</span>
+<span class="sd">        **kwargs** = {}: Default keyword arguments. These magically appear in the __init__ signature.</span>
 
 <span class="sd">        **_init():**</span>
 <span class="sd">            Initialize components.</span>
@@ -276,10 +281,6 @@
 <span class="sd">        **_N_heat_util** = 0: [int] Number of heat utilities  </span>
 
 <span class="sd">        **_power_util** = False: [bool] If True, a PowerUtility object is created for every instance.</span>
-<span class="sd">        </span>
-<span class="sd">        .. Note:</span>
-
-<span class="sd">           The Unit class is an instance of metaUnit, which takes class definitions (defined in abstract attributes) to set key word arguments, decorate methods, and register new classes.</span>
 
 <span class="sd">    **ins**</span>
 <span class="sd">        </span>
@@ -288,6 +289,14 @@
 <span class="sd">    **outs**</span>
 <span class="sd">    </span>
 <span class="sd">        list of output streams</span>
+<span class="sd">    </span>
+<span class="sd">    **Examples**</span>
+<span class="sd">    </span>
+<span class="sd">        :doc:`Creating a Unit`</span>
+<span class="sd">        </span>
+<span class="sd">        :doc:`Pipe notation`</span>
+<span class="sd">        </span>
+<span class="sd">        :doc:`Subclassing a Unit`</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span> 
     <span class="c1">### Abstract Attributes ###</span>
@@ -517,6 +526,10 @@
 
     <span class="nd">@ID</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">ID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s1">&#39;*&#39;</span> <span class="ow">in</span> <span class="n">ID</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="n">ID</span>
+            <span class="k">return</span>
+        
         <span class="c1"># Remove old reference to this object</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span> <span class="ow">and</span> <span class="n">ID</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
             <span class="k">del</span> <span class="n">find</span><span class="o">.</span><span class="n">unit</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ID</span><span class="p">]</span>
@@ -594,7 +607,7 @@
         <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">):</span>
             <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;graph&#39;</span><span class="p">,</span> <span class="n">nodesep</span><span class="o">=</span><span class="s1">&#39;0.4&#39;</span><span class="p">)</span>
 
-        <span class="c1"># Names for unit nodes</span>
+        <span class="c1"># Name for unit node</span>
         <span class="n">type_</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">type_</span>
 
@@ -611,24 +624,23 @@
         <span class="c1"># Make nodes and edges for input streams</span>
         <span class="n">di</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Destination position of stream</span>
         <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">:</span>
-            <span class="c1"># If stream is not important (no ID), ignore the stream</span>
             <span class="k">if</span> <span class="n">stream</span><span class="o">.</span><span class="n">ID</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span> <span class="ow">or</span> <span class="n">stream</span><span class="o">.</span><span class="n">ID</span> <span class="o">==</span> <span class="s1">&#39;Missing Stream&#39;</span><span class="p">:</span>
-                <span class="k">continue</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>  <span class="c1"># Make node</span>
-            <span class="n">edge_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Graphics</span><span class="o">.</span><span class="n">edge_in</span>  <span class="c1"># Get edge attributes</span>
+                <span class="k">continue</span>  <span class="c1"># Ignore stream</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>  
+            <span class="n">edge_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Graphics</span><span class="o">.</span><span class="n">edge_in</span>
             <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;edge&#39;</span><span class="p">,</span> <span class="n">arrowtail</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">arrowhead</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span>
-                   <span class="n">tailport</span><span class="o">=</span><span class="s1">&#39;e&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">edge_in</span><span class="p">[</span><span class="n">di</span><span class="p">])</span>  <span class="c1"># Set edge attibutes</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>  <span class="c1"># Make edge</span>
+                   <span class="n">tailport</span><span class="o">=</span><span class="s1">&#39;e&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">edge_in</span><span class="p">[</span><span class="n">di</span><span class="p">])</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
             <span class="n">di</span> <span class="o">+=</span> <span class="mi">1</span>
 
         <span class="c1"># Make nodes and edges for output streams</span>
         <span class="n">oi</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Origin position of stream</span>
         <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">:</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>  <span class="c1"># Make node</span>
-            <span class="n">edge_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Graphics</span><span class="o">.</span><span class="n">edge_out</span>  <span class="c1"># Get edge attributes</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span> 
+            <span class="n">edge_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Graphics</span><span class="o">.</span><span class="n">edge_out</span>  
             <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;edge&#39;</span><span class="p">,</span> <span class="n">arrowtail</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">arrowhead</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span>
-                   <span class="n">headport</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">edge_out</span><span class="p">[</span><span class="n">oi</span><span class="p">])</span>  <span class="c1"># Set edge attibutes</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>  <span class="c1"># Make edge</span>
+                   <span class="n">headport</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">edge_out</span><span class="p">[</span><span class="n">oi</span><span class="p">])</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>
             <span class="n">oi</span> <span class="o">+=</span> <span class="mi">1</span>
 
         <span class="c1"># Display digraph on console</span>

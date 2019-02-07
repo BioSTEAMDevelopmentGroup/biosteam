@@ -185,7 +185,7 @@
 
 <span class="sd">         **vapor_flow:** [array_like] vapor flow rates by specie</span>
 
-<span class="sd">         **species:** tuple[str] Specie IDs corresponding to the flowrates</span>
+<span class="sd">         **species:** tuple[str] or [Species] Species corresponding to `flow` parameters. If empty, assume same species as class.</span>
 
 <span class="sd">         **units:** [str] The units of the flow rates (only mass, molar, and volumetric flow rates are valid)</span>
 
@@ -213,21 +213,13 @@
         <span class="c1"># Get species ID and set species information</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">Species</span><span class="p">):</span>
             <span class="c1"># Set species as provided</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">species</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_species</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
             <span class="n">specie_IDs</span> <span class="o">=</span> <span class="p">()</span>
         <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">):</span>
             <span class="n">specie_IDs</span> <span class="o">=</span> <span class="n">species</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span>
             <span class="c1"># Copy class species data (in case it changes)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="o">=</span> <span class="n">species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_specie_IDs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_specie_IDs</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_CAS</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_CAS</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_Nspecies</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Nspecies</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_ID_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID_index</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_index_ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index_ID</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_CAS_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_CAS_index</span> 
-            <span class="bp">self</span><span class="o">.</span><span class="n">_index_CAS</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index_CAS</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_MW</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_MW</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_copy_species</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;species must be a Species object, not {type(species).__name__}&#39;</span><span class="p">)</span>
         
@@ -661,7 +653,8 @@
         <span class="n">mol</span> <span class="o">=</span> <span class="n">mol</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span>
         <span class="n">molfrac</span> <span class="o">=</span> <span class="n">mol</span><span class="o">/</span><span class="n">molnet</span>
         <span class="k">return</span> <span class="n">exp</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">molfrac</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">mus</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span><span class="o">*</span><span class="n">Vms</span><span class="p">[</span><span class="n">pos</span><span class="p">])))</span><span class="o">/</span><span class="n">Vm</span> 
-
+    <span class="n">mu</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">Stream</span><span class="o">.</span><span class="n">mu</span><span class="o">.</span><span class="vm">__doc__</span>
+    
     <span class="c1">### Material Properties ###</span>
 
     <span class="c1"># General for a given phase</span>
@@ -767,9 +760,9 @@
         <span class="c1">### Decide what kind of equilibrium to run ###</span>
         
         <span class="n">Nspecs</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">V</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">Qin</span><span class="p">):</span>
             <span class="n">Nspecs</span> <span class="o">+=</span> <span class="p">(</span><span class="n">i</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
-        
+            
         <span class="n">raise_error</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="n">Nspecs</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">Qin</span> <span class="o">=</span> <span class="mi">0</span>
@@ -802,7 +795,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span>
-        
+            
         <span class="c1">### Set Up Arguments ###</span>
         
         <span class="c1"># Reused attributes</span>
@@ -889,7 +882,7 @@
                 
             <span class="k">else</span><span class="p">:</span>
                 <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid specification. Pure component equilibrium requires one and only one of the following specifications: T, V, or Qin.&quot;</span><span class="p">)</span>
-             
+                
         <span class="c1">### Begin multi-component equilibrium ###</span>
         
         <span class="c1"># Get overall composition</span>

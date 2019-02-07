@@ -113,6 +113,10 @@ class Flash(Unit):
     
         [2] I.K. Kookos, Preliminary Chemical Process Synthesis and Design, Tziolas Publishing, Thessalonika, Greece, 2008 (book in Greek).
     
+    **Examples**
+    
+        :doc:`Flash Example`
+    
     """
     _N_heat_util = 0
     
@@ -393,10 +397,6 @@ class Flash(Unit):
         Ht = Hlll + Hh + Hs + Hlin + Hv + Hme
         Ht = FinalValue(Ht)
 
-        # Calculate Vessel weight and wall thickness
-        rho_M = rho_Mdict[self._F_Mstr]
-        VW, VWT = VesselWeightAndWallThickness(P, D, Ht, rho_M)
-
         # Check if LD is between 1.5 and 6.0
         converged = False
         LD = Ht/D
@@ -410,6 +410,10 @@ class Flash(Unit):
             else:
                 converged = True
             LD = Ht/D
+
+        # Calculate Vessel weight and wall thickness
+        rho_M = rho_Mdict[self._F_Mstr]
+        VW, VWT = VesselWeightAndWallThickness(P, D, Ht, rho_M)
 
         # Find maximum and normal liquid level
         # Hhll = Hs + Hh + Hlll
@@ -503,9 +507,9 @@ class Flash(Unit):
                 while not converged1 and innerIter < maxIter:
                     innerIter += 1
                     Hv = Hv + sign*0.5
-                    if int(Mist) == 1 and Hv <= 2.0:   # baru tambah Bang !
+                    if int(Mist) == 1 and Hv <= 2.0:
                         Hv = 2.0
-                    if int(Mist) == 0 and Hv <= 1.0:   # baru tambah Bang !
+                    if int(Mist) == 0 and Hv <= 1.0:
                         Hv = 1.0
                     X = Hv/D
                     Y = HNATable(1, X)
@@ -532,7 +536,7 @@ class Flash(Unit):
             L = Li
             LD = L/D
             # Check LD
-            if LD < (0.8*1.5):
+            if LD < 1.2:
                 if D <= 4.0:
                     D = D
                     converged = True
@@ -540,21 +544,11 @@ class Flash(Unit):
                     D = D - 0.5
                     converged = False
 
-            if LD > (1.2*6.0):
+            if LD > 7.2:
                 D = D + 0.5
                 converged = False
             else:
                 converged = True
-
-        # Calculate vessel weight and wall thickness
-        rho_M = rho_Mdict[self._F_Mstr]
-        VW, VWT = VesselWeightAndWallThickness(P, D, L, rho_M)
-
-        # To check minimum Hv value
-        if int(Mist) == 1 and Hv <= 2.0:
-            Hv = 2.0
-        if int(Mist) == 0 and Hv <= 1.0:
-            Hv = 1.0
 
         # Recalculate LD so it lies between 1.5 - 6.0
         converged = False
@@ -571,6 +565,16 @@ class Flash(Unit):
                 converged = False
             else:
                 converged = True
+
+        # Calculate vessel weight and wall thickness
+        rho_M = rho_Mdict[self._F_Mstr]
+        VW, VWT = VesselWeightAndWallThickness(P, D, L, rho_M)
+
+        # # To check minimum Hv value
+        # if int(Mist) == 1 and Hv <= 2.0:
+        #     Hv = 2.0
+        # if int(Mist) == 0 and Hv <= 1.0:
+        #     Hv = 1.0
 
         # Calculate normal liquid level and High liquid level
         # Hhll = D - Hv
@@ -661,8 +665,7 @@ class Flash_PQin(Unit):
         liquid.mol[index] = 1
         liquid.__dict__.update(phase='l', T=Tf, P=P)
 
-        no_ph_ch = type(liquid)()
-
+        no_ph_ch = type(liquid)(species=vapor.species)
         cached['vapor_H'] = vapor.H
         cached['liquid_H'] = liquid.H
         cached['no_ph_ch'] = no_ph_ch

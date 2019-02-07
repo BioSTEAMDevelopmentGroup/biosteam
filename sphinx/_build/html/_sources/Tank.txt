@@ -1,7 +1,0 @@
-Tank
-====
-
-.. module:: biosteam
-
-.. autoclass:: Tank
-   :members:

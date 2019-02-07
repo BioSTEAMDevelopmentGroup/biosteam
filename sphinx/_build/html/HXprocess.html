@@ -17,7 +17,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="HXutility" href="HXutility.html" />
-    <link rel="prev" title="Pump" href="Pump.html" /> 
+    <link rel="prev" title="Flash" href="Flash.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -32,17 +32,16 @@
           <a href="HXutility.html" title="HXutility"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="Pump.html" title="Pump"
+          <a href="Flash.html" title="Flash"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="units.html" accesskey="U">units</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
-  <p class="topless"><a href="Pump.html"
-                        title="previous chapter">Pump</a></p>
+  <p class="topless"><a href="Flash.html"
+                        title="previous chapter">Flash</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="HXutility.html"
                         title="next chapter">HXutility</a></p>
@@ -94,10 +93,10 @@
 </dd>
 <dt><strong>Type:</strong> [str] Must be one of the following:</dt>
 <dd><ul class="first last simple">
-<li>None: Rigorously transfers heat until pinch temperature (not implemented yet)</li>
-<li>‘ss’: Sensible-sensible fluids heat exchanger</li>
-<li>‘ll’: Latent-latent fluids heat exchanger</li>
-<li>‘ls’: Latent-sensible fluids heat exchanger</li>
+<li><strong>None:</strong> Rigorously transfers heat until pinch temperature <strong>-not implemented yet-</strong></li>
+<li><strong>‘ss’:</strong> Sensible-sensible fluids heat exchanger. Heat is exchanged until the pinch temperature is reached.</li>
+<li><strong>‘ll’:</strong> Latent-latent fluids heat exchanger. Heat is exchanged until one fluid completely changes phase.</li>
+<li><strong>‘ls’:</strong> Latent-sensible fluids heat exchanger. Heat is exchanged until either the pinch temperature is reached or the latent fluid completely changes phase.</li>
 </ul>
 </dd>
 </dl>
@@ -118,6 +117,9 @@
 <div><p>[0] Output process fluid 1</p>
 <p>[1] Output process fluid 2</p>
 </div></blockquote>
+<p><strong>Examples</strong></p>
+<blockquote>
+<div><a class="reference internal" href="HXprocess Example.html"><span class="doc">HXprocess</span></a></div></blockquote>
 <dl class="attribute">
 <dt id="biosteam.HXprocess.dT">
 <code class="descname">dT</code><em class="property"> = 5</em><a class="headerlink" href="#biosteam.HXprocess.dT" title="Permalink to this definition">¶</a></dt>
@@ -147,10 +149,9 @@
           <a href="HXutility.html" title="HXutility"
              >next</a> |</li>
         <li class="right" >
-          <a href="Pump.html" title="Pump"
+          <a href="Flash.html" title="Flash"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="units.html" >units</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

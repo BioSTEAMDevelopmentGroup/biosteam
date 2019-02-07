@@ -85,6 +85,10 @@
 
 <span class="sd">        This is an end-of-the-line/final class that cannot be inherited.</span>
 
+<span class="sd">    **Examples**</span>
+<span class="sd">    </span>
+<span class="sd">        :doc:`MassBalance Example`</span>
+<span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;species&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
@@ -201,7 +205,7 @@
 
     <span class="nd">@ins</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">streams</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">streams</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">streams</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">outs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -210,7 +214,7 @@
 
     <span class="nd">@outs</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">streams</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">streams</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">streams</span><span class="p">)</span></div>
 
 
 <span class="c1"># %% Energy Balance Unit</span>

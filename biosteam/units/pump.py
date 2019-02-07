@@ -78,6 +78,10 @@ class Pump(Unit):
     
         [1] Output stream
     
+    **Examples**
+    
+        :doc:`Pump Example`
+    
     """
     _N_ins = 1
     _N_outs = 1
@@ -360,6 +364,6 @@ class Pump(Unit):
                 e = 1
         else:
             e = 0.9
-        return 2
+        return e
         
         

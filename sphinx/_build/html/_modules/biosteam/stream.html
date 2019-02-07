@@ -227,38 +227,28 @@
 
     <span class="nd">@species</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">species</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
-        <span class="c1"># Set Species object and working species</span>
+        <span class="c1"># Set Species object and related parameters</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">Species</span><span class="p">):</span>
+            <span class="n">IDs</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">ID</span>
+            <span class="n">CAS</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">CAS</span>
+            <span class="n">Nspecies</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">IDs</span><span class="p">)</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">Nspecies</span><span class="p">))</span>
+            <span class="n">ID_index</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">IDs</span><span class="p">,</span> <span class="n">index</span><span class="p">))</span>
+            <span class="n">index_ID</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">IDs</span><span class="p">))</span>
+            <span class="n">CAS_index</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">CAS</span><span class="p">,</span> <span class="n">index</span><span class="p">))</span>
+            <span class="n">index_CAS</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">CAS</span><span class="p">))</span>
+            <span class="n">MW</span> <span class="o">=</span> <span class="n">tuple_array</span><span class="p">(</span><span class="n">species</span><span class="o">.</span><span class="n">get_props</span><span class="p">(</span><span class="n">IDs</span><span class="p">,</span> <span class="s1">&#39;MW&#39;</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">cl</span> <span class="ow">in</span> <span class="nb">type</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span><span class="o">.</span><span class="n">__instances</span><span class="p">:</span>
-                <span class="c1"># Set species</span>
                 <span class="n">cl</span><span class="o">.</span><span class="n">_species</span> <span class="o">=</span> <span class="n">species</span>
-                
-                <span class="c1"># ID of all species</span>
-                <span class="n">cl</span><span class="o">.</span><span class="n">_specie_IDs</span> <span class="o">=</span> <span class="n">IDs</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">ID</span>
-                
-                <span class="c1"># CAS of all species</span>
-                <span class="n">cl</span><span class="o">.</span><span class="n">_CAS</span> <span class="o">=</span> <span class="n">CAS</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">CAS</span>
-                
-                <span class="c1"># Number of species</span>
-                <span class="n">cl</span><span class="o">.</span><span class="n">_Nspecies</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">IDs</span><span class="p">)</span>  
-                
-                <span class="c1"># Indexes of the species (for flow rates)</span>
-                <span class="n">cl</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_Nspecies</span><span class="p">))</span>
-                
-                <span class="c1"># Dictionary of ID to index</span>
-                <span class="n">cl</span><span class="o">.</span><span class="n">_ID_index</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">IDs</span><span class="p">,</span> <span class="n">index</span><span class="p">))</span>
-                
-                <span class="c1"># Dictionary of index to ID</span>
-                <span class="n">cl</span><span class="o">.</span><span class="n">_index_ID</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">IDs</span><span class="p">))</span>
-                
-                <span class="c1"># Dictionary of CAS to index</span>
-                <span class="n">cl</span><span class="o">.</span><span class="n">_CAS_index</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">CAS</span><span class="p">,</span> <span class="n">index</span><span class="p">))</span>
-                
-                <span class="c1"># Dictionary of index to CAS </span>
-                <span class="n">cl</span><span class="o">.</span><span class="n">_index_CAS</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">CAS</span><span class="p">))</span>
-                
-                <span class="c1"># Set molecular weights for all species</span>
-                <span class="n">cl</span><span class="o">.</span><span class="n">_MW</span> <span class="o">=</span> <span class="n">tuple_array</span><span class="p">(</span><span class="n">species</span><span class="o">.</span><span class="n">get_props</span><span class="p">(</span><span class="n">IDs</span><span class="p">,</span> <span class="s1">&#39;MW&#39;</span><span class="p">))</span>
+                <span class="n">cl</span><span class="o">.</span><span class="n">_specie_IDs</span> <span class="o">=</span><span class="n">IDs</span>
+                <span class="n">cl</span><span class="o">.</span><span class="n">_CAS</span> <span class="o">=</span> <span class="n">CAS</span>
+                <span class="n">cl</span><span class="o">.</span><span class="n">_Nspecies</span> <span class="o">=</span> <span class="n">Nspecies</span>
+                <span class="n">cl</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="n">index</span>
+                <span class="n">cl</span><span class="o">.</span><span class="n">_ID_index</span> <span class="o">=</span> <span class="n">ID_index</span>
+                <span class="n">cl</span><span class="o">.</span><span class="n">_index_ID</span> <span class="o">=</span> <span class="n">index_ID</span>
+                <span class="n">cl</span><span class="o">.</span><span class="n">_CAS_index</span> <span class="o">=</span> <span class="n">CAS_index</span>
+                <span class="n">cl</span><span class="o">.</span><span class="n">_index_CAS</span> <span class="o">=</span> <span class="n">index_CAS</span>
+                <span class="n">cl</span><span class="o">.</span><span class="n">_MW</span> <span class="o">=</span> <span class="n">MW</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Must pass a Species object&#39;</span><span class="p">)</span>
             
@@ -527,6 +517,15 @@
     <span class="c1">#: Species order for mass balance</span>
     <span class="n">_specie_IDs</span> <span class="o">=</span> <span class="p">()</span>
 
+    <span class="c1">#: CAS order for mass balance</span>
+    <span class="n">_CAS</span> <span class="o">=</span> <span class="p">()</span>
+
+    <span class="c1">#: Dictionary to look up index by CAS</span>
+    <span class="n">_CAS_index</span> <span class="o">=</span> <span class="p">{}</span>
+    
+    <span class="c1">#: Dictionary to look up CAS by index</span>
+    <span class="n">_index_CAS</span> <span class="o">=</span> <span class="p">{}</span>
+
     <span class="c1"># [list] Default starting letter and current number for ID (class attribute)</span>
     <span class="n">_default_ID</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
 
@@ -541,7 +540,7 @@
         <span class="c1"># Get species ID and set species information</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">Species</span><span class="p">):</span>
             <span class="c1"># Set species as provided</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">species</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_set_species</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
             <span class="n">specie_IDs</span> <span class="o">=</span> <span class="p">()</span>
         <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">):</span>
             <span class="n">specie_IDs</span> <span class="o">=</span> <span class="n">species</span>
@@ -630,13 +629,21 @@
             <span class="n">vol</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_vol</span> <span class="o">=</span> <span class="n">property_array</span><span class="p">(</span><span class="n">vol</span><span class="p">)</span>
         
-        <span class="c1">#: (USD/kg)</span>
+        <span class="c1">#: Price of stream (USD/kg)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">price</span> <span class="o">=</span> <span class="n">price</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Cost of stream (USD/hr)&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">price</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">massnet</span>
+    <span class="k">def</span> <span class="nf">_set_species</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set Species object and related information.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="o">=</span> <span class="n">species</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_specie_IDs</span> <span class="o">=</span> <span class="n">IDs</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">ID</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_CAS</span> <span class="o">=</span> <span class="n">CAS</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">CAS</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Nspecies</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">IDs</span><span class="p">)</span>  
+        <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_Nspecies</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ID_index</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">IDs</span><span class="p">,</span> <span class="n">index</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_index_ID</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">IDs</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_CAS_index</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">CAS</span><span class="p">,</span> <span class="n">index</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_index_CAS</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">CAS</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_MW</span> <span class="o">=</span> <span class="n">tuple_array</span><span class="p">(</span><span class="n">species</span><span class="o">.</span><span class="n">get_props</span><span class="p">(</span><span class="n">IDs</span><span class="p">,</span> <span class="s1">&#39;MW&#39;</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">_copy_species</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Copy species data from stream.&quot;&quot;&quot;</span>
@@ -674,45 +681,7 @@
     <span class="k">def</span> <span class="nf">species</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;[Species] Contains pure component thermodynamic properties for computing overall properties of Stream instances.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span>
-
-    <span class="nd">@species</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">species</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;can&#39;t set attribute&quot;</span><span class="p">)</span>
-        <span class="c1"># Set Species object and working species</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">Species</span><span class="p">):</span>
-            <span class="c1"># Set species</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="o">=</span> <span class="n">species</span>
-            
-            <span class="c1"># ID of all species</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_specie_IDs</span> <span class="o">=</span> <span class="n">IDs</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">ID</span>
-            
-            <span class="c1"># CAS of all species</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_CAS</span> <span class="o">=</span> <span class="n">CAS</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">CAS</span>
-            
-            <span class="c1"># Number of species</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_Nspecies</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">IDs</span><span class="p">)</span>  
-            
-            <span class="c1"># Indexes of the species (for flow rates)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="n">index</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_Nspecies</span><span class="p">))</span>
-            
-            <span class="c1"># Dictionary of ID to index</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_ID_index</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">IDs</span><span class="p">,</span> <span class="n">index</span><span class="p">))</span>
-            
-            <span class="c1"># Dictionary of index to ID</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_index_ID</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">IDs</span><span class="p">))</span>
-            
-            <span class="c1"># Dictionary of CAS to index</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_CAS_index</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">CAS</span><span class="p">,</span> <span class="n">index</span><span class="p">))</span>
-            
-            <span class="c1"># Dictionary of index to CAS </span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_index_CAS</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">CAS</span><span class="p">))</span>
-            
-            <span class="c1"># Set molecular weights for all species</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_MW</span> <span class="o">=</span> <span class="n">tuple_array</span><span class="p">(</span><span class="n">species</span><span class="o">.</span><span class="n">get_props</span><span class="p">(</span><span class="n">IDs</span><span class="p">,</span> <span class="s1">&#39;MW&#39;</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Must pass an instance of Species&#39;</span><span class="p">)</span>
-            
+    
     <span class="n">show_format</span> <span class="o">=</span> <span class="n">metaStream</span><span class="o">.</span><span class="n">show_format</span>
     
     <span class="nd">@property</span>
@@ -722,6 +691,10 @@
 
     <span class="nd">@ID</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">ID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s1">&#39;*&#39;</span> <span class="ow">in</span> <span class="n">ID</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="n">ID</span>
+            <span class="k">return</span>
+        
         <span class="c1"># Remove old reference to this object</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span> <span class="ow">and</span> <span class="n">ID</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
             <span class="k">del</span> <span class="n">find</span><span class="o">.</span><span class="n">stream</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ID</span><span class="p">]</span>
@@ -743,6 +716,11 @@
         <span class="c1"># Add ID to find dictionary and set it</span>
         <span class="n">find</span><span class="o">.</span><span class="n">stream</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="n">ID</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Cost of stream (USD/hr)&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">price</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">massnet</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">MW</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1913,7 +1891,9 @@
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">mS</span><span class="p">:</span>
             <span class="n">default_phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase</span>
             <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">=</span> <span class="n">mS</span>
-            <span class="bp">self</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
+            <span class="n">ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span>
+            <span class="bp">self</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">,</span><span class="n">T</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="n">ID</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_default_phase</span> <span class="o">=</span> <span class="n">default_phase</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span></div>
 

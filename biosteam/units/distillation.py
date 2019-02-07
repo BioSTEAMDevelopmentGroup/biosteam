@@ -92,6 +92,10 @@ column_doc = """Create a {Column Type} column that assumes all light and heavy n
     
         [2] M. Duss, R. Taylor. Predict Distillation Tray Efficiency. AICHE (2018)
     
+    **Examples**
+    
+        :doc:`{Column Type} Example`
+    
     """
 
 class Dist(Unit):
@@ -480,7 +484,7 @@ class Dist(Unit):
         return np.pi*(Di+tv)*(L+0.8*Di)*tv*rho_M
     
     @staticmethod
-    def _calc_WallThickness(Po:'psi', Di:'ft', L:'ft', S:'psi'=15000, E=None) -> 'tv (in)':
+    def _calc_WallThickness(Po:'psi', Di:'ft', L:'ft', S:'psi'=15000, E=None, M:'elasticity (psi)'=29.5) -> 'tv (in)':
         """Return the wall thinkness designed to withstand the internal pressure and the wind/earthquake load at the bottom.
         
         **Parameters**
@@ -492,13 +496,24 @@ class Dist(Unit):
             E: Fractional weld efficiency
             
         """
+        # TODO: Incorporate temperature for choosing S and M
         Di = Di*12 # ft to in
         L = L*12
+        
+        E_check = E is None
+        if E_check:
+            # Assume carbon steel with thickness more than 1.25 in
+            E = 1.0 
         
         # Get design pressure, which should be higher than operating pressure.
         Po_gauge = Po - 14.69
         if Po_gauge < 0:
-            raise DesignError('Vacuum vessels are not implemented yet.')
+            # TODO: Double check vacuum calculation
+            Pd = -Po_gauge
+            tE = 1.3*Di*(Pd*L/M/Di)**0.4
+            tEC = L*(0.18*Di - 2.2)*10**-5 - 0.19
+            tv = tE + tEC
+            return tv
         elif Po_gauge < 5:
             Pd = 10
         elif Po_gauge < 1000:
@@ -507,10 +522,6 @@ class Dist(Unit):
             Pd = 1.1*Po_gauge
         
         # Calculate thinkess according to ASME pressure-vessel code.
-        E_check = E is None
-        if E_check:
-            # Assume carbon steel with thickness more than 1.25 in
-            E = 1.0 
         ts = Pd*Di/(2*S*E-1.2*Pd)
         
         if E_check:
@@ -984,7 +995,6 @@ class Distillation(Dist):
         ### Get diameter of stripping section based on feed plate ###
         
         V_mol = cached['V_Smol']
-        L_mol = cached['L_Smol']
         rho_L = bottoms.rho
         boil_up_flow = cached['boilup_molfrac'] * V_mol
         cached['boil_up'] = boil_up = type(distillate)(flow=boil_up_flow,
@@ -992,7 +1002,7 @@ class Distillation(Dist):
         V = boil_up.massnet
         V_vol = boil_up.quantity('volnet').to('m^3/s').magnitude
         rho_V = boil_up.rho
-        L = sum(bottoms._MW*bottoms.molfrac*L_mol) # To get liquid going down
+        L = bottoms.massnet # To get liquid going down
         F_LV = self._calc_FlowParameter(L, V, rho_V, rho_L)
         C_sbf = self._calc_MaxCapacityParameter(TS, F_LV)
         sigma = bottoms.quantity('sigma').to('dyn/cm').magnitude

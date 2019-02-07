@@ -16,8 +16,8 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Splitter" href="Splitter.html" />
-    <link rel="prev" title="units" href="units.html" /> 
+    <link rel="next" title="MolecularSieve" href="MolecularSieve.html" />
+    <link rel="prev" title="MixTank" href="MixTank.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -29,23 +29,22 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="Splitter.html" title="Splitter"
+          <a href="MolecularSieve.html" title="MolecularSieve"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="units.html" title="units"
+          <a href="MixTank.html" title="MixTank"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="units.html" accesskey="U">units</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
-  <p class="topless"><a href="units.html"
-                        title="previous chapter">units</a></p>
+  <p class="topless"><a href="MixTank.html"
+                        title="previous chapter">MixTank</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="Splitter.html"
-                        title="next chapter">Splitter</a></p>
+  <p class="topless"><a href="MolecularSieve.html"
+                        title="next chapter">MolecularSieve</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -91,6 +90,37 @@
 <p><strong>outs</strong></p>
 <blockquote>
 <div>[0] Mixed stream</div></blockquote>
+<p><strong>Examples</strong></p>
+<blockquote>
+<div><p>Create a Mixer object with an ID and any number of input streams:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">Species</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">Mixer</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">340</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s2&#39;</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s3</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s3&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">M1</span> <span class="o">=</span> <span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M1&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">,</span> <span class="n">s3</span><span class="p">),</span> <span class="n">outs</span><span class="o">=</span><span class="s1">&#39;s4&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">M1</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">M1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="go">Mixer: M1</span>
+<span class="go">ins...</span>
+<span class="go">[0] s1</span>
+<span class="go">    phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
+<span class="go">    flow (kmol/hr): Water  20</span>
+<span class="go">[1] s2</span>
+<span class="go">    phase: &#39;l&#39;, T: 300 K, P: 101325 Pa</span>
+<span class="go">    flow (kmol/hr): Ethanol  10</span>
+<span class="go">[2] s3</span>
+<span class="go">    phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
+<span class="go">    flow (kmol/hr): Water    3</span>
+<span class="go">                    Ethanol  4</span>
+<span class="go">outs...</span>
+<span class="go">[0] s4</span>
+<span class="go">    phase: &#39;l&#39;, T: 317.54 K, P: 101325 Pa</span>
+<span class="go">    flow (kmol/hr): Water    23</span>
+<span class="go">    Ethanol  14</span>
+</pre></div>
+</div>
+</div></blockquote>
 </dd></dl>
 
 </div>
@@ -111,13 +141,12 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="Splitter.html" title="Splitter"
+          <a href="MolecularSieve.html" title="MolecularSieve"
              >next</a> |</li>
         <li class="right" >
-          <a href="units.html" title="units"
+          <a href="MixTank.html" title="MixTank"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="units.html" >units</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

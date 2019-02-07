@@ -62,6 +62,7 @@
 <span class="kn">from</span> <span class="nn">thermo.chemical</span> <span class="k">import</span> <span class="n">Chemical</span> <span class="k">as</span> <span class="n">TChem</span>
 <span class="kn">from</span> <span class="nn">biosteam.specie</span> <span class="k">import</span> <span class="n">Specie</span>
 
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Chemical&#39;</span><span class="p">,</span> <span class="s1">&#39;Solid&#39;</span><span class="p">,</span> <span class="s1">&#39;Liquid&#39;</span><span class="p">,</span> <span class="s1">&#39;Gas&#39;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Chemical"><a class="viewcode-back" href="../../Chemical.html#biosteam.Chemical">[docs]</a><span class="k">class</span> <span class="nc">Chemical</span><span class="p">(</span><span class="n">Specie</span><span class="p">,</span> <span class="n">TChem</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;An extension of the ChEDL thermo Chemical class. The enthalpy property, &#39;H&#39;, does not account for excess ethalpy, it is simply based on latent heats and heat capacities at a constant pressure of 101325. All thermodynamic energies are now calculated properties and not attributes. </span>
@@ -73,6 +74,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">CAS</span> <span class="o">==</span> <span class="s1">&#39;56-81-5&#39;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__UNIFAC_Dortmund_groups</span> <span class="o">=</span> <span class="p">{</span><span class="mi">2</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">14</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">81</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Hfm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Hf</span>
 
     <span class="c1"># These properties are gone</span>
     <span class="n">Hm</span> <span class="o">=</span> <span class="kc">None</span>
@@ -92,6 +94,50 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_eos_T_101325</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eos</span><span class="o">.</span><span class="n">to_TP</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="mi">101325</span><span class="p">)</span>
         <span class="k">except</span><span class="p">:</span>
             <span class="k">pass</span></div>
+
+
+<span class="k">class</span> <span class="nc">Solid</span><span class="p">(</span><span class="n">Chemical</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a :doc:`Chemical` such that its phase remains as solid.&quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">298.15</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">phase</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;s&#39;</span>
+    <span class="nd">@phase</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase</span><span class="p">):</span> <span class="k">pass</span>
+
+
+<span class="k">class</span> <span class="nc">Liquid</span><span class="p">(</span><span class="n">Chemical</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a :doc:`Chemical` such that its phase remains as liquid.&quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">298.15</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">phase</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;l&#39;</span>
+    <span class="nd">@phase</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase</span><span class="p">):</span> <span class="k">pass</span>
+
+
+<span class="k">class</span> <span class="nc">Gas</span><span class="p">(</span><span class="n">Chemical</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a :doc:`Chemical` such that its phase remains as gas.&quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">298.15</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">phase</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;g&#39;</span>
+    <span class="nd">@phase</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase</span><span class="p">):</span> <span class="k">pass</span>
+
+
+
+
+
 </pre></div>
 
           </div>

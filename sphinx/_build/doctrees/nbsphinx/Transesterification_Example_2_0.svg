@@ -1,0 +1,53 @@
+<svg height="190pt" viewBox="0.00 0.00 371.00 189.50" width="371pt" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g class="graph" id="graph0" transform="scale(1 1) rotate(0) translate(4 185.5)">
+<title>unit</title>
+<polygon fill="white" points="-4,4 -4,-185.5 367,-185.5 367,4 -4,4" stroke="none"/>
+<!-- R1
+Transesterification&#45;&gt;product -->
+<g class="edge" id="edge3"><title>R1
+Transesterification:c-&gt;product:w</title>
+<path d="M243.669,-90.65C262.172,-90.65 282.69,-90.65 301.5,-90.65" fill="none" stroke="black"/>
+</g>
+<!-- lipid&#45;&gt;R1
+Transesterification -->
+<g class="edge" id="edge1"><title>lipid:e-&gt;R1
+Transesterification:c</title>
+<path d="M56,-157.65C95.6367,-157.65 135.028,-131.804 159.189,-112.218" fill="none" stroke="black"/>
+</g>
+<!-- methanol&#45;&gt;R1
+Transesterification -->
+<g class="edge" id="edge2"><title>methanol:e-&gt;R1
+Transesterification:c</title>
+<path d="M66.5,-23.65C103.598,-23.65 139.554,-49.4957 161.476,-69.082" fill="none" stroke="black"/>
+</g>
+<!-- R1
+Transesterification -->
+<g class="node" id="node1"><title>R1
+Transesterification</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_0" x1="124.5" x2="243.5" y1="-90.65" y2="-90.65">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_0)" points="243.5,-112.15 124.5,-112.15 124.5,-69.15 243.5,-69.15 243.5,-112.15" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="184" y="-94.45">R1</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="184" y="-79.45">Transesterification</text>
+</g>
+<!-- lipid -->
+<g class="node" id="node2"><title>lipid</title>
+<polygon fill="#79dae8" points="36.5,-173.15 11.5,-173.15 11.5,-142.15 36.5,-142.15 36.5,-136.15 54.5,-157.65 36.5,-179.15 36.5,-173.15" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="33" y="-153.95">lipid</text>
+</g>
+<!-- methanol -->
+<g class="node" id="node3"><title>methanol</title>
+<polygon fill="#79dae8" points="48.5,-39.15 -0.5,-39.15 -0.5,-8.15 48.5,-8.15 48.5,-2.15 66.5,-23.65 48.5,-45.15 48.5,-39.15" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="33" y="-19.95">methanol</text>
+</g>
+<!-- product -->
+<g class="node" id="node4"><title>product</title>
+<polygon fill="#79dae8" points="344.5,-106.15 301.5,-106.15 301.5,-75.15 344.5,-75.15 344.5,-69.15 362.5,-90.65 344.5,-112.15 344.5,-106.15" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="332" y="-86.95">product</text>
+</g>
+</g>
+</svg>

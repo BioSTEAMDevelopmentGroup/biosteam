@@ -96,6 +96,35 @@
 <p><strong>Class Parameters</strong></p>
 <blockquote>
 <div><strong>price:</strong> ($/kW-hr)</div></blockquote>
+<p><strong>Examples</strong></p>
+<blockquote>
+<div><p>Create a PowerUtility object:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">PowerUtility</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pu</span> <span class="o">=</span> <span class="n">PowerUtility</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pu</span>
+<span class="go">&lt;PowerUtility: None&gt;</span>
+</pre></div>
+</div>
+<p>Call object to calculate cost:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pu</span><span class="p">(</span><span class="n">power</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+<span class="go">{&#39;Power&#39;: 500 (kW),</span>
+<span class="go"> &#39;Cost&#39;: 30 (USD/hr)}</span>
+</pre></div>
+</div>
+<p>PowerUtility objects retain results:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pu</span>
+<span class="go">&lt;PowerUtility: 500 kW, 30 USD/hr&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pu</span><span class="o">.</span><span class="n">results</span>
+<span class="go">{&#39;Power&#39;: 500 (kW),</span>
+<span class="go"> &#39;Cost&#39;: 30 (USD/hr)}</span>
+</pre></div>
+</div>
+<p>See the object with different units:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pu</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">Power</span><span class="o">=</span><span class="s1">&#39;BTU/s&#39;</span><span class="p">,</span> <span class="n">Cost</span><span class="o">=</span><span class="s1">&#39;USD/yr&#39;</span><span class="p">)</span>
+<span class="go">PowerUtility: Power=474 BTU/s, Cost=2.63e+05 USD/yr</span>
+</pre></div>
+</div>
+</div></blockquote>
 </dd></dl>
 
 </div>

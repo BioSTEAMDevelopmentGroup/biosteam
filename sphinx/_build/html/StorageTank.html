@@ -15,7 +15,9 @@
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Centrifuge_LLE" href="Centrifuge_LLE Example.html" />
+    <link rel="prev" title="Transesterification" href="Splitter.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -26,11 +28,23 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
+        <li class="right" >
+          <a href="Centrifuge_LLE Example.html" title="Centrifuge_LLE"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="Splitter.html" title="Transesterification"
+             accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="Splitter.html"
+                        title="previous chapter">Transesterification</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="Centrifuge_LLE Example.html"
+                        title="next chapter">Centrifuge_LLE</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -68,17 +82,65 @@
 <div><div class="math notranslate nohighlight">
 \[\begin{split}V &amp;= \tau Q \\
 C_{fob}^{2007} &amp;= 250000 + 94.2 V (2*10^3 &lt; V &lt; 50*10^3 m^3) \\\end{split}\]</div>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><p><strong>ID:</strong> [str] Unique identification. If set as ‘’, a default ID will be chosen.</p>
-<p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
-<p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
-</div></blockquote>
 <p><strong>References</strong></p>
 <blockquote>
 <div>[1] I.K. Kookos, Preliminary Chemical Process Synthesis and Design, Tziolas Publishing,</div></blockquote>
 </div></blockquote>
 <p>Thessalonika, Greece, 2008 (book in Greek).</p>
+<dl class="attribute">
+<dt id="biosteam.StorageTank.Hnet">
+<code class="descname">Hnet</code><a class="headerlink" href="#biosteam.StorageTank.Hnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net enthalpy flow (including enthalpies of formation).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.StorageTank.ID">
+<code class="descname">ID</code><a class="headerlink" href="#biosteam.StorageTank.ID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unique Identification (str). If set as ‘’, it will choose a default ID.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.StorageTank.diagram">
+<code class="descname">diagram</code><a class="headerlink" href="#biosteam.StorageTank.diagram" title="Permalink to this definition">¶</a></dt>
+<dd><p><a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz diagram</a> of unit</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.StorageTank.heat_utilities">
+<code class="descname">heat_utilities</code><a class="headerlink" href="#biosteam.StorageTank.heat_utilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>list of HeatUtility objects</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.StorageTank.power_utility">
+<code class="descname">power_utility</code><a class="headerlink" href="#biosteam.StorageTank.power_utility" title="Permalink to this definition">¶</a></dt>
+<dd><p>A PowerUtility object, if required.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.StorageTank.results">
+<code class="descname">results</code><a class="headerlink" href="#biosteam.StorageTank.results" title="Permalink to this definition">¶</a></dt>
+<dd><p>[dict] Key results from running Unit methods.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.StorageTank.show">
+<code class="descname">show</code><span class="sig-paren">(</span><em>**show_units</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.StorageTank.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints information on unit.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.StorageTank.simulate">
+<code class="descname">simulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.StorageTank.simulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run rigourous simulation and determine all design requirements.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.StorageTank.tau">
+<code class="descname">tau</code><a class="headerlink" href="#biosteam.StorageTank.tau" title="Permalink to this definition">¶</a></dt>
+<dd><p>Residence time (hr).</p>
+</dd></dl>
+
 </dd></dl>
 
 </div>
@@ -98,6 +160,12 @@ C_{fob}^{2007} &amp;= 250000 + 94.2 V (2*10^3 &lt; V &lt; 50*10^3 m^3) \\\end{sp
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
+        <li class="right" >
+          <a href="Centrifuge_LLE Example.html" title="Centrifuge_LLE"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="Splitter.html" title="Transesterification"
+             >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
       </ul>
     </div>

@@ -75,6 +75,38 @@
 <span class="sd">    </span>
 <span class="sd">        [0] Mixed stream</span>
 <span class="sd">    </span>
+<span class="sd">    **Examples**</span>
+<span class="sd">    </span>
+<span class="sd">        Create a Mixer object with an ID and any number of input streams:</span>
+<span class="sd">            </span>
+<span class="sd">        .. code-block:: python</span>
+<span class="sd">        </span>
+<span class="sd">           &gt;&gt;&gt; from biosteam import Species, Stream, Mixer</span>
+<span class="sd">           &gt;&gt;&gt; Stream.species = Species(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
+<span class="sd">           &gt;&gt;&gt; s1 = Stream(&#39;s1&#39;, Water=20, T=340)</span>
+<span class="sd">           &gt;&gt;&gt; s2 = Stream(&#39;s2&#39;, Ethanol=10, T=300)</span>
+<span class="sd">           &gt;&gt;&gt; s3 = Stream(&#39;s3&#39;, Water=3, Ethanol=4)</span>
+<span class="sd">           &gt;&gt;&gt; M1 = Mixer(&#39;M1&#39;, ins=(s1, s2, s3), outs=&#39;s4&#39;)</span>
+<span class="sd">           &gt;&gt;&gt; M1.simulate()</span>
+<span class="sd">           &gt;&gt;&gt; M1.show()</span>
+<span class="sd">           Mixer: M1</span>
+<span class="sd">           ins...</span>
+<span class="sd">           [0] s1</span>
+<span class="sd">               phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
+<span class="sd">               flow (kmol/hr): Water  20</span>
+<span class="sd">           [1] s2</span>
+<span class="sd">               phase: &#39;l&#39;, T: 300 K, P: 101325 Pa</span>
+<span class="sd">               flow (kmol/hr): Ethanol  10</span>
+<span class="sd">           [2] s3</span>
+<span class="sd">               phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
+<span class="sd">               flow (kmol/hr): Water    3</span>
+<span class="sd">                               Ethanol  4</span>
+<span class="sd">           outs...</span>
+<span class="sd">           [0] s4</span>
+<span class="sd">               phase: &#39;l&#39;, T: 317.54 K, P: 101325 Pa</span>
+<span class="sd">               flow (kmol/hr): Water    23</span>
+<span class="sd">               Ethanol  14</span>
+<span class="sd">           </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">1</span>

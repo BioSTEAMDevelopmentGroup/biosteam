@@ -30,6 +30,10 @@ class MassBalance(Unit, metaclass=metaFinal):
 
         This is an end-of-the-line/final class that cannot be inherited.
 
+    **Examples**
+    
+        :doc:`MassBalance Example`
+    
     """
     _N_outs = 0
     kwargs = {'species': None,
@@ -146,7 +150,7 @@ class MassBalance(Unit, metaclass=metaFinal):
 
     @ins.setter
     def ins(self, streams):
-        self._ins = list(streams)
+        self._ins.__init__(self, streams)
 
     @property
     def outs(self):
@@ -155,7 +159,7 @@ class MassBalance(Unit, metaclass=metaFinal):
 
     @outs.setter
     def outs(self, streams):
-        self._outs = list(streams)
+        self._outs.__init__(self, streams)
 
 
 # %% Energy Balance Unit

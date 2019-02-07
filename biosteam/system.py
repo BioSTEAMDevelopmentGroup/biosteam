@@ -14,6 +14,7 @@ from biosteam.stream import Stream, mol_units, T_units
 from biosteam.unit import Unit
 from biosteam import np
 from biosteam.utils import organized_list, get_streams, color_scheme
+from bookkeep import SmartBook
 CS = color_scheme
 
 # Get the function type
@@ -112,9 +113,12 @@ class System:
     ### Class attributes ###
     
     #: [dict] Dictionary of convergence options regarding maximum number of iterations and molar flow rate and temperature tolerances
-    options = {'maximum number of iterations': 100, 
-               'molar tolerance (kmol/hr)': 0.55, 
-               'temperature tolerance (K)': 0.55} 
+    options = SmartBook(units={'Maximum iteration': '#',
+                               'Molar tolerance': 'kmol/hr',
+                               'Temperature tolerance': 'K'},                  
+                        **{'Maximum iteration': 100, 
+                           'Molar tolerance': 0.55, 
+                           'Temperature tolerance': 0.55})
     
     # [float] Error of the spec objective function
     _spec_error = None
@@ -129,7 +133,7 @@ class System:
         self._units = []
 
         #: list[Stream] All streams in the network
-        self._streams = ()
+        self._streams = []
 
         self.ID = ID
         self.network = network

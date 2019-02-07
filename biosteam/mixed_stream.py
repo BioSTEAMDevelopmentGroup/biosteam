@@ -130,7 +130,7 @@ class MixedStream(Stream):
 
          **vapor_flow:** [array_like] vapor flow rates by specie
 
-         **species:** tuple[str] Specie IDs corresponding to the flowrates
+         **species:** tuple[str] or [Species] Species corresponding to `flow` parameters. If empty, assume same species as class.
 
          **units:** [str] The units of the flow rates (only mass, molar, and volumetric flow rates are valid)
 
@@ -158,21 +158,13 @@ class MixedStream(Stream):
         # Get species ID and set species information
         if isinstance(species, Species):
             # Set species as provided
-            self.species = species
+            self._set_species(species)
             specie_IDs = ()
         elif hasattr(species, '__iter__'):
             specie_IDs = species
+            species = self._species
             # Copy class species data (in case it changes)
-            self._species = species = self._species
-            self._specie_IDs = self._specie_IDs
-            self._CAS = self._CAS
-            self._Nspecies = self._Nspecies
-            self._index = self._index
-            self._ID_index = self._ID_index
-            self._index_ID = self._index_ID
-            self._CAS_index = self._CAS_index 
-            self._index_CAS = self._index_CAS
-            self._MW = self._MW
+            self._copy_species(self)
         else:
             raise TypeError(f'species must be a Species object, not {type(species).__name__}')
         
@@ -606,7 +598,8 @@ class MixedStream(Stream):
         mol = mol[pos]
         molfrac = mol/molnet
         return exp(sum(molfrac*ln(mus[pos]*Vms[pos])))/Vm 
-
+    mu.__doc__ = Stream.mu.__doc__
+    
     ### Material Properties ###
 
     # General for a given phase
@@ -712,9 +705,9 @@ class MixedStream(Stream):
         ### Decide what kind of equilibrium to run ###
         
         Nspecs = 0
-        for i in (P, T, x, y, V):
+        for i in (P, T, x, y, V, Qin):
             Nspecs += (i is not None)
-        
+            
         raise_error = False
         if Nspecs == 0:
             Qin = 0
@@ -747,7 +740,7 @@ class MixedStream(Stream):
             self.P = P
         else:
             P = self.P
-        
+            
         ### Set Up Arguments ###
         
         # Reused attributes
@@ -834,7 +827,7 @@ class MixedStream(Stream):
                 
             else:
                 ValueError("Invalid specification. Pure component equilibrium requires one and only one of the following specifications: T, V, or Qin.")
-             
+                
         ### Begin multi-component equilibrium ###
         
         # Get overall composition

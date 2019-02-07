@@ -147,6 +147,10 @@
 <span class="s2">    </span>
 <span class="s2">        [2] M. Duss, R. Taylor. Predict Distillation Tray Efficiency. AICHE (2018)</span>
 <span class="s2">    </span>
+<span class="s2">    **Examples**</span>
+<span class="s2">    </span>
+<span class="s2">        :doc:`{Column Type} Example`</span>
+<span class="s2">    </span>
 <span class="s2">    &quot;&quot;&quot;</span>
 
 <span class="k">class</span> <span class="nc">Dist</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
@@ -535,7 +539,7 @@
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="n">Di</span><span class="o">+</span><span class="n">tv</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">L</span><span class="o">+</span><span class="mf">0.8</span><span class="o">*</span><span class="n">Di</span><span class="p">)</span><span class="o">*</span><span class="n">tv</span><span class="o">*</span><span class="n">rho_M</span>
     
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_calc_WallThickness</span><span class="p">(</span><span class="n">Po</span><span class="p">:</span><span class="s1">&#39;psi&#39;</span><span class="p">,</span> <span class="n">Di</span><span class="p">:</span><span class="s1">&#39;ft&#39;</span><span class="p">,</span> <span class="n">L</span><span class="p">:</span><span class="s1">&#39;ft&#39;</span><span class="p">,</span> <span class="n">S</span><span class="p">:</span><span class="s1">&#39;psi&#39;</span><span class="o">=</span><span class="mi">15000</span><span class="p">,</span> <span class="n">E</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;tv (in)&#39;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_calc_WallThickness</span><span class="p">(</span><span class="n">Po</span><span class="p">:</span><span class="s1">&#39;psi&#39;</span><span class="p">,</span> <span class="n">Di</span><span class="p">:</span><span class="s1">&#39;ft&#39;</span><span class="p">,</span> <span class="n">L</span><span class="p">:</span><span class="s1">&#39;ft&#39;</span><span class="p">,</span> <span class="n">S</span><span class="p">:</span><span class="s1">&#39;psi&#39;</span><span class="o">=</span><span class="mi">15000</span><span class="p">,</span> <span class="n">E</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">M</span><span class="p">:</span><span class="s1">&#39;elasticity (psi)&#39;</span><span class="o">=</span><span class="mf">29.5</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;tv (in)&#39;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return the wall thinkness designed to withstand the internal pressure and the wind/earthquake load at the bottom.</span>
 <span class="sd">        </span>
 <span class="sd">        **Parameters**</span>
@@ -547,13 +551,24 @@
 <span class="sd">            E: Fractional weld efficiency</span>
 <span class="sd">            </span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO: Incorporate temperature for choosing S and M</span>
         <span class="n">Di</span> <span class="o">=</span> <span class="n">Di</span><span class="o">*</span><span class="mi">12</span> <span class="c1"># ft to in</span>
         <span class="n">L</span> <span class="o">=</span> <span class="n">L</span><span class="o">*</span><span class="mi">12</span>
+        
+        <span class="n">E_check</span> <span class="o">=</span> <span class="n">E</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">E_check</span><span class="p">:</span>
+            <span class="c1"># Assume carbon steel with thickness more than 1.25 in</span>
+            <span class="n">E</span> <span class="o">=</span> <span class="mf">1.0</span> 
         
         <span class="c1"># Get design pressure, which should be higher than operating pressure.</span>
         <span class="n">Po_gauge</span> <span class="o">=</span> <span class="n">Po</span> <span class="o">-</span> <span class="mf">14.69</span>
         <span class="k">if</span> <span class="n">Po_gauge</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">DesignError</span><span class="p">(</span><span class="s1">&#39;Vacuum vessels are not implemented yet.&#39;</span><span class="p">)</span>
+            <span class="c1"># TODO: Double check vacuum calculation</span>
+            <span class="n">Pd</span> <span class="o">=</span> <span class="o">-</span><span class="n">Po_gauge</span>
+            <span class="n">tE</span> <span class="o">=</span> <span class="mf">1.3</span><span class="o">*</span><span class="n">Di</span><span class="o">*</span><span class="p">(</span><span class="n">Pd</span><span class="o">*</span><span class="n">L</span><span class="o">/</span><span class="n">M</span><span class="o">/</span><span class="n">Di</span><span class="p">)</span><span class="o">**</span><span class="mf">0.4</span>
+            <span class="n">tEC</span> <span class="o">=</span> <span class="n">L</span><span class="o">*</span><span class="p">(</span><span class="mf">0.18</span><span class="o">*</span><span class="n">Di</span> <span class="o">-</span> <span class="mf">2.2</span><span class="p">)</span><span class="o">*</span><span class="mi">10</span><span class="o">**-</span><span class="mi">5</span> <span class="o">-</span> <span class="mf">0.19</span>
+            <span class="n">tv</span> <span class="o">=</span> <span class="n">tE</span> <span class="o">+</span> <span class="n">tEC</span>
+            <span class="k">return</span> <span class="n">tv</span>
         <span class="k">elif</span> <span class="n">Po_gauge</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">:</span>
             <span class="n">Pd</span> <span class="o">=</span> <span class="mi">10</span>
         <span class="k">elif</span> <span class="n">Po_gauge</span> <span class="o">&lt;</span> <span class="mi">1000</span><span class="p">:</span>
@@ -562,10 +577,6 @@
             <span class="n">Pd</span> <span class="o">=</span> <span class="mf">1.1</span><span class="o">*</span><span class="n">Po_gauge</span>
         
         <span class="c1"># Calculate thinkess according to ASME pressure-vessel code.</span>
-        <span class="n">E_check</span> <span class="o">=</span> <span class="n">E</span> <span class="ow">is</span> <span class="kc">None</span>
-        <span class="k">if</span> <span class="n">E_check</span><span class="p">:</span>
-            <span class="c1"># Assume carbon steel with thickness more than 1.25 in</span>
-            <span class="n">E</span> <span class="o">=</span> <span class="mf">1.0</span> 
         <span class="n">ts</span> <span class="o">=</span> <span class="n">Pd</span><span class="o">*</span><span class="n">Di</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">S</span><span class="o">*</span><span class="n">E</span><span class="o">-</span><span class="mf">1.2</span><span class="o">*</span><span class="n">Pd</span><span class="p">)</span>
         
         <span class="k">if</span> <span class="n">E_check</span><span class="p">:</span>
@@ -1039,7 +1050,6 @@
         <span class="c1">### Get diameter of stripping section based on feed plate ###</span>
         
         <span class="n">V_mol</span> <span class="o">=</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;V_Smol&#39;</span><span class="p">]</span>
-        <span class="n">L_mol</span> <span class="o">=</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;L_Smol&#39;</span><span class="p">]</span>
         <span class="n">rho_L</span> <span class="o">=</span> <span class="n">bottoms</span><span class="o">.</span><span class="n">rho</span>
         <span class="n">boil_up_flow</span> <span class="o">=</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;boilup_molfrac&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">V_mol</span>
         <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;boil_up&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">boil_up</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">distillate</span><span class="p">)(</span><span class="n">flow</span><span class="o">=</span><span class="n">boil_up_flow</span><span class="p">,</span>
@@ -1047,7 +1057,7 @@
         <span class="n">V</span> <span class="o">=</span> <span class="n">boil_up</span><span class="o">.</span><span class="n">massnet</span>
         <span class="n">V_vol</span> <span class="o">=</span> <span class="n">boil_up</span><span class="o">.</span><span class="n">quantity</span><span class="p">(</span><span class="s1">&#39;volnet&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;m^3/s&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
         <span class="n">rho_V</span> <span class="o">=</span> <span class="n">boil_up</span><span class="o">.</span><span class="n">rho</span>
-        <span class="n">L</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">bottoms</span><span class="o">.</span><span class="n">_MW</span><span class="o">*</span><span class="n">bottoms</span><span class="o">.</span><span class="n">molfrac</span><span class="o">*</span><span class="n">L_mol</span><span class="p">)</span> <span class="c1"># To get liquid going down</span>
+        <span class="n">L</span> <span class="o">=</span> <span class="n">bottoms</span><span class="o">.</span><span class="n">massnet</span> <span class="c1"># To get liquid going down</span>
         <span class="n">F_LV</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_FlowParameter</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">rho_V</span><span class="p">,</span> <span class="n">rho_L</span><span class="p">)</span>
         <span class="n">C_sbf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_MaxCapacityParameter</span><span class="p">(</span><span class="n">TS</span><span class="p">,</span> <span class="n">F_LV</span><span class="p">)</span>
         <span class="n">sigma</span> <span class="o">=</span> <span class="n">bottoms</span><span class="o">.</span><span class="n">quantity</span><span class="p">(</span><span class="s1">&#39;sigma&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;dyn/cm&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>

@@ -32,23 +32,27 @@ default_line = 'Unit'
 class metaUnit(type):
     """Unit metaclass for wrapping up methods with error notifiers, adding key word arguments, and keeping track for Unit lines and inheritance. Also adds the instances attribute to keep track of instances of the class.
 
-    **Class definitions**
+    **Optional class definitions**
 
-        kwargs = {}: [dict] Default keyword arguments
+        **kwargs** = {}: [dict] Default keyword arguments
 
-        setup(): Create components and cached data during initialization
+        **_init():**
+            Initialize components.
+        
+        **_setup()**
+            Create cached data from kwargs. 
 
-        run(): Run rigorous simulation
+        **_run()**
+            Run rigorous simulation.
 
-        operation(): Find operation requirements
+        **_operation()**
+            Update results "Operation" dictionary with operation requirements.
 
-        design(): Find design requirements
+        **_design()**
+            Update results "Design" dictionary with design requirements.
 
-        cost(): Find capital and annual cost
-
-        .. Note::
-
-           All definitions are optional
+        **_cost()**
+            Update results "Cost" dictionary with itemized cost.
 
     **Class Attributes**
     
@@ -59,6 +63,7 @@ class metaUnit(type):
         instances = {}: Dictionary of weak references to instances of this class
 
         line = [Defaults as the class name of the first child class]: [str] Name denoting the type of Unit class
+
 
     """
     _CEPCI = 567.5 # Chemical engineering plant cost index (567.5 at 2017)
@@ -182,7 +187,7 @@ class Unit(metaclass=metaUnit):
 
     **Abstract Attributes**
 
-        **kwargs** = {}: Default keyword arguments.
+        **kwargs** = {}: Default keyword arguments. These magically appear in the __init__ signature.
 
         **_init():**
             Initialize components.
@@ -221,10 +226,6 @@ class Unit(metaclass=metaUnit):
         **_N_heat_util** = 0: [int] Number of heat utilities  
 
         **_power_util** = False: [bool] If True, a PowerUtility object is created for every instance.
-        
-        .. Note:
-
-           The Unit class is an instance of metaUnit, which takes class definitions (defined in abstract attributes) to set key word arguments, decorate methods, and register new classes.
 
     **ins**
         
@@ -233,6 +234,14 @@ class Unit(metaclass=metaUnit):
     **outs**
     
         list of output streams
+    
+    **Examples**
+    
+        :doc:`Creating a Unit`
+        
+        :doc:`Pipe notation`
+        
+        :doc:`Subclassing a Unit`
     
     """ 
     ### Abstract Attributes ###
@@ -462,6 +471,10 @@ class Unit(metaclass=metaUnit):
 
     @ID.setter
     def ID(self, ID):
+        if '*' in ID:
+            self._ID = ID
+            return
+        
         # Remove old reference to this object
         if self._ID != '' and ID != '':
             del find.unit[self._ID]
@@ -539,7 +552,7 @@ class Unit(metaclass=metaUnit):
         if (len(self.ins) >= 3) or (len(self.outs) >= 3):
             f.attr('graph', nodesep='0.4')
 
-        # Names for unit nodes
+        # Name for unit node
         type_ = type(self).__name__.replace('_', '\n').replace(' ', '\n')
         name = self.ID + '\n' + type_
 
@@ -556,24 +569,23 @@ class Unit(metaclass=metaUnit):
         # Make nodes and edges for input streams
         di = 0  # Destination position of stream
         for stream in self.ins:
-            # If stream is not important (no ID), ignore the stream
             if stream.ID == '' or stream.ID == 'Missing Stream':
-                continue
-            f.node(stream.ID)  # Make node
-            edge_in = self._Graphics.edge_in  # Get edge attributes
+                continue  # Ignore stream
+            f.node(stream.ID)  
+            edge_in = self._Graphics.edge_in
             f.attr('edge', arrowtail='none', arrowhead='none',
-                   tailport='e', **edge_in[di])  # Set edge attibutes
-            f.edge(stream.ID, name)  # Make edge
+                   tailport='e', **edge_in[di])
+            f.edge(stream.ID, name)
             di += 1
 
         # Make nodes and edges for output streams
         oi = 0  # Origin position of stream
         for stream in self.outs:
-            f.node(stream.ID)  # Make node
-            edge_out = self._Graphics.edge_out  # Get edge attributes
+            f.node(stream.ID) 
+            edge_out = self._Graphics.edge_out  
             f.attr('edge', arrowtail='none', arrowhead='none',
-                   headport='w', **edge_out[oi])  # Set edge attibutes
-            f.edge(name, stream.ID)  # Make edge
+                   headport='w', **edge_out[oi])
+            f.edge(name, stream.ID)
             oi += 1
 
         # Display digraph on console

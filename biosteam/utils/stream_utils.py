@@ -84,7 +84,7 @@ class Ins(list):
             stream._sink = (ID, index)
         elif isinstance(index, slice):
             self._clear_sink(ID)
-            self._set_sink(ID)
+            self._fix_sink(ID)
         else:
             raise TypeError(f'Only intergers and slices are valid indeces for {type(self).__name__} objects')
         super().__setitem__(index, stream)

@@ -28,6 +28,61 @@ class Splitter(Unit, metaclass=metaFinal):
         
         [1] Remainder stream
     
+    **Examples**
+    
+        Create a Splitter object with an ID, any number of input streams, two output streams, and an overall split:
+            
+        .. code-block:: python
+        
+           >>> from biosteam import Species, Stream, Splitter
+           >>> Stream.species = Species('Water', 'Ethanol')
+           >>> feed = Stream('feed', Water=20, Ethanol=10, T=340)
+           >>> S1 = Splitter('S1', ins=feed, outs=('out1', 'out2'), split=0.1)
+           >>> S1.simulate()
+           >>> S1.show()
+           Splitter: S1
+           ins...
+           [0] feed
+               phase: 'l', T: 340 K, P: 101325 Pa
+               flow (kmol/hr): Water    20
+                               Ethanol  10
+           outs...
+           [0] out1
+               phase: 'l', T: 340 K, P: 101325 Pa
+               flow (kmol/hr): Water    2
+                               Ethanol  1
+           [1] out2
+               phase: 'l', T: 340 K, P: 101325 Pa
+               flow (kmol/hr): Water    18
+                               Ethanol  9
+          
+        Create a Splitter object, but this time with a component wise split:
+            
+        .. code-block:: python
+        
+           >>> from biosteam import Species, Stream, Splitter
+           >>> Stream.species = Species('Water', 'Ethanol')
+           >>> feed = Stream('feed', Water=20, Ethanol=10, T=340)
+           >>> S1 = Splitter('S1', ins=feed, outs=('out1', 'out2'),
+           ...               split=(0.1, 0.99))
+           >>> S1.simulate()
+           >>> S1.show()
+           Splitter: S1
+           ins...
+           [0] feed
+               phase: 'l', T: 340 K, P: 101325 Pa
+               flow (kmol/hr): Water    20
+                               Ethanol  10
+           outs...
+           [0] out1
+               phase: 'l', T: 340 K, P: 101325 Pa
+               flow (kmol/hr): Water    2
+                               Ethanol  9.9
+           [1] out2
+               phase: 'l', T: 340 K, P: 101325 Pa
+               flow (kmol/hr): Water    18
+                               Ethanol  0.1
+    
     """
     kwargs = {'split': None}
     _N_outs = 2

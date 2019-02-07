@@ -65,7 +65,7 @@
 <span class="kn">from</span> <span class="nn">biosteam.units.mixer</span> <span class="k">import</span> <span class="n">Mixer</span>
 <span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">np</span>
 
-<div class="viewcode-block" id="Tank"><a class="viewcode-back" href="../../../Tank.html#biosteam.Tank">[docs]</a><span class="k">class</span> <span class="nc">Tank</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">Tank</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Abstract Tank class.&quot;&quot;&quot;</span>
     <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">1</span>
@@ -81,7 +81,7 @@
     <span class="k">def</span> <span class="nf">tau</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tau</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_tau</span> <span class="o">=</span> <span class="n">tau</span>
 
-    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>        <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
+    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>        <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 
 
 <div class="viewcode-block" id="StorageTank"><a class="viewcode-back" href="../../../StorageTank.html#biosteam.StorageTank">[docs]</a><span class="k">class</span> <span class="nc">StorageTank</span><span class="p">(</span><span class="n">Tank</span><span class="p">):</span>
@@ -91,8 +91,6 @@
 
 <span class="sd">        V &amp;= \\tau Q \\\\</span>
 <span class="sd">        C_{fob}^{2007} &amp;= 250000 + 94.2 V (2*10^3 &lt; V &lt; 50*10^3 m^3) \\\\</span>
-
-<span class="sd">    **Parameters**</span>
 
 <span class="sd">    **References**</span>
 
@@ -144,13 +142,9 @@
 
 <span class="sd">    .. math::</span>
 
-<span class="sd">       V = \\frac{\\tau* Q}{0.8}</span>
+<span class="sd">       V &amp;= \\frac{\\tau* Q}{0.8}</span>
 
-<span class="sd">       C_{fob}^{2007} = 12080 * V^{0.525} (0.1 &lt; V &lt; 30 m^3)</span>
-
-<span class="sd">    **Parameters**</span>
-
-<span class="sd">         tau: [float] residence time (hr)</span>
+<span class="sd">       C_{fob}^{2007} &amp;= 12080 * V^{0.525} (0.1 &lt; V &lt; 30 m^3)</span>
 
 <span class="sd">    References</span>
 

@@ -25,7 +25,7 @@ class getDict(dict):
 
 
 class WeakRefBook(dict):
-    """Create a WeakRefBook object that stores only weak references. When item getter is used, it returns the call of the weak reference. If the key does not exist, it returns None. When check_ID is True, an IDconflict error will be raised when setting with a key/ID already occupied by an object. To bypass this check, include '*' to the key/ID.
+    """Create a WeakRefBook object that stores only weak references. When item getter is used, it returns the call of the weak reference. If the key does not exist, it returns None. When check_ID is True, an IDconflict error will be raised when setting with a key/ID already occupied by an object.
 
     **Parameters**
 
@@ -43,9 +43,7 @@ class WeakRefBook(dict):
             self[key] = item
 
     def __setitem__(self, ID, obj):
-        if '*' in ID:
-            pass
-        elif self.check_ID and self[ID]:
+        if self.check_ID and self[ID]:
             raise IDconflict(f"A '{type(obj).__name__}' object with key/ID, '{ID}', already exists. Add a '*' to ID to ignore possible conflicts.")
         if type(obj) is not ref:
             obj = ref(obj)

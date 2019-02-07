@@ -16,8 +16,8 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Centrifuge_LLE" href="Centrifuge_LLE.html" />
-    <link rel="prev" title="Flash" href="Flash.html" /> 
+    <link rel="next" title="Flash" href="Flash.html" />
+    <link rel="prev" title="Distillation" href="Distillation.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -29,23 +29,22 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="Centrifuge_LLE.html" title="Centrifuge_LLE"
+          <a href="Flash.html" title="Flash"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="Flash.html" title="Flash"
+          <a href="Distillation.html" title="Distillation"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="units.html" accesskey="U">units</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
-  <p class="topless"><a href="Flash.html"
-                        title="previous chapter">Flash</a></p>
+  <p class="topless"><a href="Distillation.html"
+                        title="previous chapter">Distillation</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="Centrifuge_LLE.html"
-                        title="next chapter">Centrifuge_LLE</a></p>
+  <p class="topless"><a href="Flash.html"
+                        title="next chapter">Flash</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -78,7 +77,8 @@
 <dl class="class">
 <dt id="biosteam.Fermentation">
 <em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Fermentation</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>tau=None</em>, <em>efficiency=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/fermentation.html#Fermentation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Fermentation" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>An extension of the</em> <a class="reference internal" href="Unit.html"><span class="doc">Unit class</span></a>. Create a Fermentation object which models batch fermentation for the production of 1st generation ethanol using yeast [1, 2]. Number of batches are selected based a loading time per volume ratio, <em>f</em>, assuming no influent surge time. Similation is based on reaction time, <em>tau</em>. Cleaning and unloading time, <em>tau_0</em>, and fraction of working volume, <em>V_wf</em>, are muttable properties. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3].</p>
+<dd><p><em>An extension of the</em> <a class="reference internal" href="Unit.html"><span class="doc">Unit class</span></a>. 
+Create a Fermentation object which models batch fermentation for the production of 1st generation ethanol using yeast [1, 2]. Only sucrose and glucose are taken into account. Conversion is based on reaction time, <em>tau</em>. Number of batches are selected based a loading time per volume ratio, <em>f</em>, assuming no influent surge time. Cleaning and unloading time, <em>tau_0</em>, and fraction of working volume, <em>V_wf</em>, are muttable properties. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3].</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>ID:</strong> [str] Unique identification. If set as ‘’, a default ID will be chosen.</p>
@@ -101,6 +101,13 @@
 <p>[2] S.C. Oliveira, H.F. De Castro, A.E.S. Visconti, R. Giudici. Continuous ethanol fermentation in a tower reactor with flocculating yeast recycle: scale-up effects on process performance, kinetic parameters and model predictions. Bioprocess Engineering 20 (1999) 525-530</p>
 <p>[3] D. Humbird, R. Davis, L. Tao, C. Kinchin, D. Hsu, and A. Aden National. Renewable Energy Laboratory Golden, Colorado. P. Schoen, J. Lukas, B. Olthof, M. Worley, D. Sexton, and D. Dudgeon. Harris Group Inc. Seattle, Washington and Atlanta, Georgia. Process Design and Economics for Biochemical Conversion of Lignocellulosic Biomass to Ethanol Dilute-Acid Pretreatment and Enzymatic Hydrolysis of Corn Stover. May 2011. Technical Report NREL/TP-5100-47764</p>
 </div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">A specie with CAS ‘Yeast’ must be present in species.</p>
+</div>
+<p><strong>Examples</strong></p>
+<blockquote>
+<div><a class="reference internal" href="Fermentation Example.html"><span class="doc">Fermentation</span></a></div></blockquote>
 <dl class="attribute">
 <dt id="biosteam.Fermentation.tau_0">
 <code class="descname">tau_0</code><em class="property"> = 12</em><a class="headerlink" href="#biosteam.Fermentation.tau_0" title="Permalink to this definition">¶</a></dt>
@@ -215,13 +222,12 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="Centrifuge_LLE.html" title="Centrifuge_LLE"
+          <a href="Flash.html" title="Flash"
              >next</a> |</li>
         <li class="right" >
-          <a href="Flash.html" title="Flash"
+          <a href="Distillation.html" title="Distillation"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="units.html" >units</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

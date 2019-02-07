@@ -11,7 +11,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "### Thermodynamic and material properties are handled by Chemical objects"
+    "### Get thermodynamic and material properties using Chemical objects"
    ]
   },
   {
@@ -54,7 +54,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "Chemical objects have a temperature (T), pressure (P), and phase"
+    "Chemical objects have a temperature `T`, pressure `P`, and `phase`:"
    ]
   },
   {
@@ -81,7 +81,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "All biosteam objects have a `show` method"
+    "All biosteam objects have a `show` method:"
    ]
   },
   {
@@ -106,7 +106,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "You can change the units for `show`"
+    "You can change the units for `show`:"
    ]
   },
   {
@@ -200,7 +200,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "### Chemical objects are managed by a Species object"
+    "### Group Chemical objects with a Species object"
    ]
   },
   {
@@ -291,7 +291,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "### Material flows are handled by the Stream object"
+    "### Material flows and mixture properties with Stream objects"
    ]
   },
   {
@@ -541,14 +541,14 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "### Unit classes are able to find design requirements and cost"
+    "### Find design requirements and cost with Unit objects"
    ]
   },
   {
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "A [Unit](https://biosteam.readthedocs.io/en/latest/Unit.html) object is initialized with an ID, and unit specific arguments:"
+    "[Creating a Unit](https://biosteam.readthedocs.io/en/latest/Creating a Unit.html) can be flexible. But in summary, a [Unit](https://biosteam.readthedocs.io/en/latest/Unit.html) object is initialized with an ID, and unit specific arguments:"
    ]
   },
   {
@@ -676,7 +676,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "To simulate the flash, use the 'simulate' method:"
+    "To simulate the flash, use the `simulate` method:"
    ]
   },
   {
@@ -709,7 +709,7 @@
      "name": "stderr",
      "output_type": "stream",
      "text": [
-      "C:\\Users\\Guest Group\\Dropbox\\Cortes-Pena-Guest_Shared\\Code\\biosteam\\biosteam\\units\\flash.py:420: DesignWarning: @Flash F1: Vertical vessel weight (3772 lb) is out of bounds (4200 to 1e+06 lb).\n",
+      "C:\\Users\\yoelr\\Dropbox\\Cortes-Pena-Guest_Shared\\Code\\biosteam\\biosteam\\units\\flash.py:420: DesignWarning: @Flash F1: Vertical vessel weight (3772 lb) is out of bounds (4200 to 1e+06 lb).\n",
       "  d.boundscheck('Vertical vessel weight', VW, 'lb')\n"
      ]
     }
@@ -734,10 +734,10 @@
     {
      "data": {
       "text/plain": [
-       "{'Diameter': array([ 3, 21]),\n",
+       "{'Vertical vessel weight': array([   4200., 1000000.]),\n",
        " 'Horizontal vessel weight': array([  1000., 920000.]),\n",
-       " 'Vertical vessel Length': array([12, 40]),\n",
-       " 'Vertical vessel weight': array([   4200., 1000000.])}"
+       " 'Diameter': array([ 3, 21]),\n",
+       " 'Vertical vessel Length': array([12, 40])}"
       ]
      },
      "execution_count": 25,
@@ -844,7 +844,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "### Recycle loops and process specifications are handled by System objects"
+    "### Solve recycle loops and process specifications with System objects"
    ]
   },
   {
@@ -879,7 +879,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "Connect streams and make a recycle loop using \"Pipe\" notation:"
+    "Connect streams and make a recycle loop using [-pipe- notation](https://biosteam.readthedocs.io/en/latest/Using -pipe- notation.html):"
    ]
   },
   {
@@ -900,9 +900,14 @@
    ],
    "source": [
     "feed = Stream('feed', Glycerol=80, Water=400)\n",
-    "[S1-0, feed]-M1     # M1.ins = [S1.outs[0], feed]\n",
-    "M1-F1               # F1.ins = M1.outs\n",
-    "F1-1-S1             # S1.ins = F1.outs[1]"
+    "\n",
+    "# Broken down -pipe- notation\n",
+    "[S1-0, feed]-M1     # M1.ins[:] = [S1.outs[0], feed]\n",
+    "M1-F1               # F1.ins[:] = M1.outs\n",
+    "F1-1-S1             # S1.ins[:] = F1.outs[1]\n",
+    "\n",
+    "# All together\n",
+    "[S1-0, feed]-M1-F1-1-S1"
    ]
   },
   {
@@ -1101,7 +1106,7 @@
      "name": "stderr",
      "output_type": "stream",
      "text": [
-      "C:\\Users\\Guest Group\\Dropbox\\Cortes-Pena-Guest_Shared\\Code\\biosteam\\biosteam\\units\\flash.py:420: DesignWarning: @Flash F1: Vertical vessel weight (4068 lb) is out of bounds (4200 to 1e+06 lb).\n",
+      "C:\\Users\\yoelr\\Dropbox\\Cortes-Pena-Guest_Shared\\Code\\biosteam\\biosteam\\units\\flash.py:420: DesignWarning: @Flash F1: Vertical vessel weight (4068 lb) is out of bounds (4200 to 1e+06 lb).\n",
       "  d.boundscheck('Vertical vessel weight', VW, 'lb')\n"
      ]
     }

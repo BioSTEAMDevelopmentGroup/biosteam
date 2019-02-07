@@ -168,6 +168,10 @@
 <span class="sd">    </span>
 <span class="sd">        [2] I.K. Kookos, Preliminary Chemical Process Synthesis and Design, Tziolas Publishing, Thessalonika, Greece, 2008 (book in Greek).</span>
 <span class="sd">    </span>
+<span class="sd">    **Examples**</span>
+<span class="sd">    </span>
+<span class="sd">        :doc:`Flash Example`</span>
+<span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_N_heat_util</span> <span class="o">=</span> <span class="mi">0</span>
     
@@ -448,10 +452,6 @@
         <span class="n">Ht</span> <span class="o">=</span> <span class="n">Hlll</span> <span class="o">+</span> <span class="n">Hh</span> <span class="o">+</span> <span class="n">Hs</span> <span class="o">+</span> <span class="n">Hlin</span> <span class="o">+</span> <span class="n">Hv</span> <span class="o">+</span> <span class="n">Hme</span>
         <span class="n">Ht</span> <span class="o">=</span> <span class="n">FinalValue</span><span class="p">(</span><span class="n">Ht</span><span class="p">)</span>
 
-        <span class="c1"># Calculate Vessel weight and wall thickness</span>
-        <span class="n">rho_M</span> <span class="o">=</span> <span class="n">rho_Mdict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_F_Mstr</span><span class="p">]</span>
-        <span class="n">VW</span><span class="p">,</span> <span class="n">VWT</span> <span class="o">=</span> <span class="n">VesselWeightAndWallThickness</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">Ht</span><span class="p">,</span> <span class="n">rho_M</span><span class="p">)</span>
-
         <span class="c1"># Check if LD is between 1.5 and 6.0</span>
         <span class="n">converged</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">LD</span> <span class="o">=</span> <span class="n">Ht</span><span class="o">/</span><span class="n">D</span>
@@ -465,6 +465,10 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">converged</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="n">LD</span> <span class="o">=</span> <span class="n">Ht</span><span class="o">/</span><span class="n">D</span>
+
+        <span class="c1"># Calculate Vessel weight and wall thickness</span>
+        <span class="n">rho_M</span> <span class="o">=</span> <span class="n">rho_Mdict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_F_Mstr</span><span class="p">]</span>
+        <span class="n">VW</span><span class="p">,</span> <span class="n">VWT</span> <span class="o">=</span> <span class="n">VesselWeightAndWallThickness</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">Ht</span><span class="p">,</span> <span class="n">rho_M</span><span class="p">)</span>
 
         <span class="c1"># Find maximum and normal liquid level</span>
         <span class="c1"># Hhll = Hs + Hh + Hlll</span>
@@ -558,9 +562,9 @@
                 <span class="k">while</span> <span class="ow">not</span> <span class="n">converged1</span> <span class="ow">and</span> <span class="n">innerIter</span> <span class="o">&lt;</span> <span class="n">maxIter</span><span class="p">:</span>
                     <span class="n">innerIter</span> <span class="o">+=</span> <span class="mi">1</span>
                     <span class="n">Hv</span> <span class="o">=</span> <span class="n">Hv</span> <span class="o">+</span> <span class="n">sign</span><span class="o">*</span><span class="mf">0.5</span>
-                    <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">Mist</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">Hv</span> <span class="o">&lt;=</span> <span class="mf">2.0</span><span class="p">:</span>   <span class="c1"># baru tambah Bang !</span>
+                    <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">Mist</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">Hv</span> <span class="o">&lt;=</span> <span class="mf">2.0</span><span class="p">:</span>
                         <span class="n">Hv</span> <span class="o">=</span> <span class="mf">2.0</span>
-                    <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">Mist</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">Hv</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">:</span>   <span class="c1"># baru tambah Bang !</span>
+                    <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">Mist</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">Hv</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">:</span>
                         <span class="n">Hv</span> <span class="o">=</span> <span class="mf">1.0</span>
                     <span class="n">X</span> <span class="o">=</span> <span class="n">Hv</span><span class="o">/</span><span class="n">D</span>
                     <span class="n">Y</span> <span class="o">=</span> <span class="n">HNATable</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span>
@@ -587,7 +591,7 @@
             <span class="n">L</span> <span class="o">=</span> <span class="n">Li</span>
             <span class="n">LD</span> <span class="o">=</span> <span class="n">L</span><span class="o">/</span><span class="n">D</span>
             <span class="c1"># Check LD</span>
-            <span class="k">if</span> <span class="n">LD</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mf">0.8</span><span class="o">*</span><span class="mf">1.5</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">LD</span> <span class="o">&lt;</span> <span class="mf">1.2</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">D</span> <span class="o">&lt;=</span> <span class="mf">4.0</span><span class="p">:</span>
                     <span class="n">D</span> <span class="o">=</span> <span class="n">D</span>
                     <span class="n">converged</span> <span class="o">=</span> <span class="kc">True</span>
@@ -595,21 +599,11 @@
                     <span class="n">D</span> <span class="o">=</span> <span class="n">D</span> <span class="o">-</span> <span class="mf">0.5</span>
                     <span class="n">converged</span> <span class="o">=</span> <span class="kc">False</span>
 
-            <span class="k">if</span> <span class="n">LD</span> <span class="o">&gt;</span> <span class="p">(</span><span class="mf">1.2</span><span class="o">*</span><span class="mf">6.0</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">LD</span> <span class="o">&gt;</span> <span class="mf">7.2</span><span class="p">:</span>
                 <span class="n">D</span> <span class="o">=</span> <span class="n">D</span> <span class="o">+</span> <span class="mf">0.5</span>
                 <span class="n">converged</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">converged</span> <span class="o">=</span> <span class="kc">True</span>
-
-        <span class="c1"># Calculate vessel weight and wall thickness</span>
-        <span class="n">rho_M</span> <span class="o">=</span> <span class="n">rho_Mdict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_F_Mstr</span><span class="p">]</span>
-        <span class="n">VW</span><span class="p">,</span> <span class="n">VWT</span> <span class="o">=</span> <span class="n">VesselWeightAndWallThickness</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">rho_M</span><span class="p">)</span>
-
-        <span class="c1"># To check minimum Hv value</span>
-        <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">Mist</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">Hv</span> <span class="o">&lt;=</span> <span class="mf">2.0</span><span class="p">:</span>
-            <span class="n">Hv</span> <span class="o">=</span> <span class="mf">2.0</span>
-        <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">Mist</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">Hv</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">:</span>
-            <span class="n">Hv</span> <span class="o">=</span> <span class="mf">1.0</span>
 
         <span class="c1"># Recalculate LD so it lies between 1.5 - 6.0</span>
         <span class="n">converged</span> <span class="o">=</span> <span class="kc">False</span>
@@ -626,6 +620,16 @@
                 <span class="n">converged</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">converged</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># Calculate vessel weight and wall thickness</span>
+        <span class="n">rho_M</span> <span class="o">=</span> <span class="n">rho_Mdict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_F_Mstr</span><span class="p">]</span>
+        <span class="n">VW</span><span class="p">,</span> <span class="n">VWT</span> <span class="o">=</span> <span class="n">VesselWeightAndWallThickness</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">rho_M</span><span class="p">)</span>
+
+        <span class="c1"># # To check minimum Hv value</span>
+        <span class="c1"># if int(Mist) == 1 and Hv &lt;= 2.0:</span>
+        <span class="c1">#     Hv = 2.0</span>
+        <span class="c1"># if int(Mist) == 0 and Hv &lt;= 1.0:</span>
+        <span class="c1">#     Hv = 1.0</span>
 
         <span class="c1"># Calculate normal liquid level and High liquid level</span>
         <span class="c1"># Hhll = D - Hv</span>
@@ -716,8 +720,7 @@
         <span class="n">liquid</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="n">liquid</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">phase</span><span class="o">=</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">Tf</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">P</span><span class="p">)</span>
 
-        <span class="n">no_ph_ch</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">liquid</span><span class="p">)()</span>
-
+        <span class="n">no_ph_ch</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">liquid</span><span class="p">)(</span><span class="n">species</span><span class="o">=</span><span class="n">vapor</span><span class="o">.</span><span class="n">species</span><span class="p">)</span>
         <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;vapor_H&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vapor</span><span class="o">.</span><span class="n">H</span>
         <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;liquid_H&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">liquid</span><span class="o">.</span><span class="n">H</span>
         <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;no_ph_ch&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">no_ph_ch</span>

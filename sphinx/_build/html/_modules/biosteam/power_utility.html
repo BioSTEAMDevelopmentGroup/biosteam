@@ -80,6 +80,42 @@
 <span class="sd">    </span>
 <span class="sd">        **price:** ($/kW-hr)</span>
 <span class="sd">    </span>
+<span class="sd">    **Examples**</span>
+<span class="sd">    </span>
+<span class="sd">        Create a PowerUtility object:</span>
+<span class="sd">        </span>
+<span class="sd">        .. code-block:: python</span>
+<span class="sd">        </span>
+<span class="sd">           &gt;&gt;&gt; from biosteam import PowerUtility</span>
+<span class="sd">           &gt;&gt;&gt; pu = PowerUtility()</span>
+<span class="sd">           &gt;&gt;&gt; pu</span>
+<span class="sd">           &lt;PowerUtility: None&gt;</span>
+<span class="sd">           </span>
+<span class="sd">        Call object to calculate cost:</span>
+<span class="sd">            </span>
+<span class="sd">        .. code-block:: python</span>
+<span class="sd">        </span>
+<span class="sd">           &gt;&gt;&gt; pu(power=500)</span>
+<span class="sd">           {&#39;Power&#39;: 500 (kW),</span>
+<span class="sd">            &#39;Cost&#39;: 30 (USD/hr)}</span>
+<span class="sd">           </span>
+<span class="sd">        PowerUtility objects retain results:</span>
+<span class="sd">            </span>
+<span class="sd">        .. code-block:: python</span>
+<span class="sd">        </span>
+<span class="sd">           &gt;&gt;&gt; pu</span>
+<span class="sd">           &lt;PowerUtility: 500 kW, 30 USD/hr&gt;</span>
+<span class="sd">           &gt;&gt;&gt; pu.results</span>
+<span class="sd">           {&#39;Power&#39;: 500 (kW),</span>
+<span class="sd">            &#39;Cost&#39;: 30 (USD/hr)}</span>
+<span class="sd">           </span>
+<span class="sd">        See the object with different units:</span>
+<span class="sd">            </span>
+<span class="sd">        .. code-block:: python</span>
+<span class="sd">        </span>
+<span class="sd">           &gt;&gt;&gt; pu.show(Power=&#39;BTU/s&#39;, Cost=&#39;USD/yr&#39;)</span>
+<span class="sd">           PowerUtility: Power=474 BTU/s, Cost=2.63e+05 USD/yr</span>
+<span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_units</span> <span class="o">=</span> <span class="n">UnitManager</span><span class="p">([],</span> <span class="n">Power</span><span class="o">=</span><span class="s1">&#39;kW&#39;</span><span class="p">,</span> <span class="n">Cost</span><span class="o">=</span><span class="s1">&#39;USD/hr&#39;</span><span class="p">)</span>
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;results&#39;</span><span class="p">,)</span>
