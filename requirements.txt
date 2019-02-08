@@ -14,4 +14,3 @@ graphviz
 matplotlib
 openpyxl
 nbsphinx
-sphinx-markdown-tables
