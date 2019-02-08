@@ -4,7 +4,8 @@ biosteam/TEA.py
 biosteam/UNIFAC.py
 biosteam/__init__.py
 biosteam/chemical.py
-biosteam/dissolved_specie.py
+biosteam/compound.py
+biosteam/dissolved_compound.py
 biosteam/exceptions.py
 biosteam/find.py
 biosteam/graphics.py
@@ -14,7 +15,6 @@ biosteam/mixed_stream.py
 biosteam/my_units_defs.txt
 biosteam/power_utility.py
 biosteam/reports.py
-biosteam/specie.py
 biosteam/species.py
 biosteam/stream.py
 biosteam/system.py

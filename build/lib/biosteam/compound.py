@@ -31,7 +31,7 @@ def _func_int_constant(func, Xi, Xf):
 # %% Compound class
 
 
-class metaSpecie(type):
+class metaCompound(type):
     """Metaclass for Compound. Includes property for setting the integral_type, which specifies the rigour of the integral for computing thermodynamic energies."""
 
     @property

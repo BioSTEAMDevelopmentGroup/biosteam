@@ -5,7 +5,7 @@ Created on Sat Aug 18 13:42:33 2018
 @author: yoelr
 """
 from biosteam.chemical import Chemical
-from biosteam.compound import Specie
+from biosteam.compound import Compound
 from biosteam import np, units_of_measure
 from biosteam.exceptions import IDconflict
 

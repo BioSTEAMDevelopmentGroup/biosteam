@@ -4,7 +4,7 @@ Created on Sat Nov 10 19:27:01 2018
 
 @author: yoelr
 """
-from biosteam.compound import Specie
+from biosteam.compound import Compound
 from biosteam import np
 
 class DissolvedCompound(Compound):
@@ -33,8 +33,19 @@ class DissolvedCompound(Compound):
         
         **sigma:** Surface tension (N/m)
         
-        **Hfm:** Heat of formation
+        **Hfm:** Heat of formation (J/mol)
         
+    **Examples**
+    
+        Create a 'Yeast' compound with the same properties as water:
+    
+        .. code-block::
+            
+            >>> from biosteam import DissolvedCompound
+            >>> Yeast = DissolvedCompound('Yeast', obj=Chemical('Water'))
+            >>> Yeast.rho
+            997
+            
     """
     Tb = np.inf #: No boiling point (K)
     phase_ref = 'l'
@@ -86,6 +97,7 @@ class DissolvedCompound(Compound):
         return self.Cpm
     @property
     def phase(self):
+        """Phase is always 'l' (liquid), regardless."""
         return 'l'
     @phase.setter
     def phase(self, phase): pass

@@ -138,13 +138,24 @@ class metaUnit(type):
         #: Dictionary of weak references to instances of this class
         cls._instances = WeakRefBook(check_ID=False)
 
+        # Initialize units of measure
+        units = new_definitions.get('_results_UnitsOfMeasure')
+        if units:
+            units['Utility cost'] = 'USD/hr'
+            units['Purchase cost'] = 'USD'
+        else:
+            units = {'Utility cost': 'USD/hr',
+                     'Purchase cost': 'USD'}
+        
         # Get units of measure of each key method
-        units = {'Utility cost': 'USD/hr',
-                 'Purchase cost': 'USD'}
         get_doc_units(units, cls._operation.__doc__)
         get_doc_units(units, cls._design.__doc__)
         get_doc_units(units, cls._cost.__doc__)
-        cls._results_UnitsOfMeasure = UnitManager([], **units)
+        
+        # Set units of measure
+        if not isinstance(units, UnitManager):
+            units = UnitManager([], **units)
+        cls._results_UnitsOfMeasure = units
         
         return cls
     
@@ -239,7 +250,7 @@ class Unit(metaclass=metaUnit):
     
         :doc:`Creating a Unit`
         
-        :doc:`Pipe notation`
+        :doc:`Using -pipe- notation`
         
         :doc:`Subclassing a Unit`
     

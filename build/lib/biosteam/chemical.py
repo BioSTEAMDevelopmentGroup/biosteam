@@ -5,7 +5,7 @@ Created on Sat Aug 18 13:50:03 2018
 @author: yoelr
 """
 from thermo.chemical import Chemical as TChem
-from biosteam.compound import Specie
+from biosteam.compound import Compound
 
 __all__ = ('Chemical', 'Solid', 'Liquid', 'Gas')
 
