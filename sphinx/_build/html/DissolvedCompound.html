@@ -90,11 +90,18 @@
 <p><strong>k:</strong> Thermal conductivity (W/m/K)</p>
 <p><strong>mu:</strong> Hydrolic viscosity (Pa*s)</p>
 <p><strong>sigma:</strong> Surface tension (N/m)</p>
-<p><strong>Hfm:</strong> Heat of formation</p>
+<p><strong>Hfm:</strong> Heat of formation (J/mol)</p>
 </div></blockquote>
 <p><strong>Examples</strong></p>
 <blockquote>
-<div>Create a ‘Yeast’ compound with the same properties as water:</div></blockquote>
+<div><p>Create a ‘Yeast’ compound with the same properties as water:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">DissolvedCompound</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Yeast</span> <span class="o">=</span> <span class="n">DissolvedCompound</span><span class="p">(</span><span class="s1">&#39;Yeast&#39;</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="n">Chemical</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Yeast</span><span class="o">.</span><span class="n">rho</span>
+<span class="go">997</span>
+</pre></div>
+</div>
+</div></blockquote>
 <dl class="attribute">
 <dt id="biosteam.DissolvedCompound.Tb">
 <code class="descname">Tb</code><em class="property"> = inf</em><a class="headerlink" href="#biosteam.DissolvedCompound.Tb" title="Permalink to this definition">¶</a></dt>

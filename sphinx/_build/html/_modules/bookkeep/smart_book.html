@@ -9,7 +9,7 @@
     <title>bookkeep.smart_book &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
@@ -110,7 +110,9 @@
 <span class="sd">        The *units* attribute becomes a :doc:`UnitManager` object with a reference to all dictionaries (*clients*) it controls. These include the SmartBook and its bounds.</span>
 <span class="sd">    </span>
 <span class="sd">        &gt;&gt;&gt; sb.units</span>
-<span class="sd">        UnitManager: {&#39;T&#39;: &#39;K&#39;, &#39;Duty&#39;: &#39;kJ/hr&#39;}</span>
+<span class="sd">        UnitManager:</span>
+<span class="sd">        {&#39;T&#39;: &#39;K&#39;,</span>
+<span class="sd">         &#39;Duty&#39;: &#39;kJ/hr&#39;}</span>
 <span class="sd">        &gt;&gt;&gt; sb.units.clients</span>
 <span class="sd">        [{&#39;T&#39;: 350 (K)}, {&#39;T&#39;: (0, 1000)}]</span>
 <span class="sd">        </span>
@@ -605,7 +607,7 @@
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">out</span> <span class="o">+=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{value:.3g}{units}</span><span class="s2">,</span><span class="se">\n</span><span class="s2"> &quot;</span>
             <span class="k">except</span><span class="p">:</span>  <span class="c1"># Values may not have g-format</span>
-                <span class="n">out</span> <span class="o">+=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{value}{units}</span><span class="s2">,</span><span class="se">\n</span><span class="s2"> &quot;</span>
+                <span class="n">out</span> <span class="o">+=</span> <span class="n">f</span><span class="s2">&quot;{repr(value)}</span><span class="si">{units}</span><span class="s2">,</span><span class="se">\n</span><span class="s2"> &quot;</span>
         
         <span class="c1"># Include spaces for next line</span>
         <span class="n">out</span> <span class="o">+=</span> <span class="mi">4</span><span class="o">*</span><span class="p">(</span><span class="n">N_recursive</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="s1">&#39; &#39;</span>
@@ -632,7 +634,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
     </div>
   </body>
 </html>

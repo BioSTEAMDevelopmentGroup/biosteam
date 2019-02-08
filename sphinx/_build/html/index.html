@@ -9,7 +9,7 @@
     <title>BioSTEAM: The Open-Source Bioprocess Simulation and Techno-Economic Analysis Modules in Python &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -39,7 +39,6 @@
   <ul>
 <li><a class="reference internal" href="#">BioSTEAM: The Open-Source Bioprocess Simulation and Techno-Economic Analysis Modules in Python</a><ul>
 <li><a class="reference internal" href="#overview">Overview</a></li>
-<li><a class="reference internal" href="#main-classes">Main Classes:</a></li>
 <li><a class="reference internal" href="#getting-started">Getting Started</a></li>
 <li><a class="reference internal" href="#base-classes">Base classes</a></li>
 <li><a class="reference internal" href="#unit-operations">Unit Operations</a></li>
@@ -88,11 +87,8 @@
 <img alt="_images/UML.png" src="_images/UML.png" />
 <p class="caption"><span class="caption-text"><strong>Figure 1.</strong> A simplified  Unified Modeling Language (UML) class diagram depicts the core classes of BioSTEAM. Only main attributes and methods are included. In aggregation relationships, the labels represent where the aggregates are stored.</span></p>
 </div>
-</div>
-<div class="section" id="main-classes">
-<h2>Main Classes:<a class="headerlink" href="#main-classes" title="Permalink to this headline">¶</a></h2>
 <p><a class="reference internal" href="Chemical.html"><span class="doc">Chemical</span></a>: A thermo.Chemical object from the Chemical Engineering Design Library (ChEDL) with minor extensions for compatibility. It contains pure component transport and thermodynamic properties.</p>
-<p><a class="reference internal" href="Species.html"><span class="doc">Species</span></a>: Contains Specie and Chemical objects.</p>
+<p><a class="reference internal" href="Species.html"><span class="doc">Species</span></a>: Contains Compound and Chemical objects.</p>
 <p><a class="reference internal" href="Stream.html"><span class="doc">Stream</span></a>: Used to pass material information between units. Stream properties are calculated using ideal mixture rules and pure component data from the Species object.</p>
 <p><a class="reference internal" href="MixedStream.html"><span class="doc">MixedStream</span></a>: An extension of the Stream class that can handle multi-phase flow with phase equilibria.</p>
 <p><a class="reference internal" href="Unit.html"><span class="doc">Unit</span></a>: A base class with an abstract <cite>run</cite> method that changes output streams given parameters and input streams. Other abstract methods including <cite>operation</cite>, <cite>design</cite>, and <cite>cost</cite> are used after process simulation for design and costing.</p>
@@ -120,8 +116,8 @@
 <h2>Base classes<a class="headerlink" href="#base-classes" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="Specie.html">Specie</a></li>
-<li class="toctree-l1"><a class="reference internal" href="DissolvedSpecie.html">DissolvedSpecie</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Compound.html">Compound</a></li>
+<li class="toctree-l1"><a class="reference internal" href="DissolvedCompound.html">DissolvedCompound</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Chemical.html">Chemical</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Species.html">Species</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Stream.html">Stream</a></li>
@@ -207,7 +203,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
     </div>
   </body>
 </html>

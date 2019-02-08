@@ -39,7 +39,7 @@ class DissolvedCompound(Compound):
     
         Create a 'Yeast' compound with the same properties as water:
     
-        .. code-block::
+        .. code-block:: python
             
             >>> from biosteam import DissolvedCompound
             >>> Yeast = DissolvedCompound('Yeast', obj=Chemical('Water'))

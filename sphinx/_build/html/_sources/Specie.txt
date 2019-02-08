@@ -1,9 +1,0 @@
-Specie
-======
-
-A specie object represents a chemical component used in the proces.
-
-.. module:: biosteam
-
-.. autoclass:: Specie
-   :members:

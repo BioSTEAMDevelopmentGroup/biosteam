@@ -1,8 +1,6 @@
 Compound
 ========
 
-A specie object represents a chemical component used in the process.
-
 .. module:: biosteam
 
 .. autoclass:: Compound

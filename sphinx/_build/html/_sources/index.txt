@@ -15,12 +15,9 @@ Overview
 
    **Figure 1.** A simplified  Unified Modeling Language (UML) class diagram depicts the core classes of BioSTEAM. Only main attributes and methods are included. In aggregation relationships, the labels represent where the aggregates are stored.
 
-Main Classes:
--------------
-
 :doc:`Chemical`: A thermo.Chemical object from the Chemical Engineering Design Library (ChEDL) with minor extensions for compatibility. It contains pure component transport and thermodynamic properties.
 
-:doc:`Species`: Contains Specie and Chemical objects.
+:doc:`Species`: Contains Compound and Chemical objects.
 
 :doc:`Stream`: Used to pass material information between units. Stream properties are calculated using ideal mixture rules and pure component data from the Species object.
 
@@ -49,8 +46,8 @@ Base classes
 .. toctree::
    :maxdepth: 2
    
-   Specie
-   DissolvedSpecie
+   Compound
+   DissolvedCompound
    Chemical
    Species
    Stream

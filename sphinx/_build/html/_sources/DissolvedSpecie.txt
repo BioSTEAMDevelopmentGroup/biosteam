@@ -1,7 +1,0 @@
-DissolvedSpecie
-===============
-
-.. module:: biosteam
-
-.. autoclass:: DissolvedSpecie
-   :members:
