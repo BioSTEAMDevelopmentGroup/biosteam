@@ -4,12 +4,12 @@ Created on Sat Nov 10 19:27:01 2018
 
 @author: yoelr
 """
-from biosteam.specie import Specie
+from biosteam.compound import Specie
 from biosteam import np
 
-class DissolvedSpecie(Specie):
+class DissolvedCompound(Compound):
     """
-    Creates a DissolvedSpecie object with the same material properties as "obj" argument for simplified modeling purposes. The phase stays constant as a liquid ('l').
+    Creates a DissolvedCompound object with the same material properties as "obj" argument for simplified modeling purposes. The phase stays constant as a liquid ('l').
 
     **Parameters**
     

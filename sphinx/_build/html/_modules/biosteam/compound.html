@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>biosteam.specie &#8212; BioSTEAM 0.1 documentation</title>
+    <title>biosteam.compound &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" src="../../_static/documentation_options.js"></script>
@@ -52,7 +52,7 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <h1>Source code for biosteam.specie</h1><div class="highlight"><pre>
+  <h1>Source code for biosteam.compound</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Created on Sat Aug 18 13:26:29 2018</span>
@@ -83,11 +83,11 @@
     <span class="sd">&quot;&quot;&quot;Take the integral with a constant derivative at 298.15.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="mf">298.15</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">Xf</span><span class="o">-</span><span class="n">Xi</span><span class="p">)</span>
 
-<span class="c1"># %% Specie class</span>
+<span class="c1"># %% Compound class</span>
 
 
-<span class="k">class</span> <span class="nc">metaSpecie</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Metaclass for Specie. Includes property for setting the integral_type, which specifies the rigour of the integral for computing thermodynamic energies.&quot;&quot;&quot;</span>
+<span class="k">class</span> <span class="nc">metaCompound</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Metaclass for Compound. Includes property for setting the integral_type, which specifies the rigour of the integral for computing thermodynamic energies.&quot;&quot;&quot;</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">integral_type</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
@@ -117,8 +117,8 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Must pass one of the following types of Cp integration: </span><span class="se">\&#39;</span><span class="s1">rigorous</span><span class="se">\&#39;</span><span class="s1">, </span><span class="se">\&#39;</span><span class="s1">average</span><span class="se">\&#39;</span><span class="s1">, </span><span class="se">\&#39;</span><span class="s1">constant</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="Specie"><a class="viewcode-back" href="../../Specie.html#biosteam.Specie">[docs]</a><span class="k">class</span> <span class="nc">Specie</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">metaSpecie</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Abstract class, Specie, for making objects that contain pure component thermodynamic and transport properties. The enthalpy property, H, ignores excess ethalpies and calculates based on latent heats and the heat capacity at a constant pressure of 101325 Pa. It is suitable for solids and liquids which are weak functions of pressure</span>
+<div class="viewcode-block" id="Compound"><a class="viewcode-back" href="../../Compound.html#biosteam.Compound">[docs]</a><span class="k">class</span> <span class="nc">Compound</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">metaCompound</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract class, Compound, for making objects that contain pure component thermodynamic and transport properties. The enthalpy property, H, ignores excess ethalpies and calculates based on latent heats and the heat capacity at a constant pressure of 101325 Pa. It is suitable for solids and liquids which are weak functions of pressure</span>
 
 <span class="sd">    **Parameters**</span>
 
@@ -171,7 +171,7 @@
     <span class="n">_func_integral</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">_func_int_average</span><span class="p">)</span>
     <span class="n">MW</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1"># Arbitrary molecular weight (g/mol)</span>
 
-<div class="viewcode-block" id="Specie.quantity"><a class="viewcode-back" href="../../Specie.html#biosteam.Specie.quantity">[docs]</a>    <span class="k">def</span> <span class="nf">quantity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">):</span>
+<div class="viewcode-block" id="Compound.quantity"><a class="viewcode-back" href="../../Compound.html#biosteam.Compound.quantity">[docs]</a>    <span class="k">def</span> <span class="nf">quantity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a material property as a Quantity object as described in the `pint package &lt;https://pint.readthedocs.io/en/latest/&gt;`__ </span>
 
 <span class="sd">        **Parameters**</span>
@@ -285,18 +285,18 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">S_int_l_Tm_to_Tb</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Hfusm</span> <span class="o">/</span> \
                 <span class="bp">self</span><span class="o">.</span><span class="n">Tm</span> <span class="o">+</span> <span class="n">func_dct</span><span class="p">[</span><span class="s1">&#39;s&#39;</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">Tm</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Error in Specie object &quot;</span><span class="si">{self.ID}</span><span class="s1">&quot; with phase &quot;</span><span class="si">{phase}</span><span class="s1">&quot; and reference &quot;</span><span class="si">{phase_ref}</span><span class="s1">.&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Error in Compound object &quot;</span><span class="si">{self.ID}</span><span class="s1">&quot; with phase &quot;</span><span class="si">{phase}</span><span class="s1">&quot; and reference &quot;</span><span class="si">{phase_ref}</span><span class="s1">.&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">S</span>
     
     <span class="c1">### Class factory ###</span>
 
-<div class="viewcode-block" id="Specie.Factory"><a class="viewcode-back" href="../../Specie.html#biosteam.Specie.Factory">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Compound.Factory"><a class="viewcode-back" href="../../Compound.html#biosteam.Compound.Factory">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">Factory</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">const_prop_molar_dct</span><span class="o">=</span><span class="p">{},</span> <span class="n">state_dep_prop_molar_dct</span><span class="o">=</span><span class="p">{}):</span>
         <span class="sd">&quot;&quot;&quot;Make new child class with constant and temperature dependent properties.</span>
 
 <span class="sd">        **Parameters**</span>
 
-<span class="sd">             **ID:** *[str]* ID of new Specie object</span>
+<span class="sd">             **ID:** *[str]* ID of new Compound object</span>
 
 <span class="sd">             **const_prop_molar_dct:** *[dict]* constant properties to set to new object</span>
 
@@ -369,7 +369,7 @@
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span>
 
-<div class="viewcode-block" id="Specie.show"><a class="viewcode-back" href="../../Specie.html#biosteam.Specie.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">show_units</span><span class="p">):</span>
+<div class="viewcode-block" id="Compound.show"><a class="viewcode-back" href="../../Compound.html#biosteam.Compound.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">show_units</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;print information on self&quot;&quot;&quot;</span>
         <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="o">**</span><span class="n">show_units</span><span class="p">))</span></div>
 

@@ -5,11 +5,11 @@ Created on Sat Aug 18 13:50:03 2018
 @author: yoelr
 """
 from thermo.chemical import Chemical as TChem
-from biosteam.specie import Specie
+from biosteam.compound import Compound
 
 __all__ = ('Chemical', 'Solid', 'Liquid', 'Gas')
 
-class Chemical(Specie, TChem):
+class Chemical(Compound, TChem):
     """An extension of the ChEDL thermo Chemical class. The enthalpy property, 'H', does not account for excess ethalpy, it is simply based on latent heats and heat capacities at a constant pressure of 101325. All thermodynamic energies are now calculated properties and not attributes. 
 
 `Read the docs for thermo.Chemical for accurate documentation. <http://thermo.readthedocs.io/en/latest/thermo.chemical.html>`__"""

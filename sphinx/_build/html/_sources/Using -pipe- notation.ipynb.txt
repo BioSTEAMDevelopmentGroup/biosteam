@@ -27,18 +27,19 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "U1-n        # U1.outs[n]\n",
-    "U1-[index]  # U1.outs[index]\n",
-    "s1-U1       # U1.ins[:] = s1\n",
-    "[s1, s2]-U1 # U1.ins[:] = [s1, s2]\n",
-    "s2-n-U1     # U1.ins[n] = s2"
+    "# U1-n         ->  U1.outs[n]\n",
+    "# U1-[0, 1]    ->  U1.outs[0, 1]\n",
+    "# s1-U1        ->  U1.ins[:] = s1\n",
+    "# s1-n-U1      ->  U1.ins[n] = s1\n",
+    "# [s1, s2]-U1  ->  U1.ins[:] = [s1, s2]\n",
+    "# U1-n1-n2-U2  ->  U2.ins[n2] = U1.outs[n1]"
    ]
   },
   {
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "As an example, create 2 Mixers and 2 Splitters:"
+    "As an example, create 2 feeds, 2 Mixers and 2 Splitters:"
    ]
   },
   {
@@ -61,7 +62,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "Now connect streams and create a loop between S2 and M1:"
+    "Now connect streams linearly along the units, and create a loop between S2 and M1:"
    ]
   },
   {
@@ -267,13 +268,6 @@
     "system = System('system', network=(M1, S1, M2, S2))\n",
     "system.diagram"
    ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "metadata": {},
-   "outputs": [],
-   "source": []
   }
  ],
  "metadata": {
@@ -292,7 +286,7 @@
    "name": "python",
    "nbconvert_exporter": "python",
    "pygments_lexer": "ipython3",
-   "version": "3.6.4"
+   "version": "3.6.5"
   }
  },
  "nbformat": 4,

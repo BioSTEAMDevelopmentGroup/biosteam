@@ -16,7 +16,7 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Specie" href="Specie.html" />
+    <link rel="next" title="Compound" href="Compound.html" />
     <link rel="prev" title="Creating a Unit" href="Creating a Unit.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
@@ -29,7 +29,7 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="Specie.html" title="Specie"
+          <a href="Compound.html" title="Compound"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="Creating a Unit.html" title="Creating a Unit"
@@ -43,8 +43,8 @@
   <p class="topless"><a href="Creating a Unit.html"
                         title="previous chapter">Creating a Unit</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="Specie.html"
-                        title="next chapter">Specie</a></p>
+  <p class="topless"><a href="Compound.html"
+                        title="next chapter">Compound</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -251,15 +251,16 @@ the following format:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">U1</span><span class="o">-</span><span class="n">n</span>        <span class="c1"># U1.outs[n]</span>
-<span class="n">U1</span><span class="o">-</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>  <span class="c1"># U1.outs[index]</span>
-<span class="n">s1</span><span class="o">-</span><span class="n">U1</span>       <span class="c1"># U1.ins[:] = s1</span>
-<span class="p">[</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">]</span><span class="o">-</span><span class="n">U1</span> <span class="c1"># U1.ins[:] = [s1, s2]</span>
-<span class="n">s2</span><span class="o">-</span><span class="n">n</span><span class="o">-</span><span class="n">U1</span>     <span class="c1"># U1.ins[n] = s2</span>
+<span></span><span class="c1"># U1-n         -&gt;  U1.outs[n]</span>
+<span class="c1"># U1-[0, 1]    -&gt;  U1.outs[0, 1]</span>
+<span class="c1"># s1-U1        -&gt;  U1.ins[:] = s1</span>
+<span class="c1"># s1-n-U1      -&gt;  U1.ins[n] = s1</span>
+<span class="c1"># [s1, s2]-U1  -&gt;  U1.ins[:] = [s1, s2]</span>
+<span class="c1"># U1-n1-n2-U2  -&gt;  U2.ins[n2] = U1.outs[n1]</span>
 </pre></div>
 </div>
 </div>
-<p>As an example, create 2 Mixers and 2 Splitters:</p>
+<p>As an example, create 2 feeds, 2 Mixers and 2 Splitters:</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [2]:
@@ -277,7 +278,8 @@ the following format:</p>
 </pre></div>
 </div>
 </div>
-<p>Now connect streams and create a loop between S2 and M1:</p>
+<p>Now connect streams linearly along the units, and create a loop between
+S2 and M1:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [3]:
@@ -343,7 +345,7 @@ the following format:</p>
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="Specie.html" title="Specie"
+          <a href="Compound.html" title="Compound"
              >next</a> |</li>
         <li class="right" >
           <a href="Creating a Unit.html" title="Creating a Unit"

@@ -1,7 +1,7 @@
-DissolvedSpecie
+DissolvedCompound
 ===============
 
 .. module:: biosteam
 
-.. autoclass:: DissolvedSpecie
+.. autoclass:: DissolvedCompound
    :members:

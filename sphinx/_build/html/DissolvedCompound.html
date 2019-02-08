@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>DissolvedSpecie &#8212; BioSTEAM 0.1 documentation</title>
+    <title>DissolvedCompound &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" src="_static/documentation_options.js"></script>
@@ -17,7 +17,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Chemical" href="Chemical.html" />
-    <link rel="prev" title="Specie" href="Specie.html" /> 
+    <link rel="prev" title="Compound" href="Compound.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -32,7 +32,7 @@
           <a href="Chemical.html" title="Chemical"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="Specie.html" title="Specie"
+          <a href="Compound.html" title="Compound"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
       </ul>
@@ -40,15 +40,15 @@
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
-  <p class="topless"><a href="Specie.html"
-                        title="previous chapter">Specie</a></p>
+  <p class="topless"><a href="Compound.html"
+                        title="previous chapter">Compound</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="Chemical.html"
                         title="next chapter">Chemical</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="_sources/DissolvedSpecie.txt"
+      <li><a href="_sources/DissolvedCompound.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
@@ -72,12 +72,12 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-biosteam">
-<span id="dissolvedspecie"></span><h1>DissolvedSpecie<a class="headerlink" href="#module-biosteam" title="Permalink to this headline">¶</a></h1>
-<dl class="class">
-<dt id="biosteam.DissolvedSpecie">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">DissolvedSpecie</code><span class="sig-paren">(</span><em>ID</em>, <em>CAS=''</em>, <em>obj=None</em>, <em>MW=1</em>, <em>T=298.15</em>, <em>P=101325</em>, <em>Cp=None</em>, <em>rho=None</em>, <em>k=None</em>, <em>mu=None</em>, <em>sigma=None</em>, <em>Pr=None</em>, <em>Hfm=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/dissolved_specie.html#DissolvedSpecie"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.DissolvedSpecie" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a DissolvedSpecie object with the same material properties as “obj” argument for simplified modeling purposes. The phase stays constant as a liquid (‘l’).</p>
+  <div class="section" id="dissolvedcompound">
+<h1>DissolvedCompound<a class="headerlink" href="#dissolvedcompound" title="Permalink to this headline">¶</a></h1>
+<span class="target" id="module-biosteam"></span><dl class="class">
+<dt id="biosteam.DissolvedCompound">
+<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">DissolvedCompound</code><span class="sig-paren">(</span><em>ID</em>, <em>CAS=''</em>, <em>obj=None</em>, <em>MW=1</em>, <em>T=298.15</em>, <em>P=101325</em>, <em>Cp=None</em>, <em>rho=None</em>, <em>k=None</em>, <em>mu=None</em>, <em>sigma=None</em>, <em>Pr=None</em>, <em>Hfm=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/dissolved_compound.html#DissolvedCompound"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.DissolvedCompound" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a DissolvedCompound object with the same material properties as “obj” argument for simplified modeling purposes. The phase stays constant as a liquid (‘l’).</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>ID:</strong> [str] ID of specie</p>
@@ -92,10 +92,19 @@
 <p><strong>sigma:</strong> Surface tension (N/m)</p>
 <p><strong>Hfm:</strong> Heat of formation</p>
 </div></blockquote>
+<p><strong>Examples</strong></p>
+<blockquote>
+<div>Create a ‘Yeast’ compound with the same properties as water:</div></blockquote>
 <dl class="attribute">
-<dt id="biosteam.DissolvedSpecie.Tb">
-<code class="descname">Tb</code><em class="property"> = inf</em><a class="headerlink" href="#biosteam.DissolvedSpecie.Tb" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.DissolvedCompound.Tb">
+<code class="descname">Tb</code><em class="property"> = inf</em><a class="headerlink" href="#biosteam.DissolvedCompound.Tb" title="Permalink to this definition">¶</a></dt>
 <dd><p>No boiling point (K)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.DissolvedCompound.phase">
+<code class="descname">phase</code><a class="headerlink" href="#biosteam.DissolvedCompound.phase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Phase is always ‘l’ (liquid), regardless.</p>
 </dd></dl>
 
 </dd></dl>
@@ -121,7 +130,7 @@
           <a href="Chemical.html" title="Chemical"
              >next</a> |</li>
         <li class="right" >
-          <a href="Specie.html" title="Specie"
+          <a href="Compound.html" title="Compound"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
       </ul>

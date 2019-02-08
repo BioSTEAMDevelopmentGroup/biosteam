@@ -10,7 +10,7 @@ setup(
     name='biosteam',
     packages=['biosteam'],
     license='MIT',
-    version='0.1a2.dev1',
+    version='0.1a2.dev2',
     description='The Open-Source Bioprocess Simulation and Techno-Economic Analysis Modules',
     long_description=open('README.rst').read(),
     author='Yoel Cortes-Pena',

@@ -28,11 +28,11 @@ def _func_int_constant(func, Xi, Xf):
     """Take the integral with a constant derivative at 298.15."""
     return func(298.15)*(Xf-Xi)
 
-# %% Specie class
+# %% Compound class
 
 
 class metaSpecie(type):
-    """Metaclass for Specie. Includes property for setting the integral_type, which specifies the rigour of the integral for computing thermodynamic energies."""
+    """Metaclass for Compound. Includes property for setting the integral_type, which specifies the rigour of the integral for computing thermodynamic energies."""
 
     @property
     def integral_type(cls):
@@ -62,8 +62,8 @@ class metaSpecie(type):
             raise ValueError('Must pass one of the following types of Cp integration: \'rigorous\', \'average\', \'constant\'')
 
 
-class Specie(metaclass=metaSpecie):
-    """Abstract class, Specie, for making objects that contain pure component thermodynamic and transport properties. The enthalpy property, H, ignores excess ethalpies and calculates based on latent heats and the heat capacity at a constant pressure of 101325 Pa. It is suitable for solids and liquids which are weak functions of pressure
+class Compound(metaclass=metaCompound):
+    """Abstract class, Compound, for making objects that contain pure component thermodynamic and transport properties. The enthalpy property, H, ignores excess ethalpies and calculates based on latent heats and the heat capacity at a constant pressure of 101325 Pa. It is suitable for solids and liquids which are weak functions of pressure
 
     **Parameters**
 
@@ -230,7 +230,7 @@ class Specie(metaclass=metaSpecie):
                 self.S_int_l_Tm_to_Tb - self.Hfusm / \
                 self.Tm + func_dct['s'](self.Tm, T)
         else:
-            raise Exception(f'Error in Specie object "{self.ID}" with phase "{phase}" and reference "{phase_ref}.')
+            raise Exception(f'Error in Compound object "{self.ID}" with phase "{phase}" and reference "{phase_ref}.')
         return S
     
     ### Class factory ###
@@ -241,7 +241,7 @@ class Specie(metaclass=metaSpecie):
 
         **Parameters**
 
-             **ID:** *[str]* ID of new Specie object
+             **ID:** *[str]* ID of new Compound object
 
              **const_prop_molar_dct:** *[dict]* constant properties to set to new object
 

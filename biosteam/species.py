@@ -5,7 +5,7 @@ Created on Sat Aug 18 13:42:33 2018
 @author: yoelr
 """
 from biosteam.chemical import Chemical
-from biosteam.specie import Specie
+from biosteam.compound import Compound
 from biosteam import np, units_of_measure
 from biosteam.exceptions import IDconflict
 
@@ -52,7 +52,7 @@ class Species:
         elif not isinstance(ID[0], str):
             ID = ID[0] # For backwards compatibility
         
-        # Set Specie object attributes
+        # Set Compound object attributes
         for n in ID:
             n = n.replace('_', ' ')
             try:
@@ -64,7 +64,7 @@ class Species:
     def __setattr__(self, ID, specie):
         if ID == 'ID':
             super().__setattr__(ID, specie)
-        elif isinstance(specie, Specie):
+        elif isinstance(specie, Compound):
             # Get specie ID and CAS number
             specie.ID = ID = ID.replace(' ', '_')
             CAS = specie.CAS
@@ -73,9 +73,9 @@ class Species:
             IDs = self._ID
             CASs = self._CAS
             if ID in IDs:
-                raise IDconflict(f"A Specie object with ID, '{ID}', is already registered.")
+                raise IDconflict(f"A Compound object with ID, '{ID}', is already registered.")
             elif CAS in CASs:
-                raise IDconflict(f"A Specie object with CAS number, '{CAS}', is already registered.")
+                raise IDconflict(f"A Compound object with CAS number, '{CAS}', is already registered.")
             
             # Set attributes and keep track of IDs/CAS numbers
             super().__setattr__(ID, specie)
@@ -83,7 +83,7 @@ class Species:
             IDs.append(ID)
             CASs.append(CAS)
         else:
-            raise TypeError('Can only set Specie objects as attributes')
+            raise TypeError('Can only set Compound objects as attributes')
 
     def __delattr__(self, ID):
         # Remove ID and CAS from list
@@ -165,7 +165,7 @@ class Species:
         """Combine Specie/Chemical/Species objects into a new Species object."""
         new = cls()
         for other in others:
-            if isinstance(other, Specie):
+            if isinstance(other, Compound):
                 setattr(new, other.ID, other)
             elif isinstance(other, Species):
                 for i in other.ID:

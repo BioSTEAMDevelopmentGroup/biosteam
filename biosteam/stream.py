@@ -683,7 +683,7 @@ class Stream(metaclass=metaStream):
 
         **Parameters**
 
-             IDs: list[str] or [str] Specie names
+             IDs: list[str] or [str] Compound names
 
         Example
 
