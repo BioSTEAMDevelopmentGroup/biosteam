@@ -1,0 +1,174 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Specie &#8212; BioSTEAM 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="DissolvedSpecie" href="DissolvedSpecie.html" />
+    <link rel="prev" title="Using -pipe- notation" href="Using -pipe- notation.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="DissolvedSpecie.html" title="DissolvedSpecie"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="Using -pipe- notation.html" title="Using -pipe- notation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="Using -pipe- notation.html"
+                        title="previous chapter">Using -pipe- notation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="DissolvedSpecie.html"
+                        title="next chapter">DissolvedSpecie</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/Specie.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="specie">
+<h1>Specie<a class="headerlink" href="#specie" title="Permalink to this headline">¶</a></h1>
+<p>A specie object represents a chemical component used in the proces.</p>
+<span class="target" id="module-biosteam"></span><dl class="class">
+<dt id="biosteam.Specie">
+<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Specie</code><a class="reference internal" href="_modules/biosteam/specie.html#Specie"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Specie" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract class, Specie, for making objects that contain pure component thermodynamic and transport properties. The enthalpy property, H, ignores excess ethalpies and calculates based on latent heats and the heat capacity at a constant pressure of 101325 Pa. It is suitable for solids and liquids which are weak functions of pressure</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><p><strong>IDs:</strong> <em>[str]</em> A unique identification</p>
+<p><strong>T:</strong> <em>[float]</em> Temperature (K)</p>
+<p><strong>P:</strong> <em>[float]</em> Pressure (Pa)</p>
+<p><strong>phase:</strong> <em>[str]</em> ‘l’(iquid) or ‘g’(as)</p>
+</div></blockquote>
+<p><strong>Class Attributes</strong></p>
+<blockquote>
+<div><p><strong>phase_ref</strong> = ‘l’: Reference phase</p>
+<p><strong>H_ref</strong> = 0: Reference enthalpy (kJ/hr)</p>
+<p><strong>T_ref</strong> = 298.15: Reference temperature (K)</p>
+<p><strong>P_ref</strong> = 101325: Reference pressure (Pa)</p>
+</div></blockquote>
+<dl class="attribute">
+<dt id="biosteam.Specie.units">
+<code class="descname">units</code><em class="property"> = {'A': 'J/mol', 'Cp': 'J/g', 'Cpm': 'J/mol', 'G': 'J/mol', 'H': 'J/mol', 'Hf': 'J/mol', 'MW': 'g/mol', 'P': 'Pa', 'S': 'J/mol', 'T': 'K', 'U': 'J/mol', 'Vm': 'm^3/mol', 'alpha': 'm^2/s', 'k': 'W/m/K', 'mu': 'Pa*s', 'nu': 'm^2/s', 'rho': 'kg/m^3', 'rhom': 'mol/m^3', 'sigma': 'N/m'}</em><a class="headerlink" href="#biosteam.Specie.units" title="Permalink to this definition">¶</a></dt>
+<dd><p>[dict] Units of measure for material properties (class attribute).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Specie.quantity">
+<code class="descname">quantity</code><span class="sig-paren">(</span><em>prop_ID</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/specie.html#Specie.quantity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Specie.quantity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a material property as a Quantity object as described in the <a class="reference external" href="https://pint.readthedocs.io/en/latest/">pint package</a></p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><strong>prop_ID:</strong> <em>[str]</em> name of the property (e.g. ‘mol’, ‘H’, ‘k’ …)</div></blockquote>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Specie.H">
+<code class="descname">H</code><a class="headerlink" href="#biosteam.Specie.H" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enthapy (kJ/kmol) disregarding pressure and assuming the specified phase.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Specie.S">
+<code class="descname">S</code><a class="headerlink" href="#biosteam.Specie.S" title="Permalink to this definition">¶</a></dt>
+<dd><p>Entropy (kJ/kmol) assuming the specified phase.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="biosteam.Specie.Factory">
+<em class="property">classmethod </em><code class="descname">Factory</code><span class="sig-paren">(</span><em>ID</em>, <em>const_prop_molar_dct={}</em>, <em>state_dep_prop_molar_dct={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/specie.html#Specie.Factory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Specie.Factory" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make new child class with constant and temperature dependent properties.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><p><strong>ID:</strong> <em>[str]</em> ID of new Specie object</p>
+<p><strong>const_prop_molar_dct:</strong> <em>[dict]</em> constant properties to set to new object</p>
+<p><strong>state_dep_prop_molar_dct:</strong> <em>[dict]</em> methods that will turn into Python properties for the new object</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Specie.show">
+<code class="descname">show</code><span class="sig-paren">(</span><em>**show_units</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/specie.html#Specie.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Specie.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>print information on self</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="DissolvedSpecie.html" title="DissolvedSpecie"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="Using -pipe- notation.html" title="Using -pipe- notation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
+    </div>
+  </body>
+</html>

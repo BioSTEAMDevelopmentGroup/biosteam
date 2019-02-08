@@ -1,0 +1,321 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# HXutility"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Run heat exchanger by temperature:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "image/svg+xml": [
+       "<svg height=\"146pt\" viewBox=\"0.00 0.00 281.79 146.07\" width=\"282pt\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n",
+       "<g class=\"graph\" id=\"graph0\" transform=\"scale(1 1) rotate(0) translate(4 142.067)\">\n",
+       "<title>unit</title>\n",
+       "<polygon fill=\"white\" points=\"-4,4 -4,-142.067 277.792,-142.067 277.792,4 -4,4\" stroke=\"none\"/>\n",
+       "<!-- hx\n",
+       "HXutility&#45;&gt;product -->\n",
+       "<g class=\"edge\" id=\"edge2\"><title>hx\n",
+       "HXutility:c-&gt;product:w</title>\n",
+       "<path d=\"M171.118,-69.0333C188.288,-69.0333 209.388,-69.0333 228.292,-69.0333\" fill=\"none\" stroke=\"black\"/>\n",
+       "</g>\n",
+       "<!-- feed&#45;&gt;hx\n",
+       "HXutility -->\n",
+       "<g class=\"edge\" id=\"edge1\"><title>feed:e-&gt;hx\n",
+       "HXutility:c</title>\n",
+       "<path d=\"M43.292,-69.0333C62.1956,-69.0333 83.2961,-69.0333 100.466,-69.0333\" fill=\"none\" stroke=\"black\"/>\n",
+       "</g>\n",
+       "<!-- hx\n",
+       "HXutility -->\n",
+       "<g class=\"node\" id=\"node1\"><title>hx\n",
+       "HXutility</title>\n",
+       "<ellipse cx=\"135.792\" cy=\"-69.0333\" fill=\"#fad6d8\" rx=\"34.7923\" ry=\"34.7923\" stroke=\"none\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"135.792\" y=\"-72.8333\">hx</text>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"135.792\" y=\"-57.8333\">HXutility</text>\n",
+       "</g>\n",
+       "<!-- feed -->\n",
+       "<g class=\"node\" id=\"node2\"><title>feed</title>\n",
+       "<polygon fill=\"#79dae8\" points=\"25.292,-84.5333 0.291953,-84.5333 0.291953,-53.5333 25.292,-53.5333 25.292,-47.5333 43.292,-69.0333 25.292,-90.5333 25.292,-84.5333\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"21.792\" y=\"-65.3333\">feed</text>\n",
+       "</g>\n",
+       "<!-- product -->\n",
+       "<g class=\"node\" id=\"node3\"><title>product</title>\n",
+       "<polygon fill=\"#79dae8\" points=\"255.292,-84.5333 228.292,-84.5333 228.292,-53.5333 255.292,-53.5333 255.292,-47.5333 273.292,-69.0333 255.292,-90.5333 255.292,-84.5333\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"250.792\" y=\"-65.3333\">product</text>\n",
+       "</g>\n",
+       "</g>\n",
+       "</svg>"
+      ],
+      "text/plain": [
+       "<IPython.core.display.SVG object>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "HXutility: hx\n",
+      "\u001b[37m\u001b[22mins...\u001b[0m\n",
+      "[0] feed\n",
+      "    phase: 'l', T: 298.15 K, P: 101325 Pa\n",
+      "    flow (kmol/hr): Water    200\n",
+      "                    Ethanol  200\n",
+      "\u001b[37m\u001b[22mouts...\u001b[0m\n",
+      "[0] product\n",
+      "    phase: 'l', T: 323.15 K, P: 101325 Pa\n",
+      "    flow (kmol/hr): Water    200\n",
+      "                    Ethanol  200\n"
+     ]
+    }
+   ],
+   "source": [
+    "from biosteam import Species, Stream, HXutility\n",
+    "Stream.species = Species('Water', 'Ethanol')\n",
+    "\n",
+    "# Simulate heat exchanger\n",
+    "feed = Stream('feed', Water=200, Ethanol=200)\n",
+    "hx = HXutility('hx', ins=feed, outs='product', T=50+273.15,\n",
+    "               rigorous=False) # Ignore VLE\n",
+    "hx.simulate()\n",
+    "\n",
+    "# Show results\n",
+    "hx.diagram\n",
+    "hx.show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "HXutility                     Units       hx\n",
+      "Design:                                     \n",
+      "  Area                         ft^2     57.4\n",
+      "  Overall heat transfe...  kW/m^2/K      0.5\n",
+      "  Fouling correction f...                  1\n",
+      "  Tube side pressure drop       psi        5\n",
+      "  Shell side pressure ...       psi      1.5\n",
+      "  Operating pressure            psi     14.7\n",
+      "  Total tube length              ft       20\n",
+      "Cost:                                       \n",
+      "  Heat exchanger                USD 4.75e+03\n",
+      "Summary:                                    \n",
+      "  Utility cost               USD/hr     5.84\n",
+      "  Purchase cost                 USD 4.75e+03\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(hx.results.table())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "HeatUtility: Low pressure steam\n",
+      " Duty: 9.63e+05 kJ/hr\n",
+      " Flow: 443 kg/hr\n",
+      " Cost: 5.84 USD/hr\n"
+     ]
+    }
+   ],
+   "source": [
+    "for hx in hx.heat_utilities:\n",
+    "    hx.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Run heat exchanger by vapor fraction:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "image/svg+xml": [
+       "<svg height=\"146pt\" viewBox=\"0.00 0.00 281.79 146.07\" width=\"282pt\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n",
+       "<g class=\"graph\" id=\"graph0\" transform=\"scale(1 1) rotate(0) translate(4 142.067)\">\n",
+       "<title>unit</title>\n",
+       "<polygon fill=\"white\" points=\"-4,4 -4,-142.067 277.792,-142.067 277.792,4 -4,4\" stroke=\"none\"/>\n",
+       "<!-- hx\n",
+       "HXutility&#45;&gt;product -->\n",
+       "<g class=\"edge\" id=\"edge2\"><title>hx\n",
+       "HXutility:c-&gt;product:w</title>\n",
+       "<path d=\"M171.118,-69.0333C188.288,-69.0333 209.388,-69.0333 228.292,-69.0333\" fill=\"none\" stroke=\"black\"/>\n",
+       "</g>\n",
+       "<!-- feed&#45;&gt;hx\n",
+       "HXutility -->\n",
+       "<g class=\"edge\" id=\"edge1\"><title>feed:e-&gt;hx\n",
+       "HXutility:c</title>\n",
+       "<path d=\"M43.292,-69.0333C62.1956,-69.0333 83.2961,-69.0333 100.466,-69.0333\" fill=\"none\" stroke=\"black\"/>\n",
+       "</g>\n",
+       "<!-- hx\n",
+       "HXutility -->\n",
+       "<g class=\"node\" id=\"node1\"><title>hx\n",
+       "HXutility</title>\n",
+       "<ellipse cx=\"135.792\" cy=\"-69.0333\" fill=\"#fad6d8\" rx=\"34.7923\" ry=\"34.7923\" stroke=\"none\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"135.792\" y=\"-72.8333\">hx</text>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"135.792\" y=\"-57.8333\">HXutility</text>\n",
+       "</g>\n",
+       "<!-- feed -->\n",
+       "<g class=\"node\" id=\"node2\"><title>feed</title>\n",
+       "<polygon fill=\"#79dae8\" points=\"25.292,-84.5333 0.291953,-84.5333 0.291953,-53.5333 25.292,-53.5333 25.292,-47.5333 43.292,-69.0333 25.292,-90.5333 25.292,-84.5333\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"21.792\" y=\"-65.3333\">feed</text>\n",
+       "</g>\n",
+       "<!-- product -->\n",
+       "<g class=\"node\" id=\"node3\"><title>product</title>\n",
+       "<polygon fill=\"#79dae8\" points=\"255.292,-84.5333 228.292,-84.5333 228.292,-53.5333 255.292,-53.5333 255.292,-47.5333 273.292,-69.0333 255.292,-90.5333 255.292,-84.5333\" stroke=\"black\"/>\n",
+       "<text font-family=\"Times New Roman,serif\" font-size=\"14.00\" text-anchor=\"middle\" x=\"250.792\" y=\"-65.3333\">product</text>\n",
+       "</g>\n",
+       "</g>\n",
+       "</svg>"
+      ],
+      "text/plain": [
+       "<IPython.core.display.SVG object>"
+      ]
+     },
+     "metadata": {},
+     "output_type": "display_data"
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "HXutility: hx\n",
+      "\u001b[37m\u001b[22mins...\u001b[0m\n",
+      "[0] feed\n",
+      "    phase: 'l', T: 298.15 K, P: 101325 Pa\n",
+      "    flow (kmol/hr): Water    200\n",
+      "                    Ethanol  200\n",
+      "\u001b[37m\u001b[22mouts...\u001b[0m\n",
+      "[0] product\n",
+      "    phase: 'g', T: 357.45 K, P: 101325 Pa\n",
+      "           \u001b[37m\u001b[22m species  kmol/hr\u001b[0m\n",
+      "    vapor:  Water    200\n",
+      "            Ethanol  200\n"
+     ]
+    }
+   ],
+   "source": [
+    "# Simulate heat exchanger\n",
+    "feed = Stream('feed', Water=200, Ethanol=200)\n",
+    "hx = HXutility('hx', ins=feed, outs='product', V=1,\n",
+    "               rigorous=True) # Include VLE\n",
+    "hx.simulate()\n",
+    "hx.diagram\n",
+    "hx.show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "HXutility                     Units       hx\n",
+      "Design:                                     \n",
+      "  Area                         ft^2      687\n",
+      "  Overall heat transfe...  kW/m^2/K        1\n",
+      "  Fouling correction f...                  1\n",
+      "  Tube side pressure drop       psi      1.5\n",
+      "  Shell side pressure ...       psi      1.5\n",
+      "  Operating pressure            psi     14.7\n",
+      "  Total tube length              ft       20\n",
+      "Cost:                                       \n",
+      "  Heat exchanger                USD 2.05e+04\n",
+      "Summary:                                    \n",
+      "  Utility cost               USD/hr      112\n",
+      "  Purchase cost                 USD 2.05e+04\n"
+     ]
+    }
+   ],
+   "source": [
+    "print(hx.results.table())"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "HeatUtility: Low pressure steam\n",
+      " Duty: 1.84e+07 kJ/hr\n",
+      " Flow: 8.45e+03 kg/hr\n",
+      " Cost: 112 USD/hr\n"
+     ]
+    }
+   ],
+   "source": [
+    "for hx in hx.heat_utilities:\n",
+    "    hx.show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.6.5"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}

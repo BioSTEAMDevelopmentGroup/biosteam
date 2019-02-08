@@ -1,0 +1,374 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>openpyxl.reader.excel &#8212; BioSTEAM 0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for openpyxl.reader.excel</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span>
+<span class="c1"># Copyright (c) 2010-2018 openpyxl</span>
+
+<span class="sd">&quot;&quot;&quot;Read an xlsx file into Python&quot;&quot;&quot;</span>
+
+<span class="c1"># Python stdlib imports</span>
+<span class="kn">from</span> <span class="nn">zipfile</span> <span class="k">import</span> <span class="n">ZipFile</span><span class="p">,</span> <span class="n">ZIP_DEFLATED</span><span class="p">,</span> <span class="n">BadZipfile</span>
+<span class="kn">from</span> <span class="nn">sys</span> <span class="k">import</span> <span class="n">exc_info</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="k">import</span> <span class="n">BytesIO</span>
+<span class="kn">import</span> <span class="nn">os.path</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<span class="c1"># compatibility imports</span>
+<span class="kn">from</span> <span class="nn">openpyxl.compat</span> <span class="k">import</span> <span class="n">unicode</span><span class="p">,</span> <span class="n">file</span>
+<span class="kn">from</span> <span class="nn">openpyxl.pivot.table</span> <span class="k">import</span> <span class="n">TableDefinition</span>
+
+<span class="c1"># Allow blanket setting of KEEP_VBA for testing</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">..tests</span> <span class="k">import</span> <span class="n">KEEP_VBA</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="n">KEEP_VBA</span> <span class="o">=</span> <span class="kc">False</span>
+
+
+<span class="c1"># package imports</span>
+<span class="kn">from</span> <span class="nn">openpyxl.utils.exceptions</span> <span class="k">import</span> <span class="n">InvalidFileException</span>
+<span class="kn">from</span> <span class="nn">openpyxl.xml.constants</span> <span class="k">import</span> <span class="p">(</span>
+    <span class="n">ARC_SHARED_STRINGS</span><span class="p">,</span>
+    <span class="n">ARC_CORE</span><span class="p">,</span>
+    <span class="n">ARC_CONTENT_TYPES</span><span class="p">,</span>
+    <span class="n">ARC_WORKBOOK</span><span class="p">,</span>
+    <span class="n">ARC_THEME</span><span class="p">,</span>
+    <span class="n">COMMENTS_NS</span><span class="p">,</span>
+    <span class="n">SHARED_STRINGS</span><span class="p">,</span>
+    <span class="n">EXTERNAL_LINK</span><span class="p">,</span>
+    <span class="n">XLTM</span><span class="p">,</span>
+    <span class="n">XLTX</span><span class="p">,</span>
+    <span class="n">XLSM</span><span class="p">,</span>
+    <span class="n">XLSX</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">openpyxl.comments.comment_sheet</span> <span class="k">import</span> <span class="n">CommentSheet</span>
+<span class="kn">from</span> <span class="nn">openpyxl.workbook</span> <span class="k">import</span> <span class="n">Workbook</span>
+
+<span class="kn">from</span> <span class="nn">.strings</span> <span class="k">import</span> <span class="n">read_string_table</span>
+<span class="kn">from</span> <span class="nn">openpyxl.styles.stylesheet</span> <span class="k">import</span> <span class="n">apply_stylesheet</span>
+
+<span class="kn">from</span> <span class="nn">openpyxl.packaging.core</span> <span class="k">import</span> <span class="n">DocumentProperties</span>
+<span class="kn">from</span> <span class="nn">openpyxl.packaging.manifest</span> <span class="k">import</span> <span class="n">Manifest</span><span class="p">,</span> <span class="n">Override</span>
+<span class="kn">from</span> <span class="nn">openpyxl.packaging.workbook</span> <span class="k">import</span> <span class="n">WorkbookParser</span>
+<span class="kn">from</span> <span class="nn">openpyxl.packaging.relationship</span> <span class="k">import</span> <span class="n">get_dependents</span><span class="p">,</span> <span class="n">get_rels_path</span>
+
+<span class="kn">from</span> <span class="nn">openpyxl.worksheet.read_only</span> <span class="k">import</span> <span class="n">ReadOnlyWorksheet</span>
+<span class="kn">from</span> <span class="nn">openpyxl.worksheet.table</span> <span class="k">import</span> <span class="n">Table</span>
+<span class="kn">from</span> <span class="nn">openpyxl.drawing.spreadsheet_drawing</span> <span class="k">import</span> <span class="n">SpreadsheetDrawing</span>
+<span class="kn">from</span> <span class="nn">openpyxl.chart.reader</span> <span class="k">import</span> <span class="n">find_charts</span>
+
+<span class="kn">from</span> <span class="nn">openpyxl.xml.functions</span> <span class="k">import</span> <span class="n">fromstring</span>
+
+<span class="kn">from</span> <span class="nn">.worksheet</span> <span class="k">import</span> <span class="n">WorkSheetParser</span>
+
+<span class="c1"># Use exc_info for Python 2 compatibility with &quot;except Exception[,/ as] e&quot;</span>
+
+
+<span class="n">CENTRAL_DIRECTORY_SIGNATURE</span> <span class="o">=</span> <span class="sa">b</span><span class="s1">&#39;</span><span class="se">\x50\x4b\x05\x06</span><span class="s1">&#39;</span>
+<span class="n">SUPPORTED_FORMATS</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;.xlsx&#39;</span><span class="p">,</span> <span class="s1">&#39;.xlsm&#39;</span><span class="p">,</span> <span class="s1">&#39;.xltx&#39;</span><span class="p">,</span> <span class="s1">&#39;.xltm&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">repair_central_directory</span><span class="p">(</span><span class="n">zipFile</span><span class="p">,</span> <span class="n">is_file_instance</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39; trims trailing data from the central directory</span>
+<span class="sd">    code taken from http://stackoverflow.com/a/7457686/570216, courtesy of Uri Cohen</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="n">f</span> <span class="o">=</span> <span class="n">zipFile</span> <span class="k">if</span> <span class="n">is_file_instance</span> <span class="k">else</span> <span class="nb">open</span><span class="p">(</span><span class="n">zipFile</span><span class="p">,</span> <span class="s1">&#39;rb+&#39;</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">CENTRAL_DIRECTORY_SIGNATURE</span><span class="p">)</span>  <span class="c1"># End of central directory signature</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">pos</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">sio</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">sio</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="n">pos</span> <span class="o">+</span> <span class="mi">22</span><span class="p">)</span>  <span class="c1"># size of &#39;ZIP end of central directory record&#39;</span>
+        <span class="n">sio</span><span class="o">.</span><span class="n">truncate</span><span class="p">()</span>
+        <span class="n">sio</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sio</span>
+
+    <span class="n">f</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">f</span>
+
+
+
+<span class="k">def</span> <span class="nf">_validate_archive</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check the file is a valid zipfile</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">is_file_like</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;read&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">is_file_like</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+        <span class="n">file_format</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">file_format</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">SUPPORTED_FORMATS</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">file_format</span> <span class="o">==</span> <span class="s1">&#39;.xls&#39;</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;openpyxl does not support the old .xls file format, &#39;</span>
+                       <span class="s1">&#39;please use xlrd to read this file, or convert it to &#39;</span>
+                       <span class="s1">&#39;the more recent .xlsx file format.&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">file_format</span> <span class="o">==</span> <span class="s1">&#39;.xlsb&#39;</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;openpyxl does not support binary format .xlsb, &#39;</span>
+                       <span class="s1">&#39;please convert this file to .xlsx format if you want &#39;</span>
+                       <span class="s1">&#39;to open it with openpyxl&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;openpyxl does not support </span><span class="si">%s</span><span class="s1"> file format, &#39;</span>
+                       <span class="s1">&#39;please check you can open &#39;</span>
+                       <span class="s1">&#39;it with Excel first. &#39;</span>
+                       <span class="s1">&#39;Supported formats are: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="n">file_format</span><span class="p">,</span>
+                                                       <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">SUPPORTED_FORMATS</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="n">InvalidFileException</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+
+    <span class="k">if</span> <span class="n">is_file_like</span><span class="p">:</span>
+        <span class="c1"># fileobject must have been opened with &#39;rb&#39; flag</span>
+        <span class="c1"># it is required by zipfile</span>
+        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;encoding&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;File-object must be opened in binary mode&quot;</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">archive</span> <span class="o">=</span> <span class="n">ZipFile</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">ZIP_DEFLATED</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">BadZipfile</span><span class="p">:</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">repair_central_directory</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">is_file_like</span><span class="p">)</span>
+        <span class="n">archive</span> <span class="o">=</span> <span class="n">ZipFile</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="n">ZIP_DEFLATED</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">archive</span>
+
+
+<span class="k">def</span> <span class="nf">_find_workbook_part</span><span class="p">(</span><span class="n">package</span><span class="p">):</span>
+    <span class="n">workbook_types</span> <span class="o">=</span> <span class="p">[</span><span class="n">XLTM</span><span class="p">,</span> <span class="n">XLTX</span><span class="p">,</span> <span class="n">XLSM</span><span class="p">,</span> <span class="n">XLSX</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">ct</span> <span class="ow">in</span> <span class="n">workbook_types</span><span class="p">:</span>
+        <span class="n">part</span> <span class="o">=</span> <span class="n">package</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">ct</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">part</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">part</span>
+
+    <span class="c1"># some applications reassign the default for application/xml</span>
+    <span class="n">defaults</span> <span class="o">=</span> <span class="nb">set</span><span class="p">((</span><span class="n">p</span><span class="o">.</span><span class="n">ContentType</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">package</span><span class="o">.</span><span class="n">Default</span><span class="p">))</span>
+    <span class="n">workbook_type</span> <span class="o">=</span> <span class="n">defaults</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">workbook_types</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">workbook_type</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Override</span><span class="p">(</span><span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">ARC_WORKBOOK</span><span class="p">,</span> <span class="n">workbook_type</span><span class="o">.</span><span class="n">pop</span><span class="p">())</span>
+
+    <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;File contains no valid workbook part&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="load_workbook"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.load_workbook">[docs]</a><span class="k">def</span> <span class="nf">load_workbook</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">read_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">keep_vba</span><span class="o">=</span><span class="n">KEEP_VBA</span><span class="p">,</span>
+                  <span class="n">data_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">guess_types</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">keep_links</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Open the given filename and return the workbook</span>
+
+<span class="sd">    :param filename: the path to open or a file-like object</span>
+<span class="sd">    :type filename: string or a file-like object open in binary mode c.f., :class:`zipfile.ZipFile`</span>
+
+<span class="sd">    :param read_only: optimised for reading, content cannot be edited</span>
+<span class="sd">    :type read_only: bool</span>
+
+<span class="sd">    :param keep_vba: preseve vba content (this does NOT mean you can use it)</span>
+<span class="sd">    :type keep_vba: bool</span>
+
+<span class="sd">    :param guess_types: guess cell content type and do not read it from the file</span>
+<span class="sd">    :type guess_types: bool</span>
+
+<span class="sd">    :param data_only: controls whether cells with formulae have either the formula (default) or the value stored the last time Excel read the sheet</span>
+<span class="sd">    :type data_only: bool</span>
+
+<span class="sd">    :param keep_links: whether links to external workbooks should be preserved. The default is True</span>
+<span class="sd">    :type keep_links: bool</span>
+
+<span class="sd">    :rtype: :class:`openpyxl.workbook.Workbook`</span>
+
+<span class="sd">    .. note::</span>
+
+<span class="sd">        When using lazy load, all worksheets will be :class:`openpyxl.worksheet.iter_worksheet.IterableWorksheet`</span>
+<span class="sd">        and the returned workbook will be read-only.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">archive</span> <span class="o">=</span> <span class="n">_validate_archive</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+    <span class="n">src</span> <span class="o">=</span> <span class="n">archive</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">ARC_CONTENT_TYPES</span><span class="p">)</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">fromstring</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+    <span class="n">package</span> <span class="o">=</span> <span class="n">Manifest</span><span class="o">.</span><span class="n">from_tree</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+
+    <span class="n">wb_part</span> <span class="o">=</span> <span class="n">_find_workbook_part</span><span class="p">(</span><span class="n">package</span><span class="p">)</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">WorkbookParser</span><span class="p">(</span><span class="n">archive</span><span class="p">,</span> <span class="n">wb_part</span><span class="o">.</span><span class="n">PartName</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+    <span class="n">wb</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">wb</span>
+    <span class="n">wb</span><span class="o">.</span><span class="n">_data_only</span> <span class="o">=</span> <span class="n">data_only</span>
+    <span class="n">wb</span><span class="o">.</span><span class="n">_read_only</span> <span class="o">=</span> <span class="n">read_only</span>
+    <span class="n">wb</span><span class="o">.</span><span class="n">_keep_links</span> <span class="o">=</span> <span class="n">keep_links</span>
+    <span class="n">wb</span><span class="o">.</span><span class="n">guess_types</span> <span class="o">=</span> <span class="n">guess_types</span>
+    <span class="n">wb</span><span class="o">.</span><span class="n">template</span> <span class="o">=</span> <span class="n">wb_part</span><span class="o">.</span><span class="n">ContentType</span> <span class="ow">in</span> <span class="p">(</span><span class="n">XLTX</span><span class="p">,</span> <span class="n">XLTM</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">()</span>
+    <span class="n">wb</span><span class="o">.</span><span class="n">_sheets</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">if</span> <span class="n">read_only</span> <span class="ow">and</span> <span class="n">guess_types</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Data types are not guessed when using iterator reader&#39;</span><span class="p">)</span>
+
+    <span class="n">valid_files</span> <span class="o">=</span> <span class="n">archive</span><span class="o">.</span><span class="n">namelist</span><span class="p">()</span>
+
+    <span class="c1"># If are going to preserve the vba then attach a copy of the archive to the</span>
+    <span class="c1"># workbook so that is available for the save.</span>
+    <span class="k">if</span> <span class="n">keep_vba</span><span class="p">:</span>
+        <span class="n">wb</span><span class="o">.</span><span class="n">vba_archive</span> <span class="o">=</span> <span class="n">ZipFile</span><span class="p">(</span><span class="n">BytesIO</span><span class="p">(),</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="n">ZIP_DEFLATED</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">archive</span><span class="o">.</span><span class="n">namelist</span><span class="p">():</span>
+            <span class="n">wb</span><span class="o">.</span><span class="n">vba_archive</span><span class="o">.</span><span class="n">writestr</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">archive</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
+
+
+    <span class="k">if</span> <span class="n">read_only</span><span class="p">:</span>
+        <span class="n">wb</span><span class="o">.</span><span class="n">_archive</span> <span class="o">=</span> <span class="n">ZipFile</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+
+    <span class="c1"># get workbook-level information</span>
+    <span class="k">if</span> <span class="n">ARC_CORE</span> <span class="ow">in</span> <span class="n">valid_files</span><span class="p">:</span>
+        <span class="n">src</span> <span class="o">=</span> <span class="n">fromstring</span><span class="p">(</span><span class="n">archive</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">ARC_CORE</span><span class="p">))</span>
+        <span class="n">wb</span><span class="o">.</span><span class="n">properties</span> <span class="o">=</span> <span class="n">DocumentProperties</span><span class="o">.</span><span class="n">from_tree</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+
+
+    <span class="n">shared_strings</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">ct</span> <span class="o">=</span> <span class="n">package</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">SHARED_STRINGS</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">ct</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">strings_path</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">PartName</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="n">shared_strings</span> <span class="o">=</span> <span class="n">read_string_table</span><span class="p">(</span><span class="n">archive</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">strings_path</span><span class="p">))</span>
+
+
+    <span class="k">if</span> <span class="n">ARC_THEME</span> <span class="ow">in</span> <span class="n">valid_files</span><span class="p">:</span>
+        <span class="n">wb</span><span class="o">.</span><span class="n">loaded_theme</span> <span class="o">=</span> <span class="n">archive</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">ARC_THEME</span><span class="p">)</span>
+
+    <span class="n">apply_stylesheet</span><span class="p">(</span><span class="n">archive</span><span class="p">,</span> <span class="n">wb</span><span class="p">)</span> <span class="c1"># bind styles to workbook</span>
+    <span class="n">pivot_caches</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">pivot_caches</span>
+
+    <span class="c1"># get worksheets</span>
+    <span class="k">for</span> <span class="n">sheet</span><span class="p">,</span> <span class="n">rel</span> <span class="ow">in</span> <span class="n">parser</span><span class="o">.</span><span class="n">find_sheets</span><span class="p">():</span>
+        <span class="n">sheet_name</span> <span class="o">=</span> <span class="n">sheet</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">worksheet_path</span> <span class="o">=</span> <span class="n">rel</span><span class="o">.</span><span class="n">target</span>
+        <span class="n">rels_path</span> <span class="o">=</span> <span class="n">get_rels_path</span><span class="p">(</span><span class="n">worksheet_path</span><span class="p">)</span>
+        <span class="n">rels</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">rels_path</span> <span class="ow">in</span> <span class="n">valid_files</span><span class="p">:</span>
+            <span class="n">rels</span> <span class="o">=</span> <span class="n">get_dependents</span><span class="p">(</span><span class="n">archive</span><span class="p">,</span> <span class="n">rels_path</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">worksheet_path</span> <span class="ow">in</span> <span class="n">valid_files</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="k">if</span> <span class="n">read_only</span><span class="p">:</span>
+            <span class="n">ws</span> <span class="o">=</span> <span class="n">ReadOnlyWorksheet</span><span class="p">(</span><span class="n">wb</span><span class="p">,</span> <span class="n">sheet_name</span><span class="p">,</span> <span class="n">worksheet_path</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                                   <span class="n">shared_strings</span><span class="p">)</span>
+
+            <span class="n">wb</span><span class="o">.</span><span class="n">_sheets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ws</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">fh</span> <span class="o">=</span> <span class="n">archive</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">worksheet_path</span><span class="p">)</span>
+            <span class="n">ws</span> <span class="o">=</span> <span class="n">wb</span><span class="o">.</span><span class="n">create_sheet</span><span class="p">(</span><span class="n">sheet_name</span><span class="p">)</span>
+            <span class="n">ws</span><span class="o">.</span><span class="n">_rels</span> <span class="o">=</span> <span class="n">rels</span>
+            <span class="n">ws_parser</span> <span class="o">=</span> <span class="n">WorkSheetParser</span><span class="p">(</span><span class="n">ws</span><span class="p">,</span> <span class="n">fh</span><span class="p">,</span> <span class="n">shared_strings</span><span class="p">)</span>
+            <span class="n">ws_parser</span><span class="o">.</span><span class="n">parse</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">rels</span><span class="p">:</span>
+                <span class="c1"># assign any comments to cells</span>
+                <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rels</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">COMMENTS_NS</span><span class="p">):</span>
+                    <span class="n">src</span> <span class="o">=</span> <span class="n">archive</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">target</span><span class="p">)</span>
+                    <span class="n">comment_sheet</span> <span class="o">=</span> <span class="n">CommentSheet</span><span class="o">.</span><span class="n">from_tree</span><span class="p">(</span><span class="n">fromstring</span><span class="p">(</span><span class="n">src</span><span class="p">))</span>
+                    <span class="k">for</span> <span class="n">ref</span><span class="p">,</span> <span class="n">comment</span> <span class="ow">in</span> <span class="n">comment_sheet</span><span class="o">.</span><span class="n">comments</span><span class="p">:</span>
+                        <span class="n">ws</span><span class="p">[</span><span class="n">ref</span><span class="p">]</span><span class="o">.</span><span class="n">comment</span> <span class="o">=</span> <span class="n">comment</span>
+
+                <span class="c1"># preserve link to VML file if VBA</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="n">wb</span><span class="o">.</span><span class="n">vba_archive</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                    <span class="ow">and</span> <span class="n">ws</span><span class="o">.</span><span class="n">legacy_drawing</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                    <span class="p">):</span>
+                    <span class="n">ws</span><span class="o">.</span><span class="n">legacy_drawing</span> <span class="o">=</span> <span class="n">rels</span><span class="p">[</span><span class="n">ws</span><span class="o">.</span><span class="n">legacy_drawing</span><span class="p">]</span><span class="o">.</span><span class="n">target</span>
+
+                <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">ws_parser</span><span class="o">.</span><span class="n">tables</span><span class="p">:</span>
+                    <span class="n">src</span> <span class="o">=</span> <span class="n">archive</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+                    <span class="n">xml</span> <span class="o">=</span> <span class="n">fromstring</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+                    <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="o">.</span><span class="n">from_tree</span><span class="p">(</span><span class="n">xml</span><span class="p">)</span>
+                    <span class="n">ws</span><span class="o">.</span><span class="n">add_table</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+
+                <span class="n">drawings</span> <span class="o">=</span> <span class="n">rels</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">SpreadsheetDrawing</span><span class="o">.</span><span class="n">_rel_type</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">rel</span> <span class="ow">in</span> <span class="n">drawings</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">find_charts</span><span class="p">(</span><span class="n">archive</span><span class="p">,</span> <span class="n">rel</span><span class="o">.</span><span class="n">target</span><span class="p">):</span>
+                        <span class="n">ws</span><span class="o">.</span><span class="n">add_chart</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">anchor</span><span class="p">)</span>
+
+                <span class="n">pivot_rel</span> <span class="o">=</span> <span class="n">rels</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">TableDefinition</span><span class="o">.</span><span class="n">rel_type</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">pivot_rel</span><span class="p">:</span>
+                    <span class="n">pivot_path</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">Target</span>
+                    <span class="n">src</span> <span class="o">=</span> <span class="n">archive</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">pivot_path</span><span class="p">)</span>
+                    <span class="n">tree</span> <span class="o">=</span> <span class="n">fromstring</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+                    <span class="n">pivot</span> <span class="o">=</span> <span class="n">TableDefinition</span><span class="o">.</span><span class="n">from_tree</span><span class="p">(</span><span class="n">tree</span><span class="p">)</span>
+                    <span class="n">pivot</span><span class="o">.</span><span class="n">cache</span> <span class="o">=</span> <span class="n">pivot_caches</span><span class="p">[</span><span class="n">pivot</span><span class="o">.</span><span class="n">cacheId</span><span class="p">]</span>
+                    <span class="n">ws</span><span class="o">.</span><span class="n">add_pivot</span><span class="p">(</span><span class="n">pivot</span><span class="p">)</span>
+
+        <span class="n">ws</span><span class="o">.</span><span class="n">sheet_state</span> <span class="o">=</span> <span class="n">sheet</span><span class="o">.</span><span class="n">state</span>
+        <span class="n">ws</span><span class="o">.</span><span class="n">_rels</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># reset</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">assign_names</span><span class="p">()</span>
+
+    <span class="c1">#wb._differential_styles.styles =  [] # tables may depened upon dxf</span>
+
+    <span class="n">archive</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">wb</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>

@@ -9,7 +9,7 @@
     <title>utils &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -240,7 +240,7 @@
 </div></blockquote>
 <p><strong>Examples</strong></p>
 <blockquote>
-<div><p>The PropertyFactory is an FreeProperty class creator that functions just like Python ‘property’ objects. Use the PropertyFactory to create a Weight class which calculates weight based on density and volume:</p>
+<div><p>The PropertyFactory is a FreeProperty class creator that functions similar to Python ‘property’ objects. Use the PropertyFactory to create a Weight class which calculates weight based on density and volume:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">getter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="gp">... </span>   <span class="sd">&#39;&#39;&#39;Weight (kg) based on volume (m^3).&#39;&#39;&#39;</span>
 <span class="gp">... </span>   <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
@@ -602,7 +602,7 @@ and the returned workbook will be read-only.</p>
 
 <dl class="class">
 <dt id="biosteam.utils.Workbook">
-<em class="property">class </em><code class="descclassname">biosteam.utils.</code><code class="descname">Workbook</code><span class="sig-paren">(</span><em>write_only=False</em>, <em>iso_dates=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/openpyxl/workbook/workbook.html#Workbook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.utils.Workbook" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.utils.</code><code class="descname">Workbook</code><span class="sig-paren">(</span><em>write_only=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/openpyxl/workbook/workbook.html#Workbook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.utils.Workbook" title="Permalink to this definition">¶</a></dt>
 <dd><p>Workbook is the container for all other parts of the document.</p>
 <dl class="method">
 <dt id="biosteam.utils.Workbook.get_active_sheet">
@@ -894,7 +894,7 @@ worksheets can only be copied within the workbook that they belong</p>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

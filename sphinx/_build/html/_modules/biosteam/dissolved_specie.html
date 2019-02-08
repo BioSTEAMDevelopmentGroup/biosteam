@@ -1,0 +1,172 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>biosteam.dissolved_specie &#8212; BioSTEAM 0.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for biosteam.dissolved_specie</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Sat Nov 10 19:27:01 2018</span>
+
+<span class="sd">@author: yoelr</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">biosteam.specie</span> <span class="k">import</span> <span class="n">Specie</span>
+<span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">np</span>
+
+<div class="viewcode-block" id="DissolvedSpecie"><a class="viewcode-back" href="../../DissolvedSpecie.html#biosteam.DissolvedSpecie">[docs]</a><span class="k">class</span> <span class="nc">DissolvedSpecie</span><span class="p">(</span><span class="n">Specie</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a DissolvedSpecie object with the same material properties as &quot;obj&quot; argument for simplified modeling purposes. The phase stays constant as a liquid (&#39;l&#39;).</span>
+
+<span class="sd">    **Parameters**</span>
+<span class="sd">    </span>
+<span class="sd">        **ID:** [str] ID of specie</span>
+<span class="sd">        </span>
+<span class="sd">        **CAS:** [str] CAS identification</span>
+<span class="sd">        </span>
+<span class="sd">        **obj** [Specie] Should contain analog properties for specie at STP. Defaults to water if None.</span>
+
+<span class="sd">        **MW:** Molecular weight of specie</span>
+<span class="sd">         </span>
+<span class="sd">        **T:** Temperature (K)</span>
+<span class="sd">         </span>
+<span class="sd">        **P:** Pressure (Pa)</span>
+<span class="sd">         </span>
+<span class="sd">        **rho:** Density (kg/m^3)</span>
+<span class="sd">        </span>
+<span class="sd">        **k:** Thermal conductivity (W/m/K)</span>
+<span class="sd">        </span>
+<span class="sd">        **mu:** Hydrolic viscosity (Pa*s)</span>
+<span class="sd">        </span>
+<span class="sd">        **sigma:** Surface tension (N/m)</span>
+<span class="sd">        </span>
+<span class="sd">        **Hfm:** Heat of formation</span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">Tb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span> <span class="c1">#: No boiling point (K)</span>
+    <span class="n">phase_ref</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">CAS</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">MW</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">298.15</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span>
+                 <span class="n">Cp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">sigma</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Pr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Hfm</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">MW</span> <span class="o">=</span> <span class="n">MW</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Hvapm</span> <span class="o">=</span> <span class="mi">0</span>
+        
+        <span class="c1"># Default values</span>
+        <span class="n">Cp_d</span> <span class="o">=</span> <span class="mf">4.18</span>
+        <span class="n">rho_d</span> <span class="o">=</span> <span class="mi">997</span>
+        <span class="n">k_d</span> <span class="o">=</span> <span class="mf">0.5942</span>
+        <span class="n">mu_d</span> <span class="o">=</span> <span class="mf">0.00091272</span>
+        <span class="n">sigma_d</span> <span class="o">=</span> <span class="mf">0.072055</span>
+        <span class="n">Hfm_d</span> <span class="o">=</span> <span class="mi">0</span>
+        
+        <span class="c1"># Set object default values</span>
+        <span class="k">if</span> <span class="n">obj</span><span class="p">:</span>
+            <span class="n">Cp_d</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">Cp</span> <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">Cp</span> <span class="k">else</span> <span class="n">Cp_d</span>
+            <span class="n">rho_d</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">rho</span> <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">rho</span> <span class="k">else</span> <span class="n">rho_d</span>
+            <span class="n">k_d</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">k</span> <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">k</span> <span class="k">else</span> <span class="n">k_d</span>
+            <span class="n">mu_d</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">mu</span> <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">mu</span> <span class="k">else</span> <span class="n">mu_d</span>
+            <span class="n">sigma_d</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">sigma</span> <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">sigma</span> <span class="k">else</span> <span class="n">sigma_d</span>
+            <span class="n">Hfm_d</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">Hf</span> <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">Hf</span> <span class="k">else</span> <span class="n">Hfm_d</span>
+        
+        <span class="c1"># Set all values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CAS</span> <span class="o">=</span> <span class="n">CAS</span> <span class="k">if</span> <span class="n">CAS</span> <span class="k">else</span> <span class="n">ID</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Cp</span> <span class="o">=</span> <span class="n">Cp</span> <span class="k">if</span> <span class="n">Cp</span> <span class="k">else</span> <span class="n">Cp_d</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Cpm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Cp</span> <span class="o">*</span> <span class="n">MW</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rho</span> <span class="o">=</span> <span class="n">rho</span> <span class="k">if</span> <span class="n">rho</span> <span class="k">else</span> <span class="n">rho_d</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rhom</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho</span><span class="o">/</span><span class="n">MW</span><span class="o">*</span><span class="mi">1000</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Vm</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">rhom</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">k</span> <span class="k">if</span> <span class="n">k</span> <span class="k">else</span> <span class="n">k_d</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">rho</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Cp</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mu</span> <span class="o">=</span> <span class="n">mu</span> <span class="k">if</span> <span class="n">mu</span> <span class="k">else</span> <span class="n">mu_d</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mu</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">rho</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span> <span class="o">=</span> <span class="n">sigma</span> <span class="k">if</span> <span class="n">sigma</span> <span class="k">else</span> <span class="n">sigma_d</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Pr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nu</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">UNIFAC_groups</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Hfm</span> <span class="o">=</span> <span class="n">Hfm</span> <span class="k">if</span> <span class="n">Hfm</span> <span class="k">else</span> <span class="n">Hfm_d</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">Cplm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Cpm</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">phase</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;l&#39;</span>
+    <span class="nd">@phase</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase</span><span class="p">):</span> <span class="k">pass</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,448 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>MixedStream &#8212; BioSTEAM 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Unit" href="Unit.html" />
+    <link rel="prev" title="Stream" href="Stream.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Unit.html" title="Unit"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="Stream.html" title="Stream"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="Stream.html"
+                        title="previous chapter">Stream</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="Unit.html"
+                        title="next chapter">Unit</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/MixedStream.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="mixedstream">
+<h1>MixedStream<a class="headerlink" href="#mixedstream" title="Permalink to this headline">¶</a></h1>
+<p>A MixedStream object represents a multi-phase material flow with in a chemical process.</p>
+<span class="target" id="module-biosteam"></span><dl class="class">
+<dt id="biosteam.MixedStream">
+<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">MixedStream</code><span class="sig-paren">(</span><em>ID=''</em>, <em>solid_flow=()</em>, <em>liquid_flow=()</em>, <em>LIQUID_flow=()</em>, <em>vapor_flow=()</em>, <em>species=()</em>, <em>units='kmol/hr'</em>, <em>T=298.15</em>, <em>P=101325</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/mixed_stream.html#MixedStream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.MixedStream" title="Permalink to this definition">¶</a></dt>
+<dd><p>An extension of the <a class="reference internal" href="Stream.html"><span class="doc">Stream</span></a> class. All inherited properties and methods are supported. Create a MixedStream object that can manage mixtures of solid (‘s’), liquid (‘l’), LIQUID (‘L’), and vapor (‘g’) phases. A MixedStream object is capable of vapor-liquid equilibrium (VLE) and liquid-LIQUID equilibrium (LLE).</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><p><strong>ID:</strong> [str] ID of the stream. If ID is ‘’, a default ID will be chosen.</p>
+<p><strong>solid_flow:</strong> [array_like] solid flow rates by specie</p>
+<p><strong>liquid_flow:</strong> [array_like] liquid flow rates by specie</p>
+<p><strong>LIQUID_flow:</strong> [array_like] LIQUID flow rates by specie</p>
+<p><strong>vapor_flow:</strong> [array_like] vapor flow rates by specie</p>
+<p><strong>species:</strong> tuple[str] or [Species] Species corresponding to <cite>flow</cite> parameters. If empty, assume same species as class.</p>
+<p><strong>units:</strong> [str] The units of the flow rates (only mass, molar, and volumetric flow rates are valid)</p>
+<p><strong>T:</strong> [float] Temperature (K)</p>
+<p><strong>P:</strong> [float] Pressure (Pa)</p>
+</div></blockquote>
+<p><strong>Examples</strong></p>
+<blockquote>
+<div><a class="reference internal" href="MixedStream Example.html"><span class="doc">MixedStream</span></a></div></blockquote>
+<dl class="attribute">
+<dt id="biosteam.MixedStream.phase">
+<code class="descname">phase</code><a class="headerlink" href="#biosteam.MixedStream.phase" title="Permalink to this definition">¶</a></dt>
+<dd><p>String denoting all phases present</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.solid_mol">
+<code class="descname">solid_mol</code><a class="headerlink" href="#biosteam.MixedStream.solid_mol" title="Permalink to this definition">¶</a></dt>
+<dd><p>solid phase molar flow rates (kmol/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.solid_molfrac">
+<code class="descname">solid_molfrac</code><a class="headerlink" href="#biosteam.MixedStream.solid_molfrac" title="Permalink to this definition">¶</a></dt>
+<dd><p>solid phase molar fractions.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.solid_molnet">
+<code class="descname">solid_molnet</code><a class="headerlink" href="#biosteam.MixedStream.solid_molnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>solid phase net molar flow rate (kg/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.solid_mass">
+<code class="descname">solid_mass</code><a class="headerlink" href="#biosteam.MixedStream.solid_mass" title="Permalink to this definition">¶</a></dt>
+<dd><p>solid phase mass flow rates (kg/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.solid_massfrac">
+<code class="descname">solid_massfrac</code><a class="headerlink" href="#biosteam.MixedStream.solid_massfrac" title="Permalink to this definition">¶</a></dt>
+<dd><p>solid phase mass fractions.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.solid_massnet">
+<code class="descname">solid_massnet</code><a class="headerlink" href="#biosteam.MixedStream.solid_massnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>solid phase net mass flow rate (kg/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.solid_vol">
+<code class="descname">solid_vol</code><a class="headerlink" href="#biosteam.MixedStream.solid_vol" title="Permalink to this definition">¶</a></dt>
+<dd><p>solid phase volumetric flow rates (m3/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.solid_volfrac">
+<code class="descname">solid_volfrac</code><a class="headerlink" href="#biosteam.MixedStream.solid_volfrac" title="Permalink to this definition">¶</a></dt>
+<dd><p>solid phase volumetric fractions.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.solid_volnet">
+<code class="descname">solid_volnet</code><a class="headerlink" href="#biosteam.MixedStream.solid_volnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>solid phase net volumetric flow rate (m3/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.liquid_mol">
+<code class="descname">liquid_mol</code><a class="headerlink" href="#biosteam.MixedStream.liquid_mol" title="Permalink to this definition">¶</a></dt>
+<dd><p>liquid phase molar flow rates (kmol/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.liquid_molfrac">
+<code class="descname">liquid_molfrac</code><a class="headerlink" href="#biosteam.MixedStream.liquid_molfrac" title="Permalink to this definition">¶</a></dt>
+<dd><p>liquid phase molar fractions.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.liquid_molnet">
+<code class="descname">liquid_molnet</code><a class="headerlink" href="#biosteam.MixedStream.liquid_molnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>liquid phase net molar flow rate (kg/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.liquid_mass">
+<code class="descname">liquid_mass</code><a class="headerlink" href="#biosteam.MixedStream.liquid_mass" title="Permalink to this definition">¶</a></dt>
+<dd><p>liquid phase mass flow rates (kg/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.liquid_massfrac">
+<code class="descname">liquid_massfrac</code><a class="headerlink" href="#biosteam.MixedStream.liquid_massfrac" title="Permalink to this definition">¶</a></dt>
+<dd><p>liquid phase mass fractions.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.liquid_massnet">
+<code class="descname">liquid_massnet</code><a class="headerlink" href="#biosteam.MixedStream.liquid_massnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>liquid phase net mass flow rate (kg/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.liquid_vol">
+<code class="descname">liquid_vol</code><a class="headerlink" href="#biosteam.MixedStream.liquid_vol" title="Permalink to this definition">¶</a></dt>
+<dd><p>liquid phase volumetric flow rates (m3/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.liquid_volfrac">
+<code class="descname">liquid_volfrac</code><a class="headerlink" href="#biosteam.MixedStream.liquid_volfrac" title="Permalink to this definition">¶</a></dt>
+<dd><p>liquid phase volumetric fractions.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.liquid_volnet">
+<code class="descname">liquid_volnet</code><a class="headerlink" href="#biosteam.MixedStream.liquid_volnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>liquid phase net volumetric flow rate (m3/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.LIQUID_mol">
+<code class="descname">LIQUID_mol</code><a class="headerlink" href="#biosteam.MixedStream.LIQUID_mol" title="Permalink to this definition">¶</a></dt>
+<dd><p>LIQUID phase molar flow rates (kmol/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.LIQUID_molfrac">
+<code class="descname">LIQUID_molfrac</code><a class="headerlink" href="#biosteam.MixedStream.LIQUID_molfrac" title="Permalink to this definition">¶</a></dt>
+<dd><p>LIQUID phase molar fractions.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.LIQUID_molnet">
+<code class="descname">LIQUID_molnet</code><a class="headerlink" href="#biosteam.MixedStream.LIQUID_molnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>LIQUID phase net molar flow rate (kg/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.LIQUID_mass">
+<code class="descname">LIQUID_mass</code><a class="headerlink" href="#biosteam.MixedStream.LIQUID_mass" title="Permalink to this definition">¶</a></dt>
+<dd><p>LIQUID phase mass flow rates (kg/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.LIQUID_massfrac">
+<code class="descname">LIQUID_massfrac</code><a class="headerlink" href="#biosteam.MixedStream.LIQUID_massfrac" title="Permalink to this definition">¶</a></dt>
+<dd><p>LIQUID phase mass fractions.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.LIQUID_massnet">
+<code class="descname">LIQUID_massnet</code><a class="headerlink" href="#biosteam.MixedStream.LIQUID_massnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>LIQUID phase net mass flow rate (kg/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.LIQUID_vol">
+<code class="descname">LIQUID_vol</code><a class="headerlink" href="#biosteam.MixedStream.LIQUID_vol" title="Permalink to this definition">¶</a></dt>
+<dd><p>LIQUID phase volumetric flow rates (m3/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.LIQUID_volfrac">
+<code class="descname">LIQUID_volfrac</code><a class="headerlink" href="#biosteam.MixedStream.LIQUID_volfrac" title="Permalink to this definition">¶</a></dt>
+<dd><p>LIQUID phase volumetric fractions.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.LIQUID_volnet">
+<code class="descname">LIQUID_volnet</code><a class="headerlink" href="#biosteam.MixedStream.LIQUID_volnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>LIQUID phase net volumetric flow rate (m3/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.vapor_mol">
+<code class="descname">vapor_mol</code><a class="headerlink" href="#biosteam.MixedStream.vapor_mol" title="Permalink to this definition">¶</a></dt>
+<dd><p>vapor phase molar flow rates (kmol/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.vapor_molfrac">
+<code class="descname">vapor_molfrac</code><a class="headerlink" href="#biosteam.MixedStream.vapor_molfrac" title="Permalink to this definition">¶</a></dt>
+<dd><p>vapor phase molar fractions.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.vapor_molnet">
+<code class="descname">vapor_molnet</code><a class="headerlink" href="#biosteam.MixedStream.vapor_molnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>vapor phase net molar flow rate (kg/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.vapor_mass">
+<code class="descname">vapor_mass</code><a class="headerlink" href="#biosteam.MixedStream.vapor_mass" title="Permalink to this definition">¶</a></dt>
+<dd><p>vapor phase mass flow rates (kg/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.vapor_massfrac">
+<code class="descname">vapor_massfrac</code><a class="headerlink" href="#biosteam.MixedStream.vapor_massfrac" title="Permalink to this definition">¶</a></dt>
+<dd><p>vapor phase mass fractions.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.vapor_massnet">
+<code class="descname">vapor_massnet</code><a class="headerlink" href="#biosteam.MixedStream.vapor_massnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>vapor phase net mass flow rate (kg/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.vapor_vol">
+<code class="descname">vapor_vol</code><a class="headerlink" href="#biosteam.MixedStream.vapor_vol" title="Permalink to this definition">¶</a></dt>
+<dd><p>vapor phase volumetric flow rates (m3/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.vapor_volfrac">
+<code class="descname">vapor_volfrac</code><a class="headerlink" href="#biosteam.MixedStream.vapor_volfrac" title="Permalink to this definition">¶</a></dt>
+<dd><p>vapor phase volumetric fractions.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.vapor_volnet">
+<code class="descname">vapor_volnet</code><a class="headerlink" href="#biosteam.MixedStream.vapor_volnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>vapor phase net volumetric flow rate (m3/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.mol">
+<code class="descname">mol</code><a class="headerlink" href="#biosteam.MixedStream.mol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Molar flow rates (kmol/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.mass">
+<code class="descname">mass</code><a class="headerlink" href="#biosteam.MixedStream.mass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mass flow rates (kmol/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.vol">
+<code class="descname">vol</code><a class="headerlink" href="#biosteam.MixedStream.vol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Volumetric flow rates (kmol/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.molfrac">
+<code class="descname">molfrac</code><a class="headerlink" href="#biosteam.MixedStream.molfrac" title="Permalink to this definition">¶</a></dt>
+<dd><p>Molar fractions.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.massfrac">
+<code class="descname">massfrac</code><a class="headerlink" href="#biosteam.MixedStream.massfrac" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mass fractions.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.volfrac">
+<code class="descname">volfrac</code><a class="headerlink" href="#biosteam.MixedStream.volfrac" title="Permalink to this definition">¶</a></dt>
+<dd><p>Volumetric fractions.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.molnet">
+<code class="descname">molnet</code><a class="headerlink" href="#biosteam.MixedStream.molnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mol net flow rate (kmol/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.massnet">
+<code class="descname">massnet</code><a class="headerlink" href="#biosteam.MixedStream.massnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mass net flow rate (kmol/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.MixedStream.volnet">
+<code class="descname">volnet</code><a class="headerlink" href="#biosteam.MixedStream.volnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Volumetric net flow rate (kmol/hr).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.MixedStream.VLE">
+<code class="descname">VLE</code><span class="sig-paren">(</span><em>specie_IDs=None</em>, <em>LNK=None</em>, <em>HNK=None</em>, <em>P=None</em>, <em>Qin=None</em>, <em>T=None</em>, <em>V=None</em>, <em>x=None</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/mixed_stream.html#MixedStream.VLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.MixedStream.VLE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Partition flow rates into vapor and liquid phases by equilibrium. Pressure defaults to current pressure.</p>
+<p><strong>Optional parameters</strong></p>
+<blockquote>
+<div><p><strong>P:</strong> [float] Operating pressure (Pa)</p>
+<p><strong>specie_IDs:</strong> [list] IDs of equilibrium species</p>
+<p><strong>LNK:</strong> list[str] Light non-keys</p>
+<p><strong>HNK:</strong> list[str] Heavy non-keys</p>
+<dl class="docutils">
+<dt><strong>User may define one:</strong></dt>
+<dd><ul class="first last simple">
+<li><strong>Qin:</strong> [float] Energy input (kJ/hr)</li>
+<li><strong>T:</strong> [float] Operating temperature (K)</li>
+<li><strong>V:</strong> [float] Overall molar vapor fraction</li>
+<li><strong>x:</strong> [numpy array] Molar composition of liquid (for binary mixture)</li>
+<li><strong>y:</strong> [numpy array] Molar composition of vapor (for binary mixture)</li>
+</ul>
+</dd>
+</dl>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.MixedStream.LLE">
+<code class="descname">LLE</code><span class="sig-paren">(</span><em>specie_IDs=None</em>, <em>split=None</em>, <em>lNK=()</em>, <em>LNK=()</em>, <em>solvents=()</em>, <em>solvent_split=()</em>, <em>P=None</em>, <em>T=None</em>, <em>Qin=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/mixed_stream.html#MixedStream.LLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.MixedStream.LLE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Partition flow rates into liquid and LIQUID phases by equilibrium.</p>
+<p><strong>Optional Parameters</strong></p>
+<blockquote>
+<div><p><strong>specie_IDs:</strong> <em>tuple[str]</em> IDs of equilibrium species</p>
+<p><strong>split:</strong> <em>tuple[float]</em> Initial guess split fractions of each specie to the ‘liquid’</p>
+<p><strong>lNK:</strong> <em>tuple[str]</em> Species assumed to completely remain in the ‘liquid’ phase.</p>
+<p><strong>LNK:</strong> <em>tuple[str]</em> Species assumed to completely remain in the ‘LIQUID’ phase.</p>
+<p><strong>solvents:</strong> <em>tuple[str]</em> Species corresponding to specified solvent_split</p>
+<p><strong>solvent_split:</strong> <em>tuple[float]</em> Split fractions of each specie to the ‘liquid’ phase.</p>
+<p><strong>Qin:</strong> <em>[float]</em> Energy input (kJ/hr)</p>
+<p><strong>T:</strong> <em>[float]</em> Operating temperature (K)</p>
+<p><strong>P:</strong> <em>[float]</em> Operating pressure (Pa)</p>
+</div></blockquote>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Unit.html" title="Unit"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="Stream.html" title="Stream"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>

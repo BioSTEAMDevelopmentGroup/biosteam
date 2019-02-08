@@ -4,8 +4,8 @@ Base Classes
 .. toctree::
    :maxdepth: 2
    
-   Compound
-   DissolvedCompound
+   Specie
+   DissolvedSpecie
    Chemical
    Species
    Stream

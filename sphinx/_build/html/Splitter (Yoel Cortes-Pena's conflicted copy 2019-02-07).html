@@ -1,0 +1,135 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Transesterification &#8212; BioSTEAM 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="StorageTank" href="StorageTank.html" />
+    <link rel="prev" title="Pump" href="Pump.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="StorageTank.html" title="StorageTank"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="Pump.html" title="Pump"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="Pump.html"
+                        title="previous chapter">Pump</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="StorageTank.html"
+                        title="next chapter">StorageTank</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/Splitter.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-biosteam">
+<span id="transesterification"></span><h1>Transesterification<a class="headerlink" href="#module-biosteam" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="biosteam.Transesterification">
+<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Transesterification</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>efficiency=None</em>, <em>r=None</em>, <em>T=None</em>, <em>catalyst_molfrac=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/transesterification.html#Transesterification"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Transesterification" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>An extension of the</em> <a class="reference internal" href="Unit.html"><span class="doc">Unit class</span></a>. Create a transesterification reactor that converts ‘Lipid’ and ‘Methanol’ to ‘Biodiesel’ and ‘Glycerol’. Finds the amount of catalyist ‘NaOCH3’ required and consumes it to ‘NaOH’ and ‘Methanol’.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><p><strong>ID:</strong> [str] Unique identification. If set as ‘’, a default ID will be chosen.</p>
+<p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+<p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+<p><strong>eff:</strong> Efficiency of conversion (on a ‘Lipid’ basis)</p>
+<p><strong>r:</strong> Methanol to lipid molar ratio</p>
+<p><strong>catalyst_molfrac:</strong> Molar fraction of catalyst in methanol feed</p>
+<p><strong>T:</strong> Operating temperature (K)</p>
+</div></blockquote>
+<p><strong>ins</strong></p>
+<blockquote>
+<div><p>[0] Lipid feed</p>
+<p>[1] Fresh methanol and catalyst</p>
+</div></blockquote>
+<p><strong>outs</strong></p>
+<blockquote>
+<div>[0] Product</div></blockquote>
+<p><strong>Examples</strong></p>
+<blockquote>
+<div><a class="reference internal" href="Transesterification Example.html"><span class="doc">Transesterification</span></a></div></blockquote>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="StorageTank.html" title="StorageTank"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="Pump.html" title="Pump"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>

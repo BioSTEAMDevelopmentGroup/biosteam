@@ -9,7 +9,7 @@
     <title>biosteam.chemical &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
@@ -60,11 +60,11 @@
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">thermo.chemical</span> <span class="k">import</span> <span class="n">Chemical</span> <span class="k">as</span> <span class="n">TChem</span>
-<span class="kn">from</span> <span class="nn">biosteam.compound</span> <span class="k">import</span> <span class="n">Compound</span>
+<span class="kn">from</span> <span class="nn">biosteam.specie</span> <span class="k">import</span> <span class="n">Specie</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Chemical&#39;</span><span class="p">,</span> <span class="s1">&#39;Solid&#39;</span><span class="p">,</span> <span class="s1">&#39;Liquid&#39;</span><span class="p">,</span> <span class="s1">&#39;Gas&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Chemical"><a class="viewcode-back" href="../../Chemical.html#biosteam.Chemical">[docs]</a><span class="k">class</span> <span class="nc">Chemical</span><span class="p">(</span><span class="n">Compound</span><span class="p">,</span> <span class="n">TChem</span><span class="p">):</span>
+<div class="viewcode-block" id="Chemical"><a class="viewcode-back" href="../../Chemical.html#biosteam.Chemical">[docs]</a><span class="k">class</span> <span class="nc">Chemical</span><span class="p">(</span><span class="n">Specie</span><span class="p">,</span> <span class="n">TChem</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;An extension of the ChEDL thermo Chemical class. The enthalpy property, &#39;H&#39;, does not account for excess ethalpy, it is simply based on latent heats and heat capacities at a constant pressure of 101325. All thermodynamic energies are now calculated properties and not attributes. </span>
 
 <span class="sd">`Read the docs for thermo.Chemical for accurate documentation. &lt;http://thermo.readthedocs.io/en/latest/thermo.chemical.html&gt;`__&quot;&quot;&quot;</span>
@@ -160,7 +160,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>
