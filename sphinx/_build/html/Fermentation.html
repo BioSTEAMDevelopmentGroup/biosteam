@@ -78,7 +78,7 @@
 <dt id="biosteam.Fermentation">
 <em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Fermentation</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>tau=None</em>, <em>efficiency=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/fermentation.html#Fermentation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Fermentation" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>An extension of the</em> <a class="reference internal" href="Unit.html"><span class="doc">Unit class</span></a>. 
-Create a Fermentation object which models batch fermentation for the production of 1st generation ethanol using yeast [1, 2]. Only sucrose and glucose are taken into account. Conversion is based on reaction time, <em>tau</em>. Number of batches are selected based a loading time per volume ratio, <em>f</em>, assuming no influent surge time. Cleaning and unloading time, <em>tau_0</em>, and fraction of working volume, <em>V_wf</em>, are muttable properties. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3].</p>
+Create a Fermentation object which models batch fermentation for the production of 1st generation ethanol using yeast [1, 2]. Only sucrose and glucose are taken into account. Conversion is based on reaction time, <em>tau</em>. Cleaning and unloading time, <em>tau_0</em>, fraction of working volume, <em>V_wf</em>, and number of reactors, N_reactors, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3].</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>ID:</strong> [str] Unique identification. If set as ‘’, a default ID will be chosen.</p>
@@ -103,7 +103,7 @@ Create a Fermentation object which models batch fermentation for the production 
 </div></blockquote>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">A specie with CAS ‘Yeast’ must be present in species.</p>
+<p class="last">A compound with CAS ‘Yeast’ must be present in species.</p>
 </div>
 <p><strong>Examples</strong></p>
 <blockquote>
@@ -115,14 +115,8 @@ Create a Fermentation object which models batch fermentation for the production 
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.Fermentation.f">
-<code class="descname">f</code><em class="property"> = 0.001294</em><a class="headerlink" href="#biosteam.Fermentation.f" title="Permalink to this definition">¶</a></dt>
-<dd><p>Loading time per volume (hr/m3)</p>
-</dd></dl>
-
-<dl class="attribute">
 <dt id="biosteam.Fermentation.V_wf">
-<code class="descname">V_wf</code><em class="property"> = 0.9</em><a class="headerlink" href="#biosteam.Fermentation.V_wf" title="Permalink to this definition">¶</a></dt>
+<code class="descname">V_wf</code><em class="property"> = 0.8</em><a class="headerlink" href="#biosteam.Fermentation.V_wf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fraction of filled tank to total tank volume</p>
 </dd></dl>
 

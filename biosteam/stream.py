@@ -16,7 +16,7 @@ from biosteam.find import find
 from biosteam.species import Species
 from biosteam.exceptions import SolverError, EquilibriumError, \
                                 DimensionError
-from biosteam.UNIFAC import DORTMUND
+from biosteam.unifac import DORTMUND
 
 ln = np.log
 exp = np.exp
@@ -648,15 +648,14 @@ class Stream(metaclass=metaStream):
         Stream = type(self)
         letter, number = Stream._default_ID
 
-        # Make sure given ID is not a default ID
-        if ID.startswith(letter):
-            if ID[1:].isdigit():
-                raise ValueError(f"IDs starting with '{letter}' and followed by only digits are reserved for defaults. To use the default ID, set ID as 'Default'.")
-
         # Select a default ID if requested
         if ID == '':
             Stream._default_ID[1] += 1
-            ID = letter + str(number)
+            num = str(number)
+            numlen = len(num)
+            if numlen < 3:
+                num = (3-numlen)*'0' + num
+            ID = letter + num
 
         # Add ID to find dictionary and set it
         find.stream[ID] = self
@@ -731,8 +730,11 @@ class Stream(metaclass=metaStream):
     def mol(self, val):
         try:
             self._mol[:] = val
-        except ValueError:
-            raise ValueError(f'Length of flow property ({len(val)} given) must be the same as the number of species ({self._Nspecies})')
+        except ValueError as value_error:
+            if len(val) != self._Nspecies:
+                raise ValueError(f'Length of flow property ({len(val)} given) must be the same as the number of species ({self._Nspecies})')
+            else:
+                raise value_error
 
     @property
     def molfrac(self):
@@ -869,6 +871,15 @@ class Stream(metaclass=metaStream):
         """
         return self._prop_molar_flownet('Hfm')
 
+    @property
+    def Hc(self):
+        """Heat of combustion flow rate (kJ/hr).
+
+        >>> s2.Hc
+        -1409983.0
+        """
+        return self._prop_molar_flownet('Hc')
+        
     # Entropy
     @property
     def S(self):
@@ -1040,12 +1051,12 @@ class Stream(metaclass=metaStream):
     # Other properties
     @property
     def source(self):
-        """tuple with the ID of the unit it exits and the position"""
+        """tuple with the unit source and the position"""
         return self._source
 
     @property
     def sink(self):
-        """tuple with the ID of the unit it enters and the position"""
+        """tuple with the unit sink and the position"""
         return self._sink
 
     @property
@@ -1286,7 +1297,8 @@ class Stream(metaclass=metaStream):
                 specie.P = P
                 specie.T = T
                 specie.phase = phase
-                out[i] = getattr(specie, prop_ID)
+                prop = getattr(specie, prop_ID)
+                out[i] = prop if prop else 0
         return out
 
     def _prop_molar_flow(self, prop_ID):
@@ -1447,9 +1459,9 @@ class Stream(metaclass=metaStream):
         
         # Retrive cached info
         # Even if different composition, use previous bubble point as guess
-        cached = self._bubble_cached.get(specie_IDs) # c means cached
+        cached = self._bubble_cached.get(specie_IDs) 
         if cached:
-            cP, T_bubble, y_bubble, cx = cached
+            cP, T_bubble, y_bubble, cx = cached # c means cached
             if sum(abs(x - cx)) < 1e-6 and abs(cP - P) < 1:
                 # Return cached data
                 return T_bubble, y_bubble 
@@ -1831,7 +1843,7 @@ class Stream(metaclass=metaStream):
 
     # MixedStream compatibility
     def enable_phases(self):
-        """Turn stream into a MixedStream object."""
+        """Cast stream into a MixedStream object."""
         mS = mixed_stream.MixedStream
         if type(self) is not mS:
             default_phase = self.phase
@@ -1843,7 +1855,13 @@ class Stream(metaclass=metaStream):
             self.mol = self._mol
 
     def disable_phases(self, phase):
-        """Turn stream into a Stream object."""
+        """Cast stream into a Stream object.
+        
+        **Parameters**
+        
+            **phase:** {'s', 'l', 'g'} desired phase of stream
+            
+        """
         if type(self) is not Stream:
             mol = self.mol
             self.__class__ = Stream
@@ -1870,7 +1888,6 @@ class Stream(metaclass=metaStream):
         P_units = show_units.get('P')
         flow_units = show_units.get('flow')
         fraction = show_units.get('fraction')
-        #dim = CS.dim
         
         # First line
         unit_ID = self._source[0]
@@ -1933,7 +1950,7 @@ class Stream(metaclass=metaStream):
             flow = Q_(getattr(self, flow)[nonzero], units[flow]).to(flow_units).magnitude
         len_ = len(nonzero)
         if len_ == 0:
-            return basic_info + ' flows:  0'
+            return basic_info + ' flow:  0'
         else:
             flowrates = ''
             lengths = [len(sp) for sp in species]

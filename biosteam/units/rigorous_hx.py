@@ -30,7 +30,7 @@ class HX(Unit):
     """
     _N_ins = 1
     _N_outs = 1
-    _N_heat_util = 1
+    _N_heat_utilities = 1
     kwargs = {'T': None}
 
     def _setup(self):

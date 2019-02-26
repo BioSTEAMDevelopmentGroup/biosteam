@@ -84,13 +84,13 @@
 <div><p><strong>ID:</strong> [str] Unique identification. If set as ‘’, a default ID will be chosen.</p>
 <p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
 <p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+<p><strong>P:</strong> [float] Operating pressure (Pa)</p>
 <dl class="docutils">
-<dt><strong>User defines two:</strong></dt>
+<dt><strong>User defines one:</strong></dt>
 <dd><ul class="first last simple">
 <li><strong>Qin:</strong> [float] Energy input (kJ/hr)</li>
 <li><strong>V:</strong> [float] Overall molar vapor fraction</li>
 <li><strong>T:</strong> [float] Operating temperature (K)</li>
-<li><strong>P:</strong> [float] Operating pressure (Pa)</li>
 <li><strong>x:</strong> [array_like] Molar composition of liquid (for binary mixture)</li>
 <li><strong>y:</strong> [array_like] Molar composition of vapor (for binary mixture)</li>
 </ul>
@@ -119,6 +119,12 @@
 <p><strong>Examples</strong></p>
 <blockquote>
 <div><a class="reference internal" href="Flash Example.html"><span class="doc">Flash</span></a></div></blockquote>
+<dl class="attribute">
+<dt id="biosteam.Flash.vacuum_system_preference">
+<code class="descname">vacuum_system_preference</code><em class="property"> = 'Liquid-ring pump'</em><a class="headerlink" href="#biosteam.Flash.vacuum_system_preference" title="Permalink to this definition">¶</a></dt>
+<dd><p>If a vacuum system is needed, it will choose one according to this preference.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="biosteam.Flash.SepType">
 <code class="descname">SepType</code><em class="property"> = 'Default'</em><a class="headerlink" href="#biosteam.Flash.SepType" title="Permalink to this definition">¶</a></dt>

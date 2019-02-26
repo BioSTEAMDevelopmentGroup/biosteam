@@ -459,12 +459,6 @@
 </div></blockquote>
 </dd></dl>
 
-<dl class="function">
-<dt id="biosteam.utils.get_streams">
-<code class="descclassname">biosteam.utils.</code><code class="descname">get_streams</code><span class="sig-paren">(</span><em>units</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/utils/stream_utils.html#get_streams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.utils.get_streams" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return tuple of Stream objects from an iterable of Unit objects.</p>
-</dd></dl>
-
 <dl class="class">
 <dt id="biosteam.utils.MissingStream">
 <em class="property">class </em><code class="descclassname">biosteam.utils.</code><code class="descname">MissingStream</code><a class="reference internal" href="_modules/biosteam/utils/stream_utils.html#MissingStream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.utils.MissingStream" title="Permalink to this definition">¶</a></dt>
@@ -473,7 +467,7 @@
 
 <dl class="class">
 <dt id="biosteam.utils.Ins">
-<em class="property">class </em><code class="descclassname">biosteam.utils.</code><code class="descname">Ins</code><span class="sig-paren">(</span><em>sink</em>, <em>streams=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/utils/stream_utils.html#Ins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.utils.Ins" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.utils.</code><code class="descname">Ins</code><span class="sig-paren">(</span><em>sink</em>, <em>streams=()</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/utils/stream_utils.html#Ins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.utils.Ins" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Ins object which serves as a list of input streams for a Unit object.</p>
 <dl class="attribute">
 <dt id="biosteam.utils.Ins.sink">
@@ -500,7 +494,7 @@
 
 <dl class="class">
 <dt id="biosteam.utils.Outs">
-<em class="property">class </em><code class="descclassname">biosteam.utils.</code><code class="descname">Outs</code><span class="sig-paren">(</span><em>unit</em>, <em>streams=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/utils/stream_utils.html#Outs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.utils.Outs" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.utils.</code><code class="descname">Outs</code><span class="sig-paren">(</span><em>source</em>, <em>streams=()</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/utils/stream_utils.html#Outs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.utils.Outs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Outs object which serves as a list of output streams for a Unit object.</p>
 <dl class="attribute">
 <dt id="biosteam.utils.Outs.source">

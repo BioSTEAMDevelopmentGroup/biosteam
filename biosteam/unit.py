@@ -5,6 +5,7 @@ Created on Sat Aug 18 14:40:28 2018
 @author: yoelr
 """
 
+import re
 import os
 import IPython
 from copy import copy
@@ -14,10 +15,11 @@ from biosteam.find import find, WeakRefBook
 from biosteam.graphics import Graphics, default_graphics
 from biosteam.stream import Stream
 from biosteam.heat_utility import HeatUtility
-from biosteam.utils import get_doc_units, color_scheme, Ins, Outs, MissingStream
+from biosteam.utils import get_doc_units, color_scheme, Ins, Outs, missing_stream
 from bookkeep import SmartBook, UnitManager
 from biosteam.power_utility import PowerUtility
 from biosteam import np
+import biosteam
 CS = color_scheme
 
 dir_path = os.path.dirname(os.path.realpath(__file__)) + '\\'
@@ -98,22 +100,25 @@ class metaUnit(type):
     
             # Set line
             # default_line constitutes a new Unit class
-            if cls.line is default_line:
-                cls.line = cls.__name__
+            line = cls.line
+            if line is default_line:
+                line = cls.__name__.replace('_', ' ')
                 # Set new graphics object for new line
-                if not new_definitions.get('_Graphics'):
-                    cls._Graphics = Graphics()
+                if not new_definitions.get('_graphics'):
+                    cls._graphics = Graphics()
             elif new_definitions.get('line'):
                 # Set new graphics for specified line
-                if not new_definitions.get('_Graphics'):
-                    cls._Graphics = Graphics()
-    
+                if not new_definitions.get('_graphics'):
+                    cls._graphics = Graphics()
+            
+            cls.line = line = re.sub(r"\B([A-Z])", r" \1", line).capitalize()
+            
             # Add class to find line dictionary
-            if cls.line is not default_line: # Do not include abstract Unit classes
-                if not find.line[cls.line]:
-                    find.line[cls.line] = []
-                if cls.__name__ not in [cls.__name__ for cls in find.line[cls.line]]:
-                    find.line[cls.line].append(cls)
+            if line is not default_line: # Do not include abstract Unit classes
+                if not find.line[line]:
+                    find.line[line] = []
+                if cls.__name__ not in [cls.__name__ for cls in find.line[line]]:
+                    find.line[line].append(cls)
                     
             # Key word arguments to replace
             kwargs = ''
@@ -224,7 +229,7 @@ class Unit(metaclass=metaUnit):
 
         **operating_days**  = 330: [int] Operation days per year
         
-        **lang_factor** = 5.03: [float] Lang factor including working capital from Peters, Timmerhaus, and West (2003)
+        **lang_factor** = 4.37: [float] Lang factor excluding working capital from Peters, Timmerhaus, and West (2003)
         
         **bounds** = {} [dict] Values should be tuples with lower and upper bounds.
         
@@ -234,9 +239,9 @@ class Unit(metaclass=metaUnit):
 
         **_N_outs** = 2: [int] Expected number of output streams
 
-        **_N_heat_util** = 0: [int] Number of heat utilities  
+        **_N_heat_utilities** = 0: [int] Number of heat utilities  
 
-        **_power_util** = False: [bool] If True, a PowerUtility object is created for every instance.
+        **_has_power_utility** = False: [bool] If True, a PowerUtility object is created for every instance.
 
     **ins**
         
@@ -266,34 +271,25 @@ class Unit(metaclass=metaUnit):
     # [dict] Values should be tuples with lower and upper bounds for results dictionary.
     bounds = {}
     
-    # [float] Lang factor including working capital from Peters, Timmerhaus, and West (2003)
-    lang_factor = 5.03 
-    
-    # [int] Operation days per year
-    operating_days = 330
-    
     # [int] number of heat utilities
-    _N_heat_util = 0
+    _N_heat_utilities = 0
     
     # [PowerUtility] A PowerUtility object, if required
     _power_utility = None
     
     # [bool] If True, a PowerUtility object is created for every instance.
-    _power_util = False 
+    _has_power_utility = False 
     
     # [dict] default key word arguments that are accessed by setup, run, _simple_run, operation, design, and cost methods.
     kwargs = {}
     
     # [biosteam Graphics] a Graphics object for diagram representation.
-    _Graphics = default_graphics
+    _graphics = default_graphics
     
     # [str] The type of unit, regardless of estimations
     line = default_line
 
     ### Other defaults ###
-    
-    # [float] Contingency and fees factor :math:`C_{TM} = F_{TM} * C_{BM}`
-    _F_TM = 1.18
 
     # [list] Default ID starting letter and number
     _default_ID = ['U', 0]
@@ -334,11 +330,11 @@ class Unit(metaclass=metaUnit):
     def _init_ins(self, ins):
         """Initialize input streams."""
         if ins is None:
-            self._ins = Ins(self, (MissingStream() for i in range(self._N_ins)))
+            self._ins = Ins(self, (missing_stream for i in range(self._N_ins)))
         elif isinstance(ins, Stream):
-            self._ins = Ins(self, (ins))
+            self._ins = Ins(self, ins)
         elif isinstance(ins, str):
-            self._ins = Ins(self, (Stream(ins)))
+            self._ins = Ins(self, Stream(ins))
         elif not ins:
             self._ins = Ins(self, (Stream('') for i in range(self._N_ins)))
         else:
@@ -347,11 +343,11 @@ class Unit(metaclass=metaUnit):
     def _init_outs(self, outs):
         """Initialize output streams."""
         if isinstance(outs, str):
-            self._outs = Outs(self, (Stream(outs)))
+            self._outs = Outs(self, Stream(outs))
         elif isinstance(outs, Stream):
-            self._outs = Outs(self, (outs))
+            self._outs = Outs(self, outs)
         elif outs is None:
-            self._outs = Outs(self, (MissingStream() for i in range(self._N_outs)))
+            self._outs = Outs(self, (missing_stream for i in range(self._N_outs)))
         elif not outs:
             self._outs = Outs(self, (Stream('') for i in range(self._N_outs)))
         else:
@@ -366,17 +362,18 @@ class Unit(metaclass=metaUnit):
             Operation=SmartBook(units, bounds, source=self, inclusive=empty),
             Design=SmartBook(units, bounds, source=self, inclusive=empty),
             Cost=SmartBook(units, bounds, source=self, inclusive=empty),
-            Summary=SmartBook(units, bounds, source=self, inclusive=empty))
+            Summary=SmartBook(units, bounds, source=self, inclusive=empty,
+                              **{'Purchase cost': 0, 'Utility cost': 0}))
     
     def _init_heat_utils(self):
         """Initialize heat utilities."""
-        _N_heat_util = self._N_heat_util
-        utilities = [HeatUtility(self) for i in range(_N_heat_util)]
+        _N_heat_utilities = self._N_heat_utilities
+        utilities = [HeatUtility(self) for i in range(_N_heat_utilities)]
         self._heat_utilities = utilities
         
     def _init_power_util(self):
         """Initialize power utility."""
-        if self._power_util:
+        if self._has_power_utility:
             self._power_utility = PowerUtility(self)
     
     # Forward pipping
@@ -495,14 +492,13 @@ class Unit(metaclass=metaUnit):
         Unit = type(self)
         letter, number = Unit._default_ID
 
-        # Make sure given ID is not a default ID
-        if ID.startswith(letter):
-            if ID[1:].isdigit():
-                raise ValueError(f"IDs starting with '{letter}' and followed by only digits are reserved for defaults. To use the default ID, set ID to 'Default'.")
-
         # Select a default ID if requested
         if ID == '':
             Unit._default_ID[1] += 1
+            num = str(number)
+            numlen = len(num)
+            if numlen < 3:
+                num = (3-numlen)*'0' + num
             ID = letter + str(number)
 
         # Add instance to class instance dictionary
@@ -550,8 +546,65 @@ class Unit(metaclass=metaUnit):
             self._power_utility = power_utility
 
     @property
-    def diagram(self):
-        """`Graphviz diagram <https://pypi.org/project/graphviz/>`__ of unit"""
+    def _upstream_neighbors(self):
+        """Return set of upsteam neighboring units."""
+        neighbors = set()
+        for s in self._ins:
+            u_source = s.source[0]
+            if u_source: neighbors.add(u_source)
+        return neighbors
+
+    @property
+    def _downstream_neighbors(self):
+        """Return set of downstream neighboring units."""
+        neighbors = set()
+        for s in self._outs:
+            u_sink = s.sink[0]
+            if u_sink:
+                neighbors.add(u_sink)
+        return neighbors
+
+    def _neighborhood(self, radius=1):
+        """Return all neighboring units within given radius.
+        
+        **Parameters**
+        
+            **radius:**[int] Maxium number streams between neighbors.
+        
+        """
+        radius -= 1
+        if radius < 0: return set()
+        upstream_neighbors = self._upstream_neighbors
+        downstream_neighbors = self._downstream_neighbors
+        neighborhood = upstream_neighbors.union(downstream_neighbors)
+        direct_neighborhood = neighborhood
+        
+        for i in range(radius):
+            neighbors = set()
+            for neighbor in direct_neighborhood:
+                neighbors.update(neighbor._upstream_neighbors)
+                neighbors.update(neighbor._downstream_neighbors)
+            direct_neighborhood = neighbors
+            neighborhood.update(direct_neighborhood)
+        
+        neighborhood.discard(None)
+        return neighborhood
+
+    def diagram(self, radius=0):
+        """Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of the unit and all neighboring units within given radius.
+        
+        **Parameters**
+        
+            **radius:** [int] Maxium number streams between neighbors.
+        
+        """
+        if radius > 0:
+            neighborhood = self._neighborhood(radius)
+            neighborhood.add(self)
+            sys = biosteam.System('', neighborhood)
+            return sys.diagram()
+        
+        graphics = self._graphics
 
         # Make a Digraph handle
         f = Digraph(name='unit', filename='unit', format='svg')
@@ -563,19 +616,17 @@ class Unit(metaclass=metaUnit):
         if (len(self.ins) >= 3) or (len(self.outs) >= 3):
             f.attr('graph', nodesep='0.4')
 
-        # Name for unit node
-        type_ = type(self).__name__.replace('_', '\n').replace(' ', '\n')
-        name = self.ID + '\n' + type_
-
         # Initialize node arguments based on unit and make node
-        self._Graphics.node_function(self)
-        f.attr('node', **self._Graphics.node)
+        graphics.node_function(self)
+        type_ = graphics.name if graphics.name else self.line
+        name = self.ID + '\n' + type_
+        f.attr('node', **self._graphics.node)
         f.node(name)
 
         # Set stream node attributes
         f.attr('node', shape='rarrow', fillcolor='#79dae8',
                style='filled', orientation='0', width='0.6',
-               height='0.6', color='black')
+               height='0.6', color='black', peripheries='1')
 
         # Make nodes and edges for input streams
         di = 0  # Destination position of stream
@@ -583,7 +634,7 @@ class Unit(metaclass=metaUnit):
             if stream.ID == '' or stream.ID == 'Missing Stream':
                 continue  # Ignore stream
             f.node(stream.ID)  
-            edge_in = self._Graphics.edge_in
+            edge_in = self._graphics.edge_in
             f.attr('edge', arrowtail='none', arrowhead='none',
                    tailport='e', **edge_in[di])
             f.edge(stream.ID, name)
@@ -593,7 +644,7 @@ class Unit(metaclass=metaUnit):
         oi = 0  # Origin position of stream
         for stream in self.outs:
             f.node(stream.ID) 
-            edge_out = self._Graphics.edge_out  
+            edge_out = self._graphics.edge_out  
             f.attr('edge', arrowtail='none', arrowhead='none',
                    headport='w', **edge_out[oi])
             f.edge(name, stream.ID)
@@ -764,7 +815,7 @@ class Unit(metaclass=metaUnit):
             unit = stream._source[0]
             stream_info = stream._info(**show_units)
             index = stream_info.index('\n')
-            if unit is None:
+            if not unit:
                 source_info = '\n'
             else:
                 source_info = f'  from  {unit}\n'
@@ -780,7 +831,7 @@ class Unit(metaclass=metaUnit):
             unit = stream._sink[0]
             stream_info = stream._info(**show_units)
             index = stream_info.index('\n')
-            if unit is None:
+            if not unit:
                 sink_info = '\n'
             else:
                 sink_info = f'  to  {unit}\n'

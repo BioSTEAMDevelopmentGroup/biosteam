@@ -108,8 +108,9 @@ class Splitter(Unit, metaclass=metaFinal):
 class InvSplitter(Unit, metaclass=metaFinal):
     """Create a splitter that sets input stream based on output streams. Must have only one input stream. The output streams are the same temperature, pressure and phase as the input.
     """
+    line = 'Splitter'
     kwargs = {}
-    _Graphics = Splitter._Graphics
+    _graphics = Splitter._graphics
     
     def __init__(self, ID, outs_ID, ins_ID):
         self._init_ins(ins_ID)

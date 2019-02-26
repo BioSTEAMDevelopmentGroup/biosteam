@@ -62,9 +62,11 @@ class HX(Unit):
         **_Duty:** [float] The heat transfer requirement (kJ/hr)
 
     """
+    line = 'Heat Exchanger'
+    
     _N_ins = 1
     _N_outs = 1
-    _N_heat_util = 1
+    _N_heat_utilities = 1
     
     # Heat exchanger type
     _Type = 'Floating head'
@@ -182,12 +184,8 @@ class HX(Unit):
 
     @staticmethod
     def _inside_isheating(ci, hi, co, ho) -> bool:
-        if abs(298.15 - ci.T) - abs(hi.T - 298.15)> 0:
-            # Cold stream goes in tube side
-            return True
-        else:
-            # Cold stream goes in shell side
-            return False
+        """Return True if cold stream goes in tube side (as opposed to shell side)."""
+        return abs(298.15 - ci.T) - abs(hi.T - 298.15) > 0
 
     @staticmethod
     def _shellntube_streams(ci, hi, co, ho, inside_heating) -> 's_tube, s_shell':
@@ -389,10 +387,7 @@ class HX(Unit):
         L = 20
         
         # Design pressure
-        if inside_heating:
-            P = hi.P
-        else:
-            P = ci.P
+        P = max((ci.P, hi.P))
         
         # Calculate Area
         Design['Area'] = self._calc_area(LMTD, U, Q, ft) * 10.763
@@ -595,7 +590,7 @@ class HXprocess(HX):
         :doc:`HXprocess Example`
     
     """
-    _N_heat_util = 0
+    _N_heat_utilities = 0
     _N_ins = 2
     _N_outs = 2
     dT = 5 #: [float] Pinch temperature difference.

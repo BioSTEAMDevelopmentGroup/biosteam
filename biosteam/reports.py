@@ -12,7 +12,7 @@ import copy
 DataFrame = pd.DataFrame
 ExcelWriter = pd.ExcelWriter
 
-__all__ = ('stream_table', 'save_reports', 'report_cost',
+__all__ = ('stream_table', 'report_cost', 'save_system_report',
            'report_results', 'report_heat_utilities', 'report_power_utilities')
 
 # %% Helpful functions
@@ -33,37 +33,68 @@ def _units_wt_cost(units):
     return units
 
 def _units_sort_by_cost(units):
-    """Sort by first grouping units by type and then order groups by maximum capital."""
-    unit_types = list({type(u).__name__ for u in units})
-    type_dict = {ut:[] for ut in unit_types}
+    """Sort by first grouping units by line and then order groups by maximum capital."""
+    unit_lines = list({u.line for u in units})
+    line_dict = {ut:[] for ut in unit_lines}
     for u in units:
-        ut = type(u).__name__
-        type_dict[ut].append(u)
+        line_dict[u.line].append(u)
     units = []
-    unit_types.sort(key=lambda ut: max(u.results['Summary']['Purchase cost'] for u in type_dict[ut]), reverse=True)
-    for key in unit_types:
-        ulist = type_dict[key]
+    unit_lines.sort(key=lambda ut: max(u.results['Summary']['Purchase cost'] for u in line_dict[ut]), reverse=True)
+    for key in unit_lines:
+        ulist = line_dict[key]
         ulist.sort(key=lambda x: x.results['Summary']['Purchase cost'], reverse=True)
         units += ulist
     return units
 
-def save_reports(reports, file='Report.xlsx'):
+def save(reports, writer, sheet_name='Sheet1', n_row = 1):
     """Save a list of reports as an excel file.
     
     **Parameters**
     
         **reports:** iterable[DataFrame]
         
+        **writer:** [ExcelWritter]
+        
     """
-    writer = ExcelWriter(file)
-    n_row = 1
     for r in reports:
         label = r.columns.name
-        r.to_excel(writer, startrow=n_row, index_label=label)
+        r.to_excel(writer, sheet_name, 
+                   startrow=n_row, index_label=label)
         n_row += len(r.index) + 2
     
+    return n_row
 
 # %% Units
+
+def save_system_report(system, file='Report.xlsx'):
+    """Save a system report as an xlsx file."""
+    writer = ExcelWriter(file)
+    units = system.units
+    
+    # Cost report
+    cost = report_cost(system)
+    cost.to_excel(writer, 'Itemized costs', 
+                  index_label=cost.columns.name)
+    
+    # Stream tables
+    report = stream_table(system.streams, flow='kg/min')
+    report.to_excel(writer, 'Stream table', 
+                    index_label=cost.columns.name)
+    
+    # Heat utility reports
+    heat_utilities = report_heat_utilities(units)
+    n_row = save(heat_utilities, writer, 'Utilities')
+    
+    # Power utility report
+    power_utility = report_power_utilities(units)
+    power_utility.to_excel(writer, 'Utilities', 
+                           index_label='Electricity',
+                           startrow=n_row)
+    
+    # General desing requirements
+    results = report_results(units)
+    save(results, writer, 'Design requirements')
+    
 
 def report_results(units):
     """Return a list of results reports for each unit type.
@@ -78,7 +109,7 @@ def report_results(units):
     
     """
     units = _units_wt_cost(units)
-    units.sort(key=(lambda u: type(u).__name__))
+    units.sort(key=(lambda u: u.line))
     
     # First report and set keys to compare with
     r = units[0].results
@@ -103,7 +134,7 @@ def report_results(units):
     
     return reports
     
-def report_cost(units):
+def report_cost(system):
     """Return a cost report as a pandas DataFrame object.
 
     **Parameters**:
@@ -115,16 +146,24 @@ def report_cost(units):
         **unit_table:** [DataFrame] Units as indexes with the following columns
             * 'Unit Type': Type of unit
             * 'CI (10^6 USD)': Capital investment
-            * 'OC (10^6 USD/yr)': Annual operating cost
+            * 'UC (10^6 USD/yr)': Annual utility cost
 
     """
     columns = ('Type',
-              f'CI (10^6 USD)',
-              f'OC (10^6 USD/yr)')
+              f'Fixed Capital Investment (10^6 USD)',
+              f'Utility Cost (10^6 USD/yr)')
+    units = system.units
     units = _units_wt_cost(units)
     units = _units_sort_by_cost(units)
     
     # Initialize data
+    try:
+        o = system.TEA.options
+    except AttributeError:
+        if system.TEA is None:
+            raise ValueError('Cannot find TEA object related to system. A TEA object of the system must be created first.')
+    lang_factor = o['Lang factor']
+    operating_days = o['Operating days']
     N_units = len(units)
     array = np.empty((N_units, 3), dtype=object)
     IDs = []
@@ -136,9 +175,9 @@ def report_cost(units):
     for i in range(N_units):
         unit = units[i]
         Summary = unit.results['Summary']
-        types[i] = type(unit).__name__
-        C_cap[i] = Summary['Purchase cost'] * unit.lang_factor / 1e6
-        C_op[i] = Summary['Utility cost'] * unit.operating_days * 24  / 1e6
+        types[i] = unit.line
+        C_cap[i] = Summary['Purchase cost'] * lang_factor / 1e6
+        C_op[i] = Summary['Utility cost'] * operating_days * 24  / 1e6
         IDs.append(unit.ID)
     
     return DataFrame(array, columns=columns, index=IDs)    
@@ -207,9 +246,10 @@ def report_power_utilities(units, **units_of_measure):
         report = pd.concat((report, pu.results.table(with_units=False)), axis=1)
     return report
 
+
 # %% Streams
 
-def stream_table(streams, Flow='kmol/hr', **props) -> 'DataFrame':
+def stream_table(streams, flow='kmol/hr', **props) -> 'DataFrame':
     """Return a stream table as a pandas DataFrame object.
 
     **Parameters**:
@@ -222,7 +262,7 @@ def stream_table(streams, Flow='kmol/hr', **props) -> 'DataFrame':
     
     """
     # Get correct flow attributes
-    flow_dim = Q_(0, Flow).dimensionality
+    flow_dim = Q_(0, flow).dimensionality
     if flow_dim == mol_flow_dim:
         flow_attr = 'mol'
     elif flow_dim == mass_flow_dim:
@@ -249,8 +289,8 @@ def stream_table(streams, Flow='kmol/hr', **props) -> 'DataFrame':
     fracs = array[p+5:m+p+5, :]
     for j in range(n):
         s = ss[j]
-        sources[j] = s.source[0]
-        sinks[j] = s.sink[0]
+        sources[j] = str(s.source[0])
+        sinks[j] = str(s.sink[0])
         IDs[j] = s.ID
         phase = ''
         for i in s.phase:
@@ -274,7 +314,7 @@ def stream_table(streams, Flow='kmol/hr', **props) -> 'DataFrame':
     
     # Set the right units
     units = Stream.units
-    flows = Q_(flows, units[flow_attr]); flows.ito(Flow); flows = flows.magnitude
+    flows = Q_(flows, units[flow_attr]); flows.ito(flow); flows = flows.magnitude
     i = 0
     prop_molar_keys = p*[None]
     for attr, unit in props.items():
@@ -289,7 +329,7 @@ def stream_table(streams, Flow='kmol/hr', **props) -> 'DataFrame':
         species[i] = '- ' + species[i]
     
     # Make data frame object
-    index = ('Source', 'Sink', 'Phase')  + tuple(prop_molar_keys) + (f'Flow ({Flow})', 'Composition:') + tuple(species)
+    index = ('Source', 'Sink', 'Phase')  + tuple(prop_molar_keys) + (f'flow ({flow})', 'Composition:') + tuple(species)
     return DataFrame(array, columns=IDs, index=index)
 
 

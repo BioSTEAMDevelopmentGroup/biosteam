@@ -67,7 +67,7 @@ class PowerUtility:
     price = 0.0782
     
     def __init__(self, source):
-        self.results = SmartBook(self._units, source=source)
+        self.results = SmartBook(self._units, Power=0, Cost=0, source=source)
     
     def __call__(self, power:'kW'):
         """Return dictionary of utility requirements given the essential parameters.

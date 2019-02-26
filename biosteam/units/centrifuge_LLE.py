@@ -46,6 +46,8 @@ class Centrifuge_LLE(Unit):
         :doc:`Centrifuge_LLE Example`
     
     """
+    line = 'Liquids Centrifuge'
+    
     kwargs = {'specie_IDs': None,
               'split': None,
               'lNK': (),
@@ -100,7 +102,8 @@ class Centrifuge_LLE(Unit):
         return Cost
 
 class Centrifuge_LLE_Lazy(Centrifuge_LLE):
-    _N_heat_util = 0
+    
+    _N_heat_utilities = 0
     kwargs = {'Kspecies': [],  # list of species that correspond to Ks
               'Ks': [],  # list of molar ratio partition coefficinets,
               # Ks = y/x, where y and x are molar ratios of two different phases
@@ -113,5 +116,5 @@ class Centrifuge_LLE_Lazy(Centrifuge_LLE):
         pass
 
     _run = EstimateFlash._run
-    _simple_run = EstimateFlash._simple_run
+    _lazyrun = EstimateFlash._lazyrun
     

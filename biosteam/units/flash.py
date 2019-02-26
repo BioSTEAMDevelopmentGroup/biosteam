@@ -11,7 +11,8 @@ import copy
 import numpy as np
 from scipy.optimize import brentq, newton
 from thermo import activity
-from biosteam.units.hx import HXutility
+from .vacuum import vacuum_system
+from biosteam.units.hx import HX, HXutility
 from biosteam.units.design_tools import (HNATable, FinalValue,
                           VesselWeightAndWallThickness, Kvalue)
 
@@ -81,11 +82,12 @@ class Flash(Unit):
 
     **Parameters**
 
-        **User defines two:**
+        **P:** [float] Operating pressure (Pa)
+
+        **User defines one:**
             * **Qin:** [float] Energy input (kJ/hr)
             * **V:** [float] Overall molar vapor fraction
             * **T:** [float] Operating temperature (K)
-            * **P:** [float] Operating pressure (Pa)
             * **x:** [array_like] Molar composition of liquid (for binary mixture)
             * **y:** [array_like] Molar composition of vapor (for binary mixture)     
     
@@ -118,11 +120,15 @@ class Flash(Unit):
         :doc:`Flash Example`
     
     """
-    _N_heat_util = 0
+    _has_power_utility = True
+    _N_heat_utilities = 0
     
     # Column material factor
     _F_Mstr = 'Carbon steel'
     _F_M = 1 
+    
+    #: If a vacuum system is needed, it will choose one according to this preference.
+    vacuum_system_preference = 'Liquid-ring pump'
     
     #: [str] 'Horizontal', 'Vertical', or 'Default'
     SepType = 'Default'
@@ -163,16 +169,18 @@ class Flash(Unit):
             raise ValueError(f"Vessel material must be one of the following: {dummy}")
         self._F_Mstr = vessel_material  
 
-    def _setup(self):
+    def _init(self):
         vap, liq = self.outs
         vap.phase = 'g'
         liq.phase = 'l'
-        self._cached = cached = {}
-        cached['mixed stream'] = ms = MixedStream()
-        self._heat_exchanger = he = HXutility(self.ID+' hx', None) 
+        self._heat_exchanger = he = HXutility(self.ID+' hx', outs=None) 
         self.heat_utilities = he.heat_utilities
         he._ins = self._ins
-        he-ms
+        self._mixedstream = ms = MixedStream()
+        he._outs[0] = ms
+
+    def _setup(self):
+        self._has_hx = self.kwargs['Qin'] != 0
 
     def _run(self):
         # Unpack
@@ -182,7 +190,7 @@ class Flash(Unit):
 
         # Vapor Liquid Equilibrium
         VLE_kwargs = copy.copy(kwargs)
-        ms = self._cached['mixed stream']
+        ms = self._mixedstream
         ms.empty()
         ms.liquid_mol = feed.mol
         ms.T = feed.T
@@ -194,7 +202,7 @@ class Flash(Unit):
         vap.T = liq.T = ms.T
         vap.P = liq.P = ms.P
 
-    def _simple_run(self):
+    def _lazyrun(self):
         """Approximate outputs based on molar partition coefficients and overall molar fraction of top phase (0th output)."""
         ph1, ph2 = self.outs
         _mol_in = ph1.mol + ph2.mol
@@ -235,7 +243,8 @@ class Flash(Unit):
         ph2.mol[pos] = _mol_in[pos] - ph1.mol[pos]
 
     def _operation(self):
-        self._heat_exchanger._operation()
+        if self._has_hx:
+            self._heat_exchanger._operation()
 
     def _design(self):
         """
@@ -258,8 +267,8 @@ class Flash(Unit):
             out = self._horizontal()
         else:
             raise ValueError( f"SepType must be either 'Horizontal' or 'Vertical', not '{self.SepType}'")
-        
-        self._heat_exchanger._design()
+        if self._has_hx:
+            self._heat_exchanger._design()
         return out
 
     def _cost(self):
@@ -287,8 +296,44 @@ class Flash(Unit):
             ValueError(f"SepType ({type_}) must be either 'Vertical', 'Horizontal' or 'Default'.")
             
         Cost['Vessel'] = CE/500*(C_v+C_pl)
-        Cost['Heat exchanger'] = self._heat_exchanger._cost()['Heat exchanger']
-        return Cost
+        if self._has_hx:
+            Cost['Heat exchanger'] = self._heat_exchanger._cost()['Heat exchanger']
+        self._cost_vacuum()
+
+    def _cost_vacuum(self):
+        P = self.kwargs['P']
+        if not P or P > 101320:
+            return 
+        
+        r = self.results
+        D = r['Design']
+        C = r['Cost']
+        vol = 0.02832 * np.pi * D['Length'] * (D['Diameter']/2)**2
+        
+        # If vapor is condensed, assume vacuum system is after condenser
+        vapor = self.outs[0]
+        hx, index = vapor.sink
+        if isinstance(hx, HX):
+            stream = hx.outs[index]
+            if isinstance(stream, MixedStream):
+                massflow = stream.vapor_massnet
+                volflow = stream.vapor_volnet
+            else:
+                if stream.phase == 'g':
+                    massflow = stream.massnet
+                    volflow = stream.volnet
+                else:
+                    massflow = 0
+                    volflow = 0
+        else:
+            massflow = vapor.massnet
+            volflow = vapor.volnet
+        
+        power, cost = vacuum_system(massflow, volflow,
+                                    P, vol,
+                                    self.vacuum_system_preference)
+        C['Liquid-ring pump'] = cost
+        self.power_utility(power)
 
     def _design_parameters(self):
         # Retrieve run_args and properties
@@ -421,8 +466,8 @@ class Flash(Unit):
 
         # Results
         d = self.results['Design']
-        d.boundscheck('Vertical vessel weight', VW, 'lb')
-        d.boundscheck('Vertical vessel length', Ht, 'lb')
+        d.boundscheck('Vertical vessel weight', VW)
+        d.boundscheck('Vertical vessel length', Ht)
         d['SepType'] = 'Vertical'
         d['Length'] = Ht     # ft
         d['Diameter'] = D    # ft
@@ -587,32 +632,59 @@ class Flash(Unit):
         
         # Results
         d = self.results['Design']
-        d.boundscheck('Horizontal vessel weight', VW, 'lb')
+        d.boundscheck('Horizontal vessel weight', VW)
         d['SepType'] = 'Horizontal'
         d['Length'] = L  # ft
         d['Diameter'] = D  # ft
         d['Weight'] = VW  # lb
         d['Wall thickness'] = VWT  # in
         return d
+    
+    
 
-# %% Estimate
+# %% Special
+
+
+class LazyFlash(Flash):
+    line = 'Flash'
+    
+    kwargs = {'split': 1,  # component split fractions
+              'T': 298.15,  # operating temperature (K)
+              'P': 101325,
+              'Qin': None}  # operating pressure (Pa)
+    
+    def _setup(self):
+        top, bot = self.outs
+        _, Tf, Pf, Qin = self.kwargs.values()
+        self._has_hx = Qin != 0
+        bot.T = top.T = Tf
+        bot.P = top.P = Pf
+
+    def _run(self):
+        split = self.kwargs['split']
+        top, bot = self.outs
+        net_mol = self._mol_in
+        top.mol = net_mol*split
+        bot.mol = net_mol - top.mol
+
+    def _operation(self):
+        if self._has_hx:
+            ms = MixedStream.sum(self._mixedstream, self.outs)
+            self._heat_exchanger.outs = ms
+            self._heat_exchanger._operation()
 
 
 class EstimateFlash(Flash):
-    _N_heat_util = 1
-    kwargs = {'Kspecies': [],  # list of species that correspond to Ks
+    _N_heat_utilities = 1
+    kwargs = {'P': None,
+              'Kspecies': [],  # list of species that correspond to Ks
               'Ks': [],  # list of molar ratio partition coefficinets,
               # Ks = y/x, where y and x are molar ratios of two different phases
               'top_solvents': [],  # list of species that correspond to top_split
               'top_split': [],  # list of splits for top_solvents
               'bot_solvents': [],  # list of species that correspond to bot_split
-              'bot_split': []}  # list of splits for bot_solvents
-
-    def _setup(self):
-        self._heat_exchanger = he = HXutility(self.ID+' hx', outs_ID=()) 
-        self.heat_utilities = he.heat_utilities
-        he._ins = self._ins
-        he.outs = self._outs
+              'bot_split': [], # list of splits for bot_solvents
+              'Qin': None}  
 
     def _run(self):
         feed = self.ins[0]
@@ -638,21 +710,19 @@ class EstimateFlash(Flash):
         bot.T, bot.P = feed.T, feed.P
 
 
+
 # %% Single Component
 
-class Flash_PQin(Unit):
+class Evaporator_PQin(Unit):
 
     kwargs = {'component': 'Water',  # ID of specie
               'Qin': 0,
               'P': 101325}
 
     def _setup(self):
-        # Unpack
         component, P = (self.kwargs[i] for i in ('component', 'P'))
         vapor, liquid = self.outs[:2]
         self._cached = cached = {}
-
-        # Find final Temperature
         Tf = getattr(vapor._species, component).Tsat(P)
 
         # Set-up streams for energy balance
@@ -671,7 +741,6 @@ class Flash_PQin(Unit):
         cached['no_ph_ch'] = no_ph_ch
 
     def _run(self):
-        # Unpack
         feed = self.ins[0]
         component, Qin = (self.kwargs[i] for i in ('component', 'Qin'))
         vapor, liquid = self.outs[:2]
@@ -714,30 +783,22 @@ class Flash_PQin(Unit):
         self._V = v
 
 
-class Flash_PV(Unit):
-    _N_heat_util = 1
-    kwargs = {'component': 'ID of specie',
-              'V': 'Vapor fraction',
-              'P': 'Operating pressure (Pa)'}
+class Evaporator_PV(Unit):
+    _N_heat_utilities = 1
+    kwargs = {'component': 'Water',
+              'V': 0.5,
+              'P': 101325}
 
     def _setup(self):
-        # Unpack
         vapor, liquid = self.outs
         component, P = (self.kwargs[i] for i in ('component', 'P'))
-
-        # Find final Temperature
         Tf = getattr(vapor._species, component).Tsat(P)
-
-        # Outputs
         vapor.__dict__.update(phase='g', T=Tf, P=P)
         liquid.__dict__.update(phase='l', T=Tf, P=P)
 
     def _run(self):
-        # Unpack
         feed = self.ins[0]
         component, V = (self.kwargs[i] for i in ('component', 'V'))
-
-        # Outputs
         vapor, liquid = self.outs
         index = vapor.get_index(component)
         vapor.mol[index] = V*feed.mol[index]
@@ -746,37 +807,4 @@ class Flash_PV(Unit):
 
     _operation = HXutility._operation
 
-class P69_flash(Flash):
-    kwargs = {'split': [],  # component split fractions
-              'phase0': 'g',  # phase of 0th outs
-              'phase1': 'l',  # phase of 1st outs
-              'T': 298.15,  # operating temperature (K)
-              'P': 101325}  # operating pressure (Pa)
-    
-    def _setup(self):
-        # Unpack
-        top, bot = self.outs
-        top.phase, bot.phase, Tf, Pf = (
-            self.kwargs[i] for i in ('phase0', 'phase1', 'T', 'P'))
-        bot.T = top.T = Tf
-        bot.P = top.P = Pf
-        
-        vap, liq = self.outs
-        vap.phase = 'g'
-        liq.phase = 'l'
-        self._heat_exchanger = he = HXutility(self.ID+' hx', outs=None) 
-        self.heat_utilities = he.heat_utilities
-        he._ins = self._ins
-
-    def _run(self):
-        split = self.kwargs['split']
-        top, bot = self.outs
-        net_mol = self._mol_in
-        top.mol = net_mol*split
-        bot.mol = net_mol - top.mol
-
-    def _operation(self):
-        ms = MixedStream.sum(MixedStream(species=self.outs[0].species), self.outs)
-        self._heat_exchanger.outs = ms
-        self._heat_exchanger._operation()
         

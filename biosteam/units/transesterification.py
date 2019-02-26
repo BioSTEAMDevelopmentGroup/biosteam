@@ -48,7 +48,7 @@ class Transesterification(Reactor):
     _tau = 1
     _N_ins = 2
     _N_outs = 1
-    _N_heat_util = 1
+    _N_heat_utilities = 1
 
     def _run(self):
         feed, fresh_Methanol = self.ins

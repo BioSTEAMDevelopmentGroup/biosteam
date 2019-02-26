@@ -1196,7 +1196,7 @@ class MixedStream(Stream):
         # Length of species column
         nonzero, species = self.nonzero_species
         if len(nonzero) == 0:
-            return basic_info + ' flows:  0'
+            return basic_info + ' flow:  0'
         all_lengths = [len(sp) for sp in species]
         maxlen = max(all_lengths + [7])  # include length of the word 'species'
 

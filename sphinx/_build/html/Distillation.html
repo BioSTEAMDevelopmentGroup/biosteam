@@ -147,16 +147,13 @@
 <dd><p>Unique Identification (str). If set as ‘’, it will choose a default ID.</p>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="biosteam.Distillation.StageEfficiency">
-<code class="descname">StageEfficiency</code><a class="headerlink" href="#biosteam.Distillation.StageEfficiency" title="Permalink to this definition">¶</a></dt>
-<dd><p>Enforced user defined stage efficiency.</p>
-</dd></dl>
-
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.Distillation.diagram">
-<code class="descname">diagram</code><a class="headerlink" href="#biosteam.Distillation.diagram" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz diagram</a> of unit</p>
+<code class="descname">diagram</code><span class="sig-paren">(</span><em>radius=0</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.Distillation.diagram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display a <a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz</a> diagram of the unit and all neighboring units within given radius.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><strong>radius:</strong> [int] Maxium number streams between neighbors.</div></blockquote>
 </dd></dl>
 
 <dl class="attribute">
@@ -193,6 +190,12 @@
 <dt id="biosteam.Distillation.simulate">
 <code class="descname">simulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.Distillation.simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run rigourous simulation and determine all design requirements.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Distillation.stage_efficiency">
+<code class="descname">stage_efficiency</code><a class="headerlink" href="#biosteam.Distillation.stage_efficiency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enforced user defined stage efficiency.</p>
 </dd></dl>
 
 <dl class="attribute">

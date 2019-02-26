@@ -62,22 +62,12 @@
 <span class="sd">@author: Yoel Cortes-Pena</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;get_streams&#39;</span><span class="p">,</span> <span class="s1">&#39;MissingStream&#39;</span><span class="p">,</span> <span class="s1">&#39;Ins&#39;</span><span class="p">,</span> <span class="s1">&#39;Outs&#39;</span><span class="p">,</span> <span class="s1">&#39;Sink&#39;</span><span class="p">,</span> <span class="s1">&#39;Source&#39;</span><span class="p">)</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;MissingStream&#39;</span><span class="p">,</span> <span class="s1">&#39;Ins&#39;</span><span class="p">,</span> <span class="s1">&#39;Outs&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;Sink&#39;</span><span class="p">,</span> <span class="s1">&#39;Source&#39;</span><span class="p">,</span> <span class="s1">&#39;missing_stream&#39;</span><span class="p">)</span>
 
 <span class="c1"># For later use in this module</span>
 <span class="k">def</span> <span class="nf">missing_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Method not supported for {type(self).__name__} object.&#39;</span><span class="p">)</span>
-
-
-<span class="c1"># %% Functions relating streams</span>
-
-<div class="viewcode-block" id="get_streams"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.get_streams">[docs]</a><span class="k">def</span> <span class="nf">get_streams</span><span class="p">(</span><span class="n">units</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Return tuple of Stream objects from an iterable of Unit objects.&quot;&quot;&quot;</span>
-    <span class="n">streams</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">:</span>
-        <span class="n">streams</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">u</span><span class="o">.</span><span class="n">_ins</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">MissingStream</span><span class="p">)])</span>
-        <span class="n">streams</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">u</span><span class="o">.</span><span class="n">_outs</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">MissingStream</span><span class="p">)])</span>
-    <span class="k">return</span> <span class="n">streams</span></div>
 
 
 <span class="c1"># %% Dummy Stream object</span>
@@ -85,6 +75,14 @@
 <div class="viewcode-block" id="MissingStream"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.MissingStream">[docs]</a><span class="k">class</span> <span class="nc">MissingStream</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Create a MissingStream object that acts as a dummy in Ins and Outs objects until replaced by an actual Stream object.&quot;&quot;&quot;</span>
     <span class="n">ID</span> <span class="o">=</span> <span class="s1">&#39;Missing Stream&#39;</span>
+    <span class="n">_missing_stream</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;_sink&#39;</span><span class="p">,</span> <span class="s1">&#39;_source&#39;</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_missing_stream</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span><span class="p">:</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_missing_stream</span> <span class="o">=</span> <span class="n">s</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">s</span>
     
     <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{self.ID}</span><span class="s1"> object&#39;</span><span class="p">)</span>
@@ -98,70 +96,71 @@
     <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">show_units</span><span class="p">):</span>
         <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="o">**</span><span class="n">show_units</span><span class="p">))</span></div>
 
+<span class="n">missing_stream</span> <span class="o">=</span> <span class="n">MissingStream</span><span class="p">()</span>
 
 <span class="c1"># %% List objects for input and output streams</span>
 
 <div class="viewcode-block" id="Ins"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.Ins">[docs]</a><span class="k">class</span> <span class="nc">Ins</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a Ins object which serves as a list of input streams for a Unit object.&quot;&quot;&quot;</span>
-    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;sink&#39;</span><span class="p">]</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;sink&#39;</span><span class="p">,)</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sink</span><span class="p">,</span> <span class="n">streams</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sink</span><span class="p">,</span> <span class="n">streams</span><span class="o">=</span><span class="p">()):</span>
+        <span class="k">if</span> <span class="n">streams</span> <span class="ow">is</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">streams</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">streams</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">):</span>
+            <span class="n">streams</span> <span class="o">=</span> <span class="p">(</span><span class="n">streams</span><span class="p">,)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sink</span> <span class="o">=</span> <span class="n">sink</span> <span class="c1">#: Unit where inputs are attached</span>
-        <span class="k">if</span> <span class="n">streams</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">streams</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">):</span>
-                <span class="n">streams</span> <span class="o">=</span> <span class="p">(</span><span class="n">streams</span><span class="p">,)</span>
-            <span class="n">ID</span> <span class="o">=</span> <span class="n">sink</span><span class="o">.</span><span class="n">ID</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_clear_sink</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span>
-            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">streams</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_fix_sink</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clear_sink</span><span class="p">(</span><span class="n">sink</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">streams</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fix_sink</span><span class="p">(</span><span class="n">sink</span><span class="p">)</span>
         
-    <span class="k">def</span> <span class="nf">_clear_sink</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_clear_sink</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sink</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Remove sink from streams.&quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">_sink</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="n">ID</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">_sink</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="n">sink</span><span class="p">:</span>
                 <span class="n">s</span><span class="o">.</span><span class="n">_sink</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     
-    <span class="k">def</span> <span class="nf">_fix_sink</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_fix_sink</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sink</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set sink for all streams.&quot;&quot;&quot;</span>
         <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
-            <span class="n">s</span><span class="o">.</span><span class="n">_sink</span> <span class="o">=</span> <span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">_sink</span> <span class="o">=</span> <span class="p">(</span><span class="n">sink</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
             <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
     
     <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">stream</span><span class="p">):</span>
-        <span class="n">ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sink</span><span class="o">.</span><span class="n">ID</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">MissingStream</span><span class="p">):</span>
+        <span class="n">sink</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sink</span>
+        <span class="k">if</span> <span class="n">stream</span> <span class="ow">is</span> <span class="n">missing_stream</span><span class="p">:</span>
             <span class="k">pass</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
             <span class="n">s_old</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">s_old</span><span class="o">.</span><span class="n">_sink</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="n">ID</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">s_old</span><span class="o">.</span><span class="n">_sink</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="n">sink</span><span class="p">:</span>
                 <span class="n">s_old</span><span class="o">.</span><span class="n">_sink</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">stream</span><span class="o">.</span><span class="n">_sink</span> <span class="o">=</span> <span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+            <span class="n">stream</span><span class="o">.</span><span class="n">_sink</span> <span class="o">=</span> <span class="p">(</span><span class="n">sink</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_clear_sink</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_fix_sink</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_clear_sink</span><span class="p">(</span><span class="n">sink</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fix_sink</span><span class="p">(</span><span class="n">sink</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Only intergers and slices are valid indeces for {type(self).__name__} objects&#39;</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">stream</span><span class="p">)</span>
            
 <div class="viewcode-block" id="Ins.clear"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.Ins.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_clear_sink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sink</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clear_sink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sink</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
     
 <div class="viewcode-block" id="Ins.extend"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.Ins.extend">[docs]</a>    <span class="k">def</span> <span class="nf">extend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iterable</span><span class="p">):</span>
         <span class="n">index</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="n">ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sink</span><span class="o">.</span><span class="n">ID</span>
+        <span class="n">sink</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sink</span>
         <span class="c1"># Add sink to new streams</span>
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">iterable</span><span class="p">:</span>
-            <span class="n">s</span><span class="o">.</span><span class="n">_sink</span> <span class="o">=</span> <span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">_sink</span> <span class="o">=</span> <span class="p">(</span><span class="n">sink</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
             <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">iterable</span><span class="p">)</span></div>
         
 <div class="viewcode-block" id="Ins.append"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.Ins.append">[docs]</a>    <span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">):</span>
         <span class="n">index</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="n">ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sink</span><span class="o">.</span><span class="n">ID</span>
+        <span class="n">sink</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sink</span>
         <span class="c1"># Add sink to new stream</span>
-        <span class="n">stream</span><span class="o">.</span><span class="n">_sink</span> <span class="o">=</span> <span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+        <span class="n">stream</span><span class="o">.</span><span class="n">_sink</span> <span class="o">=</span> <span class="p">(</span><span class="n">sink</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span></div>
     
     <span class="n">pop</span> <span class="o">=</span> <span class="n">insert</span> <span class="o">=</span> <span class="n">remove</span> <span class="o">=</span> <span class="n">reverse</span> <span class="o">=</span> <span class="n">sort</span> <span class="o">=</span> <span class="n">missing_method</span></div>
@@ -169,65 +168,65 @@
 
 <div class="viewcode-block" id="Outs"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.Outs">[docs]</a><span class="k">class</span> <span class="nc">Outs</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a Outs object which serves as a list of output streams for a Unit object.&quot;&quot;&quot;</span>
-    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;source&#39;</span><span class="p">]</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;source&#39;</span><span class="p">,)</span>
     
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="n">streams</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="o">=</span> <span class="n">unit</span> <span class="c1">#: Unit where Outputs is attached</span>
-        <span class="k">if</span> <span class="n">streams</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">streams</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">):</span>
-                <span class="n">streams</span> <span class="o">=</span> <span class="p">(</span><span class="n">streams</span><span class="p">,)</span>
-            <span class="n">ID</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">ID</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_clear_source</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span>
-            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">streams</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_fix_source</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">streams</span><span class="o">=</span><span class="p">()):</span>
+        <span class="k">if</span> <span class="n">streams</span> <span class="ow">is</span> <span class="bp">self</span><span class="p">:</span>
+            <span class="n">streams</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">streams</span><span class="p">,</span> <span class="s1">&#39;__iter__&#39;</span><span class="p">):</span>
+            <span class="n">streams</span> <span class="o">=</span> <span class="p">(</span><span class="n">streams</span><span class="p">,)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="o">=</span> <span class="n">source</span> <span class="c1">#: Unit where Outputs is attached</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clear_source</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">streams</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fix_source</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
             
-    <span class="k">def</span> <span class="nf">_clear_source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_clear_source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Remove source from streams.&quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">_source</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="n">ID</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">_source</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="n">source</span><span class="p">:</span>
                 <span class="n">s</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     
-    <span class="k">def</span> <span class="nf">_fix_source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_fix_source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set source for all streams.&quot;&quot;&quot;</span>
         <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
-            <span class="n">s</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
             <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
             
     <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">stream</span><span class="p">):</span>
-        <span class="n">ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">ID</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">MissingStream</span><span class="p">):</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span>
+        <span class="k">if</span> <span class="n">stream</span> <span class="ow">is</span> <span class="n">missing_stream</span><span class="p">:</span>
             <span class="k">pass</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
             <span class="n">s_old</span> <span class="o">=</span> <span class="bp">self</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">s_old</span><span class="o">.</span><span class="n">_source</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="n">ID</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">s_old</span><span class="o">.</span><span class="n">_source</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="n">source</span><span class="p">:</span>
                 <span class="n">s_old</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-            <span class="n">stream</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+            <span class="n">stream</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">slice</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_clear_source</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_fix_source</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_clear_source</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_fix_source</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Only intergers and slices are valid indeces for {type(self).__name__} objects&#39;</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">stream</span><span class="p">)</span>
            
 <div class="viewcode-block" id="Outs.clear"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.Outs.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_clear_source</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_clear_source</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
     
 <div class="viewcode-block" id="Outs.extend"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.Outs.extend">[docs]</a>    <span class="k">def</span> <span class="nf">extend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">iterable</span><span class="p">):</span>
         <span class="n">index</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="n">ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">ID</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span>
         <span class="c1"># Add source to new streams</span>
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">iterable</span><span class="p">:</span>
-            <span class="n">s</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
             <span class="n">index</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">iterable</span><span class="p">)</span></div>
         
 <div class="viewcode-block" id="Outs.append"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.Outs.append">[docs]</a>    <span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">):</span>
         <span class="n">index</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="n">ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">ID</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span>
         <span class="c1"># Add sink to new stream</span>
-        <span class="n">stream</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
+        <span class="n">stream</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">index</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span></div>
 
     <span class="n">pop</span> <span class="o">=</span> <span class="n">insert</span> <span class="o">=</span> <span class="n">remove</span> <span class="o">=</span> <span class="n">reverse</span> <span class="o">=</span> <span class="n">sort</span> <span class="o">=</span> <span class="n">missing_method</span></div>

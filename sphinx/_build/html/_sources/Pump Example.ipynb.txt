@@ -98,7 +98,7 @@
     "P1.simulate()\n",
     "\n",
     "# Show results\n",
-    "P1.diagram\n",
+    "P1.diagram()\n",
     "P1.show()"
    ]
   },
@@ -281,7 +281,7 @@
     "P1.simulate()\n",
     "\n",
     "# Show results\n",
-    "P1.diagram\n",
+    "P1.diagram()\n",
     "P1.show()"
    ]
   },

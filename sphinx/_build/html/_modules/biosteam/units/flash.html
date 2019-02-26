@@ -66,7 +66,8 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">brentq</span><span class="p">,</span> <span class="n">newton</span>
 <span class="kn">from</span> <span class="nn">thermo</span> <span class="k">import</span> <span class="n">activity</span>
-<span class="kn">from</span> <span class="nn">biosteam.units.hx</span> <span class="k">import</span> <span class="n">HXutility</span>
+<span class="kn">from</span> <span class="nn">.vacuum</span> <span class="k">import</span> <span class="n">vacuum_system</span>
+<span class="kn">from</span> <span class="nn">biosteam.units.hx</span> <span class="k">import</span> <span class="n">HX</span><span class="p">,</span> <span class="n">HXutility</span>
 <span class="kn">from</span> <span class="nn">biosteam.units.design_tools</span> <span class="k">import</span> <span class="p">(</span><span class="n">HNATable</span><span class="p">,</span> <span class="n">FinalValue</span><span class="p">,</span>
                           <span class="n">VesselWeightAndWallThickness</span><span class="p">,</span> <span class="n">Kvalue</span><span class="p">)</span>
 
@@ -136,11 +137,12 @@
 
 <span class="sd">    **Parameters**</span>
 
-<span class="sd">        **User defines two:**</span>
+<span class="sd">        **P:** [float] Operating pressure (Pa)</span>
+
+<span class="sd">        **User defines one:**</span>
 <span class="sd">            * **Qin:** [float] Energy input (kJ/hr)</span>
 <span class="sd">            * **V:** [float] Overall molar vapor fraction</span>
 <span class="sd">            * **T:** [float] Operating temperature (K)</span>
-<span class="sd">            * **P:** [float] Operating pressure (Pa)</span>
 <span class="sd">            * **x:** [array_like] Molar composition of liquid (for binary mixture)</span>
 <span class="sd">            * **y:** [array_like] Molar composition of vapor (for binary mixture)     </span>
 <span class="sd">    </span>
@@ -173,11 +175,15 @@
 <span class="sd">        :doc:`Flash Example`</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">_N_heat_util</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">0</span>
     
     <span class="c1"># Column material factor</span>
     <span class="n">_F_Mstr</span> <span class="o">=</span> <span class="s1">&#39;Carbon steel&#39;</span>
     <span class="n">_F_M</span> <span class="o">=</span> <span class="mi">1</span> 
+    
+    <span class="c1">#: If a vacuum system is needed, it will choose one according to this preference.</span>
+    <span class="n">vacuum_system_preference</span> <span class="o">=</span> <span class="s1">&#39;Liquid-ring pump&#39;</span>
     
     <span class="c1">#: [str] &#39;Horizontal&#39;, &#39;Vertical&#39;, or &#39;Default&#39;</span>
     <span class="n">SepType</span> <span class="o">=</span> <span class="s1">&#39;Default&#39;</span>
@@ -218,16 +224,18 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Vessel material must be one of the following: </span><span class="si">{dummy}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_F_Mstr</span> <span class="o">=</span> <span class="n">vessel_material</span>  
 
-    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">vap</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">vap</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span>
         <span class="n">liq</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span> <span class="o">=</span> <span class="n">cached</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;mixed stream&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ms</span> <span class="o">=</span> <span class="n">MixedStream</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span> <span class="o">=</span> <span class="n">he</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="o">+</span><span class="s1">&#39; hx&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span> <span class="o">=</span> <span class="n">he</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="o">+</span><span class="s1">&#39; hx&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> 
         <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span> <span class="o">=</span> <span class="n">he</span><span class="o">.</span><span class="n">heat_utilities</span>
         <span class="n">he</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span>
-        <span class="n">he</span><span class="o">-</span><span class="n">ms</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mixedstream</span> <span class="o">=</span> <span class="n">ms</span> <span class="o">=</span> <span class="n">MixedStream</span><span class="p">()</span>
+        <span class="n">he</span><span class="o">.</span><span class="n">_outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">ms</span>
+
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_has_hx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;Qin&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span>
 
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Unpack</span>
@@ -237,7 +245,7 @@
 
         <span class="c1"># Vapor Liquid Equilibrium</span>
         <span class="n">VLE_kwargs</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="n">ms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span><span class="p">[</span><span class="s1">&#39;mixed stream&#39;</span><span class="p">]</span>
+        <span class="n">ms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mixedstream</span>
         <span class="n">ms</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
         <span class="n">ms</span><span class="o">.</span><span class="n">liquid_mol</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span>
         <span class="n">ms</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">T</span>
@@ -249,7 +257,7 @@
         <span class="n">vap</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">T</span>
         <span class="n">vap</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">P</span>
 
-    <span class="k">def</span> <span class="nf">_simple_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_lazyrun</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Approximate outputs based on molar partition coefficients and overall molar fraction of top phase (0th output).&quot;&quot;&quot;</span>
         <span class="n">ph1</span><span class="p">,</span> <span class="n">ph2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">_mol_in</span> <span class="o">=</span> <span class="n">ph1</span><span class="o">.</span><span class="n">mol</span> <span class="o">+</span> <span class="n">ph2</span><span class="o">.</span><span class="n">mol</span>
@@ -290,7 +298,8 @@
         <span class="n">ph2</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">=</span> <span class="n">_mol_in</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">-</span> <span class="n">ph1</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">_operation</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_hx</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">_operation</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -313,8 +322,8 @@
             <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_horizontal</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span> <span class="n">f</span><span class="s2">&quot;SepType must be either &#39;Horizontal&#39; or &#39;Vertical&#39;, not &#39;</span><span class="si">{self.SepType}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
-        
-        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_hx</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">out</span>
 
     <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -342,8 +351,44 @@
             <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;SepType (</span><span class="si">{type_}</span><span class="s2">) must be either &#39;Vertical&#39;, &#39;Horizontal&#39; or &#39;Default&#39;.&quot;</span><span class="p">)</span>
             
         <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Vessel&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">CE</span><span class="o">/</span><span class="mi">500</span><span class="o">*</span><span class="p">(</span><span class="n">C_v</span><span class="o">+</span><span class="n">C_pl</span><span class="p">)</span>
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">_cost</span><span class="p">()[</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">Cost</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_hx</span><span class="p">:</span>
+            <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">_cost</span><span class="p">()[</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cost_vacuum</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_cost_vacuum</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;P&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">P</span> <span class="ow">or</span> <span class="n">P</span> <span class="o">&gt;</span> <span class="mi">101320</span><span class="p">:</span>
+            <span class="k">return</span> 
+        
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span>
+        <span class="n">D</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
+        <span class="n">C</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
+        <span class="n">vol</span> <span class="o">=</span> <span class="mf">0.02832</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">D</span><span class="p">[</span><span class="s1">&#39;Length&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">D</span><span class="p">[</span><span class="s1">&#39;Diameter&#39;</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        
+        <span class="c1"># If vapor is condensed, assume vacuum system is after condenser</span>
+        <span class="n">vapor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">hx</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="n">vapor</span><span class="o">.</span><span class="n">sink</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hx</span><span class="p">,</span> <span class="n">HX</span><span class="p">):</span>
+            <span class="n">stream</span> <span class="o">=</span> <span class="n">hx</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">MixedStream</span><span class="p">):</span>
+                <span class="n">massflow</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">vapor_massnet</span>
+                <span class="n">volflow</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">vapor_volnet</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">stream</span><span class="o">.</span><span class="n">phase</span> <span class="o">==</span> <span class="s1">&#39;g&#39;</span><span class="p">:</span>
+                    <span class="n">massflow</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">massnet</span>
+                    <span class="n">volflow</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">volnet</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">massflow</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">volflow</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">massflow</span> <span class="o">=</span> <span class="n">vapor</span><span class="o">.</span><span class="n">massnet</span>
+            <span class="n">volflow</span> <span class="o">=</span> <span class="n">vapor</span><span class="o">.</span><span class="n">volnet</span>
+        
+        <span class="n">power</span><span class="p">,</span> <span class="n">cost</span> <span class="o">=</span> <span class="n">vacuum_system</span><span class="p">(</span><span class="n">massflow</span><span class="p">,</span> <span class="n">volflow</span><span class="p">,</span>
+                                    <span class="n">P</span><span class="p">,</span> <span class="n">vol</span><span class="p">,</span>
+                                    <span class="bp">self</span><span class="o">.</span><span class="n">vacuum_system_preference</span><span class="p">)</span>
+        <span class="n">C</span><span class="p">[</span><span class="s1">&#39;Liquid-ring pump&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cost</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">power_utility</span><span class="p">(</span><span class="n">power</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_design_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Retrieve run_args and properties</span>
@@ -476,8 +521,8 @@
 
         <span class="c1"># Results</span>
         <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
-        <span class="n">d</span><span class="o">.</span><span class="n">boundscheck</span><span class="p">(</span><span class="s1">&#39;Vertical vessel weight&#39;</span><span class="p">,</span> <span class="n">VW</span><span class="p">,</span> <span class="s1">&#39;lb&#39;</span><span class="p">)</span>
-        <span class="n">d</span><span class="o">.</span><span class="n">boundscheck</span><span class="p">(</span><span class="s1">&#39;Vertical vessel length&#39;</span><span class="p">,</span> <span class="n">Ht</span><span class="p">,</span> <span class="s1">&#39;lb&#39;</span><span class="p">)</span>
+        <span class="n">d</span><span class="o">.</span><span class="n">boundscheck</span><span class="p">(</span><span class="s1">&#39;Vertical vessel weight&#39;</span><span class="p">,</span> <span class="n">VW</span><span class="p">)</span>
+        <span class="n">d</span><span class="o">.</span><span class="n">boundscheck</span><span class="p">(</span><span class="s1">&#39;Vertical vessel length&#39;</span><span class="p">,</span> <span class="n">Ht</span><span class="p">)</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;SepType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Vertical&#39;</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;Length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ht</span>     <span class="c1"># ft</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;Diameter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">D</span>    <span class="c1"># ft</span>
@@ -642,32 +687,59 @@
         
         <span class="c1"># Results</span>
         <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
-        <span class="n">d</span><span class="o">.</span><span class="n">boundscheck</span><span class="p">(</span><span class="s1">&#39;Horizontal vessel weight&#39;</span><span class="p">,</span> <span class="n">VW</span><span class="p">,</span> <span class="s1">&#39;lb&#39;</span><span class="p">)</span>
+        <span class="n">d</span><span class="o">.</span><span class="n">boundscheck</span><span class="p">(</span><span class="s1">&#39;Horizontal vessel weight&#39;</span><span class="p">,</span> <span class="n">VW</span><span class="p">)</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;SepType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Horizontal&#39;</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;Length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">L</span>  <span class="c1"># ft</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;Diameter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">D</span>  <span class="c1"># ft</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;Weight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">VW</span>  <span class="c1"># lb</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;Wall thickness&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">VWT</span>  <span class="c1"># in</span>
         <span class="k">return</span> <span class="n">d</span></div>
+    
+    
 
-<span class="c1"># %% Estimate</span>
+<span class="c1"># %% Special</span>
+
+
+<span class="k">class</span> <span class="nc">LazyFlash</span><span class="p">(</span><span class="n">Flash</span><span class="p">):</span>
+    <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Flash&#39;</span>
+    
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;split&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>  <span class="c1"># component split fractions</span>
+              <span class="s1">&#39;T&#39;</span><span class="p">:</span> <span class="mf">298.15</span><span class="p">,</span>  <span class="c1"># operating temperature (K)</span>
+              <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="mi">101325</span><span class="p">,</span>
+              <span class="s1">&#39;Qin&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>  <span class="c1"># operating pressure (Pa)</span>
+    
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">top</span><span class="p">,</span> <span class="n">bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">Tf</span><span class="p">,</span> <span class="n">Pf</span><span class="p">,</span> <span class="n">Qin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_has_hx</span> <span class="o">=</span> <span class="n">Qin</span> <span class="o">!=</span> <span class="mi">0</span>
+        <span class="n">bot</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">Tf</span>
+        <span class="n">bot</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">Pf</span>
+
+    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">split</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;split&#39;</span><span class="p">]</span>
+        <span class="n">top</span><span class="p">,</span> <span class="n">bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+        <span class="n">net_mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol_in</span>
+        <span class="n">top</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">net_mol</span><span class="o">*</span><span class="n">split</span>
+        <span class="n">bot</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">net_mol</span> <span class="o">-</span> <span class="n">top</span><span class="o">.</span><span class="n">mol</span>
+
+    <span class="k">def</span> <span class="nf">_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_hx</span><span class="p">:</span>
+            <span class="n">ms</span> <span class="o">=</span> <span class="n">MixedStream</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mixedstream</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">outs</span> <span class="o">=</span> <span class="n">ms</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">_operation</span><span class="p">()</span>
 
 
 <span class="k">class</span> <span class="nc">EstimateFlash</span><span class="p">(</span><span class="n">Flash</span><span class="p">):</span>
-    <span class="n">_N_heat_util</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Kspecies&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of species that correspond to Ks</span>
+    <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+              <span class="s1">&#39;Kspecies&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of species that correspond to Ks</span>
               <span class="s1">&#39;Ks&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of molar ratio partition coefficinets,</span>
               <span class="c1"># Ks = y/x, where y and x are molar ratios of two different phases</span>
               <span class="s1">&#39;top_solvents&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of species that correspond to top_split</span>
               <span class="s1">&#39;top_split&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of splits for top_solvents</span>
               <span class="s1">&#39;bot_solvents&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of species that correspond to bot_split</span>
-              <span class="s1">&#39;bot_split&#39;</span><span class="p">:</span> <span class="p">[]}</span>  <span class="c1"># list of splits for bot_solvents</span>
-
-    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span> <span class="o">=</span> <span class="n">he</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="o">+</span><span class="s1">&#39; hx&#39;</span><span class="p">,</span> <span class="n">outs_ID</span><span class="o">=</span><span class="p">())</span> 
-        <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span> <span class="o">=</span> <span class="n">he</span><span class="o">.</span><span class="n">heat_utilities</span>
-        <span class="n">he</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span>
-        <span class="n">he</span><span class="o">.</span><span class="n">outs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span>
+              <span class="s1">&#39;bot_split&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="c1"># list of splits for bot_solvents</span>
+              <span class="s1">&#39;Qin&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>  
 
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -693,21 +765,19 @@
         <span class="n">bot</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">bot</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">feed</span><span class="o">.</span><span class="n">P</span>
 
 
+
 <span class="c1"># %% Single Component</span>
 
-<span class="k">class</span> <span class="nc">Flash_PQin</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">Evaporator_PQin</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
 
     <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;component&#39;</span><span class="p">:</span> <span class="s1">&#39;Water&#39;</span><span class="p">,</span>  <span class="c1"># ID of specie</span>
               <span class="s1">&#39;Qin&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
               <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="mi">101325</span><span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Unpack</span>
         <span class="n">component</span><span class="p">,</span> <span class="n">P</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">))</span>
         <span class="n">vapor</span><span class="p">,</span> <span class="n">liquid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span> <span class="o">=</span> <span class="n">cached</span> <span class="o">=</span> <span class="p">{}</span>
-
-        <span class="c1"># Find final Temperature</span>
         <span class="n">Tf</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">vapor</span><span class="o">.</span><span class="n">_species</span><span class="p">,</span> <span class="n">component</span><span class="p">)</span><span class="o">.</span><span class="n">Tsat</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
 
         <span class="c1"># Set-up streams for energy balance</span>
@@ -726,7 +796,6 @@
         <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;no_ph_ch&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">no_ph_ch</span>
 
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Unpack</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">component</span><span class="p">,</span> <span class="n">Qin</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="s1">&#39;Qin&#39;</span><span class="p">))</span>
         <span class="n">vapor</span><span class="p">,</span> <span class="n">liquid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
@@ -769,30 +838,22 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_V</span> <span class="o">=</span> <span class="n">v</span>
 
 
-<span class="k">class</span> <span class="nc">Flash_PV</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
-    <span class="n">_N_heat_util</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;component&#39;</span><span class="p">:</span> <span class="s1">&#39;ID of specie&#39;</span><span class="p">,</span>
-              <span class="s1">&#39;V&#39;</span><span class="p">:</span> <span class="s1">&#39;Vapor fraction&#39;</span><span class="p">,</span>
-              <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="s1">&#39;Operating pressure (Pa)&#39;</span><span class="p">}</span>
+<span class="k">class</span> <span class="nc">Evaporator_PV</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
+    <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;component&#39;</span><span class="p">:</span> <span class="s1">&#39;Water&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;V&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+              <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="mi">101325</span><span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Unpack</span>
         <span class="n">vapor</span><span class="p">,</span> <span class="n">liquid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">component</span><span class="p">,</span> <span class="n">P</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">))</span>
-
-        <span class="c1"># Find final Temperature</span>
         <span class="n">Tf</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">vapor</span><span class="o">.</span><span class="n">_species</span><span class="p">,</span> <span class="n">component</span><span class="p">)</span><span class="o">.</span><span class="n">Tsat</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
-
-        <span class="c1"># Outputs</span>
         <span class="n">vapor</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">phase</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">Tf</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">P</span><span class="p">)</span>
         <span class="n">liquid</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">phase</span><span class="o">=</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">Tf</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">P</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Unpack</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">component</span><span class="p">,</span> <span class="n">V</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="s1">&#39;V&#39;</span><span class="p">))</span>
-
-        <span class="c1"># Outputs</span>
         <span class="n">vapor</span><span class="p">,</span> <span class="n">liquid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">index</span> <span class="o">=</span> <span class="n">vapor</span><span class="o">.</span><span class="n">get_index</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
         <span class="n">vapor</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">V</span><span class="o">*</span><span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
@@ -801,39 +862,6 @@
 
     <span class="n">_operation</span> <span class="o">=</span> <span class="n">HXutility</span><span class="o">.</span><span class="n">_operation</span>
 
-<span class="k">class</span> <span class="nc">P69_flash</span><span class="p">(</span><span class="n">Flash</span><span class="p">):</span>
-    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;split&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># component split fractions</span>
-              <span class="s1">&#39;phase0&#39;</span><span class="p">:</span> <span class="s1">&#39;g&#39;</span><span class="p">,</span>  <span class="c1"># phase of 0th outs</span>
-              <span class="s1">&#39;phase1&#39;</span><span class="p">:</span> <span class="s1">&#39;l&#39;</span><span class="p">,</span>  <span class="c1"># phase of 1st outs</span>
-              <span class="s1">&#39;T&#39;</span><span class="p">:</span> <span class="mf">298.15</span><span class="p">,</span>  <span class="c1"># operating temperature (K)</span>
-              <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="mi">101325</span><span class="p">}</span>  <span class="c1"># operating pressure (Pa)</span>
-    
-    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Unpack</span>
-        <span class="n">top</span><span class="p">,</span> <span class="n">bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">top</span><span class="o">.</span><span class="n">phase</span><span class="p">,</span> <span class="n">bot</span><span class="o">.</span><span class="n">phase</span><span class="p">,</span> <span class="n">Tf</span><span class="p">,</span> <span class="n">Pf</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;phase0&#39;</span><span class="p">,</span> <span class="s1">&#39;phase1&#39;</span><span class="p">,</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">))</span>
-        <span class="n">bot</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">Tf</span>
-        <span class="n">bot</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">Pf</span>
-        
-        <span class="n">vap</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">vap</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span>
-        <span class="n">liq</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span> <span class="o">=</span> <span class="n">he</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="o">+</span><span class="s1">&#39; hx&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> 
-        <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span> <span class="o">=</span> <span class="n">he</span><span class="o">.</span><span class="n">heat_utilities</span>
-        <span class="n">he</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span>
-
-    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">split</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;split&#39;</span><span class="p">]</span>
-        <span class="n">top</span><span class="p">,</span> <span class="n">bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">net_mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol_in</span>
-        <span class="n">top</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">net_mol</span><span class="o">*</span><span class="n">split</span>
-        <span class="n">bot</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">net_mol</span> <span class="o">-</span> <span class="n">top</span><span class="o">.</span><span class="n">mol</span>
-
-    <span class="k">def</span> <span class="nf">_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">ms</span> <span class="o">=</span> <span class="n">MixedStream</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">MixedStream</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">species</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">outs</span> <span class="o">=</span> <span class="n">ms</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">_operation</span><span class="p">()</span>
         
 </pre></div>
 

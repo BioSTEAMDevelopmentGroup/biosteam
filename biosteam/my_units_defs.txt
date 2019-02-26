@@ -2,6 +2,7 @@ Whr = 3600*J = Wh
 bu = 56*lb
 s2 = s**2
 s3 = s**3
+cfm = ft^3/min
 cm2 = (cm)**2
 cm3 = (cm)**3
 m2 = m**2

@@ -134,7 +134,7 @@
     "C1.simulate()\n",
     "\n",
     "# See all results\n",
-    "C1.diagram\n",
+    "C1.diagram()\n",
     "C1.show(T='degC', P='atm', in_fractions= True)"
    ]
   },

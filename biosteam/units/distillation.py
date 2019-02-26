@@ -116,7 +116,7 @@ class Dist(Unit):
     _TS = 450 
     
     #: [float] Enforced user defined stage efficiency.        
-    _StageEfficiency = None
+    _stage_efficiency = None
     
     # [float] Ratio of actual velocity to maximum velocity allowable before flooding.
     _f = 0.8 
@@ -156,12 +156,12 @@ class Dist(Unit):
         self._TS = TS
     
     @property
-    def StageEfficiency(self):
+    def stage_efficiency(self):
         """Enforced user defined stage efficiency."""
-        return self._StageEfficiency
-    @StageEfficiency.setter
-    def StageEfficiency(self, StageEfficiency):
-        self._StageEfficiency = StageEfficiency
+        return self._stage_efficiency
+    @stage_efficiency.setter
+    def stage_efficiency(self, stage_efficiency):
+        self._stage_efficiency = stage_efficiency
     
     @property
     def f(self):
@@ -711,9 +711,12 @@ class Dist(Unit):
         distillate = self.outs[0]
         condensate = self._cached['condensate'] # Abstract instance
         condenser = self._condenser
-        s_in = Stream(ID='*', flow=distillate.mol+condensate.mol, phase='g', T=distillate.T, P=distillate.P)
+        s_in = Stream(ID='*', flow=distillate.mol+condensate.mol,
+                      phase='g', T=distillate.T, P=distillate.P,
+                      species=condensate.species)
         ms1 = MixedStream(ID='*', liquid_flow=condensate.mol, 
-                          T=condensate.T, P=condensate.P)
+                          T=condensate.T, P=condensate.P,
+                          species=condensate.species)
         ms1.vapor_mol = distillate.mol
         s_in-condenser-ms1
         condenser._operation()
@@ -724,9 +727,11 @@ class Dist(Unit):
         bottoms = self.outs[1]
         boil_up = self._cached['boil_up'] # Abstract instance
         boiler = self._boiler
-        s_in = Stream(ID='*', flow=bottoms.mol+boil_up.mol, phase='g',
+        s_in = Stream(ID='*', flow=bottoms.mol+boil_up.mol,
+                      phase='g', species=boil_up.species,
                       T=bottoms.T, P=bottoms.P)
         ms1 = MixedStream(ID='*', vapor_flow=boil_up.mol,
+                          species=boil_up.species,
                           T=boil_up.T, P=boil_up.P)
         ms1.liquid_mol = bottoms.mol
         s_in-boiler-ms1
@@ -758,9 +763,11 @@ class Dist(Unit):
         return Cost
 
 class Distillation(Dist):
+    line = 'Distillation'
     __doc__ = column_doc.replace('{Column Type}', 'Distillation')
-    _N_heat_util = 2
+    _N_heat_utilities = 2
     is_divided = False #: [bool] True if the stripper and rectifier are two separate columns.    
+    _graphics = Dist._graphics
     
     def _operation(self):
         """
@@ -900,7 +907,7 @@ class Distillation(Dist):
         liq_mol = cached['feed_liqmol']
         vap_mol = cached['feed_vapmol']
         
-        stage_efficiency = kwargs.get('StageEfficiency')
+        stage_efficiency = kwargs.get('stage_efficiency')
         if stage_efficiency:
             return N_stages/stage_efficiency
         else:    
@@ -910,8 +917,8 @@ class Distillation(Dist):
             vle_top = cached['vle_top']
             cached['L_Rmol'] = L_Rmol = R*vap_molnet
             cached['V_Rmol'] = V_Rmol = (R+1)*vap_molnet
-            cached['condensate'] = condensate = type(liq)(flow=condensate_molfrac,
-                                                          species=vle_top, T=vap.T, P=vap.P)
+            cached['condensate'] = condensate = type(liq)(**dict(zip(vle_top, condensate_molfrac)),
+                                                          species=vap.species, T=vap.T, P=vap.P)
             condensate.mol *= L_Rmol
             mu = condensate.quantity('mu').to('mPa*s').magnitude
             K_light = y_stages[-1]/x_stages[-1] 
@@ -997,8 +1004,8 @@ class Distillation(Dist):
         V_mol = cached['V_Smol']
         rho_L = bottoms.rho
         boil_up_flow = cached['boilup_molfrac'] * V_mol
-        cached['boil_up'] = boil_up = type(distillate)(flow=boil_up_flow,
-              species=cached['vle_bot'], T=bottoms.T, P=bottoms.P, phase='g')
+        cached['boil_up'] = boil_up = type(distillate)(**dict(zip(cached['vle_bot'], boil_up_flow)),
+              species=bottoms.species, T=bottoms.T, P=bottoms.P, phase='g')
         V = boil_up.massnet
         V_vol = boil_up.quantity('volnet').to('m^3/s').magnitude
         rho_V = boil_up.rho
@@ -1119,8 +1126,11 @@ class Distillation(Dist):
 
 
 class Stripper(Dist):
+    line = 'Stripper'
     __doc__ = column_doc.replace('{Column Type}', 'Stripper')
-    _N_heat_util = 1    
+    _N_heat_utilities = 1    
+    
+    _graphics = Dist._graphics
     
     def _init(self):
         self._boiler = HXutility(self.ID+' boiler', None)
@@ -1228,7 +1238,7 @@ class Stripper(Dist):
         B = Operation['Boil up']
         N_stages = Operation['Theoretical stages']
         
-        stage_efficiency = kwargs.get('StageEfficiency')
+        stage_efficiency = kwargs.get('stage_efficiency')
         if stage_efficiency:
             return N_stages/stage_efficiency
         else:
@@ -1268,8 +1278,8 @@ class Stripper(Dist):
         L_mol = cached['L_mol']
         rho_L = bottoms.rho
         boil_up_flow = cached['boilup_molfrac'] * V_mol
-        cached['boil_up'] = boil_up = type(distillate)(flow=boil_up_flow,
-              species=cached['vle_bot'], T=bottoms.T, P=bottoms.P, phase='g')
+        cached['boil_up'] = boil_up = type(distillate)(**dict(zip(cached['vle_bot'], boil_up_flow)),
+              species=bottoms.species, T=bottoms.T, P=bottoms.P, phase='g')
         V = boil_up.massnet
         V_vol = boil_up.quantity('volnet').to('m^3/s').magnitude
         rho_V = boil_up.rho

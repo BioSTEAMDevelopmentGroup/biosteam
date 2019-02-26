@@ -58,7 +58,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "You can also view a diagram to check connections:"
+    "You can also view a diagram() to check connections:"
    ]
   },
   {
@@ -132,7 +132,7 @@
     }
    ],
    "source": [
-    "P1.diagram"
+    "P1.diagram()"
    ]
   },
   {

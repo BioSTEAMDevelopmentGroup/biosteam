@@ -5,6 +5,7 @@ Created on Sat Sep  1 17:35:28 2018
 @author: yoelr
 """
 from biosteam import np, Stream, Unit
+from biosteam.utils import MissingStream
 from biosteam.meta_classes import metaFinal
 
 __all__ = ['MassBalance']
@@ -40,6 +41,32 @@ class MassBalance(Unit, metaclass=metaFinal):
               'streams': None,
               'exact': True,
               'balance': 'flow'}
+
+    def _init_ins(self, ins):
+        """Initialize input streams."""
+        if ins is None:
+            self._ins = [MissingStream() for i in range(self._N_ins)]
+        elif isinstance(ins, Stream):
+            self._ins = [ins]
+        elif isinstance(ins, str):
+            self._ins = [Stream(ins)]
+        elif not ins:
+            self._ins = [Stream('') for i in range(self._N_ins)]
+        else:
+            self._ins = [Stream(i) if isinstance(i, str) else i for i in ins]
+    
+    def _init_outs(self, outs):
+        """Initialize output streams."""
+        if isinstance(outs, str):
+            self._outs = [Stream(outs)]
+        elif isinstance(outs, Stream):
+            self._outs = [outs]
+        elif outs is None:
+            self._outs = [MissingStream() for i in range(self._N_outs)]
+        elif not outs:
+            self._outs = [Stream('') for i in range(self._N_outs)]
+        else:
+            self._outs = [Stream(i) if isinstance(i, str) else i for i in outs]
 
     def _setup(self):
         exact = self.kwargs['exact']
@@ -150,7 +177,7 @@ class MassBalance(Unit, metaclass=metaFinal):
 
     @ins.setter
     def ins(self, streams):
-        self._ins.__init__(self, streams)
+        self._ins[:] = streams
 
     @property
     def outs(self):
@@ -159,7 +186,7 @@ class MassBalance(Unit, metaclass=metaFinal):
 
     @outs.setter
     def outs(self, streams):
-        self._outs.__init__(self, streams)
+        self._outs[:] = streams
 
 
 # %% Energy Balance Unit
@@ -183,7 +210,9 @@ class EnergyBalance(Unit, metaclass=metaFinal):
         This is an end-of-the-line/final class that cannot be inherited.
 
     """
-    _Graphics = MassBalance._Graphics
+    _graphics = MassBalance._graphics
+    _init_ins = MassBalance._init_ins
+    _init_outs = MassBalance._init_outs
     
     def _run(self):        # Get arguments
         ins = self.ins.copy()

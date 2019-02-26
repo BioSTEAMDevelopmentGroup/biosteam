@@ -117,9 +117,11 @@
 <span class="sd">        **_Duty:** [float] The heat transfer requirement (kJ/hr)</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Heat Exchanger&#39;</span>
+    
     <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">_N_heat_util</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">1</span>
     
     <span class="c1"># Heat exchanger type</span>
     <span class="n">_Type</span> <span class="o">=</span> <span class="s1">&#39;Floating head&#39;</span>
@@ -237,12 +239,8 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_inside_isheating</span><span class="p">(</span><span class="n">ci</span><span class="p">,</span> <span class="n">hi</span><span class="p">,</span> <span class="n">co</span><span class="p">,</span> <span class="n">ho</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="mf">298.15</span> <span class="o">-</span> <span class="n">ci</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">-</span> <span class="nb">abs</span><span class="p">(</span><span class="n">hi</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="mf">298.15</span><span class="p">)</span><span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="c1"># Cold stream goes in tube side</span>
-            <span class="k">return</span> <span class="kc">True</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># Cold stream goes in shell side</span>
-            <span class="k">return</span> <span class="kc">False</span>
+        <span class="sd">&quot;&quot;&quot;Return True if cold stream goes in tube side (as opposed to shell side).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="mf">298.15</span> <span class="o">-</span> <span class="n">ci</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">-</span> <span class="nb">abs</span><span class="p">(</span><span class="n">hi</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="mf">298.15</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_shellntube_streams</span><span class="p">(</span><span class="n">ci</span><span class="p">,</span> <span class="n">hi</span><span class="p">,</span> <span class="n">co</span><span class="p">,</span> <span class="n">ho</span><span class="p">,</span> <span class="n">inside_heating</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;s_tube, s_shell&#39;</span><span class="p">:</span>
@@ -444,10 +442,7 @@
         <span class="n">L</span> <span class="o">=</span> <span class="mi">20</span>
         
         <span class="c1"># Design pressure</span>
-        <span class="k">if</span> <span class="n">inside_heating</span><span class="p">:</span>
-            <span class="n">P</span> <span class="o">=</span> <span class="n">hi</span><span class="o">.</span><span class="n">P</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">P</span> <span class="o">=</span> <span class="n">ci</span><span class="o">.</span><span class="n">P</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="nb">max</span><span class="p">((</span><span class="n">ci</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">hi</span><span class="o">.</span><span class="n">P</span><span class="p">))</span>
         
         <span class="c1"># Calculate Area</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Area&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_area</span><span class="p">(</span><span class="n">LMTD</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">ft</span><span class="p">)</span> <span class="o">*</span> <span class="mf">10.763</span>
@@ -650,7 +645,7 @@
 <span class="sd">        :doc:`HXprocess Example`</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">_N_heat_util</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">dT</span> <span class="o">=</span> <span class="mi">5</span> <span class="c1">#: [float] Pinch temperature difference.</span>

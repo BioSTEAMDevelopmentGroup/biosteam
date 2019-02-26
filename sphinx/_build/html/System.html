@@ -16,7 +16,7 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="find" href="find.html" />
+    <link rel="next" title="TEA" href="TEA.html" />
     <link rel="prev" title="HeatUtility" href="HeatUtility.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
@@ -29,7 +29,7 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="find.html" title="find"
+          <a href="TEA.html" title="TEA"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="HeatUtility.html" title="HeatUtility"
@@ -43,8 +43,8 @@
   <p class="topless"><a href="HeatUtility.html"
                         title="previous chapter">HeatUtility</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="find.html"
-                        title="next chapter">find</a></p>
+  <p class="topless"><a href="TEA.html"
+                        title="next chapter">TEA</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -77,13 +77,14 @@
 <p>System objects manage recycle loops. It takes care of bringing a chemical process to steady state.</p>
 <span class="target" id="module-biosteam"></span><dl class="class">
 <dt id="biosteam.System">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">System</code><span class="sig-paren">(</span><em>ID</em>, <em>network=()</em>, <em>recycle=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/system.html#System"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">System</code><span class="sig-paren">(</span><em>ID</em>, <em>network=()</em>, <em>recycle=None</em>, <em>facilities=()</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/system.html#System"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a System object that can iteratively run each element in a network of BioSTREAM objects until the recycle stream is converged. A network can have function, Unit and/or System objects. When the network contains an inner System object, it converges/solves it in each loop/iteration.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>ID:</strong> [str] A unique identification</p>
-<p><strong>network:</strong> iterable[Unit, function and/or System] A network that is run element by element until the recycle converges.</p>
+<p><strong>network:</strong> tuple[Unit, function and/or System] A network that is run element by element until the recycle converges.</p>
 <p><strong>recycle:</strong> [Stream] A tear stream for the recycle loop.</p>
+<p><strong>facilities:</strong> tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the network simulation.</p>
 </div></blockquote>
 <dl class="attribute">
 <dt id="biosteam.System.options">
@@ -98,15 +99,39 @@
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.System.streams">
-<code class="descname">streams</code><a class="headerlink" href="#biosteam.System.streams" title="Permalink to this definition">¶</a></dt>
-<dd><p>All streams in the network.</p>
+<dt id="biosteam.System.units">
+<code class="descname">units</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.System.units" title="Permalink to this definition">¶</a></dt>
+<dd><p>set[Unit] All units within the network</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.System.units">
-<code class="descname">units</code><a class="headerlink" href="#biosteam.System.units" title="Permalink to this definition">¶</a></dt>
-<dd><p>All inner and outer units in the network.</p>
+<dt id="biosteam.System.streams">
+<code class="descname">streams</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.System.streams" title="Permalink to this definition">¶</a></dt>
+<dd><p>set[Stream] All streams within the network</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.System.offsite_units">
+<code class="descname">offsite_units</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.System.offsite_units" title="Permalink to this definition">¶</a></dt>
+<dd><p>set[Unit] All units within facilities</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.System.offsite_streams">
+<code class="descname">offsite_streams</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.System.offsite_streams" title="Permalink to this definition">¶</a></dt>
+<dd><p>set[Unit] All streams within facilities</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.System.offsite_subsystems">
+<code class="descname">offsite_subsystems</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.System.offsite_subsystems" title="Permalink to this definition">¶</a></dt>
+<dd><p>set[System] All subsystems within facilities</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.System.subsystems">
+<code class="descname">subsystems</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.System.subsystems" title="Permalink to this definition">¶</a></dt>
+<dd><p>set[System] All subsystems in the network</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -133,10 +158,22 @@
 <dd><p>Iterative convergence method (‘Wegstein’, or ‘fixed point’).</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.System.diagram">
-<code class="descname">diagram</code><a class="headerlink" href="#biosteam.System.diagram" title="Permalink to this definition">¶</a></dt>
-<dd><p>A Graphviz graph of the network.</p>
+<code class="descname">diagram</code><span class="sig-paren">(</span><em>kind='thorough'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/system.html#System.diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.diagram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display a <a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz</a> diagram of the system.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><dl class="docutils">
+<dt><strong>kind:</strong> Must be one of the following:</dt>
+<dd><ul class="first last simple">
+<li><strong>‘thorough’:</strong> Thoroughly display every unit within the network</li>
+<li><strong>‘surface’:</strong> Display only surface elements listed in the network</li>
+<li><strong>‘minimal’:</strong> Minimally display the network as a box</li>
+</ul>
+</dd>
+</dl>
+</div></blockquote>
 </dd></dl>
 
 <dl class="method">
@@ -197,7 +234,7 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="find.html" title="find"
+          <a href="TEA.html" title="TEA"
              >next</a> |</li>
         <li class="right" >
           <a href="HeatUtility.html" title="HeatUtility"

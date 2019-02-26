@@ -16,11 +16,7 @@ class Reactor(Unit):
     
 class BatchReactor(Reactor):
     
-    _N_heat_util = 1
-    
-    # Residence time property
-    _tau = 1
-    tau = Tank.tau 
+    _N_heat_utilities = 1
     
     # Exponential scaling
     C_0 = None #: Original Price
@@ -32,40 +28,18 @@ class BatchReactor(Reactor):
                v_0: 'Flow rate',
                tau: 'Reaction time',
                tau_0: 'Cleaning and unloading time',
-               f: 'Loading time per volume',
+               N_reactors: 'Loading time per volume',
                V_wf: 'Fraction of working volume') -> 'Results [dict]':
-        V_T = cls._calc_TotalVolume(v_0, tau, tau_0, f)
-        t_L = f*V_T
-        N = cls._calc_Nreactors(v_0, f)
-        t_B = cls._calc_CycleTime(t_L, tau, tau_0)
-        T_D = N*t_L - t_B
-        V_T *= (t_B + T_D)/t_B # Actual working volume required 
-        V_i = V_T/N
+        
+        V_T = v_0*(tau + tau_0)/(1-1/N_reactors) # Reacting volume
+        V_i = V_T/N_reactors
+        t_L = V_i/v_0
+        t_B = tau + tau_0 + t_L
         V_i /= V_wf
         
-        return {'Number of reactors': N,
-                'Reactor volume': V_i,
+        return {'Reactor volume': V_i,
                 'Cycle time': t_B, 
-                'Loading time': t_L,
-                'Total dead time': T_D}
-        
-    @staticmethod
-    def _calc_TotalVolume(v_0: 'Flow rate',
-                          tau: 'Reaction time',
-                          tau_0: 'Cleaning and unloading time',
-                          f: 'Loading time per volume') -> 'V_T':
-        return (tau + tau_0)/(1/v_0 - f)
-        
-    @staticmethod
-    def _calc_CycleTime(t_L: 'Loading time',
-                        tau: 'Reaction time',
-                        tau_0: 'Cleaning and unloading time') -> 't_B':
-        return t_L + tau + tau_0
-    
-    @staticmethod
-    def _calc_Nreactors(v_0: 'Flow rate',
-                        f: 'Loading time per volume') -> 'V_T':
-        return np.ceil(1/(f*v_0))
+                'Loading time': t_L}
     
     
 # %%    

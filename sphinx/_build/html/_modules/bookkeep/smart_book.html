@@ -67,7 +67,6 @@
 <span class="kn">from</span> <span class="nn">pandas</span> <span class="k">import</span> <span class="n">DataFrame</span>
 <span class="kn">from</span> <span class="nn">warnings</span> <span class="k">import</span> <span class="n">warn</span>
 
-
 <span class="k">class</span> <span class="nc">SmartBook</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a dictionary that represents values with units of measure and alerts when setting an item out of bounds. It assumes bounds are inclusive unless items in *inclusive* state otherwise.</span>
 <span class="sd">    </span>
@@ -138,10 +137,10 @@
 <span class="sd">        {&#39;T&#39;: 76.85 (degC),</span>
 <span class="sd">         &#39;P&#39;: 101325 (Pa)}</span>
 <span class="sd">             </span>
-<span class="sd">        A RuntimeWarning is issued when a value is set out of bounds:</span>
+<span class="sd">        A BookkeepWarning is issued when a value is set out of bounds:</span>
 <span class="sd">            </span>
 <span class="sd">        &gt;&gt;&gt; sb[&#39;T&#39;] = -300</span>
-<span class="sd">        __main__:1: RuntimeWarning: @Operating conditions: T (-300 degC) is out of bounds (-273.15 to 726.85 degC).</span>
+<span class="sd">        __main__:1: BookkeepWarning: @Operating conditions: T (-300 degC) is out of bounds (-273.15 to 726.85 degC).</span>
 <span class="sd">        </span>
 <span class="sd">    Nested SmartBook objects are easy to read, and can be made using the same units and bounds. A representative pandas DataFrame object can be created from the SmartBook object.</span>
 <span class="sd">    </span>
@@ -181,10 +180,10 @@
 <span class="sd">    </span>
 <span class="sd">    SmartBook objects assume bounds are inclusive, but may be set otherwise through the *inclusive* argument.</span>
 <span class="sd">    </span>
-<span class="sd">        Create SmarBook object excluding bound limits, with value at lower bound limit:</span>
+<span class="sd">        Create a SmartBook object excluding bound limits, with value at lower bound limit:</span>
 <span class="sd">            </span>
 <span class="sd">        &gt;&gt;&gt; SmartBook(sb.units, sb.bounds, T=-273.15, inclusive={&#39;T&#39;: (False, False)})</span>
-<span class="sd">        __main__:1: RuntimeWarning: @Operating conditions: T (-273.15 degC) is out of bounds (-273.15 to 726.85 degC).</span>
+<span class="sd">        __main__:1: BookkeepWarning: @Operating conditions: T (-273.15 degC) is out of bounds (-273.15 to 726.85 degC).</span>
 <span class="sd">    </span>
 <span class="sd">    `pint Quantity &lt;https://pint.readthedocs.io/en/latest/&gt;`__ objects are also compatible, so long as the corresponding Quantity class is set as the Quantity attribute.</span>
 <span class="sd">    </span>
@@ -200,7 +199,7 @@
 <span class="sd">        Setting a Quantity object out of bounds will issue a warning:</span>
 <span class="sd">            </span>
 <span class="sd">        &gt;&gt;&gt; sb1[&#39;T&#39;] = Q_(-1, &#39;K&#39;)</span>
-<span class="sd">         __main__:1: RuntimeWarning: T (-274.15 degC) is out of bounds (-273.15 to 726.85 degC).</span>
+<span class="sd">         __main__:1: BookkeepWarning: T (-274.15 degC) is out of bounds (-273.15 to 726.85 degC).</span>
 <span class="sd">        </span>
 <span class="sd">        Trying to set a Quantity object with wrong dimensions will raise an error:</span>
 <span class="sd">            </span>
@@ -232,7 +231,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_units</span> <span class="o">=</span> <span class="n">units</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span> <span class="o">=</span> <span class="n">bounds</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="n">source</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">inclusive</span> <span class="o">=</span> <span class="n">inclusive</span> <span class="c1">#: Dictionary of boolean pairs dictating whether or not to include lower and upper bounds.</span>
+        <span class="c1">#: Dictionary of boolean pairs dictating whether or not to include lower and upper bounds.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inclusive</span> <span class="o">=</span> <span class="n">inclusive</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         
         <span class="c1"># Make sure bounds are arrays for boundscheck</span>
@@ -250,8 +250,9 @@
         <span class="nb">dict</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
     
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">check_bounds</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">inclusive</span><span class="p">,</span> <span class="n">stacklevel</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;A lower level, functional version of &quot;boundscheck&quot;. Return True if value within bounds.</span>
+    <span class="k">def</span> <span class="nf">_checkbounds</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span>
+                     <span class="n">inclusive</span><span class="p">,</span> <span class="n">stacklevel</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A lower level, functional version of &quot;boundscheck&quot;. Return True if value within bounds. Return False if value is out of bounds and issue a warning.</span>
 <span class="sd">        </span>
 <span class="sd">        **Parameters**</span>
 <span class="sd">        </span>
@@ -269,14 +270,12 @@
 <span class="sd">        </span>
 <span class="sd">            **stacklevel:** [int] Stacklevel for warning.</span>
 <span class="sd">        </span>
-<span class="sd">            **source:** [str] Short description.</span>
+<span class="sd">            **source:** [str or object] Short description or object it describes.</span>
 <span class="sd">        </span>
 <span class="sd">        **Example**</span>
 <span class="sd">        </span>
-<span class="sd">            &gt;&gt;&gt; SmartBook.check_bounds(&#39;Temperature&#39;, -1, &#39;Kelvin&#39;, (0, 1000), (True, True), 2, &#39;Thermocouple&#39;)</span>
+<span class="sd">            &gt;&gt;&gt; SmartBook._checkbounds(&#39;Temperature&#39;, -1, &#39;Kelvin&#39;, (0, 1000), (True, True), 2, &#39;Thermocouple&#39;)</span>
 <span class="sd">            False</span>
-<span class="sd">            __main__:1: RuntimeWarning: @Thermocouple: Temperature (-1 Kelvin) is out of bounds (0 to 1000 Kelvin).</span>
-<span class="sd">            </span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Include bound limits for inclusive values</span>
@@ -311,7 +310,7 @@
             <span class="n">warn</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_warning</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="ne">RuntimeWarning</span><span class="p">),</span>
                  <span class="n">stacklevel</span><span class="o">=</span><span class="n">stacklevel</span><span class="p">)</span>
             <span class="c1"># Try again recursively</span>
-            <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">check_bounds</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_checkbounds</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span>
                                     <span class="n">inclusive</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">source</span><span class="p">)</span>
         
         <span class="c1"># Handle exception when bounds is not an array</span>
@@ -323,20 +322,14 @@
                 <span class="n">warn</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_warning</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="ne">RuntimeWarning</span><span class="p">),</span>
                      <span class="n">stacklevel</span><span class="o">=</span><span class="n">stacklevel</span><span class="p">)</span>
                 <span class="c1"># Try again recursively</span>
-                <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">check_bounds</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">asarray</span><span class="p">(</span><span class="n">bounds</span><span class="p">),</span>
+                <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_checkbounds</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">asarray</span><span class="p">(</span><span class="n">bounds</span><span class="p">),</span>
                                         <span class="n">inclusive</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">source</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">AE</span>
-        
+                
         <span class="c1"># Warn when value is out of bounds</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">within_bounds</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">units</span><span class="p">:</span>  <span class="c1"># Make sure correct units are used</span>
-                <span class="n">Q_</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">Quantity</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Q_</span><span class="p">):</span>
-                    <span class="n">value</span><span class="o">.</span><span class="n">ito</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
-                    <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">magnitude</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">units</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">units</span>
+            <span class="n">units</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">units</span>
             
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">msg</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (</span><span class="si">{lb:.4g}</span><span class="s2"> to </span><span class="si">{ub:.4g}{units}</span><span class="s2">).&quot;</span>
@@ -344,8 +337,8 @@
                 <span class="n">msg</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (</span><span class="si">{lb}</span><span class="s2"> to </span><span class="si">{ub}</span><span class="s2"> </span><span class="si">{units}</span><span class="s2">).&quot;</span>
             
             <span class="n">warn</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_warning</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">Warning</span><span class="p">),</span>
-                 <span class="n">stacklevel</span><span class="o">=</span><span class="n">stacklevel</span><span class="p">)</span>
-                
+                              <span class="n">stacklevel</span><span class="o">=</span><span class="n">stacklevel</span><span class="p">)</span>
+        
         <span class="k">return</span> <span class="n">within_bounds</span>
     
     <span class="k">def</span> <span class="nf">unitscheck</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
@@ -355,18 +348,28 @@
             <span class="n">value</span><span class="o">.</span><span class="n">ito</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span>
     
-    <span class="k">def</span> <span class="nf">boundscheck</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return True if within bounds. If value is out of bounds, return False and issue RuntimeWarning.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">boundscheck</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return True if value is within bounds. Return False if value is out of bounds and issue a warning.</span>
+<span class="sd">        </span>
+<span class="sd">        **Parameters**</span>
+<span class="sd">        </span>
+<span class="sd">            **key:** [str] Name of value</span>
+<span class="sd">            </span>
+<span class="sd">            **value:** [number, Quantity, or array]</span>
+<span class="sd">            </span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">bounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">stacklevel</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">inclusive</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inclusive</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">bounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">True</span>
+            <span class="n">within_bounds</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_bounds</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span>
-                                     <span class="n">units</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
-                                     <span class="n">bounds</span><span class="p">,</span>
-                                     <span class="bp">self</span><span class="o">.</span><span class="n">inclusive</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">)),</span>
-                                     <span class="mi">3</span> <span class="k">if</span> <span class="n">units</span> <span class="k">else</span> <span class="mi">4</span><span class="p">,</span>
-                                     <span class="bp">self</span><span class="o">.</span><span class="n">_source</span><span class="p">)</span>
+            <span class="n">within_bounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_checkbounds</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span>
+                                              <span class="n">inclusive</span><span class="p">,</span> <span class="n">stacklevel</span><span class="p">,</span> <span class="n">source</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">within_bounds</span>
     
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">enforce_boundscheck</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
@@ -401,7 +404,7 @@
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">source</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;String denoting what the SmartBook object pertains to.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Short description or object it describes&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span>
         
     <span class="k">def</span> <span class="nf">nested_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

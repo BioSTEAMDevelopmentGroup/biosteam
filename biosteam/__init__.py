@@ -7,7 +7,7 @@ Created on Sat Oct 28 17:28:09 2017
 """
 name = 'biosteam'
 
-__all__ = ['exceptions', 'utils', 'find', 'Compound', 'Chemical', 'DissolvedCompound', 'Species', 'Stream', 'MixedStream', 'HeatUtility', 'PowerUtility', 'Unit', 'units', 'System', 'ureg', 'Quantity', 'Q_', 'units_of_measure']
+__all__ = ['exceptions', 'utils', 'find', 'Compound', 'Chemical', 'DissolvedCompound', 'Species', 'Stream', 'MixedStream', 'HeatUtility', 'PowerUtility', 'Unit', 'System', 'ureg', 'Quantity', 'Q_', 'units_of_measure', 'TEA']
 
 
 # %% Import base utils
@@ -25,7 +25,7 @@ np.set_printoptions(suppress=False)
 np.set_printoptions(precision=3) 
 pd.options.display.float_format = '{:.3g}'.format
 pd.set_option('display.max_rows', 35)
-pd.set_option('display.max_columns', 6)
+pd.set_option('display.max_columns', 10)
 pd.set_option('max_colwidth', 25)
 
 # Biosteam units of measure
@@ -66,6 +66,8 @@ from . import exceptions
 from . import utils
 from . import reports
 from . import chemical
+from . import plots
+from .tea import TEA
 from .find import find
 from .compound import Compound
 from .dissolved_compound import DissolvedCompound
@@ -80,8 +82,10 @@ from .system import System
 from . import units
 from .units import *
 from .reports import *
+from .plots import *
 
 __all__.extend(units.__all__)
 __all__.extend(reports.__all__)
 __all__.extend(chemical.__all__)
+__all__.extend(plots.__all__)
 SmartBook.Warning = exceptions.DesignWarning

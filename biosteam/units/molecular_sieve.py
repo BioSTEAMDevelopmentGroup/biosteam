@@ -38,7 +38,7 @@ class MolecularSieve(Unit):
     """
     kwargs = Splitter.kwargs
     _run = Splitter._run
-    _power_util = True
+    _has_power_utility = True
     
     #: Original Price (USD)
     C_0 = 2601000

@@ -7,22 +7,12 @@ This module includes classes and functions relating Stream objects.
 @author: Yoel Cortes-Pena
 """
 
-__all__ = ('get_streams', 'MissingStream', 'Ins', 'Outs', 'Sink', 'Source')
+__all__ = ('MissingStream', 'Ins', 'Outs',
+           'Sink', 'Source', 'missing_stream')
 
 # For later use in this module
 def missing_method(self, *args, **kwargs):
     raise TypeError(f'Method not supported for {type(self).__name__} object.')
-
-
-# %% Functions relating streams
-
-def get_streams(units):
-    """Return tuple of Stream objects from an iterable of Unit objects."""
-    streams = []
-    for u in units:
-        streams.extend([i for i in u._ins if not isinstance(i, MissingStream)])
-        streams.extend([i for i in u._outs if not isinstance(i, MissingStream)])
-    return streams
 
 
 # %% Dummy Stream object
@@ -30,6 +20,14 @@ def get_streams(units):
 class MissingStream:
     """Create a MissingStream object that acts as a dummy in Ins and Outs objects until replaced by an actual Stream object."""
     ID = 'Missing Stream'
+    _missing_stream = None
+    __slots__ = ('_sink', '_source')
+    
+    def __new__(cls):
+        s = cls._missing_stream
+        if not s:
+            cls._missing_stream = s = super().__new__(cls)
+        return s
     
     def __getattr__(self, key):
         raise TypeError(f'{self.ID} object')
@@ -43,70 +41,71 @@ class MissingStream:
     def show(self, **show_units):
         print(self._info(**show_units))
 
+missing_stream = MissingStream()
 
 # %% List objects for input and output streams
 
 class Ins(list):
     """Create a Ins object which serves as a list of input streams for a Unit object."""
-    __slots__ = ['sink']
+    __slots__ = ('sink',)
 
-    def __init__(self, sink, streams=None):
+    def __init__(self, sink, streams=()):
+        if streams is self:
+            streams = tuple(self)
+        elif not hasattr(streams, '__iter__'):
+            streams = (streams,)
         self.sink = sink #: Unit where inputs are attached
-        if streams is not None:
-            if not hasattr(streams, '__iter__'):
-                streams = (streams,)
-            ID = sink.ID
-            self._clear_sink(ID)
-            super().__init__(streams)
-            self._fix_sink(ID)
+        self._clear_sink(sink)
+        super().__init__(streams)
+        self._fix_sink(sink)
         
-    def _clear_sink(self, ID):
+    def _clear_sink(self, sink):
         """Remove sink from streams."""
         for s in self:
-            if s._sink[0] is ID:
+            if s._sink[0] is sink:
                 s._sink = (None, None)
     
-    def _fix_sink(self, ID):
+    def _fix_sink(self, sink):
         """Set sink for all streams."""
         i = 0
         for s in self:
-            s._sink = (ID, i)
+            s._sink = (sink, i)
             i += 1
     
     def __setitem__(self, index, stream):
-        ID = self.sink.ID
-        if isinstance(stream, MissingStream):
+        sink = self.sink
+        if stream is missing_stream:
             pass
         elif isinstance(index, int):
             s_old = self[index]
-            if s_old._sink[0] is ID:
+            if s_old._sink[0] is sink:
                 s_old._sink = (None, None)
-            stream._sink = (ID, index)
+            stream._sink = (sink, index)
         elif isinstance(index, slice):
-            self._clear_sink(ID)
-            self._fix_sink(ID)
+            self._clear_sink(sink)
+            self._fix_sink(sink)
         else:
             raise TypeError(f'Only intergers and slices are valid indeces for {type(self).__name__} objects')
         super().__setitem__(index, stream)
            
     def clear(self):
-        self._clear_sink(self.sink.ID)
+        self._clear_sink(self.sink)
         super().clear()
     
     def extend(self, iterable):
         index = len(self)
-        ID = self.sink.ID
+        sink = self.sink
         # Add sink to new streams
         for s in iterable:
-            s._sink = (ID, index)
+            s._sink = (sink, index)
             index += 1
         super().extend(iterable)
         
     def append(self, stream):
         index = len(self)
-        ID = self.sink.ID
+        sink = self.sink
         # Add sink to new stream
-        stream._sink = (ID, index)
+        stream._sink = (sink, index)
         super().append(stream)
     
     pop = insert = remove = reverse = sort = missing_method
@@ -114,65 +113,65 @@ class Ins(list):
 
 class Outs(list):
     """Create a Outs object which serves as a list of output streams for a Unit object."""
-    __slots__ = ['source']
+    __slots__ = ('source',)
     
-    def __init__(self, unit, streams=None):
-        self.source = unit #: Unit where Outputs is attached
-        if streams:
-            if not hasattr(streams, '__iter__'):
-                streams = (streams,)
-            ID = unit.ID
-            self._clear_source(ID)
-            super().__init__(streams)
-            self._fix_source(ID)
+    def __init__(self, source, streams=()):
+        if streams is self:
+            streams = tuple(self)
+        elif not hasattr(streams, '__iter__'):
+            streams = (streams,)
+        self.source = source #: Unit where Outputs is attached
+        self._clear_source(source)
+        super().__init__(streams)
+        self._fix_source(source)
             
-    def _clear_source(self, ID):
+    def _clear_source(self, source):
         """Remove source from streams."""
         for s in self:
-            if s._source[0] is ID:
+            if s._source[0] is source:
                 s._source = (None, None)
     
-    def _fix_source(self, ID):
+    def _fix_source(self, source):
         """Set source for all streams."""
         i = 0
         for s in self:
-            s._source = (ID, i)
+            s._source = (source, i)
             i += 1
             
     def __setitem__(self, index, stream):
-        ID = self.source.ID
-        if isinstance(stream, MissingStream):
+        source = self.source
+        if stream is missing_stream:
             pass
         elif isinstance(index, int):
             s_old = self[index]
-            if s_old._source[0] is ID:
+            if s_old._source[0] is source:
                 s_old._source = (None, None)
-            stream._source = (ID, index)
+            stream._source = (source, index)
         elif isinstance(index, slice):
-            self._clear_source(ID)
-            self._fix_source(ID)
+            self._clear_source(source)
+            self._fix_source(source)
         else:
             raise TypeError(f'Only intergers and slices are valid indeces for {type(self).__name__} objects')
         super().__setitem__(index, stream)
            
     def clear(self):
-        self._clear_source(self.source.ID)
+        self._clear_source(self.source)
         super().clear()
     
     def extend(self, iterable):
         index = len(self)
-        ID = self.source.ID
+        source = self.source
         # Add source to new streams
         for s in iterable:
-            s._source = (ID, index)
+            s._source = (source, index)
             index += 1
         super().extend(iterable)
         
     def append(self, stream):
         index = len(self)
-        ID = self.source.ID
+        source = self.source
         # Add sink to new stream
-        stream._source = (ID, index)
+        stream._source = (source, index)
         super().append(stream)
 
     pop = insert = remove = reverse = sort = missing_method

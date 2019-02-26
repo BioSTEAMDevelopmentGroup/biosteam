@@ -62,16 +62,23 @@
 <span class="sd">@author: Guest Group</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">np</span>
+<span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">np</span><span class="p">,</span> <span class="n">Q_</span>
 <span class="kn">import</span> <span class="nn">time</span>
 
 <span class="c1">#from multiprocessing import Process</span>
 <span class="c1">#import threading</span>
 <span class="c1">#import _thread</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;approx2step&#39;</span><span class="p">,</span> <span class="s1">&#39;copy_attr&#39;</span><span class="p">,</span> <span class="s1">&#39;get_attr&#39;</span><span class="p">,</span> <span class="s1">&#39;Timer&#39;</span><span class="p">,</span> <span class="s1">&#39;run_in_parallel&#39;</span><span class="p">)</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;factor&#39;</span><span class="p">,</span> <span class="s1">&#39;checkbounds&#39;</span><span class="p">,</span> <span class="s1">&#39;approx2step&#39;</span><span class="p">,</span> <span class="s1">&#39;copy_attr&#39;</span><span class="p">,</span> <span class="s1">&#39;get_attr&#39;</span><span class="p">,</span> <span class="s1">&#39;Timer&#39;</span><span class="p">,</span> <span class="s1">&#39;run_in_parallel&#39;</span><span class="p">)</span>
 
 <span class="c1"># %% Small functions</span>
+
+<span class="k">def</span> <span class="nf">factor</span><span class="p">(</span><span class="n">base_units</span><span class="p">,</span> <span class="n">new_units</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">Q_</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">base_units</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">new_units</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
+
+<span class="k">def</span> <span class="nf">checkbounds</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">bounds</span><span class="p">):</span>
+    <span class="n">lb</span><span class="p">,</span> <span class="n">up</span> <span class="o">=</span> <span class="n">bounds</span>
+    <span class="k">return</span> <span class="n">lb</span> <span class="o">&lt;</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">up</span>
 
 <div class="viewcode-block" id="approx2step"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.approx2step">[docs]</a><span class="k">def</span> <span class="nf">approx2step</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">dx</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Approximate value, val, to closest increment/step, dx, starting from x0.&quot;&quot;&quot;</span>

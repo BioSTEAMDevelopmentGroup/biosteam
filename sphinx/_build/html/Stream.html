@@ -456,6 +456,16 @@
 </dd></dl>
 
 <dl class="attribute">
+<dt id="biosteam.Stream.Hc">
+<code class="descname">Hc</code><a class="headerlink" href="#biosteam.Stream.Hc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Heat of combustion flow rate (kJ/hr).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">Hc</span>
+<span class="go">-1409983.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="biosteam.Stream.S">
 <code class="descname">S</code><a class="headerlink" href="#biosteam.Stream.S" title="Permalink to this definition">¶</a></dt>
 <dd><p>Entropy flow rate (kJ/hr) without formation energies. T and P dependent.</p>
@@ -630,13 +640,13 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.source">
 <code class="descname">source</code><a class="headerlink" href="#biosteam.Stream.source" title="Permalink to this definition">¶</a></dt>
-<dd><p>tuple with the ID of the unit it exits and the position</p>
+<dd><p>tuple with the unit source and the position</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="biosteam.Stream.sink">
 <code class="descname">sink</code><a class="headerlink" href="#biosteam.Stream.sink" title="Permalink to this definition">¶</a></dt>
-<dd><p>tuple with the ID of the unit it enters and the position</p>
+<dd><p>tuple with the unit sink and the position</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -875,13 +885,16 @@
 <dl class="method">
 <dt id="biosteam.Stream.enable_phases">
 <code class="descname">enable_phases</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/stream.html#Stream.enable_phases"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.enable_phases" title="Permalink to this definition">¶</a></dt>
-<dd><p>Turn stream into a MixedStream object.</p>
+<dd><p>Cast stream into a MixedStream object.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.Stream.disable_phases">
 <code class="descname">disable_phases</code><span class="sig-paren">(</span><em>phase</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/stream.html#Stream.disable_phases"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.disable_phases" title="Permalink to this definition">¶</a></dt>
-<dd><p>Turn stream into a Stream object.</p>
+<dd><p>Cast stream into a Stream object.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><strong>phase:</strong> {‘s’, ‘l’, ‘g’} desired phase of stream</div></blockquote>
 </dd></dl>
 
 <dl class="method">

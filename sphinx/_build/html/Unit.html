@@ -107,13 +107,13 @@
 <blockquote>
 <div><p><strong>CEPCI</strong> = 567.5: [float] Chemical Engineering Plant Cost Index</p>
 <p><strong>operating_days</strong>  = 330: [int] Operation days per year</p>
-<p><strong>lang_factor</strong> = 5.03: [float] Lang factor including working capital from Peters, Timmerhaus, and West (2003)</p>
+<p><strong>lang_factor</strong> = 4.37: [float] Lang factor excluding working capital from Peters, Timmerhaus, and West (2003)</p>
 <p><strong>bounds</strong> = {} [dict] Values should be tuples with lower and upper bounds.</p>
 <p><strong>instances</strong> = {}: [WeakRefBook] Contains all instances of the Unit class.</p>
 <p><strong>_N_ins</strong> = 1: [int] Expected number of input streams</p>
 <p><strong>_N_outs</strong> = 2: [int] Expected number of output streams</p>
-<p><strong>_N_heat_util</strong> = 0: [int] Number of heat utilities</p>
-<p><strong>_power_util</strong> = False: [bool] If True, a PowerUtility object is created for every instance.</p>
+<p><strong>_N_heat_utilities</strong> = 0: [int] Number of heat utilities</p>
+<p><strong>_has_power_utility</strong> = False: [bool] If True, a PowerUtility object is created for every instance.</p>
 </div></blockquote>
 <p><strong>ins</strong></p>
 <blockquote>
@@ -163,10 +163,13 @@
 <dd><p>A PowerUtility object, if required.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.Unit.diagram">
-<code class="descname">diagram</code><a class="headerlink" href="#biosteam.Unit.diagram" title="Permalink to this definition">¶</a></dt>
-<dd><p><a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz diagram</a> of unit</p>
+<code class="descname">diagram</code><span class="sig-paren">(</span><em>radius=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/unit.html#Unit.diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.diagram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display a <a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz</a> diagram of the unit and all neighboring units within given radius.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><strong>radius:</strong> [int] Maxium number streams between neighbors.</div></blockquote>
 </dd></dl>
 
 <dl class="attribute">

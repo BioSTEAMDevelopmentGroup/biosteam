@@ -35,6 +35,8 @@ class DissolvedCompound(Compound):
         
         **Hfm:** Heat of formation (J/mol)
         
+        **Hc:** Heat of combustion (J/mol)
+        
     **Examples**
     
         Create a 'Yeast' compound with the same properties as water:
@@ -52,7 +54,7 @@ class DissolvedCompound(Compound):
     
     def __init__(self, ID, CAS='', obj=None, MW=1, T=298.15, P=101325,
                  Cp=None, rho=None, k=None, mu=None,
-                 sigma=None, Pr=None, Hfm=None):
+                 sigma=None, Pr=None, Hfm=None, Hc=None):
         self.ID = ID
         self.T = T
         self.P = P
@@ -66,6 +68,7 @@ class DissolvedCompound(Compound):
         mu_d = 0.00091272
         sigma_d = 0.072055
         Hfm_d = 0
+        Hc_d = 0
         
         # Set object default values
         if obj:
@@ -75,6 +78,7 @@ class DissolvedCompound(Compound):
             mu_d = obj.mu if obj.mu else mu_d
             sigma_d = obj.sigma if obj.sigma else sigma_d
             Hfm_d = obj.Hf if obj.Hf else Hfm_d
+            Hc_d = obj.Hc if obj.Hc else Hc_d
         
         # Set all values
         self.CAS = CAS if CAS else ID
@@ -91,6 +95,7 @@ class DissolvedCompound(Compound):
         self.Pr = self.nu/self.alpha
         self.UNIFAC_groups = {}
         self.Hfm = Hfm if Hfm else Hfm_d
+        self.Hc = Hc if Hc else Hc_d
     
     @property
     def Cplm(self):

@@ -7,16 +7,23 @@ This module includes arbitrary classes and functions.
 @author: Guest Group
 """
 
-from biosteam import np
+from biosteam import np, Q_
 import time
 
 #from multiprocessing import Process
 #import threading
 #import _thread
 
-__all__ = ('approx2step', 'copy_attr', 'get_attr', 'Timer', 'run_in_parallel')
+__all__ = ('factor', 'checkbounds', 'approx2step', 'copy_attr', 'get_attr', 'Timer', 'run_in_parallel')
 
 # %% Small functions
+
+def factor(base_units, new_units):
+    return Q_(1, base_units).to(new_units).magnitude
+
+def checkbounds(x, bounds):
+    lb, up = bounds
+    return lb < x < up
 
 def approx2step(val, x0, dx):
     """Approximate value, val, to closest increment/step, dx, starting from x0."""

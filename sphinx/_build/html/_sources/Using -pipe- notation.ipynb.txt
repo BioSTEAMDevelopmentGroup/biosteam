@@ -110,7 +110,7 @@
       "image/svg+xml": [
        "<svg height=\"245pt\" viewBox=\"0.00 0.00 964.97 245.48\" width=\"965pt\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n",
        "<g class=\"graph\" id=\"graph0\" transform=\"scale(1 1) rotate(0) translate(4 241.48)\">\n",
-       "<title>diagram</title>\n",
+       "<title>diagram()</title>\n",
        "<polygon fill=\"white\" points=\"-4,4 -4,-241.48 960.97,-241.48 960.97,4 -4,4\" stroke=\"none\"/>\n",
        "<!-- M1\n",
        "Mixer&#45;&gt;S1\n",
@@ -266,7 +266,7 @@
    "source": [
     "from biosteam import System\n",
     "system = System('system', network=(M1, S1, M2, S2))\n",
-    "system.diagram"
+    "system.diagram()"
    ]
   }
  ],

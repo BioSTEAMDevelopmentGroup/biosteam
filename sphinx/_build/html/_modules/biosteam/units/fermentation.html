@@ -66,7 +66,7 @@
 
 <div class="viewcode-block" id="Fermentation"><a class="viewcode-back" href="../../../Fermentation.html#biosteam.Fermentation">[docs]</a><span class="k">class</span> <span class="nc">Fermentation</span><span class="p">(</span><span class="n">BatchReactor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Create a Fermentation object which models batch fermentation for the production of 1st generation ethanol using yeast [1, 2]. Only sucrose and glucose are taken into account. Conversion is based on reaction time, *tau*. Number of batches are selected based a loading time per volume ratio, *f*, assuming no influent surge time. Cleaning and unloading time, *tau_0*, and fraction of working volume, *V_wf*, are muttable properties. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3].</span>
+<span class="sd">    Create a Fermentation object which models batch fermentation for the production of 1st generation ethanol using yeast [1, 2]. Only sucrose and glucose are taken into account. Conversion is based on reaction time, *tau*. Cleaning and unloading time, *tau_0*, fraction of working volume, *V_wf*, and number of reactors, N_reactors, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3].</span>
 <span class="sd">    </span>
 <span class="sd">    **Parameters**</span>
 <span class="sd">    </span>
@@ -94,7 +94,7 @@
 <span class="sd">        </span>
 <span class="sd">    .. note::</span>
 <span class="sd">        </span>
-<span class="sd">        A specie with CAS &#39;Yeast&#39; must be present in species.</span>
+<span class="sd">        A compound with CAS &#39;Yeast&#39; must be present in species.</span>
 <span class="sd">        </span>
 <span class="sd">    **Examples**</span>
 <span class="sd">    </span>
@@ -104,17 +104,17 @@
         
     <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;tau&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="c1"># Reaction time</span>
               <span class="s1">&#39;efficiency&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>  <span class="c1"># Theoretical efficiency</span>
-    <span class="n">_N_heat_util</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">_power_util</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">True</span>
     
     <span class="c1">#: Cleaning and unloading time</span>
     <span class="n">tau_0</span> <span class="o">=</span> <span class="mi">12</span> 
     
-    <span class="c1">#: Loading time per volume (hr/m3)</span>
-    <span class="n">f</span> <span class="o">=</span> <span class="mf">0.001294</span>
+    <span class="c1">#: Number of reactors</span>
+    <span class="n">_N_reactors</span> <span class="o">=</span> <span class="kc">None</span>
     
     <span class="c1">#: Fraction of filled tank to total tank volume</span>
-    <span class="n">V_wf</span> <span class="o">=</span> <span class="mf">0.9</span> 
+    <span class="n">V_wf</span> <span class="o">=</span> <span class="mf">0.8</span>
     
     <span class="c1">#: Base CEPCI </span>
     <span class="n">CEPCI_0</span> <span class="o">=</span> <span class="mf">521.9</span> 
@@ -145,6 +145,16 @@
                          <span class="mf">0.45</span><span class="p">,</span>  <span class="c1"># Y_PS</span>
                          <span class="mf">0.16</span><span class="p">)</span>  <span class="c1"># a</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">N_reactors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_N_reactors</span>
+    
+    <span class="nd">@N_reactors</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">N_reactors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">N</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Number of reactors must be greater than 1, value </span><span class="si">{N}</span><span class="s2"> is infeasible&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_N_reactors</span> <span class="o">=</span> <span class="n">N</span>
+
     <span class="k">def</span> <span class="nf">_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cooler</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="o">+</span><span class="s1">&#39; cooler&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">())</span>
     
@@ -162,7 +172,6 @@
         <span class="n">volnet</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">volnet</span>
         <span class="n">concentration_in</span> <span class="o">=</span> <span class="n">mass</span><span class="o">/</span><span class="n">volnet</span>
         <span class="n">X0</span><span class="p">,</span> <span class="n">P0</span><span class="p">,</span> <span class="n">S0</span> <span class="o">=</span> <span class="p">(</span><span class="n">concentration_in</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">e</span><span class="p">,</span> <span class="n">s</span><span class="p">))</span>
-        <span class="n">X0</span> <span class="o">=</span> <span class="mi">5</span>
         
         <span class="c1"># Integrate to get final concentration</span>
         <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">tau</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
@@ -176,7 +185,8 @@
         <span class="c1"># Calculate efficiency</span>
         <span class="n">Sf</span> <span class="o">=</span> <span class="n">S</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">Sf</span> <span class="o">=</span> <span class="n">Sf</span> <span class="k">if</span> <span class="n">Sf</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
-        <span class="n">eff</span> <span class="o">=</span> <span class="p">(</span><span class="n">S0</span> <span class="o">-</span> <span class="n">Sf</span><span class="p">)</span><span class="o">/</span><span class="n">S0</span>
+        <span class="n">Y_PS</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kinetic_constants</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">eff</span> <span class="o">=</span> <span class="p">(</span><span class="n">S0</span> <span class="o">-</span> <span class="n">Sf</span><span class="p">)</span><span class="o">/</span><span class="n">S0</span> <span class="o">*</span> <span class="n">Y_PS</span><span class="o">/</span><span class="mf">0.511</span>
         <span class="k">return</span> <span class="n">eff</span>
         
 <div class="viewcode-block" id="Fermentation.kinetic_model"><a class="viewcode-back" href="../../../Fermentation.html#biosteam.Fermentation.kinetic_model">[docs]</a>    <span class="nd">@staticmethod</span>
@@ -260,6 +270,19 @@
         <span class="n">CO2</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span>
         <span class="n">CO2</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">T</span>
     
+    <span class="k">def</span> <span class="nf">_optimize_N_reactors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">Summary</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Summary&#39;</span><span class="p">]</span>
+        <span class="n">cost_old</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">N_reactors</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+        <span class="n">cost_new</span> <span class="o">=</span> <span class="n">Summary</span><span class="p">[</span><span class="s1">&#39;Purchase cost&#39;</span><span class="p">]</span>
+        <span class="k">while</span> <span class="n">cost_new</span> <span class="o">&lt;</span> <span class="n">cost_old</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">N_reactors</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+            <span class="n">cost_old</span> <span class="o">=</span> <span class="n">cost_new</span>
+            <span class="n">cost_new</span> <span class="o">=</span> <span class="n">Summary</span><span class="p">[</span><span class="s1">&#39;Purchase cost&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">N_reactors</span> <span class="o">-=</span> <span class="mi">1</span>
+        
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        * &#39;Number of reactors&#39;: (#)</span>
@@ -268,25 +291,31 @@
 <span class="sd">        * &#39;Loading time&#39;: (hr)</span>
 <span class="sd">        * &#39;Total dead time&#39;: (hr)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">N_reactors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">N_reactors</span>
+        <span class="k">if</span> <span class="n">N_reactors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_N_reactors</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_optimize_N_reactors</span><span class="p">()</span>
+            <span class="n">N_reactors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_N_reactors</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_N_reactors</span> <span class="o">=</span> <span class="kc">None</span>
+            
         <span class="n">v_0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">volnet</span>
-        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">f</span>
         <span class="n">tau</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;tau&#39;</span><span class="p">]</span>
         <span class="n">tau_0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_0</span>
         <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
-        <span class="n">Design</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solve</span><span class="p">(</span><span class="n">v_0</span><span class="p">,</span> <span class="n">tau</span><span class="p">,</span> <span class="n">tau_0</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">V_wf</span><span class="p">))</span>
-        <span class="n">N</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Number of reactors&#39;</span><span class="p">]</span>
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Number of reactors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N_reactors</span>
+        <span class="n">Design</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solve</span><span class="p">(</span><span class="n">v_0</span><span class="p">,</span> <span class="n">tau</span><span class="p">,</span> <span class="n">tau_0</span><span class="p">,</span> <span class="n">N_reactors</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">V_wf</span><span class="p">))</span>
         <span class="n">hx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cooler</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span> <span class="o">=</span> <span class="n">hx</span><span class="o">.</span><span class="n">heat_utilities</span>
         <span class="n">new_flow</span> <span class="o">=</span> <span class="n">Stream</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">new_flow</span><span class="o">.</span><span class="n">mol</span> <span class="o">/=</span> <span class="n">N</span> 
+        <span class="n">new_flow</span><span class="o">.</span><span class="n">mol</span> <span class="o">/=</span> <span class="n">N_reactors</span> 
         <span class="n">hx</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_flow</span>
         <span class="n">hx</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_flow</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">Hnet</span><span class="o">/</span><span class="n">N</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">Hnet</span><span class="o">/</span><span class="n">N_reactors</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="n">results</span> <span class="o">=</span> <span class="n">hx</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">results</span>
         <span class="n">hx</span><span class="o">.</span><span class="n">_Duty</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Duty&#39;</span><span class="p">]</span>
-        <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Duty&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">N</span>
-        <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">N</span>
-        <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Flow&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">N</span>
+        <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Duty&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">N_reactors</span>
+        <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">N_reactors</span>
+        <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Flow&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="n">N_reactors</span>
         <span class="n">hx</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
         <span class="n">hx</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">Design</span>

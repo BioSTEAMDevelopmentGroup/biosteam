@@ -11,7 +11,7 @@ from scipy.integrate import odeint
 
 class Fermentation(BatchReactor):
     """
-    Create a Fermentation object which models batch fermentation for the production of 1st generation ethanol using yeast [1, 2]. Only sucrose and glucose are taken into account. Conversion is based on reaction time, *tau*. Number of batches are selected based a loading time per volume ratio, *f*, assuming no influent surge time. Cleaning and unloading time, *tau_0*, and fraction of working volume, *V_wf*, are muttable properties. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3].
+    Create a Fermentation object which models batch fermentation for the production of 1st generation ethanol using yeast [1, 2]. Only sucrose and glucose are taken into account. Conversion is based on reaction time, *tau*. Cleaning and unloading time, *tau_0*, fraction of working volume, *V_wf*, and number of reactors, N_reactors, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3].
     
     **Parameters**
     
@@ -39,7 +39,7 @@ class Fermentation(BatchReactor):
         
     .. note::
         
-        A specie with CAS 'Yeast' must be present in species.
+        A compound with CAS 'Yeast' must be present in species.
         
     **Examples**
     
@@ -49,17 +49,17 @@ class Fermentation(BatchReactor):
         
     kwargs = {'tau': None, # Reaction time
               'efficiency': None}  # Theoretical efficiency
-    _N_heat_util = 0
-    _power_util = True
+    _N_heat_utilities = 0
+    _has_power_utility = True
     
     #: Cleaning and unloading time
     tau_0 = 12 
     
-    #: Loading time per volume (hr/m3)
-    f = 0.001294
+    #: Number of reactors
+    _N_reactors = None
     
     #: Fraction of filled tank to total tank volume
-    V_wf = 0.9 
+    V_wf = 0.8
     
     #: Base CEPCI 
     CEPCI_0 = 521.9 
@@ -90,6 +90,16 @@ class Fermentation(BatchReactor):
                          0.45,  # Y_PS
                          0.16)  # a
 
+    @property
+    def N_reactors(self):
+        return self._N_reactors
+    
+    @N_reactors.setter
+    def N_reactors(self, N):
+        if N <= 1:
+            raise ValueError(f"Number of reactors must be greater than 1, value {N} is infeasible")
+        self._N_reactors = N
+
     def _init(self):
         self._cooler = HXutility(ID=self.ID+' cooler', outs=())
     
@@ -107,7 +117,6 @@ class Fermentation(BatchReactor):
         volnet = feed.volnet
         concentration_in = mass/volnet
         X0, P0, S0 = (concentration_in[i] for i in (y, e, s))
-        X0 = 5
         
         # Integrate to get final concentration
         t = np.linspace(0, tau, 1000)
@@ -121,7 +130,8 @@ class Fermentation(BatchReactor):
         # Calculate efficiency
         Sf = S[-1]
         Sf = Sf if Sf > 0 else 0
-        eff = (S0 - Sf)/S0
+        Y_PS = self.kinetic_constants[-2]
+        eff = (S0 - Sf)/S0 * Y_PS/0.511
         return eff
         
     @staticmethod
@@ -205,6 +215,19 @@ class Fermentation(BatchReactor):
         CO2.phase = 'g'
         CO2.T = out.T
     
+    def _optimize_N_reactors(self):
+        Summary = self.results['Summary']
+        cost_old = np.inf
+        self.N_reactors = 2
+        self.simulate()
+        cost_new = Summary['Purchase cost']
+        while cost_new < cost_old:
+            self.N_reactors += 1
+            self.simulate()
+            cost_old = cost_new
+            cost_new = Summary['Purchase cost']
+        self.N_reactors -= 1
+        
     def _design(self):
         """
         * 'Number of reactors': (#)
@@ -213,25 +236,31 @@ class Fermentation(BatchReactor):
         * 'Loading time': (hr)
         * 'Total dead time': (hr)
         """
+        N_reactors = self.N_reactors
+        if N_reactors is None:
+            self._N_reactors = 2
+            self._optimize_N_reactors()
+            N_reactors = self._N_reactors
+            self._N_reactors = None
+            
         v_0 = self.outs[0].volnet
-        f = self.f
         tau = self.kwargs['tau']
         tau_0 = self.tau_0
         Design = self.results['Design']
-        Design.update(self._solve(v_0, tau, tau_0, f, self.V_wf))
-        N = Design['Number of reactors']
+        Design['Number of reactors'] = N_reactors
+        Design.update(self._solve(v_0, tau, tau_0, N_reactors, self.V_wf))
         hx = self._cooler
         self.heat_utilities = hx.heat_utilities
         new_flow = Stream.like(self.outs[0])
-        new_flow.mol /= N 
+        new_flow.mol /= N_reactors 
         hx.outs[0] = new_flow
         hx.ins[0] = new_flow
-        self.heat_utilities[0](self.Hnet/N, self.outs[0].T)
+        self.heat_utilities[0](self.Hnet/N_reactors, self.outs[0].T)
         results = hx.heat_utilities[0].results
         hx._Duty = results['Duty']
-        results['Duty'] *= N
-        results['Cost'] *= N
-        results['Flow'] *= N
+        results['Duty'] *= N_reactors
+        results['Cost'] *= N_reactors
+        results['Flow'] *= N_reactors
         hx._design()
         hx._cost()
         return Design

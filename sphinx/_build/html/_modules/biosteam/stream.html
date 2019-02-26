@@ -71,7 +71,7 @@
 <span class="kn">from</span> <span class="nn">biosteam.species</span> <span class="k">import</span> <span class="n">Species</span>
 <span class="kn">from</span> <span class="nn">biosteam.exceptions</span> <span class="k">import</span> <span class="n">SolverError</span><span class="p">,</span> <span class="n">EquilibriumError</span><span class="p">,</span> \
                                 <span class="n">DimensionError</span>
-<span class="kn">from</span> <span class="nn">biosteam.UNIFAC</span> <span class="k">import</span> <span class="n">DORTMUND</span>
+<span class="kn">from</span> <span class="nn">biosteam.unifac</span> <span class="k">import</span> <span class="n">DORTMUND</span>
 
 <span class="n">ln</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span>
 <span class="n">exp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span>
@@ -703,15 +703,14 @@
         <span class="n">Stream</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">letter</span><span class="p">,</span> <span class="n">number</span> <span class="o">=</span> <span class="n">Stream</span><span class="o">.</span><span class="n">_default_ID</span>
 
-        <span class="c1"># Make sure given ID is not a default ID</span>
-        <span class="k">if</span> <span class="n">ID</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">letter</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">ID</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;IDs starting with &#39;</span><span class="si">{letter}</span><span class="s2">&#39; and followed by only digits are reserved for defaults. To use the default ID, set ID as &#39;Default&#39;.&quot;</span><span class="p">)</span>
-
         <span class="c1"># Select a default ID if requested</span>
         <span class="k">if</span> <span class="n">ID</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
             <span class="n">Stream</span><span class="o">.</span><span class="n">_default_ID</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="n">ID</span> <span class="o">=</span> <span class="n">letter</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
+            <span class="n">num</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
+            <span class="n">numlen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">numlen</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+                <span class="n">num</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="o">-</span><span class="n">numlen</span><span class="p">)</span><span class="o">*</span><span class="s1">&#39;0&#39;</span> <span class="o">+</span> <span class="n">num</span>
+            <span class="n">ID</span> <span class="o">=</span> <span class="n">letter</span> <span class="o">+</span> <span class="n">num</span>
 
         <span class="c1"># Add ID to find dictionary and set it</span>
         <span class="n">find</span><span class="o">.</span><span class="n">stream</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
@@ -786,8 +785,11 @@
     <span class="k">def</span> <span class="nf">mol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">val</span>
-        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Length of flow property ({len(val)} given) must be the same as the number of species (</span><span class="si">{self._Nspecies}</span><span class="s1">)&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">value_error</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Nspecies</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Length of flow property ({len(val)} given) must be the same as the number of species (</span><span class="si">{self._Nspecies}</span><span class="s1">)&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">value_error</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">molfrac</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -924,6 +926,15 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prop_molar_flownet</span><span class="p">(</span><span class="s1">&#39;Hfm&#39;</span><span class="p">)</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">Hc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Heat of combustion flow rate (kJ/hr).</span>
+
+<span class="sd">        &gt;&gt;&gt; s2.Hc</span>
+<span class="sd">        -1409983.0</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prop_molar_flownet</span><span class="p">(</span><span class="s1">&#39;Hc&#39;</span><span class="p">)</span>
+        
     <span class="c1"># Entropy</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">S</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1095,12 +1106,12 @@
     <span class="c1"># Other properties</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">source</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;tuple with the ID of the unit it exits and the position&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;tuple with the unit source and the position&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">sink</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;tuple with the ID of the unit it enters and the position&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;tuple with the unit sink and the position&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sink</span>
 
     <span class="nd">@property</span>
@@ -1341,7 +1352,8 @@
                 <span class="n">specie</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span>
                 <span class="n">specie</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span>
                 <span class="n">specie</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="n">phase</span>
-                <span class="n">out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">specie</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">)</span>
+                <span class="n">prop</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">specie</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">)</span>
+                <span class="n">out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">prop</span> <span class="k">if</span> <span class="n">prop</span> <span class="k">else</span> <span class="mi">0</span>
         <span class="k">return</span> <span class="n">out</span>
 
     <span class="k">def</span> <span class="nf">_prop_molar_flow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">):</span>
@@ -1502,9 +1514,9 @@
         
         <span class="c1"># Retrive cached info</span>
         <span class="c1"># Even if different composition, use previous bubble point as guess</span>
-        <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bubble_cached</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">)</span> <span class="c1"># c means cached</span>
+        <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bubble_cached</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">)</span> 
         <span class="k">if</span> <span class="n">cached</span><span class="p">:</span>
-            <span class="n">cP</span><span class="p">,</span> <span class="n">T_bubble</span><span class="p">,</span> <span class="n">y_bubble</span><span class="p">,</span> <span class="n">cx</span> <span class="o">=</span> <span class="n">cached</span>
+            <span class="n">cP</span><span class="p">,</span> <span class="n">T_bubble</span><span class="p">,</span> <span class="n">y_bubble</span><span class="p">,</span> <span class="n">cx</span> <span class="o">=</span> <span class="n">cached</span> <span class="c1"># c means cached</span>
             <span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">cx</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mf">1e-6</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">cP</span> <span class="o">-</span> <span class="n">P</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="c1"># Return cached data</span>
                 <span class="k">return</span> <span class="n">T_bubble</span><span class="p">,</span> <span class="n">y_bubble</span> 
@@ -1886,7 +1898,7 @@
 
     <span class="c1"># MixedStream compatibility</span>
 <div class="viewcode-block" id="Stream.enable_phases"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.enable_phases">[docs]</a>    <span class="k">def</span> <span class="nf">enable_phases</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Turn stream into a MixedStream object.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Cast stream into a MixedStream object.&quot;&quot;&quot;</span>
         <span class="n">mS</span> <span class="o">=</span> <span class="n">mixed_stream</span><span class="o">.</span><span class="n">MixedStream</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">mS</span><span class="p">:</span>
             <span class="n">default_phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase</span>
@@ -1898,7 +1910,13 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span></div>
 
 <div class="viewcode-block" id="Stream.disable_phases"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.disable_phases">[docs]</a>    <span class="k">def</span> <span class="nf">disable_phases</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Turn stream into a Stream object.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Cast stream into a Stream object.</span>
+<span class="sd">        </span>
+<span class="sd">        **Parameters**</span>
+<span class="sd">        </span>
+<span class="sd">            **phase:** {&#39;s&#39;, &#39;l&#39;, &#39;g&#39;} desired phase of stream</span>
+<span class="sd">            </span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">Stream</span><span class="p">:</span>
             <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mol</span>
             <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">=</span> <span class="n">Stream</span>
@@ -1925,7 +1943,6 @@
         <span class="n">P_units</span> <span class="o">=</span> <span class="n">show_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;P&#39;</span><span class="p">)</span>
         <span class="n">flow_units</span> <span class="o">=</span> <span class="n">show_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;flow&#39;</span><span class="p">)</span>
         <span class="n">fraction</span> <span class="o">=</span> <span class="n">show_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fraction&#39;</span><span class="p">)</span>
-        <span class="c1">#dim = CS.dim</span>
         
         <span class="c1"># First line</span>
         <span class="n">unit_ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -1988,7 +2005,7 @@
             <span class="n">flow</span> <span class="o">=</span> <span class="n">Q_</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flow</span><span class="p">)[</span><span class="n">nonzero</span><span class="p">],</span> <span class="n">units</span><span class="p">[</span><span class="n">flow</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">flow_units</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
         <span class="n">len_</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nonzero</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">len_</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">basic_info</span> <span class="o">+</span> <span class="s1">&#39; flows:  0&#39;</span>
+            <span class="k">return</span> <span class="n">basic_info</span> <span class="o">+</span> <span class="s1">&#39; flow:  0&#39;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">flowrates</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
             <span class="n">lengths</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span> <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">species</span><span class="p">]</span>

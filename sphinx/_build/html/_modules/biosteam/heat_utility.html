@@ -78,8 +78,8 @@
 <span class="c1"># %% Data for cooling utilities </span>
 
 <span class="n">_columns</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Type&#39;</span><span class="p">,</span> <span class="s1">&#39;species&#39;</span><span class="p">,</span> <span class="s1">&#39;molar fraction&#39;</span><span class="p">,</span> <span class="s1">&#39;T (K)&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;P (Pa)&#39;</span><span class="p">,</span> <span class="s1">&#39;phase&#39;</span><span class="p">,</span> <span class="s1">&#39;T_limit (K)&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;price (USD/kJ)&#39;</span><span class="p">,</span> <span class="s1">&#39;price (USD/kg)&#39;</span><span class="p">)</span>
+            <span class="s1">&#39;P (Pa)&#39;</span><span class="p">,</span> <span class="s1">&#39;phase&#39;</span><span class="p">,</span> <span class="s1">&#39;T limit (K)&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;price (USD/kJ)&#39;</span><span class="p">,</span> <span class="s1">&#39;price (USD/kg)&#39;</span><span class="p">,</span> <span class="s1">&#39;efficiency&#39;</span><span class="p">)</span>
 
 <span class="n">_cooling_index</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Cooling water&#39;</span><span class="p">,</span>
                   <span class="s1">&#39;Chilled water&#39;</span><span class="p">,</span>
@@ -92,8 +92,9 @@
                   <span class="mi">101325</span><span class="p">,</span>          <span class="c1"># P (Pa)</span>
                   <span class="s1">&#39;liq&#39;</span><span class="p">,</span>           <span class="c1"># phase: {&#39;g&#39;, &#39;l&#39;}</span>
                   <span class="mf">324.817</span><span class="p">,</span>         <span class="c1"># T limit (K)</span>
-                  <span class="mi">0</span><span class="p">,</span>               <span class="c1"># price (USD/GJ)</span>
-                  <span class="mf">2.708e-5</span><span class="p">)</span>        <span class="c1"># price (USD/kg)</span>
+                  <span class="mi">0</span><span class="p">,</span>               <span class="c1"># price (USD/kJ)</span>
+                  <span class="mf">2.708e-5</span><span class="p">,</span>        <span class="c1"># price (USD/kg)</span>
+                  <span class="mi">1</span><span class="p">)</span>               <span class="c1"># heat transfer efficiency</span>
 
 <span class="n">_chilled_water</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;sensible&#39;</span><span class="p">,</span>
                   <span class="n">Water</span><span class="p">,</span>
@@ -103,7 +104,8 @@
                   <span class="s1">&#39;liq&#39;</span><span class="p">,</span>
                   <span class="mf">300.372</span><span class="p">,</span>
                   <span class="o">-</span><span class="mf">5e-6</span><span class="p">,</span>
-                  <span class="mi">0</span><span class="p">)</span>
+                  <span class="mi">0</span><span class="p">,</span>
+                  <span class="mi">1</span><span class="p">)</span>
 
 <span class="n">_chilled_brine</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;sensible&#39;</span><span class="p">,</span>
                   <span class="n">Water</span><span class="p">,</span>
@@ -113,7 +115,8 @@
                   <span class="s1">&#39;liq&#39;</span><span class="p">,</span>
                   <span class="mf">275.372</span><span class="p">,</span>
                   <span class="o">-</span><span class="mf">8.145e-6</span><span class="p">,</span>
-                  <span class="mi">0</span><span class="p">)</span>
+                  <span class="mi">0</span><span class="p">,</span>
+                  <span class="mi">1</span><span class="p">)</span>
 
 
 <span class="c1"># %% Data for heating utilities</span>
@@ -130,7 +133,8 @@
                        <span class="s1">&#39;gas&#39;</span><span class="p">,</span>
                        <span class="kc">None</span><span class="p">,</span>
                        <span class="mi">0</span><span class="p">,</span>
-                       <span class="mf">0.01320</span><span class="p">)</span>
+                       <span class="mf">0.01320</span><span class="p">,</span>
+                       <span class="mf">0.90</span><span class="p">)</span>
 
 <span class="n">_medium_pressure_steam</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;latent&#39;</span><span class="p">,</span>
                           <span class="n">Water</span><span class="p">,</span>
@@ -140,7 +144,8 @@
                           <span class="s1">&#39;gas&#39;</span><span class="p">,</span>
                           <span class="kc">None</span><span class="p">,</span>
                           <span class="mi">0</span><span class="p">,</span>
-                          <span class="mf">0.01530</span><span class="p">)</span>
+                          <span class="mf">0.01530</span><span class="p">,</span>
+                          <span class="mf">0.80</span><span class="p">)</span>
 
 <span class="n">_high_pressure_steam</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;latent&#39;</span><span class="p">,</span>
                         <span class="n">Water</span><span class="p">,</span>
@@ -150,7 +155,8 @@
                         <span class="s1">&#39;gas&#39;</span><span class="p">,</span>
                         <span class="kc">None</span><span class="p">,</span>
                         <span class="mi">0</span><span class="p">,</span>
-                        <span class="mf">0.01760</span><span class="p">)</span>
+                        <span class="mf">0.01760</span><span class="p">,</span>
+                        <span class="mf">0.70</span><span class="p">)</span>
 
 
 <span class="c1"># %% Utility classes</span>
@@ -162,10 +168,12 @@
 <span class="sd">    **Parameters**</span>
 <span class="sd">    </span>
 <span class="sd">        **source:** [Object or str] source of the heat utility</span>
+<span class="sd">        </span>
+<span class="sd">        **efficiency:** [float] Fraction of heat transfered after accounting for heat loss.</span>
 <span class="sd">    </span>
 <span class="sd">    **Class Attributes**</span>
 <span class="sd">    </span>
-<span class="sd">        **cooling_agents:** [DataFrame] All heating utilities available</span>
+<span class="sd">        **cooling_agents:** [DataFrame] All cooling utilities available</span>
 <span class="sd">        </span>
 <span class="sd">        **heating_agents:** [DataFrame] All heating utilities available</span>
 <span class="sd">    </span>
@@ -203,7 +211,7 @@
 <span class="sd">            &#39;ID&#39;: Low pressure steam}</span>
 <span class="sd">           </span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;_fresh&#39;</span><span class="p">,</span> <span class="s1">&#39;_vap&#39;</span><span class="p">,</span> <span class="s1">&#39;_liq&#39;</span><span class="p">,</span> <span class="s1">&#39;results&#39;</span><span class="p">)</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;_fresh&#39;</span><span class="p">,</span> <span class="s1">&#39;_vap&#39;</span><span class="p">,</span> <span class="s1">&#39;_liq&#39;</span><span class="p">,</span> <span class="s1">&#39;results&#39;</span><span class="p">,</span> <span class="s1">&#39;efficiency&#39;</span><span class="p">)</span>
     <span class="n">dT</span> <span class="o">=</span> <span class="mi">5</span>  <span class="c1">#: [float] Pinch temperature difference</span>
     
     <span class="c1">#: Units of measure for results dictionary</span>
@@ -223,8 +231,10 @@
                                   <span class="n">columns</span><span class="o">=</span><span class="n">_columns</span><span class="p">,</span>
                                   <span class="n">index</span><span class="o">=</span><span class="n">_heating_index</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="n">SmartBook</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="p">,</span> <span class="n">Cost</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">Flow</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">Duty</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">efficiency</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="n">SmartBook</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">Cost</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                 <span class="n">Flow</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">Duty</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">efficiency</span> <span class="o">=</span> <span class="n">efficiency</span>
 
     <span class="k">def</span> <span class="nf">_init_streams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">phase</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize utility streams.&quot;&quot;&quot;</span>
@@ -249,8 +259,8 @@
 <span class="sd">            **T_out:** [float] Exit process stream temperature (K)</span>
 <span class="sd">        </span>
 <span class="sd">        **Returns**</span>
-<span class="sd">            * &#39;ID&#39;: ID of utility ()</span>
-<span class="sd">            * &#39;Duty&#39;: Unit duty requirement (kJ/hr)</span>
+<span class="sd">            * &#39;ID&#39;: ID of utility</span>
+<span class="sd">            * &#39;Duty&#39;: Unit duty requirement, including heat transfer losses (kJ/hr)</span>
 <span class="sd">            * &#39;Flow&#39;: HeatUtility flow rate (kg/hr)</span>
 <span class="sd">            * &#39;Cost&#39;: Cost of utility (USD/hr)</span>
 <span class="sd">        </span>
@@ -266,13 +276,17 @@
         
         <span class="c1"># Select heat transfer agent</span>
         <span class="k">if</span> <span class="n">duty</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">Type</span><span class="p">,</span> <span class="n">price_duty</span><span class="p">,</span> <span class="n">price_mass</span><span class="p">,</span> <span class="n">T_limit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_cooling_agent</span><span class="p">(</span><span class="n">T_op</span><span class="p">)</span>
+            <span class="n">Type</span><span class="p">,</span> <span class="n">price_duty</span><span class="p">,</span> <span class="n">price_mass</span><span class="p">,</span> \
+            <span class="n">T_limit</span><span class="p">,</span> <span class="n">efficiency</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_cooling_agent</span><span class="p">(</span><span class="n">T_op</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">duty</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">Type</span><span class="p">,</span> <span class="n">price_duty</span><span class="p">,</span> <span class="n">price_mass</span><span class="p">,</span> <span class="n">T_limit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_heating_agent</span><span class="p">(</span><span class="n">T_op</span><span class="p">)</span>
+            <span class="n">Type</span><span class="p">,</span> <span class="n">price_duty</span><span class="p">,</span> <span class="n">price_mass</span><span class="p">,</span> \
+            <span class="n">T_limit</span><span class="p">,</span> <span class="n">efficiency</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_heating_agent</span><span class="p">(</span><span class="n">T_op</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">r</span>
         
         <span class="c1"># Calculate utility flow rate requirement</span>
+        <span class="n">efficiency</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">efficiency</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">efficiency</span> <span class="k">else</span> <span class="n">efficiency</span>
+        <span class="n">duty</span> <span class="o">=</span> <span class="n">duty</span><span class="o">/</span><span class="n">efficiency</span>
         <span class="k">if</span> <span class="n">Type</span> <span class="o">==</span> <span class="s1">&#39;sensible&#39;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_update_flow_wt_pinch_T</span><span class="p">(</span><span class="n">duty</span><span class="p">,</span> <span class="n">T_pinch</span><span class="p">,</span> <span class="n">T_limit</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">Type</span> <span class="o">==</span> <span class="s1">&#39;latent&#39;</span><span class="p">:</span>
@@ -281,7 +295,7 @@
             <span class="k">raise</span> <span class="n">biosteamError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Invalid heat transfer agent &#39;</span><span class="si">{self._fresh.ID[1:]}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
         
         <span class="c1"># Update and return results</span>
-        <span class="n">ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fresh</span><span class="o">.</span><span class="n">ID</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">,</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fresh</span><span class="o">.</span><span class="n">ID</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
         <span class="n">r</span><span class="p">[</span><span class="s1">&#39;ID&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ID</span>
         <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Flow&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mass</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fresh</span><span class="o">.</span><span class="n">massnet</span>
         <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Duty&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">duty</span>
@@ -313,6 +327,8 @@
 <span class="sd">            **price_mass:** [float] (USD/kg)</span>
 <span class="sd">            </span>
 <span class="sd">            **T_limit:** [float] Maximum or minimum temperature of agent (K)</span>
+<span class="sd">            </span>
+<span class="sd">            **efficiency:** [float] Heat transfer efficiency</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">dt</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">dT</span>
@@ -320,10 +336,11 @@
         <span class="n">cooling_agents</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cooling_agents</span>
         <span class="k">for</span> <span class="n">ID</span> <span class="ow">in</span> <span class="n">cooling_agents</span><span class="p">:</span>
             <span class="n">ca</span> <span class="o">=</span> <span class="n">cooling_agents</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span>
-            <span class="n">Type</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">T_limit</span><span class="p">,</span> <span class="n">price_duty</span><span class="p">,</span> <span class="n">price_mass</span> <span class="o">=</span> <span class="n">ca</span>
+            <span class="p">(</span><span class="n">Type</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span>
+             <span class="n">T_limit</span><span class="p">,</span> <span class="n">price_duty</span><span class="p">,</span> <span class="n">price_mass</span><span class="p">,</span> <span class="n">efficiency</span><span class="p">)</span> <span class="o">=</span> <span class="n">ca</span>
             <span class="k">if</span> <span class="n">T_max</span> <span class="o">&gt;</span> <span class="n">T</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_init_streams</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">phase</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-                <span class="k">return</span> <span class="n">Type</span><span class="p">,</span> <span class="n">price_duty</span><span class="p">,</span> <span class="n">price_mass</span><span class="p">,</span> <span class="n">T_limit</span>
+                <span class="k">return</span> <span class="n">Type</span><span class="p">,</span> <span class="n">price_duty</span><span class="p">,</span> <span class="n">price_mass</span><span class="p">,</span> <span class="n">T_limit</span><span class="p">,</span> <span class="n">efficiency</span>
         <span class="k">raise</span> <span class="n">biosteamError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;No cooling agent that can cool under </span><span class="si">{T_pinch}</span><span class="s1"> K&#39;</span><span class="p">)</span>
             
     <span class="k">def</span> <span class="nf">_select_heating_agent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T_pinch</span><span class="p">):</span>
@@ -342,6 +359,8 @@
 <span class="sd">            **price_mass:** [float] (USD/kg)</span>
 <span class="sd">            </span>
 <span class="sd">            **T_limit:** [float] Maximum or minimum temperature of agent (K)</span>
+<span class="sd">            </span>
+<span class="sd">            **efficiency:** [float] Heat transfer efficiency</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">dt</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">dT</span>
@@ -349,10 +368,11 @@
         <span class="n">heating_agents</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">heating_agents</span>
         <span class="k">for</span> <span class="n">ID</span> <span class="ow">in</span> <span class="n">heating_agents</span><span class="p">:</span>
             <span class="n">ha</span> <span class="o">=</span> <span class="n">heating_agents</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span>
-            <span class="n">Type</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">T_limit</span><span class="p">,</span> <span class="n">price_duty</span><span class="p">,</span> <span class="n">price_mass</span> <span class="o">=</span> <span class="n">ha</span>
+            <span class="p">(</span><span class="n">Type</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span>
+             <span class="n">T_limit</span><span class="p">,</span> <span class="n">price_duty</span><span class="p">,</span> <span class="n">price_mass</span><span class="p">,</span> <span class="n">efficiency</span><span class="p">)</span> <span class="o">=</span> <span class="n">ha</span>
             <span class="k">if</span> <span class="n">T_min</span> <span class="o">&lt;</span> <span class="n">T</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_init_streams</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">phase</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-                <span class="k">return</span> <span class="n">Type</span><span class="p">,</span> <span class="n">price_duty</span><span class="p">,</span> <span class="n">price_mass</span><span class="p">,</span> <span class="n">T_limit</span>
+                <span class="k">return</span> <span class="n">Type</span><span class="p">,</span> <span class="n">price_duty</span><span class="p">,</span> <span class="n">price_mass</span><span class="p">,</span> <span class="n">T_limit</span><span class="p">,</span> <span class="n">efficiency</span>
         <span class="k">raise</span> <span class="n">biosteamError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;No heating agent that can heat over </span><span class="si">{T_pinch}</span><span class="s1"> K&#39;</span><span class="p">)</span>
 
     <span class="c1"># Main Calculations</span>

@@ -6,35 +6,26 @@ Created on Thu Aug 23 15:53:14 2018
 """
 from biosteam import Unit
 from biosteam import np
-from fluids.pump import Corripio_motor_efficiency, \
-    Corripio_pump_efficiency, motor_round_size, nema_sizes_hp
+from fluids.pump import nema_sizes_hp
 
 ln = np.log
 exp = np.exp
 
 max_hp = nema_sizes_hp[-1]
 
-# Ranges of flow rate where pumps work (m3/hr)
-Caps = {'Screw':             (0.2271, 13.626),
-        'MeteringPlunger':   (0.2271, 6.813),
-        'MeteringDiaphragm': (0.2271, 1.1355),
-        'Regenerative':      (0.0100, 34.065), # Assume lower minimum for costing
-        'CentrifugalSingle': (0.0100, 2271), # Assume lower minimum for costing
-        'CentrifugalDouble': (0.2271, 2271),
-        'DirectactingSteam': (0.2271, 454.2),
-        'Gear':              (0.2271, 681.3),
-        'AxialFlow':         (227.1, 2271)}
+# Ranges of flow rate (m3/hr) and working pressure where pumps work/
+# Assume lower minimum pressure for costing in Centrifugal single and Regenerative
+pump_ranges = {'CentrifugalSingle': ((0.0100, 2271  ), (      0, 689500  )), 
+               'CentrifugalDouble': ((0.2271, 2271  ), (      0, 6895000 )),
+               'Gear':              ((0.2271, 681.3 ), (  68950, 13790000)),
+               'MeteringPlunger':   ((0.2271, 6.813 ), (  68950, 20685000)),
+               'Screw':             ((0.2271, 13.626), (  68950, 5516000 )),
+               'MeteringDiaphragm': ((0.2271, 1.1355), (  68950, 5516000 )),
+               'DirectactingSteam': ((0.2271, 454.2 ), (  68950, 13790000)),
+               'AxialFlow':         (( 227.1, 2271  ), (  68950, 137900  ))}
 
-# Working pressures of said pumps
-Pressures = {'Screw':             (68950, 5516000),
-             'MeteringPlunger':   (68950, 20685000),
-             'MeteringDiaphragm': (68950, 5516000),
-             'Regenerative':      (1379000, 6895000),
-             'CentrifugalSingle': (0, 689500), # Assume lower minimum for costing
-             'CentrifugalDouble': (0, 6895000), # Assume lower minimum for costing
-             'DirectactingSteam': (68950, 13790000),
-             'Gear':              (68950, 13790000),
-             'AxialFlow':         (68950, 137900)}
+# Regenerative pump (Cost not yet implemented)
+regenerative_ranges = ((0.0100, 34.065), (1379000, 6895000 )) 
 
 # Material factors
 F_Mdict = {'Cast iron':       1,
@@ -85,7 +76,7 @@ class Pump(Unit):
     """
     _N_ins = 1
     _N_outs = 1
-    _power_util = True
+    _has_power_utility = True
     kwargs = {'P': None}
     
     # Pump type
@@ -152,29 +143,28 @@ class Pump(Unit):
         Pi = si.P
         Po = so.P
         Qi = si.volnet
-        Qo = so.volnet
         mass = si.massnet
         
         # Get type
         Type = self.Type
         if Type == 'Default':
-            Type = self._default_type(Pi, Po, Qi, Qo)
+            Type = self._default_type(Pi, Po, Qi)
         Oper['Type'] = Type
         
         # Get ideal power
         if abs(Po - Pi) < 1:    
             Po = self.P_startup
-        power_ideal = self._calc_PowerPressure(Pi, Po, Qi, Qo)*3.725e-7
+        power_ideal = self._calc_PowerPressure(Pi, Po, Qi)*3.725e-7
         Oper['Ideal power'] = power_ideal # hp
         
         Oper['Flow rate'] = q = Qi*4.403
         if power_ideal <= max_hp:
             Oper['Efficiency'] = e = self._calc_Efficiency(q, power_ideal)
-            Oper['Power'] = power =  self._nearest_PumpPower(power_ideal*e)
+            Oper['Power'] = power =  self._nearest_PumpPower(power_ideal/e)
             Oper['N_pumps'] = 1
             Oper['Head'] = self._calc_Head(power, mass)
         else:
-            raise Exception('Do this soon')
+            raise Exception('More than 1 pump required, but not yet implemented.')
         
         self.power_utility(power/1.341)
         return Oper
@@ -244,63 +234,48 @@ class Pump(Unit):
         return q*h**0.5
     
     @classmethod
-    def _default_type(cls, Pi, Po, Qi, Qo):
+    def _default_type(cls, Pi, Po, Qi):
         """Return default selection of pump type."""
-        options = cls._options(Pi, Po, Qi, Qo)
-        Type = None
         if Pi <= Po:
-            if 'CentrifugalSingle' in options:
-                Type = 'CentrifugalSingle'
-            elif 'CentrifugalDouble' in options:
-                Type = 'CentrifugalDouble'
+            for key, ranges in pump_ranges.items():
+                flow_range, pressure_range = ranges
+                flow_min, flow_max = flow_range
+                pressure_min, pressure_max = pressure_range
+                if flow_min <  Qi < flow_max and pressure_min < Pi and pressure_max > Po:
+                    return key
         elif Pi > Po:
-            if 'Regenerative' in options:
-                Type = 'Regenerative'
-        else:
-            if 'Gear' in options:
-                Type = 'Gear'
-        if not Type:
-            try:
-                Type = options[0]
-            except IndexError:
-                raise Exception(f'No valid pump option for pressure, {Pi} Pa, and flow rate, {Qi} m3/hr.')
-        
-        return Type
+            flow_range, pressure_range = regenerative_ranges
+            flow_min, flow_max = flow_range
+            pressure_min, pressure_max = pressure_range
+            if flow_min <  Qi < flow_max and pressure_min < Pi and pressure_max > Po:
+                return 'Regenerative'
+        raise Exception(f'No valid pump option for pressure, {Pi} Pa, and flow rate, {Qi} m3/hr.')
     
     @staticmethod
-    def _options(Pi, Po, Qi, Qo):
-        """Return tuple of pump type options.
+    def _available_PumpTypes(Pi, Po, Qi):
+        """Return tuple of available pump types.
         
         **Parameters**
         
-            Pi: [Stream] Input pressure
+            Pi: [Stream] Input pressure (Pa)
             
-            Po: [Stream] Output pressure
+            Po: [Stream] Output pressure (Pa)
             
             Qi: [Stream] Input flow rate (m^3/hr)
             
-            Qo: [Stream] Output flow rate (m^3/hr)
-        
         """
         # Check which pumps work for flow rates
-        pumpsV = [] # Pumps that work
-        for key, range_ in Caps.items():
-            min_, max_ = range_
-            if min_ <  Qi < max_ and min_ < Qo  < max_:
-                pumpsV.append(key)
-                
-        # Check which pumps work for pressures
-        pumpsP = []
-        for key, range_ in Pressures.items():
-            min_, max_ = range_
-            if min_ < Pi < max_ and min_ < Po < max_:
-                pumpsP.append(key)
-                
-        # Pumps that work
-        return tuple(set(pumpsV) & set(pumpsP))
+        pumps = [] # Pumps that work
+        for key, ranges in pump_ranges.items():
+            flow_range, pressure_range = ranges
+            flow_min, flow_max = flow_range
+            pressure_min, pressure_max = pressure_range
+            if flow_min <  Qi < flow_max and pressure_min < Pi and pressure_max > Po:
+                pumps.append(key)
+        return pumps
 
     @staticmethod
-    def _calc_PowerPressure(Pi, Po, Qi, Qo):
+    def _calc_PowerPressure(Pi, Po, Qi):
         """Return ideal power due to pressure change.
         
         **Parameters**
@@ -310,11 +285,9 @@ class Pump(Unit):
             Po: [Stream] Output pressure
             
             Qi: [Stream] Input flow rate
-            
-            Qo: [Stream] Output flow rate
         
         """
-        return Qo*Po - Qi*Pi
+        return Qi*(Po - Pi)
     
     @staticmethod
     def _calc_PowerFlow(Qi, Qo, Dpipe, mass=None):
@@ -331,9 +304,8 @@ class Pump(Unit):
             mass: [float] Mass flow rate
         
         """
-        A = np.pi*((Dpipe/2)**2)
-        
         if mass:
+            A = np.pi*((Dpipe/2)**2)
             # Kinetic energy change term
             vi = Qi/A # velocity in
             vo = Qo/A # velocity out
@@ -355,15 +327,21 @@ class Pump(Unit):
         return power
     
     @staticmethod
-    def _calc_Efficiency(q:'gal/min', p:'hp'):
-        if 50 < q < 5000 and 1 < p < 1500:
-            mup = -0.316 + 0.24015*ln(q) - 0.01199*ln(q)**2
-            mum = 0.8 + 0.0319*ln(p) - 0.00182*ln(p)**2
-            e = 1/mup*mum
-            if e > 1:
-                e = 1
-        else:
-            e = 0.9
-        return e
+    def _calc_BreakEfficiency(q:'gpm'):
+        if q < 50: q = 50
+        elif q > 5000: q = 5000
+        return -0.316 + 0.24015*ln(q) - 0.01199*ln(q)**2
+        
+    @staticmethod
+    def _calc_MotorEfficiency(Pb):
+        if Pb < 1: Pb = 1
+        elif Pb > 1500: Pb = 1500
+        return 0.8 + 0.0319*ln(Pb) - 0.00182*ln(Pb)**2
+        
+    @staticmethod
+    def _calc_Efficiency(q:'gpm', p:'hp'):
+        mup = Pump._calc_BreakEfficiency(q)
+        mum = Pump._calc_MotorEfficiency(p/mup)
+        return mup*mum
         
         

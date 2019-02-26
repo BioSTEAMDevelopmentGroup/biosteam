@@ -6,9 +6,10 @@ Created on Sat Aug 18 14:36:58 2018
 """
 import copy
 import weakref
-
-edge_in = [{'headport': 'c'} for i in range(6)]
-edge_out = [{'tailport': 'c'} for i in range(4)]
+head_port = {'headport': 'c'}
+tail_port = {'tailport': 'c'}
+edge_in = [head_port for i in range(20)]
+edge_out = [tail_port for i in range(20)]
 node = {'shape': 'box',
         'fillcolor': "white:#CDCDCD",
         'style': 'filled',
@@ -28,11 +29,13 @@ class Graphics:
     def __init__(self, edge_in=edge_in,
                  edge_out=edge_out,
                  node=node,
-                 node_function=lambda unit: None):
+                 node_function=lambda unit: None,
+                 name=None):
         self.edge_in = copy.deepcopy(edge_in)
         self.edge_out = copy.deepcopy(edge_out)
         self.node = copy.deepcopy(node)
         self.node_function = node_function
+        self.name = None
         Graphics._all.append(weakref.ref(self))
 
     def default(self):

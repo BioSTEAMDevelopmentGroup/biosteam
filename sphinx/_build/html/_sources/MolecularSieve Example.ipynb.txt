@@ -120,7 +120,7 @@
     "MS1.simulate()\n",
     "\n",
     "# See all results\n",
-    "MS1.diagram\n",
+    "MS1.diagram()\n",
     "MS1.show(T='degC', P='atm', in_fractions= True)"
    ]
   },

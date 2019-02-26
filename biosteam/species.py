@@ -30,7 +30,7 @@ class Species:
          
         **Optional**
         
-        **cls:** [type Specie] The type of objects that will be created and stored as attributes. Defaults to biosteam.Chemical
+        **cls:** [type Compound] The type of objects that will be created and stored as attributes. Defaults to biosteam.Chemical
         
     """
     units = units_of_measure
