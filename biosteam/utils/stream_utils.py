@@ -20,14 +20,10 @@ def missing_method(self, *args, **kwargs):
 class MissingStream:
     """Create a MissingStream object that acts as a dummy in Ins and Outs objects until replaced by an actual Stream object."""
     ID = 'Missing Stream'
-    _missing_stream = None
     __slots__ = ('_sink', '_source')
     
     def __new__(cls):
-        s = cls._missing_stream
-        if not s:
-            cls._missing_stream = s = super().__new__(cls)
-        return s
+        return cls._missing_stream
     
     def __getattr__(self, key):
         raise TypeError(f'{self.ID} object')
@@ -41,13 +37,15 @@ class MissingStream:
     def show(self, **show_units):
         print(self._info(**show_units))
 
-missing_stream = MissingStream()
+MissingStream._missing_stream = missing_stream = object.__new__(MissingStream)
+
 
 # %% List objects for input and output streams
 
 class Ins(list):
     """Create a Ins object which serves as a list of input streams for a Unit object."""
     __slots__ = ('sink',)
+    pop = insert = remove = reverse = sort = missing_method
 
     def __init__(self, sink, streams=()):
         if streams is self:
@@ -108,12 +106,11 @@ class Ins(list):
         stream._sink = (sink, index)
         super().append(stream)
     
-    pop = insert = remove = reverse = sort = missing_method
-    
 
 class Outs(list):
     """Create a Outs object which serves as a list of output streams for a Unit object."""
     __slots__ = ('source',)
+    pop = insert = remove = reverse = sort = missing_method
     
     def __init__(self, source, streams=()):
         if streams is self:
@@ -174,7 +171,6 @@ class Outs(list):
         stream._source = (source, index)
         super().append(stream)
 
-    pop = insert = remove = reverse = sort = missing_method
 
 # %% Sink and Source object for piping notation
 

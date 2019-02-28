@@ -6,7 +6,7 @@ Created on Thu Aug 23 22:15:20 2018
 """
 from biosteam import Unit
 from .splitter import Splitter
-from .vacuum import vacuum_system
+from biosteam.utils import vacuum_system
 import numpy as np
 
 class RotaryVacuumFilter(Unit):

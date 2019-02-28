@@ -7,56 +7,61 @@ Created on Mon Feb  4 19:38:37 2019
 
 from . import pd, np
 from bookkeep import SmartBook
-from scipy.optimize import brentq, newton
-from .exceptions import SolverError
+from scipy.optimize import newton
 from biosteam.utils import CS
-from biosteam.unit import Unit
 
-DataFrame = pd.DataFrame
-array = np.array
-asarray = np.asarray
+_DataFrame = pd.DataFrame
+_array = np.array
+_asarray = np.asarray
 
 # TODO: Add 'SL', 'DB', 'DDB', 'SYD', 'ACRS' and 'MACRS' functions to generate depreciation data
 
 # %% Depreciation data
 
-MACRS = {'MACRS5':  array([20.00, 32.00, 19.20,
-                           11.52, 11.52,  5.76])/100,
-         
-         'MACRS7':  array([14.29, 24.49, 17.49,
-                           12.49,  8.93,  8.92,
-                            8.83,  4.46])/100,
-         
-         'MACRS10': array([10.00, 18.00, 14.40,
-                           11.52,  9.22,  7.37,
-                            6.55,  6.55,  3.28])/100,
+_MACRS = {'MACRS5':  _array([.2000, .3200, .1920,
+                             .1152, .1152, .0576]),
+          
+          'MACRS7':  _array([.1429, .2449, .1749,
+                             .1249, .0893, .0892,
+                             .0883, .0446]),
+          
+          'MACRS10': _array([.1000, .1800, .1440,
+                             .1152, .0922, .0737,
+                             .0655, .0655, .0328]),
 
-         'MACRS15': array([5.00, 9.50, 8.55,
-                           7.70, 6.93, 6.23,
-                           5.90, 5.90, 5.91,
-                           5.90, 5.91, 5.90,
-                           5.91, 5.90, 5.91,
-                           2.95])/100}
+          'MACRS15': _array([.0500, .0950, .0855,
+                             .0770, .0693, .0623,
+                             .0590, .0590, .0591,
+                             .0590, .0591, .0590,
+                             .0591, .0590, .0591,
+                             .0295])}
 
 
 # %% Cash flow and results info
 
-cashflow_columns = ('Depreciable capital', 'Working capital',
-                     'Depreciation', 'Annual operating cost', 'Sales',
-                     'Net earnings', 'Cash flow', 'Discounted cash flow',
+_cashflow_columns = ('Depreciable capital',
+                     'Working capital',
+                     'Depreciation',
+                     'Annual operating cost (excl. depr.)',
+                     'Sales',
+                     'Net earnings',
+                     'Cash flow',
+                     'Discounted cash flow',
                      'Cumulative cash flow')
 
-results_units = {'Pay back period': 'yr',
-                 'Return on investment': '1/yr',
-                 'Net present value': 'USD',
-                 'Fixed capital investment': 'USD',
-                 'Total capital investment': 'USD',
-                 'Annual operating cost': 'USD/yr',
-                 'Working capital': 'USD',
-                 'Utility cost': 'USD/yr',
-                 'Material cost': 'USD/yr',
-                 'Sales': 'USD/yr',
-                 'Labor': 'USD/yr'}
+_results_units = {'Pay back period': 'yr',
+                  'Return on investment': '1/yr',
+                  'Net present value': 'USD',
+                  'Fixed capital investment': 'USD',
+                  'Total capital investment': 'USD',
+                  'Depreciation': 'USD/yr',
+                  'Annual operating cost': 'USD/yr',
+                  'Working capital': 'USD',
+                  'Utility cost': 'USD/yr',
+                  'Material cost': 'USD/yr',
+                  'Sales': 'USD/yr',
+                  'Labor': 'USD/yr'}
+
 
 # %% Techno-Economic Analysis
 
@@ -112,7 +117,7 @@ class TEA:
             * **Property tax:** Fee as a fraction of fixed capital investment
             * **Property insurance:** Fee as a fraction of fixed capital investment
             * **Duration:** Duration of venture (years)
-            * **Supplies:** Yearly fee as a fraction of fixed capital investment
+            * **Supplies:** Yearly fee as a fraction of labor costs
             * **Mantainance:** Yearly fee as a fraction of fixed capital investment
             * **Administration:** Yearly fee as a fraction of fixed capital investment
             * **Working capital:** Fee as a fraction of fixed capital investment
@@ -131,11 +136,11 @@ class TEA:
         # [dict] Cached values from '_init' methods:
         #  {operating_days: flowrate_factor,
         #   year_duration: (duration_array, cashflow_data),
-        #   depreciation_schedule: (start, Depreciation, D_len, index_startup)}
+        #   depreciation_schedule: (start, Depreciation, D_len, index_schedule)}
         self._cached = {}
         
         #: [dict] Summarized results of cash flow analysis
-        self.results = SmartBook(results_units)
+        self.results = SmartBook(_results_units)
         
         #: [DataFrame] Cash flow table
         self.cashflow = None
@@ -145,6 +150,7 @@ class TEA:
         
         #: Guess stream cost for solve_price method
         self._cost_guess = None
+        system.TEA = self
 
     def __call__(self):
         """Perform cash flow analysis and update the "results" and "cashflow" attributes."""
@@ -194,17 +200,20 @@ class TEA:
             year, duration = year_duration
             index = tuple(range(year, year + duration)) if year else None
             data = np.zeros((duration, 9))
-            self.cashflow = DataFrame(data, index, cashflow_columns, dtype=float)
-            cashflow_data = asarray(self.cashflow).transpose()
-            duration_array = array(range(duration))
+            self.cashflow = _DataFrame(data, index, _cashflow_columns, dtype=float)
+            cashflow_data = _asarray(self.cashflow).transpose()
+            duration_array = _array(range(duration))
             cached[year_duration] = cashflow_info = (cashflow_data, duration_array)
         if not depreciation_data:
             depreciation, schedule = depreciation_schedule
-            Depreciation = MACRS[depreciation]
-            depreciation_data = (len(schedule),
+            Depreciation = _MACRS[depreciation]
+            start = len(schedule)
+            end = start + len(Depreciation)
+            index_schedule = tuple(enumerate(schedule))
+            depreciation_data = (start,
                                  Depreciation,
-                                 len(Depreciation),
-                                 tuple(enumerate(schedule)))
+                                 end,
+                                 index_schedule)
             cached[depreciation_schedule] = depreciation_data
         
         return flow_factor, cashflow_info, depreciation_data
@@ -228,12 +237,10 @@ class TEA:
         UC_ = 0 # Utility cost USD/hr
         MC_ = 0 # Material cost USD/hr
         S_ = 0  # Sales USD/hr
-        uc = []
         for u in units:
             c = iter(u.results['Summary'].values())
             FC_ += next(c)
-            uc.append(next(c))
-            UC_ += uc[-1]
+            UC_ += next(c)
         for s in feeds:
             price = s.price
             if price: MC_ += price*(s._mol*s._MW).sum()
@@ -246,12 +253,12 @@ class TEA:
         S_ *= flow_factor
         FC_ *= (1 + o['Startup cost'] + o['Delivery'] + o['Land'])*o['Lang factor']
         wcf = o['Working capital']
-        fb = o['Fringe benefits']
-        f =  (o['Administration']
+        fb = o['Fringe benefits'] + o['Supplies']
+        f =  (o['Mantainance']
+            + o['Administration']
             + o['Property tax']
             + o['Property insurance'])
         WC_ = wcf*FC_
-        FC_ + WC_
         L_ = o['Wage']*o['Employees']
         C_ = UC_ + (1+fb)*L_ + MC_ + f*FC_
         return FC_, WC_, S_, C_, o['Income tax'], UC_, MC_, L_
@@ -271,15 +278,15 @@ class TEA:
         # CF: Cash flow
         # DCF: Discounted cash flow
         # CPV: Cumulative present value
-        start, Depreciation, D_len, index_startup = depreciation_data
+        start, Depreciation, end, index_schedule = depreciation_data
         C_DC, C_WC, D, C, S, NE, CF, DCF, CPV = cashflow_data
         FC_, WC_, S_, C_, tax = parameters
         
         # Calculate
         D[:] = 0.0
-        for i, f in index_startup:
-            C_DC[i] = c_dc = f*FC_
-            D[i:D_len+i] += c_dc*Depreciation
+        for i, f in index_schedule:
+            C_DC[i] = f*FC_
+        D[start:end] = FC_*Depreciation
         C_WC[start] = WC_
         C_WC[-1] = -WC_
         C[start:] = C_
@@ -297,17 +304,19 @@ class TEA:
         
     def _update_results(self, parameters, NPV):
         """Update results attribute."""
-        FCI, WC, S, AOC, tax, UC, MC, L = parameters
+        FCI, WC, S, C, tax, UC, MC, L = parameters
+        D = FCI/self.options['Duration']
+        AOC = C + D
         TCI = FCI + WC
         net_earnings = (1-tax)*(S-AOC)
         ROI = net_earnings/TCI
-        D = 0.1*FCI
         PBP = FCI/(net_earnings + D)
         
         r = self.results
         r['Fixed capital investment'] = FCI
         r['Working capital'] = WC
         r['Total capital investment'] = TCI
+        r['Depreciation'] = D
         r['Utility cost'] = UC
         r['Material cost'] = MC
         r['Sales'] = S
@@ -335,7 +344,7 @@ class TEA:
         
         # Setup arguments for solver
         data_subset = cashflow_data[-3:]
-        old_data_subset = array(data_subset)
+        old_data_subset = _array(data_subset)
         guess = self._IRR_guess
         IRR_guess = guess if guess else self.options['IRR']
         args = (data_subset, duration_array)
@@ -343,8 +352,11 @@ class TEA:
         # Solve
         self._IRR_guess = IRR = newton(self._calc_NPV, IRR_guess, args=args)
         if update:
-            self._update_results(parameters, data_subset[-1, -1])
             self.options['IRR'] = IRR
+            self._calc_cashflow(cashflow_data,
+                                parameters[:-3],
+                                depreciation_data)
+            self._update_results(parameters, data_subset[-1, -1])
         else:
             data_subset[:] = old_data_subset
         return IRR
@@ -360,8 +372,8 @@ class TEA:
             
         """
         # Exclude stream cost when calculating cash flow
-        data = asarray(self.cashflow)
-        data_old = array(data)
+        data = _asarray(self.cashflow)
+        data_old = _array(data)
         price_old = stream.price
         stream.price = 0
         
@@ -382,7 +394,7 @@ class TEA:
         calc_NPV = self._calc_NPV
         cost_factor = stream.massnet*flow_factor*(1-tax)
         CF = data_subset[0][start:]
-        CF_copy = array(CF)
+        CF_copy = _array(CF)
         system = self.system
         if stream in system.feeds:
             adjust = CF_copy.__sub__
@@ -423,7 +435,7 @@ class TEA:
             NPV = r['Net present value']
             ROI = r['Return on investment']
             PBP = r['Pay back period']
-            out += f' NPV: {NPV:.3g} ' + CS.dim(f'USD at %{IRR:.0f} IRR') + '\n'
+            out += f' NPV: {NPV:.3g} ' + CS.dim(f'USD at %{IRR:.1f} IRR') + '\n'
             out += f' ROI: {ROI:.3g} ' + CS.dim('1/yr') + '\n'
             out += f' PBP: {PBP:.3g} ' + CS.dim('yr') 
         else:

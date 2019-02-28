@@ -284,7 +284,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">facilities</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_auxiliaries</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_facilities</span>
     
     <span class="nd">@facilities</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">facilities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">facilities</span><span class="p">):</span>
@@ -484,6 +484,13 @@
                 <span class="n">a</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">solver_error</span><span class="p">[</span><span class="s1">&#39;iter&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
     
+    <span class="k">def</span> <span class="nf">_run_units</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_network</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">Unit</span><span class="p">):</span>
+                <span class="n">a</span><span class="o">.</span><span class="n">_run</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">System</span><span class="p">):</span>
+                <span class="n">a</span><span class="o">.</span><span class="n">_run_units</span><span class="p">()</span>
+    
     <span class="c1"># Methods for convering the recycle stream</span>
     <span class="k">def</span> <span class="nf">_fixed_point</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Converge system recycle using inner and outer loops with fixed-point iteration.&quot;&quot;&quot;</span>
@@ -622,10 +629,10 @@
         <span class="k">for</span> <span class="n">system</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subsystems</span><span class="p">:</span>
             <span class="n">system</span><span class="o">.</span><span class="n">_reset_iter</span><span class="p">()</span>
     
-    <span class="k">def</span> <span class="nf">_reset_names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit_format</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">stream_format</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">]):</span>
+    <span class="k">def</span> <span class="nf">_reset_names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit_format</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stream_format</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Reset names of all streams and units in order of network.&quot;&quot;&quot;</span>
-        <span class="n">Unit</span><span class="o">.</span><span class="n">_default_ID</span> <span class="o">=</span> <span class="n">unit_format</span>
-        <span class="n">Stream</span><span class="o">.</span><span class="n">_default_ID</span> <span class="o">=</span> <span class="n">stream_format</span>
+        <span class="n">Unit</span><span class="o">.</span><span class="n">_default_ID</span> <span class="o">=</span> <span class="n">unit_format</span> <span class="k">if</span> <span class="n">unit_format</span> <span class="k">else</span> <span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">Stream</span><span class="o">.</span><span class="n">_default_ID</span> <span class="o">=</span> <span class="n">stream_format</span> <span class="k">if</span> <span class="n">stream_format</span> <span class="k">else</span> <span class="p">[</span><span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
         <span class="n">subsystems</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="n">streams</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="n">units</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>

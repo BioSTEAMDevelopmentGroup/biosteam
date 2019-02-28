@@ -83,14 +83,14 @@
 <div><p><strong>ID:</strong> [str] Unique identification. If set as ‘’, a default ID will be chosen.</p>
 <p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
 <p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
-<p><strong>species</strong>: tuple[str] Species that will be used to solve mass balance linear equations. The number of species must be same as the number of input streams varied.</p>
-<p><strong>streams</strong>: tuple[int] Indices of input streams that can vary in net flow rate</p>
-<p><strong>exact</strong>: [bool] True if exact flow rate solution is required for the specified species.</p>
+<p><strong>species:</strong> tuple[str] Species that will be used to solve mass balance linear equations. The number of species must be same as the number of input streams varied.</p>
+<p><strong>streams:</strong> tuple[int] Indices of input streams that can vary in net flow rate</p>
+<p><strong>exact:</strong> [bool] True if exact flow rate solution is required for the specified species.</p>
 <dl class="docutils">
-<dt><strong>balance</strong>: [str] Should be one of the follwing</dt>
+<dt><strong>balance:</strong> [str] Should be one of the following:</dt>
 <dd><ul class="first last simple">
-<li>‘flow’ - To satisfy output flow rates</li>
-<li>‘fraction’ - To satisfy net output molar fractions</li>
+<li>‘flow’: Satisfy output flow rates</li>
+<li>‘fraction’: Satisfy net output molar fractions</li>
 </ul>
 </dd>
 </dl>

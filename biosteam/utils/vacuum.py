@@ -4,13 +4,12 @@ Created on Fri Feb 22 17:31:50 2019
 
 @author: yoelr
 """
-from . import Pump, np
-from biosteam.utils import checkbounds
+from biosteam import np
+from .other_utils import checkbounds
 from biosteam.exceptions import DesignError
 
-__all__ = ('vacuum_system',)
+__all__ = ('vacuum_system', '_calc_MotorEfficiency', '_calc_BreakEfficiency')
 
-calc_BreakEfficiency = Pump._calc_BreakEfficiency
 ln = np.log
 
 # %% Data
@@ -77,15 +76,24 @@ def vacuum_system(massflow:'kg/hr', volflow:'m3/hr',
         volflow_cfm = 3.01
     else:
         factor = 1
-    volflow_gpm = 7.4805*volflow_cfm*factor
     massflow_kgph = (massflow + 0.4536*air_massflow)*factor # kg/hr
     massflow_lbph = 2.205*massflow_kgph
-    power = _power(massflow_kgph, volflow_gpm, P_suction)
+    power = _power(massflow_kgph, P_suction)
     vacuum_sys, grade = _select_VacuumSystem(vacuum_systems, volflow_cfm, P_suction)
     cost = _cost(vacuum_sys, grade, massflow_lbph, volflow_cfm, P_suction)
     return power, cost
 
 # %% Supporting functions
+
+def _calc_BreakEfficiency(q:'gpm'):
+    if q < 50: q = 50
+    elif q > 5000: q = 5000
+    return -0.316 + 0.24015*ln(q) - 0.01199*ln(q)**2
+
+def _calc_MotorEfficiency(Pb):
+    if Pb < 1: Pb = 1
+    elif Pb > 1500: Pb = 1500
+    return 0.8 + 0.0319*ln(Pb) - 0.00182*ln(Pb)**2
 
 def _prefered_VacuumSystems(preference):
     if preference is None:
@@ -133,14 +141,12 @@ def _lazycalc_AirInleakage(V:'ft^3', P:'Pa') -> 'lb/hr':
 def _calc_AirInleakage(V:'ft^3', P:'torr') -> 'lb/hr':
     return 5 + (0.0298 + 0.03088*ln(P) - 5.733e-4*ln(P)**2)*V**0.66
     
-def _power(massflow:'kg/hr', volflow:'gpm', P_suction:'torr') -> 'kW':
-    # P_suction *= 7.5006e-3 # To torr
-    # volflow *= 4.403 # To gpm
+def _power(massflow:'kg/hr',  P_suction:'torr') -> 'kW':
     SF = massflow/P_suction # Size factor
     if SF < 0.2: SF = 0.2
     elif SF > 16: SF = 16
     Pb = 21.4*SF**0.924 # Break power assuming Liquid-ring (NASH)
-    mu_m = calc_BreakEfficiency(volflow)
+    mu_m = _calc_MotorEfficiency(Pb)
     return Pb/mu_m
 
 def _cost(vacuum_sys, grade, massflow:'lb/hr', volflow:'cfm', P_suction:'torr') -> 'USD':
@@ -175,5 +181,4 @@ def _cost(vacuum_sys, grade, massflow:'lb/hr', volflow:'cfm', P_suction:'torr') 
             Cp = 10875*(S**(0.38))
         Cost = Cp
     return Cost
-    
     

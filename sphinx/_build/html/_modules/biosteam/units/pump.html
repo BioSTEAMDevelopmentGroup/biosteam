@@ -62,6 +62,7 @@
 <span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Unit</span>
 <span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">np</span>
 <span class="kn">from</span> <span class="nn">fluids.pump</span> <span class="k">import</span> <span class="n">nema_sizes_hp</span>
+<span class="kn">from</span> <span class="nn">biosteam.utils</span> <span class="k">import</span> <span class="n">_calc_MotorEfficiency</span><span class="p">,</span> <span class="n">_calc_BreakEfficiency</span>
 
 <span class="n">ln</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span>
 <span class="n">exp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span>
@@ -380,23 +381,11 @@
             <span class="k">if</span> <span class="n">power</span> <span class="o">&gt;=</span> <span class="n">p</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">power</span>
         <span class="k">return</span> <span class="n">power</span>
-    
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_calc_BreakEfficiency</span><span class="p">(</span><span class="n">q</span><span class="p">:</span><span class="s1">&#39;gpm&#39;</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">q</span> <span class="o">&lt;</span> <span class="mi">50</span><span class="p">:</span> <span class="n">q</span> <span class="o">=</span> <span class="mi">50</span>
-        <span class="k">elif</span> <span class="n">q</span> <span class="o">&gt;</span> <span class="mi">5000</span><span class="p">:</span> <span class="n">q</span> <span class="o">=</span> <span class="mi">5000</span>
-        <span class="k">return</span> <span class="o">-</span><span class="mf">0.316</span> <span class="o">+</span> <span class="mf">0.24015</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">q</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.01199</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">q</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
-        
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_calc_MotorEfficiency</span><span class="p">(</span><span class="n">Pb</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">Pb</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span> <span class="n">Pb</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="k">elif</span> <span class="n">Pb</span> <span class="o">&gt;</span> <span class="mi">1500</span><span class="p">:</span> <span class="n">Pb</span> <span class="o">=</span> <span class="mi">1500</span>
-        <span class="k">return</span> <span class="mf">0.8</span> <span class="o">+</span> <span class="mf">0.0319</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">Pb</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.00182</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">Pb</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
         
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_calc_Efficiency</span><span class="p">(</span><span class="n">q</span><span class="p">:</span><span class="s1">&#39;gpm&#39;</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span><span class="s1">&#39;hp&#39;</span><span class="p">):</span>
-        <span class="n">mup</span> <span class="o">=</span> <span class="n">Pump</span><span class="o">.</span><span class="n">_calc_BreakEfficiency</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
-        <span class="n">mum</span> <span class="o">=</span> <span class="n">Pump</span><span class="o">.</span><span class="n">_calc_MotorEfficiency</span><span class="p">(</span><span class="n">p</span><span class="o">/</span><span class="n">mup</span><span class="p">)</span>
+        <span class="n">mup</span> <span class="o">=</span> <span class="n">_calc_BreakEfficiency</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+        <span class="n">mum</span> <span class="o">=</span> <span class="n">_calc_MotorEfficiency</span><span class="p">(</span><span class="n">p</span><span class="o">/</span><span class="n">mup</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">mup</span><span class="o">*</span><span class="n">mum</span></div>
         
         

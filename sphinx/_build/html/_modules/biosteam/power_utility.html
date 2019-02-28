@@ -119,7 +119,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_units</span> <span class="o">=</span> <span class="n">UnitManager</span><span class="p">([],</span> <span class="n">Power</span><span class="o">=</span><span class="s1">&#39;kW&#39;</span><span class="p">,</span> <span class="n">Cost</span><span class="o">=</span><span class="s1">&#39;USD/hr&#39;</span><span class="p">)</span>
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;results&#39;</span><span class="p">,)</span>
-    <span class="n">price</span> <span class="o">=</span> <span class="mf">0.0782</span>
+    <span class="n">price</span> <span class="o">=</span> <span class="mf">0.0782</span> <span class="c1">#: USD/kWhr</span>
     
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="n">SmartBook</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="p">,</span> <span class="n">Power</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">Cost</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="n">source</span><span class="p">)</span>
@@ -168,6 +168,8 @@
             <span class="k">return</span> <span class="p">(</span><span class="n">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{power:.3g}</span><span class="s1"> </span><span class="si">{Power}</span><span class="s1">, </span><span class="si">{cost:.3g}</span><span class="s1"> </span><span class="si">{Cost}</span><span class="s1">&gt;&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">(</span><span class="n">f</span><span class="s1">&#39;&lt;{type(self).__name__}: None&gt;&#39;</span><span class="p">)</span></div>
+        
+        
 </pre></div>
 
           </div>

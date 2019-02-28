@@ -64,7 +64,7 @@ class PowerUtility:
     """
     _units = UnitManager([], Power='kW', Cost='USD/hr')
     __slots__ = ('results',)
-    price = 0.0782
+    price = 0.0782 #: USD/kWhr
     
     def __init__(self, source):
         self.results = SmartBook(self._units, Power=0, Cost=0, source=source)
@@ -113,3 +113,5 @@ class PowerUtility:
             return (f'<{type(self).__name__}: {power:.3g} {Power}, {cost:.3g} {Cost}>')
         else:
             return (f'<{type(self).__name__}: None>')
+        
+        

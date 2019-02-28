@@ -23,19 +23,18 @@ from .settler import Settler
 from .clarifier import Clarifier
 from .yeast_centrifuge import YeastCentrifuge
 from .crushing_mill import CrushingMill
-from .RVF import RVF
+from .rvf import RVF
 from .juice_screener import JuiceScreener
 from .screener import Screener
 from .molecular_sieve import MolecularSieve, MolSieve
 from .separator import Separator
 from .reactor import Reactor, BatchReactor
 from .balance import MassBalance, EnergyBalance
-from .boiler_turbogenerator import BoilerTurbogenerator
-from .vacuum import vacuum_system
+
 
 # %% All units
 
-__all__ = ['Mixer', 'Splitter', 'InvSplitter', 'Tank', 'MixTank', 'StorageTank', 'Separator', 'HX', 'HXutility', 'HXprocess', 'Pump', 'Flash', 'Evaporator_PQin', 'Evaporator_PV', 'LazyFlash', 'Distillation', 'Stripper', 'Transesterification', 'Fermentation', 'Centrifuge_LLE', 'Centrifuge_LLE_Lazy', 'MultiEffectEvaporator', 'EnzymeTreatment', 'CrushingMill', 'RVF', 'JuiceScreener', 'Screener', 'MolecularSieve', 'MolSieve', 'PCT', 'Settler', 'YeastCentrifuge', 'Clarifier', 'Reactor', 'BatchReactor', 'MassBalance', 'EnergyBalance', 'BoilerTurbogenerator', 'vacuum_system']
+__all__ = ['Mixer', 'Splitter', 'InvSplitter', 'Tank', 'MixTank', 'StorageTank', 'Separator', 'HX', 'HXutility', 'HXprocess', 'Pump', 'Flash', 'Evaporator_PQin', 'Evaporator_PV', 'LazyFlash', 'Distillation', 'Stripper', 'Transesterification', 'Fermentation', 'Centrifuge_LLE', 'Centrifuge_LLE_Lazy', 'MultiEffectEvaporator', 'EnzymeTreatment', 'CrushingMill', 'RVF', 'JuiceScreener', 'Screener', 'MolecularSieve', 'MolSieve', 'PCT', 'Settler', 'YeastCentrifuge', 'Clarifier', 'Reactor', 'BatchReactor', 'MassBalance', 'EnergyBalance']
 
 
 # %% Enhance Graphics

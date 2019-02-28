@@ -229,7 +229,7 @@ class System:
 
     @property
     def facilities(self):
-        return self._auxiliaries
+        return self._facilities
     
     @facilities.setter
     def facilities(self, facilities):
@@ -429,6 +429,13 @@ class System:
                 a()
         self.solver_error['iter'] += 1
     
+    def _run_units(self):
+        for a in self._network:
+            if isinstance(a, Unit):
+                a._run()
+            elif isinstance(a, System):
+                a._run_units()
+    
     # Methods for convering the recycle stream
     def _fixed_point(self):
         """Converge system recycle using inner and outer loops with fixed-point iteration."""
@@ -567,10 +574,10 @@ class System:
         for system in self.subsystems:
             system._reset_iter()
     
-    def _reset_names(self, unit_format=['U', 1], stream_format=['S', 1]):
+    def _reset_names(self, unit_format=None, stream_format=None):
         """Reset names of all streams and units in order of network."""
-        Unit._default_ID = unit_format
-        Stream._default_ID = stream_format
+        Unit._default_ID = unit_format if unit_format else ['U', 1]
+        Stream._default_ID = stream_format if stream_format else ['S', 1]
         subsystems = set()
         streams = set()
         units = set()

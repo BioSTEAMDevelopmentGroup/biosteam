@@ -7,6 +7,7 @@ Created on Thu Aug 23 15:53:14 2018
 from biosteam import Unit
 from biosteam import np
 from fluids.pump import nema_sizes_hp
+from biosteam.utils import _calc_MotorEfficiency, _calc_BreakEfficiency
 
 ln = np.log
 exp = np.exp
@@ -325,23 +326,11 @@ class Pump(Unit):
             if power >= p:
                 return power
         return power
-    
-    @staticmethod
-    def _calc_BreakEfficiency(q:'gpm'):
-        if q < 50: q = 50
-        elif q > 5000: q = 5000
-        return -0.316 + 0.24015*ln(q) - 0.01199*ln(q)**2
-        
-    @staticmethod
-    def _calc_MotorEfficiency(Pb):
-        if Pb < 1: Pb = 1
-        elif Pb > 1500: Pb = 1500
-        return 0.8 + 0.0319*ln(Pb) - 0.00182*ln(Pb)**2
         
     @staticmethod
     def _calc_Efficiency(q:'gpm', p:'hp'):
-        mup = Pump._calc_BreakEfficiency(q)
-        mum = Pump._calc_MotorEfficiency(p/mup)
+        mup = _calc_BreakEfficiency(q)
+        mum = _calc_MotorEfficiency(p/mup)
         return mup*mum
         
         

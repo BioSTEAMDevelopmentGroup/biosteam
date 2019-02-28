@@ -62,7 +62,7 @@
 <span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">integrate</span>
 <span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">log</span>
 <span class="kn">from</span> <span class="nn">bookkeep</span> <span class="k">import</span> <span class="n">ReadOnlyBook</span>
-<span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Q_</span><span class="p">,</span> <span class="n">units_of_measure</span>
+<span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Q_</span>
 
 <span class="n">R</span> <span class="o">=</span> <span class="mf">8.3144598</span>  <span class="c1"># Universal gas constant (J/mol-K)</span>
 
@@ -73,15 +73,14 @@
     <span class="sd">&quot;&quot;&quot;Take the full integral.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">integrate</span><span class="o">.</span><span class="n">quad</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">Xi</span><span class="p">,</span> <span class="n">Xf</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
-
 <span class="k">def</span> <span class="nf">_func_int_average</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">Xi</span><span class="p">,</span> <span class="n">Xf</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Take the integral with a constant derivative at the average value.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">func</span><span class="p">((</span><span class="n">Xi</span><span class="o">+</span><span class="n">Xf</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">Xf</span><span class="o">-</span><span class="n">Xi</span><span class="p">)</span>
 
-
 <span class="k">def</span> <span class="nf">_func_int_constant</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">Xi</span><span class="p">,</span> <span class="n">Xf</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Take the integral with a constant derivative at 298.15.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="mf">298.15</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">Xf</span><span class="o">-</span><span class="n">Xi</span><span class="p">)</span>
+
 
 <span class="c1"># %% Compound class</span>
 
@@ -105,16 +104,14 @@
 <span class="sd">                      * &#39;constant&#39;: Compute integral using current function value</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">integral_type</span> <span class="o">==</span> <span class="s1">&#39;rigorous&#39;</span><span class="p">:</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">_integral_type</span> <span class="o">=</span> <span class="n">integral_type</span>
             <span class="bp">cls</span><span class="o">.</span><span class="n">_func_integral</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">_func_int_rigorous</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">integral_type</span> <span class="o">==</span> <span class="s1">&#39;average&#39;</span><span class="p">:</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">_integral_type</span> <span class="o">=</span> <span class="n">integral_type</span>
             <span class="bp">cls</span><span class="o">.</span><span class="n">_func_integral</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">_func_int_average</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">integral_type</span> <span class="o">==</span> <span class="s1">&#39;constant&#39;</span><span class="p">:</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">_integral_type</span> <span class="o">=</span> <span class="n">integral_type</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">_func_integral</span> <span class="o">=</span> <span class="n">_func_int_constant</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_func_integral</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">_func_int_constant</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Must pass one of the following types of Cp integration: </span><span class="se">\&#39;</span><span class="s1">rigorous</span><span class="se">\&#39;</span><span class="s1">, </span><span class="se">\&#39;</span><span class="s1">average</span><span class="se">\&#39;</span><span class="s1">, </span><span class="se">\&#39;</span><span class="s1">constant</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_integral_type</span> <span class="o">=</span> <span class="n">integral_type</span>
 
 
 <div class="viewcode-block" id="Compound"><a class="viewcode-back" href="../../Compound.html#biosteam.Compound">[docs]</a><span class="k">class</span> <span class="nc">Compound</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">metaCompound</span><span class="p">):</span>
@@ -167,9 +164,10 @@
     <span class="n">T_ref</span> <span class="o">=</span> <span class="mf">298.15</span>  <span class="c1"># Reference temperature (K)</span>
     <span class="n">S_ref</span> <span class="o">=</span> <span class="mi">0</span>       <span class="c1"># Reference entropy (kJ/kmol)</span>
     <span class="n">H_ref</span> <span class="o">=</span> <span class="mi">0</span>       <span class="c1"># Reference enthalpy (kJ/kmol)</span>
+    <span class="n">MW</span> <span class="o">=</span> <span class="mi">1</span>          <span class="c1"># Arbitrary molecular weight (g/mol)</span>
+
     <span class="c1">#: Method for taking the integral of Cp</span>
     <span class="n">_func_integral</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">_func_int_average</span><span class="p">)</span>
-    <span class="n">MW</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1"># Arbitrary molecular weight (g/mol)</span>
 
 <div class="viewcode-block" id="Compound.quantity"><a class="viewcode-back" href="../../Compound.html#biosteam.Compound.quantity">[docs]</a>    <span class="k">def</span> <span class="nf">quantity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a material property as a Quantity object as described in the `pint package &lt;https://pint.readthedocs.io/en/latest/&gt;`__ </span>
@@ -183,17 +181,10 @@
 
     <span class="c1">### Abstract methods ###</span>
     
-    <span class="k">def</span> <span class="nf">HeatCapacitySolid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Cpsm</span>
-
-    <span class="k">def</span> <span class="nf">HeatCapacityLiquid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Cplm</span>
-
-    <span class="k">def</span> <span class="nf">HeatCapacityGas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Cpgm</span>
-
-    <span class="k">def</span> <span class="nf">calc_H_excess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">):</span> <span class="k">return</span> <span class="mi">0</span>
-    
+    <span class="k">def</span> <span class="nf">HeatCapacitySolid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Cpsm</span>
+    <span class="k">def</span> <span class="nf">HeatCapacityLiquid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Cplm</span>
+    <span class="k">def</span> <span class="nf">HeatCapacityGas</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Cpgm</span>
+    <span class="k">def</span> <span class="nf">calc_H_excess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">):</span> <span class="k">return</span> <span class="mi">0</span>    
     <span class="k">def</span> <span class="nf">calc_S_excess</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">):</span> <span class="k">return</span> <span class="mi">0</span>
 
     <span class="c1">### Entropy methods ###</span>

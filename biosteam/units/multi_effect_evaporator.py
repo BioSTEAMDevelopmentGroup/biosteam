@@ -7,7 +7,7 @@ Created on Thu Aug 23 21:43:13 2018
 from biosteam import Unit, Stream, np
 from scipy.optimize import brentq
 from . import Evaporator_PV, Evaporator_PQin, Pump, Mixer, HXutility
-from .vacuum import vacuum_system
+from biosteam.utils import vacuum_system
 import ht
 log = np.log
 exp = np.exp

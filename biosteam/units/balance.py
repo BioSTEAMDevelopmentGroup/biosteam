@@ -17,15 +17,15 @@ class MassBalance(Unit, metaclass=metaFinal):
 
     **Parameters**
 
-        **species**: tuple[str] Species that will be used to solve mass balance linear equations. The number of species must be same as the number of input streams varied.
+        **species:** tuple[str] Species that will be used to solve mass balance linear equations. The number of species must be same as the number of input streams varied.
 
-        **streams**: tuple[int] Indices of input streams that can vary in net flow rate
+        **streams:** tuple[int] Indices of input streams that can vary in net flow rate
 
-        **exact**: [bool] True if exact flow rate solution is required for the specified species.
+        **exact:** [bool] True if exact flow rate solution is required for the specified species.
 
-        **balance**: [str] Should be one of the follwing
-                  * 'flow' - To satisfy output flow rates
-                  * 'fraction' - To satisfy net output molar fractions
+        **balance:** [str] Should be one of the following:
+                  * 'flow': Satisfy output flow rates
+                  * 'fraction': Satisfy net output molar fractions
 
     .. Note::
 
@@ -201,7 +201,7 @@ class EnergyBalance(Unit, metaclass=metaFinal):
         **Type:** [str] Should be one of the following
             * 'T': Vary temperature of output stream
             * 'V': Vary vapor fraction of output stream
-            * 'F': 'Vary flow rate of input/output stream
+            * 'F': Vary flow rate of input/output stream
         
         **Qin:** *[float]* Additional energy input.
 
@@ -220,7 +220,7 @@ class EnergyBalance(Unit, metaclass=metaFinal):
         kwargs = self.kwargs
         index = kwargs['index']
         Type = kwargs['Type']
-        Q_in = kwargs['Qin']
+        Qin = kwargs['Qin']
         
         # Pop out required streams
         if Type == 'F':
@@ -230,7 +230,7 @@ class EnergyBalance(Unit, metaclass=metaFinal):
             s = outs.pop(index)
         
         # Find required enthalpy
-        H_in = sum(i.H for i in ins) + Q_in
+        H_in = sum(i.H for i in ins) + Qin
         H_out = sum(o.H for o in outs)
         H_s = H_out - H_in
         

@@ -11,7 +11,7 @@ import copy
 import numpy as np
 from scipy.optimize import brentq, newton
 from thermo import activity
-from .vacuum import vacuum_system
+from biosteam.utils import vacuum_system
 from biosteam.units.hx import HX, HXutility
 from biosteam.units.design_tools import (HNATable, FinalValue,
                           VesselWeightAndWallThickness, Kvalue)

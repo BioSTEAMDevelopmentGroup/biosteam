@@ -7,7 +7,7 @@ Created on Sat Aug 18 13:26:29 2018
 from scipy import integrate
 from math import log
 from bookkeep import ReadOnlyBook
-from biosteam import Q_, units_of_measure
+from biosteam import Q_
 
 R = 8.3144598  # Universal gas constant (J/mol-K)
 
@@ -18,15 +18,14 @@ def _func_int_rigorous(func, Xi, Xf):
     """Take the full integral."""
     return integrate.quad(func, Xi, Xf)[0]
 
-
 def _func_int_average(func, Xi, Xf):
     """Take the integral with a constant derivative at the average value."""
     return func((Xi+Xf)/2)*(Xf-Xi)
 
-
 def _func_int_constant(func, Xi, Xf):
     """Take the integral with a constant derivative at 298.15."""
     return func(298.15)*(Xf-Xi)
+
 
 # %% Compound class
 
@@ -50,16 +49,14 @@ class metaCompound(type):
                       * 'constant': Compute integral using current function value
         """
         if integral_type == 'rigorous':
-            cls._integral_type = integral_type
             cls._func_integral = staticmethod(_func_int_rigorous)
         elif integral_type == 'average':
-            cls._integral_type = integral_type
             cls._func_integral = staticmethod(_func_int_average)
         elif integral_type == 'constant':
-            cls._integral_type = integral_type
-            cls._func_integral = _func_int_constant
+            cls._func_integral = staticmethod(_func_int_constant)
         else:
             raise ValueError('Must pass one of the following types of Cp integration: \'rigorous\', \'average\', \'constant\'')
+        cls._integral_type = integral_type
 
 
 class Compound(metaclass=metaCompound):
@@ -112,9 +109,10 @@ class Compound(metaclass=metaCompound):
     T_ref = 298.15  # Reference temperature (K)
     S_ref = 0       # Reference entropy (kJ/kmol)
     H_ref = 0       # Reference enthalpy (kJ/kmol)
+    MW = 1          # Arbitrary molecular weight (g/mol)
+
     #: Method for taking the integral of Cp
     _func_integral = staticmethod(_func_int_average)
-    MW = 1 # Arbitrary molecular weight (g/mol)
 
     def quantity(self, prop_ID):
         """Return a material property as a Quantity object as described in the `pint package <https://pint.readthedocs.io/en/latest/>`__ 
@@ -128,17 +126,10 @@ class Compound(metaclass=metaCompound):
 
     ### Abstract methods ###
     
-    def HeatCapacitySolid(self, T):
-        return self.Cpsm
-
-    def HeatCapacityLiquid(self, T):
-        return self.Cplm
-
-    def HeatCapacityGas(self, T):
-        return self.Cpgm
-
-    def calc_H_excess(self, T, P): return 0
-    
+    def HeatCapacitySolid(self, T): return self.Cpsm
+    def HeatCapacityLiquid(self, T): return self.Cplm
+    def HeatCapacityGas(self, T): return self.Cpgm
+    def calc_H_excess(self, T, P): return 0    
     def calc_S_excess(self, T, P): return 0
 
     ### Entropy methods ###

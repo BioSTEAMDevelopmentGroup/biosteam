@@ -286,7 +286,7 @@ class Unit(metaclass=metaUnit):
     # [biosteam Graphics] a Graphics object for diagram representation.
     _graphics = default_graphics
     
-    # [str] The type of unit, regardless of estimations
+    #: [str] The general type of unit, regardless of class
     line = default_line
 
     ### Other defaults ###
@@ -484,7 +484,7 @@ class Unit(metaclass=metaUnit):
             return
         
         # Remove old reference to this object
-        if self._ID != '' and ID != '':
+        if self._ID != '':
             del find.unit[self._ID]
             del type(self).instances[self._ID]
 

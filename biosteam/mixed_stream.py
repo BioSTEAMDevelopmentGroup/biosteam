@@ -869,11 +869,14 @@ class MixedStream(Stream):
                 
             if Nspecies > 2:
                 raise ValueError(f'More than two components in equilibrium. Only binary component equilibrium can be solved for specification, {eq}.')
-            
             # Get flow rates based on lever rule
             split_frac = (zf[0]-x[0])/(y[0]-x[0])
-            if split_frac > 1 or split_frac < 0:
+            if split_frac > 1.0001 or split_frac < -0.0001:
                 raise EquilibriumError('Desired composition is not feasible')
+            elif split_frac > 1:
+                split_frac = 1
+            elif split_frac < 0:
+                split_frac = 0
             v_net = molnet * split_frac
             vapor_mol[index] = v_net*np.array([y[0], 1 - y[0]])
             liquid_mol[index] = mol - vapor_mol[index]

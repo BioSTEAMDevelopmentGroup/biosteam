@@ -49,6 +49,10 @@ class WeakRefBook(dict):
             obj = ref(obj)
         super().__setitem__(ID, obj)
 
+    def __delitem__(self, key):
+        if key in self:
+            super().__delitem__(key)
+
     def __getitem__(self, key):
         return self.get(key, lambda: None)()
 
