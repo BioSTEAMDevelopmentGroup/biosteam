@@ -42,7 +42,7 @@ class YeastCentrifuge(Unit):
         """
         Cost = self.results['Cost']
         solids = self.kwargs['solids']
-        index = self.outs[0].get_index(solids)
+        index = self.outs[0].get_index(*solids)
         mass_solids = 0
         for s in self.ins:
             mass_solids += s.mass[index]

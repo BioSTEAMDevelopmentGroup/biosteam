@@ -30,8 +30,8 @@ F_TTdict = {'Sieve': 1,
 
 # Tray Materials (inner diameter, Di, in ft)
 F_TMdict = {'Carbon steel': lambda Di: 1,
-            '303 Stainless steel': lambda Di: 1.189 + 0.058*Di,
-            '316 Stainless steel': lambda Di: 1.401 + 0.073*Di,
+            'Stainless steel 304': lambda Di: 1.189 + 0.058*Di,
+            'Stainless steel 316': lambda Di: 1.401 + 0.073*Di,
             'Carpenter 20CB-3': lambda Di: 1.525 + 0.079*Di,
             'Monel': lambda Di: 2.306 + 0.112*Di}
 
@@ -49,15 +49,15 @@ F_Mdict = {'Carbon steel': 1.0,
 
 # Material density (lb∕in^3)
 rho_Mdict = {'Carbon steel': 0.284 ,
-            'Low-alloy steel': None,
-            'Stainless steel 304': None,
-            'Stainless steel 316': None,
-            'Carpenter 20CB-3': None,
-            'Nickel-200': None,
-            'Monel-400': None,
-            'Inconel-600': None,
-            'Incoloy-825': None,
-            'Titanium': None}
+             'Low-alloy steel': None,
+             'Stainless steel 304': 0.289,
+             'Stainless steel 316': 0.289,
+             'Carpenter 20CB-3': None,
+             'Nickel-200': None,
+             'Monel-400': None,
+             'Inconel-600': None,
+             'Incoloy-825': None,
+             'Titanium': None}
 
 # %% Distillation
 

@@ -609,7 +609,7 @@ class HXprocess(HX):
         if species_IDs:
             feed = self.outs[0]
             _species = feed._species
-            self._species_index = tuple(getattr(_species, ID) for ID in species_IDs), feed.get_index(species_IDs)
+            self._species_index = tuple(getattr(_species, ID) for ID in species_IDs), feed.get_index(*species_IDs)
     
     def _run(self):
         hx = True # If false, a stream is empty and no heat exchanger occurs

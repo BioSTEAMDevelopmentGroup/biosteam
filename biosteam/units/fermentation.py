@@ -190,7 +190,7 @@ class Fermentation(BatchReactor):
         
         # Species involved in reaction
         species = ['64-17-5', '492-61-5', '57-50-1', '7732-18-5']
-        e, g, s, w = indx = out.get_index(species, CAS=True)
+        e, g, s, w = indx = out.get_index(*species, CAS=True)
         glucose = out.mol[indx[1]]
         sucrose = out.mol[indx[2]]
         
@@ -209,7 +209,7 @@ class Fermentation(BatchReactor):
         fermented = eff*(glucose + new_glucose)
         ch_glucose = - fermented
         ch_Ethanol = 0.5111*fermented * mw_glucose/mw_Ethanol
-        co2 = out.get_index(('124-38-9',), CAS=True)
+        co2 = out.get_index('124-38-9', CAS=True)
         changes = [ch_Ethanol, ch_glucose]
         out.mol[[e, g]] += changes
         CO2.mol[co2] = (1-0.5111)*fermented * mw_glucose/44.0095
