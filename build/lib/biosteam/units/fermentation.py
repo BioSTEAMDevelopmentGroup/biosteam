@@ -76,8 +76,8 @@ class Fermentation(BatchReactor):
     #: Base agitator price (USD)
     C_A = 52500 
     
-    #: Base agitator power (hp)
-    A_p = 30 
+    #: Base agitator power (kW)
+    A_p = 22.371
     
     #: tuple of kinetic parameters for the kinetic model. Default constants are fitted for Oliveria's model (mu_m1, mu_m2, Ks1, Ks2, Pm1, Pm2, Xm, Y_PS, a)
     kinetic_constants = (0.39,  # mu_m1
@@ -101,7 +101,8 @@ class Fermentation(BatchReactor):
         self._N_reactors = N
 
     def _init(self):
-        self._cooler = HXutility(ID=self.ID+' cooler', outs=())
+        self._cooler = hx = HXutility(ID=self.ID+' cooler', outs=())
+        self.heat_utilities = hx.heat_utilities
     
     def _setup(self):
         if not self.kwargs['tau']:
@@ -250,7 +251,6 @@ class Fermentation(BatchReactor):
         Design['Number of reactors'] = N_reactors
         Design.update(self._solve(v_0, tau, tau_0, N_reactors, self.V_wf))
         hx = self._cooler
-        self.heat_utilities = hx.heat_utilities
         new_flow = Stream.like(self.outs[0])
         new_flow.mol /= N_reactors 
         hx.outs[0] = new_flow
@@ -282,6 +282,6 @@ class Fermentation(BatchReactor):
         
         Cost['Reactors'] = FF * self.C_0
         Cost['Coolers'] = N * self._cooler.results['Cost']['Heat exchanger']
-        self.power_utility(FF * self.A_p)
+        self.power_utility(self.A_p * R * N * F_CEPCI)
         Cost['Agitators'] = FF * self.C_A
         return Cost

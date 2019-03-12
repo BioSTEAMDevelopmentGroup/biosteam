@@ -49,21 +49,25 @@ class Transesterification(Reactor):
     _N_ins = 2
     _N_outs = 1
     _N_heat_utilities = 1
+    _has_power_utility = True
+
+    #: kW/m3
+    electricity_rate = 1.5
 
     def _run(self):
         feed, fresh_Methanol = self.ins
         out = self.outs[0]
         eff, r, T, catalyst_molfrac = (self.kwargs[i] for i in (
             'efficiency', 'r', 'T', 'catalyst_molfrac'))
-        sp_index = feed._ID_index
+        sp_index = feed._IDs.index
 
         # Reactant positions
-        lipid_pos = sp_index['Lipid']
-        Methanol_pos = sp_index['Methanol']
-        Glycerol_pos = sp_index['Glycerol']
-        biodiesel_pos = sp_index['Biodiesel']
-        NaOH_pos = sp_index['NaOH']
-        NaOCH3_pos = sp_index['NaOCH3']
+        lipid_pos = sp_index('Lipid')
+        Methanol_pos = sp_index('Methanol')
+        Glycerol_pos = sp_index('Glycerol')
+        biodiesel_pos = sp_index('Biodiesel')
+        NaOH_pos = sp_index('NaOH')
+        NaOCH3_pos = sp_index('NaOCH3')
 
         lipid = feed.mol[lipid_pos]
 
@@ -108,7 +112,9 @@ class Transesterification(Reactor):
         results = self.results
         Design = results['Design']
         Cost = results['Cost']
-        Cost['Reactor'] = self.CEPCI/525.4 * 15000 * Design['Volume'] ** 0.55
+        Volume = Design['Volume']
+        Cost['Reactor'] = self.CEPCI/525.4 * 15000 * Volume ** 0.55
+        self.power_utility(Volume*self.electricity_rate)
     
         
         

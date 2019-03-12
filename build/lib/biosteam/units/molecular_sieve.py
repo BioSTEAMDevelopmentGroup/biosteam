@@ -66,22 +66,20 @@ class MolecularSieve(Unit):
         flow_old = self.V_0 # Original flow rate (kg/hr)
         flow_new = self._massnet_in
         x = self.exp # Scaling exponent
-        size_ratio = flow_new/flow_old
-        Cp_new = F_CEPCI * Cp_old * size_ratio**x
+        S = flow_new/flow_old # Size ratio
+        Cp_new = F_CEPCI * Cp_old * S**x
         Cost['Molecular Sieve Cost'] = Cp_new
         
         # Cost pressure filter (pressing compressor)
         Cp_old = 75200
-        #flow_old = 808
-        Cost['Pressure Filter Pressing'] = F_CEPCI * Cp_old * size_ratio**x
-        power0 = 112*size_ratio # kW
+        Cost['Pressure Filter Pressing'] = F_CEPCI * Cp_old * S**x
+        power0 = 112*S # kW
         
         # Cost pressure filter (drying compressor)
         N = 2
         Cp_old = 405000
-        #flow_old = 12233
-        Cost['Pressure Filter Drying (2)'] = N * F_CEPCI * Cp_old * size_ratio**x
-        power1 = N*522*size_ratio # kW
+        Cost['Pressure Filter Drying (2)'] = N * F_CEPCI * Cp_old * S**x
+        power1 = N*522*S # kW
         
         # Find power utility
         total_power = power0 + power1

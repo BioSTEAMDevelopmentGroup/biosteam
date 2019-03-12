@@ -887,54 +887,29 @@ def calc_set_up(subgroups, chemgroups):
         qs.append(qi)
     return rs, qs, group_counts
 
-# For Streams
-def Stream_UNIFAC_set_up(self, IDs):
-    if self._species_eq == IDs:
-        return
-    sp = self._species
-    chemgroups = []
-    for ID in IDs:
-        chemgroups.append(getattr(sp, ID).UNIFAC_groups)
-    rs, qs, group_counts = calc_set_up(UFSG, chemgroups)
-    self._cached = (chemgroups, rs, qs, group_counts)
-    self._species_eqs = IDs
-
-
-def Stream_DORTMUND_set_up(self, IDs):
-    if self._species_eq == IDs:
-        return
-    sp = self._species
-    chemgroups = []
-    for ID in IDs:
-        chemgroups.append(getattr(sp, ID).UNIFAC_Dortmund_groups)
-    rs, qs, group_counts = calc_set_up(DOUFSG, chemgroups)
-    self._cached = (chemgroups, rs, qs, group_counts)
-    self._species_eq = IDs
-
 
 # %% Activity Coefficients
 
-# For both Units and Streams
-def DORTMUND(self, specie_IDs, xs, T):
+# For Streams
+def DORTMUND(self, species, xs, T):
     """Return list of Dortmund modified UNIFAC coefficients.
     
     **Parameters**
     
-        specie_IDs: tuple[str] Species corresponding to molar fractions
+        species: tuple[Compound] Species corresponding to molar fractions
         
         xs: [array_like] Molar fractions
         
         T: [float] Temperature (K)
     
     """ 
-    cached = self._cached.get(specie_IDs)
+    cached = self._UNIFAC_cached.get(species)
     if not cached:
-        sp = self._species
         chemgroups = []
-        for ID in specie_IDs:
-            chemgroups.append(getattr(sp, ID).UNIFAC_Dortmund_groups)
+        for s in species:
+            chemgroups.append(s.UNIFAC_Dortmund_groups)
             rs, qs, group_counts = calc_set_up(DOUFSG, chemgroups)
-        self._cached[specie_IDs] = (chemgroups, rs, qs, group_counts)
+        self._UNIFAC_cached[species] = (chemgroups, rs, qs, group_counts)
     else:
         chemgroups, rs, qs, group_counts = cached
     

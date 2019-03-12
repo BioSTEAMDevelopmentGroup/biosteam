@@ -17,7 +17,7 @@ class YeastCentrifuge(Unit):
     
         **split:** *[array_like]* Component splits to 0th output stream
         
-        **solids:** *list[str]* IDs of solids 
+        **solids:** *tuple[str]* IDs of solids 
     
     **ins**
     

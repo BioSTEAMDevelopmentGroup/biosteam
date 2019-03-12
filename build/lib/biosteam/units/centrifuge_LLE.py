@@ -6,9 +6,12 @@ Created on Thu Aug 23 21:23:56 2018
 """
 from biosteam import Unit, MixedStream
 from biosteam.exceptions import DesignError
-from biosteam.units.flash import Flash, EstimateFlash
+from biosteam.units.flash import Flash, RatioFlash, PartitionFlash
+from .splitter import Splitter
 import copy
 
+__all__ = ('Centrifuge_LLE', 'RatioCentrifuge_LLE',
+           'SplitCentrifuge_LLE', 'PartitionCentrifuge_LLE')
 
 class Centrifuge_LLE(Unit):
     r"""Create an equlibrium based centrifuge with the option of having liquid non-keys and LIQUID non-keys completly separate into their respective phases.
@@ -19,7 +22,7 @@ class Centrifuge_LLE(Unit):
 
     **Parameters**
 
-        **specie_IDs:** *tuple[str]* IDs of equilibrium species
+        **species_IDs:** *tuple[str]* IDs of equilibrium species
     
         **split:** *tuple[float]* Initial guess split fractions of equilibrium specise to the 'liquid' phase.
     
@@ -48,7 +51,7 @@ class Centrifuge_LLE(Unit):
     """
     line = 'Liquids Centrifuge'
     
-    kwargs = {'specie_IDs': None,
+    kwargs = {'species_IDs': None,
               'split': None,
               'lNK': (),
               'LNK': (),
@@ -56,15 +59,18 @@ class Centrifuge_LLE(Unit):
               'solvent_split': ()}
 
     bounds = {'Flow rate': (0.1, 100)}
+    electricity_rate = 3.66 #: kW/(m3/hr)
+    
+    _has_power_utility = True
 
     def _setup(self):
         liq, LIQ = self.outs
-        self._cached = cached = {}
         liq.phase = 'l'
-        LIQ.phase = 'L'
+        LIQ.phase = 'l'
+        self._cached = cached = {}
         cached['mixed stream'] =  MixedStream()
-        if self.kwargs['specie_IDs'] is None:
-            self.kwargs['specie_IDs'] = liq.specie_IDs
+        if self.kwargs['species_IDs'] is None:
+            self.kwargs['species_IDs'] = liq.species_IDs
 
     def _run(self):
         liq, LIQ = self.outs
@@ -98,11 +104,21 @@ class Centrifuge_LLE(Unit):
         Design = r['Design']
         Cost = r['Cost']
         Q = Design['Flow rate']
+        self.power_utility(self.electricity_rate*Q)
         Cost['Vessel cost'] = 28100 * Q ** 0.574 * self.CEPCI/525.4
         return Cost
 
-class Centrifuge_LLE_Lazy(Centrifuge_LLE):
-    
+class PartitionCentrifuge_LLE(Centrifuge_LLE):
+    _N_heat_utilities = 0
+    kwargs = PartitionFlash.kwargs
+    _run = PartitionFlash._run 
+    _setup = PartitionFlash._setup
+    def _set_phases(self):
+        top, bot = self.outs
+        top.phase = 'l'
+        bot.phase = 'L'
+
+class RatioCentrifuge_LLE(Centrifuge_LLE):
     _N_heat_utilities = 0
     kwargs = {'Kspecies': [],  # list of species that correspond to Ks
               'Ks': [],  # list of molar ratio partition coefficinets,
@@ -111,10 +127,10 @@ class Centrifuge_LLE_Lazy(Centrifuge_LLE):
               'top_split': [],  # list of splits for top_solvents
               'bot_solvents': [],  # list of species that correspond to bot_split
               'bot_split': []}  # list of splits for bot_solvents
-
-    def _setup(self):
-        pass
-
-    _run = EstimateFlash._run
-    _lazyrun = EstimateFlash._lazyrun
+    def _setup(self): pass
+    _run = RatioFlash._run
     
+class SplitCentrifuge_LLE(Centrifuge_LLE):
+    kwargs = Splitter.kwargs
+    _setup = Splitter._setup
+    _run = Splitter._run

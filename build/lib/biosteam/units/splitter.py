@@ -85,6 +85,7 @@ class Splitter(Unit, metaclass=metaFinal):
     
     """
     kwargs = {'split': None}
+    _has_cost = False
     _N_outs = 2
 
     def __init__(self, ID, outs_ID, ins_ID, **kwargs):

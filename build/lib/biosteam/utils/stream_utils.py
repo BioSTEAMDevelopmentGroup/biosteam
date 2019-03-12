@@ -83,7 +83,7 @@ class Ins(list):
             self._clear_sink(sink)
             self._fix_sink(sink)
         else:
-            raise TypeError(f'Only intergers and slices are valid indeces for {type(self).__name__} objects')
+            raise TypeError(f'Only intergers and slices are valid indices for {type(self).__name__} objects')
         super().__setitem__(index, stream)
            
     def clear(self):
@@ -148,7 +148,7 @@ class Outs(list):
             self._clear_source(source)
             self._fix_source(source)
         else:
-            raise TypeError(f'Only intergers and slices are valid indeces for {type(self).__name__} objects')
+            raise TypeError(f'Only intergers and slices are valid indices for {type(self).__name__} objects')
         super().__setitem__(index, stream)
            
     def clear(self):

@@ -15,8 +15,9 @@ class Chemical(Compound, TChem):
 `Read the docs for thermo.Chemical for accurate documentation. <http://thermo.readthedocs.io/en/latest/thermo.chemical.html>`__"""
 
     def __init__(self, ID, T=298.15, P=101325):
+        ID = ID.replace('_', ' ')
         TChem.__init__(self, ID, T, P)
-        self.ID = ID
+        self.ID = ID.replace(' ', '_')
         if self.CAS == '56-81-5':
             self.__UNIFAC_Dortmund_groups = {2: 2, 3: 1, 14: 2, 81: 1}
         self.Hfm = self.Hf

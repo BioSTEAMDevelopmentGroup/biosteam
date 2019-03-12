@@ -36,6 +36,8 @@ class MassBalance(Unit, metaclass=metaFinal):
         :doc:`MassBalance Example`
     
     """
+    line = 'Balance'
+    _has_cost = False
     _N_outs = 0
     kwargs = {'species': None,
               'streams': None,
@@ -80,8 +82,8 @@ class MassBalance(Unit, metaclass=metaFinal):
         # Cach correct solver and make sure linear system of equations is square to achieve exact solution
         if exact:
             solver = np.linalg.solve
-            specie_IDs = self.kwargs['species']
-            sID, s_index = len(specie_IDs), len(self.kwargs['streams'])
+            species_IDs = self.kwargs['species']
+            sID, s_index = len(species_IDs), len(self.kwargs['streams'])
             if sID != s_index:
                 raise ValueError(
                     f"Length of species ({sID}) must be equal to the length of streams_index ({s_index}) when exact solution is needed.")
@@ -89,8 +91,8 @@ class MassBalance(Unit, metaclass=metaFinal):
             solver = np.linalg.lstsq
 
         # Cach indices for species and solver
-        sp_index = Stream._ID_index
-        cached['bal_index'] = [sp_index[specie] for specie in specie_IDs]
+        sp_index = Stream._IDs.index
+        cached['bal_index'] = [sp_index(specie) for specie in species_IDs]
         cached['linalg_solver'] = solver
 
     def _run(self):
@@ -210,6 +212,8 @@ class EnergyBalance(Unit, metaclass=metaFinal):
         This is an end-of-the-line/final class that cannot be inherited.
 
     """
+    line = 'Balance'
+    _has_cost = False
     _graphics = MassBalance._graphics
     _init_ins = MassBalance._init_ins
     _init_outs = MassBalance._init_outs

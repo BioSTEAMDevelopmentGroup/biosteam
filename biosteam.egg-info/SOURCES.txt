@@ -30,14 +30,15 @@ biosteam/units/__init__.py
 biosteam/units/balance.py
 biosteam/units/centrifuge_LLE.py
 biosteam/units/clarifier.py
+biosteam/units/conveying_belt.py
 biosteam/units/crushing_mill.py
-biosteam/units/design_tools.py
 biosteam/units/distillation.py
 biosteam/units/enzyme_treatment.py
 biosteam/units/fermentation.py
 biosteam/units/flash.py
 biosteam/units/hx.py
 biosteam/units/juice_screener.py
+biosteam/units/magnetic_separator.py
 biosteam/units/mixer.py
 biosteam/units/molecular_sieve.py
 biosteam/units/multi_effect_evaporator.py
@@ -46,12 +47,15 @@ biosteam/units/reactor.py
 biosteam/units/rigorous_hx.py
 biosteam/units/rvf.py
 biosteam/units/screener.py
+biosteam/units/screw_feeder.py
 biosteam/units/separator.py
 biosteam/units/settler.py
+biosteam/units/shredder.py
 biosteam/units/splitter.py
 biosteam/units/tank.py
 biosteam/units/test.py
 biosteam/units/transesterification.py
+biosteam/units/vibrating_screen.py
 biosteam/units/yeast_centrifuge.py
 biosteam/utils/__init__.py
 biosteam/utils/array_utils.py
@@ -60,4 +64,3 @@ biosteam/utils/dict_utils.py
 biosteam/utils/excel_utils.py
 biosteam/utils/other_utils.py
 biosteam/utils/stream_utils.py
-biosteam/utils/vacuum.py

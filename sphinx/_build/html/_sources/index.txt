@@ -101,8 +101,8 @@ Unit Examples
    Pump Example
    Transesterification Example
    
-sim package
------------
+sim
+---
 
 Use the sim package to perform optimized sensitivity analysis and block simulation of systems.
 

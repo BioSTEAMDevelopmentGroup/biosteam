@@ -6,7 +6,6 @@ This module includes arbitrary classes and functions.
 
 @author: Guest Group
 """
-
 from biosteam import np, Q_
 import time
 
@@ -14,9 +13,10 @@ import time
 #import threading
 #import _thread
 
-__all__ = ('factor', 'checkbounds', 'approx2step', 'copy_attr', 'get_attr', 'Timer', 'run_in_parallel')
+__all__ = ('factor', 'checkbounds', 'approx2step', 'copy_attr', 'get_attr', 'Timer', 'run_in_parallel', 'strtuple', 'function')
 
-# %% Small functions
+
+# %% Number functions
 
 def factor(base_units, new_units):
     return Q_(1, base_units).to(new_units).magnitude
@@ -32,6 +32,24 @@ def approx2step(val, x0, dx):
             break
         x0 += dx
     return x0
+
+
+# %% String functions
+
+function = type(checkbounds)
+
+def strtuple(iterable):
+    """Return string of all items in the tuple""" 
+    string = ''
+    for i in iterable:
+        if isinstance(i , function):
+            string += i.__name__ + ', '
+        else:
+            string += str(i) + ', '
+    string = string.rstrip(', ')
+    string = '(' + string + ')'
+    return string
+    
 
 # %% For managing objects
 

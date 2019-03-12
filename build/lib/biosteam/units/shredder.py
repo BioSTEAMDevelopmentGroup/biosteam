@@ -1,23 +1,20 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Aug 23 22:14:01 2018
+Created on Mon Mar  4 10:57:12 2019
 
 @author: yoelr
 """
 from biosteam import Unit
-from . import Splitter
 
-
-class CrushingMill(Unit):
-    kwargs = Splitter.kwargs
-    _run = Splitter._run
+class Shredder(Unit):
     _has_power_utility = True
+    _N_outs = 1
     
     #: Original Price (USD)
-    C_0 = 1.5e6
+    C_0 = 2.5e6
     
     #: Original flow rate (kg/hr)
-    V_0 = 335e3 
+    V_0 = 500e3 
     
     #: Scaling exponent
     exp = 0.60 
@@ -26,11 +23,14 @@ class CrushingMill(Unit):
     electricity_rate = 0.006
     
     #: Original CEPCI 
-    CEPCI_0 = 541.7
+    CEPCI_0 = 567.3
+    
+    def _run(self):
+        self.outs[0].copy_like(self.ins[0])
     
     def _cost(self):
         # Size factor
         massflow = self.ins[0].massnet
         S = massflow/self.V_0
-        self.results['Cost']['Crusshing mill'] = (self.CEPCI/self.CEPCI_0) * self.C_0*S**self.exp
+        self.results['Cost']['Shredder'] = (self.CEPCI/self.CEPCI_0) * self.C_0*S**self.exp
         self.power_utility(massflow*self.electricity_rate)

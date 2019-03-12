@@ -6,14 +6,20 @@ Created on Sun Apr 15 20:39:46 2018
 @author: Yoel Rene Cortes-Pena
 """
 import numpy as np
+from . import designtools
+from . import flash
+from . import centrifuge_LLE
+
 from biosteam.graphics import Graphics
+from .designtools import *
 from .mixer import Mixer
 from .splitter import Splitter, InvSplitter
 from .pump import Pump
 from .hx import HX, HXutility, HXprocess
-from .flash import Flash, Evaporator_PQin, Evaporator_PV, LazyFlash
+from .flash import *
+from .flash import Flash
 from .multi_effect_evaporator import MultiEffectEvaporator
-from .centrifuge_LLE import Centrifuge_LLE, Centrifuge_LLE_Lazy
+from .centrifuge_LLE import *
 from .distillation import Dist, Distillation, Stripper
 from .tank import Tank, StorageTank, MixTank, PCT
 from .transesterification import Transesterification
@@ -30,12 +36,18 @@ from .molecular_sieve import MolecularSieve, MolSieve
 from .separator import Separator
 from .reactor import Reactor, BatchReactor
 from .balance import MassBalance, EnergyBalance
-
+from .conveying_belt import ConveyingBelt
+from .shredder import Shredder
+from .magnetic_separator import MagneticSeparator
+from .screw_feeder import ScrewFeeder
+from .vibrating_screen import VibratingScreen
 
 # %% All units
 
-__all__ = ['Mixer', 'Splitter', 'InvSplitter', 'Tank', 'MixTank', 'StorageTank', 'Separator', 'HX', 'HXutility', 'HXprocess', 'Pump', 'Flash', 'Evaporator_PQin', 'Evaporator_PV', 'LazyFlash', 'Distillation', 'Stripper', 'Transesterification', 'Fermentation', 'Centrifuge_LLE', 'Centrifuge_LLE_Lazy', 'MultiEffectEvaporator', 'EnzymeTreatment', 'CrushingMill', 'RVF', 'JuiceScreener', 'Screener', 'MolecularSieve', 'MolSieve', 'PCT', 'Settler', 'YeastCentrifuge', 'Clarifier', 'Reactor', 'BatchReactor', 'MassBalance', 'EnergyBalance']
+__all__ = ['Mixer', 'Splitter', 'InvSplitter', 'Tank', 'MixTank', 'StorageTank', 'Separator', 'HX', 'HXutility', 'HXprocess', 'Pump', 'Distillation', 'Stripper', 'Transesterification', 'Fermentation', 'Centrifuge_LLE', 'MultiEffectEvaporator', 'EnzymeTreatment', 'CrushingMill', 'RVF', 'JuiceScreener', 'Screener', 'MolecularSieve', 'MolSieve', 'PCT', 'Settler', 'YeastCentrifuge', 'Clarifier', 'Reactor', 'BatchReactor', 'MassBalance', 'EnergyBalance', 'ConveyingBelt', 'Shredder', 'MagneticSeparator', 'ScrewFeeder', 'VibratingScreen']
 
+__all__.extend(designtools.__all__)
+__all__.extend(flash.__all__)
 
 # %% Enhance Graphics
 

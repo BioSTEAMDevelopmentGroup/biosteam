@@ -26,7 +26,7 @@ np.set_printoptions(precision=3)
 pd.options.display.float_format = '{:.3g}'.format
 pd.set_option('display.max_rows', 35)
 pd.set_option('display.max_columns', 10)
-pd.set_option('max_colwidth', 25)
+pd.set_option('max_colwidth', 35)
 
 # Biosteam units of measure
 units_of_measure = ReadOnlyBook(MW='g/mol',
@@ -83,7 +83,10 @@ from . import units
 from .units import *
 from .reports import *
 from .plots import *
+from . import sim
+from .sim import *
 
+__all__.extend(sim.__all__)
 __all__.extend(units.__all__)
 __all__.extend(reports.__all__)
 __all__.extend(chemical.__all__)

@@ -517,7 +517,6 @@ class HXutility(HX):
         util = self.heat_utilities[0]
         self._Duty = util(self._H_out-self._H_in,
                           self.ins[0].T, self.outs[0].T)['Duty']
-        return self.results['Operation']
 
     def _get_streams(self):
         """Return cold and hot inlet and outlet streams.
@@ -567,7 +566,7 @@ class HXprocess(HX):
     
         **Optional**
         
-            **specie_IDs:** tuple[str] IDs of species in equilibrium
+            **species_IDs:** tuple[str] IDs of species in equilibrium
             
             **LNK:** tuple[str] IDs of light non-keys
             
@@ -596,7 +595,7 @@ class HXprocess(HX):
     dT = 5 #: [float] Pinch temperature difference.
     kwargs = {'U': 'Tabulated',
               'Type': 'ss',
-              'specie_IDs': None,
+              'species_IDs': None,
               'LNK': None,
               'HNK': None}
     
@@ -604,6 +603,13 @@ class HXprocess(HX):
         s_in1, s_in2 = self.ins
         s_out1, s_out2  = self.outs
         return s_in1, s_in2, s_out1, s_out2
+    
+    def _setup(self):
+        species_IDs = self.kwargs['species_IDs']
+        if species_IDs:
+            feed = self.outs[0]
+            _species = feed._species
+            self._species_index = tuple(getattr(_species, ID) for ID in species_IDs), feed.get_index(species_IDs)
     
     def _run(self):
         hx = True # If false, a stream is empty and no heat exchanger occurs
@@ -651,15 +657,16 @@ class HXprocess(HX):
         s1_out, s2_out = self.outs
         kwargs = self.kwargs
         dT = self.dT
-        specie_IDs = kwargs['specie_IDs']
         LNK = kwargs['LNK']
         HNK = kwargs['HNK']
         
         # Arguments for dew and bubble point
-        if specie_IDs:
-            index = s1_out.get_index(specie_IDs)
+        species_IDs = kwargs['species_IDs']
+        if species_IDs:
+            species, index = self._species_index
         else:
-            specie_IDs, index = s1_out._equilibrium_species()
+            species, index = s1_out._equilibrium_species()
+            species_IDs = tuple(s.ID for s in species)
         z = s1_out.mol[index]/s1_out.molnet
         P = s1_out.P
         
@@ -667,13 +674,13 @@ class HXprocess(HX):
             # Stream s1 is boiling
             boiling = True
             s1_out.phase = 'g'
-            s1_out.T = s1_out._dew_point(specie_IDs, z, P)[0]
+            s1_out.T = s1_out._dew_point(species, z, P)[0]
             T_pinch = s1_in.T + dT # Minimum
         else:
             # Stream s1 is condensing
             boiling = False
             s1_out.phase = 'l'
-            s1_out.T = s1_out._bubble_point(specie_IDs, z, P)[0]
+            s1_out.T = s1_out._bubble_point(species, z, P)[0]
             T_pinch = s1_in.T - dT # Maximum
         
         # Calculate maximum latent heat and new temperature of sensible stream
@@ -686,13 +693,13 @@ class HXprocess(HX):
             H0 = s2_in.H
             s2_out.T = T_pinch
             delH1 = H0 - s2_out.H
-            s1_out.VLE(specie_IDs, LNK, HNK, Qin=delH1)
+            s1_out.VLE(species_IDs, LNK, HNK, Qin=delH1)
         elif not boiling and T_s2_new > T_pinch:
             # Partial condensation if temperature goes above pinch
             H0 = s2_in.H
             s2_out.T = T_pinch
             delH1 = H0 - s2_out.H
-            s1_out.VLE(specie_IDs, LNK, HNK, Qin=delH1)
+            s1_out.VLE(species_IDs, LNK, HNK, Qin=delH1)
         elif boiling:
             s1_out.phase ='g'
             s2_out.T = T_s2_new
@@ -706,7 +713,7 @@ class HXprocess(HX):
         s1_in, s2_in = self.ins
         s1_out, s2_out = self.outs
         kwargs = self.kwargs
-        specie_IDs = kwargs['specie_IDs']
+        species_IDs = kwargs['species_IDs']
         LNK = kwargs['LNK']
         HNK = kwargs['HNK']
         
@@ -740,27 +747,28 @@ class HXprocess(HX):
             sp_out = s2_out
         
         # Arguments for dew and bubble point
-        if specie_IDs:
-            specie_IDs_ = specie_IDs
-            index = sc_out.get_index(specie_IDs)
+        if species_IDs:
+            species, index = self._species_index
         else:
-            specie_IDs_, index = sc_out._equilibrium_species()
+            species, index = s1_out._equilibrium_species()
+            species_IDs = tuple(s.ID for s in species)
         z = sc_out.mol[index]/sc_out.molnet
         P = sc_out.P
         
         if sc_out._isboiling:
             sc_out.phase = 'g'
-            sc_out.T = sc_out._dew_point(specie_IDs_, z, P)[0]
+            sc_out.T = sc_out._dew_point(species, z, P)[0]
         else:
             sc_out.phase = 'l'
-            sc_out.T = sc_out._bubble_point(specie_IDs_, z, P)[0]
+            sc_out.T = sc_out._bubble_point(species, z, P)[0]
         
         # Arguments for VLE
-        if not specie_IDs:
-            specie_IDs, _ = sp_out._equilibrium_species()
+        if not species_IDs:
+            species, _ = sp_out._equilibrium_species()
+            species_IDs = tuple(s.ID for s in species)
         
         Duty = (sc_in.H-sc_out.H)
-        sp_out.VLE(specie_IDs, LNK, HNK, Qin=Duty)
+        sp_out.VLE(species_IDs, LNK, HNK, Qin=Duty)
         
         self._Duty = abs(Duty)
     

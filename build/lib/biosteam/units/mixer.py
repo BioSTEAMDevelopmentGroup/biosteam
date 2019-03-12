@@ -55,6 +55,7 @@ class Mixer(Unit, metaclass=metaFinal):
     """
     _N_ins = 2
     _N_outs = 1
+    _has_cost = False
 
     def __init__(self, ID='', outs_ID=(), ins_ID=None):
         """Initialize Mixer object. See help(type(self)) for accurate signature.

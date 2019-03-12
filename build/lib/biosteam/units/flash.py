@@ -11,9 +11,9 @@ import copy
 import numpy as np
 from scipy.optimize import brentq, newton
 from thermo import activity
-from biosteam.utils import vacuum_system
-from biosteam.units.hx import HX, HXutility
-from biosteam.units.design_tools import (HNATable, FinalValue,
+from .designtools import vacuum_system
+from .hx import HX, HXutility
+from .designtools import (HNATable, FinalValue,
                           VesselWeightAndWallThickness, Kvalue)
 
 exp = np.exp
@@ -24,6 +24,8 @@ ln = np.log
 #if not (0.1 < V < 70):
 #    raise DesignError(f"Volume is out of bounds for costing")
 #lambda V, CE: CE*13*V**0.62 # V (m3)
+__all__ = ('Flash', 'SplitFlash', 'PartitionFlash',
+           'RatioFlash', 'Evaporator_PQin', 'Evaporator_PV')
 
 
 # %% Flash solutions
@@ -32,7 +34,7 @@ flash_error = activity.Rachford_Rice_flash_error
 
 def analytical_flash_solution(zs, Ks):
     """Solution for 2 or 3 component flash vessel."""
-    # Not currently in used, so no comments
+    # Not currently in use
     len_ = len(zs)
     if len_ == 2:
         z1, z2 = zs
@@ -93,7 +95,7 @@ class Flash(Unit):
     
         **Optional**
     
-            **specie_IDs:** tuple[str] IDs of equilibrium species
+            **species_IDs:** tuple[str] IDs of equilibrium species
             
             **LNK**: tuple[str] Light non-keys
         
@@ -142,7 +144,7 @@ class Flash(Unit):
     #: [bool] True if using a mist eliminator pad
     Mist = False
     
-    kwargs = {'specie_IDs': None,  # Equilibrium species
+    kwargs = {'species_IDs': None,  # Equilibrium species
               'LNK': None,   # light non-keys
               'HNK': None,   # heavy non-keys
               'V': None,   # Vapor fraction
@@ -201,46 +203,6 @@ class Flash(Unit):
         liq.mol = ms.liquid_mol
         vap.T = liq.T = ms.T
         vap.P = liq.P = ms.P
-
-    def _lazyrun(self):
-        """Approximate outputs based on molar partition coefficients and overall molar fraction of top phase (0th output)."""
-        ph1, ph2 = self.outs
-        _mol_in = ph1.mol + ph2.mol
-
-        # Account for light and heave keys
-        HNK = ph1.mol == 0
-        LNK = ph2.mol == 0
-        ph1.mol[LNK] = _mol_in[LNK]
-        ph2.mol[HNK] = _mol_in[HNK]
-
-        # Do not include heavy or light non keys
-        pos = ~HNK & ~LNK
-
-        ph1_mol = ph1.mol[pos]
-        ph2_mol = ph2.mol[pos]
-        ph1_molnet = sum(ph1_mol)
-        ph2_molnet = sum(ph2_mol)
-        molnet = ph1_molnet + ph2_molnet
-
-        # Get zs and Ks to solve rashford rice equation
-        zs = _mol_in[pos]/molnet
-        if ph1_molnet == 0:
-            ph2.mol[pos] = _mol_in[pos]
-            return
-        if ph2_molnet == 0:
-            ph1.mol[pos] = _mol_in[pos]
-            return
-        ph1_molfrac = ph1_mol/ph1_molnet
-        ph2_molfrac = ph2_mol/ph2_molnet
-        Ks = ph1_molfrac/ph2_molfrac
-
-        if len(zs) > 3:
-            V = brentq(flash_error, 0, 1, (zs, Ks))
-        else:
-            V = analytical_flash_solution(zs, Ks)
-
-        ph1.mol[pos] = V*molnet*ph1_molfrac
-        ph2.mol[pos] = _mol_in[pos] - ph1.mol[pos]
 
     def _operation(self):
         if self._has_hx:
@@ -361,13 +323,11 @@ class Flash(Unit):
         if not Mist and SepType == 'Vertical':
             K = K/2
 
-        index, specie_IDs = liq.nonzero_species
-        xs = liq.massfrac[index]
-        for sp_ID, x in zip(specie_IDs, xs):
+        xs = liq.massfrac
+        for s, x in zip(liq._species, xs):
             if x > 0.1:
-                specie = getattr(liq._species, sp_ID)
                 # TODO: Verify unifac groups to determine if glycol and/or amine
-                dct = specie.UNIFAC_groups
+                dct = s.UNIFAC_groups
                 keys = dct.keys()
                 if 14 in keys:
                     OHs = dct[14]
@@ -645,7 +605,7 @@ class Flash(Unit):
 # %% Special
 
 
-class LazyFlash(Flash):
+class SplitFlash(Flash):
     line = 'Flash'
     
     kwargs = {'split': 1,  # component split fractions
@@ -673,39 +633,112 @@ class LazyFlash(Flash):
             self._heat_exchanger.outs = ms
             self._heat_exchanger._operation()
 
+class PartitionFlash(Flash):
+    """Create a PartitionFlash Unit that approximates outputs based on molar partition coefficients."""
+    
+    kwargs = {'species_IDs': None,  # Partition species
+              'Ks': None,           # Partition coefficients
+              'LNK': None,          # light non-keys
+              'HNK': None,          # heavy non-keys
+              'P': None,            # Operating Pressure
+              'T': None}            # Operating temperature
+    
+    _has_hx = True
+    
+    def _calculate_partition_coefficients(self):
+        ph1, ph2 = self.outs
 
-class EstimateFlash(Flash):
+        # Account for light and heave keys
+        HNK = ph1.mol == 0
+        LNK = ph2.mol == 0
+
+        # Do not include heavy or light non keys
+        pos = ~HNK & ~LNK
+        ph1_mol = ph1.mol[pos]
+        ph2_mol = ph2.mol[pos]
+        ph1_molnet = sum(ph1_mol)
+        ph2_molnet = sum(ph2_mol)
+        ph1_molfrac = ph1_mol/ph1_molnet
+        ph2_molfrac = ph2_mol/ph2_molnet
+        IDs = np.array(ph1._IDs)
+        return dict(Ks=ph1_molfrac/ph2_molfrac,
+                    V=ph1_molnet/(ph1_molnet + ph2_molnet),
+                    species_IDs=[IDs[pos]],
+                    LNK=IDs[LNK],
+                    HNK=IDs[HNK])  
+    
+    def _setup(self):
+        top, bot = self.outs
+        species_IDs, Ks, LNK, HNK, P, T = self.kwargs.values()
+        index = top._IDs.index
+        self._args = ([index(i) for i in species_IDs],
+                       [index(i) for i in LNK],
+                       [index(i) for i in HNK],
+                       np.asarray(Ks), P, T)
+        
+    def _set_phases(self):
+        top, bot = self.outs
+        top.phase = 'g'
+        bot.phase = 'l'
+    
+    def _run(self):
+        feed = self.ins[0]
+        ph1, ph2 = self.outs
+        pos, LNK, HNK, Ks, P, T = self._args
+        mol_in = feed.mol[pos]
+        ph1.T = ph2.T = (T if T else feed.T)
+        ph1.P = ph2.P = (P if P else feed.P)
+        ph1.mol[LNK] = feed.mol[LNK]
+        ph1.mol[HNK] = feed.mol[HNK]
+        
+        # Get zs and Ks to solve rashford rice equation
+        molnet = sum(mol_in)
+        zs = mol_in/molnet
+        if hasattr(self, '_V'):
+            V = newton(flash_error, self._V, args=(zs, Ks))
+        elif len(zs) > 3:
+            V = brentq(flash_error, 0, 1, (zs, Ks))
+        else:
+            V = analytical_flash_solution(zs, Ks)
+        self._V = V
+        x = zs/(1 + V*(Ks-1))
+        y = x*Ks
+        ph1.mol[pos] = molnet*V*y
+        ph2.mol[pos] = mol_in - ph1.mol[pos]
+    
+    _operation = SplitFlash._operation
+    
+
+class RatioFlash(Flash):
     _N_heat_utilities = 1
-    kwargs = {'P': None,
-              'Kspecies': [],  # list of species that correspond to Ks
-              'Ks': [],  # list of molar ratio partition coefficinets,
+    kwargs = {'Kspecies': None,  # list of species that correspond to Ks
+              'Ks': None,  # array of molar ratio partition coefficinets,
               # Ks = y/x, where y and x are molar ratios of two different phases
               'top_solvents': [],  # list of species that correspond to top_split
               'top_split': [],  # list of splits for top_solvents
               'bot_solvents': [],  # list of species that correspond to bot_split
-              'bot_split': [], # list of splits for bot_solvents
-              'Qin': None}  
+              'bot_split': []} # list of splits for bot_solvents  
 
     def _run(self):
         feed = self.ins[0]
         top, bot = self.outs
-        Kspecies, Ks, top_solvents, top_split, bot_solvents, bot_split = (
-            (self.kwargs[i] for i in ('Kspecies', 'Ks', 'top_solvents', 'top_split', 'bot_solvents', 'bot_split')))
-        Kindex = [feed._ID_index[specie] for specie in Kspecies]
-        top_index = [feed._ID_index[specie] for specie in top_solvents]
-        bot_index = [feed._ID_index[specie] for specie in bot_solvents]
-        top.mol[top_index] = feed.mol[top_index]*top_split
-        bot.mol[top_index] = feed.mol[top_index]-top.mol[top_index]
-        bot.mol[bot_index] = feed.mol[bot_index]*bot_split
-        top.mol[bot_index] = feed.mol[bot_index]-bot.mol[bot_index]
-        topnet = sum(top.mol[top_index])
-        botnet = sum(bot.mol[bot_index])
-        for i in range(len(Kindex)):
-            index = Kindex[i]
-            K = Ks[i]
-            top.mol[index] = topnet * feed.mol[index] / \
-                (topnet+botnet/K)  # solvent * mol ratio
-        bot.mol[Kindex] = feed.mol[Kindex] - top.mol[Kindex]
+        kwargs = self.kwargs
+        (Kspecies, Ks, top_solvents, top_split,
+         bot_solvents, bot_split) = kwargs.values()
+        sp_index = feed._IDs.index
+        Kindex = [sp_index(s) for s in Kspecies]
+        top_index = [sp_index(s) for s in top_solvents]
+        bot_index = [sp_index(s) for s in bot_solvents]
+        top_mol = top.mol; bot_mol = bot.mol; feed_mol = feed.mol
+        top_mol[top_index] = feed_mol[top_index]*top_split
+        bot_mol[top_index] = feed_mol[top_index]-top_mol[top_index]
+        bot_mol[bot_index] = feed_mol[bot_index]*bot_split
+        top_mol[bot_index] = feed_mol[bot_index]-bot_mol[bot_index]
+        topnet = sum(top_mol[top_index])
+        botnet = sum(bot_mol[bot_index])
+        molnet = topnet+botnet
+        top_mol[Kindex] = Ks * topnet * feed_mol[Kindex] / molnet  # solvent * mol ratio
+        bot_mol[Kindex] = feed_mol[Kindex] - top_mol[Kindex]
         top.T, top.P = feed.T, feed.P
         bot.T, bot.P = feed.T, feed.P
 
@@ -727,7 +760,7 @@ class Evaporator_PQin(Unit):
 
         # Set-up streams for energy balance
         vapor.empty()
-        index = vapor.get_index(component)
+        index = vapor._IDs.index(component)
         vapor.mol[index] = 1
         vapor.__dict__.update(phase='g', T=Tf, P=P)
 
@@ -751,7 +784,7 @@ class Evaporator_PQin(Unit):
         liquid_H = cached['liquid_H']
         no_ph_ch = cached['no_ph_ch']
         no_ph_ch.mol = copy.copy(feed.mol)
-        index = no_ph_ch.get_index(component)
+        index = no_ph_ch._IDs.index(component)
         no_ph_ch.mol[index] = 0
 
         no_ph_ch_H = no_ph_ch.H
@@ -800,7 +833,7 @@ class Evaporator_PV(Unit):
         feed = self.ins[0]
         component, V = (self.kwargs[i] for i in ('component', 'V'))
         vapor, liquid = self.outs
-        index = vapor.get_index(component)
+        index = vapor._IDs.index(component)
         vapor.mol[index] = V*feed.mol[index]
         liquid.mol = copy.copy(feed.mol)
         liquid.mol[index] = (1-V)*feed.mol[index]

@@ -262,6 +262,9 @@ class Unit(metaclass=metaUnit):
     """ 
     ### Abstract Attributes ###
     
+    # [bool] Should be True if it has any associated cost
+    _has_cost = True
+    
     # [int or None] Expected number of input streams
     _N_ins = 1  
     
@@ -275,7 +278,7 @@ class Unit(metaclass=metaUnit):
     _N_heat_utilities = 0
     
     # [PowerUtility] A PowerUtility object, if required
-    _power_utility = None
+    power_utility = None
     
     # [bool] If True, a PowerUtility object is created for every instance.
     _has_power_utility = False 
@@ -326,6 +329,7 @@ class Unit(metaclass=metaUnit):
         self._init_power_util()
         self._init()
         self._setup()
+        self._install()
 
     def _init_ins(self, ins):
         """Initialize input streams."""
@@ -367,14 +371,33 @@ class Unit(metaclass=metaUnit):
     
     def _init_heat_utils(self):
         """Initialize heat utilities."""
-        _N_heat_utilities = self._N_heat_utilities
-        utilities = [HeatUtility(self) for i in range(_N_heat_utilities)]
-        self._heat_utilities = utilities
+        #: [list] HeatUtility objects associated to unit
+        self.heat_utilities = [HeatUtility(self) for i in
+                               range(self._N_heat_utilities)]
         
     def _init_power_util(self):
         """Initialize power utility."""
         if self._has_power_utility:
-            self.power_utility= PowerUtility(self)
+            #: [PowerUtility] Power requirements associated to unit
+            self.power_utility = PowerUtility(self)
+    
+    def _install(self):
+        """Cache objects and/or replace methods for computational efficiency."""
+        if not self._has_cost:
+            self._summary = self._cost
+            self.simulate = self._run
+        
+        # Result dictionaries for all utilities
+        self._util_results = util_results = []
+        heat_utilities = self.heat_utilities
+        power_utility = self.power_utility
+        if heat_utilities:
+            util_results.extend(util.results for util in self.heat_utilities)
+        if power_utility:
+            util_results.append(self.power_utility.results)
+            
+        # Itemized purchase costs
+        self._purchase_costs = self.results['Cost'].values
     
     # Forward pipping
     def __sub__(self, other):
@@ -424,40 +447,24 @@ class Unit(metaclass=metaUnit):
     def _design(self): pass
     def _cost(self): pass
 
+    # Summary
+    def _summary(self):
+        """Run _operation, _design, and _cost methods and update results "Summary" dictionary with total utility costs and purchase price."""
+        self._operation()
+        self._design()
+        self._cost()
+        Summary = self.results['Summary']
+        Summary['Utility cost'] = sum(i['Cost'] for i in self._util_results)
+        Summary['Purchase cost'] = sum(self._purchase_costs())
+        return Summary
+
     def simulate(self):
         """Run rigourous simulation and determine all design requirements."""
         if self._kwargs != self.kwargs:
             self._setup()
             self._kwargs = copy(self.kwargs)
         self._run()
-        self._operation()
-        self._design()
-        self._cost()
         self._summary()
-
-    # Summary
-    def _operating_cost(self):                
-        """Sum of all utility costs (USD/hr)."""
-        heat_utilities = self.heat_utilities
-        power_utility = self.power_utility
-        
-        cost = 0
-        if heat_utilities:
-            cost = sum(util.results['Cost'] for util in self.heat_utilities)
-        if power_utility:
-            cost += self.power_utility.results['Cost']
-        return cost
-        
-    def _capital_cost(self):
-        """The sum of all costs calculated by the cost method (USD)."""
-        return sum(self.results['Cost'].values())
-
-    def _summary(self):
-        """Update results "Summary" dictionary with total utility costs and purchase price."""
-        Summary = self.results['Summary']
-        Summary['Utility cost'] = self._operating_cost()
-        Summary['Purchase cost'] = self._capital_cost()
-        return Summary
 
     @property
     def results(self):
@@ -479,27 +486,21 @@ class Unit(metaclass=metaUnit):
 
     @ID.setter
     def ID(self, ID):
-        if '*' in ID:
-            self._ID = ID
-            return
-        
-        # Remove old reference to this object
-        if self._ID != '':
-            del find.unit[self._ID]
-            del type(self).instances[self._ID]
-
-        # Get current default ID
-        Unit = type(self)
-        letter, number = Unit._default_ID
-
         # Select a default ID if requested
         if ID == '':
+            Unit = type(self)
+            letter, number = Unit._default_ID
             Unit._default_ID[1] += 1
-            num = str(number)
-            numlen = len(num)
-            if numlen < 3:
-                num = (3-numlen)*'0' + num
             ID = letter + str(number)
+        elif '*' in ID:
+            self._ID = ID
+            return
+        elif any(i in ID for i in '`~!@#$%^&():'):
+            raise ValueError('ID cannot contain any of the following special characters: `~!@#$%^&():')
+
+        # Remove old reference to this object
+        del find.unit[self._ID]
+        del type(self).instances[self._ID]
 
         # Add instance to class instance dictionary
         type(self).instances[ID] = self
@@ -525,26 +526,6 @@ class Unit(metaclass=metaUnit):
     def outs(self, streams):
         self._outs.__init__(self, streams)
 
-    # Utilities
-    @property
-    def heat_utilities(self):
-        """list of HeatUtility objects"""
-        return self._heat_utilities
-    @heat_utilities.setter
-    def heat_utilities(self, heat_utilities):
-        self._heat_utilities = heat_utilities
-
-    @property
-    def power_utility(self):
-        """A PowerUtility object, if required."""
-        return self._power_utility
-    @power_utility.setter
-    def power_utility(self, power_utility):
-        if not isinstance(power_utility, PowerUtility):
-            raise TypeError(f'Only PowerUtility objects are valid.')
-        else:
-            self.power_utility= power_utility
-
     @property
     def _upstream_neighbors(self):
         """Return set of upsteam neighboring units."""
@@ -560,9 +541,27 @@ class Unit(metaclass=metaUnit):
         neighbors = set()
         for s in self._outs:
             u_sink = s.sink[0]
-            if u_sink:
-                neighbors.add(u_sink)
+            if u_sink: neighbors.add(u_sink)
         return neighbors
+
+    @property
+    def _downstream_units(self):
+        """Return all units downstreasm."""
+        downstream_units = set()
+        outer_periphery = self._downstream_neighbors
+        inner_periphery = None
+        old_length = -1
+        new_length = 0
+        while new_length != old_length:
+            old_length = new_length
+            inner_periphery = outer_periphery
+            downstream_units.update(inner_periphery)
+            outer_periphery = set()
+            for unit in inner_periphery:
+                outer_periphery.update(unit._downstream_neighbors)
+            new_length = len(downstream_units)
+            
+        return downstream_units
 
     def _neighborhood(self, radius=1):
         """Return all neighboring units within given radius.
@@ -584,10 +583,10 @@ class Unit(metaclass=metaUnit):
             for neighbor in direct_neighborhood:
                 neighbors.update(neighbor._upstream_neighbors)
                 neighbors.update(neighbor._downstream_neighbors)
+            if neighbors == direct_neighborhood: break
             direct_neighborhood = neighbors
             neighborhood.update(direct_neighborhood)
         
-        neighborhood.discard(None)
         return neighborhood
 
     def diagram(self, radius=0):
@@ -765,17 +764,7 @@ class Unit(metaclass=metaUnit):
         """Enthalpy of formation flow going in (kJ/hr)."""
         _Hf_in = 0
         for stream in self.ins:
-            # Get non-zero index and species
-            index = []
-            species = []
-            for i in stream._index:
-                if stream.mol[i] != 0:
-                    index.append(i)
-                    species.append(stream._index_ID[i])
-            # Find Hf of stream
-            Hf = sum(stream.mol[index] *
-                     stream._species.get_props(species, 'Hfm'))
-            _Hf_in += Hf
+            _Hf_in += stream.Hf
         return _Hf_in
 
     @property
@@ -783,17 +772,7 @@ class Unit(metaclass=metaUnit):
         """Enthalpy of formation flow going out (kJ/hr)."""
         _Hf_out = 0
         for stream in self.outs:
-            # Get non-zero index and species
-            index = []
-            species = []
-            for i in stream._index:
-                if stream.mol[i] != 0:
-                    index.append(i)
-                    species.append(stream._index_ID[i])
-            # Find Hf of stream
-            Hf = sum(stream.mol[index] *
-                     stream._species.get_props(species, 'Hfm'))
-            _Hf_out += Hf
+            _Hf_out += stream.Hf
         return _Hf_out
 
     @property

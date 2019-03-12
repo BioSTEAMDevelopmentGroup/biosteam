@@ -4,7 +4,7 @@ Created on Tue Sep 18 10:28:29 2018
 
 @author: Guest Group
 """
-from scipy.optimize import least_squares, brentq, minimize_scalar
+from scipy.optimize import least_squares, brentq, minimize_scalar, newton
 from biosteam.species import Species
 from biosteam.stream import Stream, nonzero_species, MassFlow, vol_units, \
                             mol_flow_dim, mass_flow_dim, vol_flow_dim
@@ -83,25 +83,25 @@ phases_volfrac = {'s': 'solid_volfrac',
 @PropertyFactory    
 def VolumetricFlow(self):
     """Volumetric flow (m^3/hr)."""
-    specie = self.name
     stream, mol, phase = self.data
     if mol:
-        specie.T = stream.T
-        specie.P = stream.P
-        specie.phase = phase
-        return float(getattr(specie, 'Vm') * mol[0] * 1000) 
+        c = self.name # c: compound
+        c.T = stream.T
+        c.P = stream.P
+        c.phase = phase
+        return float(getattr(c, 'Vm') * mol[0] * 1000) 
     else:
         return 0.
 
 @VolumetricFlow.setter
 def VolumetricFlow(self, value):
-    specie = self.name
     stream, mol, phase = self.data
     if value:
-        specie.T = stream.T
-        specie.P = stream.P
-        specie.phase = phase
-        mol[0] = value/(getattr(specie, 'Vm') * 1000)
+        c = self.name # c: compound
+        c.T = stream.T
+        c.P = stream.P
+        c.phase = phase
+        mol[0] = value/(getattr(c, 'Vm') * 1000)
     else:
         mol[0] = 0.
 
@@ -122,13 +122,13 @@ class MixedStream(Stream):
 
          **ID:** [str] ID of the stream. If ID is '', a default ID will be chosen.
 
-         **solid_flow:** [array_like] solid flow rates by specie
+         **solid_flow:** [array_like] solid flow rates
 
-         **liquid_flow:** [array_like] liquid flow rates by specie
+         **liquid_flow:** [array_like] liquid flow rates
 
-         **LIQUID_flow:** [array_like] LIQUID flow rates by specie
+         **LIQUID_flow:** [array_like] LIQUID flow rates
 
-         **vapor_flow:** [array_like] vapor flow rates by specie
+         **vapor_flow:** [array_like] vapor flow rates
 
          **species:** tuple[str] or [Species] Species corresponding to `flow` parameters. If empty, assume same species as class.
 
@@ -142,9 +142,6 @@ class MixedStream(Stream):
 
          :doc:`MixedStream Example`
     """
-    #: Species in LLE
-    _species_eq = None
-    
     #: The default phase when flow rates are zero.
     _default_phase = 'l'
     
@@ -159,9 +156,9 @@ class MixedStream(Stream):
         if isinstance(species, Species):
             # Set species as provided
             self._set_species(species)
-            specie_IDs = ()
+            species_IDs = ()
         elif hasattr(species, '__iter__'):
-            specie_IDs = species
+            species_IDs = species
             species = self._species
             # Copy class species data (in case it changes)
             self._copy_species(self)
@@ -173,17 +170,18 @@ class MixedStream(Stream):
         self.P = P
         self._dew_cached = {}
         self._bubble_cached = {}
+        self._y_cached = {}
+        self._lL_split_cached = {}
         
         # Match species and flow rates
-        l_species = len(specie_IDs)
+        l_species = len(species_IDs)
         flows = [solid_flow, liquid_flow, LIQUID_flow, vapor_flow]
-        for i in range4:
-            flow = flows[i]
+        for i, flow in zip(range4, flows):
             l_flow = len(flow)
             if l_flow == 0:
                 flows[i] = np.zeros(self._Nspecies)
             elif l_species == l_flow:
-                flows[i] = reorder(flow, specie_IDs, self._specie_IDs)
+                flows[i] = reorder(flow, species_IDs, self._species_IDs)
             elif l_flow != self._Nspecies:
                 raise ValueError('length of flow rates must be equal to length of species')
 
@@ -213,36 +211,33 @@ class MixedStream(Stream):
             **mol_array:** Array of molar flow rates (kmol/hr) with species by column and phases ('s', 'l', 'L', 'g') by row.
         
         """
-        species = self._species
         MW = self._MW
+        num_species = self._num_species
         
         # Molar flow rates
+        self._molarray = mol_array
         self._molflows = molflows = []
         mol_array = mol_array.view(material_array)
         for mol, ID in zip(mol_array, molflows_ID):
             setattr(self, ID, mol)
             molflows.append(mol)
             
-        # Mass flow rates    
-        self._massflows = massflows = []
-        for mol, ID in zip(molflows, massflows_ID):
-            mass = []
-            for i, spID in enumerate(species.ID):
-                m = MassFlow(spID, (mol[i:i+1], MW[i]))
-                mass.append(m)
-            mass = property_array(mass)
-            setattr(self, ID, mass)
-            massflows.append(mass)
-        
-        # Volumetric flow rates    
-        self._volflows = volflows = []   
+        self._massflows = massflows = [] # Mass flow rates    
+        self._volflows = volflows = [] # Volumetric flow rates    
         for phase, mol, ID in zip(phases, molflows, volflows_ID):
             vol = []
-            for i, specie in enumerate(species):
-                v = VolumetricFlow(specie, (self, mol[i:i+1], phase.lower()))
+            mass = []
+            for i, s in num_species:
+                mol_i = mol[i:i+1]
+                m = MassFlow(s.ID, (mol_i, MW[i]))
+                v = VolumetricFlow(s, (self, mol_i, phase.lower()))
+                mass.append(m)
                 vol.append(v)
+            mass = property_array(mass)
             vol = property_array(vol)
+            setattr(self, ID, mass)
             setattr(self, ID, vol)
+            massflows.append(mass)
             volflows.append(vol)
 
     @property
@@ -523,7 +518,6 @@ class MixedStream(Stream):
         if molflow:
             return getattr(self, molflow)
         return sum(self._molflows).view(tuple_array)
-        # return mixed_mol( self._flows )
 
     @mol.setter
     def mol(self, val):
@@ -607,17 +601,15 @@ class MixedStream(Stream):
         """Return component property lists for given phase."""
         phase = phase.lower()
         out = np.zeros(self._Nspecies)
-        mol = getattr(self, phases_molflow[phase])
-        _species = self._species
+        mol = iter(getattr(self, phases_molflow[phase]))
         P = self.P
         T = self.T
-        for i, sp_ID in self._index_ID.items():
-            if mol[i] != 0:
-                specie = getattr(_species, sp_ID)
-                specie.P = P
-                specie.T = T
-                specie.phase = phase
-                out[i] = getattr(specie, prop_ID)
+        for i, s in self._num_species:
+            if next(mol) != 0:
+                s.P = P
+                s.T = T
+                s.phase = phase
+                out[i] = getattr(s, prop_ID)
         return out
 
     def _phaseprop_molar_flow(self, prop_ID, phase):
@@ -677,7 +669,7 @@ class MixedStream(Stream):
     ### Equilibrium ###
 
     # Vapor-liquid equilibrium
-    def VLE(self, specie_IDs=None, LNK=None, HNK=None, P=None,
+    def VLE(self, species_IDs=None, LNK=None, HNK=None, P=None,
             Qin=None, T=None, V=None, x=None, y=None):
         """Partition flow rates into vapor and liquid phases by equilibrium. Pressure defaults to current pressure.
 
@@ -685,7 +677,7 @@ class MixedStream(Stream):
 
             **P:** [float] Operating pressure (Pa)
                 
-            **specie_IDs:** [list] IDs of equilibrium species
+            **species_IDs:** [list] IDs of equilibrium species
                  
             **LNK:** list[str] Light non-keys
     
@@ -745,20 +737,20 @@ class MixedStream(Stream):
         
         # Reused attributes
         sp = self._species
-        _get_Psat = sp._get_Psat
-        sp_index = self._ID_index
+        sp_index = self._IDs.index
 
-        # Set up indeces for both equilibrium and non-equilibrium species
-        if specie_IDs == None:
-            specie_IDs, index = self._equilibrium_species()
+        # Set up indices for both equilibrium and non-equilibrium species
+        if species_IDs == None:
+            species, index = self._equilibrium_species()
         else:
-            index = [sp_index[specie] for specie in specie_IDs]
+            index = [sp_index(specie) for specie in species_IDs]
+            species = tuple(getattr(sp, ID) for ID in species_IDs)
         if LNK:
-            LNK_index = [sp_index[specie] for specie in LNK]
+            LNK_index = [sp_index(specie) for specie in LNK]
         else:
             LNK, LNK_index = self._light_species()
         if HNK:
-            HNK_index = [sp_index[specie] for specie in HNK]
+            HNK_index = [sp_index(specie) for specie in HNK]
         else:
             HNK, HNK_index = self._heavy_species()
 
@@ -776,14 +768,14 @@ class MixedStream(Stream):
 
         ### Single component equilibrium case ###
         
-        Nspecies = len(specie_IDs)
+        Nspecies = len(species)
         if Nspecies == 1:
             # Equilibrium based on one specie
-            specie = getattr(sp, specie_IDs[0])
+            s = species[0]
             
             if eq == 'TP':
                 # Either liquid or gas
-                Psat = specie.VaporPressure(T)
+                Psat = s.VaporPressure(T)
                 if P < Psat:
                     liquid_mol[index] = 0
                     vapor_mol[index] = mol
@@ -794,14 +786,14 @@ class MixedStream(Stream):
             
             elif eq == 'VP':
                 # Set vapor fraction
-                self.T = specie.Tsat(P)
+                self.T = s.Tsat(P)
                 vapor_mol[index] = mol*V
                 liquid_mol[index] = mol - vapor_mol[index]
                 return
             
             elif eq == 'QinP': 
                 # Set temperature in equilibrium
-                self.T = specie.Tsat(P)
+                self.T = s.Tsat(P)
                 
                 # Check if super heated vapor
                 vapor_mol[index] = mol
@@ -844,14 +836,14 @@ class MixedStream(Stream):
 
         def v_given_TPmol(v_guess, T, P, mol):
             """Return equilibrium vapor flow rates given T, P and molar flow rates."""
-            Psat = _get_Psat(specie_IDs, T)
+            Psat = np.array([s.VaporPressure(T) for s in species])
 
             def v_error(v):
                 """Error function for constant T and P, where v represents vapor flow rates."""
                 l = mol - v
                 x = l/sum(l)
                 y = v/sum(v)
-                err = x*Psat * act_coef(specie_IDs, x, T)/P - y
+                err = x*Psat * act_coef(species, x, T)/P - y
                 return abs(err)
             
             return least_squares(v_error, v_guess,
@@ -863,9 +855,9 @@ class MixedStream(Stream):
         if eq == 'xP' or eq == 'yP':
             # Get temperature based on phase composition
             if eq == 'xP':
-                self.T, y = self._bubble_point(specie_IDs, x, P)
+                self.T, y = self._bubble_point(species, x, P)
             else:
-                self.T, x = self._dew_point(specie_IDs, y, P)
+                self.T, x = self._dew_point(species, y, P)
                 
             if Nspecies > 2:
                 raise ValueError(f'More than two components in equilibrium. Only binary component equilibrium can be solved for specification, {eq}.')
@@ -883,32 +875,13 @@ class MixedStream(Stream):
             return
 
         # Need to find these for remainding equilibrium types
-        T_dew, x = self._dew_point(specie_IDs, zf, P)
-        T_bubble, y = self._bubble_point(specie_IDs, zf, P)
+        T_dew, x_dew = self._dew_point(species, zf, P)
+        T_bubble, y_bubble = self._bubble_point(species, zf, P)
 
         # Guestimate vapor composition for 'VP', 'TP', 'QinP' equilibrium
-        if hasattr(self, '_y') and self._species_eq == specie_IDs:
-            # Guess composition in the vapor is same as last time equlibrium was run
-            y = self._y
-        else:
-            self._species_eq = specie_IDs
-            # Guess composition in the vapor is a weighted average of boiling points
-            Tb = sp._get_Tb(specie_IDs)
-            try:
-                T_min = min(Tb)
-                T_max = max(Tb)
-                split = (0.5 + (Tb - T_min)/(T_max - T_min))/1.5
-                y = split * zf
-                y = y/sum(y)
-            except:
-                y = zf
+        y = self._y_cached.get(species)
 
         if eq == 'VP':
-            # Guess vapor flow rates
-            pos = np.where(mol <= 0)
-            mol[pos] = 10**-9
-            v = y*V*molnet
-
             def V_error(T):
                 nonlocal v
                 if T >= T_dew:
@@ -917,15 +890,32 @@ class MixedStream(Stream):
                     return V + (T - T_bubble)
                 v = v_given_TPmol(v, T, P, mol)
                 return (V - sum(v)/molnet)
-
+            
+            # Guess vapor flow rates
+            pos = np.where(mol <= 0)
+            mol[pos] = 10**-9
+            if y is None: y = V*zf + (1-V)*y_bubble
+            v = y*V*molnet
+            
             # Solve
-            self.T = brentq(V_error, T_bubble, T_dew)
+            if not hasattr(self, '_T_VP'):
+                self._T_VP = (1-V)*T_bubble + V*T_dew
+            try:
+                self._T_VP = self.T = newton(V_error, self._T_VP)
+            except:
+                self._T_VP = self.T = brentq(V_error, T_bubble, T_dew)
+            
             v[pos] = 0
             vapor_mol[index] = v
             liquid_mol[index] = mol - vapor_mol[index]
             return
         
         elif eq == 'TP':
+            if y is None:
+                # Guess composition in the vapor is a weighted average of boiling points
+                f = (T - T_dew)/(T_bubble - T_dew)
+                y = f*zf + (1-f)*y_bubble
+            
             # Check if there is equilibrium
             if T > T_dew:
                 vapor_mol[index] = v = mol
@@ -963,11 +953,6 @@ class MixedStream(Stream):
                 self.H = Hin
                 return
 
-            # Guess T, overall vapor fraction, and vapor flow rates
-            T_guess = T_bubble + (Hin - H_bubble)/(H_dew - H_bubble) * (T_dew - T_bubble)
-            V_guess = (T_guess - T_bubble)/(T_dew - T_bubble)
-            v = y * V_guess * mol
-
             def H_error_T(T):
                 nonlocal v
                 self.T = T
@@ -975,21 +960,34 @@ class MixedStream(Stream):
                 liquid_mol[index] = mol - v
                 return abs(Hin - (self.H))
 
+            # Guess T, overall vapor fraction, and vapor flow rates
+            if not hasattr(self, '_T_QinP'):
+                self._T_QinP = T_bubble + (Hin - H_bubble)/(H_dew - H_bubble) * (T_dew - T_bubble)
+            V_guess = (self._T_QinP - T_bubble)/(T_dew - T_bubble)
+            if y is None:
+                # Guess composition in the vapor is a weighted average of boiling points
+                f = (self._T_QinP - T_dew)/(T_bubble - T_dew)
+                y = f*zf + (1-f)*y_bubble
+            v = y * V_guess * mol
+
             # Solve
-            self.T = minimize_scalar(H_error_T, bounds=(T_bubble, T_dew),
-                                     method='bounded').x
-            self._y = v/sum(v)
-            return 
+            try:
+                self._T_QinP = self.T = newton(H_error_T, self._T_QinP)
+            except:
+                self._T_QinP = self.T = minimize_scalar(H_error_T,
+                                                        bounds=(T_bubble, T_dew),
+                                                        method='bounded').x
+            self._y_cached[species] = v/sum(v)
 
     # LIQUID-liquid equilibrium
-    def LLE(self, specie_IDs=None, split=None, lNK=(), LNK=(),
+    def LLE(self, species_IDs=None, split=None, lNK=(), LNK=(),
             solvents=(), solvent_split=(),
             P=None, T=None, Qin=0):
         """Partition flow rates into liquid and LIQUID phases by equilibrium.
 
         **Optional Parameters**
 
-            **specie_IDs:** *tuple[str]* IDs of equilibrium species
+            **species_IDs:** *tuple[str]* IDs of equilibrium species
             
             **split:** *tuple[float]* Initial guess split fractions of each specie to the 'liquid'
 
@@ -1013,38 +1011,41 @@ class MixedStream(Stream):
         """
         ### Set Up ###
 
-        # Set up indeces for both equilibrium and non-equilibrium species
-        sp_index = self._ID_index
-        if specie_IDs is None:
-            specie_IDs, _ = self._equilibrium_species()
+        # Set up indices for both equilibrium and non-equilibrium species
+        _species = self._species
+        sp_index = self._IDs.index
+        if species_IDs is None:
+            species, index = self._equilibrium_species()
+        else:
+            species = [getattr(_species, ID) for ID in species_IDs]
+            index = [sp_index(ID) for ID in species_IDs]
         
-        specie_IDs = list(specie_IDs)
-        for specie in specie_IDs:
-            if (specie in solvents) or (specie in lNK) or (specie in LNK):
-                specie_IDs.remove(specie)
-        specie_IDs = tuple(specie_IDs)
-        
-        index = [sp_index[specie] for specie in specie_IDs]
-        lNK_index = [sp_index[specie] for specie in lNK]
-        LNK_index = [sp_index[specie] for specie in LNK]
-        solvent_index = [sp_index[specie] for specie in solvents]
+        for s, i in zip(species, index):
+            ID = s.ID
+            if (ID in solvents) or (ID in lNK) or (ID in LNK):
+                species.remove(s)
+                index.remove(i)
+
+        species = tuple(species)
+        lNK_index = [sp_index(s) for s in lNK]
+        LNK_index = [sp_index(s) for s in LNK]
+        solvent_index = [sp_index(s) for s in solvents]
 
         # Get min and max splits
-        Nspecies = len(specie_IDs)
+        Nspecies = len(species)
         min_ = np.zeros(Nspecies)
 
         # Set up activity coefficients
-        activity_IDs = specie_IDs + solvents
+        solvent_species = tuple(getattr(_species, ID) for ID in solvents)
+        activity_species = species + solvent_species
         act_coef = self.activity_coefficients
 
         # Make sure splits are given as arrays
-        if hasattr(self, '_lL_split') and self._species_eq == specie_IDs:
-            split = self._lL_split  # cached split
-        else:
+        if split is None:
+            split = self._lL_split_cached.get(species)
             if split is None:
-                species = self.species
-                split_dipoles = [getattr(species, ID).dipole for ID in specie_IDs]
-                solvent_dipoles = [getattr(species, ID).dipole for ID in solvents]
+                split_dipoles = [s.dipole for s in species]
+                solvent_dipoles = [s.dipole for s in solvent_species]
                 dipoles = split_dipoles + solvent_dipoles
                 split_dipoles = np.array(split_dipoles)
                 try:
@@ -1053,11 +1054,10 @@ class MixedStream(Stream):
                     missing_dipoles = []
                     for i, is_missing in enumerate(split_dipoles==None):
                         if is_missing:
-                            missing_dipoles.append(specie_IDs[i])
+                            missing_dipoles.append(activity_species[i])
                     raise EquilibriumError(f'Cannot make estimate for split. Missing dipole values for species: {missing_dipoles}')
-            self._species_eq = specie_IDs
-        split = np.array(split)
-        solvent_split = np.array(solvent_split)
+                split = np.array(split)
+            solvent_split = np.array(solvent_split)
 
         # Equilibrium by constant temperature or with duty
         if T:
@@ -1097,8 +1097,8 @@ class MixedStream(Stream):
             L_guess = molKmol - l_guess
             x1_guess = l_guess/sum(l_guess)
             x2_guess = L_guess/sum(L_guess)
-            x1_gamma = act_coef(activity_IDs, x1_guess, T)
-            x2_gamma = act_coef(activity_IDs, x2_guess, T)
+            x1_gamma = act_coef(activity_species, x1_guess, T)
+            x2_gamma = act_coef(activity_species, x2_guess, T)
             err = (x1_guess * x1_gamma - x2_guess * x2_gamma)
             return abs(err)[0:Nspecies]
 
@@ -1121,7 +1121,7 @@ class MixedStream(Stream):
             raise EquilibriumError('Could not solve equilibrium, please input better split guesses')
 
         # Set results
-        self._lL_split = split
+        self._lL_split_cached[species] = split
         liquid_mol[index] = l_guess
         liquid_mol[lNK_index] = lNK_mol
         liquid_mol[LNK_index] = 0
@@ -1139,7 +1139,6 @@ class MixedStream(Stream):
         flow_units = show_units.get('flow')
         fraction = show_units.get('fraction')
         phases = self.phase
-        index_ID = self._index_ID
         
         # First line
         unit_ID = self._source[0]
@@ -1211,7 +1210,7 @@ class MixedStream(Stream):
             flow_attr = letter_phases[phase] + '_' + flow_type
             if fraction: flow_attr += 'frac'
             flow = getattr(self, flow_attr)
-            nonzero, species = nonzero_species(index_ID, flow)
+            nonzero, species = nonzero_species(self._num_IDs, flow)
             if fraction:
                 flow_nonzero = flow[nonzero]
             else:
