@@ -1,0 +1,16 @@
+colorama
+pint
+ht
+fluids
+scipy
+IPython
+thermo
+bookkeep
+colorpalette
+array_collections
+free_properties
+pandas
+numpy
+graphviz
+matplotlib
+openpyxl

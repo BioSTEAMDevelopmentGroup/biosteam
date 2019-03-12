@@ -274,7 +274,7 @@ def stream_table(streams, flow='kmol/hr', **props) -> 'DataFrame':
     
     # Prepare rows and columns
     ss = streams
-    species = type(ss[0])._specie_IDs
+    species = type(ss[0])._species_IDs
     n = len(ss)
     m = len(species)
     p = len(props)

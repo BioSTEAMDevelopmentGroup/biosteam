@@ -317,6 +317,9 @@
 <span class="sd">    &quot;&quot;&quot;</span> 
     <span class="c1">### Abstract Attributes ###</span>
     
+    <span class="c1"># [bool] Should be True if it has any associated cost</span>
+    <span class="n">_has_cost</span> <span class="o">=</span> <span class="kc">True</span>
+    
     <span class="c1"># [int or None] Expected number of input streams</span>
     <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">1</span>  
     
@@ -330,7 +333,7 @@
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">0</span>
     
     <span class="c1"># [PowerUtility] A PowerUtility object, if required</span>
-    <span class="n">_power_utility</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">power_utility</span> <span class="o">=</span> <span class="kc">None</span>
     
     <span class="c1"># [bool] If True, a PowerUtility object is created for every instance.</span>
     <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">False</span> 
@@ -381,6 +384,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_power_util</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_setup</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_install</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_init_ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ins</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize input streams.&quot;&quot;&quot;</span>
@@ -422,14 +426,33 @@
     
     <span class="k">def</span> <span class="nf">_init_heat_utils</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize heat utilities.&quot;&quot;&quot;</span>
-        <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_N_heat_utilities</span>
-        <span class="n">utilities</span> <span class="o">=</span> <span class="p">[</span><span class="n">HeatUtility</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">_N_heat_utilities</span><span class="p">)]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span> <span class="o">=</span> <span class="n">utilities</span>
+        <span class="c1">#: [list] HeatUtility objects associated to unit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span> <span class="o">=</span> <span class="p">[</span><span class="n">HeatUtility</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span>
+                               <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_N_heat_utilities</span><span class="p">)]</span>
         
     <span class="k">def</span> <span class="nf">_init_power_util</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize power utility.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_power_utility</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span> <span class="o">=</span> <span class="n">PowerUtility</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="c1">#: [PowerUtility] Power requirements associated to unit</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">power_utility</span> <span class="o">=</span> <span class="n">PowerUtility</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_install</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Cache objects and/or replace methods for computational efficiency.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_cost</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cost</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">simulate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span>
+        
+        <span class="c1"># Result dictionaries for all utilities</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_util_results</span> <span class="o">=</span> <span class="n">util_results</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">heat_utilities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span>
+        <span class="n">power_utility</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">power_utility</span>
+        <span class="k">if</span> <span class="n">heat_utilities</span><span class="p">:</span>
+            <span class="n">util_results</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">util</span><span class="o">.</span><span class="n">results</span> <span class="k">for</span> <span class="n">util</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">power_utility</span><span class="p">:</span>
+            <span class="n">util_results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">power_utility</span><span class="o">.</span><span class="n">results</span><span class="p">)</span>
+            
+        <span class="c1"># Itemized purchase costs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_purchase_costs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
     
     <span class="c1"># Forward pipping</span>
     <span class="k">def</span> <span class="nf">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
@@ -479,40 +502,24 @@
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span>
     <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span>
 
+    <span class="c1"># Summary</span>
+    <span class="k">def</span> <span class="nf">_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Run _operation, _design, and _cost methods and update results &quot;Summary&quot; dictionary with total utility costs and purchase price.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_operation</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
+        <span class="n">Summary</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Summary&#39;</span><span class="p">]</span>
+        <span class="n">Summary</span><span class="p">[</span><span class="s1">&#39;Utility cost&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_util_results</span><span class="p">)</span>
+        <span class="n">Summary</span><span class="p">[</span><span class="s1">&#39;Purchase cost&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_purchase_costs</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">Summary</span>
+
 <div class="viewcode-block" id="Unit.simulate"><a class="viewcode-back" href="../../Unit.html#biosteam.Unit.simulate">[docs]</a>    <span class="k">def</span> <span class="nf">simulate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Run rigourous simulation and determine all design requirements.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_setup</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_operation</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">()</span></div>
-
-    <span class="c1"># Summary</span>
-    <span class="k">def</span> <span class="nf">_operating_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>                
-        <span class="sd">&quot;&quot;&quot;Sum of all utility costs (USD/hr).&quot;&quot;&quot;</span>
-        <span class="n">heat_utilities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span>
-        <span class="n">power_utility</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">power_utility</span>
-        
-        <span class="n">cost</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">if</span> <span class="n">heat_utilities</span><span class="p">:</span>
-            <span class="n">cost</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">util</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">util</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">power_utility</span><span class="p">:</span>
-            <span class="n">cost</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">power_utility</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">cost</span>
-        
-    <span class="k">def</span> <span class="nf">_capital_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;The sum of all costs calculated by the cost method (USD).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-
-    <span class="k">def</span> <span class="nf">_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Update results &quot;Summary&quot; dictionary with total utility costs and purchase price.&quot;&quot;&quot;</span>
-        <span class="n">Summary</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Summary&#39;</span><span class="p">]</span>
-        <span class="n">Summary</span><span class="p">[</span><span class="s1">&#39;Utility cost&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_operating_cost</span><span class="p">()</span>
-        <span class="n">Summary</span><span class="p">[</span><span class="s1">&#39;Purchase cost&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_capital_cost</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">Summary</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -534,27 +541,21 @@
 
     <span class="nd">@ID</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">ID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
-        <span class="k">if</span> <span class="s1">&#39;*&#39;</span> <span class="ow">in</span> <span class="n">ID</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="n">ID</span>
-            <span class="k">return</span>
-        
-        <span class="c1"># Remove old reference to this object</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
-            <span class="k">del</span> <span class="n">find</span><span class="o">.</span><span class="n">unit</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ID</span><span class="p">]</span>
-            <span class="k">del</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">instances</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ID</span><span class="p">]</span>
-
-        <span class="c1"># Get current default ID</span>
-        <span class="n">Unit</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="n">letter</span><span class="p">,</span> <span class="n">number</span> <span class="o">=</span> <span class="n">Unit</span><span class="o">.</span><span class="n">_default_ID</span>
-
         <span class="c1"># Select a default ID if requested</span>
         <span class="k">if</span> <span class="n">ID</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="n">Unit</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="n">letter</span><span class="p">,</span> <span class="n">number</span> <span class="o">=</span> <span class="n">Unit</span><span class="o">.</span><span class="n">_default_ID</span>
             <span class="n">Unit</span><span class="o">.</span><span class="n">_default_ID</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="n">num</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
-            <span class="n">numlen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">numlen</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
-                <span class="n">num</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span><span class="o">-</span><span class="n">numlen</span><span class="p">)</span><span class="o">*</span><span class="s1">&#39;0&#39;</span> <span class="o">+</span> <span class="n">num</span>
             <span class="n">ID</span> <span class="o">=</span> <span class="n">letter</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="s1">&#39;*&#39;</span> <span class="ow">in</span> <span class="n">ID</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="n">ID</span>
+            <span class="k">return</span>
+        <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span><span class="n">i</span> <span class="ow">in</span> <span class="n">ID</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="s1">&#39;`~!@#$%^&amp;():&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;ID cannot contain any of the following special characters: `~!@#$%^&amp;():&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Remove old reference to this object</span>
+        <span class="k">del</span> <span class="n">find</span><span class="o">.</span><span class="n">unit</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ID</span><span class="p">]</span>
+        <span class="k">del</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">instances</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ID</span><span class="p">]</span>
 
         <span class="c1"># Add instance to class instance dictionary</span>
         <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">instances</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
@@ -580,26 +581,6 @@
     <span class="k">def</span> <span class="nf">outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">streams</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">streams</span><span class="p">)</span>
 
-    <span class="c1"># Utilities</span>
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">heat_utilities</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;list of HeatUtility objects&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span>
-    <span class="nd">@heat_utilities</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">heat_utilities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">heat_utilities</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span> <span class="o">=</span> <span class="n">heat_utilities</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">power_utility</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;A PowerUtility object, if required.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span>
-    <span class="nd">@power_utility</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">power_utility</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">power_utility</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">power_utility</span><span class="p">,</span> <span class="n">PowerUtility</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Only PowerUtility objects are valid.&#39;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span> <span class="o">=</span> <span class="n">power_utility</span>
-
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_upstream_neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return set of upsteam neighboring units.&quot;&quot;&quot;</span>
@@ -615,9 +596,27 @@
         <span class="n">neighbors</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">:</span>
             <span class="n">u_sink</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">sink</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">u_sink</span><span class="p">:</span>
-                <span class="n">neighbors</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">u_sink</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">u_sink</span><span class="p">:</span> <span class="n">neighbors</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">u_sink</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">neighbors</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_downstream_units</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return all units downstreasm.&quot;&quot;&quot;</span>
+        <span class="n">downstream_units</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">outer_periphery</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_downstream_neighbors</span>
+        <span class="n">inner_periphery</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">old_length</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">new_length</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">new_length</span> <span class="o">!=</span> <span class="n">old_length</span><span class="p">:</span>
+            <span class="n">old_length</span> <span class="o">=</span> <span class="n">new_length</span>
+            <span class="n">inner_periphery</span> <span class="o">=</span> <span class="n">outer_periphery</span>
+            <span class="n">downstream_units</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">inner_periphery</span><span class="p">)</span>
+            <span class="n">outer_periphery</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">unit</span> <span class="ow">in</span> <span class="n">inner_periphery</span><span class="p">:</span>
+                <span class="n">outer_periphery</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">_downstream_neighbors</span><span class="p">)</span>
+            <span class="n">new_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">downstream_units</span><span class="p">)</span>
+            
+        <span class="k">return</span> <span class="n">downstream_units</span>
 
     <span class="k">def</span> <span class="nf">_neighborhood</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return all neighboring units within given radius.</span>
@@ -639,10 +638,10 @@
             <span class="k">for</span> <span class="n">neighbor</span> <span class="ow">in</span> <span class="n">direct_neighborhood</span><span class="p">:</span>
                 <span class="n">neighbors</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">neighbor</span><span class="o">.</span><span class="n">_upstream_neighbors</span><span class="p">)</span>
                 <span class="n">neighbors</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">neighbor</span><span class="o">.</span><span class="n">_downstream_neighbors</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">neighbors</span> <span class="o">==</span> <span class="n">direct_neighborhood</span><span class="p">:</span> <span class="k">break</span>
             <span class="n">direct_neighborhood</span> <span class="o">=</span> <span class="n">neighbors</span>
             <span class="n">neighborhood</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">direct_neighborhood</span><span class="p">)</span>
         
-        <span class="n">neighborhood</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">neighborhood</span>
 
 <div class="viewcode-block" id="Unit.diagram"><a class="viewcode-back" href="../../Unit.html#biosteam.Unit.diagram">[docs]</a>    <span class="k">def</span> <span class="nf">diagram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
@@ -820,17 +819,7 @@
         <span class="sd">&quot;&quot;&quot;Enthalpy of formation flow going in (kJ/hr).&quot;&quot;&quot;</span>
         <span class="n">_Hf_in</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">:</span>
-            <span class="c1"># Get non-zero index and species</span>
-            <span class="n">index</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">species</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">stream</span><span class="o">.</span><span class="n">_index</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">stream</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">index</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-                    <span class="n">species</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">_index_ID</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-            <span class="c1"># Find Hf of stream</span>
-            <span class="n">Hf</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">*</span>
-                     <span class="n">stream</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">get_props</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="s1">&#39;Hfm&#39;</span><span class="p">))</span>
-            <span class="n">_Hf_in</span> <span class="o">+=</span> <span class="n">Hf</span>
+            <span class="n">_Hf_in</span> <span class="o">+=</span> <span class="n">stream</span><span class="o">.</span><span class="n">Hf</span>
         <span class="k">return</span> <span class="n">_Hf_in</span>
 
     <span class="nd">@property</span>
@@ -838,17 +827,7 @@
         <span class="sd">&quot;&quot;&quot;Enthalpy of formation flow going out (kJ/hr).&quot;&quot;&quot;</span>
         <span class="n">_Hf_out</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">:</span>
-            <span class="c1"># Get non-zero index and species</span>
-            <span class="n">index</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">species</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">stream</span><span class="o">.</span><span class="n">_index</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">stream</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">index</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-                    <span class="n">species</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">_index_ID</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-            <span class="c1"># Find Hf of stream</span>
-            <span class="n">Hf</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">*</span>
-                     <span class="n">stream</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">get_props</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="s1">&#39;Hfm&#39;</span><span class="p">))</span>
-            <span class="n">_Hf_out</span> <span class="o">+=</span> <span class="n">Hf</span>
+            <span class="n">_Hf_out</span> <span class="o">+=</span> <span class="n">stream</span><span class="o">.</span><span class="n">Hf</span>
         <span class="k">return</span> <span class="n">_Hf_out</span>
 
     <span class="nd">@property</span>

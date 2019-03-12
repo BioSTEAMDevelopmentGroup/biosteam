@@ -942,54 +942,29 @@
         <span class="n">qs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">qi</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">rs</span><span class="p">,</span> <span class="n">qs</span><span class="p">,</span> <span class="n">group_counts</span>
 
-<span class="c1"># For Streams</span>
-<span class="k">def</span> <span class="nf">Stream_UNIFAC_set_up</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">IDs</span><span class="p">):</span>
-    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species_eq</span> <span class="o">==</span> <span class="n">IDs</span><span class="p">:</span>
-        <span class="k">return</span>
-    <span class="n">sp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span>
-    <span class="n">chemgroups</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">ID</span> <span class="ow">in</span> <span class="n">IDs</span><span class="p">:</span>
-        <span class="n">chemgroups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">sp</span><span class="p">,</span> <span class="n">ID</span><span class="p">)</span><span class="o">.</span><span class="n">UNIFAC_groups</span><span class="p">)</span>
-    <span class="n">rs</span><span class="p">,</span> <span class="n">qs</span><span class="p">,</span> <span class="n">group_counts</span> <span class="o">=</span> <span class="n">calc_set_up</span><span class="p">(</span><span class="n">UFSG</span><span class="p">,</span> <span class="n">chemgroups</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span> <span class="o">=</span> <span class="p">(</span><span class="n">chemgroups</span><span class="p">,</span> <span class="n">rs</span><span class="p">,</span> <span class="n">qs</span><span class="p">,</span> <span class="n">group_counts</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_species_eqs</span> <span class="o">=</span> <span class="n">IDs</span>
-
-
-<span class="k">def</span> <span class="nf">Stream_DORTMUND_set_up</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">IDs</span><span class="p">):</span>
-    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species_eq</span> <span class="o">==</span> <span class="n">IDs</span><span class="p">:</span>
-        <span class="k">return</span>
-    <span class="n">sp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span>
-    <span class="n">chemgroups</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">ID</span> <span class="ow">in</span> <span class="n">IDs</span><span class="p">:</span>
-        <span class="n">chemgroups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">sp</span><span class="p">,</span> <span class="n">ID</span><span class="p">)</span><span class="o">.</span><span class="n">UNIFAC_Dortmund_groups</span><span class="p">)</span>
-    <span class="n">rs</span><span class="p">,</span> <span class="n">qs</span><span class="p">,</span> <span class="n">group_counts</span> <span class="o">=</span> <span class="n">calc_set_up</span><span class="p">(</span><span class="n">DOUFSG</span><span class="p">,</span> <span class="n">chemgroups</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span> <span class="o">=</span> <span class="p">(</span><span class="n">chemgroups</span><span class="p">,</span> <span class="n">rs</span><span class="p">,</span> <span class="n">qs</span><span class="p">,</span> <span class="n">group_counts</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_species_eq</span> <span class="o">=</span> <span class="n">IDs</span>
-
 
 <span class="c1"># %% Activity Coefficients</span>
 
-<span class="c1"># For both Units and Streams</span>
-<span class="k">def</span> <span class="nf">DORTMUND</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
+<span class="c1"># For Streams</span>
+<span class="k">def</span> <span class="nf">DORTMUND</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">xs</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Return list of Dortmund modified UNIFAC coefficients.</span>
 <span class="sd">    </span>
 <span class="sd">    **Parameters**</span>
 <span class="sd">    </span>
-<span class="sd">        specie_IDs: tuple[str] Species corresponding to molar fractions</span>
+<span class="sd">        species: tuple[Compound] Species corresponding to molar fractions</span>
 <span class="sd">        </span>
 <span class="sd">        xs: [array_like] Molar fractions</span>
 <span class="sd">        </span>
 <span class="sd">        T: [float] Temperature (K)</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span> 
-    <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">)</span>
+    <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_UNIFAC_cached</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">cached</span><span class="p">:</span>
-        <span class="n">sp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span>
         <span class="n">chemgroups</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">ID</span> <span class="ow">in</span> <span class="n">specie_IDs</span><span class="p">:</span>
-            <span class="n">chemgroups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">sp</span><span class="p">,</span> <span class="n">ID</span><span class="p">)</span><span class="o">.</span><span class="n">UNIFAC_Dortmund_groups</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">species</span><span class="p">:</span>
+            <span class="n">chemgroups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">UNIFAC_Dortmund_groups</span><span class="p">)</span>
             <span class="n">rs</span><span class="p">,</span> <span class="n">qs</span><span class="p">,</span> <span class="n">group_counts</span> <span class="o">=</span> <span class="n">calc_set_up</span><span class="p">(</span><span class="n">DOUFSG</span><span class="p">,</span> <span class="n">chemgroups</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span><span class="p">[</span><span class="n">specie_IDs</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">chemgroups</span><span class="p">,</span> <span class="n">rs</span><span class="p">,</span> <span class="n">qs</span><span class="p">,</span> <span class="n">group_counts</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_UNIFAC_cached</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">chemgroups</span><span class="p">,</span> <span class="n">rs</span><span class="p">,</span> <span class="n">qs</span><span class="p">,</span> <span class="n">group_counts</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">chemgroups</span><span class="p">,</span> <span class="n">rs</span><span class="p">,</span> <span class="n">qs</span><span class="p">,</span> <span class="n">group_counts</span> <span class="o">=</span> <span class="n">cached</span>
     

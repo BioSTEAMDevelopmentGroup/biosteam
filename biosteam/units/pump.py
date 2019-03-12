@@ -7,7 +7,7 @@ Created on Thu Aug 23 15:53:14 2018
 from biosteam import Unit
 from biosteam import np
 from fluids.pump import nema_sizes_hp
-from biosteam.utils import _calc_MotorEfficiency, _calc_BreakEfficiency
+from .designtools.vacuum import _calc_MotorEfficiency, _calc_BreakEfficiency
 
 ln = np.log
 exp = np.exp

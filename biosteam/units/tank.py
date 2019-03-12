@@ -26,7 +26,8 @@ class Tank(Unit):
     def tau(self, tau):
         self._tau = tau
 
-    def _run(self):        self.outs[0].copy_like(self.ins[0])
+    def _run(self): 
+        self.outs[0].copy_like(self.ins[0])
 
 
 class StorageTank(Tank):
@@ -60,8 +61,8 @@ Thessalonika, Greece, 2008 (book in Greek).
         Design['Volume'] = V/N
         return Design
 
-    @classmethod
-    def _calc_vessel_cost(cls, V_vessel: 'm^3', CEPCI):
+    @staticmethod
+    def _calc_vessel_cost(V_vessel: 'm^3', CEPCI):
         if V_vessel < 2e3:
             cost = 65000 + 158.7*V_vessel * CEPCI/525.4
         elif V_vessel < 50e3:
@@ -99,15 +100,18 @@ class MixTank(Tank):
     _tau = 1
     _N_ins = 2
     _run = Mixer._run
+    _has_power_utility = True
     bounds = {'Volume': (0.1, 30)}
-
+    
+    #: Electricity rate (kW/m3)
+    electricity_rate = 0.591 # About 10 hp/1000gal
+    
     def _design(self):
         """
         * 'Volume': (m^3)
         """
         Design = self.results['Design']
         Design['Volume'] = self._tau * self._volnet_out / 0.8
-        return Design
 
     def _cost(self):
         """
@@ -116,7 +120,8 @@ class MixTank(Tank):
         V = self.results['Design']['Volume']
         Cost = self.results['Cost']
         Cost['Tank'] = 12080 * V**0.525 * self.CEPCI/525.4
-        return Cost
+        self.power_utility(self.electricity_rate*V)
+        
 
 
 class PCT(MixTank):

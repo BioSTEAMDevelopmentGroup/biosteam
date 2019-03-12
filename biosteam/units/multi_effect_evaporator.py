@@ -7,7 +7,7 @@ Created on Thu Aug 23 21:43:13 2018
 from biosteam import Unit, Stream, np
 from scipy.optimize import brentq
 from . import Evaporator_PV, Evaporator_PQin, Pump, Mixer, HXutility
-from biosteam.utils import vacuum_system
+from .designtools import vacuum_system
 import ht
 log = np.log
 exp = np.exp
@@ -41,16 +41,17 @@ class MultiEffectEvaporator(Unit):
 
     **Parameters**
 
-         **component:** *[str]* Component being evaporated
+        **component:** *[str]* Component being evaporated
          
-         **P:** *[tuple]* Pressures describing each evaporator (Pa)
+        **P:** *[tuple]* Pressures describing each evaporator (Pa)
          
-         **V:** *[float]* Overall molar fraction of component evaporated
+        **V:** *[float]* Overall molar fraction of component evaporated
          
-         **P_liq:** *[tuple]* Liquid pressure after pumping (Pa)
+        **P_liq:** *[tuple]* Liquid pressure after pumping (Pa)
     
     """
     _has_power_utility = True
+    _N_heat_utilities = 2
     line = 'Multi-Effect Evaporator'
     kwargs = {'component': 'Water',
               'P': (101325,),  
@@ -88,20 +89,20 @@ class MultiEffectEvaporator(Unit):
         
         # Create components
         self._N_evap = n = len(P) # Number of evaporators
-        evap = Evaporator_PV('*Evaporator0', outs=('*vap', '*liq'),
+        Stream.species = species
+        evap0 = Evaporator_PV('*Evaporator0', outs=('*vap', '*liq'),
                              component=component, P=P[0])
-        evaporators = [evap]
+        
+        evaporators = [evap0]
         for i in range(1, n):
             evap = Evaporator_PQin('*Evaporator' + str(i),
                                    outs=('*vap', '*liq', '*utility'),
                                    component=component, P=P[i], Qin=0)
             evaporators.append(evap)
-        condenser = HXutility('*Condenser', outs=Stream('*condensate',species=species), V=0)
-        condenser.heat_utilities[0].results._source = self
+        condenser = HXutility('*Condenser', outs=Stream('*condensate'), V=0)
+        evap0.heat_utilities[0], condenser.heat_utilities[0] = self.heat_utilities
         mixer = Mixer('*Mixer', outs='*liq')
-
-        evap0 = evaporators[0]
-        evap0.heat_utilities[0].results._source = self
+        
         def V_error(v1):
             # Run first evaporator
             v_test = v1
@@ -121,6 +122,7 @@ class MultiEffectEvaporator(Unit):
         self.components = {'evaporators': evaporators,
                            'condenser': condenser,
                            'mixer': mixer}
+        
 
     def _run(self):
         component, P, V, P_liq = (self.kwargs[i]
@@ -164,18 +166,6 @@ class MultiEffectEvaporator(Unit):
         component_pos = feed.Settings.ID_index_dictionary[component]
         liq.mass[component_pos] = V*feed.mol[component_pos]
         out_wt_solids.mol = feed.mol - liq.mol
-
-    def _operation(self):
-        components = self.components
-        
-        # Find utilities
-        evap0 = components['evaporators'][0]
-        evap0._operation()
-        condenser = components['condenser']
-        condenser._operation()
-        
-        # Attach utilities
-        self.heat_utilities = evap0.heat_utilities + condenser.heat_utilities
         
     def _design(self):
         """
@@ -192,6 +182,7 @@ class MultiEffectEvaporator(Unit):
         CE = self.CEPCI
         
         evap0 = evaporators[0]
+        evap0._operation()
         Q = abs(evap0.heat_utilities[0].results['Duty'])
         Tci = evap0.ins[0].T
         Tco = evap0.outs[0].T
@@ -203,6 +194,7 @@ class MultiEffectEvaporator(Unit):
         
         # Find condenser requirements
         condenser = components['condenser']
+        condenser._operation()
         condenser._design()
         Cost['Condenser'] = condenser._cost()['Heat exchanger']
         

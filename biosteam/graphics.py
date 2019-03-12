@@ -6,10 +6,8 @@ Created on Sat Aug 18 14:36:58 2018
 """
 import copy
 import weakref
-head_port = {'headport': 'c'}
-tail_port = {'tailport': 'c'}
-edge_in = [head_port for i in range(20)]
-edge_out = [tail_port for i in range(20)]
+edge_in = [{'headport': 'c'} for i in range(15)]
+edge_out = [{'tailport': 'c'} for i in range(15)]
 node = {'shape': 'box',
         'fillcolor': "white:#CDCDCD",
         'style': 'filled',

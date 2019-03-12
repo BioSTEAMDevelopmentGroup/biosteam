@@ -62,7 +62,7 @@
 <span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">np</span>
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">brentq</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">Evaporator_PV</span><span class="p">,</span> <span class="n">Evaporator_PQin</span><span class="p">,</span> <span class="n">Pump</span><span class="p">,</span> <span class="n">Mixer</span><span class="p">,</span> <span class="n">HXutility</span>
-<span class="kn">from</span> <span class="nn">biosteam.utils</span> <span class="k">import</span> <span class="n">vacuum_system</span>
+<span class="kn">from</span> <span class="nn">.designtools</span> <span class="k">import</span> <span class="n">vacuum_system</span>
 <span class="kn">import</span> <span class="nn">ht</span>
 <span class="n">log</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span>
 <span class="n">exp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span>
@@ -96,16 +96,17 @@
 
 <span class="sd">    **Parameters**</span>
 
-<span class="sd">         **component:** *[str]* Component being evaporated</span>
+<span class="sd">        **component:** *[str]* Component being evaporated</span>
 <span class="sd">         </span>
-<span class="sd">         **P:** *[tuple]* Pressures describing each evaporator (Pa)</span>
+<span class="sd">        **P:** *[tuple]* Pressures describing each evaporator (Pa)</span>
 <span class="sd">         </span>
-<span class="sd">         **V:** *[float]* Overall molar fraction of component evaporated</span>
+<span class="sd">        **V:** *[float]* Overall molar fraction of component evaporated</span>
 <span class="sd">         </span>
-<span class="sd">         **P_liq:** *[tuple]* Liquid pressure after pumping (Pa)</span>
+<span class="sd">        **P_liq:** *[tuple]* Liquid pressure after pumping (Pa)</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Multi-Effect Evaporator&#39;</span>
     <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;component&#39;</span><span class="p">:</span> <span class="s1">&#39;Water&#39;</span><span class="p">,</span>
               <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">101325</span><span class="p">,),</span>  
@@ -143,20 +144,20 @@
         
         <span class="c1"># Create components</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_N_evap</span> <span class="o">=</span> <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">P</span><span class="p">)</span> <span class="c1"># Number of evaporators</span>
-        <span class="n">evap</span> <span class="o">=</span> <span class="n">Evaporator_PV</span><span class="p">(</span><span class="s1">&#39;*Evaporator0&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;*vap&#39;</span><span class="p">,</span> <span class="s1">&#39;*liq&#39;</span><span class="p">),</span>
+        <span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">species</span>
+        <span class="n">evap0</span> <span class="o">=</span> <span class="n">Evaporator_PV</span><span class="p">(</span><span class="s1">&#39;*Evaporator0&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;*vap&#39;</span><span class="p">,</span> <span class="s1">&#39;*liq&#39;</span><span class="p">),</span>
                              <span class="n">component</span><span class="o">=</span><span class="n">component</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">P</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">evaporators</span> <span class="o">=</span> <span class="p">[</span><span class="n">evap</span><span class="p">]</span>
+        
+        <span class="n">evaporators</span> <span class="o">=</span> <span class="p">[</span><span class="n">evap0</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
             <span class="n">evap</span> <span class="o">=</span> <span class="n">Evaporator_PQin</span><span class="p">(</span><span class="s1">&#39;*Evaporator&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">),</span>
                                    <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;*vap&#39;</span><span class="p">,</span> <span class="s1">&#39;*liq&#39;</span><span class="p">,</span> <span class="s1">&#39;*utility&#39;</span><span class="p">),</span>
                                    <span class="n">component</span><span class="o">=</span><span class="n">component</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Qin</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
             <span class="n">evaporators</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">evap</span><span class="p">)</span>
-        <span class="n">condenser</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="s1">&#39;*Condenser&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;*condensate&#39;</span><span class="p">,</span><span class="n">species</span><span class="o">=</span><span class="n">species</span><span class="p">),</span> <span class="n">V</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="n">condenser</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="n">condenser</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="s1">&#39;*Condenser&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;*condensate&#39;</span><span class="p">),</span> <span class="n">V</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">evap0</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">condenser</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span>
         <span class="n">mixer</span> <span class="o">=</span> <span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;*Mixer&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="s1">&#39;*liq&#39;</span><span class="p">)</span>
-
-        <span class="n">evap0</span> <span class="o">=</span> <span class="n">evaporators</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">evap0</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="bp">self</span>
+        
         <span class="k">def</span> <span class="nf">V_error</span><span class="p">(</span><span class="n">v1</span><span class="p">):</span>
             <span class="c1"># Run first evaporator</span>
             <span class="n">v_test</span> <span class="o">=</span> <span class="n">v1</span>
@@ -176,6 +177,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">components</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;evaporators&#39;</span><span class="p">:</span> <span class="n">evaporators</span><span class="p">,</span>
                            <span class="s1">&#39;condenser&#39;</span><span class="p">:</span> <span class="n">condenser</span><span class="p">,</span>
                            <span class="s1">&#39;mixer&#39;</span><span class="p">:</span> <span class="n">mixer</span><span class="p">}</span>
+        
 
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">component</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">P_liq</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
@@ -219,18 +221,6 @@
         <span class="n">component_pos</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">Settings</span><span class="o">.</span><span class="n">ID_index_dictionary</span><span class="p">[</span><span class="n">component</span><span class="p">]</span>
         <span class="n">liq</span><span class="o">.</span><span class="n">mass</span><span class="p">[</span><span class="n">component_pos</span><span class="p">]</span> <span class="o">=</span> <span class="n">V</span><span class="o">*</span><span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">component_pos</span><span class="p">]</span>
         <span class="n">out_wt_solids</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span> <span class="o">-</span> <span class="n">liq</span><span class="o">.</span><span class="n">mol</span>
-
-    <span class="k">def</span> <span class="nf">_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">components</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span>
-        
-        <span class="c1"># Find utilities</span>
-        <span class="n">evap0</span> <span class="o">=</span> <span class="n">components</span><span class="p">[</span><span class="s1">&#39;evaporators&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">evap0</span><span class="o">.</span><span class="n">_operation</span><span class="p">()</span>
-        <span class="n">condenser</span> <span class="o">=</span> <span class="n">components</span><span class="p">[</span><span class="s1">&#39;condenser&#39;</span><span class="p">]</span>
-        <span class="n">condenser</span><span class="o">.</span><span class="n">_operation</span><span class="p">()</span>
-        
-        <span class="c1"># Attach utilities</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span> <span class="o">=</span> <span class="n">evap0</span><span class="o">.</span><span class="n">heat_utilities</span> <span class="o">+</span> <span class="n">condenser</span><span class="o">.</span><span class="n">heat_utilities</span>
         
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -247,6 +237,7 @@
         <span class="n">CE</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CEPCI</span>
         
         <span class="n">evap0</span> <span class="o">=</span> <span class="n">evaporators</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">evap0</span><span class="o">.</span><span class="n">_operation</span><span class="p">()</span>
         <span class="n">Q</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">evap0</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Duty&#39;</span><span class="p">])</span>
         <span class="n">Tci</span> <span class="o">=</span> <span class="n">evap0</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
         <span class="n">Tco</span> <span class="o">=</span> <span class="n">evap0</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
@@ -258,6 +249,7 @@
         
         <span class="c1"># Find condenser requirements</span>
         <span class="n">condenser</span> <span class="o">=</span> <span class="n">components</span><span class="p">[</span><span class="s1">&#39;condenser&#39;</span><span class="p">]</span>
+        <span class="n">condenser</span><span class="o">.</span><span class="n">_operation</span><span class="p">()</span>
         <span class="n">condenser</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
         <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Condenser&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">condenser</span><span class="o">.</span><span class="n">_cost</span><span class="p">()[</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
         

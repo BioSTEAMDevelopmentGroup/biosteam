@@ -66,9 +66,9 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">brentq</span><span class="p">,</span> <span class="n">newton</span>
 <span class="kn">from</span> <span class="nn">thermo</span> <span class="k">import</span> <span class="n">activity</span>
-<span class="kn">from</span> <span class="nn">biosteam.utils</span> <span class="k">import</span> <span class="n">vacuum_system</span>
-<span class="kn">from</span> <span class="nn">biosteam.units.hx</span> <span class="k">import</span> <span class="n">HX</span><span class="p">,</span> <span class="n">HXutility</span>
-<span class="kn">from</span> <span class="nn">biosteam.units.design_tools</span> <span class="k">import</span> <span class="p">(</span><span class="n">HNATable</span><span class="p">,</span> <span class="n">FinalValue</span><span class="p">,</span>
+<span class="kn">from</span> <span class="nn">.designtools</span> <span class="k">import</span> <span class="n">vacuum_system</span>
+<span class="kn">from</span> <span class="nn">.hx</span> <span class="k">import</span> <span class="n">HX</span><span class="p">,</span> <span class="n">HXutility</span>
+<span class="kn">from</span> <span class="nn">.designtools</span> <span class="k">import</span> <span class="p">(</span><span class="n">HNATable</span><span class="p">,</span> <span class="n">FinalValue</span><span class="p">,</span>
                           <span class="n">VesselWeightAndWallThickness</span><span class="p">,</span> <span class="n">Kvalue</span><span class="p">)</span>
 
 <span class="n">exp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span>
@@ -79,6 +79,8 @@
 <span class="c1">#if not (0.1 &lt; V &lt; 70):</span>
 <span class="c1">#    raise DesignError(f&quot;Volume is out of bounds for costing&quot;)</span>
 <span class="c1">#lambda V, CE: CE*13*V**0.62 # V (m3)</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Flash&#39;</span><span class="p">,</span> <span class="s1">&#39;SplitFlash&#39;</span><span class="p">,</span> <span class="s1">&#39;PartitionFlash&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;RatioFlash&#39;</span><span class="p">,</span> <span class="s1">&#39;Evaporator_PQin&#39;</span><span class="p">,</span> <span class="s1">&#39;Evaporator_PV&#39;</span><span class="p">)</span>
 
 
 <span class="c1"># %% Flash solutions</span>
@@ -87,7 +89,7 @@
 
 <span class="k">def</span> <span class="nf">analytical_flash_solution</span><span class="p">(</span><span class="n">zs</span><span class="p">,</span> <span class="n">Ks</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Solution for 2 or 3 component flash vessel.&quot;&quot;&quot;</span>
-    <span class="c1"># Not currently in used, so no comments</span>
+    <span class="c1"># Not currently in use</span>
     <span class="n">len_</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">zs</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">len_</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
         <span class="n">z1</span><span class="p">,</span> <span class="n">z2</span> <span class="o">=</span> <span class="n">zs</span>
@@ -148,7 +150,7 @@
 <span class="sd">    </span>
 <span class="sd">        **Optional**</span>
 <span class="sd">    </span>
-<span class="sd">            **specie_IDs:** tuple[str] IDs of equilibrium species</span>
+<span class="sd">            **species_IDs:** tuple[str] IDs of equilibrium species</span>
 <span class="sd">            </span>
 <span class="sd">            **LNK**: tuple[str] Light non-keys</span>
 <span class="sd">        </span>
@@ -197,7 +199,7 @@
     <span class="c1">#: [bool] True if using a mist eliminator pad</span>
     <span class="n">Mist</span> <span class="o">=</span> <span class="kc">False</span>
     
-    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;specie_IDs&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Equilibrium species</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;species_IDs&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Equilibrium species</span>
               <span class="s1">&#39;LNK&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>   <span class="c1"># light non-keys</span>
               <span class="s1">&#39;HNK&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>   <span class="c1"># heavy non-keys</span>
               <span class="s1">&#39;V&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>   <span class="c1"># Vapor fraction</span>
@@ -256,46 +258,6 @@
         <span class="n">liq</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">liquid_mol</span>
         <span class="n">vap</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">T</span>
         <span class="n">vap</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">P</span>
-
-    <span class="k">def</span> <span class="nf">_lazyrun</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Approximate outputs based on molar partition coefficients and overall molar fraction of top phase (0th output).&quot;&quot;&quot;</span>
-        <span class="n">ph1</span><span class="p">,</span> <span class="n">ph2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">_mol_in</span> <span class="o">=</span> <span class="n">ph1</span><span class="o">.</span><span class="n">mol</span> <span class="o">+</span> <span class="n">ph2</span><span class="o">.</span><span class="n">mol</span>
-
-        <span class="c1"># Account for light and heave keys</span>
-        <span class="n">HNK</span> <span class="o">=</span> <span class="n">ph1</span><span class="o">.</span><span class="n">mol</span> <span class="o">==</span> <span class="mi">0</span>
-        <span class="n">LNK</span> <span class="o">=</span> <span class="n">ph2</span><span class="o">.</span><span class="n">mol</span> <span class="o">==</span> <span class="mi">0</span>
-        <span class="n">ph1</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LNK</span><span class="p">]</span> <span class="o">=</span> <span class="n">_mol_in</span><span class="p">[</span><span class="n">LNK</span><span class="p">]</span>
-        <span class="n">ph2</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">HNK</span><span class="p">]</span> <span class="o">=</span> <span class="n">_mol_in</span><span class="p">[</span><span class="n">HNK</span><span class="p">]</span>
-
-        <span class="c1"># Do not include heavy or light non keys</span>
-        <span class="n">pos</span> <span class="o">=</span> <span class="o">~</span><span class="n">HNK</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">LNK</span>
-
-        <span class="n">ph1_mol</span> <span class="o">=</span> <span class="n">ph1</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span>
-        <span class="n">ph2_mol</span> <span class="o">=</span> <span class="n">ph2</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span>
-        <span class="n">ph1_molnet</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ph1_mol</span><span class="p">)</span>
-        <span class="n">ph2_molnet</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ph2_mol</span><span class="p">)</span>
-        <span class="n">molnet</span> <span class="o">=</span> <span class="n">ph1_molnet</span> <span class="o">+</span> <span class="n">ph2_molnet</span>
-
-        <span class="c1"># Get zs and Ks to solve rashford rice equation</span>
-        <span class="n">zs</span> <span class="o">=</span> <span class="n">_mol_in</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span><span class="o">/</span><span class="n">molnet</span>
-        <span class="k">if</span> <span class="n">ph1_molnet</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">ph2</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">=</span> <span class="n">_mol_in</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span>
-            <span class="k">return</span>
-        <span class="k">if</span> <span class="n">ph2_molnet</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">ph1</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">=</span> <span class="n">_mol_in</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span>
-            <span class="k">return</span>
-        <span class="n">ph1_molfrac</span> <span class="o">=</span> <span class="n">ph1_mol</span><span class="o">/</span><span class="n">ph1_molnet</span>
-        <span class="n">ph2_molfrac</span> <span class="o">=</span> <span class="n">ph2_mol</span><span class="o">/</span><span class="n">ph2_molnet</span>
-        <span class="n">Ks</span> <span class="o">=</span> <span class="n">ph1_molfrac</span><span class="o">/</span><span class="n">ph2_molfrac</span>
-
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">zs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
-            <span class="n">V</span> <span class="o">=</span> <span class="n">brentq</span><span class="p">(</span><span class="n">flash_error</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="n">zs</span><span class="p">,</span> <span class="n">Ks</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">V</span> <span class="o">=</span> <span class="n">analytical_flash_solution</span><span class="p">(</span><span class="n">zs</span><span class="p">,</span> <span class="n">Ks</span><span class="p">)</span>
-
-        <span class="n">ph1</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">=</span> <span class="n">V</span><span class="o">*</span><span class="n">molnet</span><span class="o">*</span><span class="n">ph1_molfrac</span>
-        <span class="n">ph2</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">=</span> <span class="n">_mol_in</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">-</span> <span class="n">ph1</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_hx</span><span class="p">:</span>
@@ -416,13 +378,11 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">Mist</span> <span class="ow">and</span> <span class="n">SepType</span> <span class="o">==</span> <span class="s1">&#39;Vertical&#39;</span><span class="p">:</span>
             <span class="n">K</span> <span class="o">=</span> <span class="n">K</span><span class="o">/</span><span class="mi">2</span>
 
-        <span class="n">index</span><span class="p">,</span> <span class="n">specie_IDs</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">nonzero_species</span>
-        <span class="n">xs</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">massfrac</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">sp_ID</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">,</span> <span class="n">xs</span><span class="p">):</span>
+        <span class="n">xs</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">massfrac</span>
+        <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">liq</span><span class="o">.</span><span class="n">_species</span><span class="p">,</span> <span class="n">xs</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="mf">0.1</span><span class="p">:</span>
-                <span class="n">specie</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">liq</span><span class="o">.</span><span class="n">_species</span><span class="p">,</span> <span class="n">sp_ID</span><span class="p">)</span>
                 <span class="c1"># TODO: Verify unifac groups to determine if glycol and/or amine</span>
-                <span class="n">dct</span> <span class="o">=</span> <span class="n">specie</span><span class="o">.</span><span class="n">UNIFAC_groups</span>
+                <span class="n">dct</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">UNIFAC_groups</span>
                 <span class="n">keys</span> <span class="o">=</span> <span class="n">dct</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
                 <span class="k">if</span> <span class="mi">14</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
                     <span class="n">OHs</span> <span class="o">=</span> <span class="n">dct</span><span class="p">[</span><span class="mi">14</span><span class="p">]</span>
@@ -700,7 +660,7 @@
 <span class="c1"># %% Special</span>
 
 
-<span class="k">class</span> <span class="nc">LazyFlash</span><span class="p">(</span><span class="n">Flash</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">SplitFlash</span><span class="p">(</span><span class="n">Flash</span><span class="p">):</span>
     <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Flash&#39;</span>
     
     <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;split&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>  <span class="c1"># component split fractions</span>
@@ -728,39 +688,112 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">outs</span> <span class="o">=</span> <span class="n">ms</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">_operation</span><span class="p">()</span>
 
+<span class="k">class</span> <span class="nc">PartitionFlash</span><span class="p">(</span><span class="n">Flash</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a PartitionFlash Unit that approximates outputs based on molar partition coefficients.&quot;&quot;&quot;</span>
+    
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;species_IDs&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Partition species</span>
+              <span class="s1">&#39;Ks&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>           <span class="c1"># Partition coefficients</span>
+              <span class="s1">&#39;LNK&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>          <span class="c1"># light non-keys</span>
+              <span class="s1">&#39;HNK&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>          <span class="c1"># heavy non-keys</span>
+              <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>            <span class="c1"># Operating Pressure</span>
+              <span class="s1">&#39;T&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>            <span class="c1"># Operating temperature</span>
+    
+    <span class="n">_has_hx</span> <span class="o">=</span> <span class="kc">True</span>
+    
+    <span class="k">def</span> <span class="nf">_calculate_partition_coefficients</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ph1</span><span class="p">,</span> <span class="n">ph2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
 
-<span class="k">class</span> <span class="nc">EstimateFlash</span><span class="p">(</span><span class="n">Flash</span><span class="p">):</span>
+        <span class="c1"># Account for light and heave keys</span>
+        <span class="n">HNK</span> <span class="o">=</span> <span class="n">ph1</span><span class="o">.</span><span class="n">mol</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="n">LNK</span> <span class="o">=</span> <span class="n">ph2</span><span class="o">.</span><span class="n">mol</span> <span class="o">==</span> <span class="mi">0</span>
+
+        <span class="c1"># Do not include heavy or light non keys</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="o">~</span><span class="n">HNK</span> <span class="o">&amp;</span> <span class="o">~</span><span class="n">LNK</span>
+        <span class="n">ph1_mol</span> <span class="o">=</span> <span class="n">ph1</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span>
+        <span class="n">ph2_mol</span> <span class="o">=</span> <span class="n">ph2</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span>
+        <span class="n">ph1_molnet</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ph1_mol</span><span class="p">)</span>
+        <span class="n">ph2_molnet</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">ph2_mol</span><span class="p">)</span>
+        <span class="n">ph1_molfrac</span> <span class="o">=</span> <span class="n">ph1_mol</span><span class="o">/</span><span class="n">ph1_molnet</span>
+        <span class="n">ph2_molfrac</span> <span class="o">=</span> <span class="n">ph2_mol</span><span class="o">/</span><span class="n">ph2_molnet</span>
+        <span class="n">IDs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ph1</span><span class="o">.</span><span class="n">_IDs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Ks</span><span class="o">=</span><span class="n">ph1_molfrac</span><span class="o">/</span><span class="n">ph2_molfrac</span><span class="p">,</span>
+                    <span class="n">V</span><span class="o">=</span><span class="n">ph1_molnet</span><span class="o">/</span><span class="p">(</span><span class="n">ph1_molnet</span> <span class="o">+</span> <span class="n">ph2_molnet</span><span class="p">),</span>
+                    <span class="n">species_IDs</span><span class="o">=</span><span class="p">[</span><span class="n">IDs</span><span class="p">[</span><span class="n">pos</span><span class="p">]],</span>
+                    <span class="n">LNK</span><span class="o">=</span><span class="n">IDs</span><span class="p">[</span><span class="n">LNK</span><span class="p">],</span>
+                    <span class="n">HNK</span><span class="o">=</span><span class="n">IDs</span><span class="p">[</span><span class="n">HNK</span><span class="p">])</span>  
+    
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">top</span><span class="p">,</span> <span class="n">bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+        <span class="n">species_IDs</span><span class="p">,</span> <span class="n">Ks</span><span class="p">,</span> <span class="n">LNK</span><span class="p">,</span> <span class="n">HNK</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">_IDs</span><span class="o">.</span><span class="n">index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_args</span> <span class="o">=</span> <span class="p">([</span><span class="n">index</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">species_IDs</span><span class="p">],</span>
+                       <span class="p">[</span><span class="n">index</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">LNK</span><span class="p">],</span>
+                       <span class="p">[</span><span class="n">index</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">HNK</span><span class="p">],</span>
+                       <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Ks</span><span class="p">),</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">_set_phases</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">top</span><span class="p">,</span> <span class="n">bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+        <span class="n">top</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span>
+        <span class="n">bot</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
+    
+    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">ph1</span><span class="p">,</span> <span class="n">ph2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+        <span class="n">pos</span><span class="p">,</span> <span class="n">LNK</span><span class="p">,</span> <span class="n">HNK</span><span class="p">,</span> <span class="n">Ks</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_args</span>
+        <span class="n">mol_in</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span>
+        <span class="n">ph1</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">ph2</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="p">(</span><span class="n">T</span> <span class="k">if</span> <span class="n">T</span> <span class="k">else</span> <span class="n">feed</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">ph1</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">ph2</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="p">(</span><span class="n">P</span> <span class="k">if</span> <span class="n">P</span> <span class="k">else</span> <span class="n">feed</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
+        <span class="n">ph1</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LNK</span><span class="p">]</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LNK</span><span class="p">]</span>
+        <span class="n">ph1</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">HNK</span><span class="p">]</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">HNK</span><span class="p">]</span>
+        
+        <span class="c1"># Get zs and Ks to solve rashford rice equation</span>
+        <span class="n">molnet</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">mol_in</span><span class="p">)</span>
+        <span class="n">zs</span> <span class="o">=</span> <span class="n">mol_in</span><span class="o">/</span><span class="n">molnet</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_V&#39;</span><span class="p">):</span>
+            <span class="n">V</span> <span class="o">=</span> <span class="n">newton</span><span class="p">(</span><span class="n">flash_error</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_V</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">zs</span><span class="p">,</span> <span class="n">Ks</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">zs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">V</span> <span class="o">=</span> <span class="n">brentq</span><span class="p">(</span><span class="n">flash_error</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="n">zs</span><span class="p">,</span> <span class="n">Ks</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">V</span> <span class="o">=</span> <span class="n">analytical_flash_solution</span><span class="p">(</span><span class="n">zs</span><span class="p">,</span> <span class="n">Ks</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_V</span> <span class="o">=</span> <span class="n">V</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">zs</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">V</span><span class="o">*</span><span class="p">(</span><span class="n">Ks</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">x</span><span class="o">*</span><span class="n">Ks</span>
+        <span class="n">ph1</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">=</span> <span class="n">molnet</span><span class="o">*</span><span class="n">V</span><span class="o">*</span><span class="n">y</span>
+        <span class="n">ph2</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">=</span> <span class="n">mol_in</span> <span class="o">-</span> <span class="n">ph1</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span>
+    
+    <span class="n">_operation</span> <span class="o">=</span> <span class="n">SplitFlash</span><span class="o">.</span><span class="n">_operation</span>
+    
+
+<span class="k">class</span> <span class="nc">RatioFlash</span><span class="p">(</span><span class="n">Flash</span><span class="p">):</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-              <span class="s1">&#39;Kspecies&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of species that correspond to Ks</span>
-              <span class="s1">&#39;Ks&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of molar ratio partition coefficinets,</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Kspecies&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># list of species that correspond to Ks</span>
+              <span class="s1">&#39;Ks&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># array of molar ratio partition coefficinets,</span>
               <span class="c1"># Ks = y/x, where y and x are molar ratios of two different phases</span>
               <span class="s1">&#39;top_solvents&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of species that correspond to top_split</span>
               <span class="s1">&#39;top_split&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of splits for top_solvents</span>
               <span class="s1">&#39;bot_solvents&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of species that correspond to bot_split</span>
-              <span class="s1">&#39;bot_split&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="c1"># list of splits for bot_solvents</span>
-              <span class="s1">&#39;Qin&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>  
+              <span class="s1">&#39;bot_split&#39;</span><span class="p">:</span> <span class="p">[]}</span> <span class="c1"># list of splits for bot_solvents  </span>
 
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">top</span><span class="p">,</span> <span class="n">bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">Kspecies</span><span class="p">,</span> <span class="n">Ks</span><span class="p">,</span> <span class="n">top_solvents</span><span class="p">,</span> <span class="n">top_split</span><span class="p">,</span> <span class="n">bot_solvents</span><span class="p">,</span> <span class="n">bot_split</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;Kspecies&#39;</span><span class="p">,</span> <span class="s1">&#39;Ks&#39;</span><span class="p">,</span> <span class="s1">&#39;top_solvents&#39;</span><span class="p">,</span> <span class="s1">&#39;top_split&#39;</span><span class="p">,</span> <span class="s1">&#39;bot_solvents&#39;</span><span class="p">,</span> <span class="s1">&#39;bot_split&#39;</span><span class="p">)))</span>
-        <span class="n">Kindex</span> <span class="o">=</span> <span class="p">[</span><span class="n">feed</span><span class="o">.</span><span class="n">_ID_index</span><span class="p">[</span><span class="n">specie</span><span class="p">]</span> <span class="k">for</span> <span class="n">specie</span> <span class="ow">in</span> <span class="n">Kspecies</span><span class="p">]</span>
-        <span class="n">top_index</span> <span class="o">=</span> <span class="p">[</span><span class="n">feed</span><span class="o">.</span><span class="n">_ID_index</span><span class="p">[</span><span class="n">specie</span><span class="p">]</span> <span class="k">for</span> <span class="n">specie</span> <span class="ow">in</span> <span class="n">top_solvents</span><span class="p">]</span>
-        <span class="n">bot_index</span> <span class="o">=</span> <span class="p">[</span><span class="n">feed</span><span class="o">.</span><span class="n">_ID_index</span><span class="p">[</span><span class="n">specie</span><span class="p">]</span> <span class="k">for</span> <span class="n">specie</span> <span class="ow">in</span> <span class="n">bot_solvents</span><span class="p">]</span>
-        <span class="n">top</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">top_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">top_index</span><span class="p">]</span><span class="o">*</span><span class="n">top_split</span>
-        <span class="n">bot</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">top_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">top_index</span><span class="p">]</span><span class="o">-</span><span class="n">top</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">top_index</span><span class="p">]</span>
-        <span class="n">bot</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">bot_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">bot_index</span><span class="p">]</span><span class="o">*</span><span class="n">bot_split</span>
-        <span class="n">top</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">bot_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">bot_index</span><span class="p">]</span><span class="o">-</span><span class="n">bot</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">bot_index</span><span class="p">]</span>
-        <span class="n">topnet</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">top</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">top_index</span><span class="p">])</span>
-        <span class="n">botnet</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">bot</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">bot_index</span><span class="p">])</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Kindex</span><span class="p">)):</span>
-            <span class="n">index</span> <span class="o">=</span> <span class="n">Kindex</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-            <span class="n">K</span> <span class="o">=</span> <span class="n">Ks</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-            <span class="n">top</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">topnet</span> <span class="o">*</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">/</span> \
-                <span class="p">(</span><span class="n">topnet</span><span class="o">+</span><span class="n">botnet</span><span class="o">/</span><span class="n">K</span><span class="p">)</span>  <span class="c1"># solvent * mol ratio</span>
-        <span class="n">bot</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">Kindex</span><span class="p">]</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">Kindex</span><span class="p">]</span> <span class="o">-</span> <span class="n">top</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">Kindex</span><span class="p">]</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span>
+        <span class="p">(</span><span class="n">Kspecies</span><span class="p">,</span> <span class="n">Ks</span><span class="p">,</span> <span class="n">top_solvents</span><span class="p">,</span> <span class="n">top_split</span><span class="p">,</span>
+         <span class="n">bot_solvents</span><span class="p">,</span> <span class="n">bot_split</span><span class="p">)</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="n">sp_index</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">_IDs</span><span class="o">.</span><span class="n">index</span>
+        <span class="n">Kindex</span> <span class="o">=</span> <span class="p">[</span><span class="n">sp_index</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">Kspecies</span><span class="p">]</span>
+        <span class="n">top_index</span> <span class="o">=</span> <span class="p">[</span><span class="n">sp_index</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">top_solvents</span><span class="p">]</span>
+        <span class="n">bot_index</span> <span class="o">=</span> <span class="p">[</span><span class="n">sp_index</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">bot_solvents</span><span class="p">]</span>
+        <span class="n">top_mol</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">mol</span><span class="p">;</span> <span class="n">bot_mol</span> <span class="o">=</span> <span class="n">bot</span><span class="o">.</span><span class="n">mol</span><span class="p">;</span> <span class="n">feed_mol</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span>
+        <span class="n">top_mol</span><span class="p">[</span><span class="n">top_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">feed_mol</span><span class="p">[</span><span class="n">top_index</span><span class="p">]</span><span class="o">*</span><span class="n">top_split</span>
+        <span class="n">bot_mol</span><span class="p">[</span><span class="n">top_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">feed_mol</span><span class="p">[</span><span class="n">top_index</span><span class="p">]</span><span class="o">-</span><span class="n">top_mol</span><span class="p">[</span><span class="n">top_index</span><span class="p">]</span>
+        <span class="n">bot_mol</span><span class="p">[</span><span class="n">bot_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">feed_mol</span><span class="p">[</span><span class="n">bot_index</span><span class="p">]</span><span class="o">*</span><span class="n">bot_split</span>
+        <span class="n">top_mol</span><span class="p">[</span><span class="n">bot_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">feed_mol</span><span class="p">[</span><span class="n">bot_index</span><span class="p">]</span><span class="o">-</span><span class="n">bot_mol</span><span class="p">[</span><span class="n">bot_index</span><span class="p">]</span>
+        <span class="n">topnet</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">top_mol</span><span class="p">[</span><span class="n">top_index</span><span class="p">])</span>
+        <span class="n">botnet</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">bot_mol</span><span class="p">[</span><span class="n">bot_index</span><span class="p">])</span>
+        <span class="n">molnet</span> <span class="o">=</span> <span class="n">topnet</span><span class="o">+</span><span class="n">botnet</span>
+        <span class="n">top_mol</span><span class="p">[</span><span class="n">Kindex</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ks</span> <span class="o">*</span> <span class="n">topnet</span> <span class="o">*</span> <span class="n">feed_mol</span><span class="p">[</span><span class="n">Kindex</span><span class="p">]</span> <span class="o">/</span> <span class="n">molnet</span>  <span class="c1"># solvent * mol ratio</span>
+        <span class="n">bot_mol</span><span class="p">[</span><span class="n">Kindex</span><span class="p">]</span> <span class="o">=</span> <span class="n">feed_mol</span><span class="p">[</span><span class="n">Kindex</span><span class="p">]</span> <span class="o">-</span> <span class="n">top_mol</span><span class="p">[</span><span class="n">Kindex</span><span class="p">]</span>
         <span class="n">top</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">top</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">feed</span><span class="o">.</span><span class="n">P</span>
         <span class="n">bot</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">bot</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">feed</span><span class="o">.</span><span class="n">P</span>
 
@@ -782,7 +815,7 @@
 
         <span class="c1"># Set-up streams for energy balance</span>
         <span class="n">vapor</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
-        <span class="n">index</span> <span class="o">=</span> <span class="n">vapor</span><span class="o">.</span><span class="n">get_index</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">vapor</span><span class="o">.</span><span class="n">_IDs</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
         <span class="n">vapor</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="n">vapor</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">phase</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">Tf</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">P</span><span class="p">)</span>
 
@@ -806,7 +839,7 @@
         <span class="n">liquid_H</span> <span class="o">=</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;liquid_H&#39;</span><span class="p">]</span>
         <span class="n">no_ph_ch</span> <span class="o">=</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;no_ph_ch&#39;</span><span class="p">]</span>
         <span class="n">no_ph_ch</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">)</span>
-        <span class="n">index</span> <span class="o">=</span> <span class="n">no_ph_ch</span><span class="o">.</span><span class="n">get_index</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">no_ph_ch</span><span class="o">.</span><span class="n">_IDs</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
         <span class="n">no_ph_ch</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 
         <span class="n">no_ph_ch_H</span> <span class="o">=</span> <span class="n">no_ph_ch</span><span class="o">.</span><span class="n">H</span>
@@ -855,7 +888,7 @@
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">component</span><span class="p">,</span> <span class="n">V</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="s1">&#39;V&#39;</span><span class="p">))</span>
         <span class="n">vapor</span><span class="p">,</span> <span class="n">liquid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">index</span> <span class="o">=</span> <span class="n">vapor</span><span class="o">.</span><span class="n">get_index</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">vapor</span><span class="o">.</span><span class="n">_IDs</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
         <span class="n">vapor</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">V</span><span class="o">*</span><span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
         <span class="n">liquid</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">)</span>
         <span class="n">liquid</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">V</span><span class="p">)</span><span class="o">*</span><span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>

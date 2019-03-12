@@ -6,7 +6,7 @@ Created on Thu Aug 23 22:15:20 2018
 """
 from biosteam import Unit
 from .splitter import Splitter
-from biosteam.utils import vacuum_system
+from .designtools import vacuum_system
 import numpy as np
 
 class RotaryVacuumFilter(Unit):
@@ -57,20 +57,25 @@ class RotaryVacuumFilter(Unit):
         Design['Individual area'] = iArea
         
         Cost = np.exp(11.796-0.1905*np.log(iArea)+0.0554*(np.log(iArea))**2)
-        results['Cost']['Cost of vessels'] = N_vessels*Cost
+        results['Cost']['Cost of vessels'] = N_vessels*Cost*self.CEPCI/567
     
     def _power(self, area, N_vessels) :
         r = self.results
         s_cake, s_vacuumed = self.outs
         P_suction = self.kwargs['P_suction'] # Max allowable pressure drop
+        
         # Weight of empty plate
         mass_plates = 10*N_vessels
+        
         # Revolutions per s
         rps = self.rps
+        
         # Cake volumetric flow meter per sec
         Volcake = s_cake.volnet / 3600
+        
         # Thickness of cake layer, assumed uniform and constant
         thCake = Volcake / rps;
+        
         # Mass of Cake
         mass_cake = thCake * s_cake.rho
         radius = self.radius
@@ -79,6 +84,7 @@ class RotaryVacuumFilter(Unit):
         work_rot = rps*2*np.pi*radius*cent_F
         Area = r['Design']['Area']
         vol = radius*Area*0.0929/2 # m3
+        
         # Assume same volume of air comes in as volume of liquid
         volflow = s_vacuumed.volnet
         massflow = volflow*1.2041 # multiply by density of air kg/m3 

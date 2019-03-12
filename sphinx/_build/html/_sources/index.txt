@@ -101,6 +101,16 @@ Unit Examples
    Pump Example
    Transesterification Example
    
+sim package
+-----------
+
+Use the sim package to perform optimized sensitivity analysis and block simulation of systems.
+
+.. toctree::
+   :maxdepth: 1
+
+   Block
+   Grid
 
 Indices and tables
 ==================

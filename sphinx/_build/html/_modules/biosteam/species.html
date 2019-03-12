@@ -59,10 +59,10 @@
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">biosteam.chemical</span> <span class="k">import</span> <span class="n">Chemical</span>
-<span class="kn">from</span> <span class="nn">biosteam.compound</span> <span class="k">import</span> <span class="n">Compound</span>
-<span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">np</span><span class="p">,</span> <span class="n">units_of_measure</span>
-<span class="kn">from</span> <span class="nn">biosteam.exceptions</span> <span class="k">import</span> <span class="n">IDconflict</span>
+<span class="kn">from</span> <span class="nn">.chemical</span> <span class="k">import</span> <span class="n">Chemical</span>
+<span class="kn">from</span> <span class="nn">.compound</span> <span class="k">import</span> <span class="n">Compound</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">np</span><span class="p">,</span> <span class="n">units_of_measure</span>
+<span class="kn">from</span> <span class="nn">.exceptions</span> <span class="k">import</span> <span class="n">IDconflict</span>
 
 <span class="c1"># TODO: Fix how Dortmund groups are selected in thermo.Chemical. Glycerol defaults to wrong value.</span>
 
@@ -70,7 +70,7 @@
 <span class="n">inf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
 <span class="n">TPphase</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;phase&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Species"><a class="viewcode-back" href="../../Species.html#biosteam.Species">[docs]</a><span class="k">class</span> <span class="nc">Species</span><span class="p">:</span>
+<div class="viewcode-block" id="Species"><a class="viewcode-back" href="../../Species.html#biosteam.Species">[docs]</a><span class="k">class</span> <span class="nc">Species</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create Species object that contains biosteam &#39;Chemical&#39; objects as attributes (by ID), or &#39;Specie&#39; objects if an ID is invalid.</span>
 
 <span class="sd">    **Parameters**</span>
@@ -90,14 +90,20 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">units</span> <span class="o">=</span> <span class="n">units_of_measure</span>
 
+<div class="viewcode-block" id="Species.as_species"><a class="viewcode-back" href="../../Species.html#biosteam.Species.as_species">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">as_species</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">set_attributes</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a Species object from an iterable of Compound objects.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">copy</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">Species</span><span class="p">):</span> <span class="k">return</span> <span class="n">species</span>
+        <span class="bp">self</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">set_attributes</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">species</span><span class="p">:</span> <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span> 
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">ID</span><span class="p">,</span> <span class="bp">cls</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="c1"># For keeping track of IDs/CAS numbers and their order</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;_ID&#39;</span><span class="p">,</span> <span class="p">[])</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="s1">&#39;_CAS&#39;</span><span class="p">,</span> <span class="p">[])</span>
-        
         <span class="c1"># Sphinx docs look ugly if a class is in the default argument</span>
-        <span class="k">if</span> <span class="bp">cls</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">cls</span> <span class="o">=</span> <span class="n">Chemical</span>
+        <span class="k">if</span> <span class="bp">cls</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="bp">cls</span> <span class="o">=</span> <span class="n">Chemical</span>
         
         <span class="c1"># Make sure ID is a tuple</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">ID</span><span class="p">:</span>
@@ -109,166 +115,98 @@
         
         <span class="c1"># Set Compound object attributes</span>
         <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">ID</span><span class="p">:</span>
-            <span class="n">n</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">specie</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+                <span class="n">compound</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
             <span class="k">except</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Chemical, &#39;</span><span class="si">{n}</span><span class="s2">&#39;, not defined in databank.&quot;</span><span class="p">)</span>
-            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">specie</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Compound, &#39;</span><span class="si">{n}</span><span class="s2">&#39;, not defined in databank.&quot;</span><span class="p">)</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">compound</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">specie</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">ID</span> <span class="o">==</span> <span class="s1">&#39;ID&#39;</span><span class="p">:</span>
-            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">specie</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">specie</span><span class="p">,</span> <span class="n">Compound</span><span class="p">):</span>
-            <span class="c1"># Get specie ID and CAS number</span>
-            <span class="n">specie</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
-            <span class="n">CAS</span> <span class="o">=</span> <span class="n">specie</span><span class="o">.</span><span class="n">CAS</span>
-            
-            <span class="c1"># Prevent repeated definitions</span>
-            <span class="n">IDs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span>
-            <span class="n">CASs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_CAS</span>
-            <span class="k">if</span> <span class="n">ID</span> <span class="ow">in</span> <span class="n">IDs</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">IDconflict</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;A Compound object with ID, &#39;</span><span class="si">{ID}</span><span class="s2">&#39;, is already registered.&quot;</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">CAS</span> <span class="ow">in</span> <span class="n">CASs</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">IDconflict</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;A Compound object with CAS number, &#39;</span><span class="si">{CAS}</span><span class="s2">&#39;, is already registered.&quot;</span><span class="p">)</span>
-            
-            <span class="c1"># Set attributes and keep track of IDs/CAS numbers</span>
-            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">specie</span><span class="p">)</span>
-            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">specie</span><span class="o">.</span><span class="n">CAS</span><span class="p">,</span> <span class="n">specie</span><span class="p">)</span>
-            <span class="n">IDs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span>
-            <span class="n">CASs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">CAS</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">compound</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">compound</span><span class="p">,</span> <span class="n">Compound</span><span class="p">):</span>
+            <span class="n">compound</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span>
+            <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="n">compound</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">compound</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">ID</span> <span class="o">==</span> <span class="s1">&#39;ID&#39;</span><span class="p">:</span>
+            <span class="n">new_IDs</span> <span class="o">=</span> <span class="n">compound</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">ID</span> <span class="ow">in</span> <span class="n">new_IDs</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">compound</span> <span class="ow">in</span> <span class="n">species</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">compound</span><span class="o">.</span><span class="n">ID</span> <span class="o">==</span> <span class="n">ID</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">compound</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Can only set Compound objects as attributes&#39;</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">__delattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
-        <span class="c1"># Remove ID and CAS from list</span>
-        <span class="n">CAS</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">)</span><span class="o">.</span><span class="n">CAS</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_CAS</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">CAS</span><span class="p">)</span>
-        
-        <span class="c1"># Deleat attributes</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__delattr__</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__delattr__</span><span class="p">(</span><span class="n">CAS</span><span class="p">)</span>
-        
     
-    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>
+<div class="viewcode-block" id="Species.append"><a class="viewcode-back" href="../../Species.html#biosteam.Species.append">[docs]</a>    <span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compound</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">compound</span><span class="p">,</span> <span class="n">Compound</span><span class="p">):</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="n">compound</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="n">compound</span><span class="p">)</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">compound</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Only Compound objects are valid, not &#39;{type(compound).__name__}&#39; objects&quot;</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="Species.clear"><a class="viewcode-back" href="../../Species.html#biosteam.Species.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
+    
+<div class="viewcode-block" id="Species.sort"><a class="viewcode-back" href="../../Species.html#biosteam.Species.sort">[docs]</a>    <span class="k">def</span> <span class="nf">sort</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">[:]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">i</span><span class="p">:</span> <span class="n">i</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="Species.copy"><a class="viewcode-back" href="../../Species.html#biosteam.Species.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">copy</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">copy</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+        
+<div class="viewcode-block" id="Species.insert"><a class="viewcode-back" href="../../Species.html#biosteam.Species.insert">[docs]</a>    <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">compound</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">compound</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">compound</span><span class="o">.</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="n">compound</span></div>
+    
+<div class="viewcode-block" id="Species.pop"><a class="viewcode-back" href="../../Species.html#biosteam.Species.pop">[docs]</a>    <span class="k">def</span> <span class="nf">pop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
+        <span class="n">compound</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">[</span><span class="n">compound</span><span class="o">.</span><span class="n">ID</span><span class="p">]</span></div>
+        
+<div class="viewcode-block" id="Species.remove"><a class="viewcode-back" href="../../Species.html#biosteam.Species.remove">[docs]</a>    <span class="k">def</span> <span class="nf">remove</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compound</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">compound</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__delattr__</span><span class="p">(</span><span class="n">compound</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="Species.extend"><a class="viewcode-back" href="../../Species.html#biosteam.Species.extend">[docs]</a>    <span class="k">def</span> <span class="nf">extend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">species</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span></div>
+    
+    <span class="k">def</span> <span class="nf">__delattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
+            <span class="n">compound</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">compound</span><span class="p">)</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__delattr__</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">CAS</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_CAS</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">CAS</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">)</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ID</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ID</span><span class="p">)</span>
-    
-    <span class="nd">@ID</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">ID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">ID</span>
-        <span class="n">CASs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_CAS</span>
-        <span class="n">CASs</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">specie</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
-            <span class="n">CASs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">specie</span><span class="o">.</span><span class="n">CAS</span><span class="p">)</span>
-    
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">_equilibrium_species</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return IDs and indeces of species available for equilibrium calculations.&quot;&quot;&quot;</span>
-        <span class="n">specie_IDs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">specie_index</span> <span class="o">=</span> <span class="p">[]</span>
-        
-        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">for</span> <span class="n">sp_ID</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span><span class="p">:</span>
-            <span class="n">s</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sp_ID</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">UNIFAC_groups</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">Tb</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">inf</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
-                <span class="n">specie_IDs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sp_ID</span><span class="p">)</span>
-                <span class="n">specie_index</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">return</span> <span class="n">specie_IDs</span><span class="p">,</span> <span class="n">specie_index</span>
-    
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">_light_species</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return IDs and indeces of species not available for equilibrium calculations.&quot;&quot;&quot;</span>
-        <span class="n">specie_IDs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">specie_index</span> <span class="o">=</span> <span class="p">[]</span>
-        
-        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">for</span> <span class="n">sp_ID</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span><span class="p">:</span>
-            <span class="n">s</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sp_ID</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">Tb</span> <span class="ow">is</span> <span class="o">-</span><span class="n">inf</span><span class="p">:</span>
-                <span class="n">specie_IDs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sp_ID</span><span class="p">)</span>
-                <span class="n">specie_index</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">return</span> <span class="n">specie_IDs</span><span class="p">,</span> <span class="n">specie_index</span>
-    
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">_heavy_species</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return IDs and indeces of species not available for equilibrium calculations.&quot;&quot;&quot;</span>
-        <span class="n">specie_IDs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">specie_index</span> <span class="o">=</span> <span class="p">[]</span>
-        
-        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">for</span> <span class="n">sp_ID</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span><span class="p">:</span>
-            <span class="n">s</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sp_ID</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">Tb</span> <span class="ow">in</span> <span class="p">(</span><span class="n">inf</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">s</span><span class="o">.</span><span class="n">UNIFAC_groups</span><span class="p">:</span>
-                <span class="n">specie_IDs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sp_ID</span><span class="p">)</span>
-                <span class="n">specie_index</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">return</span> <span class="n">specie_IDs</span><span class="p">,</span> <span class="n">specie_index</span>
-    
-<div class="viewcode-block" id="Species.combine"><a class="viewcode-back" href="../../Species.html#biosteam.Species.combine">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">combine</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">others</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Combine Specie/Chemical/Species objects into a new Species object.&quot;&quot;&quot;</span>
-        <span class="n">new</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">other</span> <span class="ow">in</span> <span class="n">others</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Compound</span><span class="p">):</span>
-                <span class="nb">setattr</span><span class="p">(</span><span class="n">new</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Species</span><span class="p">):</span>
-                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">other</span><span class="o">.</span><span class="n">ID</span><span class="p">:</span>
-                    <span class="nb">setattr</span><span class="p">(</span><span class="n">new</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>  
-        <span class="k">return</span> <span class="n">new</span></div>
+        <span class="k">return</span> <span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">ID</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Species.get_props"><a class="viewcode-back" href="../../Species.html#biosteam.Species.get_props">[docs]</a>    <span class="k">def</span> <span class="nf">get_props</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return list of the desired property, prop_ID, for each specie in species_ID.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">specie_IDs</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="n">specie</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">attr</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">TPphase</span><span class="p">,</span> <span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">phase</span><span class="p">)):</span>
-                <span class="k">if</span> <span class="n">val</span><span class="p">:</span> <span class="nb">setattr</span><span class="p">(</span><span class="n">specie</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
-            <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">specie</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">)</span>
+<div class="viewcode-block" id="Species.get_props"><a class="viewcode-back" href="../../Species.html#biosteam.Species.get_props">[docs]</a>    <span class="k">def</span> <span class="nf">get_props</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species_IDs</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return list of the desired property, prop_ID, for each compound in species_ID.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">species_IDs</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species_IDs</span><span class="p">),)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">props</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">ID</span> <span class="ow">in</span> <span class="n">specie_IDs</span><span class="p">:</span>
-                <span class="n">specie</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">attr</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">TPphase</span><span class="p">,</span> <span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">phase</span><span class="p">)):</span>
-                    <span class="k">if</span> <span class="n">val</span><span class="p">:</span> <span class="nb">setattr</span><span class="p">(</span><span class="n">specie</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
-                <span class="n">props</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">specie</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">props</span></div>
+            <span class="n">species</span> <span class="o">=</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">species_IDs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_props</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Species.set_props"><a class="viewcode-back" href="../../Species.html#biosteam.Species.set_props">[docs]</a>    <span class="k">def</span> <span class="nf">set_props</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">,</span> <span class="n">new_values</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Set new values to specie property, prop_ID, for each specie in specie IDs.&quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">ID</span> <span class="ow">in</span> <span class="n">specie_IDs</span><span class="p">:</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_get_props</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">phase</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return list of the desired property, prop_ID, for given species.&quot;&quot;&quot;</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">species</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">attr</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">TPphase</span><span class="p">,</span> <span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">phase</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">val</span><span class="p">:</span> <span class="nb">setattr</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+            <span class="n">props</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">props</span>
+
+<div class="viewcode-block" id="Species.set_props"><a class="viewcode-back" href="../../Species.html#biosteam.Species.set_props">[docs]</a>    <span class="k">def</span> <span class="nf">set_props</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species_IDs</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">,</span> <span class="n">new_values</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set new values to specie property, prop_ID, for given species_IDs.&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">ID</span> <span class="ow">in</span> <span class="n">species_IDs</span><span class="p">:</span>
             <span class="n">specie</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">)</span>
             <span class="nb">setattr</span><span class="p">(</span><span class="n">specie</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">,</span> <span class="n">new_values</span><span class="p">)</span></div>
-
-    <span class="k">def</span> <span class="nf">_get_Psat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return list of saturation pressures for the given species.&quot;&quot;&quot;</span>
-        <span class="n">Psat</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">ID</span> <span class="ow">in</span> <span class="n">specie_IDs</span><span class="p">:</span>
-            <span class="n">Psat</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">)</span><span class="o">.</span><span class="n">VaporPressure</span><span class="p">(</span><span class="n">T</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">Psat</span>
-
-    <span class="k">def</span> <span class="nf">_get_Tsat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return list of temperatures for the given species.&quot;&quot;&quot;</span>
-        <span class="n">Tsat</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">ID</span> <span class="ow">in</span> <span class="n">specie_IDs</span><span class="p">:</span>
-            <span class="n">Tsat</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">)</span><span class="o">.</span><span class="n">Tsat</span><span class="p">(</span><span class="n">P</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">Tsat</span>
-
-    <span class="k">def</span> <span class="nf">_get_Tb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">specie_IDs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Return list of normal boiling points for the given species.&quot;&quot;&quot;</span>
-        <span class="n">Tb</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">ID</span> <span class="ow">in</span> <span class="n">specie_IDs</span><span class="p">:</span>
-            <span class="n">Tb</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">)</span><span class="o">.</span><span class="n">Tb</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Tb</span>
 
     <span class="c1"># Representation</span>
     <span class="k">def</span> <span class="nf">_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -280,7 +218,7 @@
         <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">())</span></div>
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">f</span><span class="s1">&#39;&lt;Species: </span><span class="si">{self.ID}</span><span class="s1">&gt;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="p">(</span><span class="n">f</span><span class="s1">&#39;&lt;Species: {list(self.ID)}&gt;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span></div>
 </pre></div>
 
           </div>

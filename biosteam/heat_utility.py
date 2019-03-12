@@ -221,11 +221,13 @@ class HeatUtility:
         
         # Select heat transfer agent
         if duty < 0:
-            Type, price_duty, price_mass, \
-            T_limit, efficiency = self._select_cooling_agent(T_op)
+            (Type, price_duty,
+             price_mass, T_limit,
+             efficiency) = self._select_cooling_agent(T_op)
         elif duty > 0:
-            Type, price_duty, price_mass, \
-            T_limit, efficiency = self._select_heating_agent(T_op)
+            (Type, price_duty,
+            price_mass, T_limit,
+            efficiency) = self._select_heating_agent(T_op)
         else:
             return r
         
@@ -280,9 +282,9 @@ class HeatUtility:
         T_max = T_pinch - dt
         cooling_agents = self.cooling_agents
         for ID in cooling_agents:
-            ca = cooling_agents[ID]
-            (Type, species, flow, T, P, phase,
-             T_limit, price_duty, price_mass, efficiency) = ca
+            (Type, species, flow, T, P,
+             phase, T_limit, price_duty,
+             price_mass, efficiency) = cooling_agents[ID]
             if T_max > T:
                 self._init_streams(ID, flow, species, T, P, phase[0])
                 return Type, price_duty, price_mass, T_limit, efficiency
@@ -312,9 +314,9 @@ class HeatUtility:
         T_min = T_pinch + dt
         heating_agents = self.heating_agents
         for ID in heating_agents:
-            ha = heating_agents[ID]
-            (Type, species, flow, T, P, phase,
-             T_limit, price_duty, price_mass, efficiency) = ha
+            (Type, species, flow, T, P,
+             phase, T_limit, price_duty,
+             price_mass, efficiency) =  heating_agents[ID]
             if T_min < T:
                 self._init_streams(ID, flow, species, T, P, phase[0])
                 return Type, price_duty, price_mass, T_limit, efficiency

@@ -147,20 +147,32 @@
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.System.network">
-<code class="descname">network</code><a class="headerlink" href="#biosteam.System.network" title="Permalink to this definition">¶</a></dt>
-<dd><p>A network of BioSTEAM of objects and/or functions that are run element by element until the recycle converges. See example for details.</p>
-</dd></dl>
-
-<dl class="attribute">
 <dt id="biosteam.System.converge_method">
 <code class="descname">converge_method</code><a class="headerlink" href="#biosteam.System.converge_method" title="Permalink to this definition">¶</a></dt>
 <dd><p>Iterative convergence method (‘Wegstein’, or ‘fixed point’).</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="biosteam.System.block">
+<code class="descname">block</code><span class="sig-paren">(</span><em>element</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/system.html#System.block"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.block" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a Block object that can simulate the element and the system downstream.</p>
+<p><strong>Parameter</strong></p>
+<blockquote>
+<div><strong>element:</strong> [Unit or Stream] Element in system network or facilities.</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.System.grid">
+<code class="descname">grid</code><span class="sig-paren">(</span><em>*blockfunc_argspace</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/system.html#System.grid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.grid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a Grid object that can simulate the argument space for each block function.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><strong>blockfunc_argspace:</strong> [(function, args)] Iterable of block fuctions and respective arguments.</div></blockquote>
+</dd></dl>
+
+<dl class="method">
 <dt id="biosteam.System.diagram">
-<code class="descname">diagram</code><span class="sig-paren">(</span><em>kind='thorough'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/system.html#System.diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.diagram" title="Permalink to this definition">¶</a></dt>
+<code class="descname">diagram</code><span class="sig-paren">(</span><em>kind='surface'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/system.html#System.diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.diagram" title="Permalink to this definition">¶</a></dt>
 <dd><p>Display a <a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz</a> diagram of the system.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -178,21 +190,26 @@
 
 <dl class="method">
 <dt id="biosteam.System.set_spec">
-<code class="descname">set_spec</code><span class="sig-paren">(</span><em>func</em>, <em>var_setter</em>, <em>var_min</em>, <em>var_max</em>, <em>brentq_kwargs={'xtol': 1e-06}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/system.html#System.set_spec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.set_spec" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrap a bounded solver around the converge method. The solver varies a variable until the desired spec is satisfied.</p>
+<code class="descname">set_spec</code><span class="sig-paren">(</span><em>getter</em>, <em>setter</em>, <em>solver=&lt;function newton&gt;</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/system.html#System.set_spec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.set_spec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrap a solver around the converge method.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
-<div><p>func: [function] Objective function which should return 0 once the spec is met.</p>
-<p>var_setter: [function] Changes the independent variable.</p>
-<p>var_min: [function] Returns the minimun value of the independent variable.</p>
-<p>var_max: [function] Returns the maximum value of the independent variable.</p>
-<p>brentq_kwargs: [dict] Key word arguments passed to scipy.optimize.brentq solver.</p>
+<div><p><strong>getter:</strong> [function] Returns objective value.</p>
+<p><strong>setter:</strong> [function] Changes independent variable.</p>
+<p><strong>solver:</strong> [function] Solves objective function.</p>
+<p><strong>kwargs:</strong> [dict] Key word arguments passed to solver.</p>
 </div></blockquote>
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.System.reset">
-<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/system.html#System.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.reset" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.System.reset_names">
+<code class="descname">reset_names</code><span class="sig-paren">(</span><em>unit_format=None</em>, <em>stream_format=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/system.html#System.reset_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.reset_names" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset names of all streams and units according to the network order.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.System.reset_flows">
+<code class="descname">reset_flows</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/system.html#System.reset_flows"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.reset_flows" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reset all process streams to zero flow.</p>
 </dd></dl>
 

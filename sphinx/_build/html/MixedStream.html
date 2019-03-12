@@ -82,10 +82,10 @@
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>ID:</strong> [str] ID of the stream. If ID is ‘’, a default ID will be chosen.</p>
-<p><strong>solid_flow:</strong> [array_like] solid flow rates by specie</p>
-<p><strong>liquid_flow:</strong> [array_like] liquid flow rates by specie</p>
-<p><strong>LIQUID_flow:</strong> [array_like] LIQUID flow rates by specie</p>
-<p><strong>vapor_flow:</strong> [array_like] vapor flow rates by specie</p>
+<p><strong>solid_flow:</strong> [array_like] solid flow rates</p>
+<p><strong>liquid_flow:</strong> [array_like] liquid flow rates</p>
+<p><strong>LIQUID_flow:</strong> [array_like] LIQUID flow rates</p>
+<p><strong>vapor_flow:</strong> [array_like] vapor flow rates</p>
 <p><strong>species:</strong> tuple[str] or [Species] Species corresponding to <cite>flow</cite> parameters. If empty, assume same species as class.</p>
 <p><strong>units:</strong> [str] The units of the flow rates (only mass, molar, and volumetric flow rates are valid)</p>
 <p><strong>T:</strong> [float] Temperature (K)</p>
@@ -372,12 +372,12 @@
 
 <dl class="method">
 <dt id="biosteam.MixedStream.VLE">
-<code class="descname">VLE</code><span class="sig-paren">(</span><em>specie_IDs=None</em>, <em>LNK=None</em>, <em>HNK=None</em>, <em>P=None</em>, <em>Qin=None</em>, <em>T=None</em>, <em>V=None</em>, <em>x=None</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/mixed_stream.html#MixedStream.VLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.MixedStream.VLE" title="Permalink to this definition">¶</a></dt>
+<code class="descname">VLE</code><span class="sig-paren">(</span><em>species_IDs=None</em>, <em>LNK=None</em>, <em>HNK=None</em>, <em>P=None</em>, <em>Qin=None</em>, <em>T=None</em>, <em>V=None</em>, <em>x=None</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/mixed_stream.html#MixedStream.VLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.MixedStream.VLE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Partition flow rates into vapor and liquid phases by equilibrium. Pressure defaults to current pressure.</p>
 <p><strong>Optional parameters</strong></p>
 <blockquote>
 <div><p><strong>P:</strong> [float] Operating pressure (Pa)</p>
-<p><strong>specie_IDs:</strong> [list] IDs of equilibrium species</p>
+<p><strong>species_IDs:</strong> [list] IDs of equilibrium species</p>
 <p><strong>LNK:</strong> list[str] Light non-keys</p>
 <p><strong>HNK:</strong> list[str] Heavy non-keys</p>
 <dl class="docutils">
@@ -396,11 +396,11 @@
 
 <dl class="method">
 <dt id="biosteam.MixedStream.LLE">
-<code class="descname">LLE</code><span class="sig-paren">(</span><em>specie_IDs=None</em>, <em>split=None</em>, <em>lNK=()</em>, <em>LNK=()</em>, <em>solvents=()</em>, <em>solvent_split=()</em>, <em>P=None</em>, <em>T=None</em>, <em>Qin=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/mixed_stream.html#MixedStream.LLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.MixedStream.LLE" title="Permalink to this definition">¶</a></dt>
+<code class="descname">LLE</code><span class="sig-paren">(</span><em>species_IDs=None</em>, <em>split=None</em>, <em>lNK=()</em>, <em>LNK=()</em>, <em>solvents=()</em>, <em>solvent_split=()</em>, <em>P=None</em>, <em>T=None</em>, <em>Qin=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/mixed_stream.html#MixedStream.LLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.MixedStream.LLE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Partition flow rates into liquid and LIQUID phases by equilibrium.</p>
 <p><strong>Optional Parameters</strong></p>
 <blockquote>
-<div><p><strong>specie_IDs:</strong> <em>tuple[str]</em> IDs of equilibrium species</p>
+<div><p><strong>species_IDs:</strong> <em>tuple[str]</em> IDs of equilibrium species</p>
 <p><strong>split:</strong> <em>tuple[float]</em> Initial guess split fractions of each specie to the ‘liquid’</p>
 <p><strong>lNK:</strong> <em>tuple[str]</em> Species assumed to completely remain in the ‘liquid’ phase.</p>
 <p><strong>LNK:</strong> <em>tuple[str]</em> Species assumed to completely remain in the ‘LIQUID’ phase.</p>

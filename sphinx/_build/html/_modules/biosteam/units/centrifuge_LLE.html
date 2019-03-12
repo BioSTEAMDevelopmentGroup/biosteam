@@ -61,9 +61,12 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">MixedStream</span>
 <span class="kn">from</span> <span class="nn">biosteam.exceptions</span> <span class="k">import</span> <span class="n">DesignError</span>
-<span class="kn">from</span> <span class="nn">biosteam.units.flash</span> <span class="k">import</span> <span class="n">Flash</span><span class="p">,</span> <span class="n">EstimateFlash</span>
+<span class="kn">from</span> <span class="nn">biosteam.units.flash</span> <span class="k">import</span> <span class="n">Flash</span><span class="p">,</span> <span class="n">RatioFlash</span><span class="p">,</span> <span class="n">PartitionFlash</span>
+<span class="kn">from</span> <span class="nn">.splitter</span> <span class="k">import</span> <span class="n">Splitter</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Centrifuge_LLE&#39;</span><span class="p">,</span> <span class="s1">&#39;RatioCentrifuge_LLE&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;SplitCentrifuge_LLE&#39;</span><span class="p">,</span> <span class="s1">&#39;PartitionCentrifuge_LLE&#39;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Centrifuge_LLE"><a class="viewcode-back" href="../../../Centrifuge_LLE.html#biosteam.Centrifuge_LLE">[docs]</a><span class="k">class</span> <span class="nc">Centrifuge_LLE</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Create an equlibrium based centrifuge with the option of having liquid non-keys and LIQUID non-keys completly separate into their respective phases.</span>
@@ -74,7 +77,7 @@
 
 <span class="sd">    **Parameters**</span>
 
-<span class="sd">        **specie_IDs:** *tuple[str]* IDs of equilibrium species</span>
+<span class="sd">        **species_IDs:** *tuple[str]* IDs of equilibrium species</span>
 <span class="sd">    </span>
 <span class="sd">        **split:** *tuple[float]* Initial guess split fractions of equilibrium specise to the &#39;liquid&#39; phase.</span>
 <span class="sd">    </span>
@@ -103,7 +106,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Liquids Centrifuge&#39;</span>
     
-    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;specie_IDs&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;species_IDs&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
               <span class="s1">&#39;split&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
               <span class="s1">&#39;lNK&#39;</span><span class="p">:</span> <span class="p">(),</span>
               <span class="s1">&#39;LNK&#39;</span><span class="p">:</span> <span class="p">(),</span>
@@ -111,15 +114,18 @@
               <span class="s1">&#39;solvent_split&#39;</span><span class="p">:</span> <span class="p">()}</span>
 
     <span class="n">bounds</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mi">100</span><span class="p">)}</span>
+    <span class="n">electricity_rate</span> <span class="o">=</span> <span class="mf">3.66</span> <span class="c1">#: kW/(m3/hr)</span>
+    
+    <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">liq</span><span class="p">,</span> <span class="n">LIQ</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span> <span class="o">=</span> <span class="n">cached</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">liq</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
-        <span class="n">LIQ</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;L&#39;</span>
+        <span class="n">LIQ</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span> <span class="o">=</span> <span class="n">cached</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;mixed stream&#39;</span><span class="p">]</span> <span class="o">=</span>  <span class="n">MixedStream</span><span class="p">()</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;specie_IDs&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;specie_IDs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">specie_IDs</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;species_IDs&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;species_IDs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">species_IDs</span>
 
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">liq</span><span class="p">,</span> <span class="n">LIQ</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
@@ -153,11 +159,21 @@
         <span class="n">Design</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
         <span class="n">Cost</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
         <span class="n">Q</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">power_utility</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">electricity_rate</span><span class="o">*</span><span class="n">Q</span><span class="p">)</span>
         <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Vessel cost&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">28100</span> <span class="o">*</span> <span class="n">Q</span> <span class="o">**</span> <span class="mf">0.574</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">CEPCI</span><span class="o">/</span><span class="mf">525.4</span>
         <span class="k">return</span> <span class="n">Cost</span></div>
 
-<span class="k">class</span> <span class="nc">Centrifuge_LLE_Lazy</span><span class="p">(</span><span class="n">Centrifuge_LLE</span><span class="p">):</span>
-    
+<span class="k">class</span> <span class="nc">PartitionCentrifuge_LLE</span><span class="p">(</span><span class="n">Centrifuge_LLE</span><span class="p">):</span>
+    <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="n">PartitionFlash</span><span class="o">.</span><span class="n">kwargs</span>
+    <span class="n">_run</span> <span class="o">=</span> <span class="n">PartitionFlash</span><span class="o">.</span><span class="n">_run</span> 
+    <span class="n">_setup</span> <span class="o">=</span> <span class="n">PartitionFlash</span><span class="o">.</span><span class="n">_setup</span>
+    <span class="k">def</span> <span class="nf">_set_phases</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">top</span><span class="p">,</span> <span class="n">bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+        <span class="n">top</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
+        <span class="n">bot</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;L&#39;</span>
+
+<span class="k">class</span> <span class="nc">RatioCentrifuge_LLE</span><span class="p">(</span><span class="n">Centrifuge_LLE</span><span class="p">):</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Kspecies&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of species that correspond to Ks</span>
               <span class="s1">&#39;Ks&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of molar ratio partition coefficinets,</span>
@@ -166,13 +182,13 @@
               <span class="s1">&#39;top_split&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of splits for top_solvents</span>
               <span class="s1">&#39;bot_solvents&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of species that correspond to bot_split</span>
               <span class="s1">&#39;bot_split&#39;</span><span class="p">:</span> <span class="p">[]}</span>  <span class="c1"># list of splits for bot_solvents</span>
-
-    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">pass</span>
-
-    <span class="n">_run</span> <span class="o">=</span> <span class="n">EstimateFlash</span><span class="o">.</span><span class="n">_run</span>
-    <span class="n">_lazyrun</span> <span class="o">=</span> <span class="n">EstimateFlash</span><span class="o">.</span><span class="n">_lazyrun</span>
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span>
+    <span class="n">_run</span> <span class="o">=</span> <span class="n">RatioFlash</span><span class="o">.</span><span class="n">_run</span>
     
+<span class="k">class</span> <span class="nc">SplitCentrifuge_LLE</span><span class="p">(</span><span class="n">Centrifuge_LLE</span><span class="p">):</span>
+    <span class="n">kwargs</span> <span class="o">=</span> <span class="n">Splitter</span><span class="o">.</span><span class="n">kwargs</span>
+    <span class="n">_setup</span> <span class="o">=</span> <span class="n">Splitter</span><span class="o">.</span><span class="n">_setup</span>
+    <span class="n">_run</span> <span class="o">=</span> <span class="n">Splitter</span><span class="o">.</span><span class="n">_run</span>
 </pre></div>
 
           </div>

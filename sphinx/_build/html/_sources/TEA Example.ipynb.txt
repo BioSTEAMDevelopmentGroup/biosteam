@@ -259,7 +259,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "The complete cashflow analysis is stored as DatFrame object:"
+    "The complete cashflow analysis is stored as a DataFrame object:"
    ]
   },
   {

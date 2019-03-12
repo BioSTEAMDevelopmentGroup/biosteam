@@ -78,7 +78,8 @@ class TEA:
     
     """
     __slots__ = ('results', 'system', 'cashflow', '_cached',
-                 '_options', '_IRR_guess', '_cost_guess')
+                 '_options', '_IRR_guess', '_cost_guess',
+                 '_summary_values')
     
     #: Default cash flow options
     _default = {'Lang factor': 4.37,
@@ -150,6 +151,12 @@ class TEA:
         
         #: Guess stream cost for solve_price method
         self._cost_guess = None
+        
+        #: All "values" functions of unit summaries
+        self._summary_values = [u.results['Summary'].values for u in
+                                system.units.union(system.offsite_units)
+                                if u._has_cost]
+        
         system.TEA = self
 
     def __call__(self):
@@ -230,15 +237,15 @@ class TEA:
         # C_: Annual operating cost (excluding depreciation)
         
         system = self.system
-        units = system.units.union(system.offsite_units)
+        
         feeds = system.feeds
         products = system.products
         FC_ = 0 # Fixed capital USD
         UC_ = 0 # Utility cost USD/hr
         MC_ = 0 # Material cost USD/hr
         S_ = 0  # Sales USD/hr
-        for u in units:
-            c = iter(u.results['Summary'].values())
+        for sv in self._summary_values:
+            c = iter(sv())
             FC_ += next(c)
             UC_ += next(c)
         for s in feeds:
@@ -326,7 +333,7 @@ class TEA:
         r['Return on investment'] = ROI
         r['Pay back period'] = PBP
 
-    def solve_IRR(self, update=True):
+    def solve_IRR(self, update=False):
         """Return the IRR at the break even point (NPV = 0) through cash flow analysis.
         
         **Parameters**
@@ -361,7 +368,7 @@ class TEA:
             data_subset[:] = old_data_subset
         return IRR
     
-    def solve_price(self, stream, update=True):
+    def solve_price(self, stream, update=False):
         """Return the price (USD/kg) of stream at the break even point (NPV = 0) through cash flow analysis. 
         
         **Parameters**
@@ -387,7 +394,6 @@ class TEA:
         
         # Create function that adjusts cash flow with new stream price
         data_subset = cashflow_data[-3:]
-        args = (data_subset, duration_array)
         start = depreciation_data[0]
         tax = parameters[-4]
         IRR = self.options['IRR']
@@ -401,11 +407,11 @@ class TEA:
         elif stream in system.products:
             adjust = CF_copy.__add__
         else:
-            raise ValueError(f"Stream '{stream.ID}' is not a feed nor a product of the system")
+            raise ValueError(f"Stream '{stream.ID}' must be either a feed or a product of the system")
         
         def break_even_point(cost):
             CF[:] = adjust(cost)
-            return calc_NPV(IRR, *args)
+            return calc_NPV(IRR, data_subset, duration_array)
         
         # Solve
         guess = self._cost_guess

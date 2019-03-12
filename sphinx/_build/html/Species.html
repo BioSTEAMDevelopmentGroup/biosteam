@@ -97,21 +97,64 @@
 <p><strong>cls:</strong> [type Compound] The type of objects that will be created and stored as attributes. Defaults to biosteam.Chemical</p>
 </div></blockquote>
 <dl class="classmethod">
-<dt id="biosteam.Species.combine">
-<em class="property">classmethod </em><code class="descname">combine</code><span class="sig-paren">(</span><em>*others</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/species.html#Species.combine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species.combine" title="Permalink to this definition">¶</a></dt>
-<dd><p>Combine Specie/Chemical/Species objects into a new Species object.</p>
+<dt id="biosteam.Species.as_species">
+<em class="property">classmethod </em><code class="descname">as_species</code><span class="sig-paren">(</span><em>species</em>, <em>copy=True</em>, <em>set_attributes=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/species.html#Species.as_species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species.as_species" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a Species object from an iterable of Compound objects.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="biosteam.Species.append">
+<code class="descname">append</code><span class="sig-paren">(</span><em>object</em><span class="sig-paren">)</span> &#x2192; None -- append object to end<a class="reference internal" href="_modules/biosteam/species.html#Species.append"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species.append" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Species.clear">
+<code class="descname">clear</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None -- remove all items from L<a class="reference internal" href="_modules/biosteam/species.html#Species.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species.clear" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Species.sort">
+<code class="descname">sort</code><span class="sig-paren">(</span><em>key=None</em>, <em>reverse=False</em><span class="sig-paren">)</span> &#x2192; None -- stable sort *IN PLACE*<a class="reference internal" href="_modules/biosteam/species.html#Species.sort"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species.sort" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Species.copy">
+<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; list -- a shallow copy of L<a class="reference internal" href="_modules/biosteam/species.html#Species.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species.copy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Species.insert">
+<code class="descname">insert</code><span class="sig-paren">(</span><em>index</em>, <em>compound</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/species.html#Species.insert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species.insert" title="Permalink to this definition">¶</a></dt>
+<dd><p>L.insert(index, object) – insert object before index</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Species.pop">
+<code class="descname">pop</code><span class="sig-paren">(</span><span class="optional">[</span><em>index</em><span class="optional">]</span><span class="sig-paren">)</span> &#x2192; item -- remove and return item at index (default last).<a class="reference internal" href="_modules/biosteam/species.html#Species.pop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species.pop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raises IndexError if list is empty or index is out of range.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Species.remove">
+<code class="descname">remove</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span> &#x2192; None -- remove first occurrence of value.<a class="reference internal" href="_modules/biosteam/species.html#Species.remove"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species.remove" title="Permalink to this definition">¶</a></dt>
+<dd><p>Raises ValueError if the value is not present.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Species.extend">
+<code class="descname">extend</code><span class="sig-paren">(</span><em>iterable</em><span class="sig-paren">)</span> &#x2192; None -- extend list by appending elements from the iterable<a class="reference internal" href="_modules/biosteam/species.html#Species.extend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species.extend" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="biosteam.Species.get_props">
-<code class="descname">get_props</code><span class="sig-paren">(</span><em>specie_IDs</em>, <em>prop_ID</em>, <em>T=None</em>, <em>P=None</em>, <em>phase=None</em><span class="sig-paren">)</span> &#x2192; list<a class="reference internal" href="_modules/biosteam/species.html#Species.get_props"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species.get_props" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return list of the desired property, prop_ID, for each specie in species_ID.</p>
+<code class="descname">get_props</code><span class="sig-paren">(</span><em>species_IDs</em>, <em>prop_ID</em>, <em>T=None</em>, <em>P=None</em>, <em>phase=None</em><span class="sig-paren">)</span> &#x2192; list<a class="reference internal" href="_modules/biosteam/species.html#Species.get_props"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species.get_props" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list of the desired property, prop_ID, for each compound in species_ID.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.Species.set_props">
-<code class="descname">set_props</code><span class="sig-paren">(</span><em>specie_IDs</em>, <em>prop_ID</em>, <em>new_values</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/species.html#Species.set_props"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species.set_props" title="Permalink to this definition">¶</a></dt>
-<dd><p>Set new values to specie property, prop_ID, for each specie in specie IDs.</p>
+<code class="descname">set_props</code><span class="sig-paren">(</span><em>species_IDs</em>, <em>prop_ID</em>, <em>new_values</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/species.html#Species.set_props"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species.set_props" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set new values to specie property, prop_ID, for given species_IDs.</p>
 </dd></dl>
 
 <dl class="method">

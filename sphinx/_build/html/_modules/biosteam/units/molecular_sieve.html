@@ -121,22 +121,20 @@
         <span class="n">flow_old</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">V_0</span> <span class="c1"># Original flow rate (kg/hr)</span>
         <span class="n">flow_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_massnet_in</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">exp</span> <span class="c1"># Scaling exponent</span>
-        <span class="n">size_ratio</span> <span class="o">=</span> <span class="n">flow_new</span><span class="o">/</span><span class="n">flow_old</span>
-        <span class="n">Cp_new</span> <span class="o">=</span> <span class="n">F_CEPCI</span> <span class="o">*</span> <span class="n">Cp_old</span> <span class="o">*</span> <span class="n">size_ratio</span><span class="o">**</span><span class="n">x</span>
+        <span class="n">S</span> <span class="o">=</span> <span class="n">flow_new</span><span class="o">/</span><span class="n">flow_old</span> <span class="c1"># Size ratio</span>
+        <span class="n">Cp_new</span> <span class="o">=</span> <span class="n">F_CEPCI</span> <span class="o">*</span> <span class="n">Cp_old</span> <span class="o">*</span> <span class="n">S</span><span class="o">**</span><span class="n">x</span>
         <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Molecular Sieve Cost&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Cp_new</span>
         
         <span class="c1"># Cost pressure filter (pressing compressor)</span>
         <span class="n">Cp_old</span> <span class="o">=</span> <span class="mi">75200</span>
-        <span class="c1">#flow_old = 808</span>
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Pressure Filter Pressing&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">F_CEPCI</span> <span class="o">*</span> <span class="n">Cp_old</span> <span class="o">*</span> <span class="n">size_ratio</span><span class="o">**</span><span class="n">x</span>
-        <span class="n">power0</span> <span class="o">=</span> <span class="mi">112</span><span class="o">*</span><span class="n">size_ratio</span> <span class="c1"># kW</span>
+        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Pressure Filter Pressing&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">F_CEPCI</span> <span class="o">*</span> <span class="n">Cp_old</span> <span class="o">*</span> <span class="n">S</span><span class="o">**</span><span class="n">x</span>
+        <span class="n">power0</span> <span class="o">=</span> <span class="mi">112</span><span class="o">*</span><span class="n">S</span> <span class="c1"># kW</span>
         
         <span class="c1"># Cost pressure filter (drying compressor)</span>
         <span class="n">N</span> <span class="o">=</span> <span class="mi">2</span>
         <span class="n">Cp_old</span> <span class="o">=</span> <span class="mi">405000</span>
-        <span class="c1">#flow_old = 12233</span>
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Pressure Filter Drying (2)&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span> <span class="o">*</span> <span class="n">F_CEPCI</span> <span class="o">*</span> <span class="n">Cp_old</span> <span class="o">*</span> <span class="n">size_ratio</span><span class="o">**</span><span class="n">x</span>
-        <span class="n">power1</span> <span class="o">=</span> <span class="n">N</span><span class="o">*</span><span class="mi">522</span><span class="o">*</span><span class="n">size_ratio</span> <span class="c1"># kW</span>
+        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Pressure Filter Drying (2)&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span> <span class="o">*</span> <span class="n">F_CEPCI</span> <span class="o">*</span> <span class="n">Cp_old</span> <span class="o">*</span> <span class="n">S</span><span class="o">**</span><span class="n">x</span>
+        <span class="n">power1</span> <span class="o">=</span> <span class="n">N</span><span class="o">*</span><span class="mi">522</span><span class="o">*</span><span class="n">S</span> <span class="c1"># kW</span>
         
         <span class="c1"># Find power utility</span>
         <span class="n">total_power</span> <span class="o">=</span> <span class="n">power0</span> <span class="o">+</span> <span class="n">power1</span>

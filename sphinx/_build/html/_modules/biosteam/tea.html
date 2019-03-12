@@ -133,7 +133,8 @@
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;results&#39;</span><span class="p">,</span> <span class="s1">&#39;system&#39;</span><span class="p">,</span> <span class="s1">&#39;cashflow&#39;</span><span class="p">,</span> <span class="s1">&#39;_cached&#39;</span><span class="p">,</span>
-                 <span class="s1">&#39;_options&#39;</span><span class="p">,</span> <span class="s1">&#39;_IRR_guess&#39;</span><span class="p">,</span> <span class="s1">&#39;_cost_guess&#39;</span><span class="p">)</span>
+                 <span class="s1">&#39;_options&#39;</span><span class="p">,</span> <span class="s1">&#39;_IRR_guess&#39;</span><span class="p">,</span> <span class="s1">&#39;_cost_guess&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;_summary_values&#39;</span><span class="p">)</span>
     
     <span class="c1">#: Default cash flow options</span>
     <span class="n">_default</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Lang factor&#39;</span><span class="p">:</span> <span class="mf">4.37</span><span class="p">,</span>
@@ -205,6 +206,12 @@
         
         <span class="c1">#: Guess stream cost for solve_price method</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cost_guess</span> <span class="o">=</span> <span class="kc">None</span>
+        
+        <span class="c1">#: All &quot;values&quot; functions of unit summaries</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Summary&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span>
+                                <span class="n">system</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">offsite_units</span><span class="p">)</span>
+                                <span class="k">if</span> <span class="n">u</span><span class="o">.</span><span class="n">_has_cost</span><span class="p">]</span>
+        
         <span class="n">system</span><span class="o">.</span><span class="n">TEA</span> <span class="o">=</span> <span class="bp">self</span>
 
     <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -285,15 +292,15 @@
         <span class="c1"># C_: Annual operating cost (excluding depreciation)</span>
         
         <span class="n">system</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span>
-        <span class="n">units</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">offsite_units</span><span class="p">)</span>
+        
         <span class="n">feeds</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">feeds</span>
         <span class="n">products</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">products</span>
         <span class="n">FC_</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># Fixed capital USD</span>
         <span class="n">UC_</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># Utility cost USD/hr</span>
         <span class="n">MC_</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># Material cost USD/hr</span>
         <span class="n">S_</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Sales USD/hr</span>
-        <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">:</span>
-            <span class="n">c</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Summary&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">sv</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summary_values</span><span class="p">:</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="nb">iter</span><span class="p">(</span><span class="n">sv</span><span class="p">())</span>
             <span class="n">FC_</span> <span class="o">+=</span> <span class="nb">next</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
             <span class="n">UC_</span> <span class="o">+=</span> <span class="nb">next</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">feeds</span><span class="p">:</span>
@@ -381,7 +388,7 @@
         <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Return on investment&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ROI</span>
         <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Pay back period&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">PBP</span>
 
-<div class="viewcode-block" id="TEA.solve_IRR"><a class="viewcode-back" href="../../TEA.html#biosteam.TEA.solve_IRR">[docs]</a>    <span class="k">def</span> <span class="nf">solve_IRR</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="TEA.solve_IRR"><a class="viewcode-back" href="../../TEA.html#biosteam.TEA.solve_IRR">[docs]</a>    <span class="k">def</span> <span class="nf">solve_IRR</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the IRR at the break even point (NPV = 0) through cash flow analysis.</span>
 <span class="sd">        </span>
 <span class="sd">        **Parameters**</span>
@@ -416,7 +423,7 @@
             <span class="n">data_subset</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">old_data_subset</span>
         <span class="k">return</span> <span class="n">IRR</span></div>
     
-<div class="viewcode-block" id="TEA.solve_price"><a class="viewcode-back" href="../../TEA.html#biosteam.TEA.solve_price">[docs]</a>    <span class="k">def</span> <span class="nf">solve_price</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="TEA.solve_price"><a class="viewcode-back" href="../../TEA.html#biosteam.TEA.solve_price">[docs]</a>    <span class="k">def</span> <span class="nf">solve_price</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the price (USD/kg) of stream at the break even point (NPV = 0) through cash flow analysis. </span>
 <span class="sd">        </span>
 <span class="sd">        **Parameters**</span>
@@ -442,7 +449,6 @@
         
         <span class="c1"># Create function that adjusts cash flow with new stream price</span>
         <span class="n">data_subset</span> <span class="o">=</span> <span class="n">cashflow_data</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span>
-        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">data_subset</span><span class="p">,</span> <span class="n">duration_array</span><span class="p">)</span>
         <span class="n">start</span> <span class="o">=</span> <span class="n">depreciation_data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">tax</span> <span class="o">=</span> <span class="n">parameters</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span>
         <span class="n">IRR</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;IRR&#39;</span><span class="p">]</span>
@@ -456,11 +462,11 @@
         <span class="k">elif</span> <span class="n">stream</span> <span class="ow">in</span> <span class="n">system</span><span class="o">.</span><span class="n">products</span><span class="p">:</span>
             <span class="n">adjust</span> <span class="o">=</span> <span class="n">CF_copy</span><span class="o">.</span><span class="fm">__add__</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Stream &#39;</span><span class="si">{stream.ID}</span><span class="s2">&#39; is not a feed nor a product of the system&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Stream &#39;</span><span class="si">{stream.ID}</span><span class="s2">&#39; must be either a feed or a product of the system&quot;</span><span class="p">)</span>
         
         <span class="k">def</span> <span class="nf">break_even_point</span><span class="p">(</span><span class="n">cost</span><span class="p">):</span>
             <span class="n">CF</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">adjust</span><span class="p">(</span><span class="n">cost</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">calc_NPV</span><span class="p">(</span><span class="n">IRR</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">calc_NPV</span><span class="p">(</span><span class="n">IRR</span><span class="p">,</span> <span class="n">data_subset</span><span class="p">,</span> <span class="n">duration_array</span><span class="p">)</span>
         
         <span class="c1"># Solve</span>
         <span class="n">guess</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cost_guess</span>

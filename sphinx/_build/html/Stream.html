@@ -102,14 +102,14 @@
 </pre></div>
 </div>
 <p>Stream objects may be created a variety of ways:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a stream specifying specie and flow rate pairs:</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a stream specifying species and flow rate pairs:</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 <span class="go">Stream: s1</span>
 <span class="go"> phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
 <span class="go"> flow (kmol/hr): Water  2</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a stream assuming same specie order as given in specie_IDs:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a stream assuming same specie order as given in species:</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;s2&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 <span class="go">Stream: s2</span>
@@ -143,8 +143,8 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="s1">&#39;degC&#39;</span><span class="p">)</span>
 <span class="go">Stream: s2 </span>
 <span class="go"> phase: &#39;l&#39;, T: 25. degC, P: 101325 Pa</span>
-<span class="go"> flow (kg/hr): Ethanol  46.1</span>
-<span class="go">               Water    36</span>
+<span class="go"> flow (kmol/hr): Ethanol  1</span>
+<span class="go">                 Water    2</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Flow in kg/hr</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
@@ -159,7 +159,7 @@
 <span class="go"> phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
 <span class="go"> flow: Ethanol  0.333</span>
 <span class="go">       Water    0.667</span>
-<span class="go">                3 kmol/hr</span>
+<span class="go">       net      3 kmol/hr</span>
 </pre></div>
 </div>
 <p>Flow rates are stored internally as a material_array in the ‘mol’ attribute. A material_array object is a numpy ndarray which issues a RuntimeWarning when a negative or non-finite number is encountered:</p>
@@ -251,11 +251,11 @@
 </div></blockquote>
 <dl class="method">
 <dt id="biosteam.Stream.activity_coefficients">
-<code class="descname">activity_coefficients</code><span class="sig-paren">(</span><em>specie_IDs</em>, <em>xs</em>, <em>T</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.Stream.activity_coefficients" title="Permalink to this definition">¶</a></dt>
+<code class="descname">activity_coefficients</code><span class="sig-paren">(</span><em>species</em>, <em>xs</em>, <em>T</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.Stream.activity_coefficients" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return list of Dortmund modified UNIFAC coefficients.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
-<div><p>specie_IDs: tuple[str] Species corresponding to molar fractions</p>
+<div><p>species: tuple[Compound] Species corresponding to molar fractions</p>
 <p>xs: [array_like] Molar fractions</p>
 <p>T: [float] Temperature (K)</p>
 </div></blockquote>
@@ -285,6 +285,18 @@
 <dd><p>Price of stream (USD/kg)</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="biosteam.Stream.set_flow">
+<code class="descname">set_flow</code><span class="sig-paren">(</span><em>flow=()</em>, <em>species=()</em>, <em>units='kmol/hr'</em>, <em>**flow_pairs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/stream.html#Stream.set_flow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.set_flow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set flow rates according to the species order and flow_pairs. Instance species do not change.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Stream.get_flow">
+<code class="descname">get_flow</code><span class="sig-paren">(</span><em>species</em>, <em>units='kmol/hr'</em>, <em>CAS=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/stream.html#Stream.get_flow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.get_flow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get flow rates of species in given units.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="biosteam.Stream.ID">
 <code class="descname">ID</code><a class="headerlink" href="#biosteam.Stream.ID" title="Permalink to this definition">¶</a></dt>
@@ -309,23 +321,23 @@
 
 <dl class="method">
 <dt id="biosteam.Stream.get_index">
-<code class="descname">get_index</code><span class="sig-paren">(</span><em>IDs</em>, <em>CAS=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/stream.html#Stream.get_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.get_index" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get flow indeces of specified species.</p>
+<code class="descname">get_index</code><span class="sig-paren">(</span><em>species</em>, <em>CAS=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/stream.html#Stream.get_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.get_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get flow indices of specified species.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
-<div>IDs: list[str] or [str] Compound names</div></blockquote>
+<div><strong>species:</strong> Can be either species by ID or an iterable of Compound objects.</div></blockquote>
 <p>Example</p>
-<p>Get indeces by user defined ID:</p>
+<p>Get indices by user defined ID:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">get_index</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">)</span>
 <span class="go">1</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">get_index</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
 <span class="go">[1, 0]</span>
 </pre></div>
 </div>
-<p>Get indeces by CAS number:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="p">,</span><span class="n">get_index</span><span class="p">(</span><span class="s1">&#39;64-17-5&#39;</span><span class="p">):</span>
+<p>Get indices by CAS number:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">get_index</span><span class="p">(</span><span class="s1">&#39;64-17-5&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
 <span class="go">0</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="p">,</span><span class="n">get_index</span><span class="p">([</span><span class="s1">&#39;64-17-5&#39;</span><span class="p">,</span> <span class="s1">&#39;7732-18-5&#39;</span><span class="p">]):</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">get_index</span><span class="p">([</span><span class="s1">&#39;64-17-5&#39;</span><span class="p">,</span> <span class="s1">&#39;7732-18-5&#39;</span><span class="p">],</span> <span class="kc">True</span><span class="p">):</span>
 <span class="go">[0, 1]</span>
 </pre></div>
 </div>
@@ -334,7 +346,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.mol">
 <code class="descname">mol</code><a class="headerlink" href="#biosteam.Stream.mol" title="Permalink to this definition">¶</a></dt>
-<dd><p>Array of molar flow rates by specie (array kmol/hr):</p>
+<dd><p>Array of molar flow rates (array kmol/hr):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">mol</span>
 <span class="go">material_array([0, 2]) (kmol/hr)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
@@ -367,7 +379,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.mass">
 <code class="descname">mass</code><a class="headerlink" href="#biosteam.Stream.mass" title="Permalink to this definition">¶</a></dt>
-<dd><p>Array of mass flow rates by specie (array kg/hr)</p>
+<dd><p>Array of mass flow rates (array kg/hr)</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">mass</span>
 <span class="go">property_array([ 0.   , 36.031])</span>
 </pre></div>
@@ -397,7 +409,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.vol">
 <code class="descname">vol</code><a class="headerlink" href="#biosteam.Stream.vol" title="Permalink to this definition">¶</a></dt>
-<dd><p>Array of volumetric flow rates by specie (array m^3/hr). T and P dependent.</p>
+<dd><p>Array of volumetric flow rates (array m^3/hr). T and P dependent.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">vol</span>
 <span class="go">property_array([0.059, 0.036])</span>
 </pre></div>
@@ -652,11 +664,11 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.nonzero_species">
 <code class="descname">nonzero_species</code><a class="headerlink" href="#biosteam.Stream.nonzero_species" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return flow indeces and species that have a non-zero flow rate.</p>
+<dd><p>Return flow indices and species that have a non-zero flow rate.</p>
 <p><strong>Return</strong></p>
 <blockquote>
 <div><p><strong>index:</strong> list[float] flow indexes that are not zero</p>
-<p><strong>species:</strong> list[str] IDs for species corresponding to index</p>
+<p><strong>species:</strong> list[Compound] species corresponding to index</p>
 </div></blockquote>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">nonzero_species</span>
 <span class="go">[1], [&#39;Water&#39;]</span>
@@ -679,24 +691,6 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.Stream.plot">
-<code class="descname">plot</code><span class="sig-paren">(</span><em>prop_ID</em>, <em>var_ID</em>, <em>var_vals</em>, <em>index=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/stream.html#Stream.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.plot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Make a plot of a property vs a variable.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><p><strong>prop_ID:</strong> [str] Name of the property (e.g. ‘rho’, ‘Cp’, ‘H’, ‘volnet’ …)</p>
-<p><strong>var_ID:</strong> [str] Name of the variable (e.g ‘T’, ‘P’, ‘molnet’ …)</p>
-<p><strong>var_vals:</strong> [numpy array] Independent variable values at which to compute the property</p>
-<p><strong>index:</strong> [array_like or None] Optional indices if the variable is an array</p>
-</div></blockquote>
-<p>Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span> <span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mf">298.15</span><span class="p">,</span> <span class="mf">299.15</span><span class="p">,</span> <span class="mf">300.15</span><span class="p">,</span> <span class="mf">301.15</span><span class="p">,</span> <span class="mf">302.15</span><span class="p">])</span>
-</pre></div>
-</div>
-<a class="reference internal image-reference" href="_images/prop_plot.png"><img alt="_images/prop_plot.png" class="align-center" src="_images/prop_plot.png" style="width: 448.0px; height: 336.0px;" /></a>
-</dd></dl>
-
-<dl class="method">
 <dt id="biosteam.Stream.derivative">
 <code class="descname">derivative</code><span class="sig-paren">(</span><em>prop_ID</em>, <em>var_ID</em>, <em>index=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/stream.html#Stream.derivative"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.derivative" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the derivative of property ‘prop_ID’ and variable ‘var_ID’. If the property given by var_ID is an array, use index to specify which element.</p>
@@ -713,24 +707,6 @@
 <span class="go">-0.4010588564718449</span>
 </pre></div>
 </div>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.Stream.derivative_plot">
-<code class="descname">derivative_plot</code><span class="sig-paren">(</span><em>prop_ID</em>, <em>var_ID</em>, <em>var_vals</em>, <em>index=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/stream.html#Stream.derivative_plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.derivative_plot" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a property derivative plot.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><p><strong>prop_ID:</strong> [str] Name of the dependent property (e.g. ‘rho’, ‘Cp’, ‘H’, ‘volnet’)</p>
-<p><strong>var_ID:</strong> [str] Name of the independent variable (e.g ‘T’, ‘P’, ‘molnet’)</p>
-<p><strong>var_vals:</strong> [numpy array] Independent variable values at which to compute the property</p>
-<p><strong>index:</strong> [array_like or None] Optional indices if the variable is an array</p>
-</div></blockquote>
-<p>Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">prop_derivative_plot</span><span class="p">(</span><span class="s1">&#39;rho&#39;</span><span class="p">,</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mf">298.15</span><span class="p">,</span> <span class="mf">300.15</span><span class="p">,</span> <span class="mf">302.15</span><span class="p">,</span> <span class="mf">304.15</span><span class="p">,</span> <span class="mf">306.15</span><span class="p">,</span> <span class="mf">308.15</span><span class="p">])</span>
-</pre></div>
-</div>
-<a class="reference internal image-reference" href="_images/prop_derivative_plot.png"><img alt="_images/prop_derivative_plot.png" class="align-center" src="_images/prop_derivative_plot.png" style="width: 529.9px; height: 336.0px;" /></a>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -777,7 +753,7 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">stream</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">),</span>
 <span class="gp">... </span>                <span class="n">species</span><span class="o">=</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">stream</span><span class="o">.</span><span class="n">bubble_point</span><span class="p">()</span>
-<span class="go">(352.2820850833474, array([0.703, 0.297]), (&#39;Ethanol&#39;, &#39;Water&#39;))</span>
+<span class="go">(352.2820850833474, array([0.703, 0.297]), (&lt;Chemical: Ethanol&gt;, &lt;Chemical: Water&gt;))</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -795,7 +771,7 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">stream</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span>
 <span class="gp">... </span>                <span class="n">species</span><span class="o">=</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">stream</span><span class="o">.</span><span class="n">dew_point</span><span class="p">()</span>
-<span class="go">(353.7420742149825, array([0.556, 0.444]), (&#39;Ethanol&#39;, &#39;Water&#39;))</span>
+<span class="go">(353.7420742149825, array([0.556, 0.444]), (&lt;Chemical: Ethanol&gt;, &lt;Chemical: Water&gt;))</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -899,12 +875,12 @@
 
 <dl class="method">
 <dt id="biosteam.Stream.VLE">
-<code class="descname">VLE</code><span class="sig-paren">(</span><em>specie_IDs=None</em>, <em>LNK=None</em>, <em>HNK=None</em>, <em>P=None</em>, <em>Qin=None</em>, <em>T=None</em>, <em>V=None</em>, <em>x=None</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/stream.html#Stream.VLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.VLE" title="Permalink to this definition">¶</a></dt>
+<code class="descname">VLE</code><span class="sig-paren">(</span><em>species_IDs=None</em>, <em>LNK=None</em>, <em>HNK=None</em>, <em>P=None</em>, <em>Qin=None</em>, <em>T=None</em>, <em>V=None</em>, <em>x=None</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/stream.html#Stream.VLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.VLE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Partition flow rates into vapor and liquid phases by equilibrium. Pressure defaults to current pressure.</p>
 <p><strong>Optional parameters</strong></p>
 <blockquote>
 <div><p><strong>P:</strong> [float] Operating pressure (Pa)</p>
-<p><strong>specie_IDs:</strong> [list] IDs of equilibrium species</p>
+<p><strong>species_IDs:</strong> [list] IDs of equilibrium species</p>
 <p><strong>LNK:</strong> list[str] Light non-keys</p>
 <p><strong>HNK:</strong> list[str] Heavy non-keys</p>
 <dl class="docutils">
@@ -923,11 +899,11 @@
 
 <dl class="method">
 <dt id="biosteam.Stream.LLE">
-<code class="descname">LLE</code><span class="sig-paren">(</span><em>specie_IDs=None</em>, <em>split=None</em>, <em>lNK=()</em>, <em>LNK=()</em>, <em>solvents=()</em>, <em>solvent_split=()</em>, <em>P=None</em>, <em>T=None</em>, <em>Qin=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/stream.html#Stream.LLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.LLE" title="Permalink to this definition">¶</a></dt>
+<code class="descname">LLE</code><span class="sig-paren">(</span><em>species_IDs=None</em>, <em>split=None</em>, <em>lNK=()</em>, <em>LNK=()</em>, <em>solvents=()</em>, <em>solvent_split=()</em>, <em>P=None</em>, <em>T=None</em>, <em>Qin=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/stream.html#Stream.LLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.LLE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Partition flow rates into liquid and LIQUID phases by equilibrium.</p>
 <p><strong>Optional Parameters</strong></p>
 <blockquote>
-<div><p><strong>specie_IDs:</strong> <em>tuple[str]</em> IDs of equilibrium species</p>
+<div><p><strong>species_IDs:</strong> <em>tuple[str]</em> IDs of equilibrium species</p>
 <p><strong>split:</strong> <em>tuple[float]</em> Initial guess split fractions of each specie to the ‘liquid’</p>
 <p><strong>lNK:</strong> <em>tuple[str]</em> Species assumed to completely remain in the ‘liquid’ phase.</p>
 <p><strong>LNK:</strong> <em>tuple[str]</em> Species assumed to completely remain in the ‘LIQUID’ phase.</p>

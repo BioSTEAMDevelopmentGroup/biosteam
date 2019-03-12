@@ -1,0 +1,286 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>biosteam.sim.grid &#8212; BioSTEAM 0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for biosteam.sim.grid</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Thu Mar  7 23:17:38 2019</span>
+
+<span class="sd">@author: yoelr</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">np</span><span class="p">,</span> <span class="n">pd</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Grid&#39;</span><span class="p">,)</span>
+
+<span class="n">DF</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+
+<span class="c1"># %% Functions</span>
+
+<span class="k">def</span> <span class="nf">_blockunit</span><span class="p">(</span><span class="n">blockfunc_args</span><span class="p">):</span>
+    <span class="n">element</span> <span class="o">=</span> <span class="n">blockfunc_args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_block</span><span class="o">.</span><span class="n">_element</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">Unit</span><span class="p">):</span> <span class="k">return</span> <span class="n">element</span>
+    <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="n">element</span><span class="o">.</span><span class="n">_sink</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="k">def</span> <span class="nf">_fill_space</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">argsvalues</span><span class="p">,</span> <span class="n">argspace</span><span class="p">,</span> <span class="n">indices</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">test</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">argsvalues</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">test</span><span class="p">:</span>
+            <span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">t</span>
+            <span class="n">last</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">last</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">argspace</span><span class="p">:</span>
+                <span class="n">argspace</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">last</span><span class="p">)</span>
+                <span class="n">indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> 
+                <span class="n">_fill_space</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">argsvalues</span><span class="p">[:</span><span class="n">i</span><span class="p">],</span>
+                            <span class="n">argspace</span><span class="p">,</span> <span class="n">indices</span><span class="p">)</span>
+        <span class="n">test</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+
+
+<span class="c1"># %% Grid of simulation blocks</span>
+
+<div class="viewcode-block" id="Grid"><a class="viewcode-back" href="../../../Grid.html#biosteam.Grid">[docs]</a><span class="k">class</span> <span class="nc">Grid</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Create a Grid object that allows for optimized successive simulation of block functions over an argument space.</span>
+<span class="sd">    </span>
+<span class="sd">    **Parameters**</span>
+<span class="sd">    </span>
+<span class="sd">        **blockfunc_argspace:** [(function, args)] Iterable of block fuctions and respective arguments.</span>
+<span class="sd">    </span>
+<span class="sd">    **Examples**</span>
+
+<span class="sd">         :doc:`Grid Example`</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;_system&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;_funcs&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;_initial_args&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;_argspace&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;_args_array&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;_cases&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;_name&#39;</span><span class="p">)</span>
+    
+    <span class="n">options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Print exceptions&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="o">*</span><span class="n">blockfunc_argspace</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">blockfunc_argspace</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Must pass at least one blockfunc_argspace&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Order blocktests from last in network to first</span>
+        <span class="n">unitorder</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">_flattened_network</span>
+        <span class="n">func_args</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">blockfunc_argspace</span><span class="p">,</span>
+                            <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">unitorder</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">_blockunit</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+                                          <span class="k">if</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_block</span><span class="o">.</span><span class="n">_system</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+                            <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        
+        <span class="n">initial_args</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">funcs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">element_names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">argsvalues</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">func</span><span class="p">,</span> <span class="n">args</span> <span class="ow">in</span> <span class="n">func_args</span><span class="p">:</span>
+            <span class="n">initial_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">funcs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+            <span class="n">element</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="n">_block</span><span class="o">.</span><span class="n">_element</span>
+            <span class="n">element_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;{type(element).__name__}-</span><span class="si">{element}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span> <span class="n">args</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+            <span class="n">argsvalues</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">initial_args</span>
+        <span class="n">initial_args</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">initial_args</span><span class="p">)</span>
+        <span class="n">argspace</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">indices</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">_fill_space</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">argsvalues</span><span class="p">,</span> <span class="n">argspace</span><span class="p">,</span> <span class="n">indices</span><span class="p">)</span>
+        <span class="n">param_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">_param</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span>
+                       <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">funcs</span><span class="p">]</span>
+        <span class="n">cases</span> <span class="o">=</span> <span class="p">[(</span><span class="n">funcs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">args</span> <span class="ow">in</span>
+                 <span class="nb">zip</span><span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">argspace</span><span class="p">)]</span>
+        <span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cases</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_args_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">argspace</span><span class="p">)</span>
+        <span class="n">argspace</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">element_names</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_funcs</span> <span class="o">=</span> <span class="n">funcs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_system</span> <span class="o">=</span> <span class="n">system</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initial_args</span> <span class="o">=</span> <span class="n">initial_args</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span> <span class="o">=</span> <span class="n">funcs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cases</span> <span class="o">=</span> <span class="n">cases</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_argspace</span> <span class="o">=</span> <span class="n">ds</span> <span class="o">=</span> <span class="n">DF</span><span class="p">(</span><span class="n">argspace</span><span class="p">,</span>
+                                       <span class="n">columns</span><span class="o">=</span><span class="n">param_names</span><span class="p">,</span>
+                                       <span class="n">index</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Unit&#39;</span><span class="p">,</span> <span class="o">*</span><span class="nb">range</span><span class="p">(</span><span class="n">length</span><span class="p">)))</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Parameter&#39;</span>
+        <span class="n">ds</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;n/a&#39;</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="kc">None</span><span class="p">,)</span><span class="o">*</span><span class="p">(</span><span class="n">length</span><span class="p">))</span>
+        
+        
+<div class="viewcode-block" id="Grid.simulate"><a class="viewcode-back" href="../../../Grid.html#biosteam.Grid.simulate">[docs]</a>    <span class="k">def</span> <span class="nf">simulate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Simulate all block functions over the argument space.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_argspace</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;n/a&#39;</span><span class="p">,</span> <span class="o">*</span><span class="bp">self</span><span class="p">)</span></div>
+    
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Setup units before simulation</span>
+        <span class="n">funcs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_funcs</span>
+        <span class="k">for</span> <span class="n">func</span><span class="p">,</span> <span class="n">case</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">funcs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initial_args</span><span class="p">):</span>
+            <span class="n">func</span><span class="o">.</span><span class="n">_setter</span><span class="p">(</span><span class="n">case</span><span class="p">)</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="n">_block</span><span class="o">.</span><span class="n">_element</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">Unit</span><span class="p">):</span> <span class="n">e</span><span class="o">.</span><span class="n">_setup</span><span class="p">()</span>
+        
+        <span class="c1"># Simulate system to initialize whole network</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+        <span class="n">print_exceptions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;Print exceptions&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">block</span><span class="p">,</span> <span class="n">case</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cases</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span> <span class="k">yield</span> <span class="n">block</span><span class="p">(</span><span class="n">case</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">print_exceptions</span><span class="p">:</span>
+                    <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_args_array</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span>
+                    <span class="n">e</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;</span><span class="si">{e}</span><span class="se">\n</span><span class="s1">&#39;</span>
+                    <span class="n">e</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_argspace</span><span class="o">.</span><span class="n">columns</span><span class="p">,</span> <span class="n">d</span><span class="p">))))</span>
+                    <span class="n">e</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">e</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                <span class="k">yield</span> <span class="kc">None</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">argspace</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;[DataFrame] Table of the argument space with results in the final column.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_argspace</span>
+        
+    <span class="k">def</span> <span class="nf">_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>    
+        <span class="n">blocks</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_funcs</span><span class="p">:</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">_block</span><span class="o">.</span><span class="n">_element</span>
+            <span class="n">blk</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;{type(e).__name__}-</span><span class="si">{e}</span><span class="s1">|&#39;</span>
+            <span class="k">if</span> <span class="n">blk</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">blocks</span><span class="p">:</span> <span class="n">blocks</span> <span class="o">+=</span> <span class="n">blk</span>
+        <span class="n">blocks</span> <span class="o">=</span> <span class="n">blocks</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">)</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
+        <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;{type(self).__name__}: </span><span class="si">{name}</span><span class="s1">&#39;</span>
+    
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;[{self._repr()}]&#39;</span>
+       
+    <span class="k">def</span> <span class="nf">_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">blocks</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_funcs</span><span class="p">:</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">_block</span><span class="o">.</span><span class="n">_element</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">_param</span>
+            <span class="n">blk</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;{type(e).__name__}-</span><span class="si">{e}</span><span class="s1">&#39;</span>
+            <span class="k">if</span> <span class="n">blk</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">blocks</span><span class="p">:</span> <span class="n">blocks</span><span class="p">[</span><span class="n">blk</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span> <span class="n">blocks</span><span class="p">[</span><span class="n">blk</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+        
+        <span class="n">lenghts_block</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">blk</span><span class="p">,</span> <span class="n">params</span> <span class="ow">in</span> <span class="n">blocks</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">newline</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39; [</span><span class="si">{blk}</span><span class="s1">!&#39;</span>
+            <span class="n">blklen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">blk</span><span class="p">)</span>
+            <span class="n">blklen_spaces</span> <span class="o">=</span> <span class="p">(</span><span class="n">blklen</span><span class="p">)</span><span class="o">*</span><span class="s1">&#39; &#39;</span>
+            <span class="n">many</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">params</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">many</span><span class="p">:</span> <span class="n">newline</span> <span class="o">+=</span> <span class="s1">&#39;(&#39;</span>
+            <span class="n">len_params</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+                <span class="n">p</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;</span><span class="si">{p}</span><span class="s1">, &#39;</span>
+                <span class="n">len_p</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+                <span class="n">len_params</span> <span class="o">+=</span> <span class="n">len_p</span>
+                <span class="k">if</span> <span class="n">len_p</span> <span class="o">!=</span> <span class="n">len_params</span> <span class="ow">and</span> <span class="n">len_params</span> <span class="o">&gt;</span> <span class="mi">30</span><span class="p">:</span>
+                    <span class="n">len_params</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">p</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;]</span><span class="se">\n</span><span class="s1">% [</span><span class="si">{blklen_spaces}</span><span class="s1">$&#39;</span> <span class="o">+</span> <span class="n">p</span>
+                <span class="n">newline</span> <span class="o">+=</span> <span class="n">p</span>
+            <span class="n">newline</span> <span class="o">=</span> <span class="n">newline</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="s1">&#39;)&#39;</span> <span class="k">if</span> <span class="n">many</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;]</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">newlines</span> <span class="o">=</span> <span class="n">newline</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">)</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">newlines</span><span class="p">)</span>
+            <span class="n">lenghts_block</span><span class="o">.</span><span class="n">extend</span><span class="p">((</span><span class="n">blklen</span><span class="p">,)</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">newlines</span><span class="p">))</span>
+                
+        <span class="n">maxlen_block</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">lenghts_block</span><span class="p">)</span>
+        <span class="n">lengths</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">lines_2</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">newline</span><span class="p">,</span> <span class="n">len_</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="n">lenghts_block</span><span class="p">):</span>
+            <span class="n">newline</span> <span class="o">=</span> <span class="n">newline</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;!&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="o">*</span><span class="p">(</span><span class="n">maxlen_block</span><span class="o">-</span><span class="n">len_</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;| param=&#39;</span><span class="p">)</span>
+            <span class="n">newline</span> <span class="o">=</span> <span class="n">newline</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;$&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="o">*</span><span class="p">(</span><span class="n">maxlen_block</span><span class="o">-</span><span class="n">len_</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;|        &#39;</span><span class="p">)</span>
+            <span class="n">lengths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newline</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">))</span>
+            <span class="n">lines_2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newline</span><span class="p">)</span>
+        
+        <span class="n">maxlen</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;{self._repr()}</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="k">for</span> <span class="n">newline</span><span class="p">,</span> <span class="n">len_</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lines_2</span><span class="p">,</span> <span class="n">lengths</span><span class="p">):</span>
+            <span class="n">out</span> <span class="o">+=</span> <span class="n">newline</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="o">*</span><span class="p">(</span><span class="n">maxlen</span><span class="o">-</span><span class="n">len_</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;]&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> &#39;</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="Grid.show"><a class="viewcode-back" href="../../../Grid.html#biosteam.Grid.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return information on grid.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">())</span></div></div>
+        
+        
+        
+        
+        
+        
+        
+        
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>
