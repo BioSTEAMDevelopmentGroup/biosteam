@@ -1,7 +1,0 @@
-Flash
-=====
-
-.. module:: biosteam
-
-.. autoclass:: Flash
-   :members:
