@@ -52,8 +52,8 @@ def analytical_flash_solution(zs, Ks):
 # Material density (lb∕ft^3)
 rho_Mdict = {'Carbon steel': 490,
             'Low-alloy steel': None,
-            'Stainless steel 304': None,
-            'Stainless steel 316': None,
+            'Stainless steel 304': 499.4,
+            'Stainless steel 316': 499.4,
             'Carpenter 20CB-3': None,
             'Nickel-200': None,
             'Monel-400': None,

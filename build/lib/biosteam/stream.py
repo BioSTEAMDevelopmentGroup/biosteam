@@ -685,27 +685,28 @@ class Stream(metaclass=metaStream):
 
     ### Flow properties ###
     
-    def get_index(self, species, CAS=False):
+    def get_index(self, *species, CAS=False):
         """Get flow indices of specified species.
 
         **Parameters**
 
-             **species:** Can be either species by ID or an iterable of Compound objects.
+             **species:** Can be either ID of species or Compound objects.
 
         Example
 
-        Get indices by user defined ID:
+        Indices by compound:
         
-        >>> s1.get_index('Water')
-        1
-        >>> s1.get_index(['Water', 'Ethanol'])
+        >>> s1.get_index(s1.species.Water)
+        [1]
+        
+        Indices by ID:
+        
+        >>> s1.get_index('Water', 'Ethanol')
         [1, 0]
 
-        Get indices by CAS number:
+        Indices by CAS number:
         
-        >>> s1.get_index('64-17-5', True):
-        0
-        >>> s1.get_index(['64-17-5', '7732-18-5'], True):
+        >>> s1.get_index('64-17-5', '7732-18-5', CAS=True):
         [0, 1]
 
         """

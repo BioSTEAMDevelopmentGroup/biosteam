@@ -18,16 +18,16 @@ def _blockunit(blockfunc_args):
     else: return element._sink[0]
 
 def _fill_space(args, argsvalues, argspace, indices):
-    for i, test in enumerate(argsvalues):
-        for t in test:
-            args[i] = t
+    for i, vals in enumerate(argsvalues):
+        for v in vals:
+            args[i] = v
             last = tuple(args)
             if last not in argspace:
                 argspace.append(last)
                 indices.append(i) 
                 _fill_space(args, argsvalues[:i],
                             argspace, indices)
-        test.reverse()
+        vals.reverse()
 
 
 # %% Grid of simulation blocks
