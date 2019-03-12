@@ -66,10 +66,9 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">brentq</span><span class="p">,</span> <span class="n">newton</span>
 <span class="kn">from</span> <span class="nn">thermo</span> <span class="k">import</span> <span class="n">activity</span>
-<span class="kn">from</span> <span class="nn">.designtools</span> <span class="k">import</span> <span class="n">vacuum_system</span>
+<span class="kn">from</span> <span class="nn">.designtools</span> <span class="k">import</span> <span class="n">vacuum_system</span><span class="p">,</span> <span class="n">HNATable</span><span class="p">,</span> <span class="n">FinalValue</span><span class="p">,</span> \
+                          <span class="n">VesselWeightAndWallThickness</span><span class="p">,</span> <span class="n">Kvalue</span>
 <span class="kn">from</span> <span class="nn">.hx</span> <span class="k">import</span> <span class="n">HX</span><span class="p">,</span> <span class="n">HXutility</span>
-<span class="kn">from</span> <span class="nn">.designtools</span> <span class="k">import</span> <span class="p">(</span><span class="n">HNATable</span><span class="p">,</span> <span class="n">FinalValue</span><span class="p">,</span>
-                          <span class="n">VesselWeightAndWallThickness</span><span class="p">,</span> <span class="n">Kvalue</span><span class="p">)</span>
 
 <span class="n">exp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span>
 <span class="n">ln</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span>

@@ -59,7 +59,6 @@ Base Classes
    TEA
    find
    reports
-   utils
    exceptions
 
 Unit Operations
@@ -101,16 +100,13 @@ Unit Examples
    Pump Example
    Transesterification Example
    
-sim
----
-
-Use the sim package to perform optimized sensitivity analysis and block simulation of systems.
+Advanced Simulation
+-------------------
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
-   Block
-   Grid
+   sim
 
 Indices and tables
 ==================

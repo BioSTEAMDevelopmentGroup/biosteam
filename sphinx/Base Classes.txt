@@ -1,8 +1,8 @@
-Base Classes
-============
+Contents
+========
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    
    Compound
    DissolvedCompound
@@ -17,6 +17,5 @@ Base Classes
    TEA
    find
    reports
-   utils
    exceptions
-   units
+   
