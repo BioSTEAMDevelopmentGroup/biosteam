@@ -78,13 +78,13 @@ from .mixed_stream import MixedStream
 from .heat_utility import HeatUtility
 from .power_utility import PowerUtility
 from .unit import Unit
-from .system import System
 from . import units
 from .units import *
-from .reports import *
-from .plots import *
 from . import sim
 from .sim import *
+from .system import System
+from .reports import *
+from .plots import *
 
 __all__.extend(sim.__all__)
 __all__.extend(units.__all__)

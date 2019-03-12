@@ -25,6 +25,9 @@ biosteam.egg-info/SOURCES.txt
 biosteam.egg-info/dependency_links.txt
 biosteam.egg-info/requires.txt
 biosteam.egg-info/top_level.txt
+biosteam/sim/__init__.py
+biosteam/sim/block.py
+biosteam/sim/grid.py
 biosteam/units/Number of Batch Reactors.ipynb
 biosteam/units/__init__.py
 biosteam/units/balance.py
@@ -57,6 +60,9 @@ biosteam/units/test.py
 biosteam/units/transesterification.py
 biosteam/units/vibrating_screen.py
 biosteam/units/yeast_centrifuge.py
+biosteam/units/designtools/__init__.py
+biosteam/units/designtools/design_tools.py
+biosteam/units/designtools/vacuum.py
 biosteam/utils/__init__.py
 biosteam/utils/array_utils.py
 biosteam/utils/color_utils.py

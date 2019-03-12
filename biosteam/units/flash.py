@@ -11,10 +11,9 @@ import copy
 import numpy as np
 from scipy.optimize import brentq, newton
 from thermo import activity
-from .designtools import vacuum_system
+from .designtools import vacuum_system, HNATable, FinalValue, \
+                          VesselWeightAndWallThickness, Kvalue
 from .hx import HX, HXutility
-from .designtools import (HNATable, FinalValue,
-                          VesselWeightAndWallThickness, Kvalue)
 
 exp = np.exp
 ln = np.log
