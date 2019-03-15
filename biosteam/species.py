@@ -8,6 +8,10 @@ from .chemical import Chemical
 from .compound import Compound
 from . import np, units_of_measure
 from .exceptions import IDconflict
+from .utils import missing_method
+
+
+__all__ = ('Species',)
 
 # TODO: Fix how Dortmund groups are selected in thermo.Chemical. Glycerol defaults to wrong value.
 
@@ -36,16 +40,13 @@ class Species(list):
     units = units_of_measure
 
     @classmethod
-    def as_species(cls, species, copy=True, set_attributes=True):
+    def as_species(cls, compounds, copy=True):
         """Return a Species object from an iterable of Compound objects."""
-        if not copy and isinstance(species, Species): return species
+        if not copy and isinstance(compounds, Species): return compounds
         self = cls.__new__(cls)
-        if set_attributes:
-            for s in species: setattr(self, s.ID, s) 
-        else:
-            super().__init__(species)
+        for s in compounds: setattr(self, s.ID, s) 
         return self
-
+    
     def __init__(self, *ID, cls=None):
         # Sphinx docs look ugly if a class is in the default argument
         if cls is None: cls = Chemical
@@ -67,27 +68,28 @@ class Species(list):
             setattr(self, n, compound)
 
     def __setattr__(self, ID, compound):
+        spdict = self.__dict__
         if isinstance(compound, Compound):
             compound.ID = ID
-            self.__dict__[ID] = compound
-            super().append(compound)
+            if ID in spdict: super().remove(compound)
+            spdict[ID] = compound
+            if compound not in self: super().append(compound)
         elif ID == 'ID':
             new_IDs = compound
+            old_index = [i.ID for i in self].index
             species = tuple(self)
-            self.clear()
-            for ID in new_IDs:
-                for compound in species:
-                    if compound.ID == ID:
-                        self.append(compound)
+            new_species = [species[old_index(i)] for i in new_IDs]
+            for ID, compound in zip(new_IDs, new_species):
+                super().__setattr__(ID, compound)
+            super().__init__(new_species)
+            
         else:
             raise TypeError('Can only set Compound objects as attributes')
     
-    def append(self, compound):
-        if isinstance(compound, Compound):
-            super().__setattr__(compound.ID, compound)
-            super().append(compound)
-        else:
-            raise TypeError(f"Only Compound objects are valid, not '{type(compound).__name__}' objects")
+    append = missing_method
+    insert = missing_method
+    extend = missing_method
+    __setitem__ = missing_method
     
     def clear(self):
         super().clear()
@@ -99,10 +101,6 @@ class Species(list):
     def copy(self):
         copy = super().copy()
         copy.__dict__.update(self)
-        
-    def insert(self, index, compound):
-        super().insert(index, compound)
-        self.__dict__[compound.ID] = compound
     
     def pop(self, index):
         compound = super().pop(index)
@@ -112,15 +110,17 @@ class Species(list):
         super().remove(compound)
         super().__delattr__(compound.ID)
     
-    def extend(self, species):
-        for i in species: self.append(i)
-    
     def __delattr__(self, ID):
         if hasattr(self, ID):
             compound = getattr(ID)
             super().remove(compound)
             super().__delattr__(ID)
     
+    def __delitem__(self, index):
+        compound = self.index(index)
+        super().__delitem__(compound)
+        super().__delattr__(compound.ID)
+        
     @property
     def CAS(self):
         return (s.CAS for s in self)

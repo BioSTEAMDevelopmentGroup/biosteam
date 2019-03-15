@@ -93,8 +93,8 @@ class Species(list):
         super().clear()
         self.__dict__.clear()
     
-    def sort(self):
-        self[:] = sorted(self, key=lambda i: i.ID)
+    def sort(self, key=lambda i: i.ID, reverse=False):
+        super().sort(key, reverse)
     
     def copy(self):
         copy = super().copy()

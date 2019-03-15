@@ -8,6 +8,7 @@ from biosteam import Unit
 
 class Shredder(Unit):
     _has_power_utility = True
+    _has_linked_streams = True
     _N_outs = 1
     
     #: Original Price (USD)

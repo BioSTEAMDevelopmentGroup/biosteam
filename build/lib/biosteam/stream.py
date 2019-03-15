@@ -690,14 +690,14 @@ class Stream(metaclass=metaStream):
 
         **Parameters**
 
-             **species:** Can be either ID of species or Compound objects.
+             ***species:** Can be either ID of species or Compound objects.
 
         Example
 
         Indices by compound:
         
-        >>> s1.get_index(s1.species.Water)
-        [1]
+        >>> s1.get_index(s1.species.Water, s1.species.Ethanol)
+        [1, 0]
         
         Indices by ID:
         
@@ -706,8 +706,8 @@ class Stream(metaclass=metaStream):
 
         Indices by CAS number:
         
-        >>> s1.get_index('64-17-5', '7732-18-5', CAS=True):
-        [0, 1]
+        >>> s1.get_index('7732-18-5', '64-17-5', CAS=True):
+        [1, 0]
 
         """
         if CAS:

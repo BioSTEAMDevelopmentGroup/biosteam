@@ -124,7 +124,7 @@ class Pump(Unit):
         outs = self.outs
         P = self.kwargs['P']
         for i, o in zip(ins, outs):
-            o.mol = i.mol
+            o._mol = i._mol
             o.T = i.T
             o.phase = i.phase
             if P: o.P = P

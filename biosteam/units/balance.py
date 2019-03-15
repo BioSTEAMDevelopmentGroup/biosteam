@@ -70,10 +70,15 @@ class MassBalance(Unit, metaclass=metaFinal):
         else:
             self._outs = [Stream(i) if isinstance(i, str) else i for i in outs]
 
+    def _init(self):
+        self._cached = {}
+        self._cached['spindex'] = Stream._IDs.index
+
     def _setup(self):
         exact = self.kwargs['exact']
         balance = self.kwargs['balance']
-        self._cached = cached = {}
+        cached = self._cached
+        
         # Make sure balance type is valid
         if balance not in ('flow', 'fraction'):
             raise ValueError(
@@ -91,8 +96,8 @@ class MassBalance(Unit, metaclass=metaFinal):
             solver = np.linalg.lstsq
 
         # Cach indices for species and solver
-        sp_index = Stream._IDs.index
-        cached['bal_index'] = [sp_index(specie) for specie in species_IDs]
+        spindex = cached['spindex']
+        cached['bal_index'] = [spindex(specie) for specie in species_IDs]
         cached['linalg_solver'] = solver
 
     def _run(self):

@@ -75,4 +75,5 @@ class Mixer(Unit, metaclass=metaFinal):
         self._init_ins(ins_ID)
         self._init_outs(outs_ID)
 
-    def _run(self):        Stream.sum(self.outs[0], self.ins, self._in_loop)
+    def _run(self):
+        Stream.sum(self.outs[0], self.ins, self._in_loop)

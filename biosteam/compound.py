@@ -9,7 +9,9 @@ from math import log
 from bookkeep import ReadOnlyBook
 from biosteam import Q_
 
-R = 8.3144598  # Universal gas constant (J/mol-K)
+__all__ = ('Compound',)
+
+_R = 8.3144598  # Universal gas constant (J/mol-K)
 
 # %% Integrals methods
 
@@ -195,7 +197,7 @@ class Compound(metaclass=metaCompound):
 
         # Add Pressure Entropy
         if self.phase in 'lg':
-            S += -R*log(self.P/self.P_ref)
+            S += -_R*log(self.P/self.P_ref)
 
         # Add Temperature Entropy
         if phase == phase_ref:

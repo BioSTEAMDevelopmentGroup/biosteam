@@ -8,7 +8,7 @@ This module includes classes and functions relating Stream objects.
 """
 
 __all__ = ('MissingStream', 'Ins', 'Outs',
-           'Sink', 'Source', 'missing_stream')
+           'Sink', 'Source', 'missing_stream', 'missing_method')
 
 # For later use in this module
 def missing_method(self, *args, **kwargs):
@@ -33,6 +33,9 @@ class MissingStream:
 
     def __repr__(self):
         return f'<{type(self).__name__}>'
+
+    def __str__(self):
+        return self.ID
 
     def show(self, **show_units):
         print(self._info(**show_units))

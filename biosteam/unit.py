@@ -10,26 +10,29 @@ import os
 import IPython
 from copy import copy
 from graphviz import Digraph
-from biosteam.exceptions import notify_error
-from biosteam.find import find, WeakRefBook
-from biosteam.graphics import Graphics, default_graphics
-from biosteam.stream import Stream
-from biosteam.heat_utility import HeatUtility
-from biosteam.utils import get_doc_units, color_scheme, Ins, Outs, missing_stream
+from .exceptions import notify_error
+from .utils import WeakRefBook
+from .flowsheet import find
+from .graphics import Graphics, default_graphics
+from .stream import Stream
+from .proxy_stream import ProxyStream
+from .heat_utility import HeatUtility
+from .utils import get_doc_units, color_scheme, Ins, Outs, missing_stream
 from bookkeep import SmartBook, UnitManager
-from biosteam.power_utility import PowerUtility
-from biosteam import np
+from .power_utility import PowerUtility
+from . import np
 import biosteam
 CS = color_scheme
 
 dir_path = os.path.dirname(os.path.realpath(__file__)) + '\\'
 
 
+__all__ = ('Unit',)
+
+
 # %% Unit metaclass
 
-Unit_is_done = False
-default_line = 'Unit'
-
+_Unit_is_done = False
 
 class metaUnit(type):
     """Unit metaclass for wrapping up methods with error notifiers, adding key word arguments, and keeping track for Unit lines and inheritance. Also adds the instances attribute to keep track of instances of the class.
@@ -72,7 +75,7 @@ class metaUnit(type):
     def __new__(mcl, clsname, superclasses, new_definitions):
         """Prepare unit methods with wrappers for error notification, and add kwargs as key word arguments to __init__. Also initiallize by adding new Unit class to the find.line dictionary."""
 
-        if not Unit_is_done:
+        if not _Unit_is_done:
             # Abstract Unit class
             cls = type.__new__(mcl, clsname, superclasses, new_definitions)
         else:
@@ -83,7 +86,7 @@ class metaUnit(type):
     
             # Make new Unit class
             cls = type.__new__(mcl, clsname, superclasses, new_definitions)
-    
+            
             if cls.__doc__ is Unit.__doc__:
                 # Do not inherit docstring from Unit
                 cls.__doc__ = None
@@ -101,7 +104,7 @@ class metaUnit(type):
             # Set line
             # default_line constitutes a new Unit class
             line = cls.line
-            if line is default_line:
+            if line is 'Unit':
                 line = cls.__name__.replace('_', ' ')
                 # Set new graphics object for new line
                 if not new_definitions.get('_graphics'):
@@ -114,7 +117,7 @@ class metaUnit(type):
             cls.line = line = re.sub(r"\B([A-Z])", r" \1", line).capitalize()
             
             # Add class to find line dictionary
-            if line is not default_line: # Do not include abstract Unit classes
+            if line is not 'Unit': # Do not include abstract Unit classes
                 if not find.line[line]:
                     find.line[line] = []
                 if cls.__name__ not in [cls.__name__ for cls in find.line[line]]:
@@ -226,10 +229,6 @@ class Unit(metaclass=metaUnit):
     **Class Attributes** 
 
         **CEPCI** = 567.5: [float] Chemical Engineering Plant Cost Index
-
-        **operating_days**  = 330: [int] Operation days per year
-        
-        **lang_factor** = 4.37: [float] Lang factor excluding working capital from Peters, Timmerhaus, and West (2003)
         
         **bounds** = {} [dict] Values should be tuples with lower and upper bounds.
         
@@ -271,6 +270,9 @@ class Unit(metaclass=metaUnit):
     # [int or None] Expected number of output streams
     _N_outs = 2  
     
+    # [Bool] True if ins and outs streams are linked
+    _has_linked_streams = False
+    
     # [dict] Values should be tuples with lower and upper bounds for results dictionary.
     bounds = {}
     
@@ -290,7 +292,7 @@ class Unit(metaclass=metaUnit):
     _graphics = default_graphics
     
     #: [str] The general type of unit, regardless of class
-    line = default_line
+    line = 'Unit'
 
     ### Other defaults ###
 
@@ -346,16 +348,31 @@ class Unit(metaclass=metaUnit):
     
     def _init_outs(self, outs):
         """Initialize output streams."""
-        if isinstance(outs, str):
-            self._outs = Outs(self, Stream(outs))
-        elif isinstance(outs, Stream):
-            self._outs = Outs(self, outs)
-        elif outs is None:
-            self._outs = Outs(self, (missing_stream for i in range(self._N_outs)))
-        elif not outs:
-            self._outs = Outs(self, (Stream('') for i in range(self._N_outs)))
+        if self._has_linked_streams:
+            if isinstance(outs, str):
+                self._outs = Outs(self, ProxyStream(outs))
+            elif isinstance(outs, Stream):
+                self._outs = Outs(self, ProxyStream.asproxy(outs))
+            elif outs is None:
+                self._outs = Outs(self, (ProxyStream('*')
+                                  for i in self._N_outs))
+            elif not outs:
+                self._outs = Outs(self, (ProxyStream('') for i in self._ins))
+            else:
+                self._outs = Outs(self, (ProxyStream(o) if isinstance(o, str)
+                                         else ProxyStream.asproxy(o)
+                                         for o in outs))
         else:
-            self._outs = Outs(self, (Stream(i) if isinstance(i, str) else i for i in outs))
+            if isinstance(outs, str):
+                self._outs = Outs(self, Stream(outs))
+            elif isinstance(outs, Stream):
+                self._outs = Outs(self, outs)
+            elif outs is None:
+                self._outs = Outs(self, (missing_stream for i in range(self._N_outs)))
+            elif not outs:
+                self._outs = Outs(self, (Stream('') for i in range(self._N_outs)))
+            else:
+                self._outs = Outs(self, (Stream(i) if isinstance(i, str) else i for i in outs))        
     
     def _init_results(self):
         """Initialize results attribute."""
@@ -398,6 +415,12 @@ class Unit(metaclass=metaUnit):
             
         # Itemized purchase costs
         self._purchase_costs = self.results['Cost'].values
+    
+    def _setup_linked_streams(self):
+        if self._has_linked_streams: 
+            for i, o in zip(self._ins, self._outs):
+                if isinstance(o, ProxyStream):
+                    o.link = i
     
     # Forward pipping
     def __sub__(self, other):
@@ -460,6 +483,7 @@ class Unit(metaclass=metaUnit):
 
     def simulate(self):
         """Run rigourous simulation and determine all design requirements."""
+        self._setup_linked_streams()
         if self._kwargs != self.kwargs:
             self._setup()
             self._kwargs = copy(self.kwargs)
@@ -787,12 +811,12 @@ class Unit(metaclass=metaUnit):
                 + f'{CS.dim("ins...")}\n')
         i = 0
         for stream in self.ins:
-            if stream.ID == 'Missing Stream':
+            stream_info = stream._info(**show_units)
+            if 'Missing Stream' in stream_info:
                 info += f'[{i}] {stream.ID}\n'
                 i += 1
                 continue
             unit = stream._source[0]
-            stream_info = stream._info(**show_units)
             index = stream_info.index('\n')
             if not unit:
                 source_info = '\n'
@@ -803,12 +827,12 @@ class Unit(metaclass=metaUnit):
         info += f'{CS.dim("outs...")}\n'
         i = 0
         for stream in self.outs:
-            if stream.ID == 'Missing Stream':
+            stream_info = stream._info(**show_units)
+            if 'Missing Stream' in stream_info:
                 info += f'[{i}] {stream.ID}\n'
                 i += 1
                 continue
             unit = stream._sink[0]
-            stream_info = stream._info(**show_units)
             index = stream_info.index('\n')
             if not unit:
                 sink_info = '\n'
@@ -829,4 +853,4 @@ class Unit(metaclass=metaUnit):
     def __repr__(self):
         return '<' + type(self).__name__ + ': ' + self.ID + '>'
 
-Unit_is_done = True
+_Unit_is_done = True

@@ -5,10 +5,10 @@ Created on Thu Aug 23 15:47:26 2018
 @author: yoelr
 """
 
-from biosteam import Unit
-from biosteam.exceptions import DesignError
-from biosteam.units.mixer import Mixer
-from biosteam import np
+from .. import Unit
+from ..exceptions import DesignError
+from .mixer import Mixer
+from .. import np
 
 class Tank(Unit):
     """Abstract Tank class."""
@@ -17,6 +17,7 @@ class Tank(Unit):
     
     #: Abstract residence time attribute
     _tau = None
+    _has_linked_streams = True
 
     @property
     def tau(self):
@@ -26,8 +27,8 @@ class Tank(Unit):
     def tau(self, tau):
         self._tau = tau
 
-    def _run(self): 
-        self.outs[0].copy_like(self.ins[0])
+    def _run(self):
+            self.outs[0].copy_like(self.ins[0])
 
 
 class StorageTank(Tank):
@@ -99,8 +100,9 @@ class MixTank(Tank):
     """
     _tau = 1
     _N_ins = 2
-    _run = Mixer._run
     _has_power_utility = True
+    _has_linked_streams = False
+    _run = Mixer._run
     bounds = {'Volume': (0.1, 30)}
     
     #: Electricity rate (kW/m3)
@@ -121,7 +123,6 @@ class MixTank(Tank):
         Cost = self.results['Cost']
         Cost['Tank'] = 12080 * V**0.525 * self.CEPCI/525.4
         self.power_utility(self.electricity_rate*V)
-        
 
 
 class PCT(MixTank):
@@ -134,7 +135,7 @@ class PCT(MixTank):
         self.outs[0].T = self.kwargs['T']
         self.outs[0].phase = self.kwargs['phase']
 
-    def _run(self):        # All input streams must be the same phase
+    def _run(self): 
         out = self.outs[0]
         out.mol = self._mol_in
         out.P = self.ins[0].P

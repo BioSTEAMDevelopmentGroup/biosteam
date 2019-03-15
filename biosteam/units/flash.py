@@ -4,8 +4,8 @@ Created on Thu Aug 23 16:21:56 2018
 
 @author: yoelr
 """
-from biosteam import Unit, MixedStream
-from biosteam.exceptions import DesignError
+from .. import Unit, MixedStream
+from ..exceptions import DesignError
 from math import pi, ceil
 import copy
 import numpy as np

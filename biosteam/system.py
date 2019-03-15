@@ -9,17 +9,16 @@ import IPython
 from scipy.optimize import brentq, newton
 from graphviz import Digraph
 from .exceptions import Stop, SolverError, notify_error
-from .find import find
+from .flowsheet import find
 from .stream import Stream, mol_units, T_units
 from .unit import Unit
 from . import np
-from .utils import color_scheme, missing_stream, strtuple
+from .utils import color_scheme, missing_stream, strtuple, function
 from bookkeep import SmartBook
 from .sim import Block, Grid
 CS = color_scheme
 
-# Get the function type
-function = type(find)
+__all__ = ('System',)
 
 # %% Debugging and exception handling
 
@@ -512,20 +511,10 @@ class System:
     def _run(self):
         """Rigorous run each element of the system."""
         for a in self.network:
-            if isinstance(a, Unit):
-                a._run()
-            elif isinstance(a, System):
-                a._converge()
-            elif isinstance(a, function):
-                a()
+            if isinstance(a, Unit): a._run()
+            elif isinstance(a, System): a._converge()
+            elif isinstance(a, function): a()
         self.solver_error['iter'] += 1
-    
-    def _run_units(self):
-        for a in self.network:
-            if isinstance(a, Unit):
-                a._run()
-            elif isinstance(a, System):
-                a._run_units()
     
     # Methods for convering the recycle stream
     def _fixed_point(self):
@@ -701,6 +690,7 @@ class System:
         """Converge the network and simulate all units."""
         self._reset_iter()
         for u in self.units:
+            u._setup_linked_streams()
             if u._kwargs != u.kwargs:
                 u._setup()
                 u._kwargs = copy(u.kwargs)

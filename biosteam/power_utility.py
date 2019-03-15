@@ -6,6 +6,8 @@ Created on Sun Nov 11 11:20:42 2018
 """
 from bookkeep import SmartBook, UnitManager, Q_
 
+__all__ = ('PowerUtility',)
+
 class PowerUtility:
     """Create an PowerUtility object that can calculates the cost of power.
     

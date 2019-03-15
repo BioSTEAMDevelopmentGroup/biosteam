@@ -2,8 +2,9 @@
 """
 As BioSTEAM objects are created, weakrefs are automatically added to dictionaries. When find is called, it looks up the item in the dictionaries and returns it. The find function allows the user to find any BioSTEAM object during debbuging or at the console level.
 """
-from biosteam.utils import WeakRefBook, getDict
+from .utils import WeakRefBook, getDict
 
+__all__ = ('find',)
 
 # %% Flowsheet search
 
@@ -15,7 +16,7 @@ def find(item_ID) -> 'item':
          **item_ID:** [str] ID of the requested item.
 
     """
-    for dct in dictionaries:
+    for dct in _dicts:
         obj = dct[item_ID]
         if obj: return obj
     print(f"No registered item '{item_ID}'")
@@ -32,8 +33,8 @@ find.unit = WeakRefBook()
 # [WeakRefBook] Dictionary of streams
 find.stream = WeakRefBook()  
 
-dictionaries = (find.system,
-                find.line,
-                find.unit,
-                find.stream)
+_dicts = (find.system,
+          find.line,
+          find.unit,
+          find.stream)
 

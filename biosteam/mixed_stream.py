@@ -18,6 +18,8 @@ import copy
 ln = np.log
 exp = np.exp
 
+__all__ = ('MixedStream',)
+
 
 # %% Dictionaries for finding the right attribute given the phase
 
@@ -95,8 +97,8 @@ def VolumetricFlow(self):
 
 @VolumetricFlow.setter
 def VolumetricFlow(self, value):
-    stream, mol, phase = self.data
     if value:
+        stream, mol, phase = self.data
         c = self.name # c: compound
         c.T = stream.T
         c.P = stream.P
@@ -151,19 +153,16 @@ class MixedStream(Stream):
     #: tuple with sink unit ID and ins position
     _sink = (None, None)
     
-    def __init__(self, ID='', solid_flow=(), liquid_flow=(), LIQUID_flow=(), vapor_flow=(), species=(), units='kmol/hr', T=298.15, P=101325):
-        # Get species ID and set species information
+    def __init__(self, ID='', solid_flow=(), liquid_flow=(),
+                 LIQUID_flow=(), vapor_flow=(), species=(),
+                 units='kmol/hr', T=298.15, P=101325):
+        # Get species and set species information
         if isinstance(species, Species):
-            # Set species as provided
             self._set_species(species)
-            species_IDs = ()
-        elif hasattr(species, '__iter__'):
-            species_IDs = species
-            species = self._species
-            # Copy class species data (in case it changes)
-            self._copy_species(self)
         else:
-            raise TypeError(f'species must be a Species object, not {type(species).__name__}')
+            self._copy_species(self)
+            if species and isinstance(species[0], str):
+                species = [getattr(self._species, ID) for ID in species]
         
         self.ID = ID
         self.T = T
@@ -174,14 +173,14 @@ class MixedStream(Stream):
         self._lL_split_cached = {}
         
         # Match species and flow rates
-        l_species = len(species_IDs)
+        l_species = len(species)
         flows = [solid_flow, liquid_flow, LIQUID_flow, vapor_flow]
         for i, flow in zip(range4, flows):
             l_flow = len(flow)
             if l_flow == 0:
                 flows[i] = np.zeros(self._Nspecies)
             elif l_species == l_flow:
-                flows[i] = reorder(flow, species_IDs, self._species_IDs)
+                flows[i] = reorder(flow, species, self._species)
             elif l_flow != self._Nspecies:
                 raise ValueError('length of flow rates must be equal to length of species')
 
@@ -224,7 +223,7 @@ class MixedStream(Stream):
             
         self._massflows = massflows = [] # Mass flow rates    
         self._volflows = volflows = [] # Volumetric flow rates    
-        for phase, mol, ID in zip(phases, molflows, volflows_ID):
+        for phase, mol, ID_mass, ID_vol in zip(phases, molflows, massflows_ID, volflows_ID):
             vol = []
             mass = []
             for i, s in num_species:
@@ -235,8 +234,8 @@ class MixedStream(Stream):
                 vol.append(v)
             mass = property_array(mass)
             vol = property_array(vol)
-            setattr(self, ID, mass)
-            setattr(self, ID, vol)
+            setattr(self, ID_mass, mass)
+            setattr(self, ID_vol, vol)
             massflows.append(mass)
             volflows.append(vol)
 
@@ -514,17 +513,7 @@ class MixedStream(Stream):
     @property
     def mol(self):
         """Molar flow rates (kmol/hr)."""
-        molflow = phases_molflow.get(self.phase)
-        if molflow:
-            return getattr(self, molflow)
         return sum(self._molflows).view(tuple_array)
-
-    @mol.setter
-    def mol(self, val):
-        molflow = phases_molflow.get(self.phase)
-        if molflow:
-            return setattr(self, molflow, val)
-        raise AttributeError('Cannot set flow rates if more than one phase is present')
 
     @property
     def mass(self):
@@ -668,6 +657,22 @@ class MixedStream(Stream):
 
     ### Equilibrium ###
 
+    def disable_phases(self, phase):
+        """Cast stream into a Stream object.
+        
+        **Parameters**
+        
+            **phase:** {'s', 'l', 'g'} desired phase of stream
+            
+        """
+        mol = self.mol
+        self.__class__ = Stream
+        self.phase = phase
+        self._mol = mol
+
+    def enable_phases(self):
+        """Cast stream into a MixedStream object."""
+
     # Vapor-liquid equilibrium
     def VLE(self, species_IDs=None, LNK=None, HNK=None, P=None,
             Qin=None, T=None, V=None, x=None, y=None):
@@ -740,8 +745,9 @@ class MixedStream(Stream):
         sp_index = self._IDs.index
 
         # Set up indices for both equilibrium and non-equilibrium species
-        if species_IDs == None:
+        if species_IDs is None:
             species, index = self._equilibrium_species()
+            species = tuple(species)
         else:
             index = [sp_index(specie) for specie in species_IDs]
             species = tuple(getattr(sp, ID) for ID in species_IDs)
@@ -831,24 +837,6 @@ class MixedStream(Stream):
         
         min_ = np.zeros(Nspecies)
         act_coef = self.activity_coefficients
-        
-        ### Functions ###
-
-        def v_given_TPmol(v_guess, T, P, mol):
-            """Return equilibrium vapor flow rates given T, P and molar flow rates."""
-            Psat = np.array([s.VaporPressure(T) for s in species])
-
-            def v_error(v):
-                """Error function for constant T and P, where v represents vapor flow rates."""
-                l = mol - v
-                x = l/sum(l)
-                y = v/sum(v)
-                err = x*Psat * act_coef(species, x, T)/P - y
-                return abs(err)
-            
-            return least_squares(v_error, v_guess,
-                                 bounds=(min_, mol),
-                                 ftol=0.001).x
 
         ### Get Equilibrium ###
 
@@ -881,6 +869,22 @@ class MixedStream(Stream):
         # Guestimate vapor composition for 'VP', 'TP', 'QinP' equilibrium
         y = self._y_cached.get(species)
 
+        def v_given_TPmol(v_guess, T, P, mol):
+            """Return equilibrium vapor flow rates given T, P and molar flow rates."""
+            Psat = np.array([s.VaporPressure(T) for s in species])
+
+            def v_error(v):
+                """Error function for constant T and P, where v represents vapor flow rates."""
+                l = mol - v
+                x = l/sum(l)
+                y = v/sum(v)
+                err = x*Psat * act_coef(species, x, T)/P - y
+                return abs(err)
+            
+            return least_squares(v_error, v_guess,
+                                 bounds=(min_, mol),
+                                 ftol=0.001).x
+
         if eq == 'VP':
             def V_error(T):
                 nonlocal v
@@ -912,7 +916,7 @@ class MixedStream(Stream):
         
         elif eq == 'TP':
             if y is None:
-                # Guess composition in the vapor is a weighted average of boiling points
+                # Guess composition in the vapor is a weighted average of bubble/dew points
                 f = (T - T_dew)/(T_bubble - T_dew)
                 y = f*zf + (1-f)*y_bubble
             
@@ -1134,40 +1138,10 @@ class MixedStream(Stream):
     def _info(self, **show_units):
         """Return string with all specifications."""
         units = self.units
-        T_units = show_units.get('T')
-        P_units = show_units.get('P')
-        flow_units = show_units.get('flow')
-        fraction = show_units.get('fraction')
+        basic_info = self._info_header() + '\n'
+        T_units, P_units, flow_units, fraction = self._info_units(show_units)
         phases = self.phase
-        
-        # First line
-        unit_ID = self._source[0]
-        if unit_ID is None:
-            source = ''
-        else:
-            source = f'  from  {unit_ID}'
-        unit_ID = self._sink[0]
-        if unit_ID is None:
-            sink = ''
-        else:
-            sink = f'  to  {unit_ID}'
-        basic_info = f"{type(self).__name__}: {self.ID}{source}{sink}\n"
-
-        # Default units
-        show_format = self.show_format
-        if not T_units:
-            T_units = show_format.T
-        if not P_units:
-            P_units = show_format.P
-        if not flow_units:
-            flow_units = show_format.flow
-        if fraction is None:
-            fraction = show_format.fraction
-
-        # Second line (thermo)
-        T = Q_(self.T, units['T']).to(T_units).magnitude
-        P = Q_(self.P, units['P']).to(P_units).magnitude
-        basic_info += f" phase: '{self.phase}', T: {T:.5g} {T_units}, P: {P:.6g} {P_units}\n"
+        basic_info += self._info_phaseTP(phases, T_units, P_units)
         
         # Get flow attribute name
         flow_dim = Q_(0, flow_units).dimensionality
@@ -1198,7 +1172,7 @@ class MixedStream(Stream):
         # Length of species column
         nonzero, species = self.nonzero_species
         if len(nonzero) == 0:
-            return basic_info + ' flow:  0'
+            return basic_info + ' flow: 0'
         all_lengths = [len(sp) for sp in species]
         maxlen = max(all_lengths + [7])  # include length of the word 'species'
 
@@ -1234,7 +1208,6 @@ class MixedStream(Stream):
                 spaces = ' ' * (maxlen - lengths[i])
                 flowrates += f'{species[i]} ' + spaces + \
                     f' {flow_nonzero[i]:.3g}\n' + new_line_spaces
-
             spaces = ' ' * (maxlen - lengths[l-1])
             flowrates += (f'{species[l-1]} ' + spaces
                           + f' {flow_nonzero[l-1]:.3g}')

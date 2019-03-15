@@ -133,7 +133,7 @@ class Block:
         if getter or setter: return self(getter, setter)
         else: return self
     
-    def __init__(self, element=None, system=None):
+    def __init__(self, element, system=None):
         if isinstance(element, Stream):
             unit = element.sink[0]
         elif isinstance(element, Unit):

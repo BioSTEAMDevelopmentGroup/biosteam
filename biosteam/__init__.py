@@ -7,7 +7,7 @@ Created on Sat Oct 28 17:28:09 2017
 """
 name = 'biosteam'
 
-__all__ = ['exceptions', 'utils', 'find', 'Compound', 'Chemical', 'DissolvedCompound', 'Species', 'Stream', 'MixedStream', 'HeatUtility', 'PowerUtility', 'Unit', 'System', 'ureg', 'Quantity', 'Q_', 'units_of_measure', 'TEA']
+__all__ = ['exceptions', 'utils', 'find', 'Compound', 'Chemical', 'DissolvedCompound', 'Species', 'Stream', 'MixedStream', 'HeatUtility', 'PowerUtility', 'Unit', 'System', 'ureg', 'Quantity', 'Q_', 'units_of_measure', 'TEA', 'ProxyStream']
 
 
 # %% Import base utils
@@ -62,33 +62,59 @@ units_of_measure = ReadOnlyBook(MW='g/mol',
 
 # %% Import biosteam classes
 
-from . import exceptions
-from . import utils
-from . import reports
-from . import chemical
-from . import plots
-from .tea import TEA
-from .find import find
-from .compound import Compound
-from .dissolved_compound import DissolvedCompound
+from .compound import *
 from .chemical import *
-from .species import Species
-from .stream import Stream
-from .mixed_stream import MixedStream
-from .heat_utility import HeatUtility
-from .power_utility import PowerUtility
-from .unit import Unit
-from . import units
-from .units import *
-from . import sim
+from .dissolved_compound import *
+from .species import *
+from .stream import *
+from .mixed_stream import *
+from .proxy_stream import *
+from .heat_utility import *
+from .power_utility import *
+from .unit import *
 from .sim import *
-from .system import System
+from .system import *
+from .tea import *
+from .flowsheet import *
 from .reports import *
 from .plots import *
+from .units import *
 
-__all__.extend(sim.__all__)
-__all__.extend(units.__all__)
-__all__.extend(reports.__all__)
+from . import exceptions
+from . import utils
+from . import compound 
+from . import chemical
+from . import dissolved_compound 
+from . import species 
+from . import stream
+from . import mixed_stream
+from . import proxy_stream
+from . import unit
+from . import heat_utility
+from . import power_utility
+from . import sim
+from . import system 
+from . import tea
+from . import flowsheet
+from . import reports
+from . import plots
+from . import units
+
+__all__.extend(compound.__all__)
 __all__.extend(chemical.__all__)
+__all__.extend(dissolved_compound.__all__)
+__all__.extend(species.__all__)
+__all__.extend(stream.__all__)
+__all__.extend(mixed_stream.__all__)
+__all__.extend(proxy_stream.__all__)
+__all__.extend(heat_utility.__all__)
+__all__.extend(power_utility.__all__)
+__all__.extend(unit.__all__)
+__all__.extend(sim.__all__)
+__all__.extend(system.__all__)
+__all__.extend(tea.__all__)
+__all__.extend(flowsheet.__all__)
+__all__.extend(reports.__all__)
 __all__.extend(plots.__all__)
+__all__.extend(units.__all__)
 SmartBook.Warning = exceptions.DesignWarning

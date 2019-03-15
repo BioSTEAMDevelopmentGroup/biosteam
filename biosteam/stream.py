@@ -11,21 +11,22 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import newton, least_squares
 from .utils import material_array, property_array, PropertyFactory, \
-                           tuple_array, reorder, get_frac, Sink, Source
-from .find import find
+                   tuple_array, reorder, get_frac, Sink, Source
+from .flowsheet import find
 from .species import Species
 from .exceptions import SolverError, EquilibriumError, \
                                 DimensionError
 from .unifac import DORTMUND
-from .compound import Compound
 
 inf = np.inf
 ln = np.log
 exp = np.exp
 ndarray = np.ndarray
-as_species =Species.as_species
 #plt.style.use('dark_background')
 #CS = color_scheme
+
+__all__ = ('Stream',)
+
 
 # %% TODOs
 
@@ -136,8 +137,8 @@ def VolumetricFlow(self):
         c = self.name # c = compound
         c.T = stream.T
         c.P = stream.P
-        c.phase = stream.phase.lower()
-        return float(getattr(c, 'Vm') * mol * 1000)
+        c.phase = stream.phase
+        return getattr(c, 'Vm') * float(mol) * 1000
     else:
         return 0.
 
@@ -148,7 +149,7 @@ def VolumetricFlow(self, value):
         c = self.name # c = compound
         c.T = stream.T
         c.P = stream.P
-        c.phase = stream.phase.lower()
+        c.phase = stream.phase
         mol[0] = value/(getattr(c, 'Vm') * 1000)
     else:
         mol[0] = 0.
@@ -450,7 +451,7 @@ class Stream(metaclass=metaStream):
     _num_IDs = ()
     
     #: Species IDs
-    _species_IDs = ()
+    _IDs = ()
     
     #: Number of species
     _Nspecies = 0  
@@ -472,8 +473,7 @@ class Stream(metaclass=metaStream):
         else:
             self._copy_species(self)
             if species and isinstance(species[0], str):
-                species = as_species((getattr(species, ID) for ID in species),
-                                     False, False)
+                species = [getattr(self._species, ID) for ID in species]
         self.ID = ID
         
         #: Dew point cached
@@ -536,11 +536,8 @@ class Stream(metaclass=metaStream):
 
     def set_flow(self, flow=(), species=(), units='kmol/hr', **flow_pairs):
         """Set flow rates according to the species order and flow_pairs. Instance species do not change."""
-        for s in species:
-            if isinstance(s, str):
-                species = as_species((getattr(species, ID) for ID in species),
-                                     False, False)
-            break
+        if species and isinstance(species[0], str):
+            species = [getattr(self._species, ID) for ID in species]
         flow = self._order_flow(flow, species)
         self._set_flow_array_with_units(flow, units)
     
@@ -1176,14 +1173,13 @@ class Stream(metaclass=metaStream):
             out = Stream(ID, flow=s.mol, species=s.species,
                          phase=phase, T=s.T, P=s.P)
         else:
-            MS = mixed_stream.MixedStream
-            out = MS(ID,
-                     solid_flow=s.solid_mol,
-                     liquid_flow=s.liquid_mol,
-                     LIQUID_flow=s.LIQUID_mol,
-                     vapor_flow=s.vapor_mol,
-                     species=stream.species,
-                     T=s.T, P=s.P)
+            out = MS.MixedStream(ID,
+                                 solid_flow=s.solid_mol,
+                                 liquid_flow=s.liquid_mol,
+                                 LIQUID_flow=s.LIQUID_mol,
+                                 vapor_flow=s.vapor_mol,
+                                 species=stream.species,
+                                 T=s.T, P=s.P)
         return out
     
     def copy_like(self, stream):
@@ -1221,7 +1217,7 @@ class Stream(metaclass=metaStream):
         """Return species and indexes of species in equilibrium."""
         species = []; index = []; mol = iter(self.mol)
         for i, s in self._num_species:
-            if next(mol) and s.UNIFAC_groups and s.Tb not in (inf, None):
+            if next(mol) and s.UNIFAC_Dortmund_groups and s.Tb not in (inf, None):
                 species.append(s); index.append(i)
         return species, index
 
@@ -1229,7 +1225,7 @@ class Stream(metaclass=metaStream):
         """Return species and indexes of heavy species not in equilibrium."""
         species = []; index = []; mol = iter(self.mol)
         for i, s in self._num_species:
-            if next(mol) and s.Tb in (inf, None) or not s.UNIFAC_group:
+            if next(mol) and s.Tb in (inf, None) or not s.UNIFAC_Dortmund_groups:
                 species.append(s); index.append(i)
         return species, index
 
@@ -1621,7 +1617,7 @@ class Stream(metaclass=metaStream):
 
         **Parameters** 
 
-             **s_sum:** [Stream] container for the resulting mixture of streams
+             **s_sum:** [Stream] Container for the resulting mixture of streams
 
              **streams:** [tuple] Stream objects to be mixed
 
@@ -1657,20 +1653,15 @@ class Stream(metaclass=metaStream):
         streams = streams[1:]
 
         # Mass balance
-        MStream = mixed_stream.MixedStream
-        if isinstance(s_sum, MStream):
+        if isinstance(s_sum, MS.MixedStream):
             # For MixedStream objects
-            phases_molflow = mixed_stream.phases_molflow
-            solid_mol = s_sum.solid_mol
-            liquid_mol = s_sum.liquid_mol
-            LIQUID_mol = s_sum.LIQUID_mol
-            vapor_mol = s_sum.vapor_mol
+            phases_molflow = MS.phases_molflow
             for s in streams:
-                if isinstance(s, MStream):
-                    solid_mol += s.solid_mol
-                    liquid_mol += s.liquid_mol
-                    LIQUID_mol += s.LIQUID_mol
-                    vapor_mol += s.vapor_mol
+                if isinstance(s, MS.MixedStream):
+                    s_sum.solid_mol += s.solid_mol
+                    s_sum.liquid_mol += s.liquid_mol
+                    s_sum.LIQUID_mol += s.LIQUID_mol
+                    s_sum.vapor_mol += s.vapor_mol
                 elif isinstance(s, Stream):
                     phase = s.phase
                     attr = phases_molflow[phase]
@@ -1695,15 +1686,11 @@ class Stream(metaclass=metaStream):
     # MixedStream compatibility
     def enable_phases(self):
         """Cast stream into a MixedStream object."""
-        mS = mixed_stream.MixedStream
-        if type(self) is not mS:
-            default_phase = self.phase
-            self.__class__ = mS
-            ID = self._ID
-            self.__init__(ID='*',T=self.T, P=self.P)
-            self._ID = ID
-            self._default_phase = default_phase
-            self.mol = self._mol
+        default_phase = self.phase
+        self.__class__ = MS.MixedStream
+        self._set_flows(np.zeros((4, self._Nspecies)))
+        self._default_phase = default_phase
+        getattr(self, MS.phases_molflow[default_phase])[:] = self._mol
 
     def disable_phases(self, phase):
         """Cast stream into a Stream object.
@@ -1713,12 +1700,9 @@ class Stream(metaclass=metaStream):
             **phase:** {'s', 'l', 'g'} desired phase of stream
             
         """
-        if type(self) is not Stream:
-            mol = self.mol
-            self.__class__ = Stream
-            self.phase = phase
-            self._mol = mol
-
+        self.phase = phase
+        pass
+            
     def VLE(self, species_IDs=None, LNK=None, HNK=None, P=None,
             Qin=None, T=None, V=None, x=None, y=None):
         self.enable_phases()
@@ -1731,15 +1715,8 @@ class Stream(metaclass=metaStream):
         self.LLE(species_IDs, split, lNK, LNK,
                  solvents, solvent_split, P, T, Qin)
 
-    # Representation
-    def _info(self, **show_units):
-        """Return string with all specifications."""
-        units = self.units
-        T_units = show_units.get('T')
-        P_units = show_units.get('P')
-        flow_units = show_units.get('flow')
-        fraction = show_units.get('fraction')
-        
+    def _info_header(self):
+        """Return stream information header."""
         # First line
         unit_ID = self._source[0]
         if unit_ID is None:
@@ -1751,19 +1728,28 @@ class Stream(metaclass=metaStream):
             sink = ''
         else:
             sink = f'  to  {unit_ID}'
-        basic_info = f"{type(self).__name__}: {self.ID}{source}{sink}\n"
+        return f"{type(self).__name__}: {self.ID}{source}{sink}"
 
-        # Default units
+    def _info_units(self, show_units):
+        """Return unit format selection."""
         show_format = self.show_format
-        T_units = T_units or show_format.T
-        P_units = P_units or show_format.P
-        flow_units = flow_units or show_format.flow
-        fraction = fraction or show_format.fraction
+        return (show_units.get('T', show_format.T),
+                show_units.get('P', show_format.P),
+                show_units.get('flow', show_format.flow),
+                show_units.get('fraction', show_format.fraction))
         
-        # Second line (thermo)
-        T = Q_(self.T, units['T']).to(T_units).magnitude
-        P = Q_(self.P, units['P']).to(P_units).magnitude
-        basic_info += f" phase: '{self.phase}', T: {T:.5g} {T_units}, P: {P:.6g} {P_units}\n"
+    def _info_phaseTP(self, phases, T_units, P_units):
+        T = Q_(self.T, self.units['T']).to(T_units).magnitude
+        P = Q_(self.P, self.units['P']).to(P_units).magnitude
+        return f" phase: '{phases}', T: {T:.5g} {T_units}, P: {P:.6g} {P_units}\n"
+
+    # Representation
+    def _info(self, **show_units):
+        """Return string with all specifications."""
+        units = self.units
+        basic_info = self._info_header() + '\n'
+        T_units, P_units, flow_units, fraction = self._info_units(show_units)
+        basic_info += self._info_phaseTP(self.phase, T_units, P_units)
         
         # Start of third line (flow rates)
         flow_dim = Q_(0, flow_units).dimensionality
@@ -1801,7 +1787,7 @@ class Stream(metaclass=metaStream):
             flow = Q_(getattr(self, flow)[nonzero], units[flow]).to(flow_units).magnitude
         len_ = len(nonzero)
         if len_ == 0:
-            return basic_info + ' flow:  0'
+            return basic_info + ' flow: 0'
         else:
             flowrates = ''
             lengths = [len(sp) for sp in species]
@@ -1812,6 +1798,7 @@ class Stream(metaclass=metaStream):
                     f' {flow[i]:.3g}\n' + new_line_spaces
             spaces = ' ' * (maxlen - lengths[len_-1])
             flowrates += species[len_-1] + spaces + f' {flow[len_-1]:.3g}'
+        
         return basic_info + beginning + flowrates + end.replace('*', new_line_spaces + 'net' + (maxlen-4)*' ' + '  ')
 
     def show(self, **show_units):
@@ -1824,5 +1811,4 @@ class Stream(metaclass=metaStream):
     def __repr__(self):
         return '<' + type(self).__name__ + ': ' + self.ID + '>'
 
-
-from . import mixed_stream
+from . import mixed_stream as MS

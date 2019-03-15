@@ -10,15 +10,16 @@ from biosteam.stream import Stream, mol_flow_dim, mass_flow_dim, vol_flow_dim
 from bookkeep import SmartBook, UnitManager
 from biosteam import Q_, pd, np
 
+
+__all__ = ('HeatUtility',)
+
 # Costs from Table 17.1 in Warren D.  Seider et al.-Product and Process Design Principles_ Synthesis, Analysis and Evaluation-Wiley (2016)
 # ^This table was made using data from Busche, 1995
 # Entry temperature conditions of coolants taken from Table 12.1 in Warren, 2016
 
-array = np.array
-
 # %% Default Heat Transfer species
 
-Water = Species('Water')
+_Water = Species('Water')
 
 # %% Data for cooling utilities 
 
@@ -31,7 +32,7 @@ _cooling_index = ('Cooling water',
                   'Chilled Brine')
 
 _cooling_water = ('sensible',      # Type [str]: {'sensible', 'latent'}
-                  Water,           # species [Species]
+                  _Water,           # species [Species]
                   (1,),            # flow: [tuple]
                   305.372,         # T (K)
                   101325,          # P (Pa)
@@ -42,7 +43,7 @@ _cooling_water = ('sensible',      # Type [str]: {'sensible', 'latent'}
                   1)               # heat transfer efficiency
 
 _chilled_water = ('sensible',
-                  Water,
+                  _Water,
                   (1,),
                   280.372,
                   101325,
@@ -53,7 +54,7 @@ _chilled_water = ('sensible',
                   1)
 
 _chilled_brine = ('sensible',
-                  Water,
+                  _Water,
                   (1,),
                   255.372,
                   101325,
@@ -71,7 +72,7 @@ _heating_index = ('Low pressure steam',
                   'High pressure steam')
 
 _low_pressure_steam = ('latent',
-                       Water,
+                       _Water,
                        (1,),
                        411.494,
                        344738.0,
@@ -82,7 +83,7 @@ _low_pressure_steam = ('latent',
                        0.90)
 
 _medium_pressure_steam = ('latent',
-                          Water,
+                          _Water,
                           (1,),
                           454.484,
                           1034214.0,
@@ -93,7 +94,7 @@ _medium_pressure_steam = ('latent',
                           0.80)
 
 _high_pressure_steam = ('latent',
-                        Water,
+                        _Water,
                         (1,),
                         508.858,
                         3102642.0,

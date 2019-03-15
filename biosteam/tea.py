@@ -10,6 +10,8 @@ from bookkeep import SmartBook
 from scipy.optimize import newton
 from biosteam.utils import CS
 
+__all__ = ('TEA',)
+
 _DataFrame = pd.DataFrame
 _array = np.array
 _asarray = np.asarray
