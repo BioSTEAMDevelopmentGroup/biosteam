@@ -5,11 +5,11 @@ Created on Wed Mar  6 16:53:04 2019
 @author: yoelr
 """
 from . import block
-from . import grid
+from . import sensitivity
 from .block import *
-from .grid import *
+from .sensitivity import *
 
 __all__ = []
 
 __all__.extend(block.__all__)
-__all__.extend(grid.__all__)
+__all__.extend(sensitivity.__all__)

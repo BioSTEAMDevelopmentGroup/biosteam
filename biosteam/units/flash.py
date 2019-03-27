@@ -174,7 +174,7 @@ class Flash(Unit):
         vap, liq = self.outs
         vap.phase = 'g'
         liq.phase = 'l'
-        self._heat_exchanger = he = HXutility(self.ID+' hx', outs=None) 
+        self._heat_exchanger = he = HXutility('*', outs=None) 
         self.heat_utilities = he.heat_utilities
         he._ins = self._ins
         self._mixedstream = ms = MixedStream()
@@ -187,15 +187,13 @@ class Flash(Unit):
         # Unpack
         vap, liq = self.outs
         feed = self.ins[0]
-        kwargs = self.kwargs
 
         # Vapor Liquid Equilibrium
-        VLE_kwargs = copy.copy(kwargs)
         ms = self._mixedstream
         ms.empty()
         ms.liquid_mol = feed.mol
         ms.T = feed.T
-        ms.VLE(**VLE_kwargs)
+        ms.VLE(**self.kwargs)
 
         # Set Values
         vap.mol = ms.vapor_mol
@@ -204,8 +202,7 @@ class Flash(Unit):
         vap.P = liq.P = ms.P
 
     def _operation(self):
-        if self._has_hx:
-            self._heat_exchanger._operation()
+        if self._has_hx: self._heat_exchanger._operation()
 
     def _design(self):
         """
@@ -273,9 +270,10 @@ class Flash(Unit):
         
         # If vapor is condensed, assume vacuum system is after condenser
         vapor = self.outs[0]
-        hx, index = vapor.sink
+        hx = vapor.sink
         if isinstance(hx, HX):
-            stream = hx.outs[index]
+            index = hx._ins.index(vapor)
+            stream = hx._outs[index]
             if isinstance(stream, MixedStream):
                 massflow = stream.vapor_massnet
                 volflow = stream.vapor_volnet
@@ -644,35 +642,13 @@ class PartitionFlash(Flash):
     
     _has_hx = True
     
-    def _calculate_partition_coefficients(self):
-        ph1, ph2 = self.outs
-
-        # Account for light and heave keys
-        HNK = ph1.mol == 0
-        LNK = ph2.mol == 0
-
-        # Do not include heavy or light non keys
-        pos = ~HNK & ~LNK
-        ph1_mol = ph1.mol[pos]
-        ph2_mol = ph2.mol[pos]
-        ph1_molnet = sum(ph1_mol)
-        ph2_molnet = sum(ph2_mol)
-        ph1_molfrac = ph1_mol/ph1_molnet
-        ph2_molfrac = ph2_mol/ph2_molnet
-        IDs = np.array(ph1._IDs)
-        return dict(Ks=ph1_molfrac/ph2_molfrac,
-                    V=ph1_molnet/(ph1_molnet + ph2_molnet),
-                    species_IDs=[IDs[pos]],
-                    LNK=IDs[LNK],
-                    HNK=IDs[HNK])  
-    
     def _setup(self):
         top, bot = self.outs
         species_IDs, Ks, LNK, HNK, P, T = self.kwargs.values()
         index = top._IDs.index
         self._args = ([index(i) for i in species_IDs],
-                       [index(i) for i in LNK],
-                       [index(i) for i in HNK],
+                      [index(i) for i in LNK],
+                      [index(i) for i in HNK],
                        np.asarray(Ks), P, T)
         
     def _set_phases(self):
@@ -694,12 +670,11 @@ class PartitionFlash(Flash):
         molnet = sum(mol_in)
         zs = mol_in/molnet
         if hasattr(self, '_V'):
-            V = newton(flash_error, self._V, args=(zs, Ks))
+            self._V = V = newton(flash_error, self._V, args=(zs, Ks))
         elif len(zs) > 3:
-            V = brentq(flash_error, 0, 1, (zs, Ks))
+            self._V = V = brentq(flash_error, 0, 1, (zs, Ks))
         else:
             V = analytical_flash_solution(zs, Ks)
-        self._V = V
         x = zs/(1 + V*(Ks-1))
         y = x*Ks
         ph1.mol[pos] = molnet*V*y
@@ -792,7 +767,7 @@ class Evaporator_PQin(Unit):
         if len(self.ins) == 2:
             boiler_liq = self.outs[2]
             boiler_vap = self.ins[1]
-            boiler_liq.copy_like(boiler_vap)
+            boiler_liq.copylike(boiler_vap)
             boiler_liq.phase = 'l'
             Qin = Qin + boiler_vap.H - boiler_liq.H
 

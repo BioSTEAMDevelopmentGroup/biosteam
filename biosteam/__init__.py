@@ -7,7 +7,7 @@ Created on Sat Oct 28 17:28:09 2017
 """
 name = 'biosteam'
 
-__all__ = ['exceptions', 'utils', 'find', 'Compound', 'Chemical', 'DissolvedCompound', 'Species', 'Stream', 'MixedStream', 'HeatUtility', 'PowerUtility', 'Unit', 'System', 'ureg', 'Quantity', 'Q_', 'units_of_measure', 'TEA', 'ProxyStream']
+__all__ = ['exceptions', 'utils', 'inspect', 'find', 'Compound', 'Chemical', 'DissolvedCompound', 'Species', 'Stream', 'MixedStream', 'HeatUtility', 'PowerUtility', 'Unit', 'System', 'TEA', 'ProxyStream', 'inspect']
 
 
 # %% Import base utils
@@ -76,12 +76,12 @@ from .sim import *
 from .system import *
 from .tea import *
 from .flowsheet import *
-from .reports import *
-from .plots import *
+from .report import *
 from .units import *
 
 from . import exceptions
 from . import utils
+from . import inspect
 from . import compound 
 from . import chemical
 from . import dissolved_compound 
@@ -96,8 +96,7 @@ from . import sim
 from . import system 
 from . import tea
 from . import flowsheet
-from . import reports
-from . import plots
+from . import report
 from . import units
 
 __all__.extend(compound.__all__)
@@ -114,7 +113,6 @@ __all__.extend(sim.__all__)
 __all__.extend(system.__all__)
 __all__.extend(tea.__all__)
 __all__.extend(flowsheet.__all__)
-__all__.extend(reports.__all__)
-__all__.extend(plots.__all__)
+__all__.extend(report.__all__)
 __all__.extend(units.__all__)
 SmartBook.Warning = exceptions.DesignWarning

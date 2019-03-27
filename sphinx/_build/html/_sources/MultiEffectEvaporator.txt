@@ -1,0 +1,7 @@
+MultiEffectEvaporator
+=====================
+
+.. module:: biosteam
+
+.. autoclass:: MultiEffectEvaporator
+   :members:

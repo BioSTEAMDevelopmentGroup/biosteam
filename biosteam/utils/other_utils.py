@@ -6,20 +6,20 @@ This module includes arbitrary classes and functions.
 
 @author: Guest Group
 """
-from biosteam import np, Q_
-import time
+from biosteam import Q_
 
 #from multiprocessing import Process
 #import threading
 #import _thread
 
-__all__ = ('factor', 'checkbounds', 'approx2step', 'copy_attr', 'get_attr', 'Timer', 'run_in_parallel', 'strtuple', 'function')
+__all__ = ('factor', 'checkbounds', 'approx2step', 'run_in_parallel', 'strtuple', 'function')
 
 
 # %% Number functions
 
 def factor(base_units, new_units):
-    return Q_(1, base_units).to(new_units).magnitude
+    if base_units == new_units: return 1
+    else: return Q_(1, base_units).to(new_units).magnitude
 
 def checkbounds(x, bounds):
     lb, up = bounds
@@ -49,60 +49,6 @@ def strtuple(iterable):
     string = string.rstrip(', ')
     string = '(' + string + ')'
     return string
-    
-
-# %% For managing objects
-
-def copy_attr(obj0, obj1, *attrs: str):
-    """Copy specified attributes 'attrs' from obj1 to obj0."""
-    for attr in attrs:
-        setattr(obj0, attr, getattr(obj1, attr))
-
-
-def get_attr(obj, *attrs: str) -> 'list[attributes]':
-    """Get a list of attributes, 'attrs', from obj."""
-    out = []
-    for attr in attrs:
-        out.append(getattr(obj, attr))
-    return out
-
-
-# %% Timer
-
-class Timer:
-    """Create a Timer class with tic toc functions that measure elapsed time."""
-    __slots__ = ['tictoc', '_start']
-
-    def __init__(self):
-        self.tictoc = [] #: [list] elapsed times from tic toc functions
-
-    def toc(self):
-        """Record time interval since last 'tic' in self.tictoc."""
-        # Appends time difference
-        if self._start:
-            self.tictoc.append(time.time() - self._start)
-        else:
-            raise Exception("Must run 'tic' before 'toc'.")
-
-    def tic(self):
-        """Start timer."""
-        # Marks the beginning of a time interval
-        self._start = time.time()
-
-    @property
-    def average(self):
-        """The mean value of elapsed time"""
-        return np.mean(self.tictoc)
-
-    def __repr__(self):
-        return (f"<{type(self).__name__}, average={self.average:.3g}>")
-
-    def _info(self):
-        return (f"{type(self).__name__}: \n" + 
-                f" tictoc: {self.tictoc} \n" +
-                f" average: {self.average}")
-    def show(self):
-        print(self._info())
         
         
 # %% Iterative solvers

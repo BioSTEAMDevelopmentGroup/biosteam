@@ -1,0 +1,7 @@
+DissolvedCompound
+===============
+
+.. module:: biosteam
+
+.. autoclass:: DissolvedCompound
+   :members:

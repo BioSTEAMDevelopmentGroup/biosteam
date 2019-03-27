@@ -1,0 +1,7 @@
+InvSplitter
+===========
+
+.. module:: biosteam
+
+.. autoclass:: InvSplitter
+   :members:

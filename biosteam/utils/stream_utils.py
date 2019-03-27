@@ -48,7 +48,6 @@ MissingStream._missing_stream = missing_stream = object.__new__(MissingStream)
 class Ins(list):
     """Create a Ins object which serves as a list of input streams for a Unit object."""
     __slots__ = ('sink',)
-    pop = insert = remove = reverse = sort = missing_method
 
     def __init__(self, sink, streams=()):
         if streams is self:
@@ -59,61 +58,65 @@ class Ins(list):
         self._clear_sink(sink)
         super().__init__(streams)
         self._fix_sink(sink)
-        
+    
+    def pop(self, index):
+        s = super().pop(index)
+        s.sink = None
+        return s
+    
+    def insert(self, index, object):
+        s = super().insert(index)
+        s.sink = None
+    
+    def remove(self, stream):
+        stream.sink = None
+        super().remove(stream)
+    
     def _clear_sink(self, sink):
         """Remove sink from streams."""
         for s in self:
-            if s._sink[0] is sink:
-                s._sink = (None, None)
+            if s._sink is sink: s._sink = None
     
     def _fix_sink(self, sink):
         """Set sink for all streams."""
-        i = 0
-        for s in self:
-            s._sink = (sink, i)
-            i += 1
+        for s in self: s._sink = sink
     
     def __setitem__(self, index, stream):
         sink = self.sink
-        if stream is missing_stream:
-            pass
+        if stream is missing_stream: pass
         elif isinstance(index, int):
             s_old = self[index]
-            if s_old._sink[0] is sink:
-                s_old._sink = (None, None)
-            stream._sink = (sink, index)
+            if s_old._sink is sink: s_old._sink = None
+            stream._sink = sink
+            super().__setitem__(index, stream)
         elif isinstance(index, slice):
             self._clear_sink(sink)
+            super().__setitem__(index, stream)
             self._fix_sink(sink)
         else:
             raise TypeError(f'Only intergers and slices are valid indices for {type(self).__name__} objects')
-        super().__setitem__(index, stream)
+        
            
     def clear(self):
         self._clear_sink(self.sink)
         super().clear()
     
     def extend(self, iterable):
-        index = len(self)
         sink = self.sink
         # Add sink to new streams
-        for s in iterable:
-            s._sink = (sink, index)
-            index += 1
+        for s in iterable: s._sink = sink
         super().extend(iterable)
         
     def append(self, stream):
-        index = len(self)
         sink = self.sink
         # Add sink to new stream
-        stream._sink = (sink, index)
+        stream._sink = sink
         super().append(stream)
     
 
 class Outs(list):
     """Create a Outs object which serves as a list of output streams for a Unit object."""
     __slots__ = ('source',)
-    pop = insert = remove = reverse = sort = missing_method
     
     def __init__(self, source, streams=()):
         if streams is self:
@@ -125,18 +128,27 @@ class Outs(list):
         super().__init__(streams)
         self._fix_source(source)
             
+    def pop(self, index):
+        s = super().pop(index)
+        s.source = None
+        return s
+    
+    def insert(self, index, object):
+        s = super().insert(index)
+        s.source = None
+    
+    def remove(self, stream):
+        stream.source = None
+        super().remove(stream)    
+    
     def _clear_source(self, source):
         """Remove source from streams."""
         for s in self:
-            if s._source[0] is source:
-                s._source = (None, None)
+            if s._source is source: s._source = None
     
     def _fix_source(self, source):
         """Set source for all streams."""
-        i = 0
-        for s in self:
-            s._source = (source, i)
-            i += 1
+        for s in self: s._source = source
             
     def __setitem__(self, index, stream):
         source = self.source
@@ -144,34 +156,31 @@ class Outs(list):
             pass
         elif isinstance(index, int):
             s_old = self[index]
-            if s_old._source[0] is source:
-                s_old._source = (None, None)
-            stream._source = (source, index)
+            if s_old._source is source: s_old._source = None
+            super().__setitem__(index, stream)
+            stream._source = source
         elif isinstance(index, slice):
             self._clear_source(source)
+            super().__setitem__(index, stream)
             self._fix_source(source)
         else:
             raise TypeError(f'Only intergers and slices are valid indices for {type(self).__name__} objects')
-        super().__setitem__(index, stream)
+        
            
     def clear(self):
         self._clear_source(self.source)
         super().clear()
     
     def extend(self, iterable):
-        index = len(self)
         source = self.source
         # Add source to new streams
-        for s in iterable:
-            s._source = (source, index)
-            index += 1
+        for s in iterable: s._source = source
         super().extend(iterable)
         
     def append(self, stream):
-        index = len(self)
         source = self.source
         # Add sink to new stream
-        stream._source = (source, index)
+        stream._source = source
         super().append(stream)
 
 

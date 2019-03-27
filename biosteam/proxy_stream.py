@@ -17,39 +17,43 @@ class ProxyStream(Stream):
     **Parameters**
     
         **ID:** [str] ID of proxy stream
+        
+        **link:** [Stream] proxy stream will share data from this link.
     
     """
     _data = {}
     _link = None
+    __slots__ = ()
     
-    def __new__(cls, ID):
-        self = object.__new__(cls)
-        cls._data[self] = [(None, None), (None, None), '']
+    def __init__(self, ID='', link=None):
+        ProxyStream._data[self] = [None, None, None]
         self.ID = ID
-        return self
-    
-    def __init__(self, ID): pass
+        self.link = link
 
-    def copy_like(self, stream):
-        if not self._link is stream: super().copy_like(stream)
+    def copylike(self, stream):
+        if not self._link is stream: super().copylike(stream)
+    copylike.__doc__ = Stream.copylike.__doc__
     
     @classmethod
     def asproxy(cls, stream):
-        cls._data[stream] = [(None, None), (None, None), stream.ID]
+        """Cast the stream as a proxy object."""
+        cls._data[stream] = [stream._source, stream._sink, stream.ID]
         stream.__class__ = cls
         return stream
     
     @property
     def link(self):
+        """Stream that the proxy stream is sharing data with."""
         return self._link
     
     @link.setter
     def link(self, stream):
         if not self._link is stream:
-            if hasattr(self, 'price'):
-                stream.price = self.price
+            if hasattr(self, 'price'): stream.price = self.price
             self.__dict__ = stream.__dict__
-            self._link = stream
+            stream._link = stream
+        elif stream and not isinstance(stream, Stream):
+            raise TypeError(f"link must be a Stream object or None, not a '{type(stream).__name__}' object.")
         
     @property
     def _ID(self):
@@ -75,13 +79,24 @@ class ProxyStream(Stream):
     def _sink(self, sink):
         self._data[self][1] = sink
         
+    @property
+    def P(self):
+        if hasattr(self, '_P'): return self._P
+        else: return self.__dict__['P']
+        
+    @P.setter
+    def P(self, P):
+        self._P = P
+    
     def disable_phases(self, phase):
         super().disable_phases(phase)
         self.__class__ = ProxyStream
-        
+    disable_phases.__doc__ = Stream.disable_phases.__doc__    
+    
     def enable_phases(self):
         super().enable_phases()
         self.__class__ = ProxyMixedStream
+    enable_phases.__doc__ = Stream.enable_phases.__doc__
 
     def _info(self, *args, **kwargs):
         linkinfo = f'\n link: {self.link}'

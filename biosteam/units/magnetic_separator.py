@@ -9,6 +9,7 @@ from biosteam import Unit
 
 class MagneticSeparator(Unit):
     _N_outs = 1
+    _has_linked_streams = True
     
     #: Original CEPCI
     CEPCI_0 = 576
@@ -23,7 +24,7 @@ class MagneticSeparator(Unit):
     exp = 0.6
     
     def _run(self):
-        self.outs[0].copy_like(self.ins[0])
+        self.outs[0].copylike(self.ins[0])
     
     def _cost(self):
         massflow = self.ins[0].massnet

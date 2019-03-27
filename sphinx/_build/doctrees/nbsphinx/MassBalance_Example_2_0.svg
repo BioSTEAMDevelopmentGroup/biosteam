@@ -1,0 +1,218 @@
+<svg height="187pt" viewBox="0.00 0.00 848.98 187.07" width="849pt" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g class="graph" id="graph0" transform="scale(1 1) rotate(0) translate(4 183.072)">
+<title>%3</title>
+<polygon fill="white" points="-4,4 -4,-183.072 844.985,-183.072 844.985,4 -4,4" stroke="none"/>
+<!-- M1
+Mixer&#45;&gt;F1
+Flash -->
+<g class="edge" id="edge5"><title>M1
+Mixer:e-&gt;F1
+Flash:c</title>
+<path d="M428.593,-54.7401C443.713,-54.7401 458.306,-60.8482 471.044,-68.9934" fill="none" stroke="black"/>
+<polygon fill="black" points="469.342,-72.0728 479.551,-74.9078 473.338,-66.3254 469.342,-72.0728" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="454.093" y="-66.5401">d5</text>
+</g>
+<!-- P1
+Pump&#45;&gt;M1
+Mixer -->
+<g class="edge" id="edge11"><title>P1
+Pump:c-&gt;M1
+Mixer:c</title>
+<path d="M239.308,-75.4992C259.941,-71.8995 290.055,-66.6457 314.825,-62.3244" fill="none" stroke="black"/>
+<polygon fill="black" points="315.47,-65.7647 324.72,-60.5981 314.267,-58.8689 315.47,-65.7647" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="264.5" y="-76.5401">d3</text>
+</g>
+<!-- T1
+Tank&#45;&gt;P1
+Pump -->
+<g class="edge" id="edge3"><title>T1
+Tank:c-&gt;P1
+Pump:c</title>
+<path d="M138.397,-79.7401C150.245,-79.7401 165.149,-79.7401 178.516,-79.7401" fill="none" stroke="black"/>
+<polygon fill="black" points="178.818,-83.2402 188.818,-79.7401 178.818,-76.2402 178.818,-83.2402" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="163.5" y="-83.5401">d1</text>
+</g>
+<!-- S1
+Splitter&#45;&gt;M1
+Mixer -->
+<g class="edge" id="edge1"><title>S1
+Splitter:c-&gt;M1
+Mixer:c</title>
+<path d="M608.619,-50.8801C570.289,-49.7212 522.381,-48.8438 479.593,-49.7401 464.377,-50.0588 448.077,-50.606 432.566,-51.2243" fill="none" stroke="black"/>
+<polygon fill="black" points="432.353,-47.73 422.506,-51.6393 432.642,-54.7241 432.353,-47.73" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="515.593" y="-53.5401">d6</text>
+</g>
+<!-- S1
+Splitter&#45;&gt;d7 -->
+<g class="edge" id="edge2"><title>S1
+Splitter:c-&gt;d7:w</title>
+<path d="M721.714,-53.7401C744.037,-53.7401 772.586,-53.7401 797.985,-53.7401" fill="none" stroke="black"/>
+</g>
+<!-- P2
+Pump&#45;&gt;M1
+Mixer -->
+<g class="edge" id="edge4"><title>P2
+Pump:c-&gt;M1
+Mixer:c</title>
+<path d="M239.308,-30.6596C259.941,-34.8352 290.055,-40.9296 314.825,-45.9424" fill="none" stroke="black"/>
+<polygon fill="black" points="314.224,-49.3917 324.72,-47.9449 315.613,-42.5308 314.224,-49.3917" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="264.5" y="-41.5401">d4</text>
+</g>
+<!-- T2
+Tank&#45;&gt;P2
+Pump -->
+<g class="edge" id="edge6"><title>T2
+Tank:c-&gt;P2
+Pump:c</title>
+<path d="M138.397,-25.7401C150.245,-25.7401 165.149,-25.7401 178.516,-25.7401" fill="none" stroke="black"/>
+<polygon fill="black" points="178.818,-29.2402 188.818,-25.7401 178.818,-22.2402 178.818,-29.2402" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="163.5" y="-29.5401">d2</text>
+</g>
+<!-- F1
+Flash&#45;&gt;S1
+Splitter -->
+<g class="edge" id="edge9"><title>F1
+Flash:s-&gt;S1
+Splitter:w</title>
+<path d="M515.593,-68.7401C515.593,-66.7763 569.809,-58.3389 592.67,-55.0551" fill="none" stroke="black"/>
+<polygon fill="black" points="593.139,-58.5236 602.593,-53.7401 592.22,-51.5842 593.139,-58.5236" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="577.093" y="-62.5401">d9</text>
+</g>
+<!-- F1
+Flash&#45;&gt;d8 -->
+<g class="edge" id="edge7"><title>F1
+Flash:n-&gt;d8:w</title>
+<path d="M515.593,-150.74C515.593,-214.384 595.145,-149.74 658.789,-149.74" fill="none" stroke="black"/>
+</g>
+<!-- water&#45;&gt;T1
+Tank -->
+<g class="edge" id="edge8"><title>water:e-&gt;T1
+Tank:c</title>
+<path d="M53,-79.7401C66.2396,-79.7401 81.0824,-79.7401 92.8691,-79.7401" fill="none" stroke="black"/>
+</g>
+<!-- ethanol&#45;&gt;T2
+Tank -->
+<g class="edge" id="edge10"><title>ethanol:e-&gt;T2
+Tank:c</title>
+<path d="M56,-25.7401C68.1875,-25.7401 81.8032,-25.7401 92.8303,-25.7401" fill="none" stroke="black"/>
+</g>
+<!-- M1
+Mixer -->
+<g class="node" id="node1"><title>M1
+Mixer</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_0" x1="324.75" x2="428.39" y1="-54.7401" y2="-54.7401">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_0)" points="428.39,-54.7401 324.75,-108.721 324.75,-0.758807 428.39,-54.7401" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="359.296" y="-58.5401">M1</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="359.296" y="-43.5401">Mixer</text>
+</g>
+<!-- P1
+Pump -->
+<g class="node" id="node2"><title>P1
+Pump</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_1" x1="189" x2="239" y1="-79.7401" y2="-79.7401">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_1)" points="239,-101.24 189,-101.24 189,-58.2401 239,-58.2401 239,-101.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="214" y="-83.5401">P1</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="214" y="-68.5401">Pump</text>
+</g>
+<!-- T1
+Tank -->
+<g class="node" id="node3"><title>T1
+Tank</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_2" x1="93" x2="138" y1="-79.7401" y2="-79.7401">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_2)" points="138,-101.24 93,-101.24 93,-58.2401 138,-58.2401 138,-101.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="115.5" y="-83.5401">T1</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="115.5" y="-68.5401">Tank</text>
+</g>
+<!-- S1
+Splitter -->
+<g class="node" id="node4"><title>S1
+Splitter</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_3" x1="602.396" x2="721.485" y1="-53.7401" y2="-53.7401">
+<stop offset="0" style="stop-color:#bfbfbf;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:white;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_3)" points="602.396,-53.7401 721.485,0.241193 721.485,-107.721 602.396,-53.7401" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="681.789" y="-57.5401">S1</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="681.789" y="-42.5401">Splitter</text>
+</g>
+<!-- P2
+Pump -->
+<g class="node" id="node5"><title>P2
+Pump</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_4" x1="189" x2="239" y1="-25.7401" y2="-25.7401">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_4)" points="239,-47.2401 189,-47.2401 189,-4.24012 239,-4.24012 239,-47.2401" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="214" y="-29.5401">P2</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="214" y="-14.5401">Pump</text>
+</g>
+<!-- T2
+Tank -->
+<g class="node" id="node6"><title>T2
+Tank</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_5" x1="93" x2="138" y1="-25.7401" y2="-25.7401">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_5)" points="138,-47.2401 93,-47.2401 93,-4.24012 138,-4.24012 138,-47.2401" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="115.5" y="-29.5401">T2</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="115.5" y="-14.5401">Tank</text>
+</g>
+<!-- F1
+Flash -->
+<g class="node" id="node7"><title>F1
+Flash</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_6" x1="479.593" x2="551.593" y1="-109.74" y2="-109.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_6)" points="551.593,-149.24 479.593,-149.24 479.593,-70.2401 551.593,-70.2401 551.593,-149.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="515.593" y="-113.54">F1</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="515.593" y="-98.5401">Flash</text>
+</g>
+<!-- d7 -->
+<g class="node" id="node8"><title>d7</title>
+<polygon fill="#79dae8" points="822.985,-69.2401 797.985,-69.2401 797.985,-38.2401 822.985,-38.2401 822.985,-32.2401 840.985,-53.7401 822.985,-75.2401 822.985,-69.2401" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="819.485" y="-50.0401">d7</text>
+</g>
+<!-- d8 -->
+<g class="node" id="node9"><title>d8</title>
+<polygon fill="#79dae8" points="685.289,-165.24 660.289,-165.24 660.289,-134.24 685.289,-134.24 685.289,-128.24 703.289,-149.74 685.289,-171.24 685.289,-165.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="681.789" y="-146.04">d8</text>
+</g>
+<!-- water -->
+<g class="node" id="node10"><title>water</title>
+<polygon fill="#79dae8" points="33.5,-95.2401 4.5,-95.2401 4.5,-64.2401 33.5,-64.2401 33.5,-58.2401 51.5,-79.7401 33.5,-101.24 33.5,-95.2401" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="28" y="-76.0401">water</text>
+</g>
+<!-- ethanol -->
+<g class="node" id="node11"><title>ethanol</title>
+<polygon fill="#79dae8" points="38,-41.2401 3.55271e-015,-41.2401 3.55271e-015,-10.2401 38,-10.2401 38,-4.24012 56,-25.7401 38,-47.2401 38,-41.2401" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="28" y="-22.0401">ethanol</text>
+</g>
+</g>
+</svg>

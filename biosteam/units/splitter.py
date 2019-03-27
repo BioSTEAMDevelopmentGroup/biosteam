@@ -100,8 +100,8 @@ class Splitter(Unit, metaclass=metaFinal):
         if len(self.ins) > 1:
             Mixer._run(self)
         else:
-            top.copy_like(self.ins[0])
-        bot.copy_like(top)
+            top.copylike(self.ins[0])
+        bot.copylike(top)
         top.mol = top.mol*split
         bot.mol = bot.mol - top.mol
 

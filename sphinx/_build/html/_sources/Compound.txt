@@ -1,0 +1,7 @@
+Compound
+========
+
+.. module:: biosteam
+
+.. autoclass:: Compound
+   :members:

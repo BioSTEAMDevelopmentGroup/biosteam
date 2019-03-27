@@ -4,7 +4,7 @@ As BioSTEAM objects are created, weakrefs are automatically added to dictionarie
 """
 from .utils import WeakRefBook, getDict
 
-__all__ = ('find',)
+__all__ = ('find', 'stream_connector')
 
 # %% Flowsheet search
 
@@ -37,4 +37,30 @@ _dicts = (find.system,
           find.line,
           find.unit,
           find.stream)
+
+# %% Connect between different flowsheets
+
+def stream_connector(upstream, downstream):
+    """Return a function that copies specifications from `upstream` to `downstream`. This serves to connect different flowsheets.
+    
+    **Parameters**
+    
+        **upstream:** [Stream] Non-zero species of this stream should be specified in the species object of `downstream`.
+        
+        **downstream:** [Stream] Flow rate, T, P, and phase information will be copied from `upstream` to this stream.
+    
+    """
+    # Source and sink. Connection precedense goes to downstream
+    upstream._sink = downstream._sink
+    downstream._source = upstream._source
+    downstream._upstream_connection = upstream
+    def connect():
+        # Flow rate, T, P and phase
+        index, species = upstream.nonzero_species
+        downstream.setflow(upstream._molarray[index], species)
+        downstream.T = upstream.T
+        downstream.P = upstream.P
+        downstream.phase = upstream.phase
+    return connect
+
 

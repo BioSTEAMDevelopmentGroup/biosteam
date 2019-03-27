@@ -4,7 +4,7 @@ Created on Thu Aug 23 21:43:13 2018
 
 @author: yoelr
 """
-from biosteam import Unit, Stream, np
+from biosteam import Unit, Stream, np, ProxyStream
 from scipy.optimize import brentq
 from . import Evaporator_PV, Evaporator_PQin, Pump, Mixer, HXutility
 from .designtools import vacuum_system
@@ -85,23 +85,22 @@ class MultiEffectEvaporator(Unit):
         component, P, V, P_liq = (self.kwargs[i]
                                   for i in ('component', 'P', 'V', 'P_liq'))
         out_wt_solids, liq = self.outs
-        species = liq.species
         
         # Create components
         self._N_evap = n = len(P) # Number of evaporators
-        Stream.species = species
-        evap0 = Evaporator_PV('*Evaporator0', outs=('*vap', '*liq'),
+        Stream.species = liq.species
+        evap0 = Evaporator_PV('*', outs=('*', '*'),
                              component=component, P=P[0])
         
         evaporators = [evap0]
         for i in range(1, n):
-            evap = Evaporator_PQin('*Evaporator' + str(i),
-                                   outs=('*vap', '*liq', '*utility'),
+            evap = Evaporator_PQin('*',
+                                   outs=('*', '*', '*'),
                                    component=component, P=P[i], Qin=0)
             evaporators.append(evap)
-        condenser = HXutility('*Condenser', outs=Stream('*condensate'), V=0)
+        condenser = HXutility('*', outs=Stream('*'), V=0)
         evap0.heat_utilities[0], condenser.heat_utilities[0] = self.heat_utilities
-        mixer = Mixer('*Mixer', outs='*liq')
+        mixer = Mixer('*', outs='*')
         
         def V_error(v1):
             # Run first evaporator
@@ -138,7 +137,7 @@ class MultiEffectEvaporator(Unit):
         evaporators[0].ins = [Stream.like(i, '*') for i in ins]
         condenser = components['condenser']
         mixer = components['mixer']
-        brentq(self._V_error, 0.001, 0.999, xtol=0.0001)
+        brentq(self._V_error, 0.0001, 0.9909, xtol=0.0001)
         
         # Condensing vapor from last effector
         
@@ -148,7 +147,7 @@ class MultiEffectEvaporator(Unit):
         outs_liq = [condenser.outs[0]]  # list containing all output liquids
 
         # Unpack other output streams
-        out_wt_solids.copy_like(evaporators[-1].outs[1])
+        out_wt_solids.copylike(evaporators[-1].outs[1])
         for i in range(1, n):
             evap = evaporators[i]
             outs_liq.append(evap.outs[2])
@@ -156,7 +155,7 @@ class MultiEffectEvaporator(Unit):
         # Mix liquid streams
         mixer.ins = outs_liq
         mixer._run()
-        liq.copy_like(mixer.outs[0])
+        liq.copylike(mixer.outs[0])
 
     def _lazy_run(self):
         feed = self.ins[0]
@@ -183,7 +182,7 @@ class MultiEffectEvaporator(Unit):
         
         evap0 = evaporators[0]
         evap0._operation()
-        Q = abs(evap0.heat_utilities[0].results['Duty'])
+        Q = abs(evap0.heat_utilities[0].duty)
         Tci = evap0.ins[0].T
         Tco = evap0.outs[0].T
         Th = evap0.heat_utilities[0]._fresh.T
@@ -210,7 +209,7 @@ class MultiEffectEvaporator(Unit):
             if not A_range[0] < A < A_range[1]:
                 print(f'WARNING, area requirement ({A}) is out of range, {A_range}')
             evap_costs.append(C_func(A, CE))
-        
+        self._As = As
         Design['Area'] = A = sum(As)
         Design['Volume'] = vol = self._N_evap * self.tau * self.ins[0].volnet
         Cost['Evaporators'] = sum(evap_costs)

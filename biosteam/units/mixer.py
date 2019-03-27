@@ -57,23 +57,10 @@ class Mixer(Unit, metaclass=metaFinal):
     _N_outs = 1
     _has_cost = False
 
-    def __init__(self, ID='', outs_ID=(), ins_ID=None):
-        """Initialize Mixer object. See help(type(self)) for accurate signature.
-
-        **Parameters**
-
-            ID: [str] Unique identification. If set as '', a default ID will be chosen.
-
-            description: [str] User description of unit
-
-            outs_ID: tuple[str] IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.
-        
-            ins_ID: tuple[str] IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.
-            
-        """
+    def __init__(self, ID='', outs=(), ins=None):
         self.ID = ID
-        self._init_ins(ins_ID)
-        self._init_outs(outs_ID)
+        self._init_ins(ins)
+        self._init_outs(outs)
 
     def _run(self):
         Stream.sum(self.outs[0], self.ins, self._in_loop)

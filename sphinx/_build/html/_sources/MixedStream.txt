@@ -1,0 +1,9 @@
+MixedStream
+===========
+
+A MixedStream object represents a multi-phase material flow with in a chemical process.
+
+.. module:: biosteam
+
+.. autoclass:: MixedStream
+   :members: T, P, default_phase, phase, solid_mol, solid_molfrac, solid_molnet, solid_mass, solid_massfrac, solid_massnet, solid_vol, solid_volfrac, solid_volnet, liquid_mol, liquid_molfrac, liquid_molnet, liquid_mass, liquid_massfrac, liquid_massnet, liquid_vol, liquid_volfrac, liquid_volnet, LIQUID_mol, LIQUID_molfrac, LIQUID_molnet, LIQUID_mass, LIQUID_massfrac, LIQUID_massnet, LIQUID_vol, LIQUID_volfrac, LIQUID_volnet, vapor_mol, vapor_molfrac, vapor_molnet, vapor_mass, vapor_massfrac, vapor_massnet, vapor_vol, vapor_volfrac, vapor_volnet, mol, mass, vol, molfrac, massfrac, volfrac, molnet, massnet, volnet, VLE, LLE

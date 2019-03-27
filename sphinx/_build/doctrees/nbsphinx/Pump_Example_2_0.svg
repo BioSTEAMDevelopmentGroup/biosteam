@@ -1,0 +1,42 @@
+<svg height="134pt" viewBox="0.00 0.00 260.00 134.00" width="260pt" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g class="graph" id="graph0" transform="scale(1 1) rotate(0) translate(4 130)">
+<title>unit</title>
+<polygon fill="white" points="-4,4 -4,-130 256,-130 256,4 -4,4" stroke="none"/>
+<!-- P1
+Pump&#45;&gt;out -->
+<g class="edge" id="edge2"><title>P1
+Pump:c-&gt;out:w</title>
+<path d="M151.25,-63C167.458,-63 189.257,-63 208.5,-63" fill="none" stroke="black"/>
+</g>
+<!-- feed&#45;&gt;P1
+Pump -->
+<g class="edge" id="edge1"><title>feed:e-&gt;P1
+Pump:c</title>
+<path d="M42.5,-63C62.1224,-63 84.3701,-63 100.813,-63" fill="none" stroke="black"/>
+</g>
+<!-- P1
+Pump -->
+<g class="node" id="node1"><title>P1
+Pump</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_0" x1="101" x2="151" y1="-63" y2="-63">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_0)" points="151,-84.5 101,-84.5 101,-41.5 151,-41.5 151,-84.5" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="126" y="-66.8">P1</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="126" y="-51.8">Pump</text>
+</g>
+<!-- feed -->
+<g class="node" id="node2"><title>feed</title>
+<polygon fill="#79dae8" points="24.5,-78.5 -0.5,-78.5 -0.5,-47.5 24.5,-47.5 24.5,-41.5 42.5,-63 24.5,-84.5 24.5,-78.5" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="21" y="-59.3">feed</text>
+</g>
+<!-- out -->
+<g class="node" id="node3"><title>out</title>
+<polygon fill="#79dae8" points="233.5,-78.5 208.5,-78.5 208.5,-47.5 233.5,-47.5 233.5,-41.5 251.5,-63 233.5,-84.5 233.5,-78.5" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="230" y="-59.3">out</text>
+</g>
+</g>
+</svg>

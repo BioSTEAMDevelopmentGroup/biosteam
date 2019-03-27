@@ -10,12 +10,14 @@ from scipy.optimize import brentq, newton
 from graphviz import Digraph
 from .exceptions import Stop, SolverError, notify_error
 from .flowsheet import find
-from .stream import Stream, mol_units, T_units
+from .stream import Stream
 from .unit import Unit
+from .tea import TEA
 from . import np
+from .process import Process
 from .utils import color_scheme, missing_stream, strtuple, function
 from bookkeep import SmartBook
-from .sim import Block, Grid
+from .sim import Block
 CS = color_scheme
 
 __all__ = ('System',)
@@ -91,8 +93,18 @@ def notify_run_wrapper(self, func):
     wrapper._original = func
     return wrapper
     
-# %%
+# %% Other
     
+def _flatten_network(network):
+    flattend = []
+    inst = isinstance
+    for i in network:
+        if inst(i, Unit):
+            flattend.append(i)
+        elif inst(i, System):
+            flattend.extend(i._flattened_network)
+    return flattend
+
 class _systemUnit(Unit):
     """Dummy unit for displaying a system."""
     line = 'System'
@@ -177,16 +189,17 @@ class System:
         units = self.units; units.clear()
         streams = self.streams; streams.clear()
         subsystems = self.subsystems; subsystems.clear()
+        inst = isinstance
         for i in network:
-            if isinstance(i, Unit):
+            if inst(i, Unit):
                 units.add(i)
                 streams.update(i._ins)
                 streams.update(i._outs)
-            elif isinstance(i, System):
+            elif inst(i, System):
                 subsystems.add(i)
                 units.update(i.units)
                 streams.update(i.streams)
-            elif not isinstance(i, function):
+            elif not inst(i, function):
                 raise ValueError(f"Only Unit, System, and function objects are valid network elements, not '{type(i).__name__}'")
         streams.discard(missing_stream)        
         
@@ -196,38 +209,42 @@ class System:
                 u._in_loop = True
         
         #: set[Stream] All feed streams in the system.
-        self.feeds = set(filter(lambda s: not s.source[0] and s.sink[0],
+        self.feeds = set(filter(lambda s: not s._source and s._sink,
                                    streams))
         
         #: set[Stream] All product streams in the system.
-        self.products = set(filter(lambda s: s.source[0] and not s.sink[0],
+        self.products = set(filter(lambda s: s._source and not s._sink,
                                      streams)) 
         
         #: tuple[Unit, function and/or System] A network that is run element by element until the recycle converges.
         self.network = tuple(network)
+        
+        #: list[Unit] All unit operations in order of network
+        self._flattened_network = _flatten_network(network)
     
     def _set_facilities(self, facilities):
         """Set facilities and cache offsite units, streams, subsystems, feeds and products."""
         units = self.offsite_units; units.clear()
         streams = self.offsite_streams; streams.clear()
         subsystems = self.offsite_subsystems; subsystems.clear()
+        inst = isinstance
         for i in facilities:
-            if isinstance(i, Unit):
+            if inst(i, Unit):
                 units.add(i)
                 streams.update(i._ins + i._outs)
-            elif isinstance(i, System):
+            elif inst(i, System):
                 units.update(i.units)
                 streams.update(i.auxiliary_streams)
                 subsystems.add(i)
-            elif not isinstance(i, function):
+            elif not inst(i, function):
                 raise ValueError(f"Only Unit, System, and function objects are valid auxiliary elements, not '{type(i).__name__}'")
         
         #: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the network simulation.
         self.facilities = tuple(facilities)
         
-        self.feeds.update(filter(lambda s: not s.source[0] and s.sink[0],
+        self.feeds.update(filter(lambda s: not s._source and s._sink,
                                  streams))
-        self.products.update(filter(lambda s: s.source[0] and not s.sink[0],
+        self.products.update(filter(lambda s: s._source and not s._sink,
                                     streams)) 
     
     @property
@@ -271,50 +288,35 @@ class System:
         else:
             raise ValueError(f"Only 'Wegstein' and 'fixed point' methods are valid, not '{method}'")
 
-    @property
-    def _flattened_network(self):
-        flattend = []
-        for i in self.network:
-            if isinstance(i, Unit):
-                flattend.append(i)
-            elif isinstance(i, System):
-                flattend.extend(i._flattened_network)
-        return flattend
-
     
     def _downstream_network(self, unit):
         """Return a list composed of the `unit` and everything downstream."""
-        if unit not in self.units:
-            return []
-        elif self._recycle:
-            return self.network
+        if unit not in self.units: return []
+        elif self._recycle: return self.network
         unit_found = False
         downstream_units = unit._downstream_units
-        units = set()
         network = []
+        inst = isinstance
         for i in self.network:
             if unit_found:
-                if isinstance(i, System):
+                if inst(i, System):
                     for u in i.units:
                         if u in downstream_units:
                             network.append(i)
-                            units.update(i.units)
                             break
                 elif i in downstream_units:
                     network.append(i)
-                    units.add(i)
-                elif (not isinstance(i, Unit)
-                    or i.line == 'Balance'):
+                elif (not inst(i, Unit)
+                      or i.line == 'Balance'):
                     network.append(i)
             else:
                 if unit is i:
                     unit_found = True
                     network.append(unit)
-                elif isinstance(i, System):
+                elif inst(i, System):
                     if unit in i.units:
                         unit_found = True   
                         network.append(i)
-            if not (downstream_units - units): break
         return network
 
     def _downstream_system(self, unit):
@@ -327,7 +329,7 @@ class System:
             unit_not_found = True
             for i in self.facilities:
                 if unit is i or (isinstance(i, System) and unit in i.units):
-                    pos = self.facilities.index(unit)
+                    pos = self.facilities.index(i)
                     downstream_facilities = self.facilities[pos:]
                     unit_not_found = False
                     break
@@ -335,38 +337,24 @@ class System:
                 raise ValueError(f'{unit} not found in system')
         else:
             downstream_facilities = self.facilities
-        system = System(f'{type(unit).__name__} {unit} and downstream', network,
+        system = System(f'{type(unit).__name__}-{unit} and downstream', network,
                         facilities=downstream_facilities)
         cached[unit] = system
         return system
     
-    def block(self, element):
-        """Create a Block object that can simulate the element and the system downstream.
-        
-        **Parameter**
-        
-            **element:** [Unit or Stream] Element in system network or facilities.
-        
+    def _block(self, element, getter=None, setter=None):
         """
-        return Block(element, self)
-    
-    def grid(self, *blockfunc_argspace):
-        """Create a Grid object that can simulate the argument space for each block function.
-        
-        **Parameters**
-        
-            **blockfunc_argspace:** [(function, args)] Iterable of block fuctions and respective arguments.
-        
+        Convenience function that returns Block(element, self, getter, setter).
         """
-        return Grid(self, *blockfunc_argspace)
+        return Block(element, self, getter, setter)
     
     def _minimal_diagram(self):
         """Minimally display the network as a box."""
         outs = []
         ins = []
         for s in self.streams:
-            source = s.source[0]
-            sink = s.sink[0]
+            source = s._source
+            sink = s._sink
             if source in self.units and sink not in self.units:
                 outs.append(s)
             elif sink in self.units and source not in self.units:
@@ -393,8 +381,8 @@ class System:
                 outs = []
                 ins = []
                 for s in i.streams:
-                    source = s.source[0]
-                    sink = s.sink[0]
+                    source = s._source
+                    sink = s._sink
                     if source in i.units and sink not in i.units:
                         streams.add(s)
                         outs.append(s)
@@ -402,7 +390,7 @@ class System:
                         streams.add(s)
                         ins.append(s)
                 subsystem_unit = _systemUnit(i.ID, outs, ins)
-                subsystem_unit.line = 'System'
+                subsystem_unit._ID = i.ID
                 units.add(subsystem_unit)
         System('', units)._thorough_diagram()
         # Reconnect how it was
@@ -442,14 +430,27 @@ class System:
                outputorder='edgesfirst', nodesep='0.15', maxiter='10000')
         f.attr('edge', dir='foward')
 
-        for stream in self.streams:
-            if stream.ID == '' or stream.ID == 'Missing Stream':
+        for s in self.streams:
+            if s.ID == '' or s.ID == 'Missing Stream':
                 continue  # Ignore stream
-
-            oU, oi = stream._source
-            dU, di = stream._sink
-            if oU: oU = oU.ID
-            if dU: dU = dU.ID
+            
+            oU = s._source
+            if oU:
+                try: oi = oU._outs.index(s) 
+                except: oi = oU._outs.index(s._upstream_connection) # The stream says it's source is that unit, but it really means that the unit is the source of the connection stream
+                oU = oU._ID
+                    
+            else:
+                oi = None
+            dU = s._sink
+            if dU:
+                try:
+                    di = dU._ins.index(s)
+                    dU = dU._ID
+                except: # The stream is the upstream connection stream
+                    continue
+            else:
+                di = None
 
             # Make stream nodes / unit-stream edges / unit-unit edges
             if oU not in keys and dU not in keys:
@@ -460,28 +461,28 @@ class System:
                 f.attr('node', shape='rarrow', fillcolor='#79dae8',
                        style='filled', orientation='0', width='0.6',
                        height='0.6', color='black')
-                f.node(stream.ID)
+                f.node(s.ID)
                 edge_in = U[dU]._graphics.edge_in
                 f.attr('edge', arrowtail='none', arrowhead='none',
                        tailport='e', **edge_in[di])
-                f.edge(stream.ID, UD[dU])
+                f.edge(s.ID, UD[dU])
             elif dU not in keys:
                 # Product stream case
                 f.attr('node', shape='rarrow', fillcolor='#79dae8',
                        style='filled', orientation='0', width='0.6',
                        height='0.6', color='black')
-                f.node(stream.ID)
+                f.node(s.ID)
                 edge_out = U[oU]._graphics.edge_out
                 f.attr('edge', arrowtail='none', arrowhead='none',
                        headport='w', **edge_out[oi])
-                f.edge(UD[oU], stream.ID)
+                f.edge(UD[oU], s.ID)
             else:
                 # Process stream case
                 edge_in = U[dU]._graphics.edge_in
                 edge_out = U[oU]._graphics.edge_out
                 f.attr('edge', arrowtail='none', arrowhead='normal',
                        **edge_in[di], **edge_out[oi])
-                f.edge(UD[oU], UD[dU], label=stream.ID)
+                f.edge(UD[oU], UD[dU], label=s.ID)
 
         x = IPython.display.SVG(f.pipe(format='svg'))
         IPython.display.display(x)
@@ -510,10 +511,12 @@ class System:
     # Methods for running one iteration of a loop
     def _run(self):
         """Rigorous run each element of the system."""
+        inst = isinstance
         for a in self.network:
-            if isinstance(a, Unit): a._run()
-            elif isinstance(a, System): a._converge()
-            elif isinstance(a, function): a()
+            if inst(a, Unit): a._run()
+            elif inst(a, System): a._converge()
+            elif inst(a, function): a()
+            elif inst(a, Process): a._run()
         self.solver_error['iter'] += 1
     
     # Methods for convering the recycle stream
@@ -646,7 +649,6 @@ class System:
             return e
 
         def converge_spec():
-            converge()
             x = solver(error, **kwargs)
             if solver is newton: kwargs['x0'] = x
 
@@ -670,7 +672,7 @@ class System:
                 for s in (i._ins + i._outs):
                     streams.add(s)
                     if (s is not missing_stream
-                        and s.sink[0] and s.source[0]
+                        and s._sink and s._source
                         and s not in streams):
                         s.ID = ''  
             elif isinstance(i, System) and i not in subsystems:
@@ -690,18 +692,16 @@ class System:
         """Converge the network and simulate all units."""
         self._reset_iter()
         for u in self.units:
-            u._setup_linked_streams()
             if u._kwargs != u.kwargs:
                 u._setup()
                 u._kwargs = copy(u.kwargs)
+        for u in self._flattened_network:
+            u._setup_linked_streams()
         self._converge()
-        for u in self.units:
-            u._summary()
+        for u in self.units: u._summary()
         for i in self.facilities:
-            if isinstance(i, function):
-                i()
-            else:
-                i.simulate()
+            if isinstance(i, function): i()
+            else: i.simulate()
         
     # Debugging
     def _debug_on(self):
@@ -770,8 +770,8 @@ class System:
             error_info += f'\n specification error: {spec:.3g}'
 
         if recycle:
-            error_info += f"\n convergence error: Flow rate   {x['mol_error']:.2e} {CS.dim(mol_units)}"
-            error_info += f"\n                    Temperature {x['T_error']:.2e} {CS.dim(T_units)}"
+            error_info += f"\n convergence error: Flow rate   {x['mol_error']:.2e} {CS.dim('kmol/hr')}"
+            error_info += f"\n                    Temperature {x['T_error']:.2e} {CS.dim('K')}"
 
         if spec or recycle:
             error_info += f"\n iterations: {x['iter']}"
@@ -786,25 +786,26 @@ class System:
             recycle = f"\n recycle: {self.recycle}"
         error = self._error_info()
         network = strtuple(self.network)
-        i = -1; last_i = 0
+        i = 1; last_i = 0
         while True:
-            i = network.find(', ', i+1)
-            if (i-last_i) > 30:
+            i += 2
+            i = network.find(', ', i)
+            i_next = network.find(', ', i+2)
+            if (i_next-last_i) > 35:
                 network = (network[:i] + '%' + network[i:])
                 last_i = i
             elif i == -1: break
-            i += 5
         network = network.replace('%, ', ',\n'+' '*11)
             
         facilities = strtuple(self.facilities)
-        i = -1; last_i = 0
+        i = 1; last_i = 0
         while True:
-            i = facilities.find(', ', i+1)
-            if (i - last_i) > 30:
+            i += 2
+            i = facilities.find(', ', i)
+            if (i - last_i) > 35:
                 facilities = (facilities[:i] + '%' + facilities[i:])
                 last_i = i
             elif i == -1: break
-            i += 5
         facilities = facilities.replace('%, ', ',\n'+' '*14)
         
         return (f"System: {self.ID}"

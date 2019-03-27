@@ -28,7 +28,7 @@ class Tank(Unit):
         self._tau = tau
 
     def _run(self):
-            self.outs[0].copy_like(self.ins[0])
+            self.outs[0].copylike(self.ins[0])
 
 
 class StorageTank(Tank):
