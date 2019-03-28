@@ -9,7 +9,9 @@ from math import log
 from bookkeep import ReadOnlyBook
 from biosteam import Q_
 
-R = 8.3144598  # Universal gas constant (J/mol-K)
+__all__ = ('Compound',)
+
+_R = 8.3144598  # Universal gas constant (J/mol-K)
 
 # %% Integrals methods
 
@@ -18,13 +20,17 @@ def _func_int_rigorous(func, Xi, Xf):
     """Take the full integral."""
     return integrate.quad(func, Xi, Xf)[0]
 
+def _func_int_initial(func, Xi, Xf):
+    """Take the integral with a constant derivative at the initial value."""
+    return func(Xf)*(Xf-Xi)
+
+def _func_int_final(func, Xi, Xf):
+    """Take the integral with a constant derivative at the final value."""
+    return func(Xf)*(Xf-Xi)
+
 def _func_int_average(func, Xi, Xf):
     """Take the integral with a constant derivative at the average value."""
     return func((Xi+Xf)/2)*(Xf-Xi)
-
-def _func_int_constant(func, Xi, Xf):
-    """Take the integral with a constant derivative at 298.15."""
-    return func(298.15)*(Xf-Xi)
 
 
 # %% Compound class
@@ -52,10 +58,12 @@ class metaCompound(type):
             cls._func_integral = staticmethod(_func_int_rigorous)
         elif integral_type == 'average':
             cls._func_integral = staticmethod(_func_int_average)
-        elif integral_type == 'constant':
-            cls._func_integral = staticmethod(_func_int_constant)
+        elif integral_type == 'final':
+            cls._func_integral = staticmethod(_func_int_final)
+        elif integral_type == 'initial':
+            cls._func_integral = staticmethod(_func_int_final)
         else:
-            raise ValueError('Must pass one of the following types of Cp integration: \'rigorous\', \'average\', \'constant\'')
+            raise ValueError("Must pass one of the following types of Cp integration: 'rigorous', 'average', 'initial', or 'final'")
         cls._integral_type = integral_type
 
 
@@ -195,7 +203,7 @@ class Compound(metaclass=metaCompound):
 
         # Add Pressure Entropy
         if self.phase in 'lg':
-            S += -R*log(self.P/self.P_ref)
+            S += -_R*log(self.P/self.P_ref)
 
         # Add Temperature Entropy
         if phase == phase_ref:

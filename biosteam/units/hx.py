@@ -456,9 +456,9 @@ class HXutility(HX):
             * T: [float] Temperature of output stream (K).
             * V: [float] Vapor fraction of output stream.
         
-        rigorous: [bool] If true, calculate vapor liquid equilibrium
+        **rigorous:** [bool] If true, calculate vapor liquid equilibrium
         
-        U: Should be one of the following:
+        **U:** Should be one of the following:
             * [float] Overall heat transfer coefficent (kW/m^2/K)
             * [str] 'Tabulated'
             * [str] 'Concentric tubes'

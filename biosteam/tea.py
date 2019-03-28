@@ -180,6 +180,58 @@ class TEA:
         self._update_results(parameters, cashflow_data[-1, -1])
         return NPV
     
+    def operating_cost(self, *products):
+        """Return operating cost of products.
+        
+        **Parameters**
+        
+            ***products:** [Stream] Main products of the system
+        
+        .. Note::
+           If there is more than one main product, The operation cost is proportionally allocated to each of the main products with respect to their marketing values. The marketing value of each product is determined by the annual production multiplied by its selling price.
+        """
+        
+        system = self.system
+        sysfeeds = system.feeds
+        sysproducts = system.products
+        o = self.options
+        flow_factor = 24*o['Operating days']
+        o = self.options
+        FC_ = o['Other fixed capital'] # Fixed capital USD
+        UC_ = 0 # Utility cost USD/hr
+        MC_ = 0 # Material cost USD/hr
+        CP_ = 0 # Coproducts USD/hr
+        it_ = iter
+        nx_ = next
+        for sv in self._summary_values:
+            c = it_(sv())
+            FC_ += nx_(c)
+            UC_ += nx_(c)
+        for s in sysfeeds:
+            price = s.price
+            if price: MC_ += price*(s._mol*s._MW).sum()
+        for s in sysproducts:
+            if s not in products:
+                price = s.price
+                if price: CP_ += price*(s._mol*s._MW).sum()
+        # Multiply by flow_factor for USD/yr
+        UC_ *= flow_factor
+        MC_ *= flow_factor
+        CP_ *= flow_factor
+        FC_ *= (1 + o['Startup cost'] + o['Delivery'] + o['Land'])*o['Lang factor']
+        fb = o['Fringe benefits'] + o['Supplies']
+        f =  (o['Mantainance']
+            + o['Administration']
+            + o['Property tax']
+            + o['Property insurance']
+            + 1/o['Duration']) # Depreciation
+        L_ = o['Wage']*o['Employees']
+        total_operating_cost = UC_ + (1+fb)*L_ + MC_ + f*FC_ + o['Other recurring costs']
+        market_values = np.array([i.cost for i in products])
+        weights = market_values/market_values.sum()
+        operating_cost = weights*total_operating_cost
+        return operating_cost
+    
     def _get_cached_data(self):
         """Return cached data.
         

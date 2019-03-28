@@ -49,20 +49,6 @@ class metaWrap(metaFinal):
 
          **order:** [str] if 'before', the declared methods will run before the superclass method definitions. If 'after', the run declared methods run after the superclass method definitions.
 
-        **Optional**
-
-             **kwargs:** [dict] New keyword arguments
-    
-             **setup():** Create components and cached data
-    
-             **run():** Run rigorous simulation
-    
-             **operation():** Find operation requirements
-    
-             **design():** Find design requirements
-    
-             **cost():** Find capital and annual cost
-
     .. Note::
 
          * Classes from metaWrap are end-of-the-line/final classes. No further inheritance can be made. 
@@ -70,8 +56,7 @@ class metaWrap(metaFinal):
     def __new__(mcl, name, bases, dct):
         # Make sure an order was given
         order = dct.get('order')
-        if not order:
-            raise metaError("Missing class definition 'order'")
+        if not order: raise metaError("Missing class definition 'order'")
 
         # Make sure only one base is given
         if len(bases) != 1:
@@ -82,7 +67,7 @@ class metaWrap(metaFinal):
         dct['kwargs'].update(base.kwargs)
 
         # Wrap old methods with new methods
-        for key in ('setup', 'run', 'operation', 'design', 'cost'):
+        for key in ('_setup', '_run', '_operation', '_design', '_cost'):
             new_method = dct.get(key)
             if new_method:
                 dct[key] = wrap_wrapper(getattr(base, key), new_method, order)

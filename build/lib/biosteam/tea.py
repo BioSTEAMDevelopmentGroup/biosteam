@@ -10,6 +10,8 @@ from bookkeep import SmartBook
 from scipy.optimize import newton
 from biosteam.utils import CS
 
+__all__ = ('TEA',)
+
 _DataFrame = pd.DataFrame
 _array = np.array
 _asarray = np.asarray
@@ -23,11 +25,12 @@ _MACRS = {'MACRS5':  _array([.2000, .3200, .1920,
           
           'MACRS7':  _array([.1429, .2449, .1749,
                              .1249, .0893, .0892,
-                             .0883, .0446]),
+                             .0893, .0446]),
           
           'MACRS10': _array([.1000, .1800, .1440,
                              .1152, .0922, .0737,
-                             .0655, .0655, .0328]),
+                             .0655, .0655, .0656,
+                             .0655, .0328]),
 
           'MACRS15': _array([.0500, .0950, .0855,
                              .0770, .0693, .0623,
@@ -101,32 +104,36 @@ class TEA:
                 'Delivery': 0,
                 'Land': 0,
                 'Depreciation': 'MACRS7',
-                'Startup schedule': (0.4, 0.6)}
+                'Startup schedule': (0.4, 0.6),
+                'Other recurring costs': 0,
+                'Other fixed capital': 0}
     
     @property
     def options(self):
         """
         [dict] Options for cash flow analysis [-]:
-            * **Lang factor:** Used to get fixed capital investment from total purchase cost
-            * **Operating days:** (day)
-            * **IRR:** Internal rate of return (fraction)
-            * **Wage:** Wage per employee (USD/yr)
-            * **Year:** Start year of venture
-            * **Employees:** Number of employees
-            * **Fringe benefits:** Cost of fringe benefits as a fraction of labor cost
-            * **Income tax:** Combined federal and state income tax rate (fraction)
-            * **Property tax:** Fee as a fraction of fixed capital investment
-            * **Property insurance:** Fee as a fraction of fixed capital investment
-            * **Duration:** Duration of venture (years)
-            * **Supplies:** Yearly fee as a fraction of labor costs
-            * **Mantainance:** Yearly fee as a fraction of fixed capital investment
-            * **Administration:** Yearly fee as a fraction of fixed capital investment
-            * **Working capital:** Fee as a fraction of fixed capital investment
-            * **Startup cost:** Cost of start up as a fraction of fixed capital investment
-            * **Delivery:** Delibery of equipment fee as a fraction of fixed capital investment 
-            * **Land:** Cost of land as a fraction of fixed capital investment
+            * **Lang factor:** Used to get fixed capital investment from total purchase cost.
+            * **Operating days:** (day).
+            * **IRR:** Internal rate of return (fraction).
+            * **Wage:** Wage per employee (USD/yr).
+            * **Year:** Start year of venture.
+            * **Employees:** Number of employees.
+            * **Fringe benefits:** Cost of fringe benefits as a fraction of labor cost.
+            * **Income tax:** Combined federal and state income tax rate (fraction).
+            * **Property tax:** Fee as a fraction of fixed capital investment.
+            * **Property insurance:** Fee as a fraction of fixed capital investment.
+            * **Duration:** Duration of venture (years).
+            * **Supplies:** Yearly fee as a fraction of labor costs.
+            * **Mantainance:** Yearly fee as a fraction of fixed capital investment.
+            * **Administration:** Yearly fee as a fraction of fixed capital investment.
+            * **Working capital:** Fee as a fraction of fixed capital investment.
+            * **Startup cost:** Cost of start up as a fraction of fixed capital investment.
+            * **Delivery:** Delibery of equipment fee as a fraction of fixed capital investment .
+            * **Land:** Cost of land as a fraction of fixed capital investment.
             * **Depreciation:** 'MACRS' + number of years (e.g. 'MACRS7').
             * **Startup schedule:** tuple of startup investment fractions per year, starting from year 0. For example, for 50% capital investment in year 0 and 50% investment in year 1: array([0.5, 0.5]).
+            * **Other recurring costs:** Any additional recurring costs per year of operation.
+            * **Other fixed capital:** Any additional investment not accounted for in equipment cost.
         """
         return self._options
     
@@ -157,20 +164,21 @@ class TEA:
                                 system.units.union(system.offsite_units)
                                 if u._has_cost]
         
-        system.TEA = self
+        system.tea = self
 
-    def __call__(self):
-        """Perform cash flow analysis and update the "results" and "cashflow" attributes."""
+    def NPV(self):
+        """Calculate NPV by cash flow analysis and update the "results" and "cashflow" attributes."""
         flow_factor, cashflow_info, depreciation_data = self._get_cached_data()
         cashflow_data, duration_array = cashflow_info
         parameters = self._calc_parameters(flow_factor)
         self._calc_cashflow(cashflow_data,
                             parameters[:-3],
                             depreciation_data)
-        self._calc_NPV(self.options['IRR'],
-                       cashflow_data[-3:],
-                       duration_array)
+        NPV = self._calc_NPV_and_update(self.options['IRR'],
+                                        cashflow_data[-3:],
+                                        duration_array)
         self._update_results(parameters, cashflow_data[-1, -1])
+        return NPV
     
     def _get_cached_data(self):
         """Return cached data.
@@ -191,7 +199,7 @@ class TEA:
             
         """
         # Keys for cached data
-        o = self.options
+        o = self._options
         cached = self._cached
         year_duration = (o['Year'], o['Duration'])
         depreciation_schedule = (o['Depreciation'], o['Startup schedule'])
@@ -227,7 +235,7 @@ class TEA:
     
     def _calc_parameters(self, flow_factor):
         """Return elementary cash flow parameters."""
-        # Cash flow parameters
+        # Cash flow parameters (USD or USD/yr)
         # FC_: Fixed capital cost
         # WC_: Working capital cost
         # UC_: Utility cost
@@ -237,37 +245,38 @@ class TEA:
         # C_: Annual operating cost (excluding depreciation)
         
         system = self.system
-        
         feeds = system.feeds
         products = system.products
-        FC_ = 0 # Fixed capital USD
+        o = self.options
+        FC_ = o['Other fixed capital'] # Fixed capital USD
         UC_ = 0 # Utility cost USD/hr
         MC_ = 0 # Material cost USD/hr
-        S_ = 0  # Sales USD/hr
+        S_  = 0 # Sales USD/hr
+        it_ = iter
+        nx_ = next
         for sv in self._summary_values:
-            c = iter(sv())
-            FC_ += next(c)
-            UC_ += next(c)
+            c = it_(sv())
+            FC_ += nx_(c)
+            UC_ += nx_(c)
         for s in feeds:
             price = s.price
             if price: MC_ += price*(s._mol*s._MW).sum()
         for s in products:
             price = s.price
             if price: S_ += price*(s._mol*s._MW).sum()
-        o = self.options
+        # Multiply by flow_factor for USD/yr
         UC_ *= flow_factor
         MC_ *= flow_factor
         S_ *= flow_factor
         FC_ *= (1 + o['Startup cost'] + o['Delivery'] + o['Land'])*o['Lang factor']
-        wcf = o['Working capital']
         fb = o['Fringe benefits'] + o['Supplies']
         f =  (o['Mantainance']
             + o['Administration']
             + o['Property tax']
             + o['Property insurance'])
-        WC_ = wcf*FC_
+        WC_ = o['Working capital']*FC_
         L_ = o['Wage']*o['Employees']
-        C_ = UC_ + (1+fb)*L_ + MC_ + f*FC_
+        C_ = UC_ + (1+fb)*L_ + MC_ + f*FC_ + o['Other recurring costs']
         return FC_, WC_, S_, C_, o['Income tax'], UC_, MC_, L_
     
     @staticmethod
@@ -302,17 +311,22 @@ class TEA:
         CF[:] = (NE + D) - C_DC - C_WC
     
     @staticmethod
-    def _calc_NPV(IRR, CF_subset, duration_array):
-        """Return NPV at given IRR and cashflow data."""
+    def _calc_NPV_and_update(IRR, CF_subset, duration_array):
+        """Return NPV at given IRR and cashflow data. Update cash flow subset."""
         CF, DCF, CPV = CF_subset
         DCF[:] = CF/(1+IRR)**duration_array
         CPV[:] = DCF.cumsum()
         return CPV[-1]
-        
+    
+    @staticmethod
+    def _calc_NPV(IRR, CF, duration_array):
+        """Return NPV at given IRR and cashflow data."""
+        return (CF/(1+IRR)**duration_array).sum()
+    
     def _update_results(self, parameters, NPV):
         """Update results attribute."""
         FCI, WC, S, C, tax, UC, MC, L = parameters
-        D = FCI/self.options['Duration']
+        D = FCI/self._options['Duration']
         AOC = C + D
         TCI = FCI + WC
         net_earnings = (1-tax)*(S-AOC)
@@ -349,23 +363,23 @@ class TEA:
                             parameters[:-3],
                             depreciation_data)
         
-        # Setup arguments for solver
-        data_subset = cashflow_data[-3:]
-        old_data_subset = _array(data_subset)
+        # Guess for solver
         guess = self._IRR_guess
-        IRR_guess = guess if guess else self.options['IRR']
-        args = (data_subset, duration_array)
+        IRR_guess = guess if guess else self._options['IRR']
         
         # Solve
-        self._IRR_guess = IRR = newton(self._calc_NPV, IRR_guess, args=args)
         if update:
-            self.options['IRR'] = IRR
+            data_subset = cashflow_data[-3:]
+            args = (data_subset, duration_array)
             self._calc_cashflow(cashflow_data,
                                 parameters[:-3],
                                 depreciation_data)
+            self._IRR_guess = IRR = newton(self._calc_NPV_and_update, IRR_guess, args=args)
+            self.options['IRR'] = IRR
             self._update_results(parameters, data_subset[-1, -1])
         else:
-            data_subset[:] = old_data_subset
+            self._IRR_guess = IRR = newton(self._calc_NPV, IRR_guess,
+                                           args=(cashflow_data[-3], duration_array))
         return IRR
     
     def solve_price(self, stream, update=False):
@@ -378,12 +392,6 @@ class TEA:
             **update:** [bool] If True, update stream price, cashflow, and results.
             
         """
-        # Exclude stream cost when calculating cash flow
-        data = _asarray(self.cashflow)
-        data_old = _array(data)
-        price_old = stream.price
-        stream.price = 0
-        
         # Calculate cashflow table
         flow_factor, cashflow_info, depreciation_data = self._get_cached_data()
         cashflow_data, duration_array = cashflow_info
@@ -393,13 +401,11 @@ class TEA:
                             depreciation_data)
         
         # Create function that adjusts cash flow with new stream price
-        data_subset = cashflow_data[-3:]
         start = depreciation_data[0]
         tax = parameters[-4]
         IRR = self.options['IRR']
-        calc_NPV = self._calc_NPV
         cost_factor = stream.massnet*flow_factor*(1-tax)
-        CF = data_subset[0][start:]
+        CF = cashflow_data[-3][start:]
         CF_copy = _array(CF)
         system = self.system
         if stream in system.feeds:
@@ -409,25 +415,34 @@ class TEA:
         else:
             raise ValueError(f"Stream '{stream.ID}' must be either a feed or a product of the system")
         
-        def break_even_point(cost):
-            CF[:] = adjust(cost)
-            return calc_NPV(IRR, data_subset, duration_array)
+        # Guess cost adjustment for solver
+        guess = self._cost_guess
+        cost_guess = 0 if guess is None else guess
         
         # Solve
-        guess = self._cost_guess
-        cost_guess = guess if guess else price_old*cost_factor
-        self._cost_guess = cost = newton(break_even_point, cost_guess)
-        price = cost/cost_factor
         if update:
+            calc_NPV = self._calc_NPV_and_update
+            data_subset = cashflow_data[-3:]
+            def break_even_point(cost):
+                CF[:] = adjust(cost)
+                return calc_NPV(IRR, data_subset, duration_array)
+            self._cost_guess = cost = newton(break_even_point, cost_guess)
+            stream.price += cost/cost_factor
+            price = stream.price
             parameters = self._calc_parameters(flow_factor)
             self._calc_cashflow(cashflow_data,
                                 parameters[:-3],
                                 depreciation_data)
             self._update_results(parameters, data_subset[-1, -1])
-            stream.price = price
         else:
-            data[:] = data_old
-            stream.price = price_old
+            calc_NPV = self._calc_NPV
+            data_subset = cashflow_data[-3]
+            def break_even_point(cost):
+                CF[:] = adjust(cost)
+                return calc_NPV(IRR, data_subset, duration_array)
+            self._cost_guess = cost = newton(break_even_point, cost_guess)
+            price = stream.price + cost/cost_factor
+        
         return price
     
     def __repr__(self):
@@ -441,7 +456,7 @@ class TEA:
             NPV = r['Net present value']
             ROI = r['Return on investment']
             PBP = r['Pay back period']
-            out += f' NPV: {NPV:.3g} ' + CS.dim(f'USD at %{IRR:.1f} IRR') + '\n'
+            out += f' NPV: {NPV:.3g} ' + CS.dim(f'USD at {IRR:.1f}% IRR') + '\n'
             out += f' ROI: {ROI:.3g} ' + CS.dim('1/yr') + '\n'
             out += f' PBP: {PBP:.3g} ' + CS.dim('yr') 
         else:

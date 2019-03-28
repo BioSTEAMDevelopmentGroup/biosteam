@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from scipy.optimize import newton, least_squares
 from .utils import material_array, property_array, PropertyFactory, \
                    tuple_array, reorder, fraction, Sink, Source
-from .flowsheet import find
+from .flowsheet import Flowsheet
 from .species import Species
 from .compound import Compound
 from .exceptions import SolverError, EquilibriumError, \
@@ -688,6 +688,10 @@ class Stream(metaclass=metaStream):
             self._default_ID[1] += 1
             num = str(number)
             ID = letter + num
+            if not self._ID:
+                self._ID = ID
+                Flowsheet._main.stream[ID] = self
+                return 
         elif ID == '*':
             # Ignore and do not include in find dicts
             self._ID = ID
@@ -695,8 +699,9 @@ class Stream(metaclass=metaStream):
         elif any(i in ID for i in '`~!@#$%^&():'):
             raise ValueError('ID cannot contain any of the following special characters: `~!@#$%^&():')
         # Remove old ref and set a new ref
-        if self._ID: del find.stream[self._ID]
-        find.stream[ID] = self
+        stream = Flowsheet._main.stream
+        if self._ID in stream: del stream[self._ID]
+        stream[ID] = self
         self._ID = ID
 
     @property

@@ -17,7 +17,12 @@ __all__ = ('Block', 'emptyblock')
 # %% Simulation blocks
 
 class Block:
-    """Create a Block object that can simulate an `element` and the `system` downstream.
+    """
+    **If neither getter or setter is passed:** Create a Block object that can simulate the element and the system downstream. The block can also generate block functions.
+        
+    **If either a getter or a setter is passed:** Create a decorator that returns a block function with the missing argument.
+    
+    **If both a getter and a setter are passed:** Create a block function that wraps the setter and getter around the `block.simulate()` method. 
     
     **Parameters**
     
@@ -54,7 +59,7 @@ class Block:
        >>> P0 = Unit('P0', outs=Stream())
        >>> P1 = Unit('P1', ins=P0-0)
        >>> P2 = Unit('P2', ins=P1-0)
-       >>> system = System('', network=[P0, P1, P2])
+       >>> system = System('', network=(P0, P1, P2))
        >>> block = Block(P1, system)
        >>> block.show()
        [Block: Unit-P1 and downstream]
@@ -64,13 +69,13 @@ class Block:
        
     .. Note::
         
-       Simulating the block will simulate the system only if kwargs of the unit has changed. Otherwise, it wil only cost the system.
+       Simulating the block (e.g. `block.simulate()`) will simulate the system only if kwargs of the unit has changed. Otherwise, it wil only cost the system.
     
     If both a getter and a setter are given, create a block function equivalent to:
         
     .. code-block:: python
     
-       >>> def blockfunction(args):
+       >>> def blockfunc(args):
        ...     setter(args)
        ...     self.simulate() # self is the Block object
        ...     return getter()  
@@ -79,11 +84,12 @@ class Block:
         
     .. code-block:: python
     
+       >>> # getter and setter functions are hypothetical
        >>> def getter(): pass
-       >>> def setter(efficiency): P1.kwargs['nu'] = efficiency
-       >>> block_function = Block(P1, None, getter, setter)
-       >>> block_function
-       <function [Block P1] getter(efficiency)>
+       >>> def setter(args): pass
+       >>> blockfunc = Block(P1, None, getter, setter)
+       >>> blockfunc
+       <function [Block P1] getter(args)>
     
     .. Note::
         
@@ -93,19 +99,21 @@ class Block:
     
     .. code-block:: python
     
+       >>> def getter(): pass
        >>> @Block(P1, system, getter)
-       ... def func(args): pass
-       >>> func
+       ... def setter(args): pass
+       >>> setter
        <function [Block P1] getter(args)>
        
     Alternatively:
         
     .. code-block:: python
     
-       >>> @Block(P1, system, setter=setter)
-       ... def func(args): pass
-       >>> func
-       <function [Block P1] func(args)>
+       >>> def setter(args): pass
+       >>> @system.block(P1, setter=setter)
+       >>> def getter(): pass
+       >>> getter
+       <function [Block P1] getter(args)>
     
     Block objects serve as decorators that return a block function given a getter or a setter:
         
@@ -113,8 +121,8 @@ class Block:
        
        >>> block = Block(P1, system)
        >>> @block(getter)
-       ... def func(args): pass
-       >>> func
+       ... def setter(args): pass
+       >>> setter
        <function [Block P1] getter(args)>
     
     """
@@ -133,13 +141,11 @@ class Block:
         if getter or setter: return self(getter, setter)
         else: return self
     
-    def __init__(self, element=None, system=None):
-        if isinstance(element, Stream):
-            unit = element.sink[0]
-        elif isinstance(element, Unit):
-            unit = element
-        else:
-            raise ValueError(f"element must be either a Unit, a Stream object, not '{type(element).__name__}'.")
+    def __init__(self, element, system=None):
+        inst = isinstance
+        if inst(element, Stream): unit = element.sink
+        elif inst(element, Unit): unit = element
+        else: raise ValueError(f"element must be either a Unit, a Stream object, not '{type(element).__name__}'.")
         if not system:
             subsys = system
             if element is Unit:
@@ -157,10 +163,9 @@ class Block:
                     subsys._reset_iter()
                     unit._setup()
                     subsys._converge()
-                    for u in subsys.units:
-                        u._summary()
+                    for u in subsys.units: u._summary()
                 for i in subsys.facilities:
-                    if isinstance(i, function):
+                    if inst(i, function):
                         i()
                     else:
                         i._run()
@@ -179,10 +184,9 @@ class Block:
                     return
                 subsys._reset_iter()
                 subsys._converge()
-                for u in subsys.units:
-                    u._summary()
+                for u in subsys.units: u._summary()
                 for i in subsys.facilities:
-                    if isinstance(i, function):
+                    if inst(i, function):
                         i()
                     else:
                         i._run()
@@ -197,14 +201,12 @@ class Block:
     
     def _make_blockfunc(self, getter, setter, docfunc):
         # Prevent downstream exceptions
-        getter_param =signature(getter).parameters
+        getter_param = signature(getter).parameters
         if getter_param:
             for p in getter_param.values():
                 if '=' not in str(p):
                     raise ValueError(f'{type(self).__name__} getter signature cannot have arguments.')
         sig = signature(setter)
-        # import pdb
-        # pdb.set_trace()
         setter_params = tuple(sig.parameters.keys())
         param = ', '.join(setter_params)
         if len(setter_params) != 1: 
@@ -229,12 +231,6 @@ class Block:
         blockfunc._block = self
         blockfunc._setter = setter
         blockfunc._getter = getter
-        # annotations = blockfunc.__annotations__
-        # if 'return' in getter.__annotations__:
-        #     annotations['return'] = getter.__annotations__['results']
-        # for i in setter_params:
-        #     sa = setter.__annotations__
-        #     if i in sa: annotations[i] = sa[i]
         return blockfunc
     
     def _make_decorator(self, getter, setter):

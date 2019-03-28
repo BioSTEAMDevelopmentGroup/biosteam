@@ -6,7 +6,7 @@ Created on Sat Aug 18 13:42:33 2018
 """
 from .chemical import Chemical
 from .compound import Compound
-from . import np, units_of_measure
+from . import np
 from .exceptions import IDconflict
 from .utils import missing_method
 
@@ -36,7 +36,7 @@ class Species:
         **cls:** [type Compound] The type of objects that will be created and stored as attributes. Defaults to biosteam.Chemical
         
     """
-    units = units_of_measure
+    units = Compound.units
     _immutable = set()
     
     @classmethod
@@ -108,7 +108,7 @@ class Species:
             species = (getattr(self, species_IDs),)
         else:
             species = (getattr(self, i) for i in species_IDs)
-        return self._get_props(species, prop_ID, T, P, phase)
+        return self._getprops(species, prop_ID, T, P, phase)
 
     @staticmethod
     def _getprops(species, prop_ID, T, P, phase) -> list:

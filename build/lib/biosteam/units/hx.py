@@ -20,15 +20,15 @@ p2 = np.polyfit(x,y,2)
 
 # Materials of Construction Shell/Tube	       a and b in Eq. (16.44)
 F_Mdict =  {'Carbon steel/carbon steel':       (0, 0),
-            'Carbon steel/brass':	           (1.08, 0.05),
-            'Carbon steel/stainles steel':	   (1.75, 0.13),
-            'Carbon steel/Monel':	           (2.1, 0.13),
+            'Carbon steel/brass':	            (1.08, 0.05),
+            'Carbon steel/stainles steel':	  (1.75, 0.13),
+            'Carbon steel/Monel':	            (2.1, 0.13),
             'Carbon steel/titanium':	       (5.2, 0.16),
             'Carbon steel/Cr-Mo steel':        (1.55, 0.05),
             'Cr-Mo steel/Cr-Mo steel':	       (1.7, 0.07),
             'Stainless steel/stainless steel': (2.7, 0.07),
-            'Monel/Monel':	                   (3.3, 0.08),
-            'Titanium/titanium':	           (9.6, 0.06)}
+            'Monel/Monel':	                 (3.3, 0.08),
+            'Titanium/titanium':	            (9.6, 0.06)}
 
 # Purchase price
 Cb_dict = {'Floating head':
@@ -201,12 +201,12 @@ class HX(Unit):
         
         if inside_heating:
             # Cold stream goes in tube side
-            s_tube.copy_like(ci); s_tube.T = Tc_ave
-            s_shell.copy_like(hi); s_shell.T = Th_ave
+            s_tube.copylike(ci); s_tube.T = Tc_ave
+            s_shell.copylike(hi); s_shell.T = Th_ave
         else:
             # Hot stream goes in tube side
-            s_tube.copy_like(hi); s_tube.T = Th_ave
-            s_shell.copy_like(ci); s_shell.T = Tc_ave
+            s_tube.copylike(hi); s_tube.T = Th_ave
+            s_shell.copylike(ci); s_shell.T = Tc_ave
         return s_tube, s_shell
 
     @staticmethod
@@ -312,7 +312,7 @@ class HX(Unit):
     @staticmethod
     def _calc_ft(Tci, Thi, Tco, Tho, N_shells) -> 'ft':
         """Return LMTD correction factor."""
-        if (Tco - Tci)/Tco < 0.01 and (Thi-Tho)/Tho < 0.01:
+        if (Tco - Tci)/Tco < 0.01 or (Thi-Tho)/Tho < 0.01:
             return 1
         try:
             return ht.F_LMTD_Fakheri(Thi, Tho, Tci, Tco,
@@ -354,7 +354,10 @@ class HX(Unit):
        
         # Get log mean temperature difference
         Tci, Thi, Tco, Tho = ci.T, hi.T, co.T, ho.T
-        LMTD = ht.LMTD(Thi, Tho, Tci, Tco)
+        dTF1 = Thi-Tco
+        dTF2 = Tho-Tci
+        dummy = abs(dTF2/dTF1)
+        LMTD = (dTF2 - dTF1)/log(dummy) if dummy > 1.1 else dTF1
         
         # Get correction factor
         if self._ft:
@@ -482,7 +485,7 @@ class HXutility(HX):
     def _run(self):
         feed = self.ins[0]
         s = self.outs[0]
-        s.copy_like(feed)
+        s.copylike(feed)
         kwargs = self.kwargs
         T = kwargs['T']
         V = kwargs['V']
@@ -515,8 +518,9 @@ class HXutility(HX):
     def _operation(self):
         # Set duty and run heat utility
         util = self.heat_utilities[0]
-        self._Duty = util(self._H_out-self._H_in,
-                          self.ins[0].T, self.outs[0].T)['Duty']
+        util(self._H_out-self._H_in,
+             self.ins[0].T, self.outs[0].T)
+        self._Duty = util.duty 
 
     def _get_streams(self):
         """Return cold and hot inlet and outlet streams.
@@ -609,14 +613,14 @@ class HXprocess(HX):
         if species_IDs:
             feed = self.outs[0]
             _species = feed._species
-            self._species_index = tuple(getattr(_species, ID) for ID in species_IDs), feed.get_index(*species_IDs)
+            self._species_index = tuple(getattr(_species, ID) for ID in species_IDs), feed.indices(*species_IDs)
     
     def _run(self):
         hx = True # If false, a stream is empty and no heat exchanger occurs
         for si, so in zip(self.ins, self.outs):
             if si.molnet <= 0.001:
                 hx = False
-            so.copy_like(si)
+            so.copylike(si)
         if hx:
             Type = self.kwargs['Type']
             try:
@@ -666,6 +670,7 @@ class HXprocess(HX):
             species, index = self._species_index
         else:
             species, index = s1_out._equilibrium_species()
+            species = tuple(species)
             species_IDs = tuple(s.ID for s in species)
         z = s1_out.mol[index]/s1_out.molnet
         P = s1_out.P
@@ -686,7 +691,7 @@ class HXprocess(HX):
         # Calculate maximum latent heat and new temperature of sensible stream
         Duty = s1_in.H - s1_out.H
         T_s2_new = s2_out.T + Duty/s2_out.C
-        s1_out.copy_like(s1_in)
+        s1_out.copylike(s1_in)
         
         if boiling and T_s2_new < T_pinch:
             # Partial boiling if temperature falls below pinch
@@ -713,7 +718,7 @@ class HXprocess(HX):
         s1_in, s2_in = self.ins
         s1_out, s2_out = self.outs
         kwargs = self.kwargs
-        species_IDs = kwargs['species_IDs']
+        species_IDs_ = kwargs['species_IDs']
         LNK = kwargs['LNK']
         HNK = kwargs['HNK']
         
@@ -747,10 +752,12 @@ class HXprocess(HX):
             sp_out = s2_out
         
         # Arguments for dew and bubble point
-        if species_IDs:
+        if species_IDs_:
             species, index = self._species_index
+            species_IDs = species_IDs_
         else:
-            species, index = s1_out._equilibrium_species()
+            species, index = sc_out._equilibrium_species()
+            species = tuple(species)
             species_IDs = tuple(s.ID for s in species)
         z = sc_out.mol[index]/sc_out.molnet
         P = sc_out.P
@@ -763,13 +770,14 @@ class HXprocess(HX):
             sc_out.T = sc_out._bubble_point(species, z, P)[0]
         
         # Arguments for VLE
-        if not species_IDs:
+        if species_IDs_:
+            species_IDs = species_IDs_
+        else:
             species, _ = sp_out._equilibrium_species()
             species_IDs = tuple(s.ID for s in species)
         
         Duty = (sc_in.H-sc_out.H)
         sp_out.VLE(species_IDs, LNK, HNK, Qin=Duty)
-        
         self._Duty = abs(Duty)
     
     def _operation(self):

@@ -8,6 +8,7 @@ from biosteam import Unit
 
 class Shredder(Unit):
     _has_power_utility = True
+    _has_linked_streams = True
     _N_outs = 1
     
     #: Original Price (USD)
@@ -26,7 +27,7 @@ class Shredder(Unit):
     CEPCI_0 = 567.3
     
     def _run(self):
-        self.outs[0].copy_like(self.ins[0])
+        self.outs[0].copylike(self.ins[0])
     
     def _cost(self):
         # Size factor

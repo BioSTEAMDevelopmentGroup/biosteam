@@ -330,12 +330,12 @@ class Dist(Unit):
         x = liq_mol/sum(liq_mol)
 
         # Run top equilibrium to find temperature and composition of condensate
-        T, y = vap._dew_point(species=tuple(vle_top), y=y, P=vap.P)
+        T, y = vap._dew_point(species=(*vle_top,), y=y, P=vap.P)
         cached['condensate_molfrac'] = y
         vap.T = T
 
         # Run bottoms equilibrium to find temperature
-        T, y = liq._bubble_point(species=tuple(vle_bot), x=x, P=liq.P)
+        T, y = liq._bubble_point(species=(*vle_bot,), x=x, P=liq.P)
         cached['boilup_molfrac'] = y
         liq.T = T
 
@@ -399,7 +399,8 @@ class Dist(Unit):
         
         bubble_point = vap._bubble_point
         for xi in x_eq:
-            T[n], y = bubble_point(species_IDs, array([xi, 1-xi]), P)
+            T[n], y = bubble_point(self._LHK_species,
+                                   array([xi, 1-xi]), P)
             y_eq[n] = y[0]
             n += 1
             
@@ -727,14 +728,14 @@ class Dist(Unit):
         bottoms = self.outs[1]
         boil_up = self._cached['boil_up'] # Abstract instance
         boiler = self._boiler
-        s_in = Stream(ID='*', flow=bottoms.mol+boil_up.mol,
-                      phase='g', species=boil_up.species,
-                      T=bottoms.T, P=bottoms.P)
-        ms1 = MixedStream(ID='*', vapor_flow=boil_up.mol,
-                          species=boil_up.species,
-                          T=boil_up.T, P=boil_up.P)
+        s_in = boiler.ins[0]
+        s_in.copylike(bottoms)
+        s_in._mol += boil_up.mol
+        ms1 = boiler.outs[0]
+        ms1.T = boil_up.T
+        ms1.P = boil_up.P
+        ms1.vapor_mol = boil_up.mol
         ms1.liquid_mol = bottoms.mol
-        s_in-boiler-ms1
         boiler._operation()
         boiler._design()
         boiler._cost()
@@ -770,14 +771,15 @@ class Distillation(Dist):
     _graphics = Dist._graphics
     
     def _init(self):
-        self._condenser = HXutility(self.ID+' condenser', None)
-        self._boiler = HXutility(self.ID+' boiler', None)
-        self._cached = cached = {}
-        cached['condensate'] = Stream('*')
-        cached['vapor stream'] = Stream('*')
-        condenser = self._condenser
-        condenser.ins[0] = Stream('*', phase='g')
-        condenser.outs[0] = MixedStream('*')
+        self._condenser = HXutility('*',
+                                    ins=Stream('*', phase='g'),
+                                    outs=MixedStream('*'))
+        self._boiler = HXutility('*',
+                                 ins=Stream('*'),
+                                 outs=MixedStream('*'))
+        self._cached = {'condensate': Stream('*'),
+                        'boil_up': Stream('*'),
+                        'vapor stream': Stream('*')}
     
     def _operation(self):
         """
@@ -832,14 +834,9 @@ class Distillation(Dist):
             q = 1 - 1e-5
         self._q_line = q_line = lambda x: q*x/(q-1) - zf/(q-1)
         
-        y = None
-        def Rmin_intersection(x):
-            nonlocal y
-            T_guess, y = bubble_point(LHK_species, array((x, 1-x)), P)
-            return q_line(x) - y[0]
-        
+        Rmin_intersection = lambda x: q_line(x) - bubble_point(LHK_species, array((x, 1-x)), P)[1][0]
         x_Rmin = brentq(Rmin_intersection, 0, 1)
-        y_Rmin = y[0]
+        y_Rmin = q_line(x_Rmin)
         m = (y_Rmin-y_top)/(x_Rmin-y_top)
         Rmin = m/(1-m)
         if Rmin <= 0:
@@ -850,16 +847,17 @@ class Distillation(Dist):
         # Rectifying section: Inntersects q_line with slope given by R/(R+1)
         m1 = R/(R+1)
         b1 = y_top-m1*y_top
-        def rs(y) -> 'x': return (y - b1)/m1
-        def intersect1(y) -> 'error': return y - q_line(rs(y))
-        self._y_m = y_m = brentq(intersect1, 0, 1)
+        rs = lambda y: (y - b1)/m1 # -> x
+        
+        # y_m is the solution to lambda y: y - q_line(rs(y))
+        self._y_m = y_m = (q*b1 + m1*zf)/(q - m1*(q-1))
         self._x_m = x_m = rs(y_m)
         
         # Stripping section: Intersects Rectifying section and q_line and beggins at bottoms liquid composition
         m2 = (x_bot-y_m)/(x_bot-x_m)
         b2 = y_m-m2*x_m
-        def ss(y) -> 'x': return (y - b2)/m2
-                
+        ss = lambda y: (y-b2)/m2 # -> x        
+        
         # Data for staircase
         cached['x_stages'] = x_stages = [x_bot]
         cached['y_stages'] = y_stages = [x_bot]
@@ -928,7 +926,7 @@ class Distillation(Dist):
             cached['L_Rmol'] = L_Rmol = R*vap_molnet
             cached['V_Rmol'] = V_Rmol = (R+1)*vap_molnet
             condensate = cached['condensate']
-            condensate.set_flow(condensate_molfrac, vle_top)
+            condensate.setflow(condensate_molfrac, vle_top)
             condensate.T = vap.T
             condensate.P = vap.P
             condensate.mol *= L_Rmol
@@ -997,7 +995,7 @@ class Distillation(Dist):
         L = condensate.massnet
         V = L*(R+1)/R
         vapor_stream = cached['vapor stream']
-        vapor_stream.copy_like(distillate)
+        vapor_stream.copylike(distillate)
         vapor_stream.mol *= R+1
         V_vol = 0.0002778 * vapor_stream.volnet # m^3/s
         rho_V = distillate.rho
@@ -1017,9 +1015,10 @@ class Distillation(Dist):
         V_mol = cached['V_Smol']
         rho_L = bottoms.rho
         boil_up_flow = cached['boilup_molfrac'] * V_mol
-        cached['boil_up'] = boil_up = type(distillate)(
-              **dict(zip((s.ID for s in cached['vle_bot']), boil_up_flow)),
-              species=bottoms.species, T=bottoms.T, P=bottoms.P, phase='g')
+        boil_up = cached['boil_up']
+        boil_up.T = bottoms.T; boil_up.P = bottoms.P; boil_up.phase = 'g'
+        index_ = boil_up.indices(*cached['vle_bot'])
+        boil_up.mol[index_] = boil_up_flow
         V = boil_up.massnet
         V_vol = 0.0002778 * boil_up.volnet # m^3/s
         rho_V = boil_up.rho
@@ -1147,8 +1146,10 @@ class Stripper(Dist):
     _graphics = Dist._graphics
     
     def _init(self):
-        self._boiler = HXutility(self.ID+' boiler', None)
-        self._cached = {}
+        self._boiler = HXutility('*',
+                                 ins=Stream('*'),
+                                 outs=MixedStream('*'))
+        self._cached = {'boil_up': Stream('*')}
     
     def _operation(self):
         """
@@ -1292,9 +1293,10 @@ class Stripper(Dist):
         L_mol = cached['L_mol']
         rho_L = bottoms.rho
         boil_up_flow = cached['boilup_molfrac'] * V_mol
-        cached['boil_up'] = boil_up = type(distillate)(
-                **dict(zip((s.ID for s in cached['vle_bot']), boil_up_flow)),
-                species=bottoms.species, T=bottoms.T, P=bottoms.P, phase='g')
+        boil_up = cached['boil_up']
+        boil_up.T = bottoms.T; boil_up.P = bottoms.P; boil_up.phase = 'g'
+        index_ = boil_up.indices(*cached['vle_bot'])
+        boil_up.mol[index_] = boil_up_flow
         V = boil_up.massnet
         V_vol = 0.0002778 * boil_up.volnet # m^3/s
         rho_V = boil_up.rho

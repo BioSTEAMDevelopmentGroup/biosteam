@@ -4,23 +4,21 @@ Created on Sun Nov 11 11:20:42 2018
 
 @author: yoelr
 """
-from bookkeep import SmartBook, UnitManager, Q_
+from biosteam import Q_
+
+__all__ = ('PowerUtility',)
 
 class PowerUtility:
     """Create an PowerUtility object that can calculates the cost of power.
     
     **__call__()**
     
-        Return dictionary of utility requirements given the essential parameters.
+       Calculate utility requirements given the essential parameters.
         
         **Parameters**
         
             power: [float] Power requirement (kW)
             
-        **Returns**
-            * 'Power': Unit duty requirement (kW)
-            * 'Cost': Cost of utility (USD/hr)
-    
     **Class Parameters**
     
         **price:** ($/kW-hr)
@@ -41,33 +39,31 @@ class PowerUtility:
         .. code-block:: python
         
            >>> pu(power=500)
-           {'Power': 500 (kW),
-            'Cost': 30 (USD/hr)}
+           >>> pu
+           <PowerUtility: 500 kW, 30 USD/hr>
            
-        PowerUtility objects retain results:
+        Results are accessible:
             
         .. code-block:: python
         
-           >>> pu
-           <PowerUtility: 500 kW, 30 USD/hr>
-           >>> pu.results
-           {'Power': 500 (kW),
-            'Cost': 30 (USD/hr)}
+           >>> pu.power, pu.cost
+           (500, 30.)
            
         See the object with different units:
             
         .. code-block:: python
         
-           >>> pu.show(Power='BTU/s', Cost='USD/yr')
-           PowerUtility: Power=474 BTU/s, Cost=2.63e+05 USD/yr
+           >>> pu.show(power='BTU/s', cost='USD/yr')
+           PowerUtility: power=474 BTU/s, post=2.63e+05 USD/yr
     
     """
-    _units = UnitManager([], Power='kW', Cost='USD/hr')
-    __slots__ = ('results',)
+    _units = dict(power='kW', cost='USD/hr')
+    __slots__ = ('power', 'cost')
     price = 0.0782 #: USD/kWhr
     
-    def __init__(self, source):
-        self.results = SmartBook(self._units, Power=0, Cost=0, source=source)
+    def __init__(self):
+        self.power = 0
+        self.cost = 0
     
     def __call__(self, power:'kW'):
         """Return dictionary of utility requirements given the essential parameters.
@@ -75,28 +71,22 @@ class PowerUtility:
         **Parameters**
         
             power: [float] Power requirement (kW)
-            
-        **Returns**
-            * 'Power': Unit duty requirement (kW)
-            * 'Cost': Cost of utility (USD/hr)
         
         """
-        results = self.results
-        results['Power'] = power
-        results['Cost'] = self.price * power
-        return results
+        self.power = power
+        self.cost = self.price * power
     
     # Representation
     def _info(self, **show_units):
         # Get units of measure
         su = show_units
-        r = self.results
-        Power = su.get('Power') or su.get('power') or r.units['Power']
-        Cost = su.get('Cost') or su.get('cost') or r.units['Cost']
-        if r:
-            power = Q_(r['Power'], r.units['Power']).to(Power).magnitude
-            cost = Q_(r['Cost'], r.units['Cost']).to(Cost).magnitude
-            return (f'{type(self).__name__}: Power={power:.3g} {Power}, Cost={cost:.3g} {Cost}')
+        units = self._units
+        Power = su.get('power') or units['power']
+        Cost = su.get('cost') or units['cost']
+        if self.power:
+            power = Q_(self.power, units['power']).to(Power).magnitude
+            cost = Q_(self.cost, units['cost']).to(Cost).magnitude
+            return (f'{type(self).__name__}: power={power:.3g} {Power}, cost={cost:.3g} {Cost}')
         else:
             return (f'{type(self).__name__}: None')
 
@@ -104,13 +94,11 @@ class PowerUtility:
         print(self._info(**show_units))
 
     def __repr__(self):
-        r = self.results
-        if r:
-            power = r['Power']
-            Power = r.units['Power']
-            cost = r['Cost']
-            Cost = r.units['Cost']
-            return (f'<{type(self).__name__}: {power:.3g} {Power}, {cost:.3g} {Cost}>')
+        units = self._units
+        if self.power:
+            Power = units['power']
+            Cost = units['cost']
+            return (f'<{type(self).__name__}: {self.power:.3g} {Power}, {self.cost:.3g} {Cost}>')
         else:
             return (f'<{type(self).__name__}: None>')
         

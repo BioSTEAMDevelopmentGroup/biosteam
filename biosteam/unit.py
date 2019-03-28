@@ -11,8 +11,7 @@ import IPython
 from copy import copy
 from graphviz import Digraph
 from .exceptions import notify_error
-from .utils import WeakRefBook
-from .flowsheet import find
+from .flowsheet import Flowsheet
 from .graphics import Graphics, default_graphics
 from .stream import Stream
 from .proxy_stream import ProxyStream
@@ -71,7 +70,7 @@ class metaUnit(type):
     """
     _CEPCI = 567.5 # Chemical engineering plant cost index (567.5 at 2017)
     def __new__(mcl, clsname, superclasses, new_definitions):
-        """Prepare unit methods with wrappers for error notification, and add kwargs as key word arguments to __init__. Also initiallize by adding new Unit class to the find.line dictionary."""
+        """Prepare unit methods with wrappers for error notification, and add kwargs as key word arguments to __init__. Also initiallize by adding new Unit class to the main flowsheet line dictionary."""
 
         if not _Unit_is_done:
             # Abstract Unit class
@@ -113,12 +112,13 @@ class metaUnit(type):
             
             cls.line = line = re.sub(r"\B([A-Z])", r" \1", line).capitalize()
             
-            # Add class to find line dictionary
+            # Add class to line dictionary
+            linedict = Flowsheet._main.line
             if line is not 'Unit': # Do not include abstract Unit classes
-                if not find.line[line]:
-                    find.line[line] = []
-                if cls.__name__ not in [cls.__name__ for cls in find.line[line]]:
-                    find.line[line].append(cls)
+                if not line in linedict:
+                    linedict[line] = []
+                elif cls.__name__ not in [cls.__name__ for cls in linedict[line]]:
+                    linedict[line].append(cls)
                     
             # Key word arguments to replace
             kwargs = ''
@@ -501,23 +501,25 @@ class Unit(metaclass=metaUnit):
 
     @ID.setter
     def ID(self, ID):
-        # Select a default ID if requested
         if ID == '':
+            # Select a default ID if requested
             Unit = type(self)
             letter, number = Unit._default_ID
             Unit._default_ID[1] += 1
             ID = letter + str(number)
+            if not self._ID:
+                self._ID = ID
+                Flowsheet._main.unit[ID] = self
+                return
         elif ID == '*':
             self._ID = ID
             return
         elif any(i in ID for i in '`~!@#$%^&():'):
             raise ValueError('ID cannot contain any of the following special characters: `~!@#$%^&():')
-
         # Remove old reference to this object
-        if self._ID: del find.unit[self._ID]
-
-        # Add ID to find dictionary
-        find.unit[ID] = self
+        unitdict = Flowsheet._main.unit
+        if self._ID in unitdict: del unitdict[self._ID]
+        unitdict[ID] = self
         self._ID = ID
 
     # Input and output streams

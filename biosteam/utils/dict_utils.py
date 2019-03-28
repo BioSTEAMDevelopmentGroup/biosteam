@@ -9,55 +9,7 @@ This module includes classes and functions relating dictionaries.
 from biosteam.exceptions import IDconflict
 from weakref import ref
 
-__all__ = ('getDict', 'WeakRefBook', 'get_doc_units', 'merge', 'get_vals')
-
-
-# %% Dictionary Classes
-
-class getDict(dict):
-    """Create a dictionary that return None instead of raising a KeyError."""
-
-    def __getitem__(self, key):
-        return self.get(key)
-
-    def __repr__(self):
-        return type(self).__name__ + '\n' + super().__repr__().replace('], ', '],\n ')
-
-
-class WeakRefBook(dict):
-    """Create a WeakRefBook object that stores only weak references. When item getter is used, it returns the call of the weak reference. If the key does not exist, it returns None. When check_ID is True, an IDconflict error will be raised when setting with a key/ID already occupied by an object.
-
-    **Parameters**
-
-         **check_ID:** [bool] if True, no key/ID can be specified twice.
-
-         **kwargs: [dict] Key-value pairs to initialize dictionary.
-
-    """
-
-    __slots__ = ['name', 'check_ID']
-
-    def __init__(self, check_ID=False, **kwargs):
-        self.check_ID = check_ID
-        for key, item in kwargs:
-            self[key] = item
-
-    def __setitem__(self, ID, obj):
-        if self.check_ID and self[ID]:
-            raise IDconflict(f"A '{type(obj).__name__}' object with key/ID, '{ID}', already exists. Add a '*' to ID to ignore possible conflicts.")
-        if type(obj) is not ref:
-            obj = ref(obj)
-        super().__setitem__(ID, obj)
-
-    def __delitem__(self, key):
-        if key in self:
-            super().__delitem__(key)
-
-    def __getitem__(self, key):
-        return self.get(key, lambda: None)()
-
-    def __repr__(self):
-        return f'{type(self).__name__}{tuple(self.keys())}'
+__all__ = ('get_doc_units', 'merge', 'get_vals')
 
 
 # %% Dictionary functions

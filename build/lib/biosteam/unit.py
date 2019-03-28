@@ -10,26 +10,29 @@ import os
 import IPython
 from copy import copy
 from graphviz import Digraph
-from biosteam.exceptions import notify_error
-from biosteam.find import find, WeakRefBook
-from biosteam.graphics import Graphics, default_graphics
-from biosteam.stream import Stream
-from biosteam.heat_utility import HeatUtility
-from biosteam.utils import get_doc_units, color_scheme, Ins, Outs, missing_stream
+from .exceptions import notify_error
+from .utils import WeakRefBook
+from .flowsheet import find
+from .graphics import Graphics, default_graphics
+from .stream import Stream
+from .proxy_stream import ProxyStream
+from .heat_utility import HeatUtility
+from .utils import get_doc_units, color_scheme, Ins, Outs, missing_stream
 from bookkeep import SmartBook, UnitManager
-from biosteam.power_utility import PowerUtility
-from biosteam import np
+from .power_utility import PowerUtility
+from . import np
 import biosteam
 CS = color_scheme
 
 dir_path = os.path.dirname(os.path.realpath(__file__)) + '\\'
 
 
+__all__ = ('Unit',)
+
+
 # %% Unit metaclass
 
-Unit_is_done = False
-default_line = 'Unit'
-
+_Unit_is_done = False
 
 class metaUnit(type):
     """Unit metaclass for wrapping up methods with error notifiers, adding key word arguments, and keeping track for Unit lines and inheritance. Also adds the instances attribute to keep track of instances of the class.
@@ -62,8 +65,6 @@ class metaUnit(type):
 
     **Instance Attributes**
 
-        instances = {}: Dictionary of weak references to instances of this class
-
         line = [Defaults as the class name of the first child class]: [str] Name denoting the type of Unit class
 
 
@@ -72,7 +73,7 @@ class metaUnit(type):
     def __new__(mcl, clsname, superclasses, new_definitions):
         """Prepare unit methods with wrappers for error notification, and add kwargs as key word arguments to __init__. Also initiallize by adding new Unit class to the find.line dictionary."""
 
-        if not Unit_is_done:
+        if not _Unit_is_done:
             # Abstract Unit class
             cls = type.__new__(mcl, clsname, superclasses, new_definitions)
         else:
@@ -83,13 +84,12 @@ class metaUnit(type):
     
             # Make new Unit class
             cls = type.__new__(mcl, clsname, superclasses, new_definitions)
-    
+            
             if cls.__doc__ is Unit.__doc__:
                 # Do not inherit docstring from Unit
                 cls.__doc__ = None
             if cls.__doc__:
-                __doc__ = "*An extension of the* :doc:`Unit class <Unit>`. " + cls.__doc__
-                cls.__doc__ = __doc__.replace('**Parameters**', 
+                cls.__doc__ = cls.__doc__.replace('**Parameters**', 
             "**Parameters**\n\n" +
             
         "        **ID:** [str] Unique identification. If set as '', a default ID will be chosen.\n\n" +
@@ -101,7 +101,7 @@ class metaUnit(type):
             # Set line
             # default_line constitutes a new Unit class
             line = cls.line
-            if line is default_line:
+            if line is 'Unit':
                 line = cls.__name__.replace('_', ' ')
                 # Set new graphics object for new line
                 if not new_definitions.get('_graphics'):
@@ -114,7 +114,7 @@ class metaUnit(type):
             cls.line = line = re.sub(r"\B([A-Z])", r" \1", line).capitalize()
             
             # Add class to find line dictionary
-            if line is not default_line: # Do not include abstract Unit classes
+            if line is not 'Unit': # Do not include abstract Unit classes
                 if not find.line[line]:
                     find.line[line] = []
                 if cls.__name__ not in [cls.__name__ for cls in find.line[line]]:
@@ -139,10 +139,7 @@ class metaUnit(type):
             locs = {}
             exec(str2exec, globs, locs)
             cls.__init__ = locs['__init__']
-
-        #: Dictionary of weak references to instances of this class
-        cls._instances = WeakRefBook(check_ID=False)
-
+            
         # Initialize units of measure
         units = new_definitions.get('_results_UnitsOfMeasure')
         if units:
@@ -226,10 +223,6 @@ class Unit(metaclass=metaUnit):
     **Class Attributes** 
 
         **CEPCI** = 567.5: [float] Chemical Engineering Plant Cost Index
-
-        **operating_days**  = 330: [int] Operation days per year
-        
-        **lang_factor** = 4.37: [float] Lang factor excluding working capital from Peters, Timmerhaus, and West (2003)
         
         **bounds** = {} [dict] Values should be tuples with lower and upper bounds.
         
@@ -271,6 +264,9 @@ class Unit(metaclass=metaUnit):
     # [int or None] Expected number of output streams
     _N_outs = 2  
     
+    # [Bool] True if ins and outs streams are linked
+    _has_linked_streams = False
+    
     # [dict] Values should be tuples with lower and upper bounds for results dictionary.
     bounds = {}
     
@@ -290,7 +286,7 @@ class Unit(metaclass=metaUnit):
     _graphics = default_graphics
     
     #: [str] The general type of unit, regardless of class
-    line = default_line
+    line = 'Unit'
 
     ### Other defaults ###
 
@@ -298,7 +294,7 @@ class Unit(metaclass=metaUnit):
     _default_ID = ['U', 0]
     
     # Default ID
-    _ID = ''  
+    _ID = None 
     
     #: [bool] True if unit is in a recycle loop
     _in_loop = False
@@ -346,16 +342,31 @@ class Unit(metaclass=metaUnit):
     
     def _init_outs(self, outs):
         """Initialize output streams."""
-        if isinstance(outs, str):
-            self._outs = Outs(self, Stream(outs))
-        elif isinstance(outs, Stream):
-            self._outs = Outs(self, outs)
-        elif outs is None:
-            self._outs = Outs(self, (missing_stream for i in range(self._N_outs)))
-        elif not outs:
-            self._outs = Outs(self, (Stream('') for i in range(self._N_outs)))
+        if self._has_linked_streams:
+            if isinstance(outs, str):
+                self._outs = Outs(self, ProxyStream(outs))
+            elif isinstance(outs, Stream):
+                self._outs = Outs(self, ProxyStream.asproxy(outs))
+            elif outs is None:
+                self._outs = Outs(self, (ProxyStream('*')
+                                  for i in self._N_outs))
+            elif not outs:
+                self._outs = Outs(self, (ProxyStream('') for i in self._ins))
+            else:
+                self._outs = Outs(self, (ProxyStream(o) if isinstance(o, str)
+                                         else ProxyStream.asproxy(o)
+                                         for o in outs))
         else:
-            self._outs = Outs(self, (Stream(i) if isinstance(i, str) else i for i in outs))
+            if isinstance(outs, str):
+                self._outs = Outs(self, Stream(outs))
+            elif isinstance(outs, Stream):
+                self._outs = Outs(self, outs)
+            elif outs is None:
+                self._outs = Outs(self, (missing_stream for i in range(self._N_outs)))
+            elif not outs:
+                self._outs = Outs(self, (Stream('') for i in range(self._N_outs)))
+            else:
+                self._outs = Outs(self, (Stream(i) if isinstance(i, str) else i for i in outs))        
     
     def _init_results(self):
         """Initialize results attribute."""
@@ -372,32 +383,35 @@ class Unit(metaclass=metaUnit):
     def _init_heat_utils(self):
         """Initialize heat utilities."""
         #: [list] HeatUtility objects associated to unit
-        self.heat_utilities = [HeatUtility(self) for i in
+        self.heat_utilities = [HeatUtility() for i in
                                range(self._N_heat_utilities)]
         
     def _init_power_util(self):
         """Initialize power utility."""
         if self._has_power_utility:
             #: [PowerUtility] Power requirements associated to unit
-            self.power_utility = PowerUtility(self)
+            self.power_utility = PowerUtility()
     
     def _install(self):
         """Cache objects and/or replace methods for computational efficiency."""
         if not self._has_cost:
             self._summary = self._cost
             self.simulate = self._run
-        
-        # Result dictionaries for all utilities
-        self._util_results = util_results = []
-        heat_utilities = self.heat_utilities
-        power_utility = self.power_utility
-        if heat_utilities:
-            util_results.extend(util.results for util in self.heat_utilities)
-        if power_utility:
-            util_results.append(self.power_utility.results)
-            
-        # Itemized purchase costs
-        self._purchase_costs = self.results['Cost'].values
+        else:
+            # Result dictionaries for all utilities
+            self._utils = utils = []
+            heat_utilities = self.heat_utilities
+            power_utility = self.power_utility
+            if heat_utilities: utils.extend(heat_utilities)
+            if power_utility: utils.append(power_utility)
+                
+            # Itemized purchase costs
+            self._purchase_costs = self.results['Cost'].values
+    
+    def _setup_linked_streams(self):
+        if self._has_linked_streams: 
+            for i, o in zip(self._ins, self._outs):
+                if isinstance(o, ProxyStream): o.link = i
     
     # Forward pipping
     def __sub__(self, other):
@@ -454,12 +468,13 @@ class Unit(metaclass=metaUnit):
         self._design()
         self._cost()
         Summary = self.results['Summary']
-        Summary['Utility cost'] = sum(i['Cost'] for i in self._util_results)
+        Summary['Utility cost'] = sum(i.cost for i in self._utils)
         Summary['Purchase cost'] = sum(self._purchase_costs())
         return Summary
 
     def simulate(self):
         """Run rigourous simulation and determine all design requirements."""
+        self._setup_linked_streams()
         if self._kwargs != self.kwargs:
             self._setup()
             self._kwargs = copy(self.kwargs)
@@ -492,18 +507,14 @@ class Unit(metaclass=metaUnit):
             letter, number = Unit._default_ID
             Unit._default_ID[1] += 1
             ID = letter + str(number)
-        elif '*' in ID:
+        elif ID == '*':
             self._ID = ID
             return
         elif any(i in ID for i in '`~!@#$%^&():'):
             raise ValueError('ID cannot contain any of the following special characters: `~!@#$%^&():')
 
         # Remove old reference to this object
-        del find.unit[self._ID]
-        del type(self).instances[self._ID]
-
-        # Add instance to class instance dictionary
-        type(self).instances[ID] = self
+        if self._ID: del find.unit[self._ID]
 
         # Add ID to find dictionary
         find.unit[ID] = self
@@ -531,7 +542,7 @@ class Unit(metaclass=metaUnit):
         """Return set of upsteam neighboring units."""
         neighbors = set()
         for s in self._ins:
-            u_source = s.source[0]
+            u_source = s.source
             if u_source: neighbors.add(u_source)
         return neighbors
 
@@ -540,7 +551,7 @@ class Unit(metaclass=metaUnit):
         """Return set of downstream neighboring units."""
         neighbors = set()
         for s in self._outs:
-            u_sink = s.sink[0]
+            u_sink = s.sink
             if u_sink: neighbors.add(u_sink)
         return neighbors
 
@@ -630,10 +641,10 @@ class Unit(metaclass=metaUnit):
         # Make nodes and edges for input streams
         di = 0  # Destination position of stream
         for stream in self.ins:
-            if stream.ID == '' or stream.ID == 'Missing Stream':
-                continue  # Ignore stream
+            if not stream.ID or stream.ID == 'Missing Stream': continue
             f.node(stream.ID)  
             edge_in = self._graphics.edge_in
+            if di >= len(edge_in): di = 0
             f.attr('edge', arrowtail='none', arrowhead='none',
                    tailport='e', **edge_in[di])
             f.edge(stream.ID, name)
@@ -644,6 +655,7 @@ class Unit(metaclass=metaUnit):
         for stream in self.outs:
             f.node(stream.ID) 
             edge_out = self._graphics.edge_out  
+            if oi >= len(edge_out): oi = 0
             f.attr('edge', arrowtail='none', arrowhead='none',
                    headport='w', **edge_out[oi])
             f.edge(name, stream.ID)
@@ -784,36 +796,30 @@ class Unit(metaclass=metaUnit):
     def _info(self, **show_units):
         """Information on unit."""
         info = (f'{type(self).__name__}: {self.ID}\n'
-                + f'{CS.dim("ins...")}\n')
+              + f'{CS.dim("ins...")}\n')
         i = 0
         for stream in self.ins:
-            if stream.ID == 'Missing Stream':
+            stream_info = stream._info(**show_units)
+            if 'Missing Stream' in stream_info:
                 info += f'[{i}] {stream.ID}\n'
                 i += 1
                 continue
-            unit = stream._source[0]
-            stream_info = stream._info(**show_units)
+            unit = stream._source
             index = stream_info.index('\n')
-            if not unit:
-                source_info = '\n'
-            else:
-                source_info = f'  from  {unit}\n'
+            source_info = f'  from  {type(unit).__name__}-{unit}\n' if unit else '\n'
             info += f'[{i}] {stream.ID}' + source_info + stream_info[index+1:] + '\n'
             i += 1
         info += f'{CS.dim("outs...")}\n'
         i = 0
-        for stream in self.outs:
-            if stream.ID == 'Missing Stream':
+        for stream in self._outs:
+            stream_info = stream._info(**show_units)
+            if 'Missing Stream' in stream_info:
                 info += f'[{i}] {stream.ID}\n'
                 i += 1
                 continue
-            unit = stream._sink[0]
-            stream_info = stream._info(**show_units)
+            unit = stream._sink
             index = stream_info.index('\n')
-            if not unit:
-                sink_info = '\n'
-            else:
-                sink_info = f'  to  {unit}\n'
+            sink_info = f'  to  {type(unit).__name__}-{unit}\n' if unit else '\n'
             info += f'[{i}] {stream.ID}' + sink_info + stream_info[index+1:] + '\n'
             i += 1
         info = info.replace('\n ', '\n    ')
@@ -829,4 +835,4 @@ class Unit(metaclass=metaUnit):
     def __repr__(self):
         return '<' + type(self).__name__ + ': ' + self.ID + '>'
 
-Unit_is_done = True
+_Unit_is_done = True

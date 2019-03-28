@@ -7,7 +7,7 @@ Created on Sat Oct 28 17:28:09 2017
 """
 name = 'biosteam'
 
-__all__ = ['exceptions', 'utils', 'inspect', 'find', 'Compound', 'Chemical', 'DissolvedCompound', 'Species', 'Stream', 'MixedStream', 'HeatUtility', 'PowerUtility', 'Unit', 'System', 'TEA', 'ProxyStream', 'inspect']
+__all__ = ['exceptions', 'utils', 'inspect', 'find', 'Compound', 'Chemical', 'DissolvedCompound', 'Species', 'Stream', 'MixedStream', 'HeatUtility', 'PowerUtility', 'Unit', 'System', 'TEA', 'ProxyStream', 'inspect', 'Sensitivity']
 
 
 # %% Import base utils

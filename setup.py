@@ -18,7 +18,10 @@ setup(
                       'scipy', 'IPython', 'thermo', 'bookkeep',
                       'colorpalette', 'array_collections', 'free_properties',
                       'pandas', 'numpy', 'graphviz', 'matplotlib', 'openpyxl'],
-    package_data={'biosteam': ['equilibrium/*', 'inspect/*', 'price/*', 'report/*', 'my_units_defs.txt', 'utils/*', 'units/*', 'sim/*', 'units/designtools/*']},
+    package_data=
+        {'biosteam': ['equilibrium/*', 'inspect/*', 'price/*', 'report/*',
+                      'my_units_defs.txt', 'utils/*', 'units/*', 'sim/*',
+                      'units/designtools/*'], },
     platforms=["Windows", "Mac"],
     author_email='yoelcortes@gmail.com',
     url='https://github.com/yoelcortes/biosteam',

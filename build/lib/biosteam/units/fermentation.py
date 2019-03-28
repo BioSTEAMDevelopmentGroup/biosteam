@@ -11,7 +11,7 @@ from scipy.integrate import odeint
 
 class Fermentation(BatchReactor):
     """
-    Create a Fermentation object which models batch fermentation for the production of 1st generation ethanol using yeast [1, 2]. Only sucrose and glucose are taken into account. Conversion is based on reaction time, *tau*. Cleaning and unloading time, *tau_0*, fraction of working volume, *V_wf*, and number of reactors, N_reactors, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3].
+    Create a Fermentation object which models large-scale batch fermentation for the production of 1st generation ethanol using yeast [1, 2, 3, 4]. Only sucrose and glucose are taken into account. Conversion is based on reaction time, *tau*. Cleaning and unloading time, *tau_0*, fraction of working volume, *V_wf*, and number of reactors, N_reactors, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3].
     
     **Parameters**
     
@@ -31,11 +31,15 @@ class Fermentation(BatchReactor):
     
     **References**
     
-        [1] Samuel C. Oliveira, Dile P. Stremel, Eduardo C. Dechechi and Félix M. Pereira. Kinetic Modeling of 1‐G Ethanol Fermentations. Feb 2017. DOI: 10.5772/65460
+        [1] Oliveira, Samuel C., et al. "Discrimination between ethanol inhibition models in a continuous alcoholic fermentation process using flocculating yeast." Applied biochemistry and biotechnology 74.3 (1998): 161-172.
         
-        [2] S.C. Oliveira, H.F. De Castro, A.E.S. Visconti, R. Giudici. Continuous ethanol fermentation in a tower reactor with flocculating yeast recycle: scale-up effects on process performance, kinetic parameters and model predictions. Bioprocess Engineering 20 (1999) 525-530
+        [2] Oliveira, Samuel C., et al. "Continuous ethanol fermentation in a tower reactor with flocculating yeast recycle: scale-up effects on process performance, kinetic parameters and model predictions." Bioprocess Engineering 20.6 (1999): 525-530.
         
-        [3] D. Humbird, R. Davis, L. Tao, C. Kinchin, D. Hsu, and A. Aden National. Renewable Energy Laboratory Golden, Colorado. P. Schoen, J. Lukas, B. Olthof, M. Worley, D. Sexton, and D. Dudgeon. Harris Group Inc. Seattle, Washington and Atlanta, Georgia. Process Design and Economics for Biochemical Conversion of Lignocellulosic Biomass to Ethanol Dilute-Acid Pretreatment and Enzymatic Hydrolysis of Corn Stover. May 2011. Technical Report NREL/TP-5100-47764
+        [3] Oliveira, Samuel C., et al. "Mathematical modeling of a continuous alcoholic fermentation process in a two-stage tower reactor cascade with flocculating yeast recycle." Bioprocess and biosystems engineering 38.3 (2015): 469-479.
+        
+        [4] Oliveira, Samuel C., et al. "Kinetic Modeling of 1‐G Ethanol Fermentations." Fermentation Processes. InTech, 2017.
+        
+        [5] D. Humbird, R. Davis, L. Tao, C. Kinchin, D. Hsu, and A. Aden National. Renewable Energy Laboratory Golden, Colorado. P. Schoen, J. Lukas, B. Olthof, M. Worley, D. Sexton, and D. Dudgeon. Harris Group Inc. Seattle, Washington and Atlanta, Georgia. Process Design and Economics for Biochemical Conversion of Lignocellulosic Biomass to Ethanol Dilute-Acid Pretreatment and Enzymatic Hydrolysis of Corn Stover. May 2011. Technical Report NREL/TP-5100-47764
         
     .. note::
         
@@ -80,28 +84,26 @@ class Fermentation(BatchReactor):
     A_p = 22.371
     
     #: tuple of kinetic parameters for the kinetic model. Default constants are fitted for Oliveria's model (mu_m1, mu_m2, Ks1, Ks2, Pm1, Pm2, Xm, Y_PS, a)
-    kinetic_constants = (0.39,  # mu_m1
-                         1.16,  # mu_m2
-                         1.94,  # Ks1
-                         2.6,   # Ks2
-                         88.1,  # Pm1
-                         126.5, # Pm2
-                         114,   # Xm
+    kinetic_constants = (0.31,  # mu_m1
+                         1.01,  # mu_m2
+                         1.88,  # Ks1
+                         2.81,  # Ks2
+                         82.8,  # Pm1
+                         108.2, # Pm2
+                         113.4, # Xm
                          0.45,  # Y_PS
-                         0.16)  # a
-
+                         0.18)  # a
     @property
     def N_reactors(self):
         return self._N_reactors
     
     @N_reactors.setter
     def N_reactors(self, N):
-        if N <= 1:
-            raise ValueError(f"Number of reactors must be greater than 1, value {N} is infeasible")
+        if N <= 1: raise ValueError(f"Number of reactors must be greater than 1, value {N} is infeasible")
         self._N_reactors = N
 
     def _init(self):
-        self._cooler = hx = HXutility(ID=self.ID+' cooler', outs=())
+        self._cooler = hx = HXutility('*')
         self.heat_utilities = hx.heat_utilities
     
     def _setup(self):
@@ -110,10 +112,10 @@ class Fermentation(BatchReactor):
 
     def _calc_efficiency(self, feed, tau):
         # Get initial concentrations
-        y, e, s, w = feed.get_index(('Yeast',
-                                     '64-17-5',
-                                     '492-61-5',
-                                     '7732-18-5'), CAS=True)
+        y, e, s, w = feed.indices('Yeast',
+                                  '64-17-5',
+                                  '492-61-5',
+                                  '7732-18-5', CAS=True)
         mass = feed.mass
         volnet = feed.volnet
         concentration_in = mass/volnet
@@ -190,7 +192,7 @@ class Fermentation(BatchReactor):
         
         # Species involved in reaction
         species = ['64-17-5', '492-61-5', '57-50-1', '7732-18-5']
-        e, g, s, w = indx = out.get_index(*species, CAS=True)
+        e, g, s, w = indx = out.indices(*species, CAS=True)
         glucose = out.mol[indx[1]]
         sucrose = out.mol[indx[2]]
         
@@ -209,7 +211,7 @@ class Fermentation(BatchReactor):
         fermented = eff*(glucose + new_glucose)
         ch_glucose = - fermented
         ch_Ethanol = 0.5111*fermented * mw_glucose/mw_Ethanol
-        co2 = out.get_index('124-38-9', CAS=True)
+        co2 = out.indices('124-38-9', CAS=True)
         changes = [ch_Ethanol, ch_glucose]
         out.mol[[e, g]] += changes
         CO2.mol[co2] = (1-0.5111)*fermented * mw_glucose/44.0095
@@ -255,14 +257,14 @@ class Fermentation(BatchReactor):
         new_flow.mol /= N_reactors 
         hx.outs[0] = new_flow
         hx.ins[0] = new_flow
-        self.heat_utilities[0](self.Hnet/N_reactors, self.outs[0].T)
-        results = hx.heat_utilities[0].results
-        hx._Duty = results['Duty']
-        results['Duty'] *= N_reactors
-        results['Cost'] *= N_reactors
-        results['Flow'] *= N_reactors
+        hu = hx.heat_utilities[0]
+        hu(self.Hnet/N_reactors, self.outs[0].T)
+        hx._Duty = hu.duty
         hx._design()
         hx._cost()
+        hu.duty *= N_reactors
+        hu.cost *= N_reactors
+        hu.flow *= N_reactors
         return Design
     
     def _cost(self):

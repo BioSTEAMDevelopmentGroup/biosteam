@@ -11,11 +11,11 @@ class ConveyingBelt(Unit):
     height = 30 #: ft
     _N_outs = 1
     _has_power_utility = True
-    
+    _has_linked_streams = True
     bounds = {'Volumetric flow': (120, 500)}
     
     def _run(self):
-        self.outs[0].copy_like(self.ins[0])
+        self.outs[0].copylike(self.ins[0])
     
     def _cost(self):
         feed = self.ins[0]

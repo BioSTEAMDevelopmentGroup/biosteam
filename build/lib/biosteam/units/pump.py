@@ -78,6 +78,7 @@ class Pump(Unit):
     _N_ins = 1
     _N_outs = 1
     _has_power_utility = True
+    _has_linked_streams = True
     kwargs = {'P': None}
     
     # Pump type
@@ -120,13 +121,9 @@ class Pump(Unit):
         self._F_Mstr = material  
         
     def _run(self):
-        ins = self.ins
-        outs = self.outs
         P = self.kwargs['P']
-        for i, o in zip(ins, outs):
-            o.mol = i.mol
-            o.T = i.T
-            o.phase = i.phase
+        for i, o in zip(self.ins, self.outs):
+            o.copylike(i)
             if P: o.P = P
     
     def _operation(self):

@@ -214,6 +214,7 @@ class Block:
         
         # Make blockfunc
         name = getter.__name__
+        if name[0] == '<': name = 'Lambda'
         str2exec =  (f'def {name}{sig}:    \n'
                    + f'    setter({param}) \n'
                    + f'    simulate()      \n'

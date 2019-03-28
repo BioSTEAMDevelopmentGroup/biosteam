@@ -7,6 +7,11 @@ Created on Sat Nov 10 19:27:01 2018
 from biosteam.compound import Compound
 from biosteam import np
 
+__all__ = ('DissolvedCompound',)
+
+
+# %%
+
 class DissolvedCompound(Compound):
     """
     Creates a DissolvedCompound object with the same material properties as "obj" argument for simplified modeling purposes. The phase stays constant as a liquid ('l').
@@ -93,7 +98,7 @@ class DissolvedCompound(Compound):
         self.nu = self.mu/self.rho
         self.sigma = sigma if sigma else sigma_d
         self.Pr = self.nu/self.alpha
-        self.UNIFAC_groups = {}
+        self.UNIFAC_groups = self.UNIFAC_Dortmund_groups = None
         self.Hfm = Hfm if Hfm else Hfm_d
         self.Hc = Hc if Hc else Hc_d
     

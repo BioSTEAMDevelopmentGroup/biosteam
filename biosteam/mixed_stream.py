@@ -128,7 +128,11 @@ class MixedStream(Stream):
             raise TypeError(f"species must be a Species object, not '{type(species).__name__}'")
         
         self.ID = ID
+        
+        #: [float] Temperature (K)
         self.T = T
+        
+        #: [float] Pressure (Pa)
         self.P = P
         self._dew_cached = {}
         self._bubble_cached = {}

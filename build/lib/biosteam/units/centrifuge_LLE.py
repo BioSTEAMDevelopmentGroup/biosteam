@@ -59,8 +59,10 @@ class Centrifuge_LLE(Unit):
               'solvent_split': ()}
 
     bounds = {'Flow rate': (0.1, 100)}
-    electricity_rate = 3.66 #: kW/(m3/hr)
-    
+    electricity_rate = 3.66 #: kW/(m3/hr) from USDA biosdiesel Super Pro model
+    # Possibly 1.4  kW/(m3/hr)
+    # https://www.sciencedirect.com/topics/engineering/disc-stack-centrifuge
+    # Microalgal fatty acids—From harvesting until extraction H.M. Amaro, ... A. Catarina Guedes, in Microalgae-Based Biofuels and Bioproducts, 2017
     _has_power_utility = True
 
     def _setup(self):
