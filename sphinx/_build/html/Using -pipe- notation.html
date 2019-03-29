@@ -252,8 +252,8 @@ the following format:</p>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1"># U1-n         -&gt;  U1.outs[n]</span>
-<span class="c1"># U1-[0, 1]    -&gt;  U1.outs[0, 1]</span>
-<span class="c1"># s1-U1        -&gt;  U1.ins[:] = s1</span>
+<span class="c1"># U1-[0, 1]    -&gt;  [U1.outs[i] for i in [0, 1]]</span>
+<span class="c1"># s1-U1        -&gt;  U1.ins[:] = [s1]</span>
 <span class="c1"># s1-n-U1      -&gt;  U1.ins[n] = s1</span>
 <span class="c1"># [s1, s2]-U1  -&gt;  U1.ins[:] = [s1, s2]</span>
 <span class="c1"># U1-n1-n2-U2  -&gt;  U2.ins[n2] = U1.outs[n1]</span>
@@ -273,7 +273,7 @@ the following format:</p>
 <span class="n">M1</span> <span class="o">=</span> <span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M1&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="s1">&#39;s1&#39;</span><span class="p">)</span>
 <span class="n">S1</span> <span class="o">=</span> <span class="n">Splitter</span><span class="p">(</span><span class="s1">&#39;S1&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;s2&#39;</span><span class="p">,</span> <span class="s1">&#39;product1&#39;</span><span class="p">))</span>
 <span class="n">feed2</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed2&#39;</span><span class="p">)</span>
-<span class="n">M2</span> <span class="o">=</span> <span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M2&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;s3&#39;</span><span class="p">))</span>
+<span class="n">M2</span> <span class="o">=</span> <span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M2&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="s1">&#39;s3&#39;</span><span class="p">)</span>
 <span class="n">S2</span> <span class="o">=</span> <span class="n">Splitter</span><span class="p">(</span><span class="s1">&#39;S2&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;recycle&#39;</span><span class="p">,</span> <span class="s1">&#39;product2&#39;</span><span class="p">))</span>
 </pre></div>
 </div>

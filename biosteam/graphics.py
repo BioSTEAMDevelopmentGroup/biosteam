@@ -54,10 +54,9 @@ class Graphics:
     def default_all():
         """Set attributes of all objects in this class to default"""
         for ref in Graphics._all:
-            if ref() is None:
-                del ref
-            else:
-                ref().default()
+            ref = ref()
+            if ref is None: del ref
+            else: ref.default()
 
 
 default_graphics = Graphics()

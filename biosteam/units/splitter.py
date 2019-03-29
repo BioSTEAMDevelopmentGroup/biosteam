@@ -4,9 +4,8 @@ Created on Thu Aug 23 14:34:07 2018
 
 @author: yoelr
 """
-from biosteam import Unit
+from biosteam import Unit, Stream
 from biosteam.meta_classes import metaFinal
-from biosteam.units.mixer import Mixer
 
 
 class Splitter(Unit, metaclass=metaFinal):
@@ -98,7 +97,7 @@ class Splitter(Unit, metaclass=metaFinal):
         split = self.kwargs['split']
         top, bot = self.outs
         if len(self.ins) > 1:
-            Mixer._run(self)
+            Stream.sum(self.outs[0], self.ins)
         else:
             top.copylike(self.ins[0])
         bot.copylike(top)

@@ -28,8 +28,8 @@
    "outputs": [],
    "source": [
     "# U1-n         ->  U1.outs[n]\n",
-    "# U1-[0, 1]    ->  U1.outs[0, 1]\n",
-    "# s1-U1        ->  U1.ins[:] = s1\n",
+    "# U1-[0, 1]    ->  [U1.outs[i] for i in [0, 1]]\n",
+    "# s1-U1        ->  U1.ins[:] = [s1]\n",
     "# s1-n-U1      ->  U1.ins[n] = s1\n",
     "# [s1, s2]-U1  ->  U1.ins[:] = [s1, s2]\n",
     "# U1-n1-n2-U2  ->  U2.ins[n2] = U1.outs[n1]"
@@ -54,7 +54,7 @@
     "M1 = Mixer('M1', outs='s1')\n",
     "S1 = Splitter('S1', outs=('s2', 'product1'))\n",
     "feed2 = Stream('feed2')\n",
-    "M2 = Mixer('M2', outs=('s3'))\n",
+    "M2 = Mixer('M2', outs='s3')\n",
     "S2 = Splitter('S2', outs=('recycle', 'product2'))"
    ]
   },
