@@ -516,6 +516,8 @@ class Unit(metaclass=metaUnit):
             return
         elif any(i in ID for i in '`~!@#$%^&():'):
             raise ValueError('ID cannot contain any of the following special characters: `~!@#$%^&():')
+        else:
+            ID = ID.replace(' ', '_')
         # Remove old reference to this object
         unitdict = Flowsheet._main.unit
         if self._ID in unitdict: del unitdict[self._ID]

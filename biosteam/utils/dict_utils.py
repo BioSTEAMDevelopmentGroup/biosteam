@@ -9,7 +9,7 @@ This module includes classes and functions relating dictionaries.
 from biosteam.exceptions import IDconflict
 from weakref import ref
 
-__all__ = ('get_doc_units', 'merge', 'get_vals')
+__all__ = ('get_doc_units',)
 
 
 # %% Dictionary functions
@@ -56,20 +56,4 @@ def get_doc_units(udict, doc):
         if unit:
             udict[key] = unit        
         
-
-def merge(*dict_args: dict) -> 'Merged dictionary':
-    """Given any number of dictionaries, shallow copy and merge into a new dictionary, precedence goes to key value pairs in latter dicts."""
-    result = {}
-    for dictionary in dict_args:
-        result.update(dictionary)
-    return result
-
-
-def get_vals(dct: dict, *keys) -> 'generator(dict values)':
-    """Get all key values as a generator."""
-    return (dct[key] for key in keys)
-
-
-
-
-
+        

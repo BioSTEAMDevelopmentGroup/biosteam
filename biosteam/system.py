@@ -143,8 +143,8 @@ class System:
                                'Molar tolerance': 'kmol/hr',
                                'Temperature tolerance': 'K'},                  
                         **{'Maximum iteration': 100, 
-                           'Molar tolerance': 0.55, 
-                           'Temperature tolerance': 0.55})
+                           'Molar tolerance': 0.05, 
+                           'Temperature tolerance': 0.10})
     
     # [float] Error of the spec objective function
     _spec_error = None
@@ -255,6 +255,7 @@ class System:
 
     @ID.setter
     def ID(self, ID):
+        ID = ID.replace(' ', '_')
         Flowsheet._main.system[ID] = self
         self._ID = ID
 

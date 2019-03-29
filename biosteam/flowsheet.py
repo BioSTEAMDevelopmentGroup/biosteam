@@ -71,7 +71,7 @@ class Flowsheet(metaclass=metaFlowsheet):
              **item_ID:** [str] ID of the requested item.
     
         """
-        return cls._main(item_ID)
+        return cls._main(item_ID.replace(' ', '_'))
     
     def __repr__(self):
         return f'<{type(self).__name__}: {self.ID}>'

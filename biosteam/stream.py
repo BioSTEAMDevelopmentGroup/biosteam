@@ -592,15 +592,11 @@ class Stream(metaclass=metaStream):
             empty_species = lenspecies == 0
             self._molarray = np.zeros(self._Nspecies)
             if flow_pairs and empty_flow and empty_species:
-                flow = flow_pairs.values()
                 species = flow_pairs.keys()
-                self._molarray[self.indices(*species)] = (*flow,)
+                self._molarray[self.indices(*species)] = (*flow_pairs.values(),)
             elif lenspecies == lenflow:
                 if flow_pairs:
-                    if isinstance(species[0], Compound):
-                        species = (s.ID for s in species)
-                    flow = (*flow, *flow_pairs.values())
-                    self._molarray[self.indices(*species, *flow_pairs.keys())] = flow
+                    self._molarray[self.indices(*species, *flow_pairs.keys())] = (*flow, *flow_pairs.values())
                 elif not empty_flow:
                     self._molarray[self.indices(*species)] = flow
             elif empty_species and lenflow == self._Nspecies:
@@ -698,6 +694,8 @@ class Stream(metaclass=metaStream):
             return
         elif any(i in ID for i in '`~!@#$%^&():'):
             raise ValueError('ID cannot contain any of the following special characters: `~!@#$%^&():')
+        else:
+            ID = ID.replace(' ', '_')
         # Remove old ref and set a new ref
         stream = Flowsheet._main.stream
         if self._ID in stream: del stream[self._ID]
@@ -725,15 +723,12 @@ class Stream(metaclass=metaStream):
 
         **Parameters**
 
-             ***species:** Can be either ID of species or Compound objects.
+             ***species:** [iterable] species IDs or CAS numbers.
+             
+             **CAS:** [bool] True if species are CAS numbers.
 
         Example
 
-        Indices by compound:
-        
-        >>> s1.indices(s1.species.Water, s1.species.Ethanol)
-        [1, 0]
-        
         Indices by ID:
         
         >>> s1.indices('Water', 'Ethanol')
@@ -745,12 +740,23 @@ class Stream(metaclass=metaStream):
         [1, 0]
 
         """
-        if species and isinstance(species[0], str):
+        try:
             lookup = self._CAS.index if CAS else self._IDs.index
-            return [lookup(ID) for ID in species]
-        else:
-            lookup = self._compounds.index
-            return [lookup(s) for s in species]
+            return [lookup(i) for i in species]
+        except ValueError as VE:
+            if all(isinstance(i, str) for i in species):
+                if CAS:
+                    stream_species = self._CAS
+                    start = 'CAS numbers '
+                else:
+                    stream_species = self._IDs
+                    start = 'IDs '
+            else:
+                raise TypeError(f'species must all be str objects')
+            not_included = tuple(i for i in species if i not in stream_species)
+            if not_included: raise ValueError(f'{start}{not_included} not defined in {self.ID}.species')
+            else: raise VE
+                
     
     # Molar flow
     @property

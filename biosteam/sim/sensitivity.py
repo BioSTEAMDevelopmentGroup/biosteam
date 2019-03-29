@@ -69,8 +69,23 @@ class Sensitivity:
         #: [(function, args)] Iterable of block fuctions and respective arguments.
         self._stack = []
     
+    def evalparam(self, element, setter, values):
+        """Return sensitivity at given parameter values.
+        
+        **Parameters**
+        
+            **element:** [Unit or Stream] Element in the system being altered.
+            
+            **setter:** [function] Should set parameter in the element.
+            
+            **values:** [iterable] Values for parameter.
+        
+        """
+        block = self._system._block(element, self._getter, setter)
+        return [block(i) for i in values]
+    
     def addparam(self, element, setter, values):
-        """Add parameter to vary.
+        """Add parameter to vary in sensitivity.
         
         **Parameters**
         
