@@ -303,7 +303,7 @@
 <dl class="function">
 <dt id="biosteam.utils.same_type">
 <code class="descclassname">biosteam.utils.</code><code class="descname">same_type</code><span class="sig-paren">(</span><em>iterable</em>, <em>type_</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/array_collections/utils.html#same_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.utils.same_type" title="Permalink to this definition">¶</a></dt>
-<dd><p>Raise TypeError if any item in iterable is not an instance of <a href="#id3"><span class="problematic" id="id4">type_</span></a>.</p>
+<dd><p>Raise TypeError if any item in iterable is not an instance of <a href="#id1"><span class="problematic" id="id2">type_</span></a>.</p>
 </dd></dl>
 
 <dl class="function">
@@ -320,23 +320,6 @@
 <dt id="biosteam.utils.fraction">
 <code class="descclassname">biosteam.utils.</code><code class="descname">fraction</code><span class="sig-paren">(</span><em>array</em><span class="sig-paren">)</span> &#x2192; Normalized array<a class="reference internal" href="_modules/biosteam/utils/array_utils.html#fraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.utils.fraction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Normalize array to a magnitude of 1. If magnitude is zero, all fractions will have equal value.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="biosteam.utils.getDict">
-<em class="property">class </em><code class="descclassname">biosteam.utils.</code><code class="descname">getDict</code><a class="reference internal" href="_modules/biosteam/utils/dict_utils.html#getDict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.utils.getDict" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a dictionary that return None instead of raising a KeyError.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="biosteam.utils.WeakRefBook">
-<em class="property">class </em><code class="descclassname">biosteam.utils.</code><code class="descname">WeakRefBook</code><span class="sig-paren">(</span><em>check_ID=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/utils/dict_utils.html#WeakRefBook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.utils.WeakRefBook" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a WeakRefBook object that stores only weak references. When item getter is used, it returns the call of the weak reference. If the key does not exist, it returns None. When check_ID is True, an IDconflict error will be raised when setting with a key/ID already occupied by an object.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><p><strong>check_ID:</strong> [bool] if True, no key/ID can be specified twice.</p>
-<p><a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs: [dict] Key-value pairs to initialize dictionary.</p>
-</div></blockquote>
 </dd></dl>
 
 <dl class="function">
@@ -360,18 +343,6 @@
 </pre></div>
 </div>
 </div></blockquote>
-</dd></dl>
-
-<dl class="function">
-<dt id="biosteam.utils.merge">
-<code class="descclassname">biosteam.utils.</code><code class="descname">merge</code><span class="sig-paren">(</span><em>*dict_args</em><span class="sig-paren">)</span> &#x2192; Merged dictionary<a class="reference internal" href="_modules/biosteam/utils/dict_utils.html#merge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.utils.merge" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given any number of dictionaries, shallow copy and merge into a new dictionary, precedence goes to key value pairs in latter dicts.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="biosteam.utils.get_vals">
-<code class="descclassname">biosteam.utils.</code><code class="descname">get_vals</code><span class="sig-paren">(</span><em>dct: dict</em>, <em>*keys) -&gt; generator(dict values</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/utils/dict_utils.html#get_vals"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.utils.get_vals" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get all key values as a generator.</p>
 </dd></dl>
 
 <dl class="function">

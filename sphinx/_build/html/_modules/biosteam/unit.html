@@ -66,8 +66,7 @@
 <span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">copy</span>
 <span class="kn">from</span> <span class="nn">graphviz</span> <span class="k">import</span> <span class="n">Digraph</span>
 <span class="kn">from</span> <span class="nn">.exceptions</span> <span class="k">import</span> <span class="n">notify_error</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">WeakRefBook</span>
-<span class="kn">from</span> <span class="nn">.flowsheet</span> <span class="k">import</span> <span class="n">find</span>
+<span class="kn">from</span> <span class="nn">.flowsheet</span> <span class="k">import</span> <span class="n">Flowsheet</span>
 <span class="kn">from</span> <span class="nn">.graphics</span> <span class="k">import</span> <span class="n">Graphics</span><span class="p">,</span> <span class="n">default_graphics</span>
 <span class="kn">from</span> <span class="nn">.stream</span> <span class="k">import</span> <span class="n">Stream</span>
 <span class="kn">from</span> <span class="nn">.proxy_stream</span> <span class="k">import</span> <span class="n">ProxyStream</span>
@@ -126,7 +125,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_CEPCI</span> <span class="o">=</span> <span class="mf">567.5</span> <span class="c1"># Chemical engineering plant cost index (567.5 at 2017)</span>
     <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">clsname</span><span class="p">,</span> <span class="n">superclasses</span><span class="p">,</span> <span class="n">new_definitions</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Prepare unit methods with wrappers for error notification, and add kwargs as key word arguments to __init__. Also initiallize by adding new Unit class to the find.line dictionary.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Prepare unit methods with wrappers for error notification, and add kwargs as key word arguments to __init__. Also initiallize by adding new Unit class to the main flowsheet line dictionary.&quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">_Unit_is_done</span><span class="p">:</span>
             <span class="c1"># Abstract Unit class</span>
@@ -168,12 +167,13 @@
             
             <span class="bp">cls</span><span class="o">.</span><span class="n">line</span> <span class="o">=</span> <span class="n">line</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\B([A-Z])&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot; \1&quot;</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span>
             
-            <span class="c1"># Add class to find line dictionary</span>
+            <span class="c1"># Add class to line dictionary</span>
+            <span class="n">linedict</span> <span class="o">=</span> <span class="n">Flowsheet</span><span class="o">.</span><span class="n">_main</span><span class="o">.</span><span class="n">line</span>
             <span class="k">if</span> <span class="n">line</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s1">&#39;Unit&#39;</span><span class="p">:</span> <span class="c1"># Do not include abstract Unit classes</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">find</span><span class="o">.</span><span class="n">line</span><span class="p">[</span><span class="n">line</span><span class="p">]:</span>
-                    <span class="n">find</span><span class="o">.</span><span class="n">line</span><span class="p">[</span><span class="n">line</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-                <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span> <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">find</span><span class="o">.</span><span class="n">line</span><span class="p">[</span><span class="n">line</span><span class="p">]]:</span>
-                    <span class="n">find</span><span class="o">.</span><span class="n">line</span><span class="p">[</span><span class="n">line</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">linedict</span><span class="p">:</span>
+                    <span class="n">linedict</span><span class="p">[</span><span class="n">line</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">elif</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span> <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">linedict</span><span class="p">[</span><span class="n">line</span><span class="p">]]:</span>
+                    <span class="n">linedict</span><span class="p">[</span><span class="n">line</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
                     
             <span class="c1"># Key word arguments to replace</span>
             <span class="n">kwargs</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
@@ -556,23 +556,27 @@
 
     <span class="nd">@ID</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">ID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
-        <span class="c1"># Select a default ID if requested</span>
         <span class="k">if</span> <span class="n">ID</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+            <span class="c1"># Select a default ID if requested</span>
             <span class="n">Unit</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
             <span class="n">letter</span><span class="p">,</span> <span class="n">number</span> <span class="o">=</span> <span class="n">Unit</span><span class="o">.</span><span class="n">_default_ID</span>
             <span class="n">Unit</span><span class="o">.</span><span class="n">_default_ID</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="n">ID</span> <span class="o">=</span> <span class="n">letter</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="n">ID</span>
+                <span class="n">Flowsheet</span><span class="o">.</span><span class="n">_main</span><span class="o">.</span><span class="n">unit</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
+                <span class="k">return</span>
         <span class="k">elif</span> <span class="n">ID</span> <span class="o">==</span> <span class="s1">&#39;*&#39;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="n">ID</span>
             <span class="k">return</span>
         <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span><span class="n">i</span> <span class="ow">in</span> <span class="n">ID</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="s1">&#39;`~!@#$%^&amp;():&#39;</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;ID cannot contain any of the following special characters: `~!@#$%^&amp;():&#39;</span><span class="p">)</span>
-
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
         <span class="c1"># Remove old reference to this object</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span><span class="p">:</span> <span class="k">del</span> <span class="n">find</span><span class="o">.</span><span class="n">unit</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ID</span><span class="p">]</span>
-
-        <span class="c1"># Add ID to find dictionary</span>
-        <span class="n">find</span><span class="o">.</span><span class="n">unit</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="n">unitdict</span> <span class="o">=</span> <span class="n">Flowsheet</span><span class="o">.</span><span class="n">_main</span><span class="o">.</span><span class="n">unit</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="ow">in</span> <span class="n">unitdict</span><span class="p">:</span> <span class="k">del</span> <span class="n">unitdict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ID</span><span class="p">]</span>
+        <span class="n">unitdict</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="n">ID</span>
 
     <span class="c1"># Input and output streams</span>

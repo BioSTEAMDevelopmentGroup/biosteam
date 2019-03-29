@@ -9,7 +9,7 @@ import IPython
 from scipy.optimize import brentq, newton
 from graphviz import Digraph
 from .exceptions import Stop, SolverError, notify_error
-from .flowsheet import find
+from .flowsheet import Flowsheet
 from .stream import Stream
 from .unit import Unit
 from .tea import TEA
@@ -40,12 +40,13 @@ def evaluate(self, command=None):
     if command:
         # Build locals dictionary for evaluating command
         lcs = {} 
+        main = Flowsheet.main
         for attr in ('stream', 'unit', 'system'):
-            dct = getattr(find, attr)
+            dct = getattr(main, attr)
             lcs.update(dct)
         for key in lcs.keys():
             lcs[key] = lcs[key]()
-        lcs['find'] = find
+        lcs['find'] = main.find
         try:
             out = eval(command, {}, lcs)            
         except Exception as err:
@@ -112,7 +113,7 @@ class _systemUnit(Unit):
     
 _systemUnit._graphics.node['peripheries'] = '2'
 _systemUnit._instances = None
-del find.line['System']
+del Flowsheet._main.line['System']
 
 
 # %% Process flow
@@ -142,8 +143,8 @@ class System:
                                'Molar tolerance': 'kmol/hr',
                                'Temperature tolerance': 'K'},                  
                         **{'Maximum iteration': 100, 
-                           'Molar tolerance': 0.55, 
-                           'Temperature tolerance': 0.55})
+                           'Molar tolerance': 0.05, 
+                           'Temperature tolerance': 0.10})
     
     # [float] Error of the spec objective function
     _spec_error = None
@@ -254,7 +255,8 @@ class System:
 
     @ID.setter
     def ID(self, ID):
-        find.system[ID] = self
+        ID = ID.replace(' ', '_')
+        Flowsheet._main.system[ID] = self
         self._ID = ID
 
     @property

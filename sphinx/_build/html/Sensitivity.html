@@ -89,9 +89,21 @@
 <blockquote>
 <div><a class="reference internal" href="Sensitivity Example.html"><span class="doc">Sensitivity</span></a></div></blockquote>
 <dl class="method">
+<dt id="biosteam.Sensitivity.evalparam">
+<code class="descname">evalparam</code><span class="sig-paren">(</span><em>element</em>, <em>setter</em>, <em>values</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/sim/sensitivity.html#Sensitivity.evalparam"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Sensitivity.evalparam" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return sensitivity at given parameter values.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><p><strong>element:</strong> [Unit or Stream] Element in the system being altered.</p>
+<p><strong>setter:</strong> [function] Should set parameter in the element.</p>
+<p><strong>values:</strong> [iterable] Values for parameter.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
 <dt id="biosteam.Sensitivity.addparam">
 <code class="descname">addparam</code><span class="sig-paren">(</span><em>element</em>, <em>setter</em>, <em>values</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/sim/sensitivity.html#Sensitivity.addparam"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Sensitivity.addparam" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add parameter to vary.</p>
+<dd><p>Add parameter to vary in sensitivity.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>element:</strong> [Unit or Stream] Element in the system being altered.</p>

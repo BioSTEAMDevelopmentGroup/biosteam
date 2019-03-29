@@ -64,7 +64,7 @@
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">brentq</span><span class="p">,</span> <span class="n">newton</span>
 <span class="kn">from</span> <span class="nn">graphviz</span> <span class="k">import</span> <span class="n">Digraph</span>
 <span class="kn">from</span> <span class="nn">.exceptions</span> <span class="k">import</span> <span class="n">Stop</span><span class="p">,</span> <span class="n">SolverError</span><span class="p">,</span> <span class="n">notify_error</span>
-<span class="kn">from</span> <span class="nn">.flowsheet</span> <span class="k">import</span> <span class="n">find</span>
+<span class="kn">from</span> <span class="nn">.flowsheet</span> <span class="k">import</span> <span class="n">Flowsheet</span>
 <span class="kn">from</span> <span class="nn">.stream</span> <span class="k">import</span> <span class="n">Stream</span>
 <span class="kn">from</span> <span class="nn">.unit</span> <span class="k">import</span> <span class="n">Unit</span>
 <span class="kn">from</span> <span class="nn">.tea</span> <span class="k">import</span> <span class="n">TEA</span>
@@ -95,12 +95,13 @@
     <span class="k">if</span> <span class="n">command</span><span class="p">:</span>
         <span class="c1"># Build locals dictionary for evaluating command</span>
         <span class="n">lcs</span> <span class="o">=</span> <span class="p">{}</span> 
+        <span class="n">main</span> <span class="o">=</span> <span class="n">Flowsheet</span><span class="o">.</span><span class="n">main</span>
         <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;stream&#39;</span><span class="p">,</span> <span class="s1">&#39;unit&#39;</span><span class="p">,</span> <span class="s1">&#39;system&#39;</span><span class="p">):</span>
-            <span class="n">dct</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">find</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+            <span class="n">dct</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">main</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
             <span class="n">lcs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">dct</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">lcs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="n">lcs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">lcs</span><span class="p">[</span><span class="n">key</span><span class="p">]()</span>
-        <span class="n">lcs</span><span class="p">[</span><span class="s1">&#39;find&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">find</span>
+        <span class="n">lcs</span><span class="p">[</span><span class="s1">&#39;find&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">main</span><span class="o">.</span><span class="n">find</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">out</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="p">{},</span> <span class="n">lcs</span><span class="p">)</span>            
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
@@ -167,7 +168,7 @@
     
 <span class="n">_systemUnit</span><span class="o">.</span><span class="n">_graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;peripheries&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;2&#39;</span>
 <span class="n">_systemUnit</span><span class="o">.</span><span class="n">_instances</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="k">del</span> <span class="n">find</span><span class="o">.</span><span class="n">line</span><span class="p">[</span><span class="s1">&#39;System&#39;</span><span class="p">]</span>
+<span class="k">del</span> <span class="n">Flowsheet</span><span class="o">.</span><span class="n">_main</span><span class="o">.</span><span class="n">line</span><span class="p">[</span><span class="s1">&#39;System&#39;</span><span class="p">]</span>
 
 
 <span class="c1"># %% Process flow</span>
@@ -197,8 +198,8 @@
                                <span class="s1">&#39;Molar tolerance&#39;</span><span class="p">:</span> <span class="s1">&#39;kmol/hr&#39;</span><span class="p">,</span>
                                <span class="s1">&#39;Temperature tolerance&#39;</span><span class="p">:</span> <span class="s1">&#39;K&#39;</span><span class="p">},</span>                  
                         <span class="o">**</span><span class="p">{</span><span class="s1">&#39;Maximum iteration&#39;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span> 
-                           <span class="s1">&#39;Molar tolerance&#39;</span><span class="p">:</span> <span class="mf">0.55</span><span class="p">,</span> 
-                           <span class="s1">&#39;Temperature tolerance&#39;</span><span class="p">:</span> <span class="mf">0.55</span><span class="p">})</span>
+                           <span class="s1">&#39;Molar tolerance&#39;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span> 
+                           <span class="s1">&#39;Temperature tolerance&#39;</span><span class="p">:</span> <span class="mf">0.10</span><span class="p">})</span>
     
     <span class="c1"># [float] Error of the spec objective function</span>
     <span class="n">_spec_error</span> <span class="o">=</span> <span class="kc">None</span>
@@ -309,7 +310,8 @@
 
     <span class="nd">@ID</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">ID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
-        <span class="n">find</span><span class="o">.</span><span class="n">system</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
+        <span class="n">Flowsheet</span><span class="o">.</span><span class="n">_main</span><span class="o">.</span><span class="n">system</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="n">ID</span>
 
     <span class="nd">@property</span>

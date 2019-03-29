@@ -269,6 +269,7 @@
         
         <span class="c1"># Make blockfunc</span>
         <span class="n">name</span> <span class="o">=</span> <span class="n">getter</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="k">if</span> <span class="n">name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;&lt;&#39;</span><span class="p">:</span> <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Lambda&#39;</span>
         <span class="n">str2exec</span> <span class="o">=</span>  <span class="p">(</span><span class="n">f</span><span class="s1">&#39;def </span><span class="si">{name}{sig}</span><span class="s1">:    </span><span class="se">\n</span><span class="s1">&#39;</span>
                    <span class="o">+</span> <span class="n">f</span><span class="s1">&#39;    setter(</span><span class="si">{param}</span><span class="s1">) </span><span class="se">\n</span><span class="s1">&#39;</span>
                    <span class="o">+</span> <span class="n">f</span><span class="s1">&#39;    simulate()      </span><span class="se">\n</span><span class="s1">&#39;</span>

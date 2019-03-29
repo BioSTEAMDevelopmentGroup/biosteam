@@ -74,23 +74,27 @@ graphics.node['color'] = 'none'
 graphics.node['margin'] = '0'
 
 def HXutility_node(hx):
-    si = hx.ins[0]
-    so = hx.outs[0]
-    gi = si.phase == 'g'
-    li = so.phase == 'l'
-    go = so.phase == 'g'
-    lo = so.phase == 'l'
-    Ti = si.T
-    To = so.T
-    graphics = hx._graphics
-    if Ti > To or (gi and lo):
-        graphics.node['fillcolor'] = '#cfecf0'
-        graphics.name = 'Cooling'
-    elif Ti < To or (li and go):
-        graphics.node['fillcolor'] = '#fad6d8'
-        graphics.name = 'Heating'
-    else:
-        graphics.node['fillcolor'] = '#cfecf0:#fad6d8'
+    try:
+        si = hx.ins[0]
+        so = hx.outs[0]
+        gi = si.phase == 'g'
+        li = so.phase == 'l'
+        go = so.phase == 'g'
+        lo = so.phase == 'l'
+        Ti = si.T
+        To = so.T
+        graphics = hx._graphics
+        if Ti > To or (gi and lo):
+            graphics.node['fillcolor'] = '#cfecf0'
+            graphics.name = 'Cooling'
+        elif Ti < To or (li and go):
+            graphics.node['fillcolor'] = '#fad6d8'
+            graphics.name = 'Heating'
+        else:
+            graphics.node['fillcolor'] = '#cfecf0:#fad6d8'
+    except:
+        graphics = hx._graphics
+        graphics.name = 'Heat exchange'
 
 graphics.node_function = HXutility_node
 

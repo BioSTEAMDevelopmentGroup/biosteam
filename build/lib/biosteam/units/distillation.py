@@ -6,7 +6,7 @@ Created on Thu Aug 23 19:33:20 2018
 @author: yoelr
 """
 from biosteam import Unit, np, MixedStream, Stream
-from biosteam.utils import get_vals, approx2step
+from biosteam.utils import approx2step
 from biosteam.exceptions import biosteamError, DesignError
 from scipy.optimize import brentq
 from biosteam.units.hx import HXutility
@@ -241,6 +241,7 @@ class Dist(Unit):
         kwargs = self.kwargs
         cached = self._cached
         species = vap.species
+        getattr_ = getattr
 
         # Set stream phase and pressure
         vap.phase = 'g'
@@ -253,7 +254,7 @@ class Dist(Unit):
         LK, HK = kwargs['LHK']
         sp_index = vap._IDs.index
         LK_index, HK_index = cached['LHK_index'] = [sp_index(LK), sp_index(HK)]
-        self._LHK_species = tuple(getattr(species, ID) for ID in kwargs['LHK'])
+        self._LHK_species = tuple(getattr_(species, ID) for ID in kwargs['LHK'])
         
         species_list = list(species)
         indices = list(range(len(species_list)))
@@ -265,8 +266,8 @@ class Dist(Unit):
         indices.pop(HK_index)
         Tbs = tuple(s.Tb for s in species_list)
         
-        Tb_light = getattr(species, LK).Tb
-        Tb_heavy = getattr(species, HK).Tb
+        Tb_light = getattr_(species, LK).Tb
+        Tb_heavy = getattr_(species, HK).Tb
         cached['LNK_index'] = LNK_index = []
         cached['HNK_index'] = HNK_index = []
         for Tb, i in zip(Tbs, indices):
@@ -291,8 +292,8 @@ class Dist(Unit):
         cached = self._cached
 
         # Get all important flow rates (both light and heavy keys and non-keys)
-        LHK_index, LNK_index, HNK_index, y = get_vals(cached, 'LHK_index',
-                                                   'LNK_index', 'HNK_index', 'y')
+        LHK_index, LNK_index, HNK_index, y = (cached[i] for i in
+                                              ('LHK_index', 'LNK_index', 'HNK_index', 'y'))
         mol = self._mol_in
         LHK_mol = mol[LHK_index]
         HNK_mol = mol[HNK_index]
@@ -1017,7 +1018,8 @@ class Distillation(Dist):
         boil_up_flow = cached['boilup_molfrac'] * V_mol
         boil_up = cached['boil_up']
         boil_up.T = bottoms.T; boil_up.P = bottoms.P; boil_up.phase = 'g'
-        index_ = boil_up.indices(*cached['vle_bot'])
+        lookup = boil_up._compounds.index
+        index_ = [lookup(i) for i in cached['vle_bot']]
         boil_up.mol[index_] = boil_up_flow
         V = boil_up.massnet
         V_vol = 0.0002778 * boil_up.volnet # m^3/s
@@ -1295,7 +1297,8 @@ class Stripper(Dist):
         boil_up_flow = cached['boilup_molfrac'] * V_mol
         boil_up = cached['boil_up']
         boil_up.T = bottoms.T; boil_up.P = bottoms.P; boil_up.phase = 'g'
-        index_ = boil_up.indices(*cached['vle_bot'])
+        lookup = boil_up._compounds.index
+        index_ = [lookup(i) for i in cached['vle_bot']]
         boil_up.mol[index_] = boil_up_flow
         V = boil_up.massnet
         V_vol = 0.0002778 * boil_up.volnet # m^3/s

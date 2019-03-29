@@ -64,55 +64,7 @@
 <span class="kn">from</span> <span class="nn">biosteam.exceptions</span> <span class="k">import</span> <span class="n">IDconflict</span>
 <span class="kn">from</span> <span class="nn">weakref</span> <span class="k">import</span> <span class="n">ref</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;getDict&#39;</span><span class="p">,</span> <span class="s1">&#39;WeakRefBook&#39;</span><span class="p">,</span> <span class="s1">&#39;get_doc_units&#39;</span><span class="p">,</span> <span class="s1">&#39;merge&#39;</span><span class="p">,</span> <span class="s1">&#39;get_vals&#39;</span><span class="p">)</span>
-
-
-<span class="c1"># %% Dictionary Classes</span>
-
-<div class="viewcode-block" id="getDict"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.getDict">[docs]</a><span class="k">class</span> <span class="nc">getDict</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Create a dictionary that return None instead of raising a KeyError.&quot;&quot;&quot;</span>
-
-    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;], &#39;</span><span class="p">,</span> <span class="s1">&#39;],</span><span class="se">\n</span><span class="s1"> &#39;</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="WeakRefBook"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.WeakRefBook">[docs]</a><span class="k">class</span> <span class="nc">WeakRefBook</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Create a WeakRefBook object that stores only weak references. When item getter is used, it returns the call of the weak reference. If the key does not exist, it returns None. When check_ID is True, an IDconflict error will be raised when setting with a key/ID already occupied by an object.</span>
-
-<span class="sd">    **Parameters**</span>
-
-<span class="sd">         **check_ID:** [bool] if True, no key/ID can be specified twice.</span>
-
-<span class="sd">         **kwargs: [dict] Key-value pairs to initialize dictionary.</span>
-
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;check_ID&#39;</span><span class="p">]</span>
-
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">check_ID</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">check_ID</span> <span class="o">=</span> <span class="n">check_ID</span>
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-            <span class="bp">self</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">item</span>
-
-    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_ID</span> <span class="ow">and</span> <span class="bp">self</span><span class="p">[</span><span class="n">ID</span><span class="p">]:</span>
-            <span class="k">raise</span> <span class="n">IDconflict</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;A &#39;{type(obj).__name__}&#39; object with key/ID, &#39;</span><span class="si">{ID}</span><span class="s2">&#39;, already exists. Add a &#39;*&#39; to ID to ignore possible conflicts.&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">ref</span><span class="p">:</span>
-            <span class="n">obj</span> <span class="o">=</span> <span class="n">ref</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">__delitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
-            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__delitem__</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="kc">None</span><span class="p">)()</span>
-
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;{type(self).__name__}{tuple(self.keys())}&#39;</span></div>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;get_doc_units&#39;</span><span class="p">,)</span>
 
 
 <span class="c1"># %% Dictionary functions</span>
@@ -159,23 +111,7 @@
         <span class="k">if</span> <span class="n">unit</span><span class="p">:</span>
             <span class="n">udict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">unit</span>        </div>
         
-
-<div class="viewcode-block" id="merge"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.merge">[docs]</a><span class="k">def</span> <span class="nf">merge</span><span class="p">(</span><span class="o">*</span><span class="n">dict_args</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Merged dictionary&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Given any number of dictionaries, shallow copy and merge into a new dictionary, precedence goes to key value pairs in latter dicts.&quot;&quot;&quot;</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">dictionary</span> <span class="ow">in</span> <span class="n">dict_args</span><span class="p">:</span>
-        <span class="n">result</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">dictionary</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">result</span></div>
-
-
-<div class="viewcode-block" id="get_vals"><a class="viewcode-back" href="../../../utils.html#biosteam.utils.get_vals">[docs]</a><span class="k">def</span> <span class="nf">get_vals</span><span class="p">(</span><span class="n">dct</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">*</span><span class="n">keys</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;generator(dict values)&#39;</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Get all key values as a generator.&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="p">(</span><span class="n">dct</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">)</span></div>
-
-
-
-
-
+        
 </pre></div>
 
           </div>

@@ -67,7 +67,7 @@
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">newton</span><span class="p">,</span> <span class="n">least_squares</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">material_array</span><span class="p">,</span> <span class="n">property_array</span><span class="p">,</span> <span class="n">PropertyFactory</span><span class="p">,</span> \
                    <span class="n">tuple_array</span><span class="p">,</span> <span class="n">reorder</span><span class="p">,</span> <span class="n">fraction</span><span class="p">,</span> <span class="n">Sink</span><span class="p">,</span> <span class="n">Source</span>
-<span class="kn">from</span> <span class="nn">.flowsheet</span> <span class="k">import</span> <span class="n">find</span>
+<span class="kn">from</span> <span class="nn">.flowsheet</span> <span class="k">import</span> <span class="n">Flowsheet</span>
 <span class="kn">from</span> <span class="nn">.species</span> <span class="k">import</span> <span class="n">Species</span>
 <span class="kn">from</span> <span class="nn">.compound</span> <span class="k">import</span> <span class="n">Compound</span>
 <span class="kn">from</span> <span class="nn">.exceptions</span> <span class="k">import</span> <span class="n">SolverError</span><span class="p">,</span> <span class="n">EquilibriumError</span><span class="p">,</span> \
@@ -647,15 +647,11 @@
             <span class="n">empty_species</span> <span class="o">=</span> <span class="n">lenspecies</span> <span class="o">==</span> <span class="mi">0</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_molarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_Nspecies</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">flow_pairs</span> <span class="ow">and</span> <span class="n">empty_flow</span> <span class="ow">and</span> <span class="n">empty_species</span><span class="p">:</span>
-                <span class="n">flow</span> <span class="o">=</span> <span class="n">flow_pairs</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
                 <span class="n">species</span> <span class="o">=</span> <span class="n">flow_pairs</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_molarray</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="o">*</span><span class="n">species</span><span class="p">)]</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="n">flow</span><span class="p">,)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_molarray</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="o">*</span><span class="n">species</span><span class="p">)]</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="n">flow_pairs</span><span class="o">.</span><span class="n">values</span><span class="p">(),)</span>
             <span class="k">elif</span> <span class="n">lenspecies</span> <span class="o">==</span> <span class="n">lenflow</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">flow_pairs</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">species</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">Compound</span><span class="p">):</span>
-                        <span class="n">species</span> <span class="o">=</span> <span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">ID</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">species</span><span class="p">)</span>
-                    <span class="n">flow</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="n">flow</span><span class="p">,</span> <span class="o">*</span><span class="n">flow_pairs</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_molarray</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="o">*</span><span class="n">species</span><span class="p">,</span> <span class="o">*</span><span class="n">flow_pairs</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span> <span class="o">=</span> <span class="n">flow</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_molarray</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="o">*</span><span class="n">species</span><span class="p">,</span> <span class="o">*</span><span class="n">flow_pairs</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="n">flow</span><span class="p">,</span> <span class="o">*</span><span class="n">flow_pairs</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
                 <span class="k">elif</span> <span class="ow">not</span> <span class="n">empty_flow</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_molarray</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="o">*</span><span class="n">species</span><span class="p">)]</span> <span class="o">=</span> <span class="n">flow</span>
             <span class="k">elif</span> <span class="n">empty_species</span> <span class="ow">and</span> <span class="n">lenflow</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Nspecies</span><span class="p">:</span>
@@ -743,15 +739,22 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_default_ID</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="n">num</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
             <span class="n">ID</span> <span class="o">=</span> <span class="n">letter</span> <span class="o">+</span> <span class="n">num</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="n">ID</span>
+                <span class="n">Flowsheet</span><span class="o">.</span><span class="n">_main</span><span class="o">.</span><span class="n">stream</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
+                <span class="k">return</span> 
         <span class="k">elif</span> <span class="n">ID</span> <span class="o">==</span> <span class="s1">&#39;*&#39;</span><span class="p">:</span>
             <span class="c1"># Ignore and do not include in find dicts</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="n">ID</span>
             <span class="k">return</span>
         <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span><span class="n">i</span> <span class="ow">in</span> <span class="n">ID</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="s1">&#39;`~!@#$%^&amp;():&#39;</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;ID cannot contain any of the following special characters: `~!@#$%^&amp;():&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
         <span class="c1"># Remove old ref and set a new ref</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span><span class="p">:</span> <span class="k">del</span> <span class="n">find</span><span class="o">.</span><span class="n">stream</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ID</span><span class="p">]</span>
-        <span class="n">find</span><span class="o">.</span><span class="n">stream</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="n">stream</span> <span class="o">=</span> <span class="n">Flowsheet</span><span class="o">.</span><span class="n">_main</span><span class="o">.</span><span class="n">stream</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="ow">in</span> <span class="n">stream</span><span class="p">:</span> <span class="k">del</span> <span class="n">stream</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ID</span><span class="p">]</span>
+        <span class="n">stream</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="n">ID</span>
 
     <span class="nd">@property</span>
@@ -775,15 +778,12 @@
 
 <span class="sd">        **Parameters**</span>
 
-<span class="sd">             ***species:** Can be either ID of species or Compound objects.</span>
+<span class="sd">             ***species:** [iterable] species IDs or CAS numbers.</span>
+<span class="sd">             </span>
+<span class="sd">             **CAS:** [bool] True if species are CAS numbers.</span>
 
 <span class="sd">        Example</span>
 
-<span class="sd">        Indices by compound:</span>
-<span class="sd">        </span>
-<span class="sd">        &gt;&gt;&gt; s1.indices(s1.species.Water, s1.species.Ethanol)</span>
-<span class="sd">        [1, 0]</span>
-<span class="sd">        </span>
 <span class="sd">        Indices by ID:</span>
 <span class="sd">        </span>
 <span class="sd">        &gt;&gt;&gt; s1.indices(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
@@ -795,12 +795,23 @@
 <span class="sd">        [1, 0]</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">species</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">species</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
             <span class="n">lookup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_CAS</span><span class="o">.</span><span class="n">index</span> <span class="k">if</span> <span class="n">CAS</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_IDs</span><span class="o">.</span><span class="n">index</span>
-            <span class="k">return</span> <span class="p">[</span><span class="n">lookup</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span> <span class="k">for</span> <span class="n">ID</span> <span class="ow">in</span> <span class="n">species</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">lookup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compounds</span><span class="o">.</span><span class="n">index</span>
-            <span class="k">return</span> <span class="p">[</span><span class="n">lookup</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">species</span><span class="p">]</span></div>
+            <span class="k">return</span> <span class="p">[</span><span class="n">lookup</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">species</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">VE</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">species</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">CAS</span><span class="p">:</span>
+                    <span class="n">stream_species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_CAS</span>
+                    <span class="n">start</span> <span class="o">=</span> <span class="s1">&#39;CAS numbers &#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">stream_species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_IDs</span>
+                    <span class="n">start</span> <span class="o">=</span> <span class="s1">&#39;IDs &#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;species must all be str objects&#39;</span><span class="p">)</span>
+            <span class="n">not_included</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">species</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">stream_species</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">not_included</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{start}{not_included}</span><span class="s1"> not defined in </span><span class="si">{self.ID}</span><span class="s1">.species&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="n">VE</span></div>
+                
     
     <span class="c1"># Molar flow</span>
     <span class="nd">@property</span>

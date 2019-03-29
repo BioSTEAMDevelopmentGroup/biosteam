@@ -136,6 +136,19 @@
 </dd></dl>
 
 <dl class="method">
+<dt id="biosteam.TEA.operating_cost">
+<code class="descname">operating_cost</code><span class="sig-paren">(</span><em>*products</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/tea.html#TEA.operating_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.operating_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return operating cost of products.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><strong>*products:</strong> [Stream] Main products of the system</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If there is more than one main product, The operation cost is proportionally allocated to each of the main products with respect to their marketing values. The marketing value of each product is determined by the annual production multiplied by its selling price.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
 <dt id="biosteam.TEA.solve_IRR">
 <code class="descname">solve_IRR</code><span class="sig-paren">(</span><em>update=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/tea.html#TEA.solve_IRR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.solve_IRR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the IRR at the break even point (NPV = 0) through cash flow analysis.</p>

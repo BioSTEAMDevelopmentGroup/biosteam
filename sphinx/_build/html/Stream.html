@@ -325,13 +325,10 @@
 <dd><p>Return flow indices of specified species.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
-<div><strong>*species:</strong> Can be either ID of species or Compound objects.</div></blockquote>
+<div><p><strong>*species:</strong> [iterable] species IDs or CAS numbers.</p>
+<p><strong>CAS:</strong> [bool] True if species are CAS numbers.</p>
+</div></blockquote>
 <p>Example</p>
-<p>Indices by compound:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="n">s1</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">Water</span><span class="p">,</span> <span class="n">s1</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">Ethanol</span><span class="p">)</span>
-<span class="go">[1, 0]</span>
-</pre></div>
-</div>
 <p>Indices by ID:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">)</span>
 <span class="go">[1, 0]</span>

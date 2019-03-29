@@ -34,7 +34,7 @@
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Sensitivity</a><ul>
-<li><a class="reference internal" href="#Perform-sensitivity-analysis-around-the-lipid-cane-biorefinery-system">Perform sensitivity analysis around the lipid cane biorefinery system</a></li>
+<li><a class="reference internal" href="#Perform-sensitivity-analysis-around-the-lipid-cane-biorefinery-system.-Make-sure-you-&quot;pip-install-lipidcane&quot;-before-trying-this-example.">Perform sensitivity analysis around the lipid cane biorefinery system. Make sure you “pip install lipidcane” before trying this example.</a></li>
 </ul>
 </li>
 </ul>
@@ -234,8 +234,8 @@ div.nboutput div.output_area.stderr {
 </style>
 <div class="section" id="Sensitivity">
 <h1>Sensitivity<a class="headerlink" href="#Sensitivity" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="Perform-sensitivity-analysis-around-the-lipid-cane-biorefinery-system">
-<h2>Perform sensitivity analysis around the lipid cane biorefinery system<a class="headerlink" href="#Perform-sensitivity-analysis-around-the-lipid-cane-biorefinery-system" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="Perform-sensitivity-analysis-around-the-lipid-cane-biorefinery-system.-Make-sure-you-&quot;pip-install-lipidcane&quot;-before-trying-this-example.">
+<h2>Perform sensitivity analysis around the lipid cane biorefinery system. Make sure you “pip install lipidcane” before trying this example.<a class="headerlink" href="#Perform-sensitivity-analysis-around-the-lipid-cane-biorefinery-system.-Make-sure-you-"pip-install-lipidcane"-before-trying-this-example." title="Permalink to this headline">¶</a></h2>
 <p>Create a senstivity object by passing lipicane_sys as the <code class="docutils literal notranslate"><span class="pre">system</span></code>,
 solve_IRR as the <code class="docutils literal notranslate"><span class="pre">getter</span></code> function that returns the sensitivity
 variable, and “IRR” as the <code class="docutils literal notranslate"><span class="pre">ID</span></code> for the sensitivity variable
@@ -246,16 +246,16 @@ variable, and “IRR” as the <code class="docutils literal notranslate"><span 
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">lipidcane</span> <span class="k">import</span> <span class="n">set_oil_fraction</span><span class="p">,</span> <span class="n">Lipid_cane</span><span class="p">,</span> <span class="n">lipidcane_sys</span><span class="p">,</span> <span class="n">lipidcane_tea</span>
+<span></span><span class="kn">from</span> <span class="nn">lipidcane</span> <span class="k">import</span> <span class="n">set_lipid_fraction</span><span class="p">,</span> <span class="n">Lipid_cane</span><span class="p">,</span> <span class="n">lipidcane_sys</span><span class="p">,</span> <span class="n">lipidcane_tea</span>
 <span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Sensitivity</span>
 <span class="n">solve_IRR</span> <span class="o">=</span> <span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">solve_IRR</span>
 <span class="n">ss</span> <span class="o">=</span> <span class="n">Sensitivity</span><span class="p">(</span><span class="n">lipidcane_sys</span><span class="p">,</span> <span class="n">solve_IRR</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;IRR&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
-<p>Add a paramter for sensitivity by passing the Lipid_cane stream as the
-<code class="docutils literal notranslate"><span class="pre">element</span></code> that is changing, set_feed_price as the parameter
-<code class="docutils literal notranslate"><span class="pre">setter</span></code>, and the <code class="docutils literal notranslate"><span class="pre">values</span></code> that the parameter takes:</p>
+<p>Evaluate sensitivity by passing the Lipid_cane stream as the element
+that is changing, set_feed_price as the parameter setter, and the
+values that the parameter takes:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [2]:
@@ -263,69 +263,21 @@ variable, and “IRR” as the <code class="docutils literal notranslate"><span 
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="k">def</span> <span class="nf">set_feed_price</span><span class="p">(</span><span class="n">lipid_cane_price</span><span class="p">):</span> <span class="n">Lipid_cane</span><span class="o">.</span><span class="n">price</span> <span class="o">=</span> <span class="n">lipid_cane_price</span>
-<span class="n">ss</span><span class="o">.</span><span class="n">addparam</span><span class="p">(</span><span class="n">Lipid_cane</span><span class="p">,</span> <span class="n">set_feed_price</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.030</span><span class="p">,</span> <span class="mf">0.035</span><span class="p">,</span> <span class="mf">0.040</span><span class="p">])</span>
-<span class="n">ss</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
-<span class="n">ss</span><span class="o">.</span><span class="n">table</span> <span class="c1"># Results are in the table</span>
+<span class="n">values</span> <span class="o">=</span> <span class="n">ss</span><span class="o">.</span><span class="n">evalparam</span><span class="p">(</span><span class="n">Lipid_cane</span><span class="p">,</span> <span class="n">set_feed_price</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.030</span><span class="p">,</span> <span class="mf">0.035</span><span class="p">,</span> <span class="mf">0.040</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[2]:
-</pre></div>
+<div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th>Parameter</th>
-      <th>Lipid cane price</th>
-      <th>IRR</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>Element</th>
-      <td>Stream-Lipid cane</td>
-      <td>n/a</td>
-    </tr>
-    <tr>
-      <th>0</th>
-      <td>0.03</td>
-      <td>0.205</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>0.035</td>
-      <td>0.177</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>0.04</td>
-      <td>0.148</td>
-    </tr>
-  </tbody>
-</table>
-</div></div>
+<div class="highlight"><pre>
+[0.20260503352646556, 0.17486910356482496, 0.14536976892132292]
+</pre></div></div>
 </div>
-<p>Note: The signature of the function is used to name the column for each
-DataFrame object.</p>
-<p>Add another paramter for sensitivity by passing the Lipid_cane stream
-as the <code class="docutils literal notranslate"><span class="pre">element</span></code> that is changing, set_oil_fraction as the parameter
+<p>Add a paramter for sensitivity by passing the Lipid_cane stream as the
+<code class="docutils literal notranslate"><span class="pre">element</span></code> that is changing, set_feed_price as the parameter
 <code class="docutils literal notranslate"><span class="pre">setter</span></code>, and the <code class="docutils literal notranslate"><span class="pre">values</span></code> that the parameter takes:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
@@ -333,9 +285,9 @@ as the <code class="docutils literal notranslate"><span class="pre">element</spa
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">ss</span><span class="o">.</span><span class="n">addparam</span><span class="p">(</span><span class="n">Lipid_cane</span><span class="p">,</span> <span class="n">set_oil_fraction</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.10</span><span class="p">,</span> <span class="mf">0.20</span><span class="p">])</span>
+<span></span><span class="n">ss</span><span class="o">.</span><span class="n">addparam</span><span class="p">(</span><span class="n">Lipid_cane</span><span class="p">,</span> <span class="n">set_feed_price</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.030</span><span class="p">,</span> <span class="mf">0.035</span><span class="p">,</span> <span class="mf">0.040</span><span class="p">])</span>
 <span class="n">ss</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
-<span class="n">ss</span><span class="o">.</span><span class="n">table</span>
+<span class="n">ss</span><span class="o">.</span><span class="n">table</span> <span class="c1"># Results are in the table</span>
 </pre></div>
 </div>
 </div>
@@ -364,7 +316,77 @@ as the <code class="docutils literal notranslate"><span class="pre">element</spa
     <tr style="text-align: right;">
       <th>Parameter</th>
       <th>Lipid cane price</th>
-      <th>Oil fraction</th>
+      <th>IRR</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Element</th>
+      <td>Stream-Lipid cane</td>
+      <td>n/a</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>0.03</td>
+      <td>0.197</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>0.035</td>
+      <td>0.169</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>0.04</td>
+      <td>0.139</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>Note: The signature of the setter is used to name the column for each
+DataFrame object.</p>
+<p>Add another paramter for sensitivity by passing the Lipid_cane stream
+as the <code class="docutils literal notranslate"><span class="pre">element</span></code> that is changing, set_oil_fraction as the parameter
+<code class="docutils literal notranslate"><span class="pre">setter</span></code>, and the <code class="docutils literal notranslate"><span class="pre">values</span></code> that the parameter takes:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">ss</span><span class="o">.</span><span class="n">addparam</span><span class="p">(</span><span class="n">Lipid_cane</span><span class="p">,</span> <span class="n">set_lipid_fraction</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.10</span><span class="p">,</span> <span class="mf">0.20</span><span class="p">])</span>
+<span class="n">ss</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+<span class="n">ss</span><span class="o">.</span><span class="n">table</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[4]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Parameter</th>
+      <th>Lipid cane price</th>
+      <th>Lipid fraction</th>
       <th>IRR</th>
     </tr>
   </thead>
@@ -379,55 +401,55 @@ as the <code class="docutils literal notranslate"><span class="pre">element</spa
       <th>0</th>
       <td>0.03</td>
       <td>0.05</td>
-      <td>0.145</td>
+      <td>0.144</td>
     </tr>
     <tr>
       <th>1</th>
       <td>0.035</td>
       <td>0.05</td>
-      <td>0.112</td>
+      <td>0.111</td>
     </tr>
     <tr>
       <th>2</th>
       <td>0.04</td>
       <td>0.05</td>
-      <td>0.0751</td>
+      <td>0.0739</td>
     </tr>
     <tr>
       <th>3</th>
       <td>0.04</td>
       <td>0.1</td>
-      <td>0.146</td>
+      <td>0.145</td>
     </tr>
     <tr>
       <th>4</th>
       <td>0.035</td>
       <td>0.1</td>
-      <td>0.176</td>
+      <td>0.175</td>
     </tr>
     <tr>
       <th>5</th>
       <td>0.03</td>
       <td>0.1</td>
-      <td>0.204</td>
+      <td>0.203</td>
     </tr>
     <tr>
       <th>6</th>
       <td>0.03</td>
       <td>0.2</td>
-      <td>0.299</td>
+      <td>0.298</td>
     </tr>
     <tr>
       <th>7</th>
       <td>0.035</td>
       <td>0.2</td>
-      <td>0.276</td>
+      <td>0.275</td>
     </tr>
     <tr>
       <th>8</th>
       <td>0.04</td>
       <td>0.2</td>
-      <td>0.252</td>
+      <td>0.251</td>
     </tr>
   </tbody>
 </table>
@@ -436,7 +458,7 @@ as the <code class="docutils literal notranslate"><span class="pre">element</spa
 <p>Use the show method to view sensitivity parameters</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [4]:
+<span></span>In [5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -450,7 +472,7 @@ as the <code class="docutils literal notranslate"><span class="pre">element</spa
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Sensitivity: IRR
- [Stream-Lipid cane| param=(lipid_cane_price, oil_fraction)]
+ [Stream-Lipid cane| param=(lipid_cane_price, lipid_fraction)]
 </pre></div></div>
 </div>
 </div>

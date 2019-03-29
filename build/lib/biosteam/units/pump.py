@@ -15,8 +15,8 @@ exp = np.exp
 max_hp = nema_sizes_hp[-1]
 
 # Ranges of flow rate (m3/hr) and working pressure where pumps work/
-# Assume lower minimum pressure for costing in Centrifugal single and Regenerative
-pump_ranges = {'CentrifugalSingle': ((0.0100, 2271  ), (      0, 689500  )), 
+# Assume lower minimum flow rate and pressure for costing in Centrifugal single and Regenerative
+pump_ranges = {'CentrifugalSingle': ((0.0000, 2271  ), (      0, 689500  )), 
                'CentrifugalDouble': ((0.2271, 2271  ), (      0, 6895000 )),
                'Gear':              ((0.2271, 681.3 ), (  68950, 13790000)),
                'MeteringPlunger':   ((0.2271, 6.813 ), (  68950, 20685000)),
