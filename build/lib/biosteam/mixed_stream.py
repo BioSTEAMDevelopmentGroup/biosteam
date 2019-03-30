@@ -162,8 +162,7 @@ class MixedStream(Stream):
         """Set flow rates according to the species order and flow_pairs. `inplace` can be any operation that can be performed in place (e.g. +, -, *, /, |, **, etc.)."""
         if species and isinstance(species[0], str):
             species = [self._species_dict[ID] for ID in species]
-        species = (*species, *(self._species_dict[i]
-                               for i in flow_pairs.keys()))
+        species = (*species, *flow_pairs.keys())
         flow = (*flow, *flow_pairs.values())
         p = phase_index[phase]
         index = self.indices(*species) if species else ... 
@@ -733,7 +732,7 @@ class MixedStream(Stream):
 
         # Get flow rates
         liquid_mol = self._liquid_mol
-        vapor_mol = self.vapor_mol
+        vapor_mol = self._vapor_mol
         all_mol = liquid_mol + vapor_mol
         mol = all_mol[index]
 
@@ -800,7 +799,7 @@ class MixedStream(Stream):
         ### Begin multi-component equilibrium ###
         
         # Get overall composition
-        molnet = sum(mol)
+        molnet = mol.sum()
         if molnet == 0:
             return  # No equilibrium necessary
         else:
@@ -846,8 +845,8 @@ class MixedStream(Stream):
             def v_error(v):
                 """Error function for constant T and P, where v represents vapor flow rates."""
                 l = mol - v
-                x = l/sum(l)
-                y = v/sum(v)
+                x = l/l.sum()
+                y = v/v.sum()
                 err = x*Psat_P * actcoef(species, x, T) - y
                 return abs(err)
             
@@ -960,7 +959,7 @@ class MixedStream(Stream):
                                                         bounds=(T_bubble, T_dew),
                                                         method='bounded').x
                 
-            self._y_cached[species] = v/sum(v)
+            self._y_cached[species] = v/v.sum()
 
     # LIQUID-liquid equilibrium
     def LLE(self, species_IDs=None, split=None, lNK=(), LNK=(),

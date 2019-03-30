@@ -12,17 +12,14 @@ from copy import copy
 
 __all__ = ('Block', 'emptyblock')
 
+do_nothing = lambda: None
     
 
 # %% Simulation blocks
 
 class Block:
     """
-    **If neither getter or setter is passed:** Create a Block object that can simulate the element and the system downstream. The block can also generate block functions.
-        
-    **If either a getter or a setter is passed:** Create a decorator that returns a block function with the missing argument.
-    
-    **If both a getter and a setter are passed:** Create a block function that wraps the setter and getter around the `block.simulate()` method. 
+    Create a Block object that can simulate the element and the system downstream. The block can also generate block functions.
     
     **Parameters**
     
@@ -50,7 +47,7 @@ class Block:
     
     .. Note::
     
-       Simulating the block will simulate the unit only if kwargs of the unit has changed. Otherwise, it will only cost the unit.
+       Because no system was passed, the block would simulate just the unit.
        
     Create a block object passing both a Unit object and a System object:
         
@@ -66,12 +63,13 @@ class Block:
        >>> block.system.show()
        System: Unit-P1 and downstream
         network: (P1, P2)
-       
-    .. Note::
-        
-       Simulating the block (e.g. `block.simulate()`) will simulate the system only if kwargs of the unit has changed. Otherwise, it wil only cost the system.
     
-    If both a getter and a setter are given, create a block function equivalent to:
+    .. Note::
+    
+       The block would simulate Unit-P1 and downstream.
+    
+    
+    Calling a block object with a getter and a setter will return a block function equivalent to:
         
     .. code-block:: python
     
@@ -87,7 +85,7 @@ class Block:
        >>> # getter and setter functions are hypothetical
        >>> def getter(): pass
        >>> def setter(args): pass
-       >>> blockfunc = Block(P1, None, getter, setter)
+       >>> blockfunc = Block(P1, None)(getter, setter)
        >>> blockfunc
        <function [Block P1] getter(args)>
     
@@ -95,42 +93,12 @@ class Block:
         
        The function signature matches the setter while the function name matches the getter.
     
-    If either a getter or a setter is given, create a decorator that returns a block function with the missing argument. The overall format is:
-    
-    .. code-block:: python
-    
-       >>> def getter(): pass
-       >>> @Block(P1, system, getter)
-       ... def setter(args): pass
-       >>> setter
-       <function [Block P1] getter(args)>
-       
-    Alternatively:
-        
-    .. code-block:: python
-    
-       >>> def setter(args): pass
-       >>> @system.block(P1, setter=setter)
-       >>> def getter(): pass
-       >>> getter
-       <function [Block P1] getter(args)>
-    
-    Block objects serve as decorators that return a block function given a getter or a setter:
-        
-    .. code-block:: python
-       
-       >>> block = Block(P1, system)
-       >>> @block(getter)
-       ... def setter(args): pass
-       >>> setter
-       <function [Block P1] getter(args)>
-    
     """
     
     _cachedblocks = {}
     __slots__ = ('_system', '_simulate', '_element')
     
-    def __new__(cls, element, system=None, getter=None, setter=None):
+    def __new__(cls, element, system=None):
         cached = cls._cachedblocks
         block = cached.get((system, element))
         if block:
@@ -138,62 +106,21 @@ class Block:
         else:
             self = object.__new__(cls)
             self.__init__(element, system)
-        if getter or setter: return self(getter, setter)
-        else: return self
+        return self
     
     def __init__(self, element, system=None):
         inst = isinstance
         if inst(element, Stream): unit = element.sink
         elif inst(element, Unit): unit = element
         else: raise ValueError(f"element must be either a Unit, a Stream object, not '{type(element).__name__}'.")
-        if not system:
+        if system:
+            subsys = system._downstream_system(unit)
+            simulate = subsys.simulate
+        else:
             subsys = system
-            if element is Unit:
-                def simulate(): unit.simulate()
-            else:
-                def simulate(): pass
-        
-        elif element is unit:
-            subsys = system._downstream_system(unit)
-            def simulate():
-                if element._kwargs == element.kwargs:
-                    element._summary()
-                else:
-                    element._kwargs = copy(element.kwargs)
-                    subsys._reset_iter()
-                    unit._setup()
-                    subsys._converge()
-                    for u in subsys.units: u._summary()
-                for i in subsys.facilities:
-                    if inst(i, function):
-                        i()
-                    else:
-                        i._run()
-                        i._summary()
-        else: # element is a stream
-            subsys = system._downstream_system(unit)
-            molarray = element._molarray
-            molarray_old = np.array(molarray)
-            T_old = element.T
-            P_old = element.P
-            def simulate():
-                nonlocal molarray_old, T_old, P_old
-                if ((molarray == molarray_old).all()
-                    and element.T == T_old
-                    and element.P == P_old):
-                    return
-                subsys._reset_iter()
-                subsys._converge()
-                for u in subsys.units: u._summary()
-                for i in subsys.facilities:
-                    if inst(i, function):
-                        i()
-                    else:
-                        i._run()
-                        i._summary()
-                molarray_old = np.array(molarray)
-                T_old = element.T
-                P_old = element.P
+            if element is Unit: simulate = unit.simulate
+            else: simulate = do_nothing
+            
         self._system = subsys
         self._simulate = simulate
         self._element = element
@@ -234,28 +161,8 @@ class Block:
         blockfunc._getter = getter
         return blockfunc
     
-    def _make_decorator(self, getter, setter):
-        globs = {'make_blockfunc': self._make_blockfunc,
-                 'getter': getter,
-                 'setter': setter,}
-        sig = 'setter' if getter else 'getter'
-        str2exec =  (
-              f'def decorator({sig}):                                   \n'
-            + f'    """Decorate as a {type(self).__name__} function.""" \n'
-            + f'    return make_blockfunc(getter, setter, {sig})          ')
-        locs = {}
-        exec(str2exec, globs, locs)
-        decorator = locs['decorator']
-        decorator.__qualname__ = f'{self} {decorator.__qualname__}'
-        return decorator
-    
-    def __call__(self, getter=None, setter=None) -> function:
-        if getter and setter:
-            return self._make_blockfunc(getter, setter, getter)
-        elif getter or setter:
-            return self._make_decorator(getter, setter)
-        else:
-            return self._simulate
+    def __call__(self, getter, setter) -> function:
+        return self._make_blockfunc(getter, setter, getter)
     
     @property
     def system(self):
@@ -296,5 +203,5 @@ class Block:
 emptyblock = object.__new__(Block)
 emptyblock._system = None
 emptyblock._element = None
-emptyblock._simulate = lambda: None
+emptyblock._simulate = do_nothing
 Block.emptyblock = emptyblock

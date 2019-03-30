@@ -44,8 +44,6 @@ def evaluate(self, command=None):
         for attr in ('stream', 'unit', 'system'):
             dct = getattr(main, attr)
             lcs.update(dct)
-        for key in lcs.keys():
-            lcs[key] = lcs[key]()
         lcs['find'] = main.find
         try:
             out = eval(command, {}, lcs)            
@@ -167,22 +165,27 @@ class System:
         #: set[Stream] All streams within the network
         self.streams = set()
 
-        #: set[Unit] All units within facilities
-        self.offsite_units = set()
-        
-        #: set[Unit] All streams within facilities
-        self.offsite_streams = set()
-        
-        #: set[System] All subsystems within facilities
-        self.offsite_subsystems = set()
-
         #: set[System] All subsystems in the network
         self.subsystems = set()
-        
+
         self.ID = ID
         self._set_network(network)
         self.recycle = recycle
-        self._set_facilities(facilities)
+
+        if facilities:
+            #: set[Unit] All units within facilities
+            self.offsite_units = set()
+            
+            #: set[Unit] All streams within facilities
+            self.offsite_streams = set()
+            
+            #: set[System] All subsystems within facilities
+            self.offsite_subsystems = set()
+            
+            self._set_facilities(facilities)
+        else:
+            self.offsite_units = self.offsite_streams = self.offsite_subsystems = None
+            self.facilities = (*facilities,)
     
     def _set_network(self, network):
         """Set network and cache units, streams, subsystems, feeds and products."""
@@ -204,21 +207,14 @@ class System:
                 raise ValueError(f"Only Unit, System, and function objects are valid network elements, not '{type(i).__name__}'")
         streams.discard(missing_stream)        
         
-        # Stamp unit in a loop
-        if self.recycle:
-            for u in units:
-                u._in_loop = True
-        
         #: set[Stream] All feed streams in the system.
-        self.feeds = set(filter(lambda s: not s._source and s._sink,
-                                   streams))
+        self.feeds = set(filter(lambda s: not s._source and s._sink, streams))
         
         #: set[Stream] All product streams in the system.
-        self.products = set(filter(lambda s: s._source and not s._sink,
-                                     streams)) 
+        self.products = set(filter(lambda s: s._source and not s._sink, streams)) 
         
         #: tuple[Unit, function and/or System] A network that is run element by element until the recycle converges.
-        self.network = tuple(network)
+        self.network = (*network,)
         
         #: list[Unit] All unit operations in order of network
         self._flattened_network = _flatten_network(network)
@@ -528,21 +524,21 @@ class System:
         recycle = self.recycle
         run = self._run
         solver_error = self.solver_error
-        maxiter, mol_tol, T_tol = tuple(self.options.values())
+        maxiter, mol_tol, T_tol = (*self.options.values(),)
 
         def set_solver_error():
             solver_error['mol_error'] = mol_error
             solver_error['T_error'] = T_error
 
         # Outer loop
+        abs_ = abs
         while True:
             mol_old = copy(recycle.mol)
             T_old = recycle.T
             run()
-            mol_error = sum(abs(recycle.mol - mol_old))
-            T_error = abs(recycle.T - T_old)
-            if T_error < T_tol and mol_error < mol_tol:
-                break
+            mol_error = abs_(recycle.mol - mol_old).sum()
+            T_error = abs_(recycle.T - T_old)
+            if T_error < T_tol and mol_error < mol_tol: break
             if solver_error['iter'] > maxiter:
                 set_solver_error()
                 raise SolverError(f'Could not converge'
@@ -579,8 +575,9 @@ class System:
         x1[-1] = gx0[-1] = recycle.T
 
         # Check convergence
-        mol_error = sum(abs(gx0[:-1] - x0[:-1]))
-        T_error = abs(gx0[-1] - x0[-1])
+        abs_ = abs
+        mol_error = abs_(gx0[:-1] - x0[:-1]).sum()
+        T_error = abs_(gx0[-1] - x0[-1])
         converged = mol_error < mol_tol and T_error < T_tol
         if converged:
             set_solver_error()
@@ -593,8 +590,8 @@ class System:
             gx1[-1] = recycle.T
 
             # Check if converged
-            mol_error = sum(abs(gx1[:-1] - x1[:-1]))
-            T_error = abs(gx1[-1] - x1[-1])
+            mol_error = abs_(gx1[:-1] - x1[:-1]).sum()
+            T_error = abs_(gx1[-1] - x1[-1])
             converged = mol_error < mol_tol and T_error < T_tol
 
             if solver_error['iter'] > maxiter:

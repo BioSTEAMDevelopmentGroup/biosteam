@@ -31,8 +31,8 @@ class YeastCentrifuge(Unit):
     
     """
     
-    kwargs = {'split': None,
-              'solids': None}
+    _kwargs = {'split': None,
+               'solids': None}
     
     _run = Splitter._run
     
@@ -41,7 +41,7 @@ class YeastCentrifuge(Unit):
         * 'Centrifuge': (USD)
         """
         Cost = self.results['Cost']
-        solids = self.kwargs['solids']
+        solids = self._kwargs['solids']
         index = self.outs[0].indices(*solids)
         mass_solids = 0
         for s in self.ins:

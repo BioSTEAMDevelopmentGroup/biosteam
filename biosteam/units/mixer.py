@@ -53,6 +53,7 @@ class Mixer(Unit, metaclass=metaFinal):
                Ethanol  14
            
     """
+    results = None
     _N_ins = 2
     _N_outs = 1
     _has_cost = False
@@ -64,3 +65,5 @@ class Mixer(Unit, metaclass=metaFinal):
 
     def _run(self):
         Stream.sum(self.outs[0], self.ins)
+        
+    simulate = _run

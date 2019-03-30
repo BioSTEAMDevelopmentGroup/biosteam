@@ -112,18 +112,13 @@ class ShowFormat:
 def MassFlow(self):
     """Mass flow (kg/hr)."""
     mol, MW = self.data
-    if mol:
-        return float(mol * MW)
-    else:
-        return 0.
+    if mol: return float(mol * MW)
+    else: return 0.
 
 @MassFlow.setter
 def MassFlow(self, value):
     mol, MW = self.data
-    if value:
-        mol[0] = value/MW
-    else:
-        mol[0] = 0.
+    mol[0] = value/MW if value else 0
 
 @PropertyFactory    
 def VolumetricFlow(self):
@@ -156,15 +151,6 @@ def VolumetricFlow(self, value):
 
 class metaStream(type):
     """Metaclass for Stream."""
-    __instances = []
-    
-    def __init__(cls, clsname, superclasses, new_definitions):
-        # Add a Species object if not inherited
-        if not hasattr(cls, '_species'):
-            cls._species = Species()
-            cls._show_format = ShowFormat()
-        type(cls).__instances.append(cls)
-
     @property
     def species(cls):
         """[Species] Contains pure component thermodynamic properties for computing overall properties of Stream instances."""
@@ -193,8 +179,7 @@ class metaStream(type):
                 cl._Nspecies = Nspecies
                 cl._MW = MW
             species._immutable.add(species)
-        else:
-            raise ValueError('Must pass a Species object')
+        else: raise ValueError('Must pass a Species object')
             
     @property
     def show_format(cls):
@@ -202,10 +187,8 @@ class metaStream(type):
         return cls._show_format
 
     def __repr__(cls):
-        if cls is Stream:
-            return f'biosteam.{cls.__name__}'
-        else:
-            return f'Stream.{cls.__name__}'
+        if cls is Stream: return f'biosteam.{cls.__name__}'
+        else: return f'Stream.{cls.__name__}'
 
 
 class Stream(metaclass=metaStream):
@@ -305,7 +288,7 @@ class Stream(metaclass=metaStream):
               Water    0.667
               net      3 kmol/hr
 
-    Flow rates are stored internally as a material_array in the ‘mol’ attribute. A material_array object is a numpy ndarray which issues a RuntimeWarning when a negative or non-finite number is encountered:
+    Flow rates are stored internally as a material_array in the ‘mol’ attribute.
 
     .. code-block:: python
 
@@ -439,6 +422,12 @@ class Stream(metaclass=metaStream):
 
     ### Class attributes for working species ###
     
+    #: Representation format
+    _show_format = ShowFormat()
+    
+    #: Species defined in stream
+    _species = None
+    
     #: UNIFAC parameters cached
     # {species: (chemgroups, rs, qs, group_counts)}
     _UNIFAC_cached = {}
@@ -447,31 +436,34 @@ class Stream(metaclass=metaStream):
     _CAS = ()
 
     #: Compounds of species
-    _compounds = ()
+    _compounds = _CAS
     
     #: Enumerated compounds
-    _num_compounds = ()
+    _num_compounds = _CAS
     
     #: Species dictionary
     _species_dict = {}
     
     #: Enumerated species IDs
-    _num_IDs = ()
+    _num_IDs = _CAS
     
     #: Species IDs
-    _IDs = ()
+    _IDs = _CAS
     
     #: Number of species
     _Nspecies = 0  
     
     #: Array of molecular weights
-    _MW = ()
+    _MW = _CAS
 
     # [list] Default starting letter and current number for ID (class attribute)
     _default_ID = ['d', 1]
 
     # Default ID
     _ID = None
+    
+    #: [bool] If True, approximate energy balance. False otherwise.
+    lazy_energy_balance = True
 
     def __init__(self, ID='', flow=(), species=(), units='kmol/hr',
                  phase='l', T=298.15, P=101325, *, price=0, **flow_pairs):
@@ -531,8 +523,7 @@ class Stream(metaclass=metaStream):
             mass.append(m); vol.append(v)
         self._mass = property_array(mass)
         self._vol = property_array(vol)
-        if units != 'kmol/hr':
-            self._set_flowarray_with_units(mol, units)
+        if units != 'kmol/hr': self._set_flowarray_with_units(mol, units)
 
         #: Price of stream (USD/kg)
         self.price = price
@@ -544,19 +535,20 @@ class Stream(metaclass=metaStream):
         species = (*species, *flow_pairs.keys())
         flow = (*flow, *flow_pairs.values())
         index = self.indices(*species) if species else ... 
-        if units == 'kmol/hr':
-            exec(f"self._mol[index] {inplace}= flow", locals())
-            return
-        flow_wt_units = Q_(flow, units)
-        dim = flow_wt_units.dimensionality
-        if dim == mol_flow_dim:
-            exec(f"self._mol[index] {inplace}= flow_wt_units.to('kmol/hr').magnitude", locals())
-        elif dim == mass_flow_dim:
-            exec(f"self._mass[index] {inplace}= flow_wt_units.to('kg/hr').magnitude", locals())
-        elif dim == vol_flow_dim:
-            exec(f"self._vol[index] {inplace}= flow_wt_units.to('m3/hr').magnitude", locals())
+        if units == 'kmol/hr': exec(f"self._mol[index] {inplace}= flow", locals())
+        elif units == 'kg/hr': exec(f"self._mass[index] {inplace}= flow", locals())
+        elif units == 'm3/hr': exec(f"self._vol[index] {inplace}= flow", locals())
         else:
-            raise DimensionError(f"Dimensions for flow units must be in molar, mass or volumetric flow rates, not '{dim}'.")
+            flow_wt_units = Q_(flow, units)
+            dim = flow_wt_units.dimensionality
+            if dim == mol_flow_dim:
+                exec(f"self._mol[index] {inplace}= flow_wt_units.to('kmol/hr').magnitude", locals())
+            elif dim == mass_flow_dim:
+                exec(f"self._mass[index] {inplace}= flow_wt_units.to('kg/hr').magnitude", locals())
+            elif dim == vol_flow_dim:
+                exec(f"self._vol[index] {inplace}= flow_wt_units.to('m3/hr').magnitude", locals())
+            else:
+                raise DimensionError(f"Dimensions for flow units must be in molar, mass or volumetric flow rates, not '{dim}'.")
         
     
     def getflow(self, *species, units='kmol/hr'):
@@ -606,16 +598,19 @@ class Stream(metaclass=metaStream):
     
     def _set_flowarray_with_units(self, flow, units):
         """Set flow rates accorthing to given units."""
-        flow_wt_units = Q_(flow, units)
-        dim = flow_wt_units.dimensionality
-        if dim == mol_flow_dim:
-            self._mol[:] = flow_wt_units.to('kmol/hr').magnitude
-        elif dim == mass_flow_dim:
-            self._mass[:] = flow_wt_units.to('kg/hr').magnitude
-        elif dim == vol_flow_dim:
-            self._vol[:] = flow_wt_units.to('m3/hr').magnitude
+        if units == 'kg/hr': self._mass[:] = flow
+        elif units == 'm3/hr': self._vol[:] = flow
         else:
-            raise DimensionError(f"Dimensions for flow units must be in molar, mass or volumetric flow rates, not '{dim}'.")
+            flow_wt_units = Q_(flow, units)
+            dim = flow_wt_units.dimensionality
+            if dim == mol_flow_dim:
+                self._mol[:] = flow_wt_units.to('kmol/hr').magnitude
+            elif dim == mass_flow_dim:
+                self._mass[:] = flow_wt_units.to('kg/hr').magnitude
+            elif dim == vol_flow_dim:
+                self._vol[:] = flow_wt_units.to('m3/hr').magnitude
+            else:
+                raise DimensionError(f"Dimensions for flow units must be in molar, mass or volumetric flow rates, not '{dim}'.")
 
     def _set_species(self, species):
         """Set Species object and related information."""
@@ -744,6 +739,8 @@ class Stream(metaclass=metaStream):
             lookup = self._CAS.index if CAS else self._IDs.index
             return [lookup(i) for i in species]
         except ValueError as VE:
+            if not self._species:
+                raise RuntimeError(f'No species defined in stream.')
             if all(isinstance(i, str) for i in species):
                 if CAS:
                     stream_species = self._CAS
@@ -754,7 +751,7 @@ class Stream(metaclass=metaStream):
             else:
                 raise TypeError(f'species must all be str objects')
             not_included = tuple(i for i in species if i not in stream_species)
-            if not_included: raise ValueError(f'{start}{not_included} not defined in {self.ID}.species')
+            if not_included: raise ValueError(f'{start}{not_included} not defined in stream species')
             else: raise VE
                 
     
@@ -887,25 +884,26 @@ class Stream(metaclass=metaStream):
 
     @H.setter
     def H(self, H):
-        if all(self.mol == 0):
-            if H != 0:
-                raise ValueError(f"Cannot set nonzero enthalpy to empty stream.")
-            else:
-                return
-
-        # First approximation
-        T_old = self.T
-        C = self.C
-        self.T += (H - self.H)/C
-
-        # Solve enthalpy by iteration
-        it = 1
-        while abs(self.T - T_old) > 0.01:
+        if (self._molarray == 0).all():
+            if H != 0: raise ValueError(f"Cannot set nonzero enthalpy to empty stream.")
+            else: return
+        
+        if self.lazy_energy_balance:
+            self.T += (H - self.H)/self.C    
+        else:
+            # First approximation
             T_old = self.T
+            C = self.C
             self.T += (H - self.H)/C
-            it += 1
-            if it > 40:
-                raise SolverError(f"Could not solve temperature given enthalpy")
+        
+            # Solve enthalpy by iteration
+            it = 1
+            while abs(self.T - T_old) > 0.01:
+                T_old = self.T
+                self.T += (H - self.H)/C
+                it += 1
+                if it > 40:
+                    raise SolverError(f"Could not solve temperature given enthalpy")
 
     @property
     def Hf(self):
@@ -1216,11 +1214,11 @@ class Stream(metaclass=metaStream):
                          phase=phase, T=s.T, P=s.P)
         else:
             out = MS.MixedStream(ID,
-                                 solid_flow=s.solid_mol,
-                                 liquid_flow=s.liquid_mol,
-                                 LIQUID_flow=s.LIQUID_mol,
-                                 vapor_flow=s.vapor_mol,
-                                 species=stream.species,
+                                 solid_flow=s._solid_mol,
+                                 liquid_flow=s._liquid_mol,
+                                 LIQUID_flow=s._LIQUID_mol,
+                                 vapor_flow=s._vapor_mol,
+                                 species=stream._species,
                                  T=s.T, P=s.P)
         return out
     
@@ -1646,7 +1644,7 @@ class Stream(metaclass=metaStream):
             it += 1
 
     @staticmethod
-    def sum(s_sum, streams, approximate=False):
+    def sum(s_sum, streams):
         """Mixes streams and sets resulting mass and energy in 's_sum'. Assumes the same pressure as streams[0], and no phase equilibrium. If 's_sum' is a Stream object, it assumes the phase does not change.
 
         **Parameters** 
@@ -1654,9 +1652,7 @@ class Stream(metaclass=metaStream):
              **s_sum:** [Stream] Container for the resulting mixture of streams
 
              **streams:** [tuple] Stream objects to be mixed
-
-             **approximate:** [bool] If True, approximate energy balance with constant heat capacity
-
+             
         **Return**
 
              **s_sum:** same object as in arguments
@@ -1677,24 +1673,23 @@ class Stream(metaclass=metaStream):
         T_init = streams[0].T
         Ts = np.array([s.T for s in streams[1:]])
         energy_balance = any(T_init != Ts)
-        if energy_balance:
-            H = sum(s.H for s in streams)
-        else:
-            s_sum.T = T_init
+        if energy_balance: H = sum(s.H for s in streams)
+        else: s_sum.T = T_init
 
         # Copy starting values
         s_sum.copylike(streams[0])
         streams = streams[1:]
 
         # Mass balance
-        if isinstance(s_sum, MS.MixedStream):
+        inst = isinstance
+        if inst(s_sum, MS.MixedStream):
             # For MixedStream objects
             for s in streams:
-                if isinstance(s, MS.MixedStream):
+                if inst(s, MS.MixedStream):
                     s_sum._molarray += s._molarray
-                elif isinstance(s, Stream):
-                    s_sum._phases_molflow[s.phase] += s._mol
-        elif isinstance(s_sum, Stream):
+                elif inst(s, Stream):
+                    s_sum._phases_molflow[s.phase] += s._molarray
+        elif inst(s_sum, Stream):
             # For Stream objects
             for s in streams:
                 s_sum._mol[:] += s.mol
@@ -1702,12 +1697,7 @@ class Stream(metaclass=metaStream):
             raise TypeError('Must pass a valid Stream object')
 
         # Energy Balance
-        if energy_balance:
-            if approximate:
-                s_sum.T += (H - s_sum.H)/s_sum.C
-            else:
-                s_sum.H = H
-
+        if energy_balance: s_sum.H = H
         return s_sum
 
     # MixedStream compatibility

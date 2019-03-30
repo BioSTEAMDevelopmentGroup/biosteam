@@ -296,9 +296,6 @@ class Unit(metaclass=metaUnit):
     # Default ID
     _ID = None 
     
-    #: [bool] True if unit is in a recycle loop
-    _in_loop = False
-
     ### Initialize ###
     
     def __init__(self, ID='', outs=(), ins=None, **kwargs):

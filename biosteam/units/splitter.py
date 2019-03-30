@@ -83,41 +83,45 @@ class Splitter(Unit, metaclass=metaFinal):
                                Ethanol  0.1
     
     """
-    kwargs = {'split': None}
+    _kwargs = {'split': None}
+    results = None
     _has_cost = False
     _N_outs = 2
 
-    def __init__(self, ID, outs_ID, ins_ID, **kwargs):
-        self.kwargs = kwargs
-        self._init_ins(ins_ID)
-        self._init_outs(outs_ID)
+    def __init__(self, ID, outs=(), ins=None, split=None):
+        self._kwargs = {'split': split}
+        self._init_ins(ins)
+        self._init_outs(outs)
 
     def _run(self):
         # Unpack
-        split = self.kwargs['split']
+        split = self._kwargs['split']
         top, bot = self.outs
-        if len(self.ins) > 1:
-            Stream.sum(self.outs[0], self.ins)
-        else:
-            top.copylike(self.ins[0])
+        if len(self.ins) > 1: Stream.sum(self.outs[0], self.ins)
+        else: top.copylike(self.ins[0])
         bot.copylike(top)
         top.mol = top.mol*split
         bot.mol = bot.mol - top.mol
+    
+    simulate = _run
 
 
 class InvSplitter(Unit, metaclass=metaFinal):
     """Create a splitter that sets input stream based on output streams. Must have only one input stream. The output streams are the same temperature, pressure and phase as the input.
     """
     line = 'Splitter'
-    kwargs = {}
+    results = None
     _graphics = Splitter._graphics
+    _has_cost = False
     
-    def __init__(self, ID, outs_ID, ins_ID):
-        self._init_ins(ins_ID)
-        self._init_outs(outs_ID)
+    def __init__(self, ID, outs=(), ins=None):
+        self._init_ins(ins)
+        self._init_outs(outs)
         
     def _run(self):
         feed = self.ins[0]
         feed.mol = self._mol_out
         for out in self.outs:
             out.T, out.P, out.phase = feed.T, feed.P, feed.phase 
+            
+    simulate = _run

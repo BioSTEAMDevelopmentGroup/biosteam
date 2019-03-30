@@ -31,10 +31,10 @@ class HX(Unit):
     _N_ins = 1
     _N_outs = 1
     _N_heat_utilities = 1
-    kwargs = {'T': None}
+    _kwargs = {'T': None}
 
     def _setup(self):
-        self.outs[0].T = self.kwargs['T']
+        self.outs[0].T = self._kwargs['T']
         self._cached = {'s_tube': Stream('s_tube'),
                         's_shell': Stream('s_shell')}
 

@@ -128,12 +128,12 @@ class MixTank(Tank):
 class PCT(MixTank):
     _N_ins = 1
     _N_outs = 2
-    kwargs = {'T': 298.15, 'phase': 'l'}
+    _kwargs = {'T': 298.15, 'phase': 'l'}
 
     def _setup(self):
         """Set temperature and phase"""
-        self.outs[0].T = self.kwargs['T']
-        self.outs[0].phase = self.kwargs['phase']
+        self.outs[0].T = self._kwargs['T']
+        self.outs[0].phase = self._kwargs['phase']
 
     def _run(self): 
         out = self.outs[0]

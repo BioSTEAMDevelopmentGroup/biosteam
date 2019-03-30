@@ -143,15 +143,15 @@ class Flash(Unit):
     #: [bool] True if using a mist eliminator pad
     Mist = False
     
-    kwargs = {'species_IDs': None,  # Equilibrium species
-              'LNK': None,   # light non-keys
-              'HNK': None,   # heavy non-keys
-              'V': None,   # Vapor fraction
-              'T': None,   # Operating temperature
-              'Qin': None, # Energy input
-              'P': None,   # Operating Pressure
-              'y': None,   # Vapor composition (of working species)
-              'x': None}   # Liquid composition (of working species)
+    _kwargs = {'species_IDs': None,  # Equilibrium species
+               'LNK': None,   # light non-keys
+               'HNK': None,   # heavy non-keys
+               'V': None,   # Vapor fraction
+               'T': None,   # Operating temperature
+               'Qin': None, # Energy input
+               'P': None,   # Operating Pressure
+               'y': None,   # Vapor composition (of working species)
+               'x': None}   # Liquid composition (of working species)
 
     bounds = {'Vertical vessel weight': (4200, 1e6),
               'Horizontal vessel weight': (1e3, 9.2e5),
@@ -181,7 +181,7 @@ class Flash(Unit):
         he._outs[0] = ms
 
     def _setup(self):
-        self._has_hx = self.kwargs['Qin'] != 0
+        self._has_hx = self._kwargs['Qin'] != 0
 
     def _run(self):
         # Unpack
@@ -193,7 +193,7 @@ class Flash(Unit):
         ms.empty()
         ms.liquid_mol = feed.mol
         ms.T = feed.T
-        ms.VLE(**self.kwargs)
+        ms.VLE(**self._kwargs)
 
         # Set Values
         vap.mol = ms.vapor_mol
@@ -259,7 +259,7 @@ class Flash(Unit):
         self._cost_vacuum()
 
     def _cost_vacuum(self):
-        P = self.kwargs['P']
+        P = self._kwargs['P']
         if not P or P > 101320:
             return 
         
@@ -605,20 +605,20 @@ class Flash(Unit):
 class SplitFlash(Flash):
     line = 'Flash'
     
-    kwargs = {'split': 1,  # component split fractions
-              'T': 298.15,  # operating temperature (K)
-              'P': 101325,
-              'Qin': None}  # operating pressure (Pa)
+    _kwargs = {'split': 1,  # component split fractions
+               'T': 298.15,  # operating temperature (K)
+               'P': 101325,
+               'Qin': None}  # operating pressure (Pa)
     
     def _setup(self):
         top, bot = self.outs
-        _, Tf, Pf, Qin = self.kwargs.values()
+        _, Tf, Pf, Qin = self._kwargs.values()
         self._has_hx = Qin != 0
         bot.T = top.T = Tf
         bot.P = top.P = Pf
 
     def _run(self):
-        split = self.kwargs['split']
+        split = self._kwargs['split']
         top, bot = self.outs
         net_mol = self._mol_in
         top.mol = net_mol*split
@@ -633,18 +633,18 @@ class SplitFlash(Flash):
 class PartitionFlash(Flash):
     """Create a PartitionFlash Unit that approximates outputs based on molar partition coefficients."""
     
-    kwargs = {'species_IDs': None,  # Partition species
-              'Ks': None,           # Partition coefficients
-              'LNK': None,          # light non-keys
-              'HNK': None,          # heavy non-keys
-              'P': None,            # Operating Pressure
-              'T': None}            # Operating temperature
+    _kwargs = {'species_IDs': None,  # Partition species
+               'Ks': None,           # Partition coefficients
+               'LNK': None,          # light non-keys
+               'HNK': None,          # heavy non-keys
+               'P': None,            # Operating Pressure
+               'T': None}            # Operating temperature
     
     _has_hx = True
     
     def _setup(self):
         top, bot = self.outs
-        species_IDs, Ks, LNK, HNK, P, T = self.kwargs.values()
+        species_IDs, Ks, LNK, HNK, P, T = self._kwargs.values()
         index = top._IDs.index
         self._args = ([index(i) for i in species_IDs],
                       [index(i) for i in LNK],
@@ -685,18 +685,18 @@ class PartitionFlash(Flash):
 
 class RatioFlash(Flash):
     _N_heat_utilities = 1
-    kwargs = {'Kspecies': None,  # list of species that correspond to Ks
-              'Ks': None,  # array of molar ratio partition coefficinets,
-              # Ks = y/x, where y and x are molar ratios of two different phases
-              'top_solvents': [],  # list of species that correspond to top_split
-              'top_split': [],  # list of splits for top_solvents
-              'bot_solvents': [],  # list of species that correspond to bot_split
-              'bot_split': []} # list of splits for bot_solvents  
+    _kwargs = {'Kspecies': None,  # list of species that correspond to Ks
+               'Ks': None,  # array of molar ratio partition coefficinets,
+               # Ks = y/x, where y and x are molar ratios of two different phases
+               'top_solvents': [],  # list of species that correspond to top_split
+               'top_split': [],  # list of splits for top_solvents
+               'bot_solvents': [],  # list of species that correspond to bot_split
+               'bot_split': []} # list of splits for bot_solvents  
 
     def _run(self):
         feed = self.ins[0]
         top, bot = self.outs
-        kwargs = self.kwargs
+        kwargs = self._kwargs
         (Kspecies, Ks, top_solvents, top_split,
          bot_solvents, bot_split) = kwargs.values()
         sp_index = feed._IDs.index
@@ -722,12 +722,12 @@ class RatioFlash(Flash):
 
 class Evaporator_PQin(Unit):
 
-    kwargs = {'component': 'Water',  # ID of specie
-              'Qin': 0,
-              'P': 101325}
+    _kwargs = {'component': 'Water',  # ID of specie
+               'Qin': 0,
+               'P': 101325}
 
     def _setup(self):
-        component, P = (self.kwargs[i] for i in ('component', 'P'))
+        component, P = (self._kwargs[i] for i in ('component', 'P'))
         vapor, liquid = self.outs[:2]
         self._cached = cached = {}
         Tf = getattr(vapor._species, component).Tsat(P)
@@ -749,7 +749,7 @@ class Evaporator_PQin(Unit):
 
     def _run(self):
         feed = self.ins[0]
-        component, Qin = (self.kwargs[i] for i in ('component', 'Qin'))
+        component, Qin = (self._kwargs[i] for i in ('component', 'Qin'))
         vapor, liquid = self.outs[:2]
         cached = self._cached
 
@@ -792,20 +792,20 @@ class Evaporator_PQin(Unit):
 
 class Evaporator_PV(Unit):
     _N_heat_utilities = 1
-    kwargs = {'component': 'Water',
-              'V': 0.5,
-              'P': 101325}
+    _kwargs = {'component': 'Water',
+               'V': 0.5,
+               'P': 101325}
 
     def _setup(self):
         vapor, liquid = self.outs
-        component, P = (self.kwargs[i] for i in ('component', 'P'))
+        component, P = (self._kwargs[i] for i in ('component', 'P'))
         Tf = getattr(vapor._species, component).Tsat(P)
         vapor.__dict__.update(phase='g', T=Tf, P=P)
         liquid.__dict__.update(phase='l', T=Tf, P=P)
 
     def _run(self):
         feed = self.ins[0]
-        component, V = (self.kwargs[i] for i in ('component', 'V'))
+        component, V = (self._kwargs[i] for i in ('component', 'V'))
         vapor, liquid = self.outs
         index = vapor._IDs.index(component)
         vapor.mol[index] = V*feed.mol[index]

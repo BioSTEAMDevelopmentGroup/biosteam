@@ -6,18 +6,16 @@ Created on Sat Aug 18 15:04:55 2018
 """
 from copy import copy
 import IPython
-from scipy.optimize import brentq, newton
+from scipy.optimize import newton
 from graphviz import Digraph
 from .exceptions import Stop, SolverError, notify_error
 from .flowsheet import Flowsheet
 from .stream import Stream
 from .unit import Unit
-from .tea import TEA
 from . import np
 from .process import Process
 from .utils import color_scheme, missing_stream, strtuple, function
 from bookkeep import SmartBook
-from .sim import Block
 CS = color_scheme
 
 __all__ = ('System',)
@@ -186,6 +184,9 @@ class System:
         else:
             self.offsite_units = self.offsite_streams = self.offsite_subsystems = None
             self.facilities = (*facilities,)
+            
+        #: list[Unit] All units that have costs
+        self._costunits = [i for i in self.units if i._has_cost]
     
     def _set_network(self, network):
         """Set network and cache units, streams, subsystems, feeds and products."""
@@ -218,6 +219,8 @@ class System:
         
         #: list[Unit] All unit operations in order of network
         self._flattened_network = _flatten_network(network)
+        for u in self._flattened_network: u._setup_linked_streams()
+        
     
     def _set_facilities(self, facilities):
         """Set facilities and cache offsite units, streams, subsystems, feeds and products."""
@@ -339,12 +342,6 @@ class System:
                         facilities=downstream_facilities)
         cached[unit] = system
         return system
-    
-    def _block(self, element, getter=None, setter=None):
-        """
-        Convenience function that returns Block(element, self, getter, setter).
-        """
-        return Block(element, self, getter, setter)
     
     def _minimal_diagram(self):
         """Minimally display the network as a box."""
@@ -551,7 +548,7 @@ class System:
         # Reused attributes
         recycle = self.recycle
         run = self._run
-        maxiter, mol_tol, T_tol = tuple(self.options.values())
+        maxiter, mol_tol, T_tol = (*self.options.values(),)
         solver_error = self.solver_error
 
         def set_solver_error():
@@ -665,8 +662,9 @@ class System:
         subsystems = set()
         streams = set()
         units = set()
+        inst = isinstance
         for i in self.network:
-            if isinstance(i, Unit) and i not in units:
+            if inst(i, Unit) and i not in units:
                 i.ID = ''
                 for s in (i._ins + i._outs):
                     streams.add(s)
@@ -674,7 +672,7 @@ class System:
                         and s._sink and s._source
                         and s not in streams):
                         s.ID = ''  
-            elif isinstance(i, System) and i not in subsystems:
+            elif inst(i, System) and i not in subsystems:
                 subsystems.add(i)
                 i.reset_names(Unit._default_ID, Stream._default_ID) 
     
@@ -690,14 +688,8 @@ class System:
     def simulate(self):
         """Converge the network and simulate all units."""
         self._reset_iter()
-        for u in self.units:
-            if u._kwargs != u.kwargs:
-                u._setup()
-                u._kwargs = copy(u.kwargs)
-        for u in self._flattened_network:
-            u._setup_linked_streams()
         self._converge()
-        for u in self.units: u._summary()
+        for u in self._costunits: u._summary()
         for i in self.facilities:
             if isinstance(i, function): i()
             else: i.simulate()

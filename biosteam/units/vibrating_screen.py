@@ -10,7 +10,7 @@ from numpy import ceil
 
 class VibratingScreen(Unit):
     # Assume 3-deck vibrating screen
-    kwargs = Splitter.kwargs
+    _kwargs = Splitter._kwargs
     _run = Splitter._run
     
     #: Flow rate per area of screen per apareture (kg∕ft2-hr-mm)

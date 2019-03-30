@@ -6,8 +6,6 @@ This module includes classes and functions relating dictionaries.
 
 @author: Guest Group
 """
-from biosteam.exceptions import IDconflict
-from weakref import ref
 
 __all__ = ('get_doc_units',)
 

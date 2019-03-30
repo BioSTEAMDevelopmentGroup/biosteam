@@ -51,8 +51,8 @@ class Fermentation(BatchReactor):
         
     """
         
-    kwargs = {'tau': None, # Reaction time
-              'efficiency': None}  # Theoretical efficiency
+    _kwargs = {'tau': None, # Reaction time
+               'efficiency': None}  # Theoretical efficiency
     _N_heat_utilities = 0
     _has_power_utility = True
     
@@ -107,8 +107,8 @@ class Fermentation(BatchReactor):
         self.heat_utilities = hx.heat_utilities
     
     def _setup(self):
-        if not self.kwargs['tau']:
-            raise ValueError(f"Reaction time must be larger than 0, not '{self.kwargs['tau']}'")
+        if not self._kwargs['tau']:
+            raise ValueError(f"Reaction time must be larger than 0, not '{self._kwargs['tau']}'")
 
     def _calc_efficiency(self, feed, tau):
         # Get initial concentrations
@@ -186,7 +186,7 @@ class Fermentation(BatchReactor):
         mw_glucose = 180.156
 
         # Unpack
-        kwargs = self.kwargs
+        kwargs = self._kwargs
         out, CO2 = self._outs
         out.sum(out, self._ins)
         
@@ -247,7 +247,7 @@ class Fermentation(BatchReactor):
             self._N_reactors = None
             
         v_0 = self.outs[0].volnet
-        tau = self.kwargs['tau']
+        tau = self._kwargs['tau']
         tau_0 = self.tau_0
         Design = self.results['Design']
         Design['Number of reactors'] = N_reactors

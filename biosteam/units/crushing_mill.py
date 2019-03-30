@@ -9,7 +9,7 @@ from . import Splitter
 
 
 class CrushingMill(Unit):
-    kwargs = Splitter.kwargs
+    _kwargs = Splitter._kwargs
     _run = Splitter._run
     _has_power_utility = True
     

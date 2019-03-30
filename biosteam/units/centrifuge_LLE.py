@@ -51,12 +51,12 @@ class Centrifuge_LLE(Unit):
     """
     line = 'Liquids Centrifuge'
     
-    kwargs = {'species_IDs': None,
-              'split': None,
-              'lNK': (),
-              'LNK': (),
-              'solvents': (),
-              'solvent_split': ()}
+    _kwargs = {'species_IDs': None,
+               'split': None,
+               'lNK': (),
+               'LNK': (),
+               'solvents': (),
+               'solvent_split': ()}
 
     bounds = {'Flow rate': (0.1, 100)}
     electricity_rate = 3.66 #: kW/(m3/hr) from USDA biosdiesel Super Pro model
@@ -71,14 +71,14 @@ class Centrifuge_LLE(Unit):
         LIQ.phase = 'l'
         self._cached = cached = {}
         cached['mixed stream'] =  MixedStream()
-        if self.kwargs['species_IDs'] is None:
-            self.kwargs['species_IDs'] = liq.species_IDs
+        if self._kwargs['species_IDs'] is None:
+            self._kwargs['species_IDs'] = liq.species_IDs
 
     def _run(self):
         liq, LIQ = self.outs
         feed = self.ins[0]
 
-        kwargs = self.kwargs
+        kwargs = self._kwargs
         LLE_kwargs = copy.copy(kwargs)
 
         ms = self._cached['mixed stream']
@@ -112,7 +112,7 @@ class Centrifuge_LLE(Unit):
 
 class PartitionCentrifuge_LLE(Centrifuge_LLE):
     _N_heat_utilities = 0
-    kwargs = PartitionFlash.kwargs
+    kwargs = PartitionFlash._kwargs
     _run = PartitionFlash._run 
     _setup = PartitionFlash._setup
     def _set_phases(self):
@@ -122,17 +122,17 @@ class PartitionCentrifuge_LLE(Centrifuge_LLE):
 
 class RatioCentrifuge_LLE(Centrifuge_LLE):
     _N_heat_utilities = 0
-    kwargs = {'Kspecies': [],  # list of species that correspond to Ks
-              'Ks': [],  # list of molar ratio partition coefficinets,
-              # Ks = y/x, where y and x are molar ratios of two different phases
-              'top_solvents': [],  # list of species that correspond to top_split
-              'top_split': [],  # list of splits for top_solvents
-              'bot_solvents': [],  # list of species that correspond to bot_split
-              'bot_split': []}  # list of splits for bot_solvents
+    _kwargs = {'Kspecies': [],  # list of species that correspond to Ks
+               'Ks': [],  # list of molar ratio partition coefficinets,
+               # Ks = y/x, where y and x are molar ratios of two different phases
+               'top_solvents': [],  # list of species that correspond to top_split
+               'top_split': [],  # list of splits for top_solvents
+               'bot_solvents': [],  # list of species that correspond to bot_split
+               'bot_split': []}  # list of splits for bot_solvents
     def _setup(self): pass
     _run = RatioFlash._run
     
 class SplitCentrifuge_LLE(Centrifuge_LLE):
-    kwargs = Splitter.kwargs
+    _kwargs = Splitter._kwargs
     _setup = Splitter._setup
     _run = Splitter._run

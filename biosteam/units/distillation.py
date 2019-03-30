@@ -141,11 +141,11 @@ class Dist(Unit):
               'Rectifier height': (27., 170.),
               'Rectifier weight': (9000., 2.5e6)}
     
-    kwargs = {'P': 101325,
-              'LHK': None,
-              'y_top': None,
-              'x_bot': None,
-              'k': 1.25}
+    _kwargs = {'P': 101325,
+               'LHK': None,
+               'y_top': None,
+               'x_bot': None,
+               'k': 1.25}
     
     @property
     def TS(self):
@@ -238,7 +238,7 @@ class Dist(Unit):
 
     def _setup(self):
         vap, liq = self.outs
-        kwargs = self.kwargs
+        kwargs = self._kwargs
         cached = self._cached
         species = vap.species
         getattr_ = getattr
@@ -288,7 +288,7 @@ class Dist(Unit):
     
     def _mass_balance(self):
         vap, liq = self.outs
-        kwargs = self.kwargs
+        kwargs = self._kwargs
         cached = self._cached
 
         # Get all important flow rates (both light and heavy keys and non-keys)
@@ -356,7 +356,7 @@ class Dist(Unit):
             
         """
         species = self._LHK_species
-        P = self.kwargs['P']
+        P = self._kwargs['P']
         bubble_point = self.outs[1]._bubble_point
         i = 0
         yi = y_stairs[-1]
@@ -387,7 +387,7 @@ class Dist(Unit):
             self.operation()
             x_stages = cached.get('x_stages')
         y_stages = cached['y_stages']
-        kwargs = self.kwargs
+        kwargs = self._kwargs
         species_IDs = kwargs['LHK']
         light = species_IDs[0]
         P = kwargs['P']
@@ -794,7 +794,7 @@ class Distillation(Dist):
         * 'Heating': (kJ/hr)
         """
         vap, liq = self.outs
-        kwargs = self.kwargs
+        kwargs = self._kwargs
         cached = self._cached
         bubble_point = liq._bubble_point
 
@@ -975,7 +975,7 @@ class Distillation(Dist):
             * 'Weight': (lb)
         """
         distillate, bottoms = self.outs
-        kwargs = self.kwargs
+        kwargs = self._kwargs
         results = self.results
         cached = self._cached
         Design = results['Design']
@@ -1117,7 +1117,7 @@ class Distillation(Dist):
         if not x_stages:
             self.operation()
             x_stages = cached.get('x_stages')
-        kwargs = self.kwargs
+        kwargs = self._kwargs
         q_line = self._q_line
         y_top = kwargs['y_top']
         x_bot = kwargs['x_bot']
@@ -1163,7 +1163,7 @@ class Stripper(Dist):
         * 'Heating': (kJ/hr)
         """
         vap, liq = self.outs
-        kwargs = self.kwargs
+        kwargs = self._kwargs
         cached = self._cached
         
         # Some important info
@@ -1226,7 +1226,7 @@ class Stripper(Dist):
         if not x_stages:
             self.operation()
             x_stages = cached.get('x_stages')
-        kwargs = self.kwargs
+        kwargs = self._kwargs
         y_top = kwargs['y_top']
         x_bot = kwargs['x_bot']
         stages = Operation['Theoretical stages']
@@ -1278,7 +1278,7 @@ class Stripper(Dist):
             * 'Weight': (lb)
         """
         distillate, bottoms = self.outs
-        kwargs = self.kwargs
+        kwargs = self._kwargs
         results = self.results
         cached = self._cached
         Design = results['Design']

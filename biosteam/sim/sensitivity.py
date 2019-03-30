@@ -5,6 +5,7 @@ Created on Thu Mar  7 23:17:38 2019
 @author: yoelr
 """
 from biosteam import Unit, np, pd
+from .block import Block
 
 __all__ = ('Sensitivity',)
 
@@ -59,7 +60,7 @@ class Sensitivity:
     
     def __init__(self, system, getter, *, args=(), ID=None):
         if args:
-            def getter_no_args(): return getter(*args)
+            getter_no_args = lambda: getter(*args)
             getter_no_args.__name__ = getter.__name__
             self._getter = getter_no_args
         else: self._getter = getter
@@ -69,7 +70,7 @@ class Sensitivity:
         #: [(function, args)] Iterable of block fuctions and respective arguments.
         self._stack = []
     
-    def evalparam(self, element, setter, values):
+    def evalparam(self, element, setter, values, isolated=False):
         """Return sensitivity at given parameter values.
         
         **Parameters**
@@ -79,12 +80,15 @@ class Sensitivity:
             **setter:** [function] Should set parameter in the element.
             
             **values:** [iterable] Values for parameter.
+            
+            **isolated** [bool] If True, account for downstream operations. If False, only account for element.
         
         """
-        block = self._system._block(element, self._getter, setter)
-        return [block(i) for i in values]
+        system = None if isolated else self._system
+        blockfunc = Block(element, system)(self._getter, setter)
+        return [blockfunc(i) for i in values]
     
-    def addparam(self, element, setter, values):
+    def addparam(self, element, setter, values, isolated=False):
         """Add parameter to vary in sensitivity.
         
         **Parameters**
@@ -94,11 +98,12 @@ class Sensitivity:
             **setter:** [function] Should set parameter in the element.
             
             **values:** [iterable] Values for parameter.
+            
+            **isolated** [bool] If True, account for downstream operations. If False, only account for element.
         
         """
-        self._stack.append((self._system._block(element,
-                                                self._getter,
-                                                setter), values))
+        system = None if isolated else self._system
+        self._stack.append((Block(element, system)(self._getter, setter), values))
     
     def _loadstack(self):
         """Load argument space and cache a thread of block functions and arguments."""
@@ -237,19 +242,6 @@ class Sensitivity:
     def show(self):
         """Return information on sensitivity parameters."""
         print(self._info())
-        
-# options = {'Print exceptions': True}
-# Exception as e:
-# if print_exceptions:
-#     message = 'Param: '
-#     for param, val in zip(self._paramIDs, self._argarray[i, :]):
-#         message += f'{param}={val:.2g}, '
-#     message = message.rstrip(', ') + '\n'
-#     message+= f'{e}\n'
-#     print(message)
-# values.append(None)        
-        
-        
         
         
         

@@ -53,10 +53,10 @@ class MultiEffectEvaporator(Unit):
     _has_power_utility = True
     _N_heat_utilities = 2
     line = 'Multi-Effect Evaporator'
-    kwargs = {'component': 'Water',
-              'P': (101325,),  
-              'V': 0.5, 
-              'P_liq': 101325}
+    _kwargs = {'component': 'Water',
+               'P': (101325,),  
+               'V': 0.5, 
+               'P_liq': 101325}
 
     #: Residence time (hr)
     tau = 0.30
@@ -82,7 +82,7 @@ class MultiEffectEvaporator(Unit):
 
     def _setup(self):
         # Unpack
-        component, P, V, P_liq = (self.kwargs[i]
+        component, P, V, P_liq = (self._kwargs[i]
                                   for i in ('component', 'P', 'V', 'P_liq'))
         out_wt_solids, liq = self.outs
         
@@ -105,7 +105,7 @@ class MultiEffectEvaporator(Unit):
         def V_error(v1):
             # Run first evaporator
             v_test = v1
-            evap0.kwargs['V'] = v1
+            evap0._kwargs['V'] = v1
             evap0._run()
             # Put liquid first, then vapor side stream
             ins = [evap0.outs[1], evap0.outs[0]]
@@ -124,7 +124,7 @@ class MultiEffectEvaporator(Unit):
         
 
     def _run(self):
-        component, P, V, P_liq = (self.kwargs[i]
+        component, P, V, P_liq = (self._kwargs[i]
                                   for i in ('component', 'P', 'V', 'P_liq'))
         out_wt_solids, liq = self.outs
         ins = self.ins
@@ -160,7 +160,7 @@ class MultiEffectEvaporator(Unit):
     def _lazy_run(self):
         feed = self.ins[0]
         out_wt_solids, liq = self.outs
-        component, V = (self.kwargs[i] for i in ('component', 'V'))
+        component, V = (self._kwargs[i] for i in ('component', 'V'))
 
         component_pos = feed.Settings.ID_index_dictionary[component]
         liq.mass[component_pos] = V*feed.mol[component_pos]

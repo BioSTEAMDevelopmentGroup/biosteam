@@ -36,7 +36,7 @@ class MolecularSieve(Unit):
         :doc:`MolecularSieve Example`
     
     """
-    kwargs = Splitter.kwargs
+    _kwargs = Splitter._kwargs
     _run = Splitter._run
     _has_power_utility = True
     
