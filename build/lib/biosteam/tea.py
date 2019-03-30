@@ -162,7 +162,7 @@ class TEA:
         units = system.units.union(system.offsite_units) if system.facilities else system.units
         
         #: All "values" functions of unit summaries
-        self._summary_values = [u.results['Summary'].values
+        self._summary_values = [u._results['Summary'].values
                                 for u in units if u._has_cost]
         
         system.tea = self

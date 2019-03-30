@@ -360,22 +360,17 @@ class HX(Unit):
         LMTD = (dTF2 - dTF1)/log(dummy) if dummy > 1.1 else dTF1
         
         # Get correction factor
-        if self._ft:
-            ft = self._ft
-        else:
-            ft = self._calc_ft(Tci, Thi, Tco, Tho, self._N_shells)
+        ft = self._ft if self._ft else self._calc_ft(Tci, Thi, Tco, Tho, self._N_shells)
         
         # Get duty (kW)
         Q = abs(self._Duty) / 3600
         
         # Get overall heat transfer coefficient
         U = self._kwargs['U']
-        if isinstance(U, float):
-            pass
+        if isinstance(U, float): pass
         elif U == 'Tabulated':
             # Look up tabulated values
             U = self._U_table(ci, hi, co, ho)
-            Dp_s, Dp_t = self._Dp_table(ci, hi, co, ho, inside_heating)
         elif U == 'Concentric tubes':
             Re_i = 30000 # Arbitrary, but turbulent ??
             Re_o = 30000 # Arbitrary, but turbulent ??

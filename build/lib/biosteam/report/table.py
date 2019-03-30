@@ -14,6 +14,11 @@ ExcelWriter = pd.ExcelWriter
 __all__ = ('stream_table', 'cost_table', 'save_system_results',
            'results_table', 'heat_utilities_table', 'power_utilities_table')
 
+def _nested_keys(dct, keys, inst, dict_):
+    for k, v in dct.items():
+        if inst(k, dict_): _nested_keys(v, keys, inst, dict_)
+        else: keys.append(k)
+
 # %% Helpful functions
 
 def _units_wt_cost(units):
@@ -112,21 +117,25 @@ def results_table(units):
     units.sort(key=(lambda u: u.line))
     
     # First table and set keys to compare with
-    r = units[0].results
-    keys = tuple(r.nested_keys())
-    table = r.table()
+    r = units[0]._results
+    keys = []
+    inst = isinstance
+    dict_ = dict
+    _nested_keys(r, keys, inst, dict_)
+    table = units[0].results()
     del units[0]
     
     # Make a list of tables, keeping all results with same keys in one table
     tables = []
     for u in units:
-        r = u.results
-        new_keys = tuple(r.nested_keys())
+        r = u._results
+        new_keys = []
+        _nested_keys(r, new_keys, inst, dict_)
         if new_keys == keys:
-            table = pd.concat((table, r.table(with_units=False)), axis=1)
+            table = pd.concat((table, u.results(with_units=False)), axis=1)
         else:
             tables.append(table)
-            table = r.table()
+            table = u.results()
             keys = new_keys
     
     # Add the last table

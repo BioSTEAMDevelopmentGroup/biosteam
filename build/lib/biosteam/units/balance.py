@@ -37,11 +37,13 @@ class MassBalance(Unit, metaclass=metaFinal):
     
     """
     line = 'Balance'
+    results = None
     _has_cost = False
     _N_outs = 0
 
     def __init__(self, ID='', outs=(), ins=None,
                  species=None, streams=None, exact=True, balance='flow'):
+        self.ID = ID
         self._init_ins(ins)
         self._init_outs(outs)
         self._cached = {}

@@ -40,7 +40,7 @@ class YeastCentrifuge(Unit):
         """
         * 'Centrifuge': (USD)
         """
-        Cost = self.results['Cost']
+        Cost = self._results['Cost']
         solids = self._kwargs['solids']
         index = self.outs[0].indices(*solids)
         mass_solids = 0

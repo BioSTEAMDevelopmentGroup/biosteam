@@ -175,7 +175,7 @@ class MultiEffectEvaporator(Unit):
         A_range, C_func, U, _ = self._evap_data
         components = self.components
         evaporators = components['evaporators']
-        r = self.results
+        r = self._results
         Design = r['Design']
         Cost = r['Cost']
         CE = self.CEPCI
@@ -234,9 +234,9 @@ class MultiEffectEvaporator(Unit):
         """
         * 'Evaporators': Sum of all evaporator costs (USD)
         * 'Condenser': (USD)
-        * 'Vacuum liquid ring pump': (USD)
+        * 'Vacuum liquid-ring pump': (USD)
         """
-        return self.results['Cost']
+        return self._results['Cost']
         
         
         

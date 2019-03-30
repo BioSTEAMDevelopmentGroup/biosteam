@@ -8,7 +8,6 @@ Created on Sat Aug 18 14:40:28 2018
 import re
 import os
 import IPython
-from copy import copy
 from graphviz import Digraph
 from .exceptions import notify_error
 from .flowsheet import Flowsheet
@@ -17,9 +16,9 @@ from .stream import Stream
 from .proxy_stream import ProxyStream
 from .heat_utility import HeatUtility
 from .utils import get_doc_units, color_scheme, Ins, Outs, missing_stream
-from bookkeep import SmartBook, UnitManager
+from bookkeep import SmartBook
 from .power_utility import PowerUtility
-from . import np
+from . import np, pd
 import biosteam
 CS = color_scheme
 
@@ -27,6 +26,26 @@ dir_path = os.path.dirname(os.path.realpath(__file__)) + '\\'
 
 
 __all__ = ('Unit',)
+
+# def _fill_from_dict(dct, keys, vals, prev, inst, dict_):
+#     for key, val in dct.items():
+#         if inst(val, dict_):
+#             if val:
+#                 prev.append(val)
+#                 keys.append(key + ':'); vals.append('')
+#                 _fill_from_dict(val, keys, vals, prev, inst, dict_)
+#         else: 
+#             keys.append(key); vals.append(val)
+
+# def _fill_from_dict_with_units(dct, keys, vals, prev, inst, dict_, units):
+#     for key, val in dct.items():
+#         if inst(val, dict_):
+#             if val:
+#                 prev.append(val)
+#                 keys.append(key + ':'); vals.append(('', ''))
+#                 _fill_from_dict_with_units(val, keys, vals, prev, inst, dict_, units)
+#         else: 
+#             keys.append(key); vals.append((units.get(key, ''), val))
 
 
 # %% Unit metaclass
@@ -62,9 +81,7 @@ class metaUnit(type):
 
         **CEPCI** = 567.5: [float] Chemical Engineering Plant Cost Index
         
-        **bounds** = {} [dict] Values should be tuples with lower and upper bounds.
-        
-        **instances** = {}: [WeakRefBook] Contains all instances of the Unit class.
+        **_bounds** = {} [dict] Values should be tuples with lower and upper bounds.
         
         **_N_ins** = 1: [int] Expected number of input streams
 
@@ -151,24 +168,20 @@ class metaUnit(type):
                 exec(str2exec, globs, locs)
                 cls.__init__ = locs['__init__']
             
-        # Initialize units of measure
-        units = new_definitions.get('_results_UnitsOfMeasure')
-        if units:
-            units['Utility cost'] = 'USD/hr'
-            units['Purchase cost'] = 'USD'
-        else:
-            units = {'Utility cost': 'USD/hr',
-                     'Purchase cost': 'USD'}
-        
-        # Get units of measure of each key method
-        get_doc_units(units, cls._operation.__doc__)
-        get_doc_units(units, cls._design.__doc__)
-        get_doc_units(units, cls._cost.__doc__)
-        
-        # Set units of measure
-        if not isinstance(units, UnitManager):
-            units = UnitManager([], **units)
-        cls._results_UnitsOfMeasure = units
+            # Initialize units of measure
+            units = new_definitions.get('_units')
+            if units: units.update(Unit._units)
+            else: units = cls._units
+            
+            # Get units of measure of each key method
+            get_doc_units(units, cls._operation.__doc__)
+            get_doc_units(units, cls._design.__doc__)
+            get_doc_units(units, cls._cost.__doc__)
+            
+            # Make sure bounds are arrays for boundscheck
+            bounds = cls._bounds
+            for key, value in bounds.items():
+                bounds[key] = np.asarray(value)
         
         return cls
     
@@ -197,7 +210,7 @@ class metaUnit(type):
 
 
 class Unit(metaclass=metaUnit):
-    """Abstract parent class for Unit objects. Child objects must contain setup, run, operation, design and cost methods to setup internal objects, estimate stream outputs of a Unit and find operating, design and cost information. These methods should store information in the 'results' dictionary (an instance attribute).  
+    """Abstract parent class for Unit objects. Child objects must contain setup, run, operation, design and cost methods to setup internal objects, estimate stream outputs of a Unit and find operating, design and cost information. These methods should store information in the '_results' dictionary (an instance attribute).  
 
     **Parameters**
 
@@ -228,6 +241,10 @@ class Unit(metaclass=metaUnit):
     """ 
     ### Abstract Attributes ###
     
+    # [dict] Default units
+    _units = {'Utility cost': 'USD/hr',
+              'Purchase cost': 'USD'}
+    
     # [bool] Should be True if it has any associated cost
     _has_cost = True
     
@@ -241,7 +258,7 @@ class Unit(metaclass=metaUnit):
     _has_linked_streams = False
     
     # [dict] Values should be tuples with lower and upper bounds for results dictionary.
-    bounds = {}
+    _bounds = {}
     
     # [int] number of heat utilities
     _N_heat_utilities = 0
@@ -344,15 +361,10 @@ class Unit(metaclass=metaUnit):
     
     def _init_results(self):
         """Initialize results attribute."""
-        units = self._results_UnitsOfMeasure
-        bounds = self.bounds
-        empty = {}
-        self._results = SmartBook(units, bounds, source=self, inclusive=empty,
-            Operation=SmartBook(units, bounds, source=self, inclusive=empty),
-            Design=SmartBook(units, bounds, source=self, inclusive=empty),
-            Cost=SmartBook(units, bounds, source=self, inclusive=empty),
-            Summary=SmartBook(units, bounds, source=self, inclusive=empty,
-                              **{'Purchase cost': 0, 'Utility cost': 0}))
+        self._results = {'Operation': {},
+                         'Design': {},
+                         'Cost': {},
+                         'Summary': {'Purchase cost': 0, 'Utility cost': 0}}
     
     def _init_heat_utils(self):
         """Initialize heat utilities."""
@@ -380,7 +392,7 @@ class Unit(metaclass=metaUnit):
             if power_utility: utils.append(power_utility)
                 
             # Itemized purchase costs
-            self._purchase_costs = self.results['Cost'].values
+            self._purchase_costs = self._results['Cost'].values
     
     def _setup_linked_streams(self):
         if self._has_linked_streams: 
@@ -441,7 +453,7 @@ class Unit(metaclass=metaUnit):
         self._operation()
         self._design()
         self._cost()
-        Summary = self.results['Summary']
+        Summary = self._results['Summary']
         Summary['Utility cost'] = sum(i.cost for i in self._utils)
         Summary['Purchase cost'] = sum(self._purchase_costs())
         return Summary
@@ -452,10 +464,52 @@ class Unit(metaclass=metaUnit):
         self._run()
         self._summary()
 
-    @property
-    def results(self):
-        """[dict] Key results from running Unit methods."""
-        return self._results
+    def results(self, with_units=True):
+        """Return key results from simulation as a DataFrame if `with_units` is True or as a Series otherwise."""
+        results = self._results
+        ID = self.ID
+        units = self._units
+        keys = []
+        vals = []
+        if with_units:
+            for ko, vo in results.items():
+                for ki, vi in vo.items():
+                    keys.append((ko, ki))
+                    vals.append((units.get(ki, ''), vi))
+            df = pd.DataFrame(vals,
+                              pd.MultiIndex.from_tuples(keys),
+                              ('Units', ID))
+            df.columns.name = self.line
+            return df
+        else:
+            for ko, vo in results.items():
+                for ki, vi in vo.items():
+                    keys.append((ko, ki))
+                    vals.append(vi)
+            series = pd.Series(vals, pd.MultiIndex.from_tuples(keys))
+            series.name = ID
+            return series
+
+    def _boundscheck(self, key, value):
+        """Return True if value is within bounds. Return False if value is out of bounds and issue a warning.
+        
+        **Parameters**
+        
+            **key:** [str] Name of value
+            
+            **value:** [number, Quantity, or array]
+            
+        """
+        bounds = self._bounds.get(key)
+        stacklevel = 4
+        units = self._units.get(key, '')
+        if bounds is None:
+            within_bounds = True
+        else:
+            within_bounds = SmartBook._checkbounds(key, value, units, bounds,
+                                                   stacklevel, self)
+        
+        return within_bounds
 
     @property
     def CEPCI(self):

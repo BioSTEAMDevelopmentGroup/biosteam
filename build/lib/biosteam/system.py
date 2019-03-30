@@ -139,7 +139,7 @@ class System:
                                'Molar tolerance': 'kmol/hr',
                                'Temperature tolerance': 'K'},                  
                         **{'Maximum iteration': 100, 
-                           'Molar tolerance': 0.05, 
+                           'Molar tolerance': 0.10, 
                            'Temperature tolerance': 0.10})
     
     # [float] Error of the spec objective function

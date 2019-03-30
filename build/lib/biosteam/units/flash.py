@@ -153,10 +153,10 @@ class Flash(Unit):
                'y': None,   # Vapor composition (of working species)
                'x': None}   # Liquid composition (of working species)
 
-    bounds = {'Vertical vessel weight': (4200, 1e6),
-              'Horizontal vessel weight': (1e3, 9.2e5),
-              'Diameter': (3, 21),
-              'Vertical vessel Length': (12, 40)}
+    _bounds = {'Vertical vessel weight': (4200, 1e6),
+               'Horizontal vessel weight': (1e3, 9.2e5),
+               'Diameter': (3, 21),
+               'Vertical vessel Length': (12, 40)}
 
     @property
     def vessel_material(self):
@@ -234,8 +234,8 @@ class Flash(Unit):
         * 'Vessel': (USD)
         * 'Heat exchanger': (USD)
         """
-        Cost = self.results['Cost']
-        Design = self.results['Design']
+        Cost = self._results['Cost']
+        Design = self._results['Design']
         W = Design['Weight']
         D = Design['Diameter']
         L = Design['Length']
@@ -263,7 +263,7 @@ class Flash(Unit):
         if not P or P > 101320:
             return 
         
-        r = self.results
+        r = self._results
         D = r['Design']
         C = r['Cost']
         vol = 0.02832 * np.pi * D['Length'] * (D['Diameter']/2)**2
@@ -422,9 +422,9 @@ class Flash(Unit):
         # Hnll = Hh + Hlll
 
         # Results
-        d = self.results['Design']
-        d.boundscheck('Vertical vessel weight', VW)
-        d.boundscheck('Vertical vessel length', Ht)
+        d = self._results['Design']
+        self._boundscheck('Vertical vessel weight', VW)
+        self._boundscheck('Vertical vessel length', Ht)
         d['SepType'] = 'Vertical'
         d['Length'] = Ht     # ft
         d['Diameter'] = D    # ft
@@ -588,8 +588,8 @@ class Flash(Unit):
         # Hnll = Y*D
         
         # Results
-        d = self.results['Design']
-        d.boundscheck('Horizontal vessel weight', VW)
+        d = self._results['Design']
+        self._boundscheck('Horizontal vessel weight', VW)
         d['SepType'] = 'Horizontal'
         d['Length'] = L  # ft
         d['Diameter'] = D  # ft

@@ -204,7 +204,7 @@ class Fermentation(BatchReactor):
         out.T = 32 + 273.15
         
         # Fermentation
-        self.results['Operation']['Efficiency'] = eff = (
+        self._results['Operation']['Efficiency'] = eff = (
             kwargs.get('efficiency')
             or self._calc_efficiency(out, kwargs['tau'])
             )
@@ -219,7 +219,7 @@ class Fermentation(BatchReactor):
         CO2.T = out.T
     
     def _optimize_N_reactors(self):
-        Summary = self.results['Summary']
+        Summary = self._results['Summary']
         cost_old = np.inf
         self.N_reactors = 2
         self.simulate()
@@ -249,7 +249,7 @@ class Fermentation(BatchReactor):
         v_0 = self.outs[0].volnet
         tau = self._kwargs['tau']
         tau_0 = self.tau_0
-        Design = self.results['Design']
+        Design = self._results['Design']
         Design['Number of reactors'] = N_reactors
         Design.update(self._solve(v_0, tau, tau_0, N_reactors, self.V_wf))
         hx = self._cooler
@@ -273,7 +273,7 @@ class Fermentation(BatchReactor):
         * 'Coolers': (USD)
         * 'Agitators': (USD)
         """
-        results = self.results
+        results = self._results
         Cost = results['Cost']
         Design = results['Design']
         N = Design['Number of reactors']
@@ -283,7 +283,7 @@ class Fermentation(BatchReactor):
         FF = F_CEPCI * N * R**self.exp
         
         Cost['Reactors'] = FF * self.C_0
-        Cost['Coolers'] = N * self._cooler.results['Cost']['Heat exchanger']
+        Cost['Coolers'] = N * self._cooler._results['Cost']['Heat exchanger']
         self.power_utility(self.A_p * R * N * F_CEPCI)
         Cost['Agitators'] = FF * self.C_A
         return Cost

@@ -22,7 +22,7 @@ class RotaryVacuumFilter(Unit):
     filter_rate = 6000
     _kwargs = {'split': None,
                'P_suction': 100} # Pa
-    bounds = {'Individual area': (10, 800)}
+    _bounds = {'Individual area': (10, 800)}
     
     #: Efficiency of the vacuum pump
     power_efficiency = 0.9
@@ -41,16 +41,17 @@ class RotaryVacuumFilter(Unit):
         """
         flow = sum(stream.massnet for stream in self.outs)
         Area = self._calc_Area(flow, self.filter_rate)
-        self.results['Design']['Area'] = Area
+        self._results['Design']['Area'] = Area
         
     def _cost(self):
         """
-        'Cost': (USD)
+        'Cost of vessels': (USD)
+        'Liquid-ring pump': (USD)
         """
-        results = self.results
+        results = self._results
         Design = results['Design']
         Area = Design['Area']
-        ub = results.bounds['Individual area'][1]
+        ub = self._bounds['Individual area'][1]
         N_vessels = np.ceil(Area/ub)
         self._power(Area, N_vessels)
         iArea = Area/N_vessels # individual vessel
@@ -60,7 +61,7 @@ class RotaryVacuumFilter(Unit):
         results['Cost']['Cost of vessels'] = N_vessels*Cost*self.CEPCI/567
     
     def _power(self, area, N_vessels) :
-        r = self.results
+        r = self._results
         s_cake, s_vacuumed = self.outs
         P_suction = self._kwargs['P_suction'] # Max allowable pressure drop
         

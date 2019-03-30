@@ -465,6 +465,8 @@ class Stream(metaclass=metaStream):
     #: [bool] If True, approximate energy balance. False otherwise.
     lazy_energy_balance = True
 
+    line = 'Stream'
+
     def __init__(self, ID='', flow=(), species=(), units='kmol/hr',
                  phase='l', T=298.15, P=101325, *, price=0, **flow_pairs):
         # Get species and set species information
@@ -770,11 +772,10 @@ class Stream(metaclass=metaStream):
 
     @mol.setter
     def mol(self, val):
-        try:
-            self._mol[:] = val
+        try: self._mol[:] = val
         except ValueError as value_error:
             if len(val) != self._Nspecies:
-                raise ValueError(f'Length of flow property ({len(val)} given) must be the same as the number of species ({self._Nspecies})')
+                raise ValueError(f'Length of flow ({len(val)} given) must be the same as the number of species ({self._Nspecies})')
             else:
                 raise value_error
 

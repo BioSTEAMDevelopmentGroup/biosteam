@@ -33,5 +33,5 @@ class Shredder(Unit):
         # Size factor
         massflow = self.ins[0].massnet
         S = massflow/self.V_0
-        self.results['Cost']['Shredder'] = (self.CEPCI/self.CEPCI_0) * self.C_0*S**self.exp
+        self._results['Cost']['Shredder'] = (self.CEPCI/self.CEPCI_0) * self.C_0*S**self.exp
         self.power_utility(massflow*self.electricity_rate)

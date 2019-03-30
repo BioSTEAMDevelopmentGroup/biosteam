@@ -28,4 +28,4 @@ class MagneticSeparator(Unit):
     
     def _cost(self):
         massflow = self.ins[0].massnet
-        self.results['Cost']['Magnetic separator'] = self.CEPCI/self.CEPCI_0*self.C_0 * (massflow/self.V_0)**self.exp
+        self._results['Cost']['Magnetic separator'] = self.CEPCI/self.CEPCI_0*self.C_0 * (massflow/self.V_0)**self.exp
