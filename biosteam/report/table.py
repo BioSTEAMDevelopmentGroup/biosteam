@@ -112,18 +112,18 @@ def results_table(units):
     units.sort(key=(lambda u: u.line))
     
     # First table and set keys to compare with
-    r = units[0].results
+    r = units[0]._results
     keys = tuple(r.nested_keys())
-    table = r.table()
+    table = units[0].results()
     del units[0]
     
     # Make a list of tables, keeping all results with same keys in one table
     tables = []
     for u in units:
-        r = u.results
+        r = u._results
         new_keys = tuple(r.nested_keys())
         if new_keys == keys:
-            table = pd.concat((table, r.table(with_units=False)), axis=1)
+            table = pd.concat((table, u.results(with_units=False)), axis=1)
         else:
             tables.append(table)
             table = r.table()

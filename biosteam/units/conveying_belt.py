@@ -12,16 +12,16 @@ class ConveyingBelt(Unit):
     _N_outs = 1
     _has_power_utility = True
     _has_linked_streams = True
-    bounds = {'Volumetric flow': (120, 500)}
+    _bounds = {'Volumetric flow': (120, 500)}
     
     def _run(self):
         self.outs[0].copylike(self.ins[0])
     
     def _cost(self):
         feed = self.ins[0]
-        r = self.results
+        r = self._results
         Design = r['Design']
-        volbounds = self.bounds['Volumetric flow']
+        volbounds = self._bounds['Volumetric flow']
         volnet = feed.volnet*35.315 # ft3/hr
         N_belts = volnet/volbounds[-1]
         Design['N_belts'] = N_belts = np.ceil(N_belts)

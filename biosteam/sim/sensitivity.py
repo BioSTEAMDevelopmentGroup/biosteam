@@ -18,16 +18,14 @@ def _blockunit(blockfunc_args):
     if isinstance(element, Unit): return element
     else: return element._sink
 
-def _fill_space(args, num_stack, argspace, thread, count, tuple_):
+def _fill_space(args, num_stack, argspace, thread, tuple_):
     for i, f, fargs in num_stack:
         for a in fargs[1:]:
             args[i] = a
             argspace.append(tuple_(args))
-            thread.append((count, f, a))
-            count += 1
-            count = _fill_space(args, num_stack[:i], argspace, thread, count, tuple_)
+            thread.append((f, a))
+            _fill_space(args, num_stack[:i], argspace, thread, tuple_)
         fargs.reverse()
-    return count
 
 # %% Grid of simulation blocks
 
@@ -127,20 +125,19 @@ class Sensitivity:
             initial_args.append(args[0])
             funcs.append(func)
             element = func._block._element
-            element_names.append(f'{type(element).__name__}-{element}')
+            element_names.append(type(element).__name__ + '-' + element.ID.replace('_', ' '))
             all_args.append(list_(args))
         num_stack = tuple_(zip(range(len(funcs)), funcs, all_args))
         args = initial_args
         initial_args = tuple_(initial_args)
         argspace = [initial_args]
-        thread = [(0, funcs[0], initial_args[0])]
-        _fill_space(args, num_stack, argspace, thread, 1, tuple_)
+        thread = [(funcs[0], initial_args[0])]
+        _fill_space(args, num_stack, argspace, thread, tuple_)
         paramIDs = [i._param.capitalize().replace('_', ' ')
                     for i in funcs]
         spacelen = len(argspace)
         spacerange = range(spacelen)
         self._argarray = np.asarray(argspace)
-        argspace.insert(0, tuple_(element_names))
         
         #: All block functions
         self._funcs = funcs
@@ -155,11 +152,12 @@ class Sensitivity:
         
         #: [DataFrame] Table of the argument space with results in the final column.
         self.table = ds = DF(argspace,
-                             columns=paramIDs,
-                             index=('Element', *spacerange))
+                             columns=pd.MultiIndex.from_arrays((element_names, paramIDs),
+                                                               names=('Element',
+                                                                      'Parameter')),
+                             index=spacerange)
         self._paramIDs = paramIDs
-        ds.columns.name = 'Parameter'
-        ds[ID] = ('', *(None,)*(spacelen))
+        ds[ID] = (None,)*(spacelen)
         
         
     def simulate(self):
@@ -172,9 +170,9 @@ class Sensitivity:
         # Simulate system to initialize whole network
         try: self._system.simulate()
         except: pass
-        values = ['n/a']
+        values = []
         add = values.append
-        for i, func, arg in self._thread:
+        for func, arg in self._thread:
             try: add(func(arg))
             except: add(None)
                 

@@ -135,7 +135,7 @@ class Pump(Unit):
         * 'Head': (ft)
         * 'Flow rate': (gpm)
         """
-        Oper = self.results['Operation']
+        Oper = self._results['Operation']
         si = self.ins[0]
         so = self.outs[0]
         Pi = si.P
@@ -173,7 +173,7 @@ class Pump(Unit):
         * 'Motor': (USD)
         """
         # Parameters
-        results = self.results
+        results = self._results
         Cost = results['Cost']
         Oper = results['Operation']
         Type = Oper['Type']

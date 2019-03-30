@@ -12,7 +12,7 @@ class ScrewFeeder(Unit):
     _has_power_utility = True
     _has_linked_streams = True
     
-    bounds = {'Volumetric flow': (400, 10000)}
+    _bounds = {'Volumetric flow': (400, 10000)}
     
     def _run(self):
         self.outs[0].copy_like(self.ins[0])

@@ -770,11 +770,10 @@ class Stream(metaclass=metaStream):
 
     @mol.setter
     def mol(self, val):
-        try:
-            self._mol[:] = val
+        try: self._mol[:] = val
         except ValueError as value_error:
             if len(val) != self._Nspecies:
-                raise ValueError(f'Length of flow property ({len(val)} given) must be the same as the number of species ({self._Nspecies})')
+                raise ValueError(f'Length of flow ({len(val)} given) must be the same as the number of species ({self._Nspecies})')
             else:
                 raise value_error
 

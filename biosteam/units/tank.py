@@ -53,7 +53,7 @@ Thessalonika, Greece, 2008 (book in Greek).
         * 'Volume': Volume of vessel (m^3)
         * 'N_vessel': Number of vessels ()
         """
-        Design = self.results['Design']
+        Design = self._results['Design']
         V = self._tau*self._volnet_out
         if V < 50e3:
             Design['N_vessel'] = N = 1
@@ -76,10 +76,10 @@ Thessalonika, Greece, 2008 (book in Greek).
         """
         * 'Tank': (USD)
         """
-        Design = self.results['Design']
+        Design = self._results['Design']
         V_vessel, N_vessel = Design['Volume'], Design['N_vessel']
         CEPCI = self.CEPCI
-        Cost = self.results['Cost']
+        Cost = self._results['Cost']
         Cost['Tank'] = N_vessel * self._calc_vessel_cost(V_vessel/N_vessel, CEPCI)
         return Cost
 
@@ -103,7 +103,7 @@ class MixTank(Tank):
     _has_power_utility = True
     _has_linked_streams = False
     _run = Mixer._run
-    bounds = {'Volume': (0.1, 30)}
+    _bounds = {'Volume': (0.1, 30)}
     
     #: Electricity rate (kW/m3)
     electricity_rate = 0.591 # About 10 hp/1000gal
@@ -112,15 +112,15 @@ class MixTank(Tank):
         """
         * 'Volume': (m^3)
         """
-        Design = self.results['Design']
+        Design = self._results['Design']
         Design['Volume'] = self._tau * self._volnet_out / 0.8
 
     def _cost(self):
         """
         * 'Tank': (USD)
         """
-        V = self.results['Design']['Volume']
-        Cost = self.results['Cost']
+        V = self._results['Design']['Volume']
+        Cost = self._results['Cost']
         Cost['Tank'] = 12080 * V**0.525 * self.CEPCI/525.4
         self.power_utility(self.electricity_rate*V)
 

@@ -88,7 +88,8 @@ class Splitter(Unit, metaclass=metaFinal):
     _has_cost = False
     _N_outs = 2
 
-    def __init__(self, ID, outs=(), ins=None, split=None):
+    def __init__(self, ID='', outs=(), ins=None, split=None):
+        self.ID = ID
         self._kwargs = {'split': split}
         self._init_ins(ins)
         self._init_outs(outs)
@@ -114,7 +115,8 @@ class InvSplitter(Unit, metaclass=metaFinal):
     _graphics = Splitter._graphics
     _has_cost = False
     
-    def __init__(self, ID, outs=(), ins=None):
+    def __init__(self, ID='', outs=(), ins=None):
+        self.ID = ID
         self._init_ins(ins)
         self._init_outs(outs)
         

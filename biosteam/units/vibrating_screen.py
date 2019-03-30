@@ -23,7 +23,7 @@ class VibratingScreen(Unit):
     max_area = 200
     
     def _cost(self):
-        results = self.results
+        results = self._results
         Design = results['Design']
         
         Cost = results['Cost']

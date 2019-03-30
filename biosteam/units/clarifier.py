@@ -23,13 +23,13 @@ class Clarifier(Unit):
     height = 10
     
     # Setting the working bounds for different materials
-    bounds = {'Area steel' : (80, 8000), 'Area concrete': (8000, 125000)}
-    _results_UnitsOfMeasure = {'Settling area': 'ft^2',
-                               'Cost': 'USD'}
+    _bounds = {'Area steel' : (80, 8000), 'Area concrete': (8000, 125000)}
+    _units = {'Settling area': 'ft^2',
+              'Cost': 'USD'}
     
     
     def _cost(self):
-        results = self.results
+        results = self._results
         Design = results['Design']
         overflow = self.ins[0]
         
@@ -41,7 +41,7 @@ class Clarifier(Unit):
         self.power_utility(power) 
         
         # Checking to see which cost equation/material to use
-        Steel_bounds, Concrete_bounds = self.bounds.values()
+        Steel_bounds, Concrete_bounds = self._bounds.values()
         if checkbounds(SetArea, Steel_bounds):
             Cost = 3810*SetArea**0.58
             Design['Material'] = 'Steel'

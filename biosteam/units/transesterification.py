@@ -43,7 +43,7 @@ class Transesterification(Reactor):
                'T': None,
                'catalyst_molfrac': None}  # operating temperature (K)
     
-    bounds = {'Volume': (0.1, 20)}
+    _bounds = {'Volume': (0.1, 20)}
     
     _tau = 1
     _N_ins = 2
@@ -101,7 +101,7 @@ class Transesterification(Reactor):
         """
         * 'Volume': (m^3)
         """
-        Design = self.results['Design']
+        Design = self._results['Design']
         Design['Volume'] = self._tau * self._volnet_out / 0.8
         return Design
         
@@ -109,7 +109,7 @@ class Transesterification(Reactor):
         """
         * 'Reactor': (USD)
         """
-        results = self.results
+        results = self._results
         Design = results['Design']
         Cost = results['Cost']
         Volume = Design['Volume']

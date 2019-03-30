@@ -131,15 +131,15 @@ class Dist(Unit):
     _A_dn = None
     
     # [dict] Bounds for results
-    bounds = {'Diameter': (3., 24.),
-              'Height': (27., 170.),
-              'Weight': (9000., 2.5e6),
-              'Stripper diameter': (3., 24.),
-              'Stripper height': (27., 170.),
-              'Stripper weight': (9000., 2.5e6),
-              'Rectifier diameter': (3., 24.),
-              'Rectifier height': (27., 170.),
-              'Rectifier weight': (9000., 2.5e6)}
+    _bounds = {'Diameter': (3., 24.),
+               'Height': (27., 170.),
+               'Weight': (9000., 2.5e6),
+               'Stripper diameter': (3., 24.),
+               'Stripper height': (27., 170.),
+               'Stripper weight': (9000., 2.5e6),
+               'Rectifier diameter': (3., 24.),
+               'Rectifier height': (27., 170.),
+               'Rectifier weight': (9000., 2.5e6)}
     
     _kwargs = {'P': 101325,
                'LHK': None,
@@ -747,7 +747,7 @@ class Dist(Unit):
         * 'Tower': (USD)
         * 'Boiler': (USD)
         """
-        results = self.results
+        results = self._results
         Design = results['Design']
         Cost = results['Cost']
         
@@ -877,7 +877,7 @@ class Distillation(Dist):
         stages = len(x_stages)
         
         # Set results
-        Operation = self.results['Operation']
+        Operation = self._results['Operation']
         Lr = cached['condensate_molfrac']*(vap.molnet*R)
         Hvapm = np.array([getattr(s, 'Hvapm') for s in cached['vle_top']])
         
@@ -906,7 +906,7 @@ class Distillation(Dist):
         """Return a tuple with the actual number of stages for the rectifier and the stripper."""
         vap, liq = self.outs
         cached = self._cached
-        results = self.results
+        results = self._results
         Operation = results['Operation']
         x_stages = cached['x_stages']
         y_stages = cached['y_stages']
@@ -976,7 +976,7 @@ class Distillation(Dist):
         """
         distillate, bottoms = self.outs
         kwargs = self._kwargs
-        results = self.results
+        results = self._results
         cached = self._cached
         Design = results['Design']
         Operation = results['Operation']
@@ -1073,8 +1073,8 @@ class Distillation(Dist):
         if not self.is_divided:
             return super()._cost()
         
-        Design = self.results['Design']
-        Cost = self.results['Cost']
+        Design = self._results['Design']
+        Cost = self._results['Cost']
         
         # Number of trays assuming a partial condenser
         N_RT = Design['Rectifier stages'] - 1
@@ -1097,11 +1097,11 @@ class Distillation(Dist):
     def _cost_components(self, Cost): 
         # Cost condenser
         self._calc_condenser()
-        Cost['Condenser'] = self._condenser.results['Cost']['Heat exchanger']
+        Cost['Condenser'] = self._condenser._results['Cost']['Heat exchanger']
         
         # Cost boiler
         self._calc_boiler()
-        Cost['Boiler'] = self._boiler.results['Cost']['Heat exchanger']
+        Cost['Boiler'] = self._boiler._results['Cost']['Heat exchanger']
         
     
     def plot_stages(self):
@@ -1111,7 +1111,7 @@ class Distillation(Dist):
         
         # Cached Data
         vap, liq = self.outs
-        results = self.results['Operation']
+        results = self._results['Operation']
         cached = self._cached
         x_stages = cached.get('x_stages')
         if not x_stages:
@@ -1196,7 +1196,7 @@ class Stripper(Dist):
         stages = len(x_stages)
         
         # Set results
-        Operation = self.results['Operation']
+        Operation = self._results['Operation']
         Vs = cached['boilup_molfrac']*(liq.molnet*B)
         Hvapm = tuple(getattr(s, 'Hvapm') for s in cached['vle_bot'])
         
@@ -1220,7 +1220,7 @@ class Stripper(Dist):
         
         # Cached Data
         vap, liq = self.outs
-        Operation = self.results['Operation']
+        Operation = self._results['Operation']
         cached = self._cached
         x_stages = cached.get('x_stages')
         if not x_stages:
@@ -1247,7 +1247,7 @@ class Stripper(Dist):
         """Return the actunal number of stages"""
         vap, liq = self.outs
         cached = self._cached
-        results = self.results
+        results = self._results
         Operation = results['Operation']
         x_stages = cached['x_stages']
         y_stages = cached['y_stages']
@@ -1279,7 +1279,7 @@ class Stripper(Dist):
         """
         distillate, bottoms = self.outs
         kwargs = self._kwargs
-        results = self.results
+        results = self._results
         cached = self._cached
         Design = results['Design']
         
@@ -1324,6 +1324,6 @@ class Stripper(Dist):
     def _cost_components(self, Cost):
         # Cost boiler
         self._calc_boiler()
-        Cost['Boiler'] = self._boiler.results['Cost']['Heat exchanger']
+        Cost['Boiler'] = self._boiler._results['Cost']['Heat exchanger']
 
     

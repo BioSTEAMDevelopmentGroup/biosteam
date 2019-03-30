@@ -346,7 +346,7 @@ class HX(Unit):
         * 'Total tube length':  (ft)
         """
         ###  Use LMTD correction factor method  ###
-        Design = self.results['Design']
+        Design = self._results['Design']
         
         # Get cold and hot inlet and outlet streams
         ci, hi, co, ho = self._order_streams(*self._get_streams())
@@ -406,8 +406,8 @@ class HX(Unit):
         """
         'Heat exchanger': (USD)
         """
-        Design = self.results['Design']
-        Cost = self.results['Cost']
+        Design = self._results['Design']
+        Cost = self._results['Cost']
         A = Design['Area']
         #Dp_t = Design['Dp_t']
         #Dp_s = Design['Dp_s']
@@ -781,4 +781,4 @@ class HXprocess(HX):
         self._Duty = abs(Duty)
     
     def _operation(self):
-        return self.results['Operation']
+        return self._results['Operation']
