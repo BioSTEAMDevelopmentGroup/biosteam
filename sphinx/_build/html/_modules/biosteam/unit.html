@@ -93,7 +93,7 @@
 
 <span class="sd">    **Optional class definitions**</span>
 
-<span class="sd">        **kwargs** = {}: [dict] Default keyword arguments</span>
+<span class="sd">        **_kwargs** = {}: [dict] Default keyword arguments</span>
 
 <span class="sd">        **_init():**</span>
 <span class="sd">            Initialize components.</span>
@@ -113,11 +113,21 @@
 <span class="sd">        **_cost()**</span>
 <span class="sd">            Update results &quot;Cost&quot; dictionary with itemized cost.</span>
 
-<span class="sd">    **Class Attributes**</span>
-<span class="sd">    </span>
-<span class="sd">        CEPCI = 567.5: Chemical plant cost index</span>
+<span class="sd">    **Class Attributes** </span>
 
-<span class="sd">    **Instance Attributes**</span>
+<span class="sd">        **CEPCI** = 567.5: [float] Chemical Engineering Plant Cost Index</span>
+<span class="sd">        </span>
+<span class="sd">        **bounds** = {} [dict] Values should be tuples with lower and upper bounds.</span>
+<span class="sd">        </span>
+<span class="sd">        **instances** = {}: [WeakRefBook] Contains all instances of the Unit class.</span>
+<span class="sd">        </span>
+<span class="sd">        **_N_ins** = 1: [int] Expected number of input streams</span>
+
+<span class="sd">        **_N_outs** = 2: [int] Expected number of output streams</span>
+
+<span class="sd">        **_N_heat_utilities** = 0: [int] Number of heat utilities  </span>
+
+<span class="sd">        **_has_power_utility** = False: [bool] If True, a PowerUtility object is created for every instance.</span>
 
 <span class="sd">        line = [Defaults as the class name of the first child class]: [str] Name denoting the type of Unit class</span>
 
@@ -174,26 +184,27 @@
                     <span class="n">linedict</span><span class="p">[</span><span class="n">line</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="k">elif</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span> <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">linedict</span><span class="p">[</span><span class="n">line</span><span class="p">]]:</span>
                     <span class="n">linedict</span><span class="p">[</span><span class="n">line</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
-                    
-            <span class="c1"># Key word arguments to replace</span>
-            <span class="n">kwargs</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-            <span class="n">inputs</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
-                    <span class="n">val</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;&#39;</span><span class="si">{val}</span><span class="s2">&#39;&quot;</span>
-                <span class="n">kwargs</span> <span class="o">+=</span> <span class="s1">&#39;, &#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s1">&#39; = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
-                <span class="n">inputs</span> <span class="o">+=</span> <span class="s1">&#39;, &#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s1">&#39; = &#39;</span> <span class="o">+</span> <span class="n">key</span>
-    
-            <span class="c1"># Begin changing __init__ to have kwargs by making a string to execute</span>
-            <span class="n">str2exec</span> <span class="o">=</span>  <span class="n">f</span><span class="s2">&quot;def __init__(self, ID=&#39;&#39;, outs=(), ins=None</span><span class="si">{kwargs}</span><span class="s2">):</span><span class="se">\n</span><span class="s2">&quot;</span>
-            <span class="n">str2exec</span> <span class="o">+=</span> <span class="n">f</span><span class="s2">&quot;     initfunc(self, ID, outs, ins</span><span class="si">{inputs}</span><span class="s2">)&quot;</span>
-    
-            <span class="c1"># Execute string and replace __init__</span>
-            <span class="n">globs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;initfunc&#39;</span><span class="p">:</span> <span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">,</span>
-                     <span class="s1">&#39;Stream&#39;</span><span class="p">:</span> <span class="n">Stream</span><span class="p">}</span>
-            <span class="n">locs</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="n">exec</span><span class="p">(</span><span class="n">str2exec</span><span class="p">,</span> <span class="n">globs</span><span class="p">,</span> <span class="n">locs</span><span class="p">)</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="fm">__init__</span> <span class="o">=</span> <span class="n">locs</span><span class="p">[</span><span class="s1">&#39;__init__&#39;</span><span class="p">]</span>
+            
+            <span class="k">if</span> <span class="s1">&#39;__init__&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">new_definitions</span><span class="p">:</span>
+                <span class="c1"># Key word arguments to replace</span>
+                <span class="n">kwargs</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+                <span class="n">inputs</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+                        <span class="n">val</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;&#39;</span><span class="si">{val}</span><span class="s2">&#39;&quot;</span>
+                    <span class="n">kwargs</span> <span class="o">+=</span> <span class="s1">&#39;, &#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s1">&#39; = &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+                    <span class="n">inputs</span> <span class="o">+=</span> <span class="s1">&#39;, &#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s1">&#39; = &#39;</span> <span class="o">+</span> <span class="n">key</span>
+        
+                <span class="c1"># Begin changing __init__ to have kwargs by making a string to execute</span>
+                <span class="n">str2exec</span> <span class="o">=</span>  <span class="n">f</span><span class="s2">&quot;def __init__(self, ID=&#39;&#39;, outs=(), ins=None</span><span class="si">{kwargs}</span><span class="s2">):</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">str2exec</span> <span class="o">+=</span> <span class="n">f</span><span class="s2">&quot;     initfunc(self, ID, outs, ins</span><span class="si">{inputs}</span><span class="s2">)&quot;</span>
+        
+                <span class="c1"># Execute string and replace __init__</span>
+                <span class="n">globs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;initfunc&#39;</span><span class="p">:</span> <span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">,</span>
+                         <span class="s1">&#39;Stream&#39;</span><span class="p">:</span> <span class="n">Stream</span><span class="p">}</span>
+                <span class="n">locs</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">exec</span><span class="p">(</span><span class="n">str2exec</span><span class="p">,</span> <span class="n">globs</span><span class="p">,</span> <span class="n">locs</span><span class="p">)</span>
+                <span class="bp">cls</span><span class="o">.</span><span class="fm">__init__</span> <span class="o">=</span> <span class="n">locs</span><span class="p">[</span><span class="s1">&#39;__init__&#39;</span><span class="p">]</span>
             
         <span class="c1"># Initialize units of measure</span>
         <span class="n">units</span> <span class="o">=</span> <span class="n">new_definitions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_results_UnitsOfMeasure&#39;</span><span class="p">)</span>
@@ -253,44 +264,6 @@
 
 <span class="sd">        ****kwargs:** Keyword arguments that are accessed by setup, run, operation, design, and cost methods</span>
 
-<span class="sd">    **Abstract Attributes**</span>
-
-<span class="sd">        **kwargs** = {}: Default keyword arguments. These magically appear in the __init__ signature.</span>
-
-<span class="sd">        **_init():**</span>
-<span class="sd">            Initialize components.</span>
-<span class="sd">        </span>
-<span class="sd">        **_setup()**</span>
-<span class="sd">            Create cached data from kwargs. </span>
-
-<span class="sd">        **_run()**</span>
-<span class="sd">            Run rigorous simulation.</span>
-
-<span class="sd">        **_operation()**</span>
-<span class="sd">            Update results &quot;Operation&quot; dictionary with operation requirements.</span>
-
-<span class="sd">        **_design()**</span>
-<span class="sd">            Update results &quot;Design&quot; dictionary with design requirements.</span>
-
-<span class="sd">        **_cost()**</span>
-<span class="sd">            Update results &quot;Cost&quot; dictionary with itemized cost.</span>
-
-<span class="sd">    **Class Attributes** </span>
-
-<span class="sd">        **CEPCI** = 567.5: [float] Chemical Engineering Plant Cost Index</span>
-<span class="sd">        </span>
-<span class="sd">        **bounds** = {} [dict] Values should be tuples with lower and upper bounds.</span>
-<span class="sd">        </span>
-<span class="sd">        **instances** = {}: [WeakRefBook] Contains all instances of the Unit class.</span>
-<span class="sd">        </span>
-<span class="sd">        **_N_ins** = 1: [int] Expected number of input streams</span>
-
-<span class="sd">        **_N_outs** = 2: [int] Expected number of output streams</span>
-
-<span class="sd">        **_N_heat_utilities** = 0: [int] Number of heat utilities  </span>
-
-<span class="sd">        **_has_power_utility** = False: [bool] If True, a PowerUtility object is created for every instance.</span>
-
 <span class="sd">    **ins**</span>
 <span class="sd">        </span>
 <span class="sd">        list of input streams</span>
@@ -334,8 +307,8 @@
     <span class="c1"># [bool] If True, a PowerUtility object is created for every instance.</span>
     <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">False</span> 
     
-    <span class="c1"># [dict] default key word arguments that are accessed by setup, run, _simple_run, operation, design, and cost methods.</span>
-    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1"># [dict] default key word arguments that are accessed by simulation method.</span>
+    <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
     
     <span class="c1"># [biosteam Graphics] a Graphics object for diagram representation.</span>
     <span class="n">_graphics</span> <span class="o">=</span> <span class="n">default_graphics</span>
@@ -351,9 +324,6 @@
     <span class="c1"># Default ID</span>
     <span class="n">_ID</span> <span class="o">=</span> <span class="kc">None</span> 
     
-    <span class="c1">#: [bool] True if unit is in a recycle loop</span>
-    <span class="n">_in_loop</span> <span class="o">=</span> <span class="kc">False</span>
-
     <span class="c1">### Initialize ###</span>
     
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -371,8 +341,7 @@
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="c1"># Copy to check for setup</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>  <span class="c1">#: [dict] Key word arguments</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_ins</span><span class="p">(</span><span class="n">ins</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_outs</span><span class="p">(</span><span class="n">outs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_results</span><span class="p">()</span>
@@ -381,6 +350,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_init</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_setup</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_install</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Unit.reset"><a class="viewcode-back" href="../../Unit.html#biosteam.Unit.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Reset unit with new kwargs.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup</span><span class="p">()</span></div>
 
     <span class="k">def</span> <span class="nf">_init_ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ins</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize input streams.&quot;&quot;&quot;</span>
@@ -530,9 +504,6 @@
 <div class="viewcode-block" id="Unit.simulate"><a class="viewcode-back" href="../../Unit.html#biosteam.Unit.simulate">[docs]</a>    <span class="k">def</span> <span class="nf">simulate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Run rigourous simulation and determine all design requirements.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_setup_linked_streams</span><span class="p">()</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_setup</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">()</span></div>
 

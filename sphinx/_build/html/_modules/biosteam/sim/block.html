@@ -67,17 +67,14 @@
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Block&#39;</span><span class="p">,</span> <span class="s1">&#39;emptyblock&#39;</span><span class="p">)</span>
 
+<span class="n">do_nothing</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="kc">None</span>
     
 
 <span class="c1"># %% Simulation blocks</span>
 
 <div class="viewcode-block" id="Block"><a class="viewcode-back" href="../../../Block.html#biosteam.Block">[docs]</a><span class="k">class</span> <span class="nc">Block</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    **If neither getter or setter is passed:** Create a Block object that can simulate the element and the system downstream. The block can also generate block functions.</span>
-<span class="sd">        </span>
-<span class="sd">    **If either a getter or a setter is passed:** Create a decorator that returns a block function with the missing argument.</span>
-<span class="sd">    </span>
-<span class="sd">    **If both a getter and a setter are passed:** Create a block function that wraps the setter and getter around the `block.simulate()` method. </span>
+<span class="sd">    Create a Block object that can simulate the element and the system downstream. The block can also generate block functions.</span>
 <span class="sd">    </span>
 <span class="sd">    **Parameters**</span>
 <span class="sd">    </span>
@@ -105,7 +102,7 @@
 <span class="sd">    </span>
 <span class="sd">    .. Note::</span>
 <span class="sd">    </span>
-<span class="sd">       Simulating the block will simulate the unit only if kwargs of the unit has changed. Otherwise, it will only cost the unit.</span>
+<span class="sd">       Because no system was passed, the block would simulate just the unit.</span>
 <span class="sd">       </span>
 <span class="sd">    Create a block object passing both a Unit object and a System object:</span>
 <span class="sd">        </span>
@@ -121,12 +118,13 @@
 <span class="sd">       &gt;&gt;&gt; block.system.show()</span>
 <span class="sd">       System: Unit-P1 and downstream</span>
 <span class="sd">        network: (P1, P2)</span>
-<span class="sd">       </span>
-<span class="sd">    .. Note::</span>
-<span class="sd">        </span>
-<span class="sd">       Simulating the block (e.g. `block.simulate()`) will simulate the system only if kwargs of the unit has changed. Otherwise, it wil only cost the system.</span>
 <span class="sd">    </span>
-<span class="sd">    If both a getter and a setter are given, create a block function equivalent to:</span>
+<span class="sd">    .. Note::</span>
+<span class="sd">    </span>
+<span class="sd">       The block would simulate Unit-P1 and downstream.</span>
+<span class="sd">    </span>
+<span class="sd">    </span>
+<span class="sd">    Calling a block object with a getter and a setter will return a block function equivalent to:</span>
 <span class="sd">        </span>
 <span class="sd">    .. code-block:: python</span>
 <span class="sd">    </span>
@@ -142,7 +140,7 @@
 <span class="sd">       &gt;&gt;&gt; # getter and setter functions are hypothetical</span>
 <span class="sd">       &gt;&gt;&gt; def getter(): pass</span>
 <span class="sd">       &gt;&gt;&gt; def setter(args): pass</span>
-<span class="sd">       &gt;&gt;&gt; blockfunc = Block(P1, None, getter, setter)</span>
+<span class="sd">       &gt;&gt;&gt; blockfunc = Block(P1, None)(getter, setter)</span>
 <span class="sd">       &gt;&gt;&gt; blockfunc</span>
 <span class="sd">       &lt;function [Block P1] getter(args)&gt;</span>
 <span class="sd">    </span>
@@ -150,42 +148,12 @@
 <span class="sd">        </span>
 <span class="sd">       The function signature matches the setter while the function name matches the getter.</span>
 <span class="sd">    </span>
-<span class="sd">    If either a getter or a setter is given, create a decorator that returns a block function with the missing argument. The overall format is:</span>
-<span class="sd">    </span>
-<span class="sd">    .. code-block:: python</span>
-<span class="sd">    </span>
-<span class="sd">       &gt;&gt;&gt; def getter(): pass</span>
-<span class="sd">       &gt;&gt;&gt; @Block(P1, system, getter)</span>
-<span class="sd">       ... def setter(args): pass</span>
-<span class="sd">       &gt;&gt;&gt; setter</span>
-<span class="sd">       &lt;function [Block P1] getter(args)&gt;</span>
-<span class="sd">       </span>
-<span class="sd">    Alternatively:</span>
-<span class="sd">        </span>
-<span class="sd">    .. code-block:: python</span>
-<span class="sd">    </span>
-<span class="sd">       &gt;&gt;&gt; def setter(args): pass</span>
-<span class="sd">       &gt;&gt;&gt; @system.block(P1, setter=setter)</span>
-<span class="sd">       &gt;&gt;&gt; def getter(): pass</span>
-<span class="sd">       &gt;&gt;&gt; getter</span>
-<span class="sd">       &lt;function [Block P1] getter(args)&gt;</span>
-<span class="sd">    </span>
-<span class="sd">    Block objects serve as decorators that return a block function given a getter or a setter:</span>
-<span class="sd">        </span>
-<span class="sd">    .. code-block:: python</span>
-<span class="sd">       </span>
-<span class="sd">       &gt;&gt;&gt; block = Block(P1, system)</span>
-<span class="sd">       &gt;&gt;&gt; @block(getter)</span>
-<span class="sd">       ... def setter(args): pass</span>
-<span class="sd">       &gt;&gt;&gt; setter</span>
-<span class="sd">       &lt;function [Block P1] getter(args)&gt;</span>
-<span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
     <span class="n">_cachedblocks</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;_system&#39;</span><span class="p">,</span> <span class="s1">&#39;_simulate&#39;</span><span class="p">,</span> <span class="s1">&#39;_element&#39;</span><span class="p">)</span>
     
-    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">getter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">setter</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">cached</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_cachedblocks</span>
         <span class="n">block</span> <span class="o">=</span> <span class="n">cached</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="n">system</span><span class="p">,</span> <span class="n">element</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">block</span><span class="p">:</span>
@@ -193,62 +161,21 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">getter</span> <span class="ow">or</span> <span class="n">setter</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="p">(</span><span class="n">getter</span><span class="p">,</span> <span class="n">setter</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="bp">self</span>
     
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">system</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">inst</span> <span class="o">=</span> <span class="nb">isinstance</span>
         <span class="k">if</span> <span class="n">inst</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span> <span class="n">unit</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">sink</span>
         <span class="k">elif</span> <span class="n">inst</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">Unit</span><span class="p">):</span> <span class="n">unit</span> <span class="o">=</span> <span class="n">element</span>
         <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;element must be either a Unit, a Stream object, not &#39;{type(element).__name__}&#39;.&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">system</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">system</span><span class="p">:</span>
+            <span class="n">subsys</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">_downstream_system</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+            <span class="n">simulate</span> <span class="o">=</span> <span class="n">subsys</span><span class="o">.</span><span class="n">simulate</span>
+        <span class="k">else</span><span class="p">:</span>
             <span class="n">subsys</span> <span class="o">=</span> <span class="n">system</span>
-            <span class="k">if</span> <span class="n">element</span> <span class="ow">is</span> <span class="n">Unit</span><span class="p">:</span>
-                <span class="k">def</span> <span class="nf">simulate</span><span class="p">():</span> <span class="n">unit</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">def</span> <span class="nf">simulate</span><span class="p">():</span> <span class="k">pass</span>
-        
-        <span class="k">elif</span> <span class="n">element</span> <span class="ow">is</span> <span class="n">unit</span><span class="p">:</span>
-            <span class="n">subsys</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">_downstream_system</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
-            <span class="k">def</span> <span class="nf">simulate</span><span class="p">():</span>
-                <span class="k">if</span> <span class="n">element</span><span class="o">.</span><span class="n">_kwargs</span> <span class="o">==</span> <span class="n">element</span><span class="o">.</span><span class="n">kwargs</span><span class="p">:</span>
-                    <span class="n">element</span><span class="o">.</span><span class="n">_summary</span><span class="p">()</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">element</span><span class="o">.</span><span class="n">_kwargs</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">kwargs</span><span class="p">)</span>
-                    <span class="n">subsys</span><span class="o">.</span><span class="n">_reset_iter</span><span class="p">()</span>
-                    <span class="n">unit</span><span class="o">.</span><span class="n">_setup</span><span class="p">()</span>
-                    <span class="n">subsys</span><span class="o">.</span><span class="n">_converge</span><span class="p">()</span>
-                    <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">subsys</span><span class="o">.</span><span class="n">units</span><span class="p">:</span> <span class="n">u</span><span class="o">.</span><span class="n">_summary</span><span class="p">()</span>
-                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">subsys</span><span class="o">.</span><span class="n">facilities</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">inst</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">function</span><span class="p">):</span>
-                        <span class="n">i</span><span class="p">()</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">i</span><span class="o">.</span><span class="n">_run</span><span class="p">()</span>
-                        <span class="n">i</span><span class="o">.</span><span class="n">_summary</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span> <span class="c1"># element is a stream</span>
-            <span class="n">subsys</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">_downstream_system</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
-            <span class="n">molarray</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">_molarray</span>
-            <span class="n">molarray_old</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">molarray</span><span class="p">)</span>
-            <span class="n">T_old</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">T</span>
-            <span class="n">P_old</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">P</span>
-            <span class="k">def</span> <span class="nf">simulate</span><span class="p">():</span>
-                <span class="k">nonlocal</span> <span class="n">molarray_old</span><span class="p">,</span> <span class="n">T_old</span><span class="p">,</span> <span class="n">P_old</span>
-                <span class="k">if</span> <span class="p">((</span><span class="n">molarray</span> <span class="o">==</span> <span class="n">molarray_old</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
-                    <span class="ow">and</span> <span class="n">element</span><span class="o">.</span><span class="n">T</span> <span class="o">==</span> <span class="n">T_old</span>
-                    <span class="ow">and</span> <span class="n">element</span><span class="o">.</span><span class="n">P</span> <span class="o">==</span> <span class="n">P_old</span><span class="p">):</span>
-                    <span class="k">return</span>
-                <span class="n">subsys</span><span class="o">.</span><span class="n">_reset_iter</span><span class="p">()</span>
-                <span class="n">subsys</span><span class="o">.</span><span class="n">_converge</span><span class="p">()</span>
-                <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">subsys</span><span class="o">.</span><span class="n">units</span><span class="p">:</span> <span class="n">u</span><span class="o">.</span><span class="n">_summary</span><span class="p">()</span>
-                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">subsys</span><span class="o">.</span><span class="n">facilities</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">inst</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">function</span><span class="p">):</span>
-                        <span class="n">i</span><span class="p">()</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">i</span><span class="o">.</span><span class="n">_run</span><span class="p">()</span>
-                        <span class="n">i</span><span class="o">.</span><span class="n">_summary</span><span class="p">()</span>
-                <span class="n">molarray_old</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">molarray</span><span class="p">)</span>
-                <span class="n">T_old</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">T</span>
-                <span class="n">P_old</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">P</span>
+            <span class="k">if</span> <span class="n">element</span> <span class="ow">is</span> <span class="n">Unit</span><span class="p">:</span> <span class="n">simulate</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">simulate</span>
+            <span class="k">else</span><span class="p">:</span> <span class="n">simulate</span> <span class="o">=</span> <span class="n">do_nothing</span>
+            
         <span class="bp">self</span><span class="o">.</span><span class="n">_system</span> <span class="o">=</span> <span class="n">subsys</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_simulate</span> <span class="o">=</span> <span class="n">simulate</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_element</span> <span class="o">=</span> <span class="n">element</span>
@@ -289,28 +216,8 @@
         <span class="n">blockfunc</span><span class="o">.</span><span class="n">_getter</span> <span class="o">=</span> <span class="n">getter</span>
         <span class="k">return</span> <span class="n">blockfunc</span>
     
-    <span class="k">def</span> <span class="nf">_make_decorator</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">getter</span><span class="p">,</span> <span class="n">setter</span><span class="p">):</span>
-        <span class="n">globs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;make_blockfunc&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_blockfunc</span><span class="p">,</span>
-                 <span class="s1">&#39;getter&#39;</span><span class="p">:</span> <span class="n">getter</span><span class="p">,</span>
-                 <span class="s1">&#39;setter&#39;</span><span class="p">:</span> <span class="n">setter</span><span class="p">,}</span>
-        <span class="n">sig</span> <span class="o">=</span> <span class="s1">&#39;setter&#39;</span> <span class="k">if</span> <span class="n">getter</span> <span class="k">else</span> <span class="s1">&#39;getter&#39;</span>
-        <span class="n">str2exec</span> <span class="o">=</span>  <span class="p">(</span>
-              <span class="n">f</span><span class="s1">&#39;def decorator(</span><span class="si">{sig}</span><span class="s1">):                                   </span><span class="se">\n</span><span class="s1">&#39;</span>
-            <span class="o">+</span> <span class="n">f</span><span class="s1">&#39;    &quot;&quot;&quot;Decorate as a {type(self).__name__} function.&quot;&quot;&quot; </span><span class="se">\n</span><span class="s1">&#39;</span>
-            <span class="o">+</span> <span class="n">f</span><span class="s1">&#39;    return make_blockfunc(getter, setter, </span><span class="si">{sig}</span><span class="s1">)          &#39;</span><span class="p">)</span>
-        <span class="n">locs</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">exec</span><span class="p">(</span><span class="n">str2exec</span><span class="p">,</span> <span class="n">globs</span><span class="p">,</span> <span class="n">locs</span><span class="p">)</span>
-        <span class="n">decorator</span> <span class="o">=</span> <span class="n">locs</span><span class="p">[</span><span class="s1">&#39;decorator&#39;</span><span class="p">]</span>
-        <span class="n">decorator</span><span class="o">.</span><span class="vm">__qualname__</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;</span><span class="si">{self}</span><span class="s1"> </span><span class="si">{decorator.__qualname__}</span><span class="s1">&#39;</span>
-        <span class="k">return</span> <span class="n">decorator</span>
-    
-    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">getter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">setter</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">function</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">getter</span> <span class="ow">and</span> <span class="n">setter</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_blockfunc</span><span class="p">(</span><span class="n">getter</span><span class="p">,</span> <span class="n">setter</span><span class="p">,</span> <span class="n">getter</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">getter</span> <span class="ow">or</span> <span class="n">setter</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_decorator</span><span class="p">(</span><span class="n">getter</span><span class="p">,</span> <span class="n">setter</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simulate</span>
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">getter</span><span class="p">,</span> <span class="n">setter</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">function</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_blockfunc</span><span class="p">(</span><span class="n">getter</span><span class="p">,</span> <span class="n">setter</span><span class="p">,</span> <span class="n">getter</span><span class="p">)</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">system</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -351,7 +258,7 @@
 <span class="n">emptyblock</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">Block</span><span class="p">)</span>
 <span class="n">emptyblock</span><span class="o">.</span><span class="n">_system</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="n">emptyblock</span><span class="o">.</span><span class="n">_element</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="n">emptyblock</span><span class="o">.</span><span class="n">_simulate</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="kc">None</span>
+<span class="n">emptyblock</span><span class="o">.</span><span class="n">_simulate</span> <span class="o">=</span> <span class="n">do_nothing</span>
 <span class="n">Block</span><span class="o">.</span><span class="n">emptyblock</span> <span class="o">=</span> <span class="n">emptyblock</span>
 </pre></div>
 

@@ -198,15 +198,15 @@
     <span class="c1">#: [bool] True if using a mist eliminator pad</span>
     <span class="n">Mist</span> <span class="o">=</span> <span class="kc">False</span>
     
-    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;species_IDs&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Equilibrium species</span>
-              <span class="s1">&#39;LNK&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>   <span class="c1"># light non-keys</span>
-              <span class="s1">&#39;HNK&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>   <span class="c1"># heavy non-keys</span>
-              <span class="s1">&#39;V&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>   <span class="c1"># Vapor fraction</span>
-              <span class="s1">&#39;T&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>   <span class="c1"># Operating temperature</span>
-              <span class="s1">&#39;Qin&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="c1"># Energy input</span>
-              <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>   <span class="c1"># Operating Pressure</span>
-              <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>   <span class="c1"># Vapor composition (of working species)</span>
-              <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>   <span class="c1"># Liquid composition (of working species)</span>
+    <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;species_IDs&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Equilibrium species</span>
+               <span class="s1">&#39;LNK&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>   <span class="c1"># light non-keys</span>
+               <span class="s1">&#39;HNK&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>   <span class="c1"># heavy non-keys</span>
+               <span class="s1">&#39;V&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>   <span class="c1"># Vapor fraction</span>
+               <span class="s1">&#39;T&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>   <span class="c1"># Operating temperature</span>
+               <span class="s1">&#39;Qin&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="c1"># Energy input</span>
+               <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>   <span class="c1"># Operating Pressure</span>
+               <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>   <span class="c1"># Vapor composition (of working species)</span>
+               <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>   <span class="c1"># Liquid composition (of working species)</span>
 
     <span class="n">bounds</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Vertical vessel weight&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">4200</span><span class="p">,</span> <span class="mf">1e6</span><span class="p">),</span>
               <span class="s1">&#39;Horizontal vessel weight&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1e3</span><span class="p">,</span> <span class="mf">9.2e5</span><span class="p">),</span>
@@ -236,7 +236,7 @@
         <span class="n">he</span><span class="o">.</span><span class="n">_outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">ms</span>
 
     <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_has_hx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;Qin&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_has_hx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="s1">&#39;Qin&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span>
 
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Unpack</span>
@@ -248,7 +248,7 @@
         <span class="n">ms</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
         <span class="n">ms</span><span class="o">.</span><span class="n">liquid_mol</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span>
         <span class="n">ms</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">T</span>
-        <span class="n">ms</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">ms</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">)</span>
 
         <span class="c1"># Set Values</span>
         <span class="n">vap</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">vapor_mol</span>
@@ -314,7 +314,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_cost_vacuum</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_cost_vacuum</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;P&#39;</span><span class="p">]</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="s1">&#39;P&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">P</span> <span class="ow">or</span> <span class="n">P</span> <span class="o">&gt;</span> <span class="mi">101320</span><span class="p">:</span>
             <span class="k">return</span> 
         
@@ -660,20 +660,20 @@
 <span class="k">class</span> <span class="nc">SplitFlash</span><span class="p">(</span><span class="n">Flash</span><span class="p">):</span>
     <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Flash&#39;</span>
     
-    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;split&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>  <span class="c1"># component split fractions</span>
-              <span class="s1">&#39;T&#39;</span><span class="p">:</span> <span class="mf">298.15</span><span class="p">,</span>  <span class="c1"># operating temperature (K)</span>
-              <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="mi">101325</span><span class="p">,</span>
-              <span class="s1">&#39;Qin&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>  <span class="c1"># operating pressure (Pa)</span>
+    <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;split&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>  <span class="c1"># component split fractions</span>
+               <span class="s1">&#39;T&#39;</span><span class="p">:</span> <span class="mf">298.15</span><span class="p">,</span>  <span class="c1"># operating temperature (K)</span>
+               <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="mi">101325</span><span class="p">,</span>
+               <span class="s1">&#39;Qin&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>  <span class="c1"># operating pressure (Pa)</span>
     
     <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">top</span><span class="p">,</span> <span class="n">bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">_</span><span class="p">,</span> <span class="n">Tf</span><span class="p">,</span> <span class="n">Pf</span><span class="p">,</span> <span class="n">Qin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">Tf</span><span class="p">,</span> <span class="n">Pf</span><span class="p">,</span> <span class="n">Qin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_has_hx</span> <span class="o">=</span> <span class="n">Qin</span> <span class="o">!=</span> <span class="mi">0</span>
         <span class="n">bot</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">Tf</span>
         <span class="n">bot</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">Pf</span>
 
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">split</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;split&#39;</span><span class="p">]</span>
+        <span class="n">split</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="s1">&#39;split&#39;</span><span class="p">]</span>
         <span class="n">top</span><span class="p">,</span> <span class="n">bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">net_mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol_in</span>
         <span class="n">top</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">net_mol</span><span class="o">*</span><span class="n">split</span>
@@ -688,18 +688,18 @@
 <span class="k">class</span> <span class="nc">PartitionFlash</span><span class="p">(</span><span class="n">Flash</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a PartitionFlash Unit that approximates outputs based on molar partition coefficients.&quot;&quot;&quot;</span>
     
-    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;species_IDs&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Partition species</span>
-              <span class="s1">&#39;Ks&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>           <span class="c1"># Partition coefficients</span>
-              <span class="s1">&#39;LNK&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>          <span class="c1"># light non-keys</span>
-              <span class="s1">&#39;HNK&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>          <span class="c1"># heavy non-keys</span>
-              <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>            <span class="c1"># Operating Pressure</span>
-              <span class="s1">&#39;T&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>            <span class="c1"># Operating temperature</span>
+    <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;species_IDs&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Partition species</span>
+               <span class="s1">&#39;Ks&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>           <span class="c1"># Partition coefficients</span>
+               <span class="s1">&#39;LNK&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>          <span class="c1"># light non-keys</span>
+               <span class="s1">&#39;HNK&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>          <span class="c1"># heavy non-keys</span>
+               <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>            <span class="c1"># Operating Pressure</span>
+               <span class="s1">&#39;T&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>            <span class="c1"># Operating temperature</span>
     
     <span class="n">_has_hx</span> <span class="o">=</span> <span class="kc">True</span>
     
     <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">top</span><span class="p">,</span> <span class="n">bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">species_IDs</span><span class="p">,</span> <span class="n">Ks</span><span class="p">,</span> <span class="n">LNK</span><span class="p">,</span> <span class="n">HNK</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="n">species_IDs</span><span class="p">,</span> <span class="n">Ks</span><span class="p">,</span> <span class="n">LNK</span><span class="p">,</span> <span class="n">HNK</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
         <span class="n">index</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">_IDs</span><span class="o">.</span><span class="n">index</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_args</span> <span class="o">=</span> <span class="p">([</span><span class="n">index</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">species_IDs</span><span class="p">],</span>
                       <span class="p">[</span><span class="n">index</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">LNK</span><span class="p">],</span>
@@ -740,18 +740,18 @@
 
 <span class="k">class</span> <span class="nc">RatioFlash</span><span class="p">(</span><span class="n">Flash</span><span class="p">):</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Kspecies&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># list of species that correspond to Ks</span>
-              <span class="s1">&#39;Ks&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># array of molar ratio partition coefficinets,</span>
-              <span class="c1"># Ks = y/x, where y and x are molar ratios of two different phases</span>
-              <span class="s1">&#39;top_solvents&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of species that correspond to top_split</span>
-              <span class="s1">&#39;top_split&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of splits for top_solvents</span>
-              <span class="s1">&#39;bot_solvents&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of species that correspond to bot_split</span>
-              <span class="s1">&#39;bot_split&#39;</span><span class="p">:</span> <span class="p">[]}</span> <span class="c1"># list of splits for bot_solvents  </span>
+    <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Kspecies&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># list of species that correspond to Ks</span>
+               <span class="s1">&#39;Ks&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># array of molar ratio partition coefficinets,</span>
+               <span class="c1"># Ks = y/x, where y and x are molar ratios of two different phases</span>
+               <span class="s1">&#39;top_solvents&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of species that correspond to top_split</span>
+               <span class="s1">&#39;top_split&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of splits for top_solvents</span>
+               <span class="s1">&#39;bot_solvents&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of species that correspond to bot_split</span>
+               <span class="s1">&#39;bot_split&#39;</span><span class="p">:</span> <span class="p">[]}</span> <span class="c1"># list of splits for bot_solvents  </span>
 
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">top</span><span class="p">,</span> <span class="n">bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span>
         <span class="p">(</span><span class="n">Kspecies</span><span class="p">,</span> <span class="n">Ks</span><span class="p">,</span> <span class="n">top_solvents</span><span class="p">,</span> <span class="n">top_split</span><span class="p">,</span>
          <span class="n">bot_solvents</span><span class="p">,</span> <span class="n">bot_split</span><span class="p">)</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
         <span class="n">sp_index</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">_IDs</span><span class="o">.</span><span class="n">index</span>
@@ -777,12 +777,12 @@
 
 <span class="k">class</span> <span class="nc">Evaporator_PQin</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
 
-    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;component&#39;</span><span class="p">:</span> <span class="s1">&#39;Water&#39;</span><span class="p">,</span>  <span class="c1"># ID of specie</span>
-              <span class="s1">&#39;Qin&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-              <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="mi">101325</span><span class="p">}</span>
+    <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;component&#39;</span><span class="p">:</span> <span class="s1">&#39;Water&#39;</span><span class="p">,</span>  <span class="c1"># ID of specie</span>
+               <span class="s1">&#39;Qin&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+               <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="mi">101325</span><span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">component</span><span class="p">,</span> <span class="n">P</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">))</span>
+        <span class="n">component</span><span class="p">,</span> <span class="n">P</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">))</span>
         <span class="n">vapor</span><span class="p">,</span> <span class="n">liquid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span> <span class="o">=</span> <span class="n">cached</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">Tf</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">vapor</span><span class="o">.</span><span class="n">_species</span><span class="p">,</span> <span class="n">component</span><span class="p">)</span><span class="o">.</span><span class="n">Tsat</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
@@ -804,7 +804,7 @@
 
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">component</span><span class="p">,</span> <span class="n">Qin</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="s1">&#39;Qin&#39;</span><span class="p">))</span>
+        <span class="n">component</span><span class="p">,</span> <span class="n">Qin</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="s1">&#39;Qin&#39;</span><span class="p">))</span>
         <span class="n">vapor</span><span class="p">,</span> <span class="n">liquid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
         <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span>
 
@@ -847,20 +847,20 @@
 
 <span class="k">class</span> <span class="nc">Evaporator_PV</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;component&#39;</span><span class="p">:</span> <span class="s1">&#39;Water&#39;</span><span class="p">,</span>
-              <span class="s1">&#39;V&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
-              <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="mi">101325</span><span class="p">}</span>
+    <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;component&#39;</span><span class="p">:</span> <span class="s1">&#39;Water&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;V&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+               <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="mi">101325</span><span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">vapor</span><span class="p">,</span> <span class="n">liquid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">component</span><span class="p">,</span> <span class="n">P</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">))</span>
+        <span class="n">component</span><span class="p">,</span> <span class="n">P</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">))</span>
         <span class="n">Tf</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">vapor</span><span class="o">.</span><span class="n">_species</span><span class="p">,</span> <span class="n">component</span><span class="p">)</span><span class="o">.</span><span class="n">Tsat</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
         <span class="n">vapor</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">phase</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">Tf</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">P</span><span class="p">)</span>
         <span class="n">liquid</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">phase</span><span class="o">=</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">Tf</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">P</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">component</span><span class="p">,</span> <span class="n">V</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="s1">&#39;V&#39;</span><span class="p">))</span>
+        <span class="n">component</span><span class="p">,</span> <span class="n">V</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="s1">&#39;V&#39;</span><span class="p">))</span>
         <span class="n">vapor</span><span class="p">,</span> <span class="n">liquid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">index</span> <span class="o">=</span> <span class="n">vapor</span><span class="o">.</span><span class="n">_IDs</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
         <span class="n">vapor</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">V</span><span class="o">*</span><span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>

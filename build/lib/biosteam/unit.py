@@ -38,7 +38,7 @@ class metaUnit(type):
 
     **Optional class definitions**
 
-        **kwargs** = {}: [dict] Default keyword arguments
+        **_kwargs** = {}: [dict] Default keyword arguments
 
         **_init():**
             Initialize components.
@@ -58,11 +58,21 @@ class metaUnit(type):
         **_cost()**
             Update results "Cost" dictionary with itemized cost.
 
-    **Class Attributes**
-    
-        CEPCI = 567.5: Chemical plant cost index
+    **Class Attributes** 
 
-    **Instance Attributes**
+        **CEPCI** = 567.5: [float] Chemical Engineering Plant Cost Index
+        
+        **bounds** = {} [dict] Values should be tuples with lower and upper bounds.
+        
+        **instances** = {}: [WeakRefBook] Contains all instances of the Unit class.
+        
+        **_N_ins** = 1: [int] Expected number of input streams
+
+        **_N_outs** = 2: [int] Expected number of output streams
+
+        **_N_heat_utilities** = 0: [int] Number of heat utilities  
+
+        **_has_power_utility** = False: [bool] If True, a PowerUtility object is created for every instance.
 
         line = [Defaults as the class name of the first child class]: [str] Name denoting the type of Unit class
 
@@ -119,26 +129,27 @@ class metaUnit(type):
                     linedict[line] = []
                 elif cls.__name__ not in [cls.__name__ for cls in linedict[line]]:
                     linedict[line].append(cls)
-                    
-            # Key word arguments to replace
-            kwargs = ''
-            inputs = ''
-            for key, val in cls.kwargs.items():
-                if type(val) is str:
-                    val = f"'{val}'"
-                kwargs += ', ' + key + ' = ' + str(val)
-                inputs += ', ' + key + ' = ' + key
-    
-            # Begin changing __init__ to have kwargs by making a string to execute
-            str2exec =  f"def __init__(self, ID='', outs=(), ins=None{kwargs}):\n"
-            str2exec += f"     initfunc(self, ID, outs, ins{inputs})"
-    
-            # Execute string and replace __init__
-            globs = {'initfunc': Unit.__init__,
-                     'Stream': Stream}
-            locs = {}
-            exec(str2exec, globs, locs)
-            cls.__init__ = locs['__init__']
+            
+            if '__init__' not in new_definitions:
+                # Key word arguments to replace
+                kwargs = ''
+                inputs = ''
+                for key, val in cls._kwargs.items():
+                    if type(val) is str:
+                        val = f"'{val}'"
+                    kwargs += ', ' + key + ' = ' + str(val)
+                    inputs += ', ' + key + ' = ' + key
+        
+                # Begin changing __init__ to have kwargs by making a string to execute
+                str2exec =  f"def __init__(self, ID='', outs=(), ins=None{kwargs}):\n"
+                str2exec += f"     initfunc(self, ID, outs, ins{inputs})"
+        
+                # Execute string and replace __init__
+                globs = {'initfunc': Unit.__init__,
+                         'Stream': Stream}
+                locs = {}
+                exec(str2exec, globs, locs)
+                cls.__init__ = locs['__init__']
             
         # Initialize units of measure
         units = new_definitions.get('_results_UnitsOfMeasure')
@@ -198,44 +209,6 @@ class Unit(metaclass=metaUnit):
 
         ****kwargs:** Keyword arguments that are accessed by setup, run, operation, design, and cost methods
 
-    **Abstract Attributes**
-
-        **kwargs** = {}: Default keyword arguments. These magically appear in the __init__ signature.
-
-        **_init():**
-            Initialize components.
-        
-        **_setup()**
-            Create cached data from kwargs. 
-
-        **_run()**
-            Run rigorous simulation.
-
-        **_operation()**
-            Update results "Operation" dictionary with operation requirements.
-
-        **_design()**
-            Update results "Design" dictionary with design requirements.
-
-        **_cost()**
-            Update results "Cost" dictionary with itemized cost.
-
-    **Class Attributes** 
-
-        **CEPCI** = 567.5: [float] Chemical Engineering Plant Cost Index
-        
-        **bounds** = {} [dict] Values should be tuples with lower and upper bounds.
-        
-        **instances** = {}: [WeakRefBook] Contains all instances of the Unit class.
-        
-        **_N_ins** = 1: [int] Expected number of input streams
-
-        **_N_outs** = 2: [int] Expected number of output streams
-
-        **_N_heat_utilities** = 0: [int] Number of heat utilities  
-
-        **_has_power_utility** = False: [bool] If True, a PowerUtility object is created for every instance.
-
     **ins**
         
         list of input streams
@@ -279,8 +252,8 @@ class Unit(metaclass=metaUnit):
     # [bool] If True, a PowerUtility object is created for every instance.
     _has_power_utility = False 
     
-    # [dict] default key word arguments that are accessed by setup, run, _simple_run, operation, design, and cost methods.
-    kwargs = {}
+    # [dict] default key word arguments that are accessed by simulation method.
+    _kwargs = {}
     
     # [biosteam Graphics] a Graphics object for diagram representation.
     _graphics = default_graphics
@@ -313,8 +286,7 @@ class Unit(metaclass=metaUnit):
         
         """
         self.ID = ID
-        self._kwargs = copy(kwargs) # Copy to check for setup
-        self.kwargs = kwargs  #: [dict] Key word arguments
+        self._kwargs = kwargs
         self._init_ins(ins)
         self._init_outs(outs)
         self._init_results()
@@ -323,6 +295,11 @@ class Unit(metaclass=metaUnit):
         self._init()
         self._setup()
         self._install()
+
+    def reset(self, **kwargs):
+        """Reset unit with new kwargs."""
+        self._kwargs.update(kwargs)
+        self._setup()
 
     def _init_ins(self, ins):
         """Initialize input streams."""
@@ -472,9 +449,6 @@ class Unit(metaclass=metaUnit):
     def simulate(self):
         """Run rigourous simulation and determine all design requirements."""
         self._setup_linked_streams()
-        if self._kwargs != self.kwargs:
-            self._setup()
-            self._kwargs = copy(self.kwargs)
         self._run()
         self._summary()
 

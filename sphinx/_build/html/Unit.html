@@ -85,34 +85,6 @@
 <p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
 <p><strong>**kwargs:</strong> Keyword arguments that are accessed by setup, run, operation, design, and cost methods</p>
 </div></blockquote>
-<p><strong>Abstract Attributes</strong></p>
-<blockquote>
-<div><p><strong>kwargs</strong> = {}: Default keyword arguments. These magically appear in the __init__ signature.</p>
-<dl class="docutils">
-<dt><strong>_init():</strong></dt>
-<dd>Initialize components.</dd>
-<dt><strong>_setup()</strong></dt>
-<dd>Create cached data from kwargs.</dd>
-<dt><strong>_run()</strong></dt>
-<dd>Run rigorous simulation.</dd>
-<dt><strong>_operation()</strong></dt>
-<dd>Update results “Operation” dictionary with operation requirements.</dd>
-<dt><strong>_design()</strong></dt>
-<dd>Update results “Design” dictionary with design requirements.</dd>
-<dt><strong>_cost()</strong></dt>
-<dd>Update results “Cost” dictionary with itemized cost.</dd>
-</dl>
-</div></blockquote>
-<p><strong>Class Attributes</strong></p>
-<blockquote>
-<div><p><strong>CEPCI</strong> = 567.5: [float] Chemical Engineering Plant Cost Index</p>
-<p><strong>bounds</strong> = {} [dict] Values should be tuples with lower and upper bounds.</p>
-<p><strong>instances</strong> = {}: [WeakRefBook] Contains all instances of the Unit class.</p>
-<p><strong>_N_ins</strong> = 1: [int] Expected number of input streams</p>
-<p><strong>_N_outs</strong> = 2: [int] Expected number of output streams</p>
-<p><strong>_N_heat_utilities</strong> = 0: [int] Number of heat utilities</p>
-<p><strong>_has_power_utility</strong> = False: [bool] If True, a PowerUtility object is created for every instance.</p>
-</div></blockquote>
 <p><strong>ins</strong></p>
 <blockquote>
 <div>list of input streams</div></blockquote>
@@ -131,10 +103,10 @@
 <dd><p>[str] The general type of unit, regardless of class</p>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="biosteam.Unit.kwargs">
-<code class="descname">kwargs</code><em class="property"> = {}</em><a class="headerlink" href="#biosteam.Unit.kwargs" title="Permalink to this definition">¶</a></dt>
-<dd><p>[dict] Key word arguments</p>
+<dl class="method">
+<dt id="biosteam.Unit.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/unit.html#Unit.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset unit with new kwargs.</p>
 </dd></dl>
 
 <dl class="method">

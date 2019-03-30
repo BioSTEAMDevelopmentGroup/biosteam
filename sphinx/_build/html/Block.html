@@ -71,9 +71,7 @@
 <dl class="class">
 <dt id="biosteam.Block">
 <em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Block</code><span class="sig-paren">(</span><em>element</em>, <em>system=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/sim/block.html#Block"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Block" title="Permalink to this definition">¶</a></dt>
-<dd><p><strong>If neither getter or setter is passed:</strong> Create a Block object that can simulate the element and the system downstream. The block can also generate block functions.</p>
-<p><strong>If either a getter or a setter is passed:</strong> Create a decorator that returns a block function with the missing argument.</p>
-<p><strong>If both a getter and a setter are passed:</strong> Create a block function that wraps the setter and getter around the <cite>block.simulate()</cite> method.</p>
+<dd><p>Create a Block object that can simulate the element and the system downstream. The block can also generate block functions.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>element:</strong> [Unit or Stream] Element in the system.</p>
@@ -94,7 +92,7 @@
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Simulating the block will simulate the unit only if kwargs of the unit has changed. Otherwise, it will only cost the unit.</p>
+<p class="last">Because no system was passed, the block would simulate just the unit.</p>
 </div>
 <p>Create a block object passing both a Unit object and a System object:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">P0</span> <span class="o">=</span> <span class="n">Unit</span><span class="p">(</span><span class="s1">&#39;P0&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="n">Stream</span><span class="p">())</span>
@@ -111,9 +109,9 @@
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Simulating the block (e.g. <cite>block.simulate()</cite>) will simulate the system only if kwargs of the unit has changed. Otherwise, it wil only cost the system.</p>
+<p class="last">The block would simulate Unit-P1 and downstream.</p>
 </div>
-<p>If both a getter and a setter are given, create a block function equivalent to:</p>
+<p>Calling a block object with a getter and a setter will return a block function equivalent to:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">blockfunc</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
 <span class="gp">... </span>    <span class="n">setter</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
 <span class="gp">... </span>    <span class="bp">self</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span> <span class="c1"># self is the Block object</span>
@@ -124,7 +122,7 @@
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># getter and setter functions are hypothetical</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">getter</span><span class="p">():</span> <span class="k">pass</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">setter</span><span class="p">(</span><span class="n">args</span><span class="p">):</span> <span class="k">pass</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">blockfunc</span> <span class="o">=</span> <span class="n">Block</span><span class="p">(</span><span class="n">P1</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">getter</span><span class="p">,</span> <span class="n">setter</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">blockfunc</span> <span class="o">=</span> <span class="n">Block</span><span class="p">(</span><span class="n">P1</span><span class="p">,</span> <span class="bp">None</span><span class="p">)(</span><span class="n">getter</span><span class="p">,</span> <span class="n">setter</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">blockfunc</span>
 <span class="go">&lt;function [Block P1] getter(args)&gt;</span>
 </pre></div>
@@ -132,30 +130,6 @@
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">The function signature matches the setter while the function name matches the getter.</p>
-</div>
-<p>If either a getter or a setter is given, create a decorator that returns a block function with the missing argument. The overall format is:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">getter</span><span class="p">():</span> <span class="k">pass</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nd">@Block</span><span class="p">(</span><span class="n">P1</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">getter</span><span class="p">)</span>
-<span class="gp">... </span><span class="k">def</span> <span class="nf">setter</span><span class="p">(</span><span class="n">args</span><span class="p">):</span> <span class="k">pass</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">setter</span>
-<span class="go">&lt;function [Block P1] getter(args)&gt;</span>
-</pre></div>
-</div>
-<p>Alternatively:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">setter</span><span class="p">(</span><span class="n">args</span><span class="p">):</span> <span class="k">pass</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nd">@system.block</span><span class="p">(</span><span class="n">P1</span><span class="p">,</span> <span class="n">setter</span><span class="o">=</span><span class="n">setter</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">getter</span><span class="p">():</span> <span class="k">pass</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">getter</span>
-<span class="go">&lt;function [Block P1] getter(args)&gt;</span>
-</pre></div>
-</div>
-<p>Block objects serve as decorators that return a block function given a getter or a setter:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">block</span> <span class="o">=</span> <span class="n">Block</span><span class="p">(</span><span class="n">P1</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nd">@block</span><span class="p">(</span><span class="n">getter</span><span class="p">)</span>
-<span class="gp">... </span><span class="k">def</span> <span class="nf">setter</span><span class="p">(</span><span class="n">args</span><span class="p">):</span> <span class="k">pass</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">setter</span>
-<span class="go">&lt;function [Block P1] getter(args)&gt;</span>
-</pre></div>
 </div>
 <dl class="attribute">
 <dt id="biosteam.Block.system">

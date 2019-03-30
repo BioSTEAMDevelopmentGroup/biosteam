@@ -162,7 +162,7 @@
 <span class="go">       net      3 kmol/hr</span>
 </pre></div>
 </div>
-<p>Flow rates are stored internally as a material_array in the ‘mol’ attribute. A material_array object is a numpy ndarray which issues a RuntimeWarning when a negative or non-finite number is encountered:</p>
+<p>Flow rates are stored internally as a material_array in the ‘mol’ attribute.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Set Water flow rate</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">18</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">mol</span>
@@ -259,6 +259,12 @@
 <p>xs: [array_like] Molar fractions</p>
 <p>T: [float] Temperature (K)</p>
 </div></blockquote>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.lazy_energy_balance">
+<code class="descname">lazy_energy_balance</code><em class="property"> = True</em><a class="headerlink" href="#biosteam.Stream.lazy_energy_balance" title="Permalink to this definition">¶</a></dt>
+<dd><p>[bool] If True, approximate energy balance. False otherwise.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -829,13 +835,12 @@
 
 <dl class="staticmethod">
 <dt id="biosteam.Stream.sum">
-<em class="property">static </em><code class="descname">sum</code><span class="sig-paren">(</span><em>s_sum</em>, <em>streams</em>, <em>approximate=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/stream.html#Stream.sum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.sum" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">sum</code><span class="sig-paren">(</span><em>s_sum</em>, <em>streams</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/stream.html#Stream.sum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.sum" title="Permalink to this definition">¶</a></dt>
 <dd><p>Mixes streams and sets resulting mass and energy in ‘s_sum’. Assumes the same pressure as streams[0], and no phase equilibrium. If ‘s_sum’ is a Stream object, it assumes the phase does not change.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>s_sum:</strong> [Stream] Container for the resulting mixture of streams</p>
 <p><strong>streams:</strong> [tuple] Stream objects to be mixed</p>
-<p><strong>approximate:</strong> [bool] If True, approximate energy balance with constant heat capacity</p>
 </div></blockquote>
 <p><strong>Return</strong></p>
 <blockquote>

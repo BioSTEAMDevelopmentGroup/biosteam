@@ -82,7 +82,7 @@ class HX(Unit):
     # Correction factor
     _ft = None
     
-    kwargs = {'U': 'Tabulated'} # Overall heat transfer coefficient
+    _kwargs = {'U': 'Tabulated'} # Overall heat transfer coefficient
 
     @property
     def N_shells(self):
@@ -369,7 +369,7 @@ class HX(Unit):
         Q = abs(self._Duty) / 3600
         
         # Get overall heat transfer coefficient
-        U = self.kwargs['U']
+        U = self._kwargs['U']
         if isinstance(U, float):
             pass
         elif U == 'Tabulated':
@@ -477,7 +477,7 @@ class HXutility(HX):
     
     """
     
-    kwargs = {'T': None,
+    _kwargs = {'T': None,
               'V': None,
               'rigorous': False,
               'U': 'Tabulated'}
@@ -486,7 +486,7 @@ class HXutility(HX):
         feed = self.ins[0]
         s = self.outs[0]
         s.copylike(feed)
-        kwargs = self.kwargs
+        kwargs = self._kwargs
         T = kwargs['T']
         V = kwargs['V']
         V_given = V is not None 
@@ -597,7 +597,7 @@ class HXprocess(HX):
     _N_ins = 2
     _N_outs = 2
     dT = 5 #: [float] Pinch temperature difference.
-    kwargs = {'U': 'Tabulated',
+    _kwargs = {'U': 'Tabulated',
               'Type': 'ss',
               'species_IDs': None,
               'LNK': None,
@@ -609,7 +609,7 @@ class HXprocess(HX):
         return s_in1, s_in2, s_out1, s_out2
     
     def _setup(self):
-        species_IDs = self.kwargs['species_IDs']
+        species_IDs = self._kwargs['species_IDs']
         if species_IDs:
             feed = self.outs[0]
             _species = feed._species
@@ -622,7 +622,7 @@ class HXprocess(HX):
                 hx = False
             so.copylike(si)
         if hx:
-            Type = self.kwargs['Type']
+            Type = self._kwargs['Type']
             try:
                 getattr(self, '_run_' + Type)()
             except AttributeError as AE:
@@ -659,7 +659,7 @@ class HXprocess(HX):
     def _run_ls(self):
         s1_in, s2_in = self.ins
         s1_out, s2_out = self.outs
-        kwargs = self.kwargs
+        kwargs = self._kwargs
         dT = self.dT
         LNK = kwargs['LNK']
         HNK = kwargs['HNK']
@@ -717,7 +717,7 @@ class HXprocess(HX):
     def _run_ll(self):
         s1_in, s2_in = self.ins
         s1_out, s2_out = self.outs
-        kwargs = self.kwargs
+        kwargs = self._kwargs
         species_IDs_ = kwargs['species_IDs']
         LNK = kwargs['LNK']
         HNK = kwargs['HNK']

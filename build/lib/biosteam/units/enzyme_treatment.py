@@ -11,7 +11,7 @@ class EnzymeTreatment(Unit):
     _N_outs = 1
     _N_heat_utilities = 1
     _has_power_utility = True
-    kwargs = {'T': 298.15}  # operating temperature (K)
+    _kwargs = {'T': 298.15}  # operating temperature (K)
     
     #: Fraction of filled tank to total tank volume
     V_wf = 0.8
@@ -29,7 +29,7 @@ class EnzymeTreatment(Unit):
         he._outs = self._outs
         
     def _setup(self):
-        T = self.kwargs['T']
+        T = self._kwargs['T']
         self.outs[0].T = T
     
     def _run(self):

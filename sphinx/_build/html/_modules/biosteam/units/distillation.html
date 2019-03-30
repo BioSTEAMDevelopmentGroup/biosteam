@@ -196,11 +196,11 @@
               <span class="s1">&#39;Rectifier height&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">27.</span><span class="p">,</span> <span class="mf">170.</span><span class="p">),</span>
               <span class="s1">&#39;Rectifier weight&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">9000.</span><span class="p">,</span> <span class="mf">2.5e6</span><span class="p">)}</span>
     
-    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="mi">101325</span><span class="p">,</span>
-              <span class="s1">&#39;LHK&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-              <span class="s1">&#39;y_top&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-              <span class="s1">&#39;x_bot&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-              <span class="s1">&#39;k&#39;</span><span class="p">:</span> <span class="mf">1.25</span><span class="p">}</span>
+    <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="mi">101325</span><span class="p">,</span>
+               <span class="s1">&#39;LHK&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+               <span class="s1">&#39;y_top&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+               <span class="s1">&#39;x_bot&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+               <span class="s1">&#39;k&#39;</span><span class="p">:</span> <span class="mf">1.25</span><span class="p">}</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">TS</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -293,7 +293,7 @@
 
     <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">vap</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span>
         <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span>
         <span class="n">species</span> <span class="o">=</span> <span class="n">vap</span><span class="o">.</span><span class="n">species</span>
         <span class="n">getattr_</span> <span class="o">=</span> <span class="nb">getattr</span>
@@ -343,7 +343,7 @@
     
     <span class="k">def</span> <span class="nf">_mass_balance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">vap</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span>
         <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span>
 
         <span class="c1"># Get all important flow rates (both light and heavy keys and non-keys)</span>
@@ -411,7 +411,7 @@
 <span class="sd">            </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LHK_species</span>
-        <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;P&#39;</span><span class="p">]</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="s1">&#39;P&#39;</span><span class="p">]</span>
         <span class="n">bubble_point</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">_bubble_point</span>
         <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">yi</span> <span class="o">=</span> <span class="n">y_stairs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
@@ -442,7 +442,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">operation</span><span class="p">()</span>
             <span class="n">x_stages</span> <span class="o">=</span> <span class="n">cached</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x_stages&#39;</span><span class="p">)</span>
         <span class="n">y_stages</span> <span class="o">=</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;y_stages&#39;</span><span class="p">]</span>
-        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span>
         <span class="n">species_IDs</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;LHK&#39;</span><span class="p">]</span>
         <span class="n">light</span> <span class="o">=</span> <span class="n">species_IDs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">P</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;P&#39;</span><span class="p">]</span>
@@ -849,7 +849,7 @@
 <span class="sd">        * &#39;Heating&#39;: (kJ/hr)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">vap</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span>
         <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span>
         <span class="n">bubble_point</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">_bubble_point</span>
 
@@ -1030,7 +1030,7 @@
 <span class="sd">            * &#39;Weight&#39;: (lb)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span>
         <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span>
         <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span>
         <span class="n">Design</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
@@ -1172,7 +1172,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">x_stages</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">operation</span><span class="p">()</span>
             <span class="n">x_stages</span> <span class="o">=</span> <span class="n">cached</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x_stages&#39;</span><span class="p">)</span>
-        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span>
         <span class="n">q_line</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_q_line</span>
         <span class="n">y_top</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;y_top&#39;</span><span class="p">]</span>
         <span class="n">x_bot</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;x_bot&#39;</span><span class="p">]</span>
@@ -1218,7 +1218,7 @@
 <span class="sd">        * &#39;Heating&#39;: (kJ/hr)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">vap</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span>
         <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span>
         
         <span class="c1"># Some important info</span>
@@ -1281,7 +1281,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">x_stages</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">operation</span><span class="p">()</span>
             <span class="n">x_stages</span> <span class="o">=</span> <span class="n">cached</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x_stages&#39;</span><span class="p">)</span>
-        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span>
         <span class="n">y_top</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;y_top&#39;</span><span class="p">]</span>
         <span class="n">x_bot</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;x_bot&#39;</span><span class="p">]</span>
         <span class="n">stages</span> <span class="o">=</span> <span class="n">Operation</span><span class="p">[</span><span class="s1">&#39;Theoretical stages&#39;</span><span class="p">]</span>
@@ -1333,7 +1333,7 @@
 <span class="sd">            * &#39;Weight&#39;: (lb)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span>
         <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span>
         <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span>
         <span class="n">Design</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>

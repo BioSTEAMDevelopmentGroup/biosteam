@@ -214,10 +214,11 @@
         <span class="c1">#: Guess stream cost for solve_price method</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cost_guess</span> <span class="o">=</span> <span class="kc">None</span>
         
+        <span class="n">units</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">offsite_units</span><span class="p">)</span> <span class="k">if</span> <span class="n">system</span><span class="o">.</span><span class="n">facilities</span> <span class="k">else</span> <span class="n">system</span><span class="o">.</span><span class="n">units</span>
+        
         <span class="c1">#: All &quot;values&quot; functions of unit summaries</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_summary_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Summary&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span>
-                                <span class="n">system</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">offsite_units</span><span class="p">)</span>
-                                <span class="k">if</span> <span class="n">u</span><span class="o">.</span><span class="n">_has_cost</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_summary_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Summary&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+                                <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span> <span class="k">if</span> <span class="n">u</span><span class="o">.</span><span class="n">_has_cost</span><span class="p">]</span>
         
         <span class="n">system</span><span class="o">.</span><span class="n">tea</span> <span class="o">=</span> <span class="bp">self</span>
 

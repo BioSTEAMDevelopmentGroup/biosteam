@@ -108,10 +108,10 @@
     <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Multi-Effect Evaporator&#39;</span>
-    <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;component&#39;</span><span class="p">:</span> <span class="s1">&#39;Water&#39;</span><span class="p">,</span>
-              <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">101325</span><span class="p">,),</span>  
-              <span class="s1">&#39;V&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> 
-              <span class="s1">&#39;P_liq&#39;</span><span class="p">:</span> <span class="mi">101325</span><span class="p">}</span>
+    <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;component&#39;</span><span class="p">:</span> <span class="s1">&#39;Water&#39;</span><span class="p">,</span>
+               <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">101325</span><span class="p">,),</span>  
+               <span class="s1">&#39;V&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span> 
+               <span class="s1">&#39;P_liq&#39;</span><span class="p">:</span> <span class="mi">101325</span><span class="p">}</span>
 
     <span class="c1">#: Residence time (hr)</span>
     <span class="n">tau</span> <span class="o">=</span> <span class="mf">0.30</span>
@@ -137,7 +137,7 @@
 
     <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Unpack</span>
-        <span class="n">component</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">P_liq</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">component</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">P_liq</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
                                   <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;V&#39;</span><span class="p">,</span> <span class="s1">&#39;P_liq&#39;</span><span class="p">))</span>
         <span class="n">out_wt_solids</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         
@@ -160,7 +160,7 @@
         <span class="k">def</span> <span class="nf">V_error</span><span class="p">(</span><span class="n">v1</span><span class="p">):</span>
             <span class="c1"># Run first evaporator</span>
             <span class="n">v_test</span> <span class="o">=</span> <span class="n">v1</span>
-            <span class="n">evap0</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;V&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">v1</span>
+            <span class="n">evap0</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="s1">&#39;V&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">v1</span>
             <span class="n">evap0</span><span class="o">.</span><span class="n">_run</span><span class="p">()</span>
             <span class="c1"># Put liquid first, then vapor side stream</span>
             <span class="n">ins</span> <span class="o">=</span> <span class="p">[</span><span class="n">evap0</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">evap0</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
@@ -179,7 +179,7 @@
         
 
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">component</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">P_liq</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">component</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">P_liq</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
                                   <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;V&#39;</span><span class="p">,</span> <span class="s1">&#39;P_liq&#39;</span><span class="p">))</span>
         <span class="n">out_wt_solids</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">ins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span>
@@ -215,7 +215,7 @@
     <span class="k">def</span> <span class="nf">_lazy_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">out_wt_solids</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">component</span><span class="p">,</span> <span class="n">V</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="s1">&#39;V&#39;</span><span class="p">))</span>
+        <span class="n">component</span><span class="p">,</span> <span class="n">V</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="s1">&#39;V&#39;</span><span class="p">))</span>
 
         <span class="n">component_pos</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">Settings</span><span class="o">.</span><span class="n">ID_index_dictionary</span><span class="p">[</span><span class="n">component</span><span class="p">]</span>
         <span class="n">liq</span><span class="o">.</span><span class="n">mass</span><span class="p">[</span><span class="n">component_pos</span><span class="p">]</span> <span class="o">=</span> <span class="n">V</span><span class="o">*</span><span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">component_pos</span><span class="p">]</span>

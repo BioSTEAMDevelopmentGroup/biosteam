@@ -20,8 +20,8 @@ class RotaryVacuumFilter(Unit):
     
     #: For crystals (lb/day-ft^2)
     filter_rate = 6000
-    kwargs = {'split': None,
-              'P_suction': 100} # Pa
+    _kwargs = {'split': None,
+               'P_suction': 100} # Pa
     bounds = {'Individual area': (10, 800)}
     
     #: Efficiency of the vacuum pump
@@ -62,7 +62,7 @@ class RotaryVacuumFilter(Unit):
     def _power(self, area, N_vessels) :
         r = self.results
         s_cake, s_vacuumed = self.outs
-        P_suction = self.kwargs['P_suction'] # Max allowable pressure drop
+        P_suction = self._kwargs['P_suction'] # Max allowable pressure drop
         
         # Weight of empty plate
         mass_plates = 10*N_vessels

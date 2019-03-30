@@ -38,10 +38,10 @@ class Transesterification(Reactor):
     
     """
     
-    kwargs = {'efficiency': None,  # fraction of theoretical conversion
-              'r': None,  # Methanol to lipid molar ratio
-              'T': None,
-              'catalyst_molfrac': None}  # operating temperature (K)
+    _kwargs = {'efficiency': None,  # fraction of theoretical conversion
+               'r': None,  # Methanol to lipid molar ratio
+               'T': None,
+               'catalyst_molfrac': None}  # operating temperature (K)
     
     bounds = {'Volume': (0.1, 20)}
     
@@ -57,7 +57,7 @@ class Transesterification(Reactor):
     def _run(self):
         feed, fresh_Methanol = self.ins
         out = self.outs[0]
-        eff, r, T, catalyst_molfrac = (self.kwargs[i] for i in (
+        eff, r, T, catalyst_molfrac = (self._kwargs[i] for i in (
             'efficiency', 'r', 'T', 'catalyst_molfrac'))
         sp_index = feed._IDs.index
 

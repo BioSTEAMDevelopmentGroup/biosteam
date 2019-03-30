@@ -10,5 +10,5 @@ from biosteam.units.splitter import Splitter
 
 class Separator(Unit):
     _N_outs = 2
-    kwargs = Splitter.kwargs
+    _kwargs = Splitter._kwargs
     _run = Splitter._run

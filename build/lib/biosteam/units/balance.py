@@ -39,10 +39,18 @@ class MassBalance(Unit, metaclass=metaFinal):
     line = 'Balance'
     _has_cost = False
     _N_outs = 0
-    kwargs = {'species': None,
-              'streams': None,
-              'exact': True,
-              'balance': 'flow'}
+
+    def __init__(self, ID='', outs=(), ins=None,
+                 species=None, streams=None, exact=True, balance='flow'):
+        self._init_ins(ins)
+        self._init_outs(outs)
+        self._cached = {}
+        self._cached['spindex'] = Stream._IDs.index
+        self._kwargs = {'species': species,
+                        'streams': streams,
+                        'exact': exact,
+                        'balance': balance}
+        self._setup()
 
     def _init_ins(self, ins):
         """Initialize input streams."""
@@ -70,13 +78,9 @@ class MassBalance(Unit, metaclass=metaFinal):
         else:
             self._outs = [Stream(i) if isinstance(i, str) else i for i in outs]
 
-    def _init(self):
-        self._cached = {}
-        self._cached['spindex'] = Stream._IDs.index
-
     def _setup(self):
-        exact = self.kwargs['exact']
-        balance = self.kwargs['balance']
+        exact = self._kwargs['exact']
+        balance = self._kwargs['balance']
         cached = self._cached
         
         # Make sure balance type is valid
@@ -87,8 +91,8 @@ class MassBalance(Unit, metaclass=metaFinal):
         # Cach correct solver and make sure linear system of equations is square to achieve exact solution
         if exact:
             solver = np.linalg.solve
-            species_IDs = self.kwargs['species']
-            sID, s_index = len(species_IDs), len(self.kwargs['streams'])
+            species_IDs = self._kwargs['species']
+            sID, s_index = len(species_IDs), len(self._kwargs['streams'])
             if sID != s_index:
                 raise ValueError(
                     f"Length of species ({sID}) must be equal to the length of streams_index ({s_index}) when exact solution is needed.")
@@ -104,7 +108,7 @@ class MassBalance(Unit, metaclass=metaFinal):
         """Solve mass balance by iteration."""
         # SOLVING BY ITERATION TAKES 15 LOOPS FOR 2 STREAMS
         # SOLVING BY LEAST-SQUARES TAKES 40 LOOPS
-        kwargs = self.kwargs
+        kwargs = self._kwargs
         cached= self._cached
         stream_index = kwargs['streams']
         balance = kwargs['balance']
@@ -217,6 +221,9 @@ class EnergyBalance(Unit, metaclass=metaFinal):
         This is an end-of-the-line/final class that cannot be inherited.
 
     """
+    _kwargs = {'index': None,
+               'Type': 'T',
+               'Qin': 0}
     line = 'Balance'
     _has_cost = False
     _graphics = MassBalance._graphics
@@ -226,7 +233,7 @@ class EnergyBalance(Unit, metaclass=metaFinal):
     def _run(self):        # Get arguments
         ins = self.ins.copy()
         outs = self.outs.copy()
-        kwargs = self.kwargs
+        kwargs = self._kwargs
         index = kwargs['index']
         Type = kwargs['Type']
         Qin = kwargs['Qin']

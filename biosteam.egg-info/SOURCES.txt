@@ -64,7 +64,6 @@ biosteam/units/settler.py
 biosteam/units/shredder.py
 biosteam/units/splitter.py
 biosteam/units/tank.py
-biosteam/units/test.py
 biosteam/units/transesterification.py
 biosteam/units/vibrating_screen.py
 biosteam/units/yeast_centrifuge.py

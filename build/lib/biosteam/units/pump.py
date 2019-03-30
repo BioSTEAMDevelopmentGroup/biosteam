@@ -79,7 +79,7 @@ class Pump(Unit):
     _N_outs = 1
     _has_power_utility = True
     _has_linked_streams = True
-    kwargs = {'P': None}
+    _kwargs = {'P': None}
     
     # Pump type
     _Type = 'Default'
@@ -121,7 +121,7 @@ class Pump(Unit):
         self._F_Mstr = material  
         
     def _run(self):
-        P = self.kwargs['P']
+        P = self._kwargs['P']
         for i, o in zip(self.ins, self.outs):
             o.copylike(i)
             if P: o.P = P

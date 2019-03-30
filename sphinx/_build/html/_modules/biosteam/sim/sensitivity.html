@@ -60,6 +60,7 @@
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">np</span><span class="p">,</span> <span class="n">pd</span>
+<span class="kn">from</span> <span class="nn">.block</span> <span class="k">import</span> <span class="n">Block</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Sensitivity&#39;</span><span class="p">,)</span>
 
@@ -114,7 +115,7 @@
     
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">getter</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(),</span> <span class="n">ID</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">args</span><span class="p">:</span>
-            <span class="k">def</span> <span class="nf">getter_no_args</span><span class="p">():</span> <span class="k">return</span> <span class="n">getter</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
+            <span class="n">getter_no_args</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">getter</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
             <span class="n">getter_no_args</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="n">getter</span><span class="o">.</span><span class="vm">__name__</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_getter</span> <span class="o">=</span> <span class="n">getter_no_args</span>
         <span class="k">else</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getter</span> <span class="o">=</span> <span class="n">getter</span>
@@ -124,7 +125,7 @@
         <span class="c1">#: [(function, args)] Iterable of block fuctions and respective arguments.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_stack</span> <span class="o">=</span> <span class="p">[]</span>
     
-<div class="viewcode-block" id="Sensitivity.evalparam"><a class="viewcode-back" href="../../../Sensitivity.html#biosteam.Sensitivity.evalparam">[docs]</a>    <span class="k">def</span> <span class="nf">evalparam</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">setter</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+<div class="viewcode-block" id="Sensitivity.evalparam"><a class="viewcode-back" href="../../../Sensitivity.html#biosteam.Sensitivity.evalparam">[docs]</a>    <span class="k">def</span> <span class="nf">evalparam</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">setter</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">isolated</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return sensitivity at given parameter values.</span>
 <span class="sd">        </span>
 <span class="sd">        **Parameters**</span>
@@ -134,12 +135,15 @@
 <span class="sd">            **setter:** [function] Should set parameter in the element.</span>
 <span class="sd">            </span>
 <span class="sd">            **values:** [iterable] Values for parameter.</span>
+<span class="sd">            </span>
+<span class="sd">            **isolated** [bool] If True, account for downstream operations. If False, only account for element.</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">block</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">_block</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getter</span><span class="p">,</span> <span class="n">setter</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">block</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">values</span><span class="p">]</span></div>
+        <span class="n">system</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">isolated</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span>
+        <span class="n">blockfunc</span> <span class="o">=</span> <span class="n">Block</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">system</span><span class="p">)(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getter</span><span class="p">,</span> <span class="n">setter</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">blockfunc</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">values</span><span class="p">]</span></div>
     
-<div class="viewcode-block" id="Sensitivity.addparam"><a class="viewcode-back" href="../../../Sensitivity.html#biosteam.Sensitivity.addparam">[docs]</a>    <span class="k">def</span> <span class="nf">addparam</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">setter</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+<div class="viewcode-block" id="Sensitivity.addparam"><a class="viewcode-back" href="../../../Sensitivity.html#biosteam.Sensitivity.addparam">[docs]</a>    <span class="k">def</span> <span class="nf">addparam</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">setter</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">isolated</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Add parameter to vary in sensitivity.</span>
 <span class="sd">        </span>
 <span class="sd">        **Parameters**</span>
@@ -149,11 +153,12 @@
 <span class="sd">            **setter:** [function] Should set parameter in the element.</span>
 <span class="sd">            </span>
 <span class="sd">            **values:** [iterable] Values for parameter.</span>
+<span class="sd">            </span>
+<span class="sd">            **isolated** [bool] If True, account for downstream operations. If False, only account for element.</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_stack</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">_block</span><span class="p">(</span><span class="n">element</span><span class="p">,</span>
-                                                <span class="bp">self</span><span class="o">.</span><span class="n">_getter</span><span class="p">,</span>
-                                                <span class="n">setter</span><span class="p">),</span> <span class="n">values</span><span class="p">))</span></div>
+        <span class="n">system</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">isolated</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stack</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">Block</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">system</span><span class="p">)(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getter</span><span class="p">,</span> <span class="n">setter</span><span class="p">),</span> <span class="n">values</span><span class="p">))</span></div>
     
     <span class="k">def</span> <span class="nf">_loadstack</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Load argument space and cache a thread of block functions and arguments.&quot;&quot;&quot;</span>
@@ -292,19 +297,6 @@
 <div class="viewcode-block" id="Sensitivity.show"><a class="viewcode-back" href="../../../Sensitivity.html#biosteam.Sensitivity.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return information on sensitivity parameters.&quot;&quot;&quot;</span>
         <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">())</span></div></div>
-        
-<span class="c1"># options = {&#39;Print exceptions&#39;: True}</span>
-<span class="c1"># Exception as e:</span>
-<span class="c1"># if print_exceptions:</span>
-<span class="c1">#     message = &#39;Param: &#39;</span>
-<span class="c1">#     for param, val in zip(self._paramIDs, self._argarray[i, :]):</span>
-<span class="c1">#         message += f&#39;{param}={val:.2g}, &#39;</span>
-<span class="c1">#     message = message.rstrip(&#39;, &#39;) + &#39;\n&#39;</span>
-<span class="c1">#     message+= f&#39;{e}\n&#39;</span>
-<span class="c1">#     print(message)</span>
-<span class="c1"># values.append(None)        </span>
-        
-        
         
         
         

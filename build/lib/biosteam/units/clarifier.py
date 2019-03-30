@@ -16,7 +16,7 @@ def checkbounds(x, bounds):
 
 class Clarifier(Unit):
     _has_power_utility = True
-    kwargs = Splitter.kwargs
+    _kwargs = Splitter._kwargs
     _run = Splitter._run
     
     # Height of the clarifier tank from other designs, estimate (ft)
