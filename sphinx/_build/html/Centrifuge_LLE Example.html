@@ -257,7 +257,7 @@ div.nboutput div.output_area.stderr {
 <span class="n">C1</span> <span class="o">=</span> <span class="n">Centrifuge_LLE</span><span class="p">(</span><span class="s1">&#39;C1&#39;</span><span class="p">,</span>
                     <span class="n">ins</span> <span class="o">=</span> <span class="n">feed</span><span class="p">,</span>
                     <span class="n">outs</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;light&#39;</span><span class="p">,</span> <span class="s1">&#39;heavy&#39;</span><span class="p">),</span>
-                    <span class="n">specie_IDs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Lipid&#39;</span><span class="p">,</span> <span class="s1">&#39;Methanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Biodiesel&#39;</span><span class="p">),</span>
+                    <span class="n">species_IDs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Lipid&#39;</span><span class="p">,</span> <span class="s1">&#39;Methanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Biodiesel&#39;</span><span class="p">),</span>
                     <span class="n">split</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
                     <span class="n">solvents</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Glycerol&#39;</span><span class="p">,),</span>
                     <span class="n">solvent_split</span><span class="o">=</span><span class="p">(</span><span class="mf">0.05</span><span class="p">,))</span>
@@ -271,32 +271,106 @@ div.nboutput div.output_area.stderr {
 </pre></div>
 </div>
 </div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Centrifuge_LLE_Example_1_0.svg" src="_images/Centrifuge_LLE_Example_1_0.svg" /></div>
+</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-<span class="ansi-red-intense-fg ansi-bold">---------------------------------------------------------------------------</span>
-<span class="ansi-red-intense-fg ansi-bold">TypeError</span>                                 Traceback (most recent call last)
-<span class="ansi-green-intense-fg ansi-bold">&lt;ipython-input-1-9b567f5e18f9&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span><span class="ansi-blue-intense-fg ansi-bold">()</span>
-<span class="ansi-green-fg">     13</span>                     split<span class="ansi-yellow-intense-fg ansi-bold">=</span><span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-cyan-intense-fg ansi-bold">1</span><span class="ansi-yellow-intense-fg ansi-bold">,</span> <span class="ansi-cyan-intense-fg ansi-bold">0.5</span><span class="ansi-yellow-intense-fg ansi-bold">,</span> <span class="ansi-cyan-intense-fg ansi-bold">1</span><span class="ansi-yellow-intense-fg ansi-bold">)</span><span class="ansi-yellow-intense-fg ansi-bold">,</span>
-<span class="ansi-green-fg">     14</span>                     solvents<span class="ansi-yellow-intense-fg ansi-bold">=</span><span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-blue-intense-fg ansi-bold">&#39;Glycerol&#39;</span><span class="ansi-yellow-intense-fg ansi-bold">,</span><span class="ansi-yellow-intense-fg ansi-bold">)</span><span class="ansi-yellow-intense-fg ansi-bold">,</span>
-<span class="ansi-green-intense-fg ansi-bold">---&gt; 15</span><span class="ansi-yellow-intense-fg ansi-bold">                     solvent_split=(0.05,))
-</span><span class="ansi-green-fg">     16</span>
-<span class="ansi-green-fg">     17</span> <span class="ansi-red-intense-fg ansi-bold"># Run all methods</span>
-
-<span class="ansi-red-intense-fg ansi-bold">TypeError</span>: __init__() got an unexpected keyword argument &#39;specie_IDs&#39;
+Centrifuge_LLE: C1
+<span class="ansi-white-fg">ins...</span>
+[0] S1
+    phase: &#39;l&#39;, T: 60 degC, P: 1 atm
+    flow (kmol/hr): Lipid      1
+                    Methanol   51
+                    Glycerol   9
+                    Biodiesel  27
+<span class="ansi-white-fg">outs...</span>
+[0] light
+    phase: &#39;l&#39;, T: 60 degC, P: 1 atm
+    flow (kmol/hr): Lipid      1
+                    Methanol   17
+                    Glycerol   0.45
+                    Biodiesel  27
+[1] heavy
+    phase: &#39;l&#39;, T: 60 degC, P: 1 atm
+    flow (kmol/hr): Lipid      1.11e-16
+                    Methanol   34
+                    Glycerol   8.55
+                    Biodiesel  0.00972
 </pre></div></div>
 </div>
-<div class="nbinput nblast docutils container">
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [ ]:
+<span></span>In [2]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="nb">print</span><span class="p">(</span><span class="n">C1</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">table</span><span class="p">())</span>
+<span></span><span class="n">C1</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
 </pre></div>
 </div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[2]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Liquids centrifuge</th>
+      <th>Units</th>
+      <th>C1</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Design</th>
+      <th>Flow rate</th>
+      <td>gpm</td>
+      <td>346</td>
+    </tr>
+    <tr>
+      <th>Cost</th>
+      <th>Vessel cost</th>
+      <td>USD</td>
+      <td>8.7e+05</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">Summary</th>
+      <th>Purchase cost</th>
+      <td>USD</td>
+      <td>8.7e+05</td>
+    </tr>
+    <tr>
+      <th>Utility cost</th>
+      <td>USD/hr</td>
+      <td>82.3</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
 </div>
 </div>
 

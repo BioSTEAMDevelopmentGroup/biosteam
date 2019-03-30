@@ -260,7 +260,7 @@ div.nboutput div.output_area.stderr {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">def</span> <span class="nf">set_feed_price</span><span class="p">(</span><span class="n">lipid_cane_price</span><span class="p">):</span> <span class="n">Lipid_cane</span><span class="o">.</span><span class="n">price</span> <span class="o">=</span> <span class="n">lipid_cane_price</span>
+<span></span><span class="k">def</span> <span class="nf">set_feed_price</span><span class="p">(</span><span class="n">price</span><span class="p">):</span> <span class="n">Lipid_cane</span><span class="o">.</span><span class="n">price</span> <span class="o">=</span> <span class="n">price</span>
 <span class="n">values</span> <span class="o">=</span> <span class="n">ss</span><span class="o">.</span><span class="n">evalparam</span><span class="p">(</span><span class="n">element</span><span class="o">=</span><span class="n">Lipid_cane</span><span class="p">,</span>
                       <span class="n">setter</span><span class="o">=</span><span class="n">set_feed_price</span><span class="p">,</span>
                       <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="mf">0.030</span><span class="p">,</span> <span class="mf">0.035</span><span class="p">,</span> <span class="mf">0.040</span><span class="p">],</span>
@@ -274,7 +274,7 @@ div.nboutput div.output_area.stderr {
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-[0.19311486584414717, 0.16455068484437035, 0.1339730421432823]
+[0.19573231200461563, 0.16732761957224776, 0.13697102426824295]
 </pre></div></div>
 </div>
 <p>Add a parameter for sensitivity and simulate:</p>
@@ -309,38 +309,38 @@ div.nboutput div.output_area.stderr {
         vertical-align: top;
     }
 
-    .dataframe thead th {
-        text-align: right;
+    .dataframe thead tr th {
+        text-align: left;
     }
 </style>
 <table border="1" class="dataframe">
   <thead>
-    <tr style="text-align: right;">
-      <th>Parameter</th>
-      <th>Lipid cane price</th>
+    <tr>
+      <th>Element</th>
+      <th>Stream-Lipid cane</th>
       <th>IRR</th>
+    </tr>
+    <tr>
+      <th>Parameter</th>
+      <th>Price</th>
+      <th></th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <th>Element</th>
-      <td>Stream-Lipid_cane</td>
-      <td>n/a</td>
-    </tr>
-    <tr>
       <th>0</th>
       <td>0.03</td>
-      <td>0.193</td>
+      <td>0.196</td>
     </tr>
     <tr>
       <th>1</th>
       <td>0.035</td>
-      <td>0.165</td>
+      <td>0.167</td>
     </tr>
     <tr>
       <th>2</th>
       <td>0.04</td>
-      <td>0.134</td>
+      <td>0.137</td>
     </tr>
   </tbody>
 </table>
@@ -377,79 +377,78 @@ DataFrame object.</p>
         vertical-align: top;
     }
 
-    .dataframe thead th {
-        text-align: right;
+    .dataframe thead tr th {
+        text-align: left;
     }
 </style>
 <table border="1" class="dataframe">
   <thead>
-    <tr style="text-align: right;">
+    <tr>
+      <th>Element</th>
+      <th colspan="2" halign="left">Stream-Lipid cane</th>
+      <th>IRR</th>
+    </tr>
+    <tr>
       <th>Parameter</th>
       <th>Lipid fraction</th>
-      <th>Lipid cane price</th>
-      <th>IRR</th>
+      <th>Price</th>
+      <th></th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <th>Element</th>
-      <td>Stream-Lipid_cane</td>
-      <td>Stream-Lipid_cane</td>
-      <td>n/a</td>
-    </tr>
-    <tr>
       <th>0</th>
       <td>0.05</td>
       <td>0.03</td>
-      <td>0.124</td>
+      <td>0.128</td>
     </tr>
     <tr>
       <th>1</th>
       <td>0.1</td>
       <td>0.03</td>
-      <td>0.188</td>
+      <td>0.192</td>
     </tr>
     <tr>
       <th>2</th>
       <td>0.2</td>
       <td>0.03</td>
-      <td>0.289</td>
+      <td>0.293</td>
     </tr>
     <tr>
       <th>3</th>
       <td>0.2</td>
       <td>0.035</td>
-      <td>0.265</td>
+      <td>0.269</td>
     </tr>
     <tr>
       <th>4</th>
       <td>0.1</td>
       <td>0.035</td>
-      <td>0.148</td>
+      <td>0.152</td>
     </tr>
     <tr>
       <th>5</th>
       <td>0.05</td>
       <td>0.035</td>
-      <td>0.0839</td>
+      <td>0.0895</td>
     </tr>
     <tr>
       <th>6</th>
       <td>0.05</td>
       <td>0.04</td>
-      <td>0.0415</td>
+      <td>0.0481</td>
     </tr>
     <tr>
       <th>7</th>
       <td>0.1</td>
       <td>0.04</td>
-      <td>0.127</td>
+      <td>0.132</td>
     </tr>
     <tr>
       <th>8</th>
       <td>0.2</td>
       <td>0.04</td>
-      <td>0.24</td>
+      <td>0.244</td>
     </tr>
   </tbody>
 </table>
@@ -472,7 +471,7 @@ DataFrame object.</p>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Sensitivity: IRR
- [Stream-Lipid_cane| param=(lipid_fraction, lipid_cane_price)]
+ [Stream-Lipid_cane| param=(lipid_fraction, price)]
 </pre></div></div>
 </div>
 </div>

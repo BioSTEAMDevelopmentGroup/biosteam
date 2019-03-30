@@ -479,7 +479,7 @@ class Unit(metaclass=metaUnit):
             df = pd.DataFrame(vals,
                               pd.MultiIndex.from_tuples(keys),
                               ('Units', ID))
-            df.columns.name = re.sub(r"\B([A-Z])", r" \1", type(self).__name__.replace('_', ' ')).capitalize()
+            df.columns.name = self.line
             return df
         else:
             for ko, vo in results.items():

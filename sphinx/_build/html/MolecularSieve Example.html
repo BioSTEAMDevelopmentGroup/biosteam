@@ -309,24 +309,70 @@ MolecularSieve: MS1
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="nb">print</span><span class="p">(</span><span class="n">MS1</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">table</span><span class="p">())</span>
+<span></span><span class="n">MS1</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[2]:
+</pre></div>
 </div>
 <div class="output_area docutils container">
-<div class="highlight"><pre>
-MolecularSieve                 Units                MS1
-Cost:
-  Molecular Sieve Cost           USD  2165605.394090733
-  Pressure Filter Pressing       USD  62611.88990220036
-  Pressure Filter Drying (2)     USD  674409.9843189134
-Summary:
-  Purchase cost                  USD  2902627.268311847
-  Utility cost                USD/hr  57.93378802794426
-</pre></div></div>
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Molecular sieve</th>
+      <th>Units</th>
+      <th>MS1</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="3" valign="top">Cost</th>
+      <th>Molecular Sieve Cost</th>
+      <td>USD</td>
+      <td>2165605.394090733</td>
+    </tr>
+    <tr>
+      <th>Pressure Filter Pressing</th>
+      <td>USD</td>
+      <td>62611.88990220036</td>
+    </tr>
+    <tr>
+      <th>Pressure Filter Drying (2)</th>
+      <td>USD</td>
+      <td>674409.9843189134</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">Summary</th>
+      <th>Purchase cost</th>
+      <td>USD</td>
+      <td>2902627.268311847</td>
+    </tr>
+    <tr>
+      <th>Utility cost</th>
+      <td>USD/hr</td>
+      <td>57.93378802794426</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>

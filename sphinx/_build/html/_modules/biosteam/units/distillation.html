@@ -186,15 +186,15 @@
     <span class="n">_A_dn</span> <span class="o">=</span> <span class="kc">None</span>
     
     <span class="c1"># [dict] Bounds for results</span>
-    <span class="n">bounds</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Diameter&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">3.</span><span class="p">,</span> <span class="mf">24.</span><span class="p">),</span>
-              <span class="s1">&#39;Height&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">27.</span><span class="p">,</span> <span class="mf">170.</span><span class="p">),</span>
-              <span class="s1">&#39;Weight&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">9000.</span><span class="p">,</span> <span class="mf">2.5e6</span><span class="p">),</span>
-              <span class="s1">&#39;Stripper diameter&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">3.</span><span class="p">,</span> <span class="mf">24.</span><span class="p">),</span>
-              <span class="s1">&#39;Stripper height&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">27.</span><span class="p">,</span> <span class="mf">170.</span><span class="p">),</span>
-              <span class="s1">&#39;Stripper weight&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">9000.</span><span class="p">,</span> <span class="mf">2.5e6</span><span class="p">),</span>
-              <span class="s1">&#39;Rectifier diameter&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">3.</span><span class="p">,</span> <span class="mf">24.</span><span class="p">),</span>
-              <span class="s1">&#39;Rectifier height&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">27.</span><span class="p">,</span> <span class="mf">170.</span><span class="p">),</span>
-              <span class="s1">&#39;Rectifier weight&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">9000.</span><span class="p">,</span> <span class="mf">2.5e6</span><span class="p">)}</span>
+    <span class="n">_bounds</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Diameter&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">3.</span><span class="p">,</span> <span class="mf">24.</span><span class="p">),</span>
+               <span class="s1">&#39;Height&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">27.</span><span class="p">,</span> <span class="mf">170.</span><span class="p">),</span>
+               <span class="s1">&#39;Weight&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">9000.</span><span class="p">,</span> <span class="mf">2.5e6</span><span class="p">),</span>
+               <span class="s1">&#39;Stripper diameter&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">3.</span><span class="p">,</span> <span class="mf">24.</span><span class="p">),</span>
+               <span class="s1">&#39;Stripper height&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">27.</span><span class="p">,</span> <span class="mf">170.</span><span class="p">),</span>
+               <span class="s1">&#39;Stripper weight&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">9000.</span><span class="p">,</span> <span class="mf">2.5e6</span><span class="p">),</span>
+               <span class="s1">&#39;Rectifier diameter&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">3.</span><span class="p">,</span> <span class="mf">24.</span><span class="p">),</span>
+               <span class="s1">&#39;Rectifier height&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">27.</span><span class="p">,</span> <span class="mf">170.</span><span class="p">),</span>
+               <span class="s1">&#39;Rectifier weight&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">9000.</span><span class="p">,</span> <span class="mf">2.5e6</span><span class="p">)}</span>
     
     <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="mi">101325</span><span class="p">,</span>
                <span class="s1">&#39;LHK&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
@@ -802,7 +802,7 @@
 <span class="sd">        * &#39;Tower&#39;: (USD)</span>
 <span class="sd">        * &#39;Boiler&#39;: (USD)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span>
         <span class="n">Design</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
         <span class="n">Cost</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
         
@@ -932,7 +932,7 @@
         <span class="n">stages</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_stages</span><span class="p">)</span>
         
         <span class="c1"># Set results</span>
-        <span class="n">Operation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Operation&#39;</span><span class="p">]</span>
+        <span class="n">Operation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Operation&#39;</span><span class="p">]</span>
         <span class="n">Lr</span> <span class="o">=</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;condensate_molfrac&#39;</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">vap</span><span class="o">.</span><span class="n">molnet</span><span class="o">*</span><span class="n">R</span><span class="p">)</span>
         <span class="n">Hvapm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">getattr</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s1">&#39;Hvapm&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;vle_top&#39;</span><span class="p">]])</span>
         
@@ -961,7 +961,7 @@
         <span class="sd">&quot;&quot;&quot;Return a tuple with the actual number of stages for the rectifier and the stripper.&quot;&quot;&quot;</span>
         <span class="n">vap</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span>
         <span class="n">Operation</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Operation&#39;</span><span class="p">]</span>
         <span class="n">x_stages</span> <span class="o">=</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;x_stages&#39;</span><span class="p">]</span>
         <span class="n">y_stages</span> <span class="o">=</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;y_stages&#39;</span><span class="p">]</span>
@@ -1031,7 +1031,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span>
         <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span>
         <span class="n">Design</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
         <span class="n">Operation</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Operation&#39;</span><span class="p">]</span>
@@ -1128,8 +1128,8 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_divided</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
         
-        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
-        <span class="n">Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
+        <span class="n">Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
         
         <span class="c1"># Number of trays assuming a partial condenser</span>
         <span class="n">N_RT</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Rectifier stages&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
@@ -1152,11 +1152,11 @@
     <span class="k">def</span> <span class="nf">_cost_components</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Cost</span><span class="p">):</span> 
         <span class="c1"># Cost condenser</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_calc_condenser</span><span class="p">()</span>
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Condenser&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_condenser</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">][</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
+        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Condenser&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_condenser</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">][</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
         
         <span class="c1"># Cost boiler</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_calc_boiler</span><span class="p">()</span>
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Boiler&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_boiler</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">][</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
+        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Boiler&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_boiler</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">][</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
         
     
 <div class="viewcode-block" id="Distillation.plot_stages"><a class="viewcode-back" href="../../../Distillation.html#biosteam.Distillation.plot_stages">[docs]</a>    <span class="k">def</span> <span class="nf">plot_stages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1166,7 +1166,7 @@
         
         <span class="c1"># Cached Data</span>
         <span class="n">vap</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Operation&#39;</span><span class="p">]</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Operation&#39;</span><span class="p">]</span>
         <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span>
         <span class="n">x_stages</span> <span class="o">=</span> <span class="n">cached</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x_stages&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">x_stages</span><span class="p">:</span>
@@ -1251,7 +1251,7 @@
         <span class="n">stages</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_stages</span><span class="p">)</span>
         
         <span class="c1"># Set results</span>
-        <span class="n">Operation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Operation&#39;</span><span class="p">]</span>
+        <span class="n">Operation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Operation&#39;</span><span class="p">]</span>
         <span class="n">Vs</span> <span class="o">=</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;boilup_molfrac&#39;</span><span class="p">]</span><span class="o">*</span><span class="p">(</span><span class="n">liq</span><span class="o">.</span><span class="n">molnet</span><span class="o">*</span><span class="n">B</span><span class="p">)</span>
         <span class="n">Hvapm</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s1">&#39;Hvapm&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;vle_bot&#39;</span><span class="p">])</span>
         
@@ -1275,7 +1275,7 @@
         
         <span class="c1"># Cached Data</span>
         <span class="n">vap</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">Operation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Operation&#39;</span><span class="p">]</span>
+        <span class="n">Operation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Operation&#39;</span><span class="p">]</span>
         <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span>
         <span class="n">x_stages</span> <span class="o">=</span> <span class="n">cached</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x_stages&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">x_stages</span><span class="p">:</span>
@@ -1302,7 +1302,7 @@
         <span class="sd">&quot;&quot;&quot;Return the actunal number of stages&quot;&quot;&quot;</span>
         <span class="n">vap</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span>
         <span class="n">Operation</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Operation&#39;</span><span class="p">]</span>
         <span class="n">x_stages</span> <span class="o">=</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;x_stages&#39;</span><span class="p">]</span>
         <span class="n">y_stages</span> <span class="o">=</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;y_stages&#39;</span><span class="p">]</span>
@@ -1334,7 +1334,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span>
         <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span>
         <span class="n">Design</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
         
@@ -1379,7 +1379,7 @@
     <span class="k">def</span> <span class="nf">_cost_components</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Cost</span><span class="p">):</span>
         <span class="c1"># Cost boiler</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_calc_boiler</span><span class="p">()</span>
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Boiler&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_boiler</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">][</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
+        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Boiler&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_boiler</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">][</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
 
     
 </pre></div>

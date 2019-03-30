@@ -113,7 +113,7 @@
                <span class="s1">&#39;solvents&#39;</span><span class="p">:</span> <span class="p">(),</span>
                <span class="s1">&#39;solvent_split&#39;</span><span class="p">:</span> <span class="p">()}</span>
 
-    <span class="n">bounds</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mi">100</span><span class="p">)}</span>
+    <span class="n">_bounds</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mi">100</span><span class="p">)}</span>
     <span class="n">electricity_rate</span> <span class="o">=</span> <span class="mf">3.66</span> <span class="c1">#: kW/(m3/hr) from USDA biosdiesel Super Pro model</span>
     <span class="c1"># Possibly 1.4  kW/(m3/hr)</span>
     <span class="c1"># https://www.sciencedirect.com/topics/engineering/disc-stack-centrifuge</span>
@@ -149,7 +149,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        * &#39;Flow rate&#39;: (m^3/hr)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_volnet_out</span>
         <span class="k">return</span> <span class="n">Design</span>
 
@@ -157,7 +157,7 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        * &#39;Vessel cost&#39;: (USD)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span>
         <span class="n">Design</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
         <span class="n">Cost</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
         <span class="n">Q</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">]</span>

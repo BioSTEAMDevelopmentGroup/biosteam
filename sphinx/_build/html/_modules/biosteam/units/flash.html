@@ -208,10 +208,10 @@
                <span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>   <span class="c1"># Vapor composition (of working species)</span>
                <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>   <span class="c1"># Liquid composition (of working species)</span>
 
-    <span class="n">bounds</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Vertical vessel weight&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">4200</span><span class="p">,</span> <span class="mf">1e6</span><span class="p">),</span>
-              <span class="s1">&#39;Horizontal vessel weight&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1e3</span><span class="p">,</span> <span class="mf">9.2e5</span><span class="p">),</span>
-              <span class="s1">&#39;Diameter&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">21</span><span class="p">),</span>
-              <span class="s1">&#39;Vertical vessel Length&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">40</span><span class="p">)}</span>
+    <span class="n">_bounds</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Vertical vessel weight&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">4200</span><span class="p">,</span> <span class="mf">1e6</span><span class="p">),</span>
+               <span class="s1">&#39;Horizontal vessel weight&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1e3</span><span class="p">,</span> <span class="mf">9.2e5</span><span class="p">),</span>
+               <span class="s1">&#39;Diameter&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">21</span><span class="p">),</span>
+               <span class="s1">&#39;Vertical vessel Length&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">40</span><span class="p">)}</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">vessel_material</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -289,8 +289,8 @@
 <span class="sd">        * &#39;Vessel&#39;: (USD)</span>
 <span class="sd">        * &#39;Heat exchanger&#39;: (USD)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
-        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
+        <span class="n">Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
         <span class="n">W</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Weight&#39;</span><span class="p">]</span>
         <span class="n">D</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Diameter&#39;</span><span class="p">]</span>
         <span class="n">L</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Length&#39;</span><span class="p">]</span>
@@ -318,7 +318,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">P</span> <span class="ow">or</span> <span class="n">P</span> <span class="o">&gt;</span> <span class="mi">101320</span><span class="p">:</span>
             <span class="k">return</span> 
         
-        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span>
         <span class="n">D</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
         <span class="n">C</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
         <span class="n">vol</span> <span class="o">=</span> <span class="mf">0.02832</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">D</span><span class="p">[</span><span class="s1">&#39;Length&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">D</span><span class="p">[</span><span class="s1">&#39;Diameter&#39;</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
@@ -477,9 +477,9 @@
         <span class="c1"># Hnll = Hh + Hlll</span>
 
         <span class="c1"># Results</span>
-        <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
-        <span class="n">d</span><span class="o">.</span><span class="n">boundscheck</span><span class="p">(</span><span class="s1">&#39;Vertical vessel weight&#39;</span><span class="p">,</span> <span class="n">VW</span><span class="p">)</span>
-        <span class="n">d</span><span class="o">.</span><span class="n">boundscheck</span><span class="p">(</span><span class="s1">&#39;Vertical vessel length&#39;</span><span class="p">,</span> <span class="n">Ht</span><span class="p">)</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_boundscheck</span><span class="p">(</span><span class="s1">&#39;Vertical vessel weight&#39;</span><span class="p">,</span> <span class="n">VW</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_boundscheck</span><span class="p">(</span><span class="s1">&#39;Vertical vessel length&#39;</span><span class="p">,</span> <span class="n">Ht</span><span class="p">)</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;SepType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Vertical&#39;</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;Length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ht</span>     <span class="c1"># ft</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;Diameter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">D</span>    <span class="c1"># ft</span>
@@ -643,8 +643,8 @@
         <span class="c1"># Hnll = Y*D</span>
         
         <span class="c1"># Results</span>
-        <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
-        <span class="n">d</span><span class="o">.</span><span class="n">boundscheck</span><span class="p">(</span><span class="s1">&#39;Horizontal vessel weight&#39;</span><span class="p">,</span> <span class="n">VW</span><span class="p">)</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_boundscheck</span><span class="p">(</span><span class="s1">&#39;Horizontal vessel weight&#39;</span><span class="p">,</span> <span class="n">VW</span><span class="p">)</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;SepType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Horizontal&#39;</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;Length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">L</span>  <span class="c1"># ft</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;Diameter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">D</span>  <span class="c1"># ft</span>

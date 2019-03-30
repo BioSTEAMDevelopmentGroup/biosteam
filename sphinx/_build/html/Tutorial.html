@@ -633,7 +633,7 @@ Stream: feed
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 MixedStream: feed
- phase: &#39;l&#39;, T: 350 K, P: 101325 Pa
+ phase: &#39;l&#39;, T: 350.2 K, P: 101325 Pa
         <span class="ansi-white-fg"> species   kmol/hr</span>
  liquid: Methanol  1
          Glycerol  2
@@ -875,7 +875,7 @@ may be inaccurate. These bounds are stored in the class:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">Flash</span><span class="o">.</span><span class="n">bounds</span>
+<span></span><span class="n">Flash</span><span class="o">.</span><span class="n">_bounds</span>
 </pre></div>
 </div>
 </div>
@@ -892,16 +892,14 @@ may be inaccurate. These bounds are stored in the class:</p>
 </pre></div>
 </div>
 </div>
-<p>All the results are stored in the <code class="docutils literal notranslate"><span class="pre">results</span></code>
-<a class="reference external" href="https://bookkeep.readthedocs.io/en/latest/SmartBook.html">SmartBook</a>
-object</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">results</span></code> method returns simulation results:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [27]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">F1</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">table</span><span class="p">()</span>
+<span></span><span class="n">F1</span><span class="o">.</span><span class="n">results</span><span class="p">()</span> <span class="c1"># Default returns DataFrame object with units</span>
 </pre></div>
 </div>
 </div>
@@ -928,6 +926,7 @@ object</p>
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
+      <th></th>
       <th>Flash</th>
       <th>Units</th>
       <th>F1</th>
@@ -935,11 +934,7 @@ object</p>
   </thead>
   <tbody>
     <tr>
-      <th>Design:</th>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
+      <th rowspan="5" valign="top">Design</th>
       <th>SepType</th>
       <td></td>
       <td>Vertical</td>
@@ -965,11 +960,7 @@ object</p>
       <td>0.312</td>
     </tr>
     <tr>
-      <th>Cost:</th>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
+      <th rowspan="2" valign="top">Cost</th>
       <th>Vessel</th>
       <td>USD</td>
       <td>3.68e+04</td>
@@ -980,11 +971,7 @@ object</p>
       <td>2.1e+04</td>
     </tr>
     <tr>
-      <th>Summary:</th>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
+      <th rowspan="2" valign="top">Summary</th>
       <th>Purchase cost</th>
       <td>USD</td>
       <td>5.78e+04</td>
@@ -998,14 +985,13 @@ object</p>
 </table>
 </div></div>
 </div>
-<p>All heat related utilities are in <code class="docutils literal notranslate"><span class="pre">heat_utilities</span></code>:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [28]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">F1</span><span class="o">.</span><span class="n">heat_utilities</span>
+<span></span><span class="n">F1</span><span class="o">.</span><span class="n">results</span><span class="p">(</span><span class="n">with_units</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># Returns Series object without units</span>
 </pre></div>
 </div>
 </div>
@@ -1015,13 +1001,43 @@ object</p>
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>[&lt;HeatUtility: Medium pressure steam&gt;]
+<span></span>Design   SepType           Vertical
+         Length                18.5
+         Diameter               4.5
+         Weight            3.77e+03
+         Wall thickness       0.312
+Cost     Vessel            3.68e+04
+         Heat exchanger     2.1e+04
+Summary  Purchase cost     5.78e+04
+         Utility cost           139
+Name: F1, dtype: object
+</pre></div>
+</div>
+</div>
+<p>All heat related utilities are in <code class="docutils literal notranslate"><span class="pre">heat_utilities</span></code>:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [29]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">F1</span><span class="o">.</span><span class="n">heat_utilities</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[29]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>[&lt;Medium pressure steam: 1.88e+07 kJ/hr, 504 kmol/hr, 139 USD/hr&gt;]
 </pre></div>
 </div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [29]:
+<span></span>In [30]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1056,7 +1072,7 @@ and a
 object:</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [30]:
+<span></span>In [31]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1071,7 +1087,7 @@ object:</p>
 notation</a>:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [31]:
+<span></span>In [32]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1089,7 +1105,7 @@ notation</a>:</p>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[31]:
+<span></span>Out[32]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -1103,7 +1119,7 @@ object by specifying an ID, a <code class="docutils literal notranslate"><span c
 units:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [32]:
+<span></span>In [33]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1126,10 +1142,10 @@ System: sys1
  iterations: 0
 </pre></div></div>
 </div>
-<p>View the System object as a Graphviz diagram():</p>
+<p>View the System object as a Graphviz diagram:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [33]:
+<span></span>In [34]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1141,12 +1157,12 @@ System: sys1
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/Tutorial_72_0.svg" src="_images/Tutorial_72_0.svg" /></div>
+<img alt="_images/Tutorial_73_0.svg" src="_images/Tutorial_73_0.svg" /></div>
 </div>
 <p>Simulate the System object:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [34]:
+<span></span>In [35]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1163,9 +1179,9 @@ System: sys1
 System: sys1
  recycle: d6
  network: (M1, F1, S1)
- convergence error: Flow rate   1.42e-01 <span class="ansi-white-fg">kmol/hr</span>
-                    Temperature 1.06e-02 <span class="ansi-white-fg">K</span>
- iterations: 6
+ convergence error: Flow rate   3.55e-02 <span class="ansi-white-fg">kmol/hr</span>
+                    Temperature 2.64e-03 <span class="ansi-white-fg">K</span>
+ iterations: 7
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1179,13 +1195,15 @@ C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeW
   warnings.warn(msg, RuntimeWarning)
 C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of -3.125683178950567e-08 reached
   warnings.warn(msg, RuntimeWarning)
+C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of -8.274480478576152e-08 reached
+  warnings.warn(msg, RuntimeWarning)
 C:\Users\yoelr\Dropbox\Cortes-Pena-Guest_Shared\Code\biosteam\biosteam\units\flash.py:223: DesignWarning: @Flash F1: Vertical vessel weight (4068 ) is out of bounds (4200 to 1e+06 ).
   out = self._vertical()
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [35]:
+<span></span>In [36]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1201,7 +1219,7 @@ C:\Users\yoelr\Dropbox\Cortes-Pena-Guest_Shared\Code\biosteam\biosteam\units\fla
 Flash: F1
 <span class="ansi-white-fg">ins...</span>
 [0] d5  from  Mixer-M1
-    phase: &#39;l&#39;, T: 325.2 K, P: 101325 Pa
+    phase: &#39;l&#39;, T: 326.58 K, P: 101325 Pa
     flow (kmol/hr): Glycerol  160
                     Water     480
 <span class="ansi-white-fg">outs...</span>
@@ -1217,17 +1235,17 @@ Flash: F1
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [36]:
+<span></span>In [37]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">F1</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">table</span><span class="p">()</span>
+<span></span><span class="n">F1</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[36]:
+<span></span>Out[37]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -1248,6 +1266,7 @@ Flash: F1
 <table border="1" class="dataframe">
   <thead>
     <tr style="text-align: right;">
+      <th></th>
       <th>Flash</th>
       <th>Units</th>
       <th>F1</th>
@@ -1255,11 +1274,7 @@ Flash: F1
   </thead>
   <tbody>
     <tr>
-      <th>Design:</th>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
+      <th rowspan="5" valign="top">Design</th>
       <th>SepType</th>
       <td></td>
       <td>Vertical</td>
@@ -1285,11 +1300,7 @@ Flash: F1
       <td>0.312</td>
     </tr>
     <tr>
-      <th>Cost:</th>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
+      <th rowspan="2" valign="top">Cost</th>
       <th>Vessel</th>
       <td>USD</td>
       <td>3.82e+04</td>
@@ -1297,14 +1308,10 @@ Flash: F1
     <tr>
       <th>Heat exchanger</th>
       <td>USD</td>
-      <td>2.33e+04</td>
+      <td>2.34e+04</td>
     </tr>
     <tr>
-      <th>Summary:</th>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
+      <th rowspan="2" valign="top">Summary</th>
       <th>Purchase cost</th>
       <td>USD</td>
       <td>6.15e+04</td>
@@ -1320,7 +1327,7 @@ Flash: F1
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [37]:
+<span></span>In [38]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1334,8 +1341,8 @@ Flash: F1
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 HeatUtility: Low pressure steam
- duty: 1.87e+07 kJ/hr
- flow: 477 kmol/hr
+ duty: 1.86e+07 kJ/hr
+ flow: 474 kmol/hr
  cost: 113 USD/hr
 </pre></div></div>
 </div>

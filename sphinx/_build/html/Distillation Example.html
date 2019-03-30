@@ -311,42 +311,152 @@ Distillation: D1
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="nb">print</span><span class="p">(</span><span class="n">D1</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">table</span><span class="p">())</span>
+<span></span><span class="n">D1</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[2]:
+</pre></div>
 </div>
 <div class="output_area docutils container">
-<div class="highlight"><pre>
-Distillation               Units                  D1
-Operation:
-  Theoretical feed stage       #                   6
-  Theoretical stages           #                  27
-  Minimum reflux           Ratio               0.687
-  Reflux                   Ratio               0.756
-  T_condenser                  K                 338
-  T_boiler                     K                 373
-  Cooling                  kJ/hr           -2.86e+06
-  Heating                  kJ/hr            6.58e+06
-Design:
-  Rectifier stages             #                19.0
-  Stripper stages              #                 9.0
-  Actual stages                #                28.0
-  Height                      ft  52.372415999999994
-  Diameter                    ft                 6.7
-  Wall thickness              in                 0.5
-  Weight                      lb             2.5e+04
-Cost:
-  Trays                      USD   34153.63674330842
-  Tower                      USD             1.8e+05
-  Condenser                  USD            2.11e+04
-  Boiler                     USD            2.01e+04
-Summary:
-  Purchase cost              USD  255606.46328041598
-  Utility cost            USD/hr                45.2
-</pre></div></div>
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Distillation</th>
+      <th>Units</th>
+      <th>D1</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="8" valign="top">Operation</th>
+      <th>Theoretical feed stage</th>
+      <td>#</td>
+      <td>6</td>
+    </tr>
+    <tr>
+      <th>Theoretical stages</th>
+      <td>#</td>
+      <td>27</td>
+    </tr>
+    <tr>
+      <th>Minimum reflux</th>
+      <td>Ratio</td>
+      <td>0.687</td>
+    </tr>
+    <tr>
+      <th>Reflux</th>
+      <td>Ratio</td>
+      <td>0.756</td>
+    </tr>
+    <tr>
+      <th>T_condenser</th>
+      <td>K</td>
+      <td>338</td>
+    </tr>
+    <tr>
+      <th>T_boiler</th>
+      <td>K</td>
+      <td>373</td>
+    </tr>
+    <tr>
+      <th>Cooling</th>
+      <td>kJ/hr</td>
+      <td>-2.86e+06</td>
+    </tr>
+    <tr>
+      <th>Heating</th>
+      <td>kJ/hr</td>
+      <td>6.58e+06</td>
+    </tr>
+    <tr>
+      <th rowspan="7" valign="top">Design</th>
+      <th>Rectifier stages</th>
+      <td>#</td>
+      <td>19.0</td>
+    </tr>
+    <tr>
+      <th>Stripper stages</th>
+      <td>#</td>
+      <td>9.0</td>
+    </tr>
+    <tr>
+      <th>Actual stages</th>
+      <td>#</td>
+      <td>28.0</td>
+    </tr>
+    <tr>
+      <th>Height</th>
+      <td>ft</td>
+      <td>52.372415999999994</td>
+    </tr>
+    <tr>
+      <th>Diameter</th>
+      <td>ft</td>
+      <td>6.7</td>
+    </tr>
+    <tr>
+      <th>Wall thickness</th>
+      <td>in</td>
+      <td>0.5</td>
+    </tr>
+    <tr>
+      <th>Weight</th>
+      <td>lb</td>
+      <td>2.5e+04</td>
+    </tr>
+    <tr>
+      <th rowspan="4" valign="top">Cost</th>
+      <th>Trays</th>
+      <td>USD</td>
+      <td>34153.63674330842</td>
+    </tr>
+    <tr>
+      <th>Tower</th>
+      <td>USD</td>
+      <td>1.8e+05</td>
+    </tr>
+    <tr>
+      <th>Condenser</th>
+      <td>USD</td>
+      <td>2.11e+04</td>
+    </tr>
+    <tr>
+      <th>Boiler</th>
+      <td>USD</td>
+      <td>2.01e+04</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">Summary</th>
+      <th>Purchase cost</th>
+      <td>USD</td>
+      <td>255606.46328041598</td>
+    </tr>
+    <tr>
+      <th>Utility cost</th>
+      <td>USD/hr</td>
+      <td>45.2</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>

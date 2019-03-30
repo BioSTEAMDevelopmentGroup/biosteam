@@ -307,30 +307,96 @@ HXprocess: hx
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="nb">print</span><span class="p">(</span><span class="n">hx</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">table</span><span class="p">())</span>
+<span></span><span class="n">hx</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[2]:
+</pre></div>
 </div>
 <div class="output_area docutils container">
-<div class="highlight"><pre>
-HXprocess                               Units       hx
-Design:
-  Area                                   ft^2      345
-  Overall heat transfer coefficient  kW/m^2/K      0.5
-  Fouling correction factor                        0.6
-  Tube side pressure drop                 psi        5
-  Shell side pressure drop                psi        5
-  Operating pressure                      psi     14.7
-  Total tube length                        ft       20
-Cost:
-  Heat exchanger                          USD 1.74e+04
-Summary:
-  Purchase cost                           USD 1.74e+04
-  Utility cost                         USD/hr        0
-</pre></div></div>
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Heat exchanger</th>
+      <th>Units</th>
+      <th>hx</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="7" valign="top">Design</th>
+      <th>Area</th>
+      <td>ft^2</td>
+      <td>345</td>
+    </tr>
+    <tr>
+      <th>Overall heat transfer coefficient</th>
+      <td>kW/m^2/K</td>
+      <td>0.5</td>
+    </tr>
+    <tr>
+      <th>Fouling correction factor</th>
+      <td></td>
+      <td>0.6</td>
+    </tr>
+    <tr>
+      <th>Tube side pressure drop</th>
+      <td>psi</td>
+      <td>5</td>
+    </tr>
+    <tr>
+      <th>Shell side pressure drop</th>
+      <td>psi</td>
+      <td>5</td>
+    </tr>
+    <tr>
+      <th>Operating pressure</th>
+      <td>psi</td>
+      <td>14.7</td>
+    </tr>
+    <tr>
+      <th>Total tube length</th>
+      <td>ft</td>
+      <td>20</td>
+    </tr>
+    <tr>
+      <th>Cost</th>
+      <th>Heat exchanger</th>
+      <td>USD</td>
+      <td>1.74e+04</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">Summary</th>
+      <th>Purchase cost</th>
+      <td>USD</td>
+      <td>1.74e+04</td>
+    </tr>
+    <tr>
+      <th>Utility cost</th>
+      <td>USD/hr</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
 </div>
 </div>
 <div class="section" id="One-latent-fluid-and-one-sensible-fluid-case:">
@@ -390,30 +456,96 @@ HXprocess: hx
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="nb">print</span><span class="p">(</span><span class="n">hx</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">table</span><span class="p">())</span>
+<span></span><span class="n">hx</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[4]:
+</pre></div>
 </div>
 <div class="output_area docutils container">
-<div class="highlight"><pre>
-HXprocess                               Units       hx
-Design:
-  Area                                   ft^2      571
-  Overall heat transfer coefficient  kW/m^2/K      0.5
-  Fouling correction factor                          1
-  Tube side pressure drop                 psi        5
-  Shell side pressure drop                psi      1.5
-  Operating pressure                      psi     14.7
-  Total tube length                        ft       20
-Cost:
-  Heat exchanger                          USD 1.95e+04
-Summary:
-  Purchase cost                           USD 1.95e+04
-  Utility cost                         USD/hr        0
-</pre></div></div>
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Heat exchanger</th>
+      <th>Units</th>
+      <th>hx</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="7" valign="top">Design</th>
+      <th>Area</th>
+      <td>ft^2</td>
+      <td>571</td>
+    </tr>
+    <tr>
+      <th>Overall heat transfer coefficient</th>
+      <td>kW/m^2/K</td>
+      <td>0.5</td>
+    </tr>
+    <tr>
+      <th>Fouling correction factor</th>
+      <td></td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>Tube side pressure drop</th>
+      <td>psi</td>
+      <td>5</td>
+    </tr>
+    <tr>
+      <th>Shell side pressure drop</th>
+      <td>psi</td>
+      <td>1.5</td>
+    </tr>
+    <tr>
+      <th>Operating pressure</th>
+      <td>psi</td>
+      <td>14.7</td>
+    </tr>
+    <tr>
+      <th>Total tube length</th>
+      <td>ft</td>
+      <td>20</td>
+    </tr>
+    <tr>
+      <th>Cost</th>
+      <th>Heat exchanger</th>
+      <td>USD</td>
+      <td>1.95e+04</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">Summary</th>
+      <th>Purchase cost</th>
+      <td>USD</td>
+      <td>1.95e+04</td>
+    </tr>
+    <tr>
+      <th>Utility cost</th>
+      <td>USD/hr</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
 </div>
 </div>
 <div class="section" id="Latent-fluids-case:">
@@ -474,30 +606,96 @@ HXprocess: hx
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="nb">print</span><span class="p">(</span><span class="n">hx</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">table</span><span class="p">())</span>
+<span></span><span class="n">hx</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[6]:
+</pre></div>
 </div>
 <div class="output_area docutils container">
-<div class="highlight"><pre>
-HXprocess                               Units       hx
-Design:
-  Area                                   ft^2      268
-  Overall heat transfer coefficient  kW/m^2/K        1
-  Fouling correction factor                          1
-  Tube side pressure drop                 psi      1.5
-  Shell side pressure drop                psi      1.5
-  Operating pressure                      psi     14.7
-  Total tube length                        ft       20
-Cost:
-  Heat exchanger                          USD 1.67e+04
-Summary:
-  Purchase cost                           USD 1.67e+04
-  Utility cost                         USD/hr        0
-</pre></div></div>
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Heat exchanger</th>
+      <th>Units</th>
+      <th>hx</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="7" valign="top">Design</th>
+      <th>Area</th>
+      <td>ft^2</td>
+      <td>268</td>
+    </tr>
+    <tr>
+      <th>Overall heat transfer coefficient</th>
+      <td>kW/m^2/K</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>Fouling correction factor</th>
+      <td></td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>Tube side pressure drop</th>
+      <td>psi</td>
+      <td>1.5</td>
+    </tr>
+    <tr>
+      <th>Shell side pressure drop</th>
+      <td>psi</td>
+      <td>1.5</td>
+    </tr>
+    <tr>
+      <th>Operating pressure</th>
+      <td>psi</td>
+      <td>14.7</td>
+    </tr>
+    <tr>
+      <th>Total tube length</th>
+      <td>ft</td>
+      <td>20</td>
+    </tr>
+    <tr>
+      <th>Cost</th>
+      <th>Heat exchanger</th>
+      <td>USD</td>
+      <td>1.67e+04</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">Summary</th>
+      <th>Purchase cost</th>
+      <td>USD</td>
+      <td>1.67e+04</td>
+    </tr>
+    <tr>
+      <th>Utility cost</th>
+      <td>USD/hr</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
 </div>
 </div>
 </div>

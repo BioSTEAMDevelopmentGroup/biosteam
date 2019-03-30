@@ -465,6 +465,8 @@ class Stream(metaclass=metaStream):
     #: [bool] If True, approximate energy balance. False otherwise.
     lazy_energy_balance = True
 
+    line = 'Stream'
+
     def __init__(self, ID='', flow=(), species=(), units='kmol/hr',
                  phase='l', T=298.15, P=101325, *, price=0, **flow_pairs):
         # Get species and set species information

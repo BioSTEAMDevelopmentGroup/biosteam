@@ -63,7 +63,6 @@
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">IPython</span>
-<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">copy</span>
 <span class="kn">from</span> <span class="nn">graphviz</span> <span class="k">import</span> <span class="n">Digraph</span>
 <span class="kn">from</span> <span class="nn">.exceptions</span> <span class="k">import</span> <span class="n">notify_error</span>
 <span class="kn">from</span> <span class="nn">.flowsheet</span> <span class="k">import</span> <span class="n">Flowsheet</span>
@@ -72,9 +71,9 @@
 <span class="kn">from</span> <span class="nn">.proxy_stream</span> <span class="k">import</span> <span class="n">ProxyStream</span>
 <span class="kn">from</span> <span class="nn">.heat_utility</span> <span class="k">import</span> <span class="n">HeatUtility</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">get_doc_units</span><span class="p">,</span> <span class="n">color_scheme</span><span class="p">,</span> <span class="n">Ins</span><span class="p">,</span> <span class="n">Outs</span><span class="p">,</span> <span class="n">missing_stream</span>
-<span class="kn">from</span> <span class="nn">bookkeep</span> <span class="k">import</span> <span class="n">SmartBook</span><span class="p">,</span> <span class="n">UnitManager</span>
+<span class="kn">from</span> <span class="nn">bookkeep</span> <span class="k">import</span> <span class="n">SmartBook</span>
 <span class="kn">from</span> <span class="nn">.power_utility</span> <span class="k">import</span> <span class="n">PowerUtility</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">np</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">np</span><span class="p">,</span> <span class="n">pd</span>
 <span class="kn">import</span> <span class="nn">biosteam</span>
 <span class="n">CS</span> <span class="o">=</span> <span class="n">color_scheme</span>
 
@@ -82,6 +81,26 @@
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Unit&#39;</span><span class="p">,)</span>
+
+<span class="c1"># def _fill_from_dict(dct, keys, vals, prev, inst, dict_):</span>
+<span class="c1">#     for key, val in dct.items():</span>
+<span class="c1">#         if inst(val, dict_):</span>
+<span class="c1">#             if val:</span>
+<span class="c1">#                 prev.append(val)</span>
+<span class="c1">#                 keys.append(key + &#39;:&#39;); vals.append(&#39;&#39;)</span>
+<span class="c1">#                 _fill_from_dict(val, keys, vals, prev, inst, dict_)</span>
+<span class="c1">#         else: </span>
+<span class="c1">#             keys.append(key); vals.append(val)</span>
+
+<span class="c1"># def _fill_from_dict_with_units(dct, keys, vals, prev, inst, dict_, units):</span>
+<span class="c1">#     for key, val in dct.items():</span>
+<span class="c1">#         if inst(val, dict_):</span>
+<span class="c1">#             if val:</span>
+<span class="c1">#                 prev.append(val)</span>
+<span class="c1">#                 keys.append(key + &#39;:&#39;); vals.append((&#39;&#39;, &#39;&#39;))</span>
+<span class="c1">#                 _fill_from_dict_with_units(val, keys, vals, prev, inst, dict_, units)</span>
+<span class="c1">#         else: </span>
+<span class="c1">#             keys.append(key); vals.append((units.get(key, &#39;&#39;), val))</span>
 
 
 <span class="c1"># %% Unit metaclass</span>
@@ -117,9 +136,7 @@
 
 <span class="sd">        **CEPCI** = 567.5: [float] Chemical Engineering Plant Cost Index</span>
 <span class="sd">        </span>
-<span class="sd">        **bounds** = {} [dict] Values should be tuples with lower and upper bounds.</span>
-<span class="sd">        </span>
-<span class="sd">        **instances** = {}: [WeakRefBook] Contains all instances of the Unit class.</span>
+<span class="sd">        **_bounds** = {} [dict] Values should be tuples with lower and upper bounds.</span>
 <span class="sd">        </span>
 <span class="sd">        **_N_ins** = 1: [int] Expected number of input streams</span>
 
@@ -206,24 +223,20 @@
                 <span class="n">exec</span><span class="p">(</span><span class="n">str2exec</span><span class="p">,</span> <span class="n">globs</span><span class="p">,</span> <span class="n">locs</span><span class="p">)</span>
                 <span class="bp">cls</span><span class="o">.</span><span class="fm">__init__</span> <span class="o">=</span> <span class="n">locs</span><span class="p">[</span><span class="s1">&#39;__init__&#39;</span><span class="p">]</span>
             
-        <span class="c1"># Initialize units of measure</span>
-        <span class="n">units</span> <span class="o">=</span> <span class="n">new_definitions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_results_UnitsOfMeasure&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">units</span><span class="p">:</span>
-            <span class="n">units</span><span class="p">[</span><span class="s1">&#39;Utility cost&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;USD/hr&#39;</span>
-            <span class="n">units</span><span class="p">[</span><span class="s1">&#39;Purchase cost&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;USD&#39;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Utility cost&#39;</span><span class="p">:</span> <span class="s1">&#39;USD/hr&#39;</span><span class="p">,</span>
-                     <span class="s1">&#39;Purchase cost&#39;</span><span class="p">:</span> <span class="s1">&#39;USD&#39;</span><span class="p">}</span>
-        
-        <span class="c1"># Get units of measure of each key method</span>
-        <span class="n">get_doc_units</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_operation</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
-        <span class="n">get_doc_units</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_design</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
-        <span class="n">get_doc_units</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_cost</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
-        
-        <span class="c1"># Set units of measure</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">UnitManager</span><span class="p">):</span>
-            <span class="n">units</span> <span class="o">=</span> <span class="n">UnitManager</span><span class="p">([],</span> <span class="o">**</span><span class="n">units</span><span class="p">)</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">_results_UnitsOfMeasure</span> <span class="o">=</span> <span class="n">units</span>
+            <span class="c1"># Initialize units of measure</span>
+            <span class="n">units</span> <span class="o">=</span> <span class="n">new_definitions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_units&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">units</span><span class="p">:</span> <span class="n">units</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">Unit</span><span class="o">.</span><span class="n">_units</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span> <span class="n">units</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_units</span>
+            
+            <span class="c1"># Get units of measure of each key method</span>
+            <span class="n">get_doc_units</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_operation</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
+            <span class="n">get_doc_units</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_design</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
+            <span class="n">get_doc_units</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_cost</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
+            
+            <span class="c1"># Make sure bounds are arrays for boundscheck</span>
+            <span class="n">bounds</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_bounds</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">bounds</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">bounds</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         
         <span class="k">return</span> <span class="bp">cls</span>
     
@@ -252,7 +265,7 @@
 
 
 <div class="viewcode-block" id="Unit"><a class="viewcode-back" href="../../Unit.html#biosteam.Unit">[docs]</a><span class="k">class</span> <span class="nc">Unit</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">metaUnit</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Abstract parent class for Unit objects. Child objects must contain setup, run, operation, design and cost methods to setup internal objects, estimate stream outputs of a Unit and find operating, design and cost information. These methods should store information in the &#39;results&#39; dictionary (an instance attribute).  </span>
+    <span class="sd">&quot;&quot;&quot;Abstract parent class for Unit objects. Child objects must contain setup, run, operation, design and cost methods to setup internal objects, estimate stream outputs of a Unit and find operating, design and cost information. These methods should store information in the &#39;_results&#39; dictionary (an instance attribute).  </span>
 
 <span class="sd">    **Parameters**</span>
 
@@ -283,6 +296,10 @@
 <span class="sd">    &quot;&quot;&quot;</span> 
     <span class="c1">### Abstract Attributes ###</span>
     
+    <span class="c1"># [dict] Default units</span>
+    <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Utility cost&#39;</span><span class="p">:</span> <span class="s1">&#39;USD/hr&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;Purchase cost&#39;</span><span class="p">:</span> <span class="s1">&#39;USD&#39;</span><span class="p">}</span>
+    
     <span class="c1"># [bool] Should be True if it has any associated cost</span>
     <span class="n">_has_cost</span> <span class="o">=</span> <span class="kc">True</span>
     
@@ -296,7 +313,7 @@
     <span class="n">_has_linked_streams</span> <span class="o">=</span> <span class="kc">False</span>
     
     <span class="c1"># [dict] Values should be tuples with lower and upper bounds for results dictionary.</span>
-    <span class="n">bounds</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">_bounds</span> <span class="o">=</span> <span class="p">{}</span>
     
     <span class="c1"># [int] number of heat utilities</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">0</span>
@@ -399,15 +416,10 @@
     
     <span class="k">def</span> <span class="nf">_init_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize results attribute.&quot;&quot;&quot;</span>
-        <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results_UnitsOfMeasure</span>
-        <span class="n">bounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bounds</span>
-        <span class="n">empty</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_results</span> <span class="o">=</span> <span class="n">SmartBook</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">inclusive</span><span class="o">=</span><span class="n">empty</span><span class="p">,</span>
-            <span class="n">Operation</span><span class="o">=</span><span class="n">SmartBook</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">inclusive</span><span class="o">=</span><span class="n">empty</span><span class="p">),</span>
-            <span class="n">Design</span><span class="o">=</span><span class="n">SmartBook</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">inclusive</span><span class="o">=</span><span class="n">empty</span><span class="p">),</span>
-            <span class="n">Cost</span><span class="o">=</span><span class="n">SmartBook</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">inclusive</span><span class="o">=</span><span class="n">empty</span><span class="p">),</span>
-            <span class="n">Summary</span><span class="o">=</span><span class="n">SmartBook</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">source</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">inclusive</span><span class="o">=</span><span class="n">empty</span><span class="p">,</span>
-                              <span class="o">**</span><span class="p">{</span><span class="s1">&#39;Purchase cost&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;Utility cost&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_results</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Operation&#39;</span><span class="p">:</span> <span class="p">{},</span>
+                         <span class="s1">&#39;Design&#39;</span><span class="p">:</span> <span class="p">{},</span>
+                         <span class="s1">&#39;Cost&#39;</span><span class="p">:</span> <span class="p">{},</span>
+                         <span class="s1">&#39;Summary&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;Purchase cost&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;Utility cost&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}}</span>
     
     <span class="k">def</span> <span class="nf">_init_heat_utils</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize heat utilities.&quot;&quot;&quot;</span>
@@ -435,7 +447,7 @@
             <span class="k">if</span> <span class="n">power_utility</span><span class="p">:</span> <span class="n">utils</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">power_utility</span><span class="p">)</span>
                 
             <span class="c1"># Itemized purchase costs</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_purchase_costs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_purchase_costs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
     
     <span class="k">def</span> <span class="nf">_setup_linked_streams</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_linked_streams</span><span class="p">:</span> 
@@ -496,7 +508,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_operation</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
-        <span class="n">Summary</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Summary&#39;</span><span class="p">]</span>
+        <span class="n">Summary</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Summary&#39;</span><span class="p">]</span>
         <span class="n">Summary</span><span class="p">[</span><span class="s1">&#39;Utility cost&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">cost</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_utils</span><span class="p">)</span>
         <span class="n">Summary</span><span class="p">[</span><span class="s1">&#39;Purchase cost&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_purchase_costs</span><span class="p">())</span>
         <span class="k">return</span> <span class="n">Summary</span>
@@ -507,10 +519,52 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">()</span></div>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[dict] Key results from running Unit methods.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span>
+<div class="viewcode-block" id="Unit.results"><a class="viewcode-back" href="../../Unit.html#biosteam.Unit.results">[docs]</a>    <span class="k">def</span> <span class="nf">results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_units</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return key results from simulation as a DataFrame if `with_units` is True or as a Series otherwise.&quot;&quot;&quot;</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span>
+        <span class="n">ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">with_units</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">ko</span><span class="p">,</span> <span class="n">vo</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span> <span class="ow">in</span> <span class="n">vo</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">keys</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">ko</span><span class="p">,</span> <span class="n">ki</span><span class="p">))</span>
+                    <span class="n">vals</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ki</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="n">vi</span><span class="p">))</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span>
+                              <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">(</span><span class="n">keys</span><span class="p">),</span>
+                              <span class="p">(</span><span class="s1">&#39;Units&#39;</span><span class="p">,</span> <span class="n">ID</span><span class="p">))</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">line</span>
+            <span class="k">return</span> <span class="n">df</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">ko</span><span class="p">,</span> <span class="n">vo</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span> <span class="ow">in</span> <span class="n">vo</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="n">keys</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">ko</span><span class="p">,</span> <span class="n">ki</span><span class="p">))</span>
+                    <span class="n">vals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vi</span><span class="p">)</span>
+            <span class="n">series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">(</span><span class="n">keys</span><span class="p">))</span>
+            <span class="n">series</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">ID</span>
+            <span class="k">return</span> <span class="n">series</span></div>
+
+    <span class="k">def</span> <span class="nf">_boundscheck</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return True if value is within bounds. Return False if value is out of bounds and issue a warning.</span>
+<span class="sd">        </span>
+<span class="sd">        **Parameters**</span>
+<span class="sd">        </span>
+<span class="sd">            **key:** [str] Name of value</span>
+<span class="sd">            </span>
+<span class="sd">            **value:** [number, Quantity, or array]</span>
+<span class="sd">            </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">bounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="n">stacklevel</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">bounds</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">within_bounds</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">within_bounds</span> <span class="o">=</span> <span class="n">SmartBook</span><span class="o">.</span><span class="n">_checkbounds</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span>
+                                                   <span class="n">stacklevel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="n">within_bounds</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">CEPCI</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

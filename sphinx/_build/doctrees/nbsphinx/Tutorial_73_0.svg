@@ -5,7 +5,7 @@
 <!-- F1
 Flash&#45;&gt;S1
 Splitter -->
-<g class="edge" id="edge1"><title>F1
+<g class="edge" id="edge4"><title>F1
 Flash:s-&gt;S1
 Splitter:w</title>
 <path d="M36,-88.7401C36,-50.4807 74.191,-52.9698 112.697,-53.6357" fill="none" stroke="black"/>
@@ -14,14 +14,14 @@ Splitter:w</title>
 </g>
 <!-- F1
 Flash&#45;&gt;product -->
-<g class="edge" id="edge4"><title>F1
+<g class="edge" id="edge6"><title>F1
 Flash:n-&gt;product:w</title>
 <path d="M36,-170.74C36,-236.255 104.681,-231.74 170.196,-231.74" fill="none" stroke="black"/>
 </g>
 <!-- S1
 Splitter&#45;&gt;M1
 Mixer -->
-<g class="edge" id="edge3"><title>S1
+<g class="edge" id="edge1"><title>S1
 Splitter:c-&gt;M1
 Mixer:c</title>
 <path d="M242.214,-69.7431C275.506,-83.3975 323.306,-103.002 357.692,-117.105" fill="none" stroke="black"/>
@@ -30,14 +30,14 @@ Mixer:c</title>
 </g>
 <!-- S1
 Splitter&#45;&gt;d7 -->
-<g class="edge" id="edge6"><title>S1
+<g class="edge" id="edge2"><title>S1
 Splitter:c-&gt;d7:w</title>
 <path d="M242.22,-51.9914C277.777,-50.5495 331.749,-48.7401 378.688,-48.7401" fill="none" stroke="black"/>
 </g>
 <!-- M1
 Mixer&#45;&gt;F1
 Flash -->
-<g class="edge" id="edge2"><title>M1
+<g class="edge" id="edge5"><title>M1
 Mixer:e-&gt;F1
 Flash:c</title>
 <path d="M471.688,-134.74C483.633,-134.74 479.212,-180.113 470.688,-188.48 426.824,-231.536 387.167,-216.367 332.392,-188.48 320.274,-182.311 323.642,-173.707 314.392,-163.74 301.308,-149.641 299.366,-142.589 281.392,-135.74 215.718,-110.714 132.751,-115.553 82.3404,-122.093" fill="none" stroke="black"/>
@@ -46,7 +46,7 @@ Flash:c</title>
 </g>
 <!-- feed&#45;&gt;M1
 Mixer -->
-<g class="edge" id="edge5"><title>feed:e-&gt;M1
+<g class="edge" id="edge3"><title>feed:e-&gt;M1
 Mixer:c</title>
 <path d="M225.196,-177.74C275.7,-177.74 332.09,-160.733 366.988,-148.11" fill="none" stroke="black"/>
 </g>
@@ -92,20 +92,20 @@ Mixer</title>
 <text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="401.688" y="-138.54">M1</text>
 <text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="401.688" y="-123.54">Mixer</text>
 </g>
-<!-- product -->
-<g class="node" id="node4"><title>product</title>
-<polygon fill="#79dae8" points="214.696,-247.24 171.696,-247.24 171.696,-216.24 214.696,-216.24 214.696,-210.24 232.696,-231.74 214.696,-253.24 214.696,-247.24" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="202.196" y="-228.04">product</text>
+<!-- d7 -->
+<g class="node" id="node4"><title>d7</title>
+<polygon fill="#79dae8" points="405.188,-64.2401 380.188,-64.2401 380.188,-33.2401 405.188,-33.2401 405.188,-27.2401 423.188,-48.7401 405.188,-70.2401 405.188,-64.2401" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="401.688" y="-45.0401">d7</text>
 </g>
 <!-- feed -->
 <g class="node" id="node5"><title>feed</title>
 <polygon fill="#79dae8" points="205.696,-193.24 180.696,-193.24 180.696,-162.24 205.696,-162.24 205.696,-156.24 223.696,-177.74 205.696,-199.24 205.696,-193.24" stroke="black"/>
 <text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="202.196" y="-174.04">feed</text>
 </g>
-<!-- d7 -->
-<g class="node" id="node6"><title>d7</title>
-<polygon fill="#79dae8" points="405.188,-64.2401 380.188,-64.2401 380.188,-33.2401 405.188,-33.2401 405.188,-27.2401 423.188,-48.7401 405.188,-70.2401 405.188,-64.2401" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="401.688" y="-45.0401">d7</text>
+<!-- product -->
+<g class="node" id="node6"><title>product</title>
+<polygon fill="#79dae8" points="214.696,-247.24 171.696,-247.24 171.696,-216.24 214.696,-216.24 214.696,-210.24 232.696,-231.74 214.696,-253.24 214.696,-247.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="202.196" y="-228.04">product</text>
 </g>
 </g>
 </svg>

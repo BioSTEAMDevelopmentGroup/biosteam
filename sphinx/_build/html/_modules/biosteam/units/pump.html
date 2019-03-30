@@ -190,7 +190,7 @@
 <span class="sd">        * &#39;Head&#39;: (ft)</span>
 <span class="sd">        * &#39;Flow rate&#39;: (gpm)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">Oper</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Operation&#39;</span><span class="p">]</span>
+        <span class="n">Oper</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Operation&#39;</span><span class="p">]</span>
         <span class="n">si</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">so</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">Pi</span> <span class="o">=</span> <span class="n">si</span><span class="o">.</span><span class="n">P</span>
@@ -228,7 +228,7 @@
 <span class="sd">        * &#39;Motor&#39;: (USD)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Parameters</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span>
         <span class="n">Cost</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
         <span class="n">Oper</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Operation&#39;</span><span class="p">]</span>
         <span class="n">Type</span> <span class="o">=</span> <span class="n">Oper</span><span class="p">[</span><span class="s1">&#39;Type&#39;</span><span class="p">]</span>

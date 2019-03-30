@@ -73,16 +73,14 @@
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">Unit</span><span class="p">):</span> <span class="k">return</span> <span class="n">element</span>
     <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="n">element</span><span class="o">.</span><span class="n">_sink</span>
 
-<span class="k">def</span> <span class="nf">_fill_space</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">num_stack</span><span class="p">,</span> <span class="n">argspace</span><span class="p">,</span> <span class="n">thread</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="n">tuple_</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_fill_space</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">num_stack</span><span class="p">,</span> <span class="n">argspace</span><span class="p">,</span> <span class="n">thread</span><span class="p">,</span> <span class="n">tuple_</span><span class="p">):</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">fargs</span> <span class="ow">in</span> <span class="n">num_stack</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">fargs</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
             <span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span>
             <span class="n">argspace</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tuple_</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
-            <span class="n">thread</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">count</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">a</span><span class="p">))</span>
-            <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="n">count</span> <span class="o">=</span> <span class="n">_fill_space</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">num_stack</span><span class="p">[:</span><span class="n">i</span><span class="p">],</span> <span class="n">argspace</span><span class="p">,</span> <span class="n">thread</span><span class="p">,</span> <span class="n">count</span><span class="p">,</span> <span class="n">tuple_</span><span class="p">)</span>
+            <span class="n">thread</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">f</span><span class="p">,</span> <span class="n">a</span><span class="p">))</span>
+            <span class="n">_fill_space</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">num_stack</span><span class="p">[:</span><span class="n">i</span><span class="p">],</span> <span class="n">argspace</span><span class="p">,</span> <span class="n">thread</span><span class="p">,</span> <span class="n">tuple_</span><span class="p">)</span>
         <span class="n">fargs</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">count</span>
 
 <span class="c1"># %% Grid of simulation blocks</span>
 
@@ -182,20 +180,19 @@
             <span class="n">initial_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
             <span class="n">funcs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
             <span class="n">element</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="n">_block</span><span class="o">.</span><span class="n">_element</span>
-            <span class="n">element_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;{type(element).__name__}-</span><span class="si">{element}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">element_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">line</span> <span class="o">+</span> <span class="s1">&#39;-&#39;</span> <span class="o">+</span> <span class="n">element</span><span class="o">.</span><span class="n">ID</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">))</span>
             <span class="n">all_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">list_</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
         <span class="n">num_stack</span> <span class="o">=</span> <span class="n">tuple_</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">funcs</span><span class="p">)),</span> <span class="n">funcs</span><span class="p">,</span> <span class="n">all_args</span><span class="p">))</span>
         <span class="n">args</span> <span class="o">=</span> <span class="n">initial_args</span>
         <span class="n">initial_args</span> <span class="o">=</span> <span class="n">tuple_</span><span class="p">(</span><span class="n">initial_args</span><span class="p">)</span>
         <span class="n">argspace</span> <span class="o">=</span> <span class="p">[</span><span class="n">initial_args</span><span class="p">]</span>
-        <span class="n">thread</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="n">funcs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">initial_args</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
-        <span class="n">_fill_space</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">num_stack</span><span class="p">,</span> <span class="n">argspace</span><span class="p">,</span> <span class="n">thread</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tuple_</span><span class="p">)</span>
+        <span class="n">thread</span> <span class="o">=</span> <span class="p">[(</span><span class="n">funcs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">initial_args</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
+        <span class="n">_fill_space</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">num_stack</span><span class="p">,</span> <span class="n">argspace</span><span class="p">,</span> <span class="n">thread</span><span class="p">,</span> <span class="n">tuple_</span><span class="p">)</span>
         <span class="n">paramIDs</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">_param</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span>
                     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">funcs</span><span class="p">]</span>
         <span class="n">spacelen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">argspace</span><span class="p">)</span>
         <span class="n">spacerange</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">spacelen</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_argarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">argspace</span><span class="p">)</span>
-        <span class="n">argspace</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">tuple_</span><span class="p">(</span><span class="n">element_names</span><span class="p">))</span>
         
         <span class="c1">#: All block functions</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_funcs</span> <span class="o">=</span> <span class="n">funcs</span>
@@ -210,11 +207,12 @@
         
         <span class="c1">#: [DataFrame] Table of the argument space with results in the final column.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="n">ds</span> <span class="o">=</span> <span class="n">DF</span><span class="p">(</span><span class="n">argspace</span><span class="p">,</span>
-                             <span class="n">columns</span><span class="o">=</span><span class="n">paramIDs</span><span class="p">,</span>
-                             <span class="n">index</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Element&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">spacerange</span><span class="p">))</span>
+                             <span class="n">columns</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_arrays</span><span class="p">((</span><span class="n">element_names</span><span class="p">,</span> <span class="n">paramIDs</span><span class="p">),</span>
+                                                               <span class="n">names</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Element&#39;</span><span class="p">,</span>
+                                                                      <span class="s1">&#39;Parameter&#39;</span><span class="p">)),</span>
+                             <span class="n">index</span><span class="o">=</span><span class="n">spacerange</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_paramIDs</span> <span class="o">=</span> <span class="n">paramIDs</span>
-        <span class="n">ds</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;Parameter&#39;</span>
-        <span class="n">ds</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="o">*</span><span class="p">(</span><span class="kc">None</span><span class="p">,)</span><span class="o">*</span><span class="p">(</span><span class="n">spacelen</span><span class="p">))</span>
+        <span class="n">ds</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,)</span><span class="o">*</span><span class="p">(</span><span class="n">spacelen</span><span class="p">)</span>
         
         
 <div class="viewcode-block" id="Sensitivity.simulate"><a class="viewcode-back" href="../../../Sensitivity.html#biosteam.Sensitivity.simulate">[docs]</a>    <span class="k">def</span> <span class="nf">simulate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -227,9 +225,9 @@
         <span class="c1"># Simulate system to initialize whole network</span>
         <span class="k">try</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
         <span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
-        <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;n/a&#39;</span><span class="p">]</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">add</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">append</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_thread</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">func</span><span class="p">,</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_thread</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span> <span class="n">add</span><span class="p">(</span><span class="n">func</span><span class="p">(</span><span class="n">arg</span><span class="p">))</span>
             <span class="k">except</span><span class="p">:</span> <span class="n">add</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
                 

@@ -401,7 +401,7 @@
 <span class="sd">        * &#39;Total tube length&#39;:  (ft)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1">###  Use LMTD correction factor method  ###</span>
-        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
         
         <span class="c1"># Get cold and hot inlet and outlet streams</span>
         <span class="n">ci</span><span class="p">,</span> <span class="n">hi</span><span class="p">,</span> <span class="n">co</span><span class="p">,</span> <span class="n">ho</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_order_streams</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_streams</span><span class="p">())</span>
@@ -461,8 +461,8 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        &#39;Heat exchanger&#39;: (USD)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
-        <span class="n">Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
+        <span class="n">Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
         <span class="n">A</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Area&#39;</span><span class="p">]</span>
         <span class="c1">#Dp_t = Design[&#39;Dp_t&#39;]</span>
         <span class="c1">#Dp_s = Design[&#39;Dp_s&#39;]</span>
@@ -836,7 +836,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_Duty</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">Duty</span><span class="p">)</span>
     
     <span class="k">def</span> <span class="nf">_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Operation&#39;</span><span class="p">]</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Operation&#39;</span><span class="p">]</span></div>
 </pre></div>
 
           </div>

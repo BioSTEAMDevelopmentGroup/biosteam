@@ -125,7 +125,7 @@ class Sensitivity:
             initial_args.append(args[0])
             funcs.append(func)
             element = func._block._element
-            element_names.append(type(element).__name__ + '-' + element.ID.replace('_', ' '))
+            element_names.append(element.line + '-' + element.ID.replace('_', ' '))
             all_args.append(list_(args))
         num_stack = tuple_(zip(range(len(funcs)), funcs, all_args))
         args = initial_args

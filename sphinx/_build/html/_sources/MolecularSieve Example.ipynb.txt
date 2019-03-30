@@ -130,22 +130,79 @@
    "metadata": {},
    "outputs": [
     {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "MolecularSieve                 Units                MS1\n",
-      "Cost:                                                  \n",
-      "  Molecular Sieve Cost           USD  2165605.394090733\n",
-      "  Pressure Filter Pressing       USD  62611.88990220036\n",
-      "  Pressure Filter Drying (2)     USD  674409.9843189134\n",
-      "Summary:                                               \n",
-      "  Purchase cost                  USD  2902627.268311847\n",
-      "  Utility cost                USD/hr  57.93378802794426\n"
-     ]
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>Molecular sieve</th>\n",
+       "      <th>Units</th>\n",
+       "      <th>MS1</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th rowspan=\"3\" valign=\"top\">Cost</th>\n",
+       "      <th>Molecular Sieve Cost</th>\n",
+       "      <td>USD</td>\n",
+       "      <td>2165605.394090733</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>Pressure Filter Pressing</th>\n",
+       "      <td>USD</td>\n",
+       "      <td>62611.88990220036</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>Pressure Filter Drying (2)</th>\n",
+       "      <td>USD</td>\n",
+       "      <td>674409.9843189134</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th rowspan=\"2\" valign=\"top\">Summary</th>\n",
+       "      <th>Purchase cost</th>\n",
+       "      <td>USD</td>\n",
+       "      <td>2902627.268311847</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>Utility cost</th>\n",
+       "      <td>USD/hr</td>\n",
+       "      <td>57.93378802794426</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "Molecular sieve                      Units                MS1\n",
+       "Cost    Molecular Sieve Cost           USD  2165605.394090733\n",
+       "        Pressure Filter Pressing       USD  62611.88990220036\n",
+       "        Pressure Filter Drying (2)     USD  674409.9843189134\n",
+       "Summary Purchase cost                  USD  2902627.268311847\n",
+       "        Utility cost                USD/hr  57.93378802794426"
+      ]
+     },
+     "execution_count": 2,
+     "metadata": {},
+     "output_type": "execute_result"
     }
    ],
    "source": [
-    "print(MS1.results.table())"
+    "MS1.results()"
    ]
   },
   {

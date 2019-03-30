@@ -321,24 +321,66 @@ Transesterification: R1
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="nb">print</span><span class="p">(</span><span class="n">R1</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">table</span><span class="p">())</span>
+<span></span><span class="n">R1</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[2]:
+</pre></div>
 </div>
 <div class="output_area docutils container">
-<div class="highlight"><pre>
-Transesterification   Units      R1
-Design:
-  Volume                m^3    16.2
-Cost:
-  Reactor               USD 7.5e+04
-Summary:
-  Purchase cost         USD 7.5e+04
-  Utility cost       USD/hr    1.58
-</pre></div></div>
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Reactor</th>
+      <th>Units</th>
+      <th>R1</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Design</th>
+      <th>Volume</th>
+      <td>m^3</td>
+      <td>16.2</td>
+    </tr>
+    <tr>
+      <th>Cost</th>
+      <th>Reactor</th>
+      <td>USD</td>
+      <td>7.5e+04</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">Summary</th>
+      <th>Purchase cost</th>
+      <td>USD</td>
+      <td>7.5e+04</td>
+    </tr>
+    <tr>
+      <th>Utility cost</th>
+      <td>USD/hr</td>
+      <td>1.69</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
@@ -359,7 +401,7 @@ Summary:
 HeatUtility: Cooling water
  duty:-3.23e+06 kJ/hr
  flow: 2.21e+03 kmol/hr
- cost: 0 USD/year
+ cost: 969 USD/year
 </pre></div></div>
 </div>
 </div>

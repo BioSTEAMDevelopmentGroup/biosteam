@@ -259,7 +259,7 @@
         <span class="n">out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="mi">32</span> <span class="o">+</span> <span class="mf">273.15</span>
         
         <span class="c1"># Fermentation</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Operation&#39;</span><span class="p">][</span><span class="s1">&#39;Efficiency&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">eff</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Operation&#39;</span><span class="p">][</span><span class="s1">&#39;Efficiency&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">eff</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;efficiency&#39;</span><span class="p">)</span>
             <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_efficiency</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;tau&#39;</span><span class="p">])</span>
             <span class="p">)</span>
@@ -274,7 +274,7 @@
         <span class="n">CO2</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">T</span>
     
     <span class="k">def</span> <span class="nf">_optimize_N_reactors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">Summary</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Summary&#39;</span><span class="p">]</span>
+        <span class="n">Summary</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Summary&#39;</span><span class="p">]</span>
         <span class="n">cost_old</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">N_reactors</span> <span class="o">=</span> <span class="mi">2</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
@@ -304,7 +304,7 @@
         <span class="n">v_0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">volnet</span>
         <span class="n">tau</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="s1">&#39;tau&#39;</span><span class="p">]</span>
         <span class="n">tau_0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_0</span>
-        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Number of reactors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N_reactors</span>
         <span class="n">Design</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solve</span><span class="p">(</span><span class="n">v_0</span><span class="p">,</span> <span class="n">tau</span><span class="p">,</span> <span class="n">tau_0</span><span class="p">,</span> <span class="n">N_reactors</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">V_wf</span><span class="p">))</span>
         <span class="n">hx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cooler</span>
@@ -328,7 +328,7 @@
 <span class="sd">        * &#39;Coolers&#39;: (USD)</span>
 <span class="sd">        * &#39;Agitators&#39;: (USD)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span>
         <span class="n">Cost</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
         <span class="n">Design</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
         <span class="n">N</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Number of reactors&#39;</span><span class="p">]</span>
@@ -338,7 +338,7 @@
         <span class="n">FF</span> <span class="o">=</span> <span class="n">F_CEPCI</span> <span class="o">*</span> <span class="n">N</span> <span class="o">*</span> <span class="n">R</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">exp</span>
         
         <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Reactors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">FF</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">C_0</span>
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Coolers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cooler</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">][</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
+        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Coolers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cooler</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">][</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">power_utility</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A_p</span> <span class="o">*</span> <span class="n">R</span> <span class="o">*</span> <span class="n">N</span> <span class="o">*</span> <span class="n">F_CEPCI</span><span class="p">)</span>
         <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Agitators&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">FF</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">C_A</span>
         <span class="k">return</span> <span class="n">Cost</span></div>

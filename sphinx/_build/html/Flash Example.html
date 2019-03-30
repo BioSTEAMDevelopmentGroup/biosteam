@@ -292,7 +292,7 @@ Flash: F1
     phase: &#39;g&#39;, T: 137 degC, P: 1 atm
     flow (kmol/hr): Glycerol  1.42
                     Water     586
-[1] crude glycerin
+[1] crude_glycerin
     phase: &#39;l&#39;, T: 137 degC, P: 1 atm
     flow (kmol/hr): Glycerol  98.6
                     Water     14.1
@@ -305,29 +305,91 @@ Flash: F1
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1"># Design results</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">F1</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">table</span><span class="p">())</span>
+<span class="n">F1</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[2]:
+</pre></div>
 </div>
 <div class="output_area docutils container">
-<div class="highlight"><pre>
-Flash              Units        F1
-Design:
-  SepType                 Vertical
-  Length              ft      11.5
-  Diameter            ft       7.5
-  Weight              lb   5.6e+03
-  Wall thickness      in     0.375
-Cost:
-  Vessel             USD   4.4e+04
-  Heat exchanger     USD  2.91e+04
-Summary:
-  Purchase cost      USD   7.3e+04
-  Utility cost    USD/hr       237
-</pre></div></div>
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Flash</th>
+      <th>Units</th>
+      <th>F1</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="5" valign="top">Design</th>
+      <th>SepType</th>
+      <td></td>
+      <td>Vertical</td>
+    </tr>
+    <tr>
+      <th>Length</th>
+      <td>ft</td>
+      <td>11.5</td>
+    </tr>
+    <tr>
+      <th>Diameter</th>
+      <td>ft</td>
+      <td>7.5</td>
+    </tr>
+    <tr>
+      <th>Weight</th>
+      <td>lb</td>
+      <td>5.6e+03</td>
+    </tr>
+    <tr>
+      <th>Wall thickness</th>
+      <td>in</td>
+      <td>0.375</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">Cost</th>
+      <th>Vessel</th>
+      <td>USD</td>
+      <td>4.4e+04</td>
+    </tr>
+    <tr>
+      <th>Heat exchanger</th>
+      <td>USD</td>
+      <td>2.91e+04</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">Summary</th>
+      <th>Purchase cost</th>
+      <td>USD</td>
+      <td>7.3e+04</td>
+    </tr>
+    <tr>
+      <th>Utility cost</th>
+      <td>USD/hr</td>
+      <td>237</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>

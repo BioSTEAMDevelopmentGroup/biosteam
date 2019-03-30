@@ -520,6 +520,8 @@
     <span class="c1">#: [bool] If True, approximate energy balance. False otherwise.</span>
     <span class="n">lazy_energy_balance</span> <span class="o">=</span> <span class="kc">True</span>
 
+    <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Stream&#39;</span>
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="p">(),</span> <span class="n">species</span><span class="o">=</span><span class="p">(),</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">,</span>
                  <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">298.15</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">price</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">flow_pairs</span><span class="p">):</span>
         <span class="c1"># Get species and set species information</span>
@@ -825,11 +827,10 @@
 
     <span class="nd">@mol</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">mol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">val</span>
+        <span class="k">try</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">val</span>
         <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">value_error</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">val</span><span class="p">)</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Nspecies</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Length of flow property ({len(val)} given) must be the same as the number of species (</span><span class="si">{self._Nspecies}</span><span class="s1">)&#39;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Length of flow ({len(val)} given) must be the same as the number of species (</span><span class="si">{self._Nspecies}</span><span class="s1">)&#39;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">value_error</span>
 
