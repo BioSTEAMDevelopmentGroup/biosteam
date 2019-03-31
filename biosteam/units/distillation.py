@@ -7,7 +7,7 @@ Created on Thu Aug 23 19:33:20 2018
 """
 from biosteam import Unit, np, MixedStream, Stream
 from biosteam.utils import approx2step
-from biosteam.exceptions import biosteamError, DesignError
+from biosteam.exceptions import biosteamError
 from scipy.optimize import brentq
 from biosteam.units.hx import HXutility
 import matplotlib.pyplot as plt
@@ -133,13 +133,7 @@ class Dist(Unit):
     # [dict] Bounds for results
     _bounds = {'Diameter': (3., 24.),
                'Height': (27., 170.),
-               'Weight': (9000., 2.5e6),
-               'Stripper diameter': (3., 24.),
-               'Stripper height': (27., 170.),
-               'Stripper weight': (9000., 2.5e6),
-               'Rectifier diameter': (3., 24.),
-               'Rectifier height': (27., 170.),
-               'Rectifier weight': (9000., 2.5e6)}
+               'Weight': (9000., 2.5e6)}
     
     _kwargs = {'P': 101325,
                'LHK': None,
@@ -384,7 +378,7 @@ class Dist(Unit):
         cached = self._cached
         x_stages = cached.get('x_stages')
         if not x_stages:
-            self.operation()
+            self._design()
             x_stages = cached.get('x_stages')
         y_stages = cached['y_stages']
         kwargs = self._kwargs
@@ -721,7 +715,6 @@ class Dist(Unit):
         ms1.T = condensate.T
         ms1.P = condensate.P
         ms1.vapor_mol = distillate.mol
-        condenser._operation()
         condenser._design()
         condenser._cost()
         
@@ -737,16 +730,10 @@ class Dist(Unit):
         ms1.P = boil_up.P
         ms1.vapor_mol = boil_up.mol
         ms1.liquid_mol = bottoms.mol
-        boiler._operation()
         boiler._design()
         boiler._cost()
         
     def _cost(self):
-        """
-        * 'Trays': (USD)
-        * 'Tower': (USD)
-        * 'Boiler': (USD)
-        """
         results = self._results
         Design = results['Design']
         Cost = results['Cost']
@@ -767,9 +754,23 @@ class Dist(Unit):
 class Distillation(Dist):
     line = 'Distillation'
     __doc__ = column_doc.replace('{Column Type}', 'Distillation')
-    _N_heat_utilities = 2
+    _N_heat_utilities = 0
     is_divided = False #: [bool] True if the stripper and rectifier are two separate columns.    
     _graphics = Dist._graphics
+    _units = {'Minimum reflux': 'Ratio',
+              'Reflux': 'Ratio',
+              'Rectifier height': 'ft',
+              'Rectifier diameter': 'ft',
+              'Rectifier wall thickness': 'in',
+              'Rectifier weight': 'lb',
+              'Stripper height': 'ft',
+              'Stripper diameter': 'ft',
+              'Stripper wall thickness': 'in',
+              'Stripper weight': 'lb',
+              'Height': 'ft',
+              'Diameter': 'ft',
+              'Wall thickness': 'in',
+              'Weight': 'lb'}
     
     def _init(self):
         self._condenser = HXutility('*',
@@ -778,25 +779,66 @@ class Distillation(Dist):
         self._boiler = HXutility('*',
                                  ins=Stream('*'),
                                  outs=MixedStream('*'))
+        self.heat_utilities = self._condenser.heat_utilities + self._boiler.heat_utilities
         self._cached = {'condensate': Stream('*'),
                         'boil_up': Stream('*'),
                         'vapor stream': Stream('*')}
     
-    def _operation(self):
-        """
-        * 'Theoretical feed stage': (#)
-        * 'Theoretical stages': (#)
-        * 'Minimum reflux': (Ratio)
-        * 'Reflux': (Ratio)
-        * 'T_condenser': (K) 
-        * 'T_boiler': (K)
-        * 'Cooling': (kJ/hr)
-        * 'Heating': (kJ/hr)
-        """
+    def _calc_Nstages(self) -> 'Nstages':
+        """Return a tuple with the actual number of stages for the rectifier and the stripper."""
         vap, liq = self.outs
+        cached = self._cached
+        Design = self._results['Design']
+        x_stages = cached['x_stages']
+        y_stages = cached['y_stages']
+        R = Design['Reflux']
+        N_stages = Design['Theoretical stages']
+        feed_stage = Design['Theoretical feed stage']
+        liq_mol = cached['feed_liqmol']
+        vap_mol = cached['feed_vapmol']
+        
+        stage_efficiency = self.stage_efficiency
+        if stage_efficiency:
+            return N_stages/stage_efficiency
+        else:    
+            # Calculate Murphree Efficiency for rectifying section
+            vap_molnet = vap.molnet
+            condensate_molfrac = cached['condensate_molfrac']
+            vle_top = cached['vle_top']
+            cached['L_Rmol'] = L_Rmol = R*vap_molnet
+            cached['V_Rmol'] = V_Rmol = (R+1)*vap_molnet
+            condensate = cached['condensate']
+            condensate.setflow(condensate_molfrac, vle_top)
+            condensate.T = vap.T
+            condensate.P = vap.P
+            condensate.mol *= L_Rmol
+            mu = 1000*condensate.mu # mPa*s
+            K_light = y_stages[-1]/x_stages[-1] 
+            K_heavy = (1-y_stages[-1])/(1-x_stages[-1])
+            alpha = K_light/K_heavy
+            cached['Rectifying Section Efficiency'] = E_rectifier = self._calc_MurphreeEfficiency(mu, alpha, L_Rmol, V_Rmol)
+            
+            # Calculate Murphree Efficiency for stripping section
+            mu = liq.mu # mPa*s
+            cached['V_Smol'] = V_Smol = (R+1)*vap_molnet - sum(vap_mol)
+            cached['L_Smol'] = L_Smol = R*vap_molnet + sum(liq_mol) 
+            K_light = y_stages[0]/x_stages[0] 
+            K_heavy = (1-y_stages[0])/(1-x_stages[0] )
+            alpha = K_light/K_heavy
+            cached['Stripping Section Efficiency'] = E_stripper = self._calc_MurphreeEfficiency(mu, alpha, L_Smol, V_Smol)
+            
+            # Calculate actual number of stages
+            mid_stage = feed_stage - 0.5
+            N_rectifier = np.ceil(mid_stage/E_rectifier)
+            N_stripper = np.ceil( (N_stages-mid_stage)/E_stripper )
+        return N_rectifier, N_stripper
+
+    def _design(self):
+        distillate, bottoms = self.outs
         kwargs = self._kwargs
         cached = self._cached
-        bubble_point = liq._bubble_point
+        Design = self._results['Design']
+        bubble_point = bottoms._bubble_point
 
         # Some important info
         LHK_index = cached['LHK_index']
@@ -806,7 +848,7 @@ class Distillation(Dist):
         y_top, x_bot = kwargs['y_top'], kwargs['x_bot']
 
         # Feed light key mol fraction
-        Nspecies = liq._Nspecies
+        Nspecies = bottoms._Nspecies
         liq_mol = np.zeros(Nspecies)
         vap_mol = np.zeros(Nspecies)
         for s in self.ins:
@@ -876,120 +918,18 @@ class Distillation(Dist):
                 feed_stage = i+1
         stages = len(x_stages)
         
-        # Set results
-        Operation = self._results['Operation']
-        Lr = cached['condensate_molfrac']*(vap.molnet*R)
-        Hvapm = np.array([getattr(s, 'Hvapm') for s in cached['vle_top']])
-        
-        # Condenser Duty
-        cooling = -sum(Hvapm*Lr)
-        
-        # Reboiler Duty
-        heating = (vap.H + liq.H) - sum(s.H for s in self.ins) - cooling
-        
-        # Calculate Utilities
-        self.heat_utilities[0](cooling, vap.T, vap.T)
-        self.heat_utilities[1](heating, liq.T, liq.T)
-        
         # Results
-        Operation['Theoretical feed stage'] = feed_stage
-        Operation['Theoretical stages'] = stages
-        Operation['Minimum reflux'] = Rmin
-        Operation['Reflux'] = R
-        Operation['T_condenser'] = vap.T# K
-        Operation['T_boiler'] = liq.T   # K
-        Operation['Cooling'] = cooling  # kJ/hr
-        Operation['Heating'] = heating  # kJ/hr
-        return Operation  
-    
-    def _calc_Nstages(self) -> 'Nstages':
-        """Return a tuple with the actual number of stages for the rectifier and the stripper."""
-        vap, liq = self.outs
-        cached = self._cached
-        results = self._results
-        Operation = results['Operation']
-        x_stages = cached['x_stages']
-        y_stages = cached['y_stages']
-        R = Operation['Reflux']
-        N_stages = Operation['Theoretical stages']
-        feed_stage = Operation['Theoretical feed stage']
-        liq_mol = cached['feed_liqmol']
-        vap_mol = cached['feed_vapmol']
-        
-        stage_efficiency = self.stage_efficiency
-        if stage_efficiency:
-            return N_stages/stage_efficiency
-        else:    
-            # Calculate Murphree Efficiency for rectifying section
-            vap_molnet = vap.molnet
-            condensate_molfrac = cached['condensate_molfrac']
-            vle_top = cached['vle_top']
-            cached['L_Rmol'] = L_Rmol = R*vap_molnet
-            cached['V_Rmol'] = V_Rmol = (R+1)*vap_molnet
-            condensate = cached['condensate']
-            condensate.setflow(condensate_molfrac, vle_top)
-            condensate.T = vap.T
-            condensate.P = vap.P
-            condensate.mol *= L_Rmol
-            mu = 1000*condensate.mu # mPa*s
-            K_light = y_stages[-1]/x_stages[-1] 
-            K_heavy = (1-y_stages[-1])/(1-x_stages[-1])
-            alpha = K_light/K_heavy
-            cached['Rectifying Section Efficiency'] = E_rectifier = self._calc_MurphreeEfficiency(mu, alpha, L_Rmol, V_Rmol)
-            
-            # Calculate Murphree Efficiency for stripping section
-            mu = liq.mu # mPa*s
-            cached['V_Smol'] = V_Smol = (R+1)*vap_molnet - sum(vap_mol)
-            cached['L_Smol'] = L_Smol = R*vap_molnet + sum(liq_mol) 
-            K_light = y_stages[0]/x_stages[0] 
-            K_heavy = (1-y_stages[0])/(1-x_stages[0] )
-            alpha = K_light/K_heavy
-            cached['Stripping Section Efficiency'] = E_stripper = self._calc_MurphreeEfficiency(mu, alpha, L_Smol, V_Smol)
-            
-            # Calculate actual number of stages
-            mid_stage = feed_stage - 0.5
-            N_rectifier = np.ceil(mid_stage/E_rectifier)
-            N_stripper = np.ceil( (N_stages-mid_stage)/E_stripper )
-        return N_rectifier, N_stripper
-
-    def _design(self):
-        """
-        Divided column:
-            * 'Rectifier stages': (#)
-            * 'Rectifier height': (ft)
-            * 'Rectifier diameter': (ft)
-            * 'Rectifier wall thickness': (in)
-            * 'Rectifier weight': (lb)
-            * 'Stripper stages': (#)
-            * 'Stripper height': (ft) 
-            * 'Stripper diameter': (ft)
-            * 'Stripper wall thickness': (in)
-            * 'Stripper weight': (lb)
-        One column:
-            * 'Rectifier stages': (#)
-            * 'Stripper stages': (#)
-            * 'Actual stages': (#)
-            * 'Height': (ft)
-            * 'Diameter': (ft)
-            * 'Wall thickness': (in)
-            * 'Weight': (lb)
-        """
-        distillate, bottoms = self.outs
-        kwargs = self._kwargs
-        results = self._results
-        cached = self._cached
-        Design = results['Design']
-        Operation = results['Operation']
+        Design['Theoretical feed stage'] = feed_stage
+        Design['Theoretical stages'] = stages
+        Design['Minimum reflux'] = Rmin
+        Design['Reflux'] = R
         Rstages, Sstages = self._calc_Nstages()
         calc_Height = self._calc_Height
         is_divided = self.is_divided
         TS = self.TS
-        Design['Rectifier stages'], Design['Stripper stages'] = Rstages, Sstages
-        Design['Actual stages'] = Rstages + Sstages
         
         ### Get diameter of rectifying section based on top plate ###
         
-        R = Operation['Reflux']
         condensate = cached['condensate']
         rho_L = condensate.rho
         sigma = condensate.sigma # dyn/cm
@@ -1040,6 +980,8 @@ class Distillation(Dist):
         rho_M = rho_Mdict[self._F_Mstr]
         
         if is_divided:
+            Design['Rectifier stages'] = Rstages
+            Design['Stripper stages'] =  Sstages
             Design['Rectifier height'] = H_R = calc_Height(TS, Rstages-1)
             Design['Stripper height'] = H_S = calc_Height(TS, Sstages-1)
             Design['Rectifier diameter'] = R_diameter
@@ -1049,6 +991,7 @@ class Distillation(Dist):
             Design['Rectifier weight'] = self._calc_Weight(R_diameter, H_R, tv, rho_M)
             Design['Stripper weight'] = self._calc_Weight(S_diameter, H_S, tv, rho_M)
         else:
+            Design['Actual stages'] = Rstages + Sstages
             Design['Height'] = H = calc_Height(TS, Rstages+Sstages-2)
             Design['Diameter'] = Di = max((R_diameter, S_diameter))
             Design['Wall thickness'] = tv = self._calc_WallThickness(Po, Di, H)
@@ -1056,22 +999,7 @@ class Distillation(Dist):
         return Design
         
     def _cost(self):
-        """
-        Divided column:
-            * 'Stripper trays': (USD)
-            * 'Stripper tower': (USD)
-            * 'Rectifier trays': (USD)
-            * 'Rectifier tower': (USD)
-            * 'Condenser': (USD)
-            * 'Boiler': (USD)
-        One column:
-            * 'Trays': (USD)
-            * 'Tower': (USD)
-            * 'Condenser': (USD)
-            * 'Boiler': (USD)
-        """
-        if not self.is_divided:
-            return super()._cost()
+        if not self.is_divided: return super()._cost()
         
         Design = self._results['Design']
         Cost = self._results['Cost']
@@ -1111,20 +1039,20 @@ class Distillation(Dist):
         
         # Cached Data
         vap, liq = self.outs
-        results = self._results['Operation']
+        Design = self._results['Design']
         cached = self._cached
         x_stages = cached.get('x_stages')
         if not x_stages:
-            self.operation()
+            self._desing()
             x_stages = cached.get('x_stages')
         kwargs = self._kwargs
         q_line = self._q_line
         y_top = kwargs['y_top']
         x_bot = kwargs['x_bot']
-        stages = results['Theoretical stages']
-        Rmin = results['Minimum reflux']
-        R = results['Reflux']
-        feed_stage = results['Theoretical feed stage']
+        stages = Design['Theoretical stages']
+        Rmin = Design['Minimum reflux']
+        R = Design['Reflux']
+        feed_stage = Design['Theoretical feed stage']
         
         # q_line
         def intersect2(x): return x - q_line(x)
@@ -1143,27 +1071,80 @@ class Distillation(Dist):
 class Stripper(Dist):
     line = 'Stripper'
     __doc__ = column_doc.replace('{Column Type}', 'Stripper')
-    _N_heat_utilities = 1    
-    
+    _N_heat_utilities = 0
     _graphics = Dist._graphics
+    _units ={'Minimum boil up': 'Ratio',
+             'Boil up': 'Ratio',
+             'Height': 'ft',
+             'Diameter': 'ft',
+             'Wall thickness': 'in',
+             'Weight': 'lb'}
     
     def _init(self):
         self._boiler = HXutility('*',
                                  ins=Stream('*'),
                                  outs=MixedStream('*'))
+        self.heat_utilities = self._boiler.heat_utilities
         self._cached = {'boil_up': Stream('*')}
     
-    def _operation(self):
-        """
-        * 'Theoretical feed stage': (#)
-        * 'Theoretical stages': (#)
-        * 'Minimum boil up': (Ratio)
-        * 'Boil up': (Ratio)
-        * 'T_boiler': (K) 
-        * 'Heating': (kJ/hr)
-        """
+    def plot_stages(self):
+        # Plot stages, graphical aid and equilibrium curve
+        self._plot_stages()
+        
+        # Cached Data
         vap, liq = self.outs
+        Design = self._results['Design']
+        cached = self._cached
+        x_stages = cached.get('x_stages')
+        if not x_stages:
+            self._design()
+            x_stages = cached.get('x_stages')
         kwargs = self._kwargs
+        y_top = kwargs['y_top']
+        x_bot = kwargs['x_bot']
+        stages = Design['Theoretical stages']
+        Bmin = Design['Minimum boil up']
+        B = Design['Boil up']
+        
+        # Graph Stripping section
+        ss = self._ss
+        plt.plot([x_bot, ss(y_top)], [x_bot, y_top])
+        plt.legend([f'Stages: {stages}', 'Graphical aid', 'eq-line', 'SOL'], fontsize=12)
+            
+        # Title
+        plt.title(f'McCabe Thiele Diagram (Bmin = {Bmin:.2f}, B = {B:.2f})')
+        plt.show()
+        return plt
+    
+    def _calc_Nstages(self):
+        """Return the actunal number of stages"""
+        vap, liq = self.outs
+        cached = self._cached
+        Design = self._results['Design']
+        x_stages = cached['x_stages']
+        y_stages = cached['y_stages']
+        LHK_index = cached['LHK_index']
+        B = Design['Boil up']
+        N_stages = Design['Theoretical stages']
+        
+        stage_efficiency =self.stage_efficiency
+        if stage_efficiency:
+            return N_stages/stage_efficiency
+        else:
+            # Calculate Murphree Efficiency for stripping section
+            mu = 1000 * liq.mu # mPa*s
+            cached['V_mol'] = V_mol = B*sum(liq.mol[LHK_index])
+            cached['L_mol'] = L_mol = liq.molnet + V_mol
+            K_light = y_stages[0]/x_stages[0] 
+            K_heavy = (1-y_stages[0])/(1-x_stages[0] )
+            alpha = K_light/K_heavy
+            cached['Stripping Section Efficiency'] = E_stripper = self._calc_MurphreeEfficiency(mu, alpha, L_mol, V_mol)
+        return np.ceil(N_stages/E_stripper)
+    
+    def _design(self):
+        distillate, bottoms = self.outs
+        kwargs = self._kwargs
+        Design = self._results['Design']
         cached = self._cached
         
         # Some important info
@@ -1173,7 +1154,7 @@ class Stripper(Dist):
         y_top, x_bot = kwargs['y_top'], kwargs['x_bot']
         # Get B_min (Boil up ratio)
         y_Rmin = y_top
-        T_guess, x = vap._dew_point(species, [y_Rmin, 1-y_Rmin], P)
+        T_guess, x = distillate._dew_point(species, [y_Rmin, 1-y_Rmin], P)
         x_Rmin = x[0]
         m = (y_Rmin-x_bot)/(x_Rmin-x_bot)
         Bmin = 1/(m-1)
@@ -1195,93 +1176,10 @@ class Stripper(Dist):
         self._equilibrium_staircase(ss, x_stages, y_stages, T_stages, ss(y_top))
         stages = len(x_stages)
         
-        # Set results
-        Operation = self._results['Operation']
-        Vs = cached['boilup_molfrac']*(liq.molnet*B)
-        Hvapm = tuple(getattr(s, 'Hvapm') for s in cached['vle_bot'])
-        
-        # Reboiler Duty
-        heating = sum(Hvapm*Vs)
-        
-        # Calculate Utilities
-        self.heat_utilities[0](heating, liq.T, liq.T)
-        
         # Results
-        Operation['Theoretical stages'] = stages
-        Operation['Minimum boil up'] = Bmin
-        Operation['Boil up'] = B
-        Operation['T_boiler'] = liq.T # K
-        Operation['Heating'] = heating   # kJ/hr
-        return Operation  
-    
-    def plot_stages(self):
-        # Plot stages, graphical aid and equilibrium curve
-        self._plot_stages()
-        
-        # Cached Data
-        vap, liq = self.outs
-        Operation = self._results['Operation']
-        cached = self._cached
-        x_stages = cached.get('x_stages')
-        if not x_stages:
-            self.operation()
-            x_stages = cached.get('x_stages')
-        kwargs = self._kwargs
-        y_top = kwargs['y_top']
-        x_bot = kwargs['x_bot']
-        stages = Operation['Theoretical stages']
-        Bmin = Operation['Minimum boil up']
-        B = Operation['Boil up']
-        
-        # Graph Stripping section
-        ss = self._ss
-        plt.plot([x_bot, ss(y_top)], [x_bot, y_top])
-        plt.legend([f'Stages: {stages}', 'Graphical aid', 'eq-line', 'SOL'], fontsize=12)
-            
-        # Title
-        plt.title(f'McCabe Thiele Diagram (Bmin = {Bmin:.2f}, B = {B:.2f})')
-        plt.show()
-        return plt
-    
-    def _calc_Nstages(self):
-        """Return the actunal number of stages"""
-        vap, liq = self.outs
-        cached = self._cached
-        results = self._results
-        Operation = results['Operation']
-        x_stages = cached['x_stages']
-        y_stages = cached['y_stages']
-        LHK_index = cached['LHK_index']
-        B = Operation['Boil up']
-        N_stages = Operation['Theoretical stages']
-        
-        stage_efficiency =self.stage_efficiency
-        if stage_efficiency:
-            return N_stages/stage_efficiency
-        else:
-            # Calculate Murphree Efficiency for stripping section
-            mu = 1000 * liq.mu # mPa*s
-            cached['V_mol'] = V_mol = B*sum(liq.mol[LHK_index])
-            cached['L_mol'] = L_mol = liq.molnet + V_mol
-            K_light = y_stages[0]/x_stages[0] 
-            K_heavy = (1-y_stages[0])/(1-x_stages[0] )
-            alpha = K_light/K_heavy
-            cached['Stripping Section Efficiency'] = E_stripper = self._calc_MurphreeEfficiency(mu, alpha, L_mol, V_mol)
-        return np.ceil(N_stages/E_stripper)
-    
-    def _design(self):
-        """
-            * 'Actual stages': (#)
-            * 'Height': (ft)
-            * 'Diameter': (ft)
-            * 'Wall thickness': (in)
-            * 'Weight': (lb)
-        """
-        distillate, bottoms = self.outs
-        kwargs = self._kwargs
-        results = self._results
-        cached = self._cached
-        Design = results['Design']
+        Design['Theoretical stages'] = stages
+        Design['Minimum boil up'] = Bmin
+        Design['Boil up'] = B
         
         ### Get number of stages and height ###
         

@@ -10,12 +10,12 @@ import os
 import IPython
 from graphviz import Digraph
 from .exceptions import notify_error
-from .flowsheet import Flowsheet
+from .flowsheet import find
 from .graphics import Graphics, default_graphics
 from .stream import Stream
 from .proxy_stream import ProxyStream
 from .heat_utility import HeatUtility
-from .utils import get_doc_units, color_scheme, Ins, Outs, missing_stream
+from .utils import color_scheme, Ins, Outs, missing_stream
 from bookkeep import SmartBook
 from .power_utility import PowerUtility
 from . import np, pd
@@ -27,25 +27,24 @@ dir_path = os.path.dirname(os.path.realpath(__file__)) + '\\'
 
 __all__ = ('Unit',)
 
-# def _fill_from_dict(dct, keys, vals, prev, inst, dict_):
-#     for key, val in dct.items():
-#         if inst(val, dict_):
-#             if val:
-#                 prev.append(val)
-#                 keys.append(key + ':'); vals.append('')
-#                 _fill_from_dict(val, keys, vals, prev, inst, dict_)
-#         else: 
-#             keys.append(key); vals.append(val)
-
-# def _fill_from_dict_with_units(dct, keys, vals, prev, inst, dict_, units):
-#     for key, val in dct.items():
-#         if inst(val, dict_):
-#             if val:
-#                 prev.append(val)
-#                 keys.append(key + ':'); vals.append(('', ''))
-#                 _fill_from_dict_with_units(val, keys, vals, prev, inst, dict_, units)
-#         else: 
-#             keys.append(key); vals.append((units.get(key, ''), val))
+def _checkbounds(self, key, value):
+        """Return True if value is within bounds. Return False if value is out of bounds and issue a warning.
+        
+        **Parameters**
+        
+            **key:** [str] Name of value
+            
+            **value:** [number, Quantity, or array]
+            
+        """
+        bounds = self._bounds.get(key)
+        if bounds is None:
+            within_bounds = True
+        else:
+            within_bounds = SmartBook._checkbounds(key, value,
+                                                   self._units.get(key, ''),
+                                                   bounds, 4, self)
+        return within_bounds
 
 
 # %% Unit metaclass
@@ -53,7 +52,7 @@ __all__ = ('Unit',)
 _Unit_is_done = False
 
 class metaUnit(type):
-    """Unit metaclass for wrapping up methods with error notifiers, adding key word arguments, and keeping track for Unit lines and inheritance. Also adds the instances attribute to keep track of instances of the class.
+    """Unit metaclass for wrapping up methods with error notifiers, adding key word arguments, and keeping track for Unit lines and inheritance.
 
     **Optional class definitions**
 
@@ -67,9 +66,6 @@ class metaUnit(type):
 
         **_run()**
             Run rigorous simulation.
-
-        **_operation()**
-            Update results "Operation" dictionary with operation requirements.
 
         **_design()**
             Update results "Design" dictionary with design requirements.
@@ -95,6 +91,7 @@ class metaUnit(type):
 
 
     """
+    _enforce_bounds = True
     _CEPCI = 567.5 # Chemical engineering plant cost index (567.5 at 2017)
     def __new__(mcl, clsname, superclasses, new_definitions):
         """Prepare unit methods with wrappers for error notification, and add kwargs as key word arguments to __init__. Also initiallize by adding new Unit class to the main flowsheet line dictionary."""
@@ -138,45 +135,23 @@ class metaUnit(type):
                     cls._graphics = Graphics()
             
             cls.line = line = re.sub(r"\B([A-Z])", r" \1", line).capitalize()
-            
-            # Add class to line dictionary
-            linedict = Flowsheet._main.line
-            if line is not 'Unit': # Do not include abstract Unit classes
-                if not line in linedict:
-                    linedict[line] = []
-                elif cls.__name__ not in [cls.__name__ for cls in linedict[line]]:
-                    linedict[line].append(cls)
-            
-            if '__init__' not in new_definitions:
+            kwargs = new_definitions.get('_kwargs')
+            if kwargs and '__init__' not in new_definitions:
                 # Key word arguments to replace
-                kwargs = ''
                 inputs = ''
-                for key, val in cls._kwargs.items():
-                    if type(val) is str:
-                        val = f"'{val}'"
-                    kwargs += ', ' + key + ' = ' + str(val)
-                    inputs += ', ' + key + ' = ' + key
+                for key in kwargs.keys():
+                    inputs += ', ' + key + '=' + key
         
                 # Begin changing __init__ to have kwargs by making a string to execute
-                str2exec =  f"def __init__(self, ID='', outs=(), ins=None{kwargs}):\n"
-                str2exec += f"     initfunc(self, ID, outs, ins{inputs})"
+                str2exec = f"def __init__(self, ID='', outs=(), ins=None{inputs}):\n"
+                str2exec+= f"     _(self, ID, outs, ins{inputs})"
         
                 # Execute string and replace __init__
-                globs = {'initfunc': Unit.__init__,
-                         'Stream': Stream}
+                globs = {'_': Unit.__init__}
+                globs.update(kwargs)
                 locs = {}
                 exec(str2exec, globs, locs)
                 cls.__init__ = locs['__init__']
-            
-            # Initialize units of measure
-            units = new_definitions.get('_units')
-            if units: units.update(Unit._units)
-            else: units = cls._units
-            
-            # Get units of measure of each key method
-            get_doc_units(units, cls._operation.__doc__)
-            get_doc_units(units, cls._design.__doc__)
-            get_doc_units(units, cls._cost.__doc__)
             
             # Make sure bounds are arrays for boundscheck
             bounds = cls._bounds
@@ -184,6 +159,16 @@ class metaUnit(type):
                 bounds[key] = np.asarray(value)
         
         return cls
+    
+    @property
+    def enforce_bounds(cls):
+        """[bool] True if bounds are checked for all instances and False otherwise."""
+        return cls._enforce_bounds
+    @enforce_bounds.setter
+    def enforce_bounds(cls, val):
+        val = bool(val)
+        cls._checkbounds = _checkbounds if val else SmartBook._boundsignore
+        cls._enforce_bounds = val
     
     @property
     def CEPCI(cls):
@@ -210,7 +195,7 @@ class metaUnit(type):
 
 
 class Unit(metaclass=metaUnit):
-    """Abstract parent class for Unit objects. Child objects must contain setup, run, operation, design and cost methods to setup internal objects, estimate stream outputs of a Unit and find operating, design and cost information. These methods should store information in the '_results' dictionary (an instance attribute).  
+    """Abstract parent class for Unit objects. Child objects must contain _setup, _run, _design and _cost methods to setup internal objects, estimate stream outputs of a Unit and find design and cost information. These methods should store information in the '_results' dictionary (an instance attribute).  
 
     **Parameters**
 
@@ -241,9 +226,12 @@ class Unit(metaclass=metaUnit):
     """ 
     ### Abstract Attributes ###
     
-    # [dict] Default units
-    _units = {'Utility cost': 'USD/hr',
-              'Purchase cost': 'USD'}
+    # [dict] Default units for results Operation and Design
+    _units = {}
+    
+    # [dict] Units for summary dictionary
+    _summary_units = {'Utility cost': 'USD/hr',
+                      'Purchase cost': 'USD'}
     
     # [bool] Should be True if it has any associated cost
     _has_cost = True
@@ -361,8 +349,7 @@ class Unit(metaclass=metaUnit):
     
     def _init_results(self):
         """Initialize results attribute."""
-        self._results = {'Operation': {},
-                         'Design': {},
+        self._results = {'Design': {},
                          'Cost': {},
                          'Summary': {'Purchase cost': 0, 'Utility cost': 0}}
     
@@ -392,7 +379,7 @@ class Unit(metaclass=metaUnit):
             if power_utility: utils.append(power_utility)
                 
             # Itemized purchase costs
-            self._purchase_costs = self._results['Cost'].values
+            self._purchase_costs = self._results['Cost'].values()
     
     def _setup_linked_streams(self):
         if self._has_linked_streams: 
@@ -443,19 +430,17 @@ class Unit(metaclass=metaUnit):
     def _init(self): pass
     def _setup(self): pass
     def _run(self): pass
-    def _operation(self): pass
     def _design(self): pass
     def _cost(self): pass
 
     # Summary
     def _summary(self):
         """Run _operation, _design, and _cost methods and update results "Summary" dictionary with total utility costs and purchase price."""
-        self._operation()
         self._design()
         self._cost()
         Summary = self._results['Summary']
         Summary['Utility cost'] = sum(i.cost for i in self._utils)
-        Summary['Purchase cost'] = sum(self._purchase_costs())
+        Summary['Purchase cost'] = sum(self._purchase_costs)
         return Summary
 
     def simulate(self):
@@ -468,14 +453,24 @@ class Unit(metaclass=metaUnit):
         """Return key results from simulation as a DataFrame if `with_units` is True or as a Series otherwise."""
         results = self._results
         ID = self.ID
-        units = self._units
-        keys = []
-        vals = []
+        keys = []; addkey = keys.append
+        vals = []; addval = vals.append
         if with_units:
+            results = results.copy()
+            units = self._units
+            Cost = results.pop('Cost')
+            Summary = results.pop('Summary')
             for ko, vo in results.items():
                 for ki, vi in vo.items():
-                    keys.append((ko, ki))
-                    vals.append((units.get(ki, ''), vi))
+                    addkey((ko, ki))
+                    addval((units.get(ki, ''), vi))
+            for ki, vi in Cost.items():
+                addkey(('Cost', ki))
+                addval(('USD', vi))
+            su = self._summary_units
+            for ki, vi in Summary.items():
+                addkey(('Summary', ki))
+                addval((su[ki], vi))
             df = pd.DataFrame(vals,
                               pd.MultiIndex.from_tuples(keys),
                               ('Units', ID))
@@ -484,32 +479,13 @@ class Unit(metaclass=metaUnit):
         else:
             for ko, vo in results.items():
                 for ki, vi in vo.items():
-                    keys.append((ko, ki))
-                    vals.append(vi)
+                    addkey((ko, ki))
+                    addval(vi)
             series = pd.Series(vals, pd.MultiIndex.from_tuples(keys))
             series.name = ID
             return series
 
-    def _boundscheck(self, key, value):
-        """Return True if value is within bounds. Return False if value is out of bounds and issue a warning.
-        
-        **Parameters**
-        
-            **key:** [str] Name of value
-            
-            **value:** [number, Quantity, or array]
-            
-        """
-        bounds = self._bounds.get(key)
-        stacklevel = 4
-        units = self._units.get(key, '')
-        if bounds is None:
-            within_bounds = True
-        else:
-            within_bounds = SmartBook._checkbounds(key, value, units, bounds,
-                                                   stacklevel, self)
-        
-        return within_bounds
+    _checkbounds = _checkbounds
 
     @property
     def CEPCI(self):
@@ -534,7 +510,7 @@ class Unit(metaclass=metaUnit):
             ID = letter + str(number)
             if not self._ID:
                 self._ID = ID
-                Flowsheet._main.unit[ID] = self
+                find.unit[ID] = self
                 return
         elif ID == '*':
             self._ID = ID
@@ -544,7 +520,7 @@ class Unit(metaclass=metaUnit):
         else:
             ID = ID.replace(' ', '_')
         # Remove old reference to this object
-        unitdict = Flowsheet._main.unit
+        unitdict = find.unit
         if self._ID in unitdict: del unitdict[self._ID]
         unitdict[ID] = self
         self._ID = ID

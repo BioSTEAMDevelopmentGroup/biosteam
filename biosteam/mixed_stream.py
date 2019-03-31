@@ -222,10 +222,10 @@ class MixedStream(Stream):
     def phase(self):
         """String denoting all phases present"""
         phase = ''
-        if any(self._solid_mol != 0): phase += 's'
-        if any(self._liquid_mol != 0): phase += 'l'
-        if any(self._LIQUID_mol != 0): phase += 'L'
-        if any(self._vapor_mol != 0): phase += 'g'
+        if (self._solid_mol != 0).any(): phase += 's'
+        if (self._liquid_mol != 0).any(): phase += 'l'
+        if (self._LIQUID_mol != 0).any(): phase += 'L'
+        if (self._vapor_mol != 0).any(): phase += 'g'
         if phase == '': phase = self._default_phase
         return phase
 
@@ -258,7 +258,7 @@ class MixedStream(Stream):
     @property
     def solid_molnet(self):
         """solid phase net molar flow rate (kg/hr)."""
-        return sum(self._solid_mol)
+        return self._solid_mol.sum()
 
     # Mass
     @property
@@ -273,12 +273,12 @@ class MixedStream(Stream):
     @property
     def solid_massfrac(self):
         """solid phase mass fractions."""
-        return fraction(self.solid_mass).view(tuple_array)
+        return fraction(self._solid_mol * self._MW).view(tuple_array)
 
     @property
     def solid_massnet(self):
         """solid phase net mass flow rate (kg/hr)."""
-        return sum(self.solid_mass)
+        return self._solid_mass.sum()
 
     # Volumetric
     @property
@@ -293,12 +293,12 @@ class MixedStream(Stream):
     @property
     def solid_volfrac(self):
         """solid phase volumetric fractions."""
-        return fraction(self.solid_vol).view(tuple_array)
+        return fraction(self._solid_vol).view(tuple_array)
 
     @property
     def solid_volnet(self):
         """solid phase net volumetric flow rate (m3/hr)."""
-        return self._phaseprop_molar_flownet('Vm', 's')*1000
+        return self._solid_vol.sum()
 
     ### Liquids ###
 
@@ -320,7 +320,7 @@ class MixedStream(Stream):
     @property
     def liquid_molnet(self):
         """liquid phase net molar flow rate (kg/hr)."""
-        return self.liquid_mol.sum()
+        return self._liquid_mol.sum()
 
     # Mass
     @property
@@ -335,12 +335,12 @@ class MixedStream(Stream):
     @property
     def liquid_massfrac(self):
         """liquid phase mass fractions."""
-        return fraction(self.liquid_mass).view(tuple_array)
+        return fraction(self._liquid_mass).view(tuple_array)
 
     @property
     def liquid_massnet(self):
         """liquid phase net mass flow rate (kg/hr)."""
-        return sum(self.liquid_mass)
+        return self._liquid_mass.sum()
 
     # Volumetric
     @property
@@ -355,12 +355,12 @@ class MixedStream(Stream):
     @property
     def liquid_volfrac(self):
         """liquid phase volumetric fractions."""
-        return fraction(self.liquid_vol).view(tuple_array)
+        return fraction(self._liquid_vol).view(tuple_array)
 
     @property
     def liquid_volnet(self):
         """liquid phase net volumetric flow rate (m3/hr)."""
-        return self._phaseprop_molar_flownet('Vm', 'l')*1000
+        return self._liquid_vol.sum()
 
     ### LIQUID ###
 
@@ -382,7 +382,7 @@ class MixedStream(Stream):
     @property
     def LIQUID_molnet(self):
         """LIQUID phase net molar flow rate (kg/hr)."""
-        return sum(self._LIQUID_mol)
+        return self._LIQUID_mol.sum()
 
     # Mass
     @property
@@ -397,12 +397,12 @@ class MixedStream(Stream):
     @property
     def LIQUID_massfrac(self):
         """LIQUID phase mass fractions."""
-        return fraction(self.LIQUID_mass).view(tuple_array)
+        return fraction(self._LIQUID_mol * self._MW).view(tuple_array)
 
     @property
     def LIQUID_massnet(self):
         """LIQUID phase net mass flow rate (kg/hr)."""
-        return sum(self.LIQUID_mass)
+        return self._LIQUID_mass.sum()
 
     # Volumetric
     @property
@@ -417,12 +417,12 @@ class MixedStream(Stream):
     @property
     def LIQUID_volfrac(self):
         """LIQUID phase volumetric fractions."""
-        return fraction(self.LIQUID_vol).view(tuple_array)
+        return fraction(self._LIQUID_vol).view(tuple_array)
 
     @property
     def LIQUID_volnet(self):
         """LIQUID phase net volumetric flow rate (m3/hr)."""
-        return self._phaseprop_molar_flownet('Vm', 'L')*1000
+        return self._LIQUID_vol.sum()
 
     ### Vapor ###
 
@@ -459,12 +459,12 @@ class MixedStream(Stream):
     @property
     def vapor_massfrac(self):
         """vapor phase mass fractions."""
-        return fraction(self.vapor_mass).view(tuple_array)
+        return fraction(self._vapor_mol * self._MW).view(tuple_array)
 
     @property
     def vapor_massnet(self):
         """vapor phase net mass flow rate (kg/hr)."""
-        return self.vapor_mass.sum()
+        return self._vapor_mass.sum()
 
     # Volumetric
     @property
@@ -479,13 +479,13 @@ class MixedStream(Stream):
     @property
     def vapor_volfrac(self):
         """vapor phase volumetric fractions."""
-        return fraction(self.vapor_vol).view(tuple_array)
+        return fraction(self._vapor_vol).view(tuple_array)
 
     @property
     def vapor_volnet(self):
         """vapor phase net volumetric flow rate (m3/hr)."""
-        return self._phaseprop_molar_flownet('Vm', 'g')*1000
-
+        return self._vapor_vol.sum()
+    
     ### Overall ###
 
     # Flow rates
@@ -502,7 +502,7 @@ class MixedStream(Stream):
     @property
     def vol(self):
         """Volumetric flow rates (kmol/hr)."""
-        return sum(self._volarray).view(tuple_array)
+        return self._volarray.sum(0).view(tuple_array)
 
     # Fractions
     @property
@@ -513,12 +513,12 @@ class MixedStream(Stream):
     @property
     def massfrac(self):
         """Mass fractions."""
-        return fraction(self.mass).view(tuple_array)
+        return fraction(self._molarray.sum(0) * self._MW).view(tuple_array)
 
     @property
     def volfrac(self):
         """Volumetric fractions."""
-        return fraction(self.vol).view(tuple_array)
+        return fraction(self._volarray.sum(0)).view(tuple_array)
 
     # Net flow rates
     @property
@@ -529,7 +529,7 @@ class MixedStream(Stream):
     @property
     def massnet(self):
         """Mass net flow rate (kmol/hr)."""
-        return self.solid_massnet + self.liquid_massnet + self.LIQUID_massnet + self.vapor_massnet
+        return (self._molarray.sum(0)*self._MW).sum()
 
     @property
     def volnet(self):

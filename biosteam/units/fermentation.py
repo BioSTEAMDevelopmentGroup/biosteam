@@ -50,7 +50,10 @@ class Fermentation(BatchReactor):
         :doc:`Fermentation Example`
         
     """
-        
+    _units = {'Reactor volume': 'm3',
+              'Cycle time': 'hr',
+              'Loading time': 'hr',
+              'Total dead time': 'hr'}
     _kwargs = {'tau': None, # Reaction time
                'efficiency': None}  # Theoretical efficiency
     _N_heat_utilities = 0
@@ -95,6 +98,7 @@ class Fermentation(BatchReactor):
                          0.18)  # a
     @property
     def N_reactors(self):
+        """Enforced Number of batch reactors."""
         return self._N_reactors
     
     @N_reactors.setter
@@ -204,7 +208,7 @@ class Fermentation(BatchReactor):
         out.T = 32 + 273.15
         
         # Fermentation
-        self._results['Operation']['Efficiency'] = eff = (
+        self._results['Design']['Efficiency'] = eff = (
             kwargs.get('efficiency')
             or self._calc_efficiency(out, kwargs['tau'])
             )
@@ -232,13 +236,6 @@ class Fermentation(BatchReactor):
         self.N_reactors -= 1
         
     def _design(self):
-        """
-        * 'Number of reactors': (#)
-        * 'Reactor volume':  (m3)
-        * 'Cycle time': (hr)
-        * 'Loading time': (hr)
-        * 'Total dead time': (hr)
-        """
         N_reactors = self.N_reactors
         if N_reactors is None:
             self._N_reactors = 2
@@ -259,8 +256,7 @@ class Fermentation(BatchReactor):
         hx.ins[0] = new_flow
         hu = hx.heat_utilities[0]
         hu(self.Hnet/N_reactors, self.outs[0].T)
-        hx._Duty = hu.duty
-        hx._design()
+        hx._design(hu.duty)
         hx._cost()
         hu.duty *= N_reactors
         hu.cost *= N_reactors
@@ -268,11 +264,6 @@ class Fermentation(BatchReactor):
         return Design
     
     def _cost(self):
-        """
-        * 'Reactors': (USD)
-        * 'Coolers': (USD)
-        * 'Agitators': (USD)
-        """
         results = self._results
         Cost = results['Cost']
         Design = results['Design']

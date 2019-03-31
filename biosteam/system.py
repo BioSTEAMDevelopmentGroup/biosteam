@@ -9,13 +9,12 @@ import IPython
 from scipy.optimize import newton
 from graphviz import Digraph
 from .exceptions import Stop, SolverError, notify_error
-from .flowsheet import Flowsheet
+from .flowsheet import find
 from .stream import Stream
 from .unit import Unit
 from . import np
 from .process import Process
 from .utils import color_scheme, missing_stream, strtuple, function
-from bookkeep import SmartBook
 CS = color_scheme
 
 __all__ = ('System',)
@@ -38,11 +37,10 @@ def evaluate(self, command=None):
     if command:
         # Build locals dictionary for evaluating command
         lcs = {} 
-        main = Flowsheet.main
         for attr in ('stream', 'unit', 'system'):
-            dct = getattr(main, attr)
+            dct = getattr(find, attr)
             lcs.update(dct)
-        lcs['find'] = main.find
+        lcs['find'] = find
         try:
             out = eval(command, {}, lcs)            
         except Exception as err:
@@ -81,7 +79,7 @@ def notify_run_wrapper(self, func):
     def wrapper(*args, **kwargs):
         if self.recycle:
             func(*args, **kwargs)
-            x = self.solver_error['iter']
+            x = self._solver_error['iter']
             input(f'        Finished loop #{x}\n')
         else:
             func(*args, **kwargs)
@@ -108,8 +106,6 @@ class _systemUnit(Unit):
     ID = None
     
 _systemUnit._graphics.node['peripheries'] = '2'
-_systemUnit._instances = None
-del Flowsheet._main.line['System']
 
 
 # %% Process flow
@@ -135,25 +131,19 @@ class System:
     ### Class attributes ###
     
     #: [dict] Dictionary of convergence options regarding maximum number of iterations and molar flow rate and temperature tolerances
-    options = SmartBook(units={'Maximum iteration': '#',
-                               'Molar tolerance': 'kmol/hr',
-                               'Temperature tolerance': 'K'},                  
-                        **{'Maximum iteration': 100, 
-                           'Molar tolerance': 0.10, 
-                           'Temperature tolerance': 0.10})
+    options = {'Maximum iteration': 100,
+               'Molar tolerance (kmol/hr)': 0.10,
+               'Temperature tolerance (K)': 0.10}
     
     # [float] Error of the spec objective function
     _spec_error = None
 
     # [dict] Cached downstream systems by (system, unit, with_facilities) keys
     _cached_downstream_systems = {} 
-    
-    # [dict] Cached downstream networks by (system, unit) keys
-    _cached_downstream_networks = {}
 
     def __init__(self, ID, network=(), recycle=None, facilities=()):
         #: [dict] Current molar flow and temperature errors and number of iterations made
-        self.solver_error = {'mol_error': 0,
+        self._solver_error = {'mol_error': 0,
                              'T_error': 0,
                              'spec_error': 0,
                              'iter': 0}
@@ -255,7 +245,7 @@ class System:
     @ID.setter
     def ID(self, ID):
         ID = ID.replace(' ', '_')
-        Flowsheet._main.system[ID] = self
+        find.system[ID] = self
         self._ID = ID
 
     @property
@@ -512,7 +502,7 @@ class System:
             elif inst(a, System): a._converge()
             elif inst(a, function): a()
             elif inst(a, Process): a._run()
-        self.solver_error['iter'] += 1
+        self._solver_error['iter'] += 1
     
     # Methods for convering the recycle stream
     def _fixed_point(self):
@@ -520,8 +510,8 @@ class System:
         # Reused attributes
         recycle = self.recycle
         run = self._run
-        solver_error = self.solver_error
-        maxiter, mol_tol, T_tol = (*self.options.values(),)
+        solver_error = self._solver_error
+        maxiter, mol_tol, T_tol = self.options.values()
 
         def set_solver_error():
             solver_error['mol_error'] = mol_error
@@ -548,8 +538,8 @@ class System:
         # Reused attributes
         recycle = self.recycle
         run = self._run
-        maxiter, mol_tol, T_tol = (*self.options.values(),)
-        solver_error = self.solver_error
+        maxiter, mol_tol, T_tol = self.options.values()
+        solver_error = self._solver_error
 
         def set_solver_error():
             solver_error['mol_error'] = mol_error
@@ -562,7 +552,7 @@ class System:
         x1 = np.zeros(len_)
         gx1 = np.zeros(len_)
         ones = np.ones(len_)
-        s = np.ones(len_)
+        s = np.zeros(len_)
 
         # First run
         x0[:-1] = recycle.mol
@@ -636,7 +626,7 @@ class System:
 
         """
         converge = self._converge_method
-        solver_error = self.solver_error
+        solver_error = self._solver_error
 
         def error(val):
             setter(val)
@@ -651,7 +641,7 @@ class System:
         self._converge_method = converge_spec
 
     def _reset_iter(self):
-        self.solver_error['iter'] = 0
+        self._solver_error['iter'] = 0
         for system in self.subsystems:
             system._reset_iter()
     
@@ -678,7 +668,7 @@ class System:
     
     def reset_flows(self):
         """Reset all process streams to zero flow."""
-        self.solver_error = {'mol_error': 0,
+        self._solver_error = {'mol_error': 0,
                              'T_error': 0,
                              'spec_error': 0,
                              'iter': 0}
@@ -751,7 +741,7 @@ class System:
 
     def _error_info(self):
         """Return information on convergence."""
-        x = self.solver_error
+        x = self._solver_error
         recycle = self.recycle
 
         error_info = ''

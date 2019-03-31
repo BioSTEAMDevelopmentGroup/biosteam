@@ -29,9 +29,7 @@ from .clarifier import Clarifier
 from .yeast_centrifuge import YeastCentrifuge
 from .crushing_mill import CrushingMill
 from .rvf import RVF
-from .screener import Screener
 from .molecular_sieve import MolecularSieve, MolSieve
-from .separator import Separator
 from .reactor import Reactor, BatchReactor
 from .balance import MassBalance, EnergyBalance
 from .conveying_belt import ConveyingBelt
@@ -42,7 +40,7 @@ from .vibrating_screen import VibratingScreen
 
 # %% All units
 
-__all__ = ['Mixer', 'Splitter', 'InvSplitter', 'Tank', 'MixTank', 'StorageTank', 'Separator', 'HX', 'HXutility', 'HXprocess', 'Pump', 'Distillation', 'Stripper', 'Transesterification', 'Fermentation', 'Centrifuge_LLE', 'MultiEffectEvaporator', 'EnzymeTreatment', 'CrushingMill', 'RVF', 'Screener', 'MolecularSieve', 'MolSieve', 'PCT', 'YeastCentrifuge', 'Clarifier', 'Reactor', 'BatchReactor', 'MassBalance', 'EnergyBalance', 'ConveyingBelt', 'Shredder', 'MagneticSeparator', 'ScrewFeeder', 'VibratingScreen']
+__all__ = ['Mixer', 'Splitter', 'InvSplitter', 'Tank', 'MixTank', 'StorageTank', 'HX', 'HXutility', 'HXprocess', 'Pump', 'Distillation', 'Stripper', 'Transesterification', 'Fermentation', 'Centrifuge_LLE', 'MultiEffectEvaporator', 'EnzymeTreatment', 'CrushingMill', 'RVF', 'MolecularSieve', 'MolSieve', 'PCT', 'YeastCentrifuge', 'Clarifier', 'Reactor', 'BatchReactor', 'MassBalance', 'EnergyBalance', 'ConveyingBelt', 'Shredder', 'MagneticSeparator', 'ScrewFeeder', 'VibratingScreen']
 
 __all__.extend(designtools.__all__)
 __all__.extend(flash.__all__)

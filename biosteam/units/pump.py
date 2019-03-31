@@ -75,6 +75,10 @@ class Pump(Unit):
         :doc:`Pump Example`
     
     """
+    _units = {'Ideal power': 'hp',
+              'Power': 'hp',
+              'Head': 'ft',
+              'Flow rate': 'gpm'}
     _N_ins = 1
     _N_outs = 1
     _has_power_utility = True
@@ -126,16 +130,8 @@ class Pump(Unit):
             o.copylike(i)
             if P: o.P = P
     
-    def _operation(self):
-        """
-        * 'Type': [str] Pump type
-        * 'Ideal power': (hp)
-        * 'Efficiency': ()
-        * 'Power': (hp)
-        * 'Head': (ft)
-        * 'Flow rate': (gpm)
-        """
-        Oper = self._results['Operation']
+    def _design(self):
+        Design = self._results['Design']
         si = self.ins[0]
         so = self.outs[0]
         Pi = si.P
@@ -147,39 +143,34 @@ class Pump(Unit):
         Type = self.Type
         if Type == 'Default':
             Type = self._default_type(Pi, Po, Qi)
-        Oper['Type'] = Type
+        Design['Type'] = Type
         
         # Get ideal power
         if abs(Po - Pi) < 1:    
             Po = self.P_startup
         power_ideal = self._calc_PowerPressure(Pi, Po, Qi)*3.725e-7
-        Oper['Ideal power'] = power_ideal # hp
+        Design['Ideal power'] = power_ideal # hp
         
-        Oper['Flow rate'] = q = Qi*4.403
+        Design['Flow rate'] = q = Qi*4.403
         if power_ideal <= max_hp:
-            Oper['Efficiency'] = e = self._calc_Efficiency(q, power_ideal)
-            Oper['Power'] = power =  self._nearest_PumpPower(power_ideal/e)
-            Oper['N_pumps'] = 1
-            Oper['Head'] = self._calc_Head(power, mass)
+            Design['Efficiency'] = e = self._calc_Efficiency(q, power_ideal)
+            Design['Power'] = power =  self._nearest_PumpPower(power_ideal/e)
+            Design['N_pumps'] = 1
+            Design['Head'] = self._calc_Head(power, mass)
         else:
             raise Exception('More than 1 pump required, but not yet implemented.')
         
         self.power_utility(power/1.341)
-        return Oper
     
     def _cost(self):
-        """
-        * 'Pump': (USD)
-        * 'Motor': (USD)
-        """
         # Parameters
         results = self._results
         Cost = results['Cost']
-        Oper = results['Operation']
-        Type = Oper['Type']
-        q = Oper['Flow rate']
-        h = Oper['Head']
-        p = Oper['Power']
+        Design = results['Design']
+        Type = Design['Type']
+        q = Design['Flow rate']
+        h = Design['Head']
+        p = Design['Power']
         F_M = self._F_M
         I = self.CEPCI/567
         lnp = ln(p)

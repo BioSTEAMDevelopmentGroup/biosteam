@@ -41,7 +41,6 @@ class EnzymeTreatment(Unit):
     
     def _cost(self):
         he = self._heat_exchanger
-        he._operation()
         he._design()
         he._cost()
         

@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from scipy.optimize import newton, least_squares
 from .utils import material_array, property_array, PropertyFactory, \
                    tuple_array, reorder, fraction, Sink, Source
-from .flowsheet import Flowsheet
+from .flowsheet import find
 from .species import Species
 from .compound import Compound
 from .exceptions import SolverError, EquilibriumError, \
@@ -23,6 +23,7 @@ inf = np.inf
 ln = np.log
 exp = np.exp
 ndarray = np.ndarray
+array = np.array
 #plt.style.use('dark_background')
 #CS = color_scheme
 
@@ -167,7 +168,7 @@ class metaStream(type):
             CAS = tup(i.CAS for i in compounds)
             Nspecies = len(IDs)
             index = tup(range(Nspecies))
-            MW = tuple_array([i.MW for i in compounds])
+            MW = array([i.MW for i in compounds])
             for cl in (Stream, MS.MixedStream):
                 cl._num_compounds = tup(zip(index, compounds))
                 cl._num_IDs = tup(zip(index, IDs))
@@ -628,7 +629,7 @@ class Stream(metaclass=metaStream):
         self._species_dict = species.__dict__
         self._num_compounds = tup(zip(index, compounds))
         self._num_IDs = tup(zip(index, IDs))
-        self._MW = tuple_array([c.MW for c in compounds])
+        self._MW = array([c.MW for c in compounds])
 
     def _copy_species(self, stream):
         """Copy species data from stream."""
@@ -683,7 +684,7 @@ class Stream(metaclass=metaStream):
             ID = letter + num
             if not self._ID:
                 self._ID = ID
-                Flowsheet._main.stream[ID] = self
+                find.stream[ID] = self
                 return 
         elif ID == '*':
             # Ignore and do not include in find dicts
@@ -694,7 +695,7 @@ class Stream(metaclass=metaStream):
         else:
             ID = ID.replace(' ', '_')
         # Remove old ref and set a new ref
-        stream = Flowsheet._main.stream
+        stream = find.stream
         if self._ID in stream: del stream[self._ID]
         stream[ID] = self
         self._ID = ID
@@ -709,9 +710,9 @@ class Stream(metaclass=metaStream):
         """Molecular weight of all species (array g/mol):     
 
         >>> s2.MW 
-        [46.06844, 18.01528]
+        tuple_array([46.06844, 18.01528])
         """
-        return self._MW
+        return self._MW.view(tuple_array)
 
     ### Flow properties ###
     
@@ -786,7 +787,7 @@ class Stream(metaclass=metaStream):
         >>> s1.molfrac
         tuple_array([0., 1.])
         """
-        return fraction(self._mol).view(tuple_array)
+        return fraction(self._molarray).view(tuple_array)
 
     @property
     def molnet(self):

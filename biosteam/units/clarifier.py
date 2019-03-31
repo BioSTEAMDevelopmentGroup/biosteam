@@ -24,8 +24,7 @@ class Clarifier(Unit):
     
     # Setting the working bounds for different materials
     _bounds = {'Area steel' : (80, 8000), 'Area concrete': (8000, 125000)}
-    _units = {'Settling area': 'ft^2',
-              'Cost': 'USD'}
+    _units =  {'Settling area': 'ft^2'}
     
     
     def _cost(self):
