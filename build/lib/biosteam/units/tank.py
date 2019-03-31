@@ -12,6 +12,7 @@ from .. import np
 
 class Tank(Unit):
     """Abstract Tank class."""
+    _units = {'Volume': 'm^3'}
     _N_ins = 1
     _N_outs = 1
     
@@ -49,10 +50,6 @@ Thessalonika, Greece, 2008 (book in Greek).
     _tau = 4*7*24
 
     def _design(self):
-        """
-        * 'Volume': Volume of vessel (m^3)
-        * 'N_vessel': Number of vessels ()
-        """
         Design = self._results['Design']
         V = self._tau*self._volnet_out
         if V < 50e3:
@@ -73,9 +70,6 @@ Thessalonika, Greece, 2008 (book in Greek).
         return cost
 
     def _cost(self):
-        """
-        * 'Tank': (USD)
-        """
         Design = self._results['Design']
         V_vessel, N_vessel = Design['Volume'], Design['N_vessel']
         CEPCI = self.CEPCI
@@ -109,16 +103,10 @@ class MixTank(Tank):
     electricity_rate = 0.591 # About 10 hp/1000gal
     
     def _design(self):
-        """
-        * 'Volume': (m^3)
-        """
         Design = self._results['Design']
         Design['Volume'] = self._tau * self._volnet_out / 0.8
 
     def _cost(self):
-        """
-        * 'Tank': (USD)
-        """
         V = self._results['Design']['Volume']
         Cost = self._results['Cost']
         Cost['Tank'] = 12080 * V**0.525 * self.CEPCI/525.4

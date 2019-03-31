@@ -59,6 +59,7 @@ class Centrifuge_LLE(Unit):
                'solvent_split': ()}
 
     _bounds = {'Flow rate': (0.1, 100)}
+    _units = {'Flow rate': 'm^3/hr'}
     electricity_rate = 3.66 #: kW/(m3/hr) from USDA biosdiesel Super Pro model
     # Possibly 1.4  kW/(m3/hr)
     # https://www.sciencedirect.com/topics/engineering/disc-stack-centrifuge
@@ -91,17 +92,11 @@ class Centrifuge_LLE(Unit):
         liq.P = LIQ.P = ms.P
 
     def _design(self):
-        """
-        * 'Flow rate': (m^3/hr)
-        """
         Design = self._results['Design']
         Design['Flow rate'] = self._volnet_out
         return Design
 
     def _cost(self):
-        """
-        * 'Vessel cost': (USD)
-        """
         r = self._results
         Design = r['Design']
         Cost = r['Cost']

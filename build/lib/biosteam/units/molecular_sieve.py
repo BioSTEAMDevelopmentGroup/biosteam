@@ -50,11 +50,6 @@ class MolecularSieve(Unit):
     exp = 0.60 
     
     def _cost(self):
-        """
-        * 'Molecular Sieve Cost': (USD)
-        * 'Pressure Filter Pressing': (USD)
-        * 'Pressure Filter Drying (2)': (USD)
-        """
         results = self._results
         Cost = results['Cost']
         CEPCI_old = 521.9 # Original CEPCI (2009)

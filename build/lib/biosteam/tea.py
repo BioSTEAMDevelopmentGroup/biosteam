@@ -210,11 +210,11 @@ class TEA:
             UC_ += nx_(c)
         for s in sysfeeds:
             price = s.price
-            if price: MC_ += price*(s._mol*s._MW).sum()
+            if price: MC_ += price*s.massnet
         for s in sysproducts:
             if s not in products:
                 price = s.price
-                if price: CP_ += price*(s._mol*s._MW).sum()
+                if price: CP_ += price*s.massnet
         # Multiply by flow_factor for USD/yr
         UC_ *= flow_factor
         MC_ *= flow_factor

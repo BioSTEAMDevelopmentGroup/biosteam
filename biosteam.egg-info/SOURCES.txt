@@ -3,7 +3,6 @@ setup.py
 biosteam/__init__.py
 biosteam/chemical.py
 biosteam/compound.py
-biosteam/delete_me.py
 biosteam/dissolved_compound.py
 biosteam/exceptions.py
 biosteam/flowsheet.py
@@ -56,9 +55,7 @@ biosteam/units/multi_effect_evaporator.py
 biosteam/units/pump.py
 biosteam/units/reactor.py
 biosteam/units/rvf.py
-biosteam/units/screener.py
 biosteam/units/screw_feeder.py
-biosteam/units/separator.py
 biosteam/units/shredder.py
 biosteam/units/splitter.py
 biosteam/units/tank.py
@@ -72,7 +69,6 @@ biosteam/utils/__init__.py
 biosteam/utils/array_utils.py
 biosteam/utils/cache_utils.py
 biosteam/utils/color_utils.py
-biosteam/utils/dict_utils.py
 biosteam/utils/excel_utils.py
 biosteam/utils/other_utils.py
 biosteam/utils/stream_utils.py

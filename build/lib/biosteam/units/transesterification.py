@@ -37,7 +37,7 @@ class Transesterification(Reactor):
         :doc:`Transesterification Example`
     
     """
-    
+    _units = {'Volume': 'm^3'}
     _kwargs = {'efficiency': None,  # fraction of theoretical conversion
                'r': None,  # Methanol to lipid molar ratio
                'T': None,
@@ -94,21 +94,13 @@ class Transesterification(Reactor):
         out.T = T
         out.P = feed.P
 
-    def _operation(self):
-        self.heat_utilities[0](self.Hnet, self.outs[0].T)
-
     def _design(self):
-        """
-        * 'Volume': (m^3)
-        """
+        self.heat_utilities[0](self.Hnet, self.outs[0].T)
         Design = self._results['Design']
         Design['Volume'] = self._tau * self._volnet_out / 0.8
         return Design
         
     def _cost(self):
-        """
-        * 'Reactor': (USD)
-        """
         results = self._results
         Design = results['Design']
         Cost = results['Cost']

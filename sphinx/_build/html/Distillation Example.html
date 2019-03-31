@@ -267,6 +267,7 @@ div.nboutput div.output_area.stderr {
 <span class="n">D1</span> <span class="o">=</span> <span class="n">Distillation</span><span class="p">(</span><span class="s1">&#39;D1&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">feed</span><span class="p">,</span>
                   <span class="n">LHK</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Methanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">),</span>
                   <span class="n">y_top</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span> <span class="n">x_bot</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mf">1.1</span><span class="p">)</span>
+<span class="n">D1</span><span class="o">.</span><span class="n">is_divided</span> <span class="o">=</span> <span class="kc">True</span>
 <span class="n">D1</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
 
 <span class="c1"># See all results</span>
@@ -346,7 +347,7 @@ Distillation: D1
   </thead>
   <tbody>
     <tr>
-      <th rowspan="9" valign="top">Design</th>
+      <th rowspan="14" valign="top">Design</th>
       <th>Theoretical feed stage</th>
       <td></td>
       <td>6</td>
@@ -367,40 +368,75 @@ Distillation: D1
       <td>0.756</td>
     </tr>
     <tr>
-      <th>Actual stages</th>
+      <th>Rectifier stages</th>
       <td></td>
-      <td>28.0</td>
+      <td>19.0</td>
     </tr>
     <tr>
-      <th>Height</th>
+      <th>Stripper stages</th>
+      <td></td>
+      <td>40.0</td>
+    </tr>
+    <tr>
+      <th>Rectifier height</th>
       <td>ft</td>
-      <td>52.372415999999994</td>
+      <td>40.564416</td>
     </tr>
     <tr>
-      <th>Diameter</th>
+      <th>Stripper height</th>
+      <td>ft</td>
+      <td>71.56041599999999</td>
+    </tr>
+    <tr>
+      <th>Rectifier diameter</th>
       <td>ft</td>
       <td>6.7</td>
     </tr>
     <tr>
-      <th>Wall thickness</th>
+      <th>Stripper diameter</th>
+      <td>ft</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <th>Rectifier wall thickness</th>
       <td>in</td>
       <td>0.5</td>
     </tr>
     <tr>
-      <th>Weight</th>
+      <th>Stripper wall thickness</th>
+      <td>in</td>
+      <td>0.625</td>
+    </tr>
+    <tr>
+      <th>Rectifier weight</th>
       <td>lb</td>
-      <td>2.5e+04</td>
+      <td>2.49e+04</td>
     </tr>
     <tr>
-      <th rowspan="4" valign="top">Cost</th>
-      <th>Trays</th>
-      <td>USD</td>
-      <td>34153.63674330842</td>
+      <th>Stripper weight</th>
+      <td>lb</td>
+      <td>18113.426380896602</td>
     </tr>
     <tr>
-      <th>Tower</th>
+      <th rowspan="6" valign="top">Cost</th>
+      <th>Rectifier trays</th>
       <td>USD</td>
-      <td>1.8e+05</td>
+      <td>24683.792896473602</td>
+    </tr>
+    <tr>
+      <th>Stripper trays</th>
+      <td>USD</td>
+      <td>28487.006306205763</td>
+    </tr>
+    <tr>
+      <th>Rectifier tower</th>
+      <td>USD</td>
+      <td>1.67e+05</td>
+    </tr>
+    <tr>
+      <th>Stripper tower</th>
+      <td>USD</td>
+      <td>143723.38246503592</td>
     </tr>
     <tr>
       <th>Condenser</th>
@@ -416,7 +452,7 @@ Distillation: D1
       <th rowspan="2" valign="top">Summary</th>
       <th>Purchase cost</th>
       <td>USD</td>
-      <td>255028.16295820745</td>
+      <td>404420.2238723436</td>
     </tr>
     <tr>
       <th>Utility cost</th>

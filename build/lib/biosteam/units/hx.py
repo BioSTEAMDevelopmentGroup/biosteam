@@ -59,10 +59,16 @@ class HX(Unit):
 
     **Abstract attributes**
     
-        **_Duty:** [float] The heat transfer requirement (kJ/hr)
+        **_duty:** [float] The heat transfer requirement (kJ/hr)
 
     """
     line = 'Heat Exchanger'
+    _units = {'Area': 'ft^2',
+              'Overall heat transfer coefficient': 'kW/m^2/K',
+              'Tube side pressure drop': 'psi',
+              'Shell side pressure drop': 'psi',
+              'Operating pressure': 'psi',
+              'Total tube length': 'ft'}
     
     _N_ins = 1
     _N_outs = 1
@@ -336,15 +342,6 @@ class HX(Unit):
         return Q/(U*LMTD*ft)        
 
     def _design(self):
-        """
-        * 'Area': (ft^2)
-        * 'Overall heat transfer coefficient':  (kW/m^2/K)
-        * 'Fouling correction factor': ()
-        * 'Tube side pressure drop':  (psi)
-        * 'Shell side pressure drop': (psi)
-        * 'Operating pressure': (psi)
-        * 'Total tube length':  (ft)
-        """
         ###  Use LMTD correction factor method  ###
         Design = self._results['Design']
         
@@ -360,22 +357,17 @@ class HX(Unit):
         LMTD = (dTF2 - dTF1)/log(dummy) if dummy > 1.1 else dTF1
         
         # Get correction factor
-        if self._ft:
-            ft = self._ft
-        else:
-            ft = self._calc_ft(Tci, Thi, Tco, Tho, self._N_shells)
+        ft = self._ft if self._ft else self._calc_ft(Tci, Thi, Tco, Tho, self._N_shells)
         
         # Get duty (kW)
-        Q = abs(self._Duty) / 3600
+        Q = abs(self._duty) / 3600
         
         # Get overall heat transfer coefficient
         U = self._kwargs['U']
-        if isinstance(U, float):
-            pass
+        if isinstance(U, float): pass
         elif U == 'Tabulated':
             # Look up tabulated values
             U = self._U_table(ci, hi, co, ho)
-            Dp_s, Dp_t = self._Dp_table(ci, hi, co, ho, inside_heating)
         elif U == 'Concentric tubes':
             Re_i = 30000 # Arbitrary, but turbulent ??
             Re_o = 30000 # Arbitrary, but turbulent ??
@@ -403,9 +395,6 @@ class HX(Unit):
         return Design
 
     def _cost(self):
-        """
-        'Heat exchanger': (USD)
-        """
         Design = self._results['Design']
         Cost = self._results['Cost']
         A = Design['Area']
@@ -514,13 +503,6 @@ class HXutility(HX):
                     liqmol[:] = mol - vapmol
             if T:
                 s.T = T
-    
-    def _operation(self):
-        # Set duty and run heat utility
-        util = self.heat_utilities[0]
-        util(self._H_out-self._H_in,
-             self.ins[0].T, self.outs[0].T)
-        self._Duty = util.duty 
 
     def _get_streams(self):
         """Return cold and hot inlet and outlet streams.
@@ -551,6 +533,12 @@ class HXutility(HX):
         out2.vapor_mol = vap_out.mol
         return in1, in2, out1, out2
 
+    def _design(self, duty=None):
+        # Set duty and run heat utility
+        if duty is None: duty = self._H_out-self._H_in
+        self._duty = duty
+        self.heat_utilities[0](duty, self.ins[0].T, self.outs[0].T)
+        super()._design()
 
 class HXprocess(HX):
     """Counter current heat exchanger for process fluids. Condenses/boils latent fluid until sensible fluid reaches pinch temperature.
@@ -654,7 +642,7 @@ class HXprocess(HX):
                 s2f.T = s1.T + dT
             Duty = s2.H - s2f.H
             s1f.T += Duty/s1.C
-        self._Duty = Duty
+        self._duty = Duty
     
     def _run_ls(self):
         s1_in, s2_in = self.ins
@@ -712,7 +700,7 @@ class HXprocess(HX):
             s1_out.phase = 'l'
             s2_out.T = T_s2_new
         
-        self._Duty = Duty
+        self._duty = Duty
     
     def _run_ll(self):
         s1_in, s2_in = self.ins
@@ -778,7 +766,4 @@ class HXprocess(HX):
         
         Duty = (sc_in.H-sc_out.H)
         sp_out.VLE(species_IDs, LNK, HNK, Qin=Duty)
-        self._Duty = abs(Duty)
-    
-    def _operation(self):
-        return self._results['Operation']
+        self._duty = abs(Duty)

@@ -6,7 +6,7 @@ Created on Thu Aug 23 22:18:36 2018
 """
 
 from biosteam.units.splitter import Splitter
-from biosteam import Stream, Unit, np
+from biosteam import Unit, np
 from biosteam.exceptions import DesignError
 
 
@@ -37,9 +37,6 @@ class YeastCentrifuge(Unit):
     _run = Splitter._run
     
     def _cost(self):
-        """
-        * 'Centrifuge': (USD)
-        """
         Cost = self._results['Cost']
         solids = self._kwargs['solids']
         index = self.outs[0].indices(*solids)

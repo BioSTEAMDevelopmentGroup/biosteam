@@ -23,6 +23,8 @@ class RotaryVacuumFilter(Unit):
     _kwargs = {'split': None,
                'P_suction': 100} # Pa
     _bounds = {'Individual area': (10, 800)}
+    _units = {'Area': 'ft^2',
+              'Individual area': 'ft^2'}
     
     #: Efficiency of the vacuum pump
     power_efficiency = 0.9
@@ -35,19 +37,11 @@ class RotaryVacuumFilter(Unit):
     _run = Splitter._run
     
     def _design(self):
-        """
-        'Area': (ft^2)
-        'Individual area': (ft^2)
-        """
         flow = sum(stream.massnet for stream in self.outs)
         Area = self._calc_Area(flow, self.filter_rate)
         self._results['Design']['Area'] = Area
         
     def _cost(self):
-        """
-        'Cost of vessels': (USD)
-        'Liquid-ring pump': (USD)
-        """
         results = self._results
         Design = results['Design']
         Area = Design['Area']

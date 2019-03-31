@@ -111,10 +111,9 @@ class Sensitivity:
         tuple_ = tuple
         # Order blocktests from last in network to first
         unitorder = system._flattened_network
-        stack = sorted(stack,
-                       key=lambda x: unitorder.index(_blockunit(x))
-                                     if x[0]._block._system else -1,
-                       reverse=True)
+        stack.sort(key=lambda x: unitorder.index(_blockunit(x))
+                                 if x[0]._block._system else -1,
+                   reverse=True)
         
         initial_args = []
         funcs = []
@@ -151,17 +150,16 @@ class Sensitivity:
         else: self._ID = ID = funcs[0].__name__
         
         #: [DataFrame] Table of the argument space with results in the final column.
-        self.table = ds = DF(argspace,
-                             columns=pd.MultiIndex.from_arrays((element_names, paramIDs),
-                                                               names=('Element',
-                                                                      'Parameter')),
-                             index=spacerange)
+        self.table = DF(argspace,
+                        columns=pd.MultiIndex.from_arrays((element_names, paramIDs),
+                                                           names=('Element', 'Parameter')),
+                        index=spacerange)
         self._paramIDs = paramIDs
-        ds[ID] = (None,)*(spacelen)
+        self.table[ID] = (None,)*spacelen
         
         
     def simulate(self):
-        """Simulate and return values over the argument space."""
+        """Simulate sensitivity over the argument space."""
         # Setup units before simulation
         self._loadstack()
         for func, arg in zip(self._funcs, self._initial_args):
@@ -175,9 +173,7 @@ class Sensitivity:
         for func, arg in self._thread:
             try: add(func(arg))
             except: add(None)
-                
         self.table[self._ID] = values
-        return values[1:]
         
     def _repr(self):    
         blocks = ''

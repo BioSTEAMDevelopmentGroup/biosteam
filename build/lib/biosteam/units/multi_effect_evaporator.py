@@ -50,6 +50,8 @@ class MultiEffectEvaporator(Unit):
         **P_liq:** *[tuple]* Liquid pressure after pumping (Pa)
     
     """
+    _units = {'Area': 'm^2',
+              'Volume': 'm^3'}
     _has_power_utility = True
     _N_heat_utilities = 2
     line = 'Multi-Effect Evaporator'
@@ -167,10 +169,6 @@ class MultiEffectEvaporator(Unit):
         out_wt_solids.mol = feed.mol - liq.mol
         
     def _design(self):
-        """
-        * 'Area': Total area of all evaporators (m^2)
-        * 'Volume': Total volume of all evaporators (m^3)
-        """
         # This functions also finds the cost
         A_range, C_func, U, _ = self._evap_data
         components = self.components
@@ -181,8 +179,10 @@ class MultiEffectEvaporator(Unit):
         CE = self.CEPCI
         
         evap0 = evaporators[0]
-        evap0._operation()
-        Q = abs(evap0.heat_utilities[0].duty)
+        hu = evap0.heat_utilities[0]
+        duty = evap0._H_out - evap0._H_in
+        hu(duty, evap0.ins[0].T, evap0.outs[0].T)
+        Q = abs(duty)
         Tci = evap0.ins[0].T
         Tco = evap0.outs[0].T
         Th = evap0.heat_utilities[0]._fresh.T
@@ -193,7 +193,6 @@ class MultiEffectEvaporator(Unit):
         
         # Find condenser requirements
         condenser = components['condenser']
-        condenser._operation()
         condenser._design()
         Cost['Condenser'] = condenser._cost()['Heat exchanger']
         
@@ -231,11 +230,6 @@ class MultiEffectEvaporator(Unit):
         return Design
 
     def _cost(self):
-        """
-        * 'Evaporators': Sum of all evaporator costs (USD)
-        * 'Condenser': (USD)
-        * 'Vacuum liquid-ring pump': (USD)
-        """
         return self._results['Cost']
         
         

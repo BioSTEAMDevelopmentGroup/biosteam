@@ -121,6 +121,12 @@ class Flash(Unit):
         :doc:`Flash Example`
     
     """
+    _units = {'Vertical vessel weight': 'lb',
+              'Horizontal vessel weight': 'lb',
+              'Length': 'ft',
+              'Diameter': 'ft',
+              'Weight': 'lb',
+              'Wall thickness': 'in'}
     _has_power_utility = True
     _N_heat_utilities = 0
     
@@ -201,16 +207,7 @@ class Flash(Unit):
         vap.T = liq.T = ms.T
         vap.P = liq.P = ms.P
 
-    def _operation(self):
-        if self._has_hx: self._heat_exchanger._operation()
-
     def _design(self):
-        """
-        * 'Length': (ft)
-        * 'Diameter': (ft)
-        * 'Weight': (lb)
-        * 'Wall thickness': (in)
-        """
         # Set horizontal or vertical vessel
         if self.SepType == 'Default':
             if self.outs[0].massnet/self.outs[1].massnet > 0.2:
@@ -225,15 +222,10 @@ class Flash(Unit):
             out = self._horizontal()
         else:
             raise ValueError( f"SepType must be either 'Horizontal' or 'Vertical', not '{self.SepType}'")
-        if self._has_hx:
-            self._heat_exchanger._design()
+        if self._has_hx: self._heat_exchanger._design()
         return out
 
     def _cost(self):
-        """
-        * 'Vessel': (USD)
-        * 'Heat exchanger': (USD)
-        """
         Cost = self._results['Cost']
         Design = self._results['Design']
         W = Design['Weight']
@@ -423,8 +415,8 @@ class Flash(Unit):
 
         # Results
         d = self._results['Design']
-        self._boundscheck('Vertical vessel weight', VW)
-        self._boundscheck('Vertical vessel length', Ht)
+        self._checkbounds('Vertical vessel weight', VW)
+        self._checkbounds('Vertical vessel length', Ht)
         d['SepType'] = 'Vertical'
         d['Length'] = Ht     # ft
         d['Diameter'] = D    # ft
@@ -589,7 +581,7 @@ class Flash(Unit):
         
         # Results
         d = self._results['Design']
-        self._boundscheck('Horizontal vessel weight', VW)
+        self._checkbounds('Horizontal vessel weight', VW)
         d['SepType'] = 'Horizontal'
         d['Length'] = L  # ft
         d['Diameter'] = D  # ft
@@ -624,11 +616,11 @@ class SplitFlash(Flash):
         top.mol = net_mol*split
         bot.mol = net_mol - top.mol
 
-    def _operation(self):
+    def _design(self):
         if self._has_hx:
             ms = MixedStream.sum(self._mixedstream, self.outs)
             self._heat_exchanger.outs = ms
-            self._heat_exchanger._operation()
+        super()._design()
 
 class PartitionFlash(Flash):
     """Create a PartitionFlash Unit that approximates outputs based on molar partition coefficients."""
@@ -680,7 +672,7 @@ class PartitionFlash(Flash):
         ph1.mol[pos] = molnet*V*y
         ph2.mol[pos] = mol_in - ph1.mol[pos]
     
-    _operation = SplitFlash._operation
+    _design = SplitFlash._design
     
 
 class RatioFlash(Flash):
@@ -715,7 +707,6 @@ class RatioFlash(Flash):
         bot_mol[Kindex] = feed_mol[Kindex] - top_mol[Kindex]
         top.T, top.P = feed.T, feed.P
         bot.T, bot.P = feed.T, feed.P
-
 
 
 # %% Single Component
@@ -811,7 +802,5 @@ class Evaporator_PV(Unit):
         vapor.mol[index] = V*feed.mol[index]
         liquid.mol = copy.copy(feed.mol)
         liquid.mol[index] = (1-V)*feed.mol[index]
-
-    _operation = HXutility._operation
 
         
