@@ -92,7 +92,7 @@
 <span class="sd">        :doc:`Transesterification Example`</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    
+    <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Volume&#39;</span><span class="p">:</span> <span class="s1">&#39;m^3&#39;</span><span class="p">}</span>
     <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;efficiency&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># fraction of theoretical conversion</span>
                <span class="s1">&#39;r&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Methanol to lipid molar ratio</span>
                <span class="s1">&#39;T&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
@@ -149,21 +149,13 @@
         <span class="n">out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span>
         <span class="n">out</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">P</span>
 
-    <span class="k">def</span> <span class="nf">_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">Hnet</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        * &#39;Volume&#39;: (m^3)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">Hnet</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Volume&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tau</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_volnet_out</span> <span class="o">/</span> <span class="mf">0.8</span>
         <span class="k">return</span> <span class="n">Design</span>
         
     <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        * &#39;Reactor&#39;: (USD)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span>
         <span class="n">Design</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
         <span class="n">Cost</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>

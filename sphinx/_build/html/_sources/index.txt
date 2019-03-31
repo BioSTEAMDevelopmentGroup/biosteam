@@ -23,7 +23,7 @@ Overview
 
 :doc:`MixedStream`: An extension of the Stream class that can handle multi-phase flow with phase equilibria.
    
-:doc:`Unit`: A base class with an abstract `run` method that changes output streams given parameters and input streams. Other abstract methods including `operation`, `design`, and `cost` are used after process simulation for design and costing.
+:doc:`Unit`: A base class with an abstract `_run` method that changes output streams given parameters and input streams. Other abstract methods including `_design`, and `_cost` which are used after process simulation for design and costing.
 
 :doc:`System`: Iteratively runs a network, `network`, of units until the `recycle` stream converges. When a network contains a system, it converges the inner system first and then continues running the remaining elements.
 

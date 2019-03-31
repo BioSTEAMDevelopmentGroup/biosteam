@@ -67,6 +67,7 @@
 
 <span class="k">class</span> <span class="nc">Tank</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Abstract Tank class.&quot;&quot;&quot;</span>
+    <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Volume&#39;</span><span class="p">:</span> <span class="s1">&#39;m^3&#39;</span><span class="p">}</span>
     <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">1</span>
     
@@ -104,10 +105,6 @@
     <span class="n">_tau</span> <span class="o">=</span> <span class="mi">4</span><span class="o">*</span><span class="mi">7</span><span class="o">*</span><span class="mi">24</span>
 
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        * &#39;Volume&#39;: Volume of vessel (m^3)</span>
-<span class="sd">        * &#39;N_vessel&#39;: Number of vessels ()</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
         <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tau</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_volnet_out</span>
         <span class="k">if</span> <span class="n">V</span> <span class="o">&lt;</span> <span class="mf">50e3</span><span class="p">:</span>
@@ -128,9 +125,6 @@
         <span class="k">return</span> <span class="n">cost</span>
 
     <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        * &#39;Tank&#39;: (USD)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
         <span class="n">V_vessel</span><span class="p">,</span> <span class="n">N_vessel</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Volume&#39;</span><span class="p">],</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;N_vessel&#39;</span><span class="p">]</span>
         <span class="n">CEPCI</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CEPCI</span>
@@ -164,16 +158,10 @@
     <span class="n">electricity_rate</span> <span class="o">=</span> <span class="mf">0.591</span> <span class="c1"># About 10 hp/1000gal</span>
     
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        * &#39;Volume&#39;: (m^3)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Volume&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tau</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_volnet_out</span> <span class="o">/</span> <span class="mf">0.8</span>
 
     <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        * &#39;Tank&#39;: (USD)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">][</span><span class="s1">&#39;Volume&#39;</span><span class="p">]</span>
         <span class="n">Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
         <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Tank&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">12080</span> <span class="o">*</span> <span class="n">V</span><span class="o">**</span><span class="mf">0.525</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">CEPCI</span><span class="o">/</span><span class="mf">525.4</span>

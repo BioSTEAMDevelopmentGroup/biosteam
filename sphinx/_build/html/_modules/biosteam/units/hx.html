@@ -114,10 +114,16 @@
 
 <span class="sd">    **Abstract attributes**</span>
 <span class="sd">    </span>
-<span class="sd">        **_Duty:** [float] The heat transfer requirement (kJ/hr)</span>
+<span class="sd">        **_duty:** [float] The heat transfer requirement (kJ/hr)</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Heat Exchanger&#39;</span>
+    <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Area&#39;</span><span class="p">:</span> <span class="s1">&#39;ft^2&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;Overall heat transfer coefficient&#39;</span><span class="p">:</span> <span class="s1">&#39;kW/m^2/K&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;Tube side pressure drop&#39;</span><span class="p">:</span> <span class="s1">&#39;psi&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;Shell side pressure drop&#39;</span><span class="p">:</span> <span class="s1">&#39;psi&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;Operating pressure&#39;</span><span class="p">:</span> <span class="s1">&#39;psi&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;Total tube length&#39;</span><span class="p">:</span> <span class="s1">&#39;ft&#39;</span><span class="p">}</span>
     
     <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">1</span>
@@ -391,15 +397,6 @@
         <span class="k">return</span> <span class="n">Q</span><span class="o">/</span><span class="p">(</span><span class="n">U</span><span class="o">*</span><span class="n">LMTD</span><span class="o">*</span><span class="n">ft</span><span class="p">)</span>        
 
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        * &#39;Area&#39;: (ft^2)</span>
-<span class="sd">        * &#39;Overall heat transfer coefficient&#39;:  (kW/m^2/K)</span>
-<span class="sd">        * &#39;Fouling correction factor&#39;: ()</span>
-<span class="sd">        * &#39;Tube side pressure drop&#39;:  (psi)</span>
-<span class="sd">        * &#39;Shell side pressure drop&#39;: (psi)</span>
-<span class="sd">        * &#39;Operating pressure&#39;: (psi)</span>
-<span class="sd">        * &#39;Total tube length&#39;:  (ft)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1">###  Use LMTD correction factor method  ###</span>
         <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
         
@@ -415,22 +412,17 @@
         <span class="n">LMTD</span> <span class="o">=</span> <span class="p">(</span><span class="n">dTF2</span> <span class="o">-</span> <span class="n">dTF1</span><span class="p">)</span><span class="o">/</span><span class="n">log</span><span class="p">(</span><span class="n">dummy</span><span class="p">)</span> <span class="k">if</span> <span class="n">dummy</span> <span class="o">&gt;</span> <span class="mf">1.1</span> <span class="k">else</span> <span class="n">dTF1</span>
         
         <span class="c1"># Get correction factor</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ft</span><span class="p">:</span>
-            <span class="n">ft</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ft</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">ft</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_ft</span><span class="p">(</span><span class="n">Tci</span><span class="p">,</span> <span class="n">Thi</span><span class="p">,</span> <span class="n">Tco</span><span class="p">,</span> <span class="n">Tho</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_N_shells</span><span class="p">)</span>
+        <span class="n">ft</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ft</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ft</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_ft</span><span class="p">(</span><span class="n">Tci</span><span class="p">,</span> <span class="n">Thi</span><span class="p">,</span> <span class="n">Tco</span><span class="p">,</span> <span class="n">Tho</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_N_shells</span><span class="p">)</span>
         
         <span class="c1"># Get duty (kW)</span>
-        <span class="n">Q</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_Duty</span><span class="p">)</span> <span class="o">/</span> <span class="mi">3600</span>
+        <span class="n">Q</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_duty</span><span class="p">)</span> <span class="o">/</span> <span class="mi">3600</span>
         
         <span class="c1"># Get overall heat transfer coefficient</span>
         <span class="n">U</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">]</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
-            <span class="k">pass</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">U</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span> <span class="k">pass</span>
         <span class="k">elif</span> <span class="n">U</span> <span class="o">==</span> <span class="s1">&#39;Tabulated&#39;</span><span class="p">:</span>
             <span class="c1"># Look up tabulated values</span>
             <span class="n">U</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_U_table</span><span class="p">(</span><span class="n">ci</span><span class="p">,</span> <span class="n">hi</span><span class="p">,</span> <span class="n">co</span><span class="p">,</span> <span class="n">ho</span><span class="p">)</span>
-            <span class="n">Dp_s</span><span class="p">,</span> <span class="n">Dp_t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Dp_table</span><span class="p">(</span><span class="n">ci</span><span class="p">,</span> <span class="n">hi</span><span class="p">,</span> <span class="n">co</span><span class="p">,</span> <span class="n">ho</span><span class="p">,</span> <span class="n">inside_heating</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">U</span> <span class="o">==</span> <span class="s1">&#39;Concentric tubes&#39;</span><span class="p">:</span>
             <span class="n">Re_i</span> <span class="o">=</span> <span class="mi">30000</span> <span class="c1"># Arbitrary, but turbulent ??</span>
             <span class="n">Re_o</span> <span class="o">=</span> <span class="mi">30000</span> <span class="c1"># Arbitrary, but turbulent ??</span>
@@ -458,9 +450,6 @@
         <span class="k">return</span> <span class="n">Design</span>
 
     <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        &#39;Heat exchanger&#39;: (USD)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
         <span class="n">Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
         <span class="n">A</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Area&#39;</span><span class="p">]</span>
@@ -569,13 +558,6 @@
                     <span class="n">liqmol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">mol</span> <span class="o">-</span> <span class="n">vapmol</span>
             <span class="k">if</span> <span class="n">T</span><span class="p">:</span>
                 <span class="n">s</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span>
-    
-    <span class="k">def</span> <span class="nf">_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Set duty and run heat utility</span>
-        <span class="n">util</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">util</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_H_out</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_H_in</span><span class="p">,</span>
-             <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_Duty</span> <span class="o">=</span> <span class="n">util</span><span class="o">.</span><span class="n">duty</span> 
 
     <span class="k">def</span> <span class="nf">_get_streams</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return cold and hot inlet and outlet streams.</span>
@@ -604,8 +586,14 @@
         <span class="n">out2</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">liq_out</span><span class="o">.</span><span class="n">P</span>
         <span class="n">out2</span><span class="o">.</span><span class="n">liquid_mol</span> <span class="o">=</span> <span class="n">liq_out</span><span class="o">.</span><span class="n">mol</span>
         <span class="n">out2</span><span class="o">.</span><span class="n">vapor_mol</span> <span class="o">=</span> <span class="n">vap_out</span><span class="o">.</span><span class="n">mol</span>
-        <span class="k">return</span> <span class="n">in1</span><span class="p">,</span> <span class="n">in2</span><span class="p">,</span> <span class="n">out1</span><span class="p">,</span> <span class="n">out2</span></div>
+        <span class="k">return</span> <span class="n">in1</span><span class="p">,</span> <span class="n">in2</span><span class="p">,</span> <span class="n">out1</span><span class="p">,</span> <span class="n">out2</span>
 
+    <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">duty</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># Set duty and run heat utility</span>
+        <span class="k">if</span> <span class="n">duty</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">duty</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_H_out</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_H_in</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_duty</span> <span class="o">=</span> <span class="n">duty</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">duty</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="HXprocess"><a class="viewcode-back" href="../../../HXprocess.html#biosteam.HXprocess">[docs]</a><span class="k">class</span> <span class="nc">HXprocess</span><span class="p">(</span><span class="n">HX</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Counter current heat exchanger for process fluids. Condenses/boils latent fluid until sensible fluid reaches pinch temperature.</span>
@@ -709,7 +697,7 @@
                 <span class="n">s2f</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">s1</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">dT</span>
             <span class="n">Duty</span> <span class="o">=</span> <span class="n">s2</span><span class="o">.</span><span class="n">H</span> <span class="o">-</span> <span class="n">s2f</span><span class="o">.</span><span class="n">H</span>
             <span class="n">s1f</span><span class="o">.</span><span class="n">T</span> <span class="o">+=</span> <span class="n">Duty</span><span class="o">/</span><span class="n">s1</span><span class="o">.</span><span class="n">C</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_Duty</span> <span class="o">=</span> <span class="n">Duty</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_duty</span> <span class="o">=</span> <span class="n">Duty</span>
     
     <span class="k">def</span> <span class="nf">_run_ls</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">s1_in</span><span class="p">,</span> <span class="n">s2_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span>
@@ -767,7 +755,7 @@
             <span class="n">s1_out</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
             <span class="n">s2_out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T_s2_new</span>
         
-        <span class="bp">self</span><span class="o">.</span><span class="n">_Duty</span> <span class="o">=</span> <span class="n">Duty</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_duty</span> <span class="o">=</span> <span class="n">Duty</span>
     
     <span class="k">def</span> <span class="nf">_run_ll</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">s1_in</span><span class="p">,</span> <span class="n">s2_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span>
@@ -833,10 +821,7 @@
         
         <span class="n">Duty</span> <span class="o">=</span> <span class="p">(</span><span class="n">sc_in</span><span class="o">.</span><span class="n">H</span><span class="o">-</span><span class="n">sc_out</span><span class="o">.</span><span class="n">H</span><span class="p">)</span>
         <span class="n">sp_out</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">species_IDs</span><span class="p">,</span> <span class="n">LNK</span><span class="p">,</span> <span class="n">HNK</span><span class="p">,</span> <span class="n">Qin</span><span class="o">=</span><span class="n">Duty</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_Duty</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">Duty</span><span class="p">)</span>
-    
-    <span class="k">def</span> <span class="nf">_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Operation&#39;</span><span class="p">]</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_duty</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">Duty</span><span class="p">)</span></div>
 </pre></div>
 
           </div>

@@ -64,13 +64,12 @@
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">newton</span>
 <span class="kn">from</span> <span class="nn">graphviz</span> <span class="k">import</span> <span class="n">Digraph</span>
 <span class="kn">from</span> <span class="nn">.exceptions</span> <span class="k">import</span> <span class="n">Stop</span><span class="p">,</span> <span class="n">SolverError</span><span class="p">,</span> <span class="n">notify_error</span>
-<span class="kn">from</span> <span class="nn">.flowsheet</span> <span class="k">import</span> <span class="n">Flowsheet</span>
+<span class="kn">from</span> <span class="nn">.flowsheet</span> <span class="k">import</span> <span class="n">find</span>
 <span class="kn">from</span> <span class="nn">.stream</span> <span class="k">import</span> <span class="n">Stream</span>
 <span class="kn">from</span> <span class="nn">.unit</span> <span class="k">import</span> <span class="n">Unit</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">np</span>
 <span class="kn">from</span> <span class="nn">.process</span> <span class="k">import</span> <span class="n">Process</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">color_scheme</span><span class="p">,</span> <span class="n">missing_stream</span><span class="p">,</span> <span class="n">strtuple</span><span class="p">,</span> <span class="n">function</span>
-<span class="kn">from</span> <span class="nn">bookkeep</span> <span class="k">import</span> <span class="n">SmartBook</span>
 <span class="n">CS</span> <span class="o">=</span> <span class="n">color_scheme</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;System&#39;</span><span class="p">,)</span>
@@ -93,11 +92,10 @@
     <span class="k">if</span> <span class="n">command</span><span class="p">:</span>
         <span class="c1"># Build locals dictionary for evaluating command</span>
         <span class="n">lcs</span> <span class="o">=</span> <span class="p">{}</span> 
-        <span class="n">main</span> <span class="o">=</span> <span class="n">Flowsheet</span><span class="o">.</span><span class="n">main</span>
         <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;stream&#39;</span><span class="p">,</span> <span class="s1">&#39;unit&#39;</span><span class="p">,</span> <span class="s1">&#39;system&#39;</span><span class="p">):</span>
-            <span class="n">dct</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">main</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+            <span class="n">dct</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">find</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
             <span class="n">lcs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">dct</span><span class="p">)</span>
-        <span class="n">lcs</span><span class="p">[</span><span class="s1">&#39;find&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">main</span><span class="o">.</span><span class="n">find</span>
+        <span class="n">lcs</span><span class="p">[</span><span class="s1">&#39;find&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">find</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">out</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="p">{},</span> <span class="n">lcs</span><span class="p">)</span>            
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
@@ -136,7 +134,7 @@
     <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">recycle</span><span class="p">:</span>
             <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver_error</span><span class="p">[</span><span class="s1">&#39;iter&#39;</span><span class="p">]</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solver_error</span><span class="p">[</span><span class="s1">&#39;iter&#39;</span><span class="p">]</span>
             <span class="nb">input</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;        Finished loop #</span><span class="si">{x}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -163,8 +161,6 @@
     <span class="n">ID</span> <span class="o">=</span> <span class="kc">None</span>
     
 <span class="n">_systemUnit</span><span class="o">.</span><span class="n">_graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;peripheries&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;2&#39;</span>
-<span class="n">_systemUnit</span><span class="o">.</span><span class="n">_instances</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="k">del</span> <span class="n">Flowsheet</span><span class="o">.</span><span class="n">_main</span><span class="o">.</span><span class="n">line</span><span class="p">[</span><span class="s1">&#39;System&#39;</span><span class="p">]</span>
 
 
 <span class="c1"># %% Process flow</span>
@@ -190,25 +186,19 @@
     <span class="c1">### Class attributes ###</span>
     
     <span class="c1">#: [dict] Dictionary of convergence options regarding maximum number of iterations and molar flow rate and temperature tolerances</span>
-    <span class="n">options</span> <span class="o">=</span> <span class="n">SmartBook</span><span class="p">(</span><span class="n">units</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;Maximum iteration&#39;</span><span class="p">:</span> <span class="s1">&#39;#&#39;</span><span class="p">,</span>
-                               <span class="s1">&#39;Molar tolerance&#39;</span><span class="p">:</span> <span class="s1">&#39;kmol/hr&#39;</span><span class="p">,</span>
-                               <span class="s1">&#39;Temperature tolerance&#39;</span><span class="p">:</span> <span class="s1">&#39;K&#39;</span><span class="p">},</span>                  
-                        <span class="o">**</span><span class="p">{</span><span class="s1">&#39;Maximum iteration&#39;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span> 
-                           <span class="s1">&#39;Molar tolerance&#39;</span><span class="p">:</span> <span class="mf">0.10</span><span class="p">,</span> 
-                           <span class="s1">&#39;Temperature tolerance&#39;</span><span class="p">:</span> <span class="mf">0.10</span><span class="p">})</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Maximum iteration&#39;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+               <span class="s1">&#39;Molar tolerance (kmol/hr)&#39;</span><span class="p">:</span> <span class="mf">0.10</span><span class="p">,</span>
+               <span class="s1">&#39;Temperature tolerance (K)&#39;</span><span class="p">:</span> <span class="mf">0.10</span><span class="p">}</span>
     
     <span class="c1"># [float] Error of the spec objective function</span>
     <span class="n">_spec_error</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="c1"># [dict] Cached downstream systems by (system, unit, with_facilities) keys</span>
     <span class="n">_cached_downstream_systems</span> <span class="o">=</span> <span class="p">{}</span> 
-    
-    <span class="c1"># [dict] Cached downstream networks by (system, unit) keys</span>
-    <span class="n">_cached_downstream_networks</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">network</span><span class="o">=</span><span class="p">(),</span> <span class="n">recycle</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">facilities</span><span class="o">=</span><span class="p">()):</span>
         <span class="c1">#: [dict] Current molar flow and temperature errors and number of iterations made</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">solver_error</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;mol_error&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_solver_error</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;mol_error&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
                              <span class="s1">&#39;T_error&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
                              <span class="s1">&#39;spec_error&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
                              <span class="s1">&#39;iter&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
@@ -310,7 +300,7 @@
     <span class="nd">@ID</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">ID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
         <span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
-        <span class="n">Flowsheet</span><span class="o">.</span><span class="n">_main</span><span class="o">.</span><span class="n">system</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="n">find</span><span class="o">.</span><span class="n">system</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="n">ID</span>
 
     <span class="nd">@property</span>
@@ -567,7 +557,7 @@
             <span class="k">elif</span> <span class="n">inst</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">System</span><span class="p">):</span> <span class="n">a</span><span class="o">.</span><span class="n">_converge</span><span class="p">()</span>
             <span class="k">elif</span> <span class="n">inst</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">function</span><span class="p">):</span> <span class="n">a</span><span class="p">()</span>
             <span class="k">elif</span> <span class="n">inst</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">Process</span><span class="p">):</span> <span class="n">a</span><span class="o">.</span><span class="n">_run</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">solver_error</span><span class="p">[</span><span class="s1">&#39;iter&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_solver_error</span><span class="p">[</span><span class="s1">&#39;iter&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
     
     <span class="c1"># Methods for convering the recycle stream</span>
     <span class="k">def</span> <span class="nf">_fixed_point</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -575,8 +565,8 @@
         <span class="c1"># Reused attributes</span>
         <span class="n">recycle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recycle</span>
         <span class="n">run</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span>
-        <span class="n">solver_error</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver_error</span>
-        <span class="n">maxiter</span><span class="p">,</span> <span class="n">mol_tol</span><span class="p">,</span> <span class="n">T_tol</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">values</span><span class="p">(),)</span>
+        <span class="n">solver_error</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solver_error</span>
+        <span class="n">maxiter</span><span class="p">,</span> <span class="n">mol_tol</span><span class="p">,</span> <span class="n">T_tol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
 
         <span class="k">def</span> <span class="nf">set_solver_error</span><span class="p">():</span>
             <span class="n">solver_error</span><span class="p">[</span><span class="s1">&#39;mol_error&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mol_error</span>
@@ -603,8 +593,8 @@
         <span class="c1"># Reused attributes</span>
         <span class="n">recycle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recycle</span>
         <span class="n">run</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span>
-        <span class="n">maxiter</span><span class="p">,</span> <span class="n">mol_tol</span><span class="p">,</span> <span class="n">T_tol</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">values</span><span class="p">(),)</span>
-        <span class="n">solver_error</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver_error</span>
+        <span class="n">maxiter</span><span class="p">,</span> <span class="n">mol_tol</span><span class="p">,</span> <span class="n">T_tol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="n">solver_error</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solver_error</span>
 
         <span class="k">def</span> <span class="nf">set_solver_error</span><span class="p">():</span>
             <span class="n">solver_error</span><span class="p">[</span><span class="s1">&#39;mol_error&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mol_error</span>
@@ -617,7 +607,7 @@
         <span class="n">x1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">len_</span><span class="p">)</span>
         <span class="n">gx1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">len_</span><span class="p">)</span>
         <span class="n">ones</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">len_</span><span class="p">)</span>
-        <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">len_</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">len_</span><span class="p">)</span>
 
         <span class="c1"># First run</span>
         <span class="n">x0</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">recycle</span><span class="o">.</span><span class="n">mol</span>
@@ -691,7 +681,7 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">converge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_converge_method</span>
-        <span class="n">solver_error</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver_error</span>
+        <span class="n">solver_error</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solver_error</span>
 
         <span class="k">def</span> <span class="nf">error</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
             <span class="n">setter</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
@@ -706,7 +696,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_converge_method</span> <span class="o">=</span> <span class="n">converge_spec</span></div>
 
     <span class="k">def</span> <span class="nf">_reset_iter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">solver_error</span><span class="p">[</span><span class="s1">&#39;iter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_solver_error</span><span class="p">[</span><span class="s1">&#39;iter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">system</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">subsystems</span><span class="p">:</span>
             <span class="n">system</span><span class="o">.</span><span class="n">_reset_iter</span><span class="p">()</span>
     
@@ -733,7 +723,7 @@
     
 <div class="viewcode-block" id="System.reset_flows"><a class="viewcode-back" href="../../System.html#biosteam.System.reset_flows">[docs]</a>    <span class="k">def</span> <span class="nf">reset_flows</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Reset all process streams to zero flow.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">solver_error</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;mol_error&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_solver_error</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;mol_error&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
                              <span class="s1">&#39;T_error&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
                              <span class="s1">&#39;spec_error&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
                              <span class="s1">&#39;iter&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
@@ -806,7 +796,7 @@
 
     <span class="k">def</span> <span class="nf">_error_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return information on convergence.&quot;&quot;&quot;</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver_error</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solver_error</span>
         <span class="n">recycle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recycle</span>
 
         <span class="n">error_info</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>

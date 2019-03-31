@@ -265,11 +265,11 @@
             <span class="n">UC_</span> <span class="o">+=</span> <span class="n">nx_</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sysfeeds</span><span class="p">:</span>
             <span class="n">price</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">price</span>
-            <span class="k">if</span> <span class="n">price</span><span class="p">:</span> <span class="n">MC_</span> <span class="o">+=</span> <span class="n">price</span><span class="o">*</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">_mol</span><span class="o">*</span><span class="n">s</span><span class="o">.</span><span class="n">_MW</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">price</span><span class="p">:</span> <span class="n">MC_</span> <span class="o">+=</span> <span class="n">price</span><span class="o">*</span><span class="n">s</span><span class="o">.</span><span class="n">massnet</span>
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sysproducts</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">s</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">products</span><span class="p">:</span>
                 <span class="n">price</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">price</span>
-                <span class="k">if</span> <span class="n">price</span><span class="p">:</span> <span class="n">CP_</span> <span class="o">+=</span> <span class="n">price</span><span class="o">*</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">_mol</span><span class="o">*</span><span class="n">s</span><span class="o">.</span><span class="n">_MW</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">price</span><span class="p">:</span> <span class="n">CP_</span> <span class="o">+=</span> <span class="n">price</span><span class="o">*</span><span class="n">s</span><span class="o">.</span><span class="n">massnet</span>
         <span class="c1"># Multiply by flow_factor for USD/yr</span>
         <span class="n">UC_</span> <span class="o">*=</span> <span class="n">flow_factor</span>
         <span class="n">MC_</span> <span class="o">*=</span> <span class="n">flow_factor</span>

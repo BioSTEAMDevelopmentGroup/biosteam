@@ -1,0 +1,64 @@
+<svg height="173pt" viewBox="0.00 0.00 338.38 173.00" width="338pt" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g class="graph" id="graph0" transform="scale(1 1) rotate(0) translate(4 169)">
+<title>unit</title>
+<polygon fill="white" points="-4,4 -4,-169 334.378,-169 334.378,4 -4,4" stroke="none"/>
+<!-- hx
+HXprocess&#45;&gt;out1 -->
+<g class="edge" id="edge3"><title>hx
+HXprocess:c-&gt;out1:w</title>
+<path d="M200.088,-110.679C222.627,-126.662 253.757,-143.5 284.878,-143.5" fill="none" stroke="black"/>
+</g>
+<!-- hx
+HXprocess&#45;&gt;out2 -->
+<g class="edge" id="edge4"><title>hx
+HXprocess:c-&gt;out2:w</title>
+<path d="M200.088,-54.3212C222.627,-38.3382 253.757,-21.5 284.878,-21.5" fill="none" stroke="black"/>
+</g>
+<!-- in1&#45;&gt;hx
+HXprocess -->
+<g class="edge" id="edge1"><title>in1:e-&gt;hx
+HXprocess:c</title>
+<path d="M45.8784,-143.5C77,-143.5 108.13,-126.662 130.668,-110.679" fill="none" stroke="black"/>
+</g>
+<!-- in2&#45;&gt;hx
+HXprocess -->
+<g class="edge" id="edge2"><title>in2:e-&gt;hx
+HXprocess:c</title>
+<path d="M45.8784,-21.5C77,-21.5 108.13,-38.3382 130.668,-54.3212" fill="none" stroke="black"/>
+</g>
+<!-- hx
+HXprocess -->
+<g class="node" id="node1"><title>hx
+HXprocess</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_0" x1="165.378" x2="165.378" y1="-37.6657" y2="-127.334">
+<stop offset="0" style="stop-color:#cfecf0;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#fad6d8;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<ellipse cx="165.378" cy="-82.5" fill="url(#l_0)" rx="44.8343" ry="44.8343" stroke="none"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="165.378" y="-86.3">hx</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="165.378" y="-71.3">HXprocess</text>
+</g>
+<!-- in1 -->
+<g class="node" id="node2"><title>in1</title>
+<polygon fill="#79dae8" points="27.8784,-159 2.87842,-159 2.87842,-128 27.8784,-128 27.8784,-122 45.8784,-143.5 27.8784,-165 27.8784,-159" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="24.3784" y="-139.8">in1</text>
+</g>
+<!-- in2 -->
+<g class="node" id="node3"><title>in2</title>
+<polygon fill="#79dae8" points="27.8784,-37 2.87842,-37 2.87842,-6 27.8784,-6 27.8784,-0 45.8784,-21.5 27.8784,-43 27.8784,-37" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="24.3784" y="-17.8">in2</text>
+</g>
+<!-- out1 -->
+<g class="node" id="node4"><title>out1</title>
+<polygon fill="#79dae8" points="309.878,-159 284.878,-159 284.878,-128 309.878,-128 309.878,-122 327.878,-143.5 309.878,-165 309.878,-159" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="306.378" y="-139.8">out1</text>
+</g>
+<!-- out2 -->
+<g class="node" id="node5"><title>out2</title>
+<polygon fill="#79dae8" points="309.878,-37 284.878,-37 284.878,-6 309.878,-6 309.878,-0 327.878,-21.5 309.878,-43 309.878,-37" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="306.378" y="-17.8">out2</text>
+</g>
+</g>
+</svg>

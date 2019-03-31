@@ -1,0 +1,157 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Mixer &#8212; BioSTEAM 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="MolecularSieve" href="MolecularSieve.html" />
+    <link rel="prev" title="MixTank" href="MixTank.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="MolecularSieve.html" title="MolecularSieve"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="MixTank.html" title="MixTank"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="MixTank.html"
+                        title="previous chapter">MixTank</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="MolecularSieve.html"
+                        title="next chapter">MolecularSieve</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/Mixer.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-biosteam">
+<span id="mixer"></span><h1>Mixer<a class="headerlink" href="#module-biosteam" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="biosteam.Mixer">
+<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Mixer</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/mixer.html#Mixer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Mixer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a mixer that mixes any number of streams together.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><p><strong>ID:</strong> [str] Unique identification. If set as ‘’, a default ID will be chosen.</p>
+<p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+<p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+</div></blockquote>
+<p><strong>ins</strong></p>
+<blockquote>
+<div>[:] Input streams</div></blockquote>
+<p><strong>outs</strong></p>
+<blockquote>
+<div>[0] Mixed stream</div></blockquote>
+<p><strong>Examples</strong></p>
+<blockquote>
+<div><p>Create a Mixer object with an ID and any number of input streams:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">Species</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">Mixer</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">340</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s2&#39;</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s3</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s3&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">M1</span> <span class="o">=</span> <span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M1&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">,</span> <span class="n">s3</span><span class="p">),</span> <span class="n">outs</span><span class="o">=</span><span class="s1">&#39;s4&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">M1</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">M1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="go">Mixer: M1</span>
+<span class="go">ins...</span>
+<span class="go">[0] s1</span>
+<span class="go">    phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
+<span class="go">    flow (kmol/hr): Water  20</span>
+<span class="go">[1] s2</span>
+<span class="go">    phase: &#39;l&#39;, T: 300 K, P: 101325 Pa</span>
+<span class="go">    flow (kmol/hr): Ethanol  10</span>
+<span class="go">[2] s3</span>
+<span class="go">    phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
+<span class="go">    flow (kmol/hr): Water    3</span>
+<span class="go">                    Ethanol  4</span>
+<span class="go">outs...</span>
+<span class="go">[0] s4</span>
+<span class="go">    phase: &#39;l&#39;, T: 317.54 K, P: 101325 Pa</span>
+<span class="go">    flow (kmol/hr): Water    23</span>
+<span class="go">    Ethanol  14</span>
+</pre></div>
+</div>
+</div></blockquote>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="MolecularSieve.html" title="MolecularSieve"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="MixTank.html" title="MixTank"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>

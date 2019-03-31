@@ -105,6 +105,8 @@
 <span class="sd">        **P_liq:** *[tuple]* Liquid pressure after pumping (Pa)</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Area&#39;</span><span class="p">:</span> <span class="s1">&#39;m^2&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;Volume&#39;</span><span class="p">:</span> <span class="s1">&#39;m^3&#39;</span><span class="p">}</span>
     <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Multi-Effect Evaporator&#39;</span>
@@ -222,10 +224,6 @@
         <span class="n">out_wt_solids</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span> <span class="o">-</span> <span class="n">liq</span><span class="o">.</span><span class="n">mol</span>
         
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        * &#39;Area&#39;: Total area of all evaporators (m^2)</span>
-<span class="sd">        * &#39;Volume&#39;: Total volume of all evaporators (m^3)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># This functions also finds the cost</span>
         <span class="n">A_range</span><span class="p">,</span> <span class="n">C_func</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evap_data</span>
         <span class="n">components</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span>
@@ -236,8 +234,10 @@
         <span class="n">CE</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CEPCI</span>
         
         <span class="n">evap0</span> <span class="o">=</span> <span class="n">evaporators</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">evap0</span><span class="o">.</span><span class="n">_operation</span><span class="p">()</span>
-        <span class="n">Q</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">evap0</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">duty</span><span class="p">)</span>
+        <span class="n">hu</span> <span class="o">=</span> <span class="n">evap0</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">duty</span> <span class="o">=</span> <span class="n">evap0</span><span class="o">.</span><span class="n">_H_out</span> <span class="o">-</span> <span class="n">evap0</span><span class="o">.</span><span class="n">_H_in</span>
+        <span class="n">hu</span><span class="p">(</span><span class="n">duty</span><span class="p">,</span> <span class="n">evap0</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">evap0</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="n">Q</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">duty</span><span class="p">)</span>
         <span class="n">Tci</span> <span class="o">=</span> <span class="n">evap0</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
         <span class="n">Tco</span> <span class="o">=</span> <span class="n">evap0</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
         <span class="n">Th</span> <span class="o">=</span> <span class="n">evap0</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_fresh</span><span class="o">.</span><span class="n">T</span>
@@ -248,7 +248,6 @@
         
         <span class="c1"># Find condenser requirements</span>
         <span class="n">condenser</span> <span class="o">=</span> <span class="n">components</span><span class="p">[</span><span class="s1">&#39;condenser&#39;</span><span class="p">]</span>
-        <span class="n">condenser</span><span class="o">.</span><span class="n">_operation</span><span class="p">()</span>
         <span class="n">condenser</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
         <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Condenser&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">condenser</span><span class="o">.</span><span class="n">_cost</span><span class="p">()[</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
         
@@ -286,11 +285,6 @@
         <span class="k">return</span> <span class="n">Design</span>
 
     <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        * &#39;Evaporators&#39;: Sum of all evaporator costs (USD)</span>
-<span class="sd">        * &#39;Condenser&#39;: (USD)</span>
-<span class="sd">        * &#39;Vacuum liquid-ring pump&#39;: (USD)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span></div>
         
         

@@ -277,10 +277,10 @@
     <span class="k">def</span> <span class="nf">phase</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String denoting all phases present&quot;&quot;&quot;</span>
         <span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solid_mol</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span> <span class="n">phase</span> <span class="o">+=</span> <span class="s1">&#39;s&#39;</span>
-        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_liquid_mol</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span> <span class="n">phase</span> <span class="o">+=</span> <span class="s1">&#39;l&#39;</span>
-        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_LIQUID_mol</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span> <span class="n">phase</span> <span class="o">+=</span> <span class="s1">&#39;L&#39;</span>
-        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vapor_mol</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span> <span class="n">phase</span> <span class="o">+=</span> <span class="s1">&#39;g&#39;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solid_mol</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span> <span class="n">phase</span> <span class="o">+=</span> <span class="s1">&#39;s&#39;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_liquid_mol</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span> <span class="n">phase</span> <span class="o">+=</span> <span class="s1">&#39;l&#39;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_LIQUID_mol</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span> <span class="n">phase</span> <span class="o">+=</span> <span class="s1">&#39;L&#39;</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vapor_mol</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">():</span> <span class="n">phase</span> <span class="o">+=</span> <span class="s1">&#39;g&#39;</span>
         <span class="k">if</span> <span class="n">phase</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span> <span class="n">phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_phase</span>
         <span class="k">return</span> <span class="n">phase</span>
 
@@ -313,7 +313,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">solid_molnet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;solid phase net molar flow rate (kg/hr).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solid_mol</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solid_mol</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 
     <span class="c1"># Mass</span>
     <span class="nd">@property</span>
@@ -328,12 +328,12 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">solid_massfrac</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;solid phase mass fractions.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">fraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solid_mass</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">tuple_array</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solid_mol</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_MW</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">tuple_array</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">solid_massnet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;solid phase net mass flow rate (kg/hr).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solid_mass</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solid_mass</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 
     <span class="c1"># Volumetric</span>
     <span class="nd">@property</span>
@@ -348,12 +348,12 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">solid_volfrac</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;solid phase volumetric fractions.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">fraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">solid_vol</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">tuple_array</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solid_vol</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">tuple_array</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">solid_volnet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;solid phase net volumetric flow rate (m3/hr).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phaseprop_molar_flownet</span><span class="p">(</span><span class="s1">&#39;Vm&#39;</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">)</span><span class="o">*</span><span class="mi">1000</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solid_vol</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 
     <span class="c1">### Liquids ###</span>
 
@@ -375,7 +375,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">liquid_molnet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;liquid phase net molar flow rate (kg/hr).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">liquid_mol</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_liquid_mol</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 
     <span class="c1"># Mass</span>
     <span class="nd">@property</span>
@@ -390,12 +390,12 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">liquid_massfrac</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;liquid phase mass fractions.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">fraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">liquid_mass</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">tuple_array</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_liquid_mass</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">tuple_array</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">liquid_massnet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;liquid phase net mass flow rate (kg/hr).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">liquid_mass</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_liquid_mass</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 
     <span class="c1"># Volumetric</span>
     <span class="nd">@property</span>
@@ -410,12 +410,12 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">liquid_volfrac</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;liquid phase volumetric fractions.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">fraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">liquid_vol</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">tuple_array</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_liquid_vol</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">tuple_array</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">liquid_volnet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;liquid phase net volumetric flow rate (m3/hr).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phaseprop_molar_flownet</span><span class="p">(</span><span class="s1">&#39;Vm&#39;</span><span class="p">,</span> <span class="s1">&#39;l&#39;</span><span class="p">)</span><span class="o">*</span><span class="mi">1000</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_liquid_vol</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 
     <span class="c1">### LIQUID ###</span>
 
@@ -437,7 +437,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">LIQUID_molnet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;LIQUID phase net molar flow rate (kg/hr).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_LIQUID_mol</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LIQUID_mol</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 
     <span class="c1"># Mass</span>
     <span class="nd">@property</span>
@@ -452,12 +452,12 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">LIQUID_massfrac</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;LIQUID phase mass fractions.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">fraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">LIQUID_mass</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">tuple_array</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_LIQUID_mol</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_MW</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">tuple_array</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">LIQUID_massnet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;LIQUID phase net mass flow rate (kg/hr).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">LIQUID_mass</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LIQUID_mass</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 
     <span class="c1"># Volumetric</span>
     <span class="nd">@property</span>
@@ -472,12 +472,12 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">LIQUID_volfrac</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;LIQUID phase volumetric fractions.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">fraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">LIQUID_vol</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">tuple_array</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_LIQUID_vol</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">tuple_array</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">LIQUID_volnet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;LIQUID phase net volumetric flow rate (m3/hr).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phaseprop_molar_flownet</span><span class="p">(</span><span class="s1">&#39;Vm&#39;</span><span class="p">,</span> <span class="s1">&#39;L&#39;</span><span class="p">)</span><span class="o">*</span><span class="mi">1000</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LIQUID_vol</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 
     <span class="c1">### Vapor ###</span>
 
@@ -514,12 +514,12 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">vapor_massfrac</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;vapor phase mass fractions.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">fraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vapor_mass</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">tuple_array</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vapor_mol</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_MW</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">tuple_array</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">vapor_massnet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;vapor phase net mass flow rate (kg/hr).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">vapor_mass</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vapor_mass</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 
     <span class="c1"># Volumetric</span>
     <span class="nd">@property</span>
@@ -534,13 +534,13 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">vapor_volfrac</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;vapor phase volumetric fractions.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">fraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vapor_vol</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">tuple_array</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vapor_vol</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">tuple_array</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">vapor_volnet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;vapor phase net volumetric flow rate (m3/hr).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phaseprop_molar_flownet</span><span class="p">(</span><span class="s1">&#39;Vm&#39;</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">)</span><span class="o">*</span><span class="mi">1000</span>
-
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vapor_vol</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    
     <span class="c1">### Overall ###</span>
 
     <span class="c1"># Flow rates</span>
@@ -557,7 +557,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">vol</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Volumetric flow rates (kmol/hr).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_volarray</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">tuple_array</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_volarray</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">tuple_array</span><span class="p">)</span>
 
     <span class="c1"># Fractions</span>
     <span class="nd">@property</span>
@@ -568,12 +568,12 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">massfrac</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Mass fractions.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">fraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mass</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">tuple_array</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_molarray</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_MW</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">tuple_array</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">volfrac</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Volumetric fractions.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">fraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vol</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">tuple_array</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_volarray</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">tuple_array</span><span class="p">)</span>
 
     <span class="c1"># Net flow rates</span>
     <span class="nd">@property</span>
@@ -584,7 +584,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">massnet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Mass net flow rate (kmol/hr).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">solid_massnet</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">liquid_massnet</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">LIQUID_massnet</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">vapor_massnet</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_molarray</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_MW</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">volnet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

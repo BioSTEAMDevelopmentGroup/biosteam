@@ -176,6 +176,12 @@
 <span class="sd">        :doc:`Flash Example`</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Vertical vessel weight&#39;</span><span class="p">:</span> <span class="s1">&#39;lb&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;Horizontal vessel weight&#39;</span><span class="p">:</span> <span class="s1">&#39;lb&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;Length&#39;</span><span class="p">:</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;Diameter&#39;</span><span class="p">:</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;Weight&#39;</span><span class="p">:</span> <span class="s1">&#39;lb&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;Wall thickness&#39;</span><span class="p">:</span> <span class="s1">&#39;in&#39;</span><span class="p">}</span>
     <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">0</span>
     
@@ -256,16 +262,7 @@
         <span class="n">vap</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">T</span>
         <span class="n">vap</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">P</span>
 
-    <span class="k">def</span> <span class="nf">_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_hx</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">_operation</span><span class="p">()</span>
-
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        * &#39;Length&#39;: (ft)</span>
-<span class="sd">        * &#39;Diameter&#39;: (ft)</span>
-<span class="sd">        * &#39;Weight&#39;: (lb)</span>
-<span class="sd">        * &#39;Wall thickness&#39;: (in)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Set horizontal or vertical vessel</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">SepType</span> <span class="o">==</span> <span class="s1">&#39;Default&#39;</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">massnet</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">massnet</span> <span class="o">&gt;</span> <span class="mf">0.2</span><span class="p">:</span>
@@ -280,15 +277,10 @@
             <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_horizontal</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span> <span class="n">f</span><span class="s2">&quot;SepType must be either &#39;Horizontal&#39; or &#39;Vertical&#39;, not &#39;</span><span class="si">{self.SepType}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_hx</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_hx</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">out</span>
 
     <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        * &#39;Vessel&#39;: (USD)</span>
-<span class="sd">        * &#39;Heat exchanger&#39;: (USD)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
         <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
         <span class="n">W</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Weight&#39;</span><span class="p">]</span>
@@ -478,8 +470,8 @@
 
         <span class="c1"># Results</span>
         <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_boundscheck</span><span class="p">(</span><span class="s1">&#39;Vertical vessel weight&#39;</span><span class="p">,</span> <span class="n">VW</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_boundscheck</span><span class="p">(</span><span class="s1">&#39;Vertical vessel length&#39;</span><span class="p">,</span> <span class="n">Ht</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_checkbounds</span><span class="p">(</span><span class="s1">&#39;Vertical vessel weight&#39;</span><span class="p">,</span> <span class="n">VW</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_checkbounds</span><span class="p">(</span><span class="s1">&#39;Vertical vessel length&#39;</span><span class="p">,</span> <span class="n">Ht</span><span class="p">)</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;SepType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Vertical&#39;</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;Length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ht</span>     <span class="c1"># ft</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;Diameter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">D</span>    <span class="c1"># ft</span>
@@ -644,7 +636,7 @@
         
         <span class="c1"># Results</span>
         <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_boundscheck</span><span class="p">(</span><span class="s1">&#39;Horizontal vessel weight&#39;</span><span class="p">,</span> <span class="n">VW</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_checkbounds</span><span class="p">(</span><span class="s1">&#39;Horizontal vessel weight&#39;</span><span class="p">,</span> <span class="n">VW</span><span class="p">)</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;SepType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Horizontal&#39;</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;Length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">L</span>  <span class="c1"># ft</span>
         <span class="n">d</span><span class="p">[</span><span class="s1">&#39;Diameter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">D</span>  <span class="c1"># ft</span>
@@ -679,11 +671,11 @@
         <span class="n">top</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">net_mol</span><span class="o">*</span><span class="n">split</span>
         <span class="n">bot</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">net_mol</span> <span class="o">-</span> <span class="n">top</span><span class="o">.</span><span class="n">mol</span>
 
-    <span class="k">def</span> <span class="nf">_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_hx</span><span class="p">:</span>
             <span class="n">ms</span> <span class="o">=</span> <span class="n">MixedStream</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mixedstream</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">outs</span> <span class="o">=</span> <span class="n">ms</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">_operation</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
 
 <span class="k">class</span> <span class="nc">PartitionFlash</span><span class="p">(</span><span class="n">Flash</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a PartitionFlash Unit that approximates outputs based on molar partition coefficients.&quot;&quot;&quot;</span>
@@ -735,7 +727,7 @@
         <span class="n">ph1</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">=</span> <span class="n">molnet</span><span class="o">*</span><span class="n">V</span><span class="o">*</span><span class="n">y</span>
         <span class="n">ph2</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">=</span> <span class="n">mol_in</span> <span class="o">-</span> <span class="n">ph1</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span>
     
-    <span class="n">_operation</span> <span class="o">=</span> <span class="n">SplitFlash</span><span class="o">.</span><span class="n">_operation</span>
+    <span class="n">_design</span> <span class="o">=</span> <span class="n">SplitFlash</span><span class="o">.</span><span class="n">_design</span>
     
 
 <span class="k">class</span> <span class="nc">RatioFlash</span><span class="p">(</span><span class="n">Flash</span><span class="p">):</span>
@@ -770,7 +762,6 @@
         <span class="n">bot_mol</span><span class="p">[</span><span class="n">Kindex</span><span class="p">]</span> <span class="o">=</span> <span class="n">feed_mol</span><span class="p">[</span><span class="n">Kindex</span><span class="p">]</span> <span class="o">-</span> <span class="n">top_mol</span><span class="p">[</span><span class="n">Kindex</span><span class="p">]</span>
         <span class="n">top</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">top</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">feed</span><span class="o">.</span><span class="n">P</span>
         <span class="n">bot</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">bot</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">feed</span><span class="o">.</span><span class="n">P</span>
-
 
 
 <span class="c1"># %% Single Component</span>
@@ -866,8 +857,6 @@
         <span class="n">vapor</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">V</span><span class="o">*</span><span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
         <span class="n">liquid</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">)</span>
         <span class="n">liquid</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">V</span><span class="p">)</span><span class="o">*</span><span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-
-    <span class="n">_operation</span> <span class="o">=</span> <span class="n">HXutility</span><span class="o">.</span><span class="n">_operation</span>
 
         
 </pre></div>

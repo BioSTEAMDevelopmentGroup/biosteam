@@ -130,6 +130,10 @@
 <span class="sd">        :doc:`Pump Example`</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Ideal power&#39;</span><span class="p">:</span> <span class="s1">&#39;hp&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;Power&#39;</span><span class="p">:</span> <span class="s1">&#39;hp&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;Head&#39;</span><span class="p">:</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span>
+              <span class="s1">&#39;Flow rate&#39;</span><span class="p">:</span> <span class="s1">&#39;gpm&#39;</span><span class="p">}</span>
     <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">True</span>
@@ -181,16 +185,8 @@
             <span class="n">o</span><span class="o">.</span><span class="n">copylike</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">P</span><span class="p">:</span> <span class="n">o</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span>
     
-    <span class="k">def</span> <span class="nf">_operation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        * &#39;Type&#39;: [str] Pump type</span>
-<span class="sd">        * &#39;Ideal power&#39;: (hp)</span>
-<span class="sd">        * &#39;Efficiency&#39;: ()</span>
-<span class="sd">        * &#39;Power&#39;: (hp)</span>
-<span class="sd">        * &#39;Head&#39;: (ft)</span>
-<span class="sd">        * &#39;Flow rate&#39;: (gpm)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">Oper</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Operation&#39;</span><span class="p">]</span>
+    <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
         <span class="n">si</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">so</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">Pi</span> <span class="o">=</span> <span class="n">si</span><span class="o">.</span><span class="n">P</span>
@@ -202,39 +198,34 @@
         <span class="n">Type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Type</span>
         <span class="k">if</span> <span class="n">Type</span> <span class="o">==</span> <span class="s1">&#39;Default&#39;</span><span class="p">:</span>
             <span class="n">Type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_type</span><span class="p">(</span><span class="n">Pi</span><span class="p">,</span> <span class="n">Po</span><span class="p">,</span> <span class="n">Qi</span><span class="p">)</span>
-        <span class="n">Oper</span><span class="p">[</span><span class="s1">&#39;Type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Type</span>
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Type</span>
         
         <span class="c1"># Get ideal power</span>
         <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">Po</span> <span class="o">-</span> <span class="n">Pi</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>    
             <span class="n">Po</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P_startup</span>
         <span class="n">power_ideal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_PowerPressure</span><span class="p">(</span><span class="n">Pi</span><span class="p">,</span> <span class="n">Po</span><span class="p">,</span> <span class="n">Qi</span><span class="p">)</span><span class="o">*</span><span class="mf">3.725e-7</span>
-        <span class="n">Oper</span><span class="p">[</span><span class="s1">&#39;Ideal power&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">power_ideal</span> <span class="c1"># hp</span>
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Ideal power&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">power_ideal</span> <span class="c1"># hp</span>
         
-        <span class="n">Oper</span><span class="p">[</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">q</span> <span class="o">=</span> <span class="n">Qi</span><span class="o">*</span><span class="mf">4.403</span>
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">q</span> <span class="o">=</span> <span class="n">Qi</span><span class="o">*</span><span class="mf">4.403</span>
         <span class="k">if</span> <span class="n">power_ideal</span> <span class="o">&lt;=</span> <span class="n">max_hp</span><span class="p">:</span>
-            <span class="n">Oper</span><span class="p">[</span><span class="s1">&#39;Efficiency&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_Efficiency</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">power_ideal</span><span class="p">)</span>
-            <span class="n">Oper</span><span class="p">[</span><span class="s1">&#39;Power&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">power</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">_nearest_PumpPower</span><span class="p">(</span><span class="n">power_ideal</span><span class="o">/</span><span class="n">e</span><span class="p">)</span>
-            <span class="n">Oper</span><span class="p">[</span><span class="s1">&#39;N_pumps&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="n">Oper</span><span class="p">[</span><span class="s1">&#39;Head&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_Head</span><span class="p">(</span><span class="n">power</span><span class="p">,</span> <span class="n">mass</span><span class="p">)</span>
+            <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Efficiency&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_Efficiency</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">power_ideal</span><span class="p">)</span>
+            <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Power&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">power</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">_nearest_PumpPower</span><span class="p">(</span><span class="n">power_ideal</span><span class="o">/</span><span class="n">e</span><span class="p">)</span>
+            <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;N_pumps&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Head&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_Head</span><span class="p">(</span><span class="n">power</span><span class="p">,</span> <span class="n">mass</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;More than 1 pump required, but not yet implemented.&#39;</span><span class="p">)</span>
         
         <span class="bp">self</span><span class="o">.</span><span class="n">power_utility</span><span class="p">(</span><span class="n">power</span><span class="o">/</span><span class="mf">1.341</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Oper</span>
     
     <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        * &#39;Pump&#39;: (USD)</span>
-<span class="sd">        * &#39;Motor&#39;: (USD)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Parameters</span>
         <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span>
         <span class="n">Cost</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
-        <span class="n">Oper</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Operation&#39;</span><span class="p">]</span>
-        <span class="n">Type</span> <span class="o">=</span> <span class="n">Oper</span><span class="p">[</span><span class="s1">&#39;Type&#39;</span><span class="p">]</span>
-        <span class="n">q</span> <span class="o">=</span> <span class="n">Oper</span><span class="p">[</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">]</span>
-        <span class="n">h</span> <span class="o">=</span> <span class="n">Oper</span><span class="p">[</span><span class="s1">&#39;Head&#39;</span><span class="p">]</span>
-        <span class="n">p</span> <span class="o">=</span> <span class="n">Oper</span><span class="p">[</span><span class="s1">&#39;Power&#39;</span><span class="p">]</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
+        <span class="n">Type</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Type&#39;</span><span class="p">]</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">]</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Head&#39;</span><span class="p">]</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Power&#39;</span><span class="p">]</span>
         <span class="n">F_M</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_F_M</span>
         <span class="n">I</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CEPCI</span><span class="o">/</span><span class="mi">567</span>
         <span class="n">lnp</span> <span class="o">=</span> <span class="n">ln</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>

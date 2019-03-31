@@ -323,29 +323,6 @@
 </dd></dl>
 
 <dl class="function">
-<dt id="biosteam.utils.get_doc_units">
-<code class="descclassname">biosteam.utils.</code><code class="descname">get_doc_units</code><span class="sig-paren">(</span><em>udict</em>, <em>doc</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/utils/dict_utils.html#get_doc_units"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.utils.get_doc_units" title="Permalink to this definition">¶</a></dt>
-<dd><p>Update dictionary of units of measure from docstring.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><strong>doc:</strong> [str] Keys must be in single quotes, ‘’, and units of measure must follow in parentesis, ().</div></blockquote>
-<p><strong>Returns</strong></p>
-<blockquote>
-<div>udict: [dict] Units of meaure.</div></blockquote>
-<p>Example:</p>
-<blockquote>
-<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">get_units</span><span class="p">({},</span>
-<span class="gp">... </span>          <span class="sd">&#39;&#39;&#39;</span>
-<span class="gp">... </span><span class="sd">          &#39;Duty&#39;: (kJ/hr)</span>
-<span class="gp">... </span><span class="sd">          &#39;T&#39;: Temperature (K) </span>
-<span class="gp">... </span><span class="sd">          &#39;&#39;&#39;</span><span class="p">)</span>
-<span class="go">{&#39;Duty&#39;: &#39;kJ/hr&#39;, &#39;T&#39;: &#39;K&#39;}, {&#39;T&#39;: &#39;Temperature&#39;}</span>
-</pre></div>
-</div>
-</div></blockquote>
-</dd></dl>
-
-<dl class="function">
 <dt id="biosteam.utils.approx2step">
 <code class="descclassname">biosteam.utils.</code><code class="descname">approx2step</code><span class="sig-paren">(</span><em>val</em>, <em>x0</em>, <em>dx</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/utils/other_utils.html#approx2step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.utils.approx2step" title="Permalink to this definition">¶</a></dt>
 <dd><p>Approximate value, val, to closest increment/step, dx, starting from x0.</p>

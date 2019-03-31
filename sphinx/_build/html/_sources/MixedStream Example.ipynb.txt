@@ -119,14 +119,11 @@
    "metadata": {},
    "outputs": [
     {
-     "data": {
-      "text/plain": [
-       "material_array([0., 0.])\u001b[37m\u001b[22m (kmol/hr)\u001b[0m"
-      ]
-     },
-     "execution_count": 4,
-     "metadata": {},
-     "output_type": "execute_result"
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "material_array([0., 0.])\u001b[37m\u001b[22m (kmol/hr)\u001b[0m\n"
+     ]
     }
    ],
    "source": [
@@ -139,14 +136,11 @@
    "metadata": {},
    "outputs": [
     {
-     "data": {
-      "text/plain": [
-       "material_array([0., 1.])\u001b[37m\u001b[22m (kmol/hr)\u001b[0m"
-      ]
-     },
-     "execution_count": 5,
-     "metadata": {},
-     "output_type": "execute_result"
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "material_array([0., 1.])\u001b[37m\u001b[22m (kmol/hr)\u001b[0m\n"
+     ]
     }
    ],
    "source": [
@@ -159,14 +153,11 @@
    "metadata": {},
    "outputs": [
     {
-     "data": {
-      "text/plain": [
-       "material_array([0., 0.])\u001b[37m\u001b[22m (kmol/hr)\u001b[0m"
-      ]
-     },
-     "execution_count": 6,
-     "metadata": {},
-     "output_type": "execute_result"
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "material_array([0., 0.])\u001b[37m\u001b[22m (kmol/hr)\u001b[0m\n"
+     ]
     }
    ],
    "source": [
@@ -179,14 +170,11 @@
    "metadata": {},
    "outputs": [
     {
-     "data": {
-      "text/plain": [
-       "material_array([0., 2.])\u001b[37m\u001b[22m (kmol/hr)\u001b[0m"
-      ]
-     },
-     "execution_count": 7,
-     "metadata": {},
-     "output_type": "execute_result"
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "material_array([0., 2.])\u001b[37m\u001b[22m (kmol/hr)\u001b[0m\n"
+     ]
     }
    ],
    "source": [
@@ -238,14 +226,11 @@
    "metadata": {},
    "outputs": [
     {
-     "data": {
-      "text/plain": [
-       "property_array([36.031, 46.068])\u001b[37m\u001b[22m (kg/hr)\u001b[0m"
-      ]
-     },
-     "execution_count": 9,
-     "metadata": {},
-     "output_type": "execute_result"
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "property_array([36.031, 46.068])\u001b[37m\u001b[22m (kg/hr)\u001b[0m\n"
+     ]
     }
    ],
    "source": [
@@ -258,14 +243,11 @@
    "metadata": {},
    "outputs": [
     {
-     "data": {
-      "text/plain": [
-       "property_array([0.037, 0.063])\u001b[37m\u001b[22m (m^3/hr)\u001b[0m"
-      ]
-     },
-     "execution_count": 10,
-     "metadata": {},
-     "output_type": "execute_result"
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "property_array([0.037, 0.063])\u001b[37m\u001b[22m (m^3/hr)\u001b[0m\n"
+     ]
     }
    ],
    "source": [
@@ -662,8 +644,11 @@
      "output_type": "stream",
      "text": [
       "MixedStream: ms2\n",
-      " phase: 'g', T: 370 K, P: 101325 Pa\n",
+      " phase: 'lg', T: 363.32 K, P: 101325 Pa\n",
       "        \u001b[37m\u001b[22m species  kmol/hr\u001b[0m\n",
+      " liquid: Water    1.1e-05\n",
+      "         Ethanol  5.83e-07\n",
+      "\n",
       " vapor:  Water    2\n",
       "         Ethanol  1\n"
      ]
@@ -740,7 +725,7 @@
      "name": "stderr",
      "output_type": "stream",
      "text": [
-      "C:\\ProgramData\\Anaconda3\\lib\\site-packages\\scipy\\optimize\\zeros.py:195: RuntimeWarning: Tolerance of 1.3951123492006445e-06 reached\n",
+      "C:\\ProgramData\\Anaconda3\\lib\\site-packages\\scipy\\optimize\\zeros.py:195: RuntimeWarning: Tolerance of 1.3960524825051834e-06 reached\n",
       "  warnings.warn(msg, RuntimeWarning)\n"
      ]
     }
