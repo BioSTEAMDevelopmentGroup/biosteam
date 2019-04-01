@@ -110,8 +110,8 @@ class Sensitivity:
         if not stack: raise RuntimeError(f'No sensitivity parameters set for {repr(self)} object.')
         tuple_ = tuple
         # Order blocktests from last in network to first
-        unitorder = system._flattened_network
-        stack.sort(key=lambda x: unitorder.index(_blockunit(x))
+        index = system._unitnetwork.index
+        stack.sort(key=lambda x: index(_blockunit(x))
                                  if x[0]._block._system else -1,
                    reverse=True)
         

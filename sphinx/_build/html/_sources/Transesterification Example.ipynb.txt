@@ -169,6 +169,33 @@
        "  </thead>\n",
        "  <tbody>\n",
        "    <tr>\n",
+       "      <th rowspan=\"2\" valign=\"top\">Power</th>\n",
+       "      <th>Rate</th>\n",
+       "      <td>kW</td>\n",
+       "      <td>24.3</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>Cost</th>\n",
+       "      <td>kW</td>\n",
+       "      <td>1.58</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th rowspan=\"3\" valign=\"top\">Cooling water</th>\n",
+       "      <th>Duty</th>\n",
+       "      <td>kJ/hr</td>\n",
+       "      <td>-3.23e+06</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>Flow</th>\n",
+       "      <td>kg/hr</td>\n",
+       "      <td>2.21e+03</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>Cost</th>\n",
+       "      <td>USD/hr</td>\n",
+       "      <td>0.111</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
        "      <th>Design</th>\n",
        "      <th>Volume</th>\n",
        "      <td>m^3</td>\n",
@@ -181,13 +208,14 @@
        "      <td>7.5e+04</td>\n",
        "    </tr>\n",
        "    <tr>\n",
-       "      <th rowspan=\"2\" valign=\"top\">Summary</th>\n",
        "      <th>Purchase cost</th>\n",
+       "      <th></th>\n",
        "      <td>USD</td>\n",
        "      <td>7.5e+04</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Utility cost</th>\n",
+       "      <th></th>\n",
        "      <td>USD/hr</td>\n",
        "      <td>1.69</td>\n",
        "    </tr>\n",
@@ -196,11 +224,16 @@
        "</div>"
       ],
       "text/plain": [
-       "Reactor                 Units      R1\n",
-       "Design  Volume            m^3    16.2\n",
-       "Cost    Reactor           USD 7.5e+04\n",
-       "Summary Purchase cost     USD 7.5e+04\n",
-       "        Utility cost   USD/hr    1.69"
+       "Reactor                 Units        R1\n",
+       "Power         Rate         kW      24.3\n",
+       "              Cost         kW      1.58\n",
+       "Cooling water Duty      kJ/hr -3.23e+06\n",
+       "              Flow      kg/hr  2.21e+03\n",
+       "              Cost     USD/hr     0.111\n",
+       "Design        Volume      m^3      16.2\n",
+       "Cost          Reactor     USD   7.5e+04\n",
+       "Purchase cost             USD   7.5e+04\n",
+       "Utility cost           USD/hr      1.69"
       ]
      },
      "execution_count": 2,
@@ -210,27 +243,6 @@
    ],
    "source": [
     "R1.results()"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 3,
-   "metadata": {},
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "HeatUtility: Cooling water\n",
-      " duty:-3.23e+06 kJ/hr\n",
-      " flow: 2.21e+03 kmol/hr\n",
-      " cost: 969 USD/year\n"
-     ]
-    }
-   ],
-   "source": [
-    "for hu in R1.heat_utilities:\n",
-    "    hu.show(cost='USD/year')"
    ]
   }
  ],

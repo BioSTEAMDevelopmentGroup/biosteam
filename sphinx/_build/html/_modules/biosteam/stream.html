@@ -632,15 +632,15 @@
             <span class="k">if</span> <span class="n">flow_pairs</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Cannot specify flow pairs when a Species object is passed&#39;</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">empty_flow</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_molarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_Nspecies</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_molarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_Nspecies</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">lenflow</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Nspecies</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_molarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">flow</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_molarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;If flow is not empty, length of flow must be equal to length of Species object.&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">lenspecies</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
             <span class="n">empty_species</span> <span class="o">=</span> <span class="n">lenspecies</span> <span class="o">==</span> <span class="mi">0</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_molarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_Nspecies</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_molarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_Nspecies</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">flow_pairs</span> <span class="ow">and</span> <span class="n">empty_flow</span> <span class="ow">and</span> <span class="n">empty_species</span><span class="p">:</span>
                 <span class="n">species</span> <span class="o">=</span> <span class="n">flow_pairs</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_molarray</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="o">*</span><span class="n">species</span><span class="p">)]</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="n">flow_pairs</span><span class="o">.</span><span class="n">values</span><span class="p">(),)</span>
@@ -650,7 +650,7 @@
                 <span class="k">elif</span> <span class="ow">not</span> <span class="n">empty_flow</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_molarray</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="o">*</span><span class="n">species</span><span class="p">)]</span> <span class="o">=</span> <span class="n">flow</span>
             <span class="k">elif</span> <span class="n">empty_species</span> <span class="ow">and</span> <span class="n">lenflow</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Nspecies</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_molarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">flow</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_molarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Length of flow rates must be equal to length of species&#39;</span><span class="p">)</span>
     
@@ -812,7 +812,6 @@
             <span class="k">if</span> <span class="n">not_included</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{start}{not_included}</span><span class="s1"> not defined in stream species&#39;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="n">VE</span></div>
                 
-    
     <span class="c1"># Molar flow</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mol</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1749,7 +1748,7 @@
         <span class="k">elif</span> <span class="n">inst</span><span class="p">(</span><span class="n">s_sum</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span>
             <span class="c1"># For Stream objects</span>
             <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">streams</span><span class="p">:</span>
-                <span class="n">s_sum</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">+=</span> <span class="n">s</span><span class="o">.</span><span class="n">mol</span>
+                <span class="n">s_sum</span><span class="o">.</span><span class="n">_molarray</span><span class="p">[:]</span> <span class="o">+=</span> <span class="n">s</span><span class="o">.</span><span class="n">mol</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Must pass a valid Stream object&#39;</span><span class="p">)</span>
 

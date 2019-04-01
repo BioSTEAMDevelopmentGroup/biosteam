@@ -137,7 +137,7 @@
     <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="n">_has_linked_streams</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">_has_proxystream</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
     
     <span class="c1"># Pump type</span>
@@ -215,7 +215,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;More than 1 pump required, but not yet implemented.&#39;</span><span class="p">)</span>
         
-        <span class="bp">self</span><span class="o">.</span><span class="n">power_utility</span><span class="p">(</span><span class="n">power</span><span class="o">/</span><span class="mf">1.341</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span><span class="p">(</span><span class="n">power</span><span class="o">/</span><span class="mf">1.341</span><span class="p">)</span>
     
     <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Parameters</span>

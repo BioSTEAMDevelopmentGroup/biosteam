@@ -14,11 +14,11 @@ Liquids centrifuge&#45;&gt;heavy -->
 Liquids centrifuge:c-&gt;heavy:w</title>
 <path d="M187.679,-60.8219C210.232,-43.2888 245.334,-21.5 280.5,-21.5" fill="none" stroke="black"/>
 </g>
-<!-- S5&#45;&gt;C1
+<!-- d105&#45;&gt;C1
 Liquids centrifuge -->
-<g class="edge" id="edge1"><title>S5:e-&gt;C1
+<g class="edge" id="edge1"><title>d105:e-&gt;C1
 Liquids centrifuge:c</title>
-<path d="M43.5,-82.5C62.9813,-82.5 84.2795,-82.5 103.328,-82.5" fill="none" stroke="black"/>
+<path d="M44,-82.5C63.2969,-82.5 84.384,-82.5 103.275,-82.5" fill="none" stroke="black"/>
 </g>
 <!-- C1
 Liquids centrifuge -->
@@ -34,10 +34,10 @@ Liquids centrifuge</title>
 <text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="162" y="-86.3">C1</text>
 <text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="162" y="-71.3">Liquids centrifuge</text>
 </g>
-<!-- S5 -->
-<g class="node" id="node2"><title>S5</title>
-<polygon fill="#79dae8" points="25.5,-98 0.5,-98 0.5,-67 25.5,-67 25.5,-61 43.5,-82.5 25.5,-104 25.5,-98" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="22" y="-78.8">S5</text>
+<!-- d105 -->
+<g class="node" id="node2"><title>d105</title>
+<polygon fill="#79dae8" points="26,-98 0,-98 0,-67 26,-67 26,-61 44,-82.5 26,-104 26,-98" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="22" y="-78.8">d105</text>
 </g>
 <!-- light -->
 <g class="node" id="node3"><title>light</title>

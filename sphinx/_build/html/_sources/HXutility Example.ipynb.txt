@@ -132,6 +132,22 @@
        "  </thead>\n",
        "  <tbody>\n",
        "    <tr>\n",
+       "      <th rowspan=\"3\" valign=\"top\">Low pressure steam</th>\n",
+       "      <th>Duty</th>\n",
+       "      <td>kJ/hr</td>\n",
+       "      <td>1.07e+06</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>Flow</th>\n",
+       "      <td>kg/hr</td>\n",
+       "      <td>27.3</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>Cost</th>\n",
+       "      <td>USD/hr</td>\n",
+       "      <td>6.49</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
        "      <th rowspan=\"7\" valign=\"top\">Design</th>\n",
        "      <th>Area</th>\n",
        "      <td>ft^2</td>\n",
@@ -174,32 +190,36 @@
        "      <td>4.79e+03</td>\n",
        "    </tr>\n",
        "    <tr>\n",
-       "      <th rowspan=\"2\" valign=\"top\">Summary</th>\n",
        "      <th>Purchase cost</th>\n",
+       "      <th></th>\n",
        "      <td>USD</td>\n",
        "      <td>4.79e+03</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Utility cost</th>\n",
+       "      <th></th>\n",
        "      <td>USD/hr</td>\n",
-       "      <td>6.42</td>\n",
+       "      <td>6.49</td>\n",
        "    </tr>\n",
        "  </tbody>\n",
        "</table>\n",
        "</div>"
       ],
       "text/plain": [
-       "Heat exchanger                                Units       hx\n",
-       "Design  Area                                   ft^2     57.4\n",
-       "        Overall heat transfer coefficient  kW/m^2/K      0.5\n",
-       "        Fouling correction factor                          1\n",
-       "        Tube side pressure drop                 psi        5\n",
-       "        Shell side pressure drop                psi      1.5\n",
-       "        Operating pressure                      psi       50\n",
-       "        Total tube length                        ft       20\n",
-       "Cost    Heat exchanger                          USD 4.79e+03\n",
-       "Summary Purchase cost                           USD 4.79e+03\n",
-       "        Utility cost                         USD/hr     6.42"
+       "Heat exchanger                                           Units       hx\n",
+       "Low pressure steam Duty                                  kJ/hr 1.07e+06\n",
+       "                   Flow                                  kg/hr     27.3\n",
+       "                   Cost                                 USD/hr     6.49\n",
+       "Design             Area                                   ft^2     57.4\n",
+       "                   Overall heat transfer coefficient  kW/m^2/K      0.5\n",
+       "                   Fouling correction factor                          1\n",
+       "                   Tube side pressure drop                 psi        5\n",
+       "                   Shell side pressure drop                psi      1.5\n",
+       "                   Operating pressure                      psi       50\n",
+       "                   Total tube length                        ft       20\n",
+       "Cost               Heat exchanger                          USD 4.79e+03\n",
+       "Purchase cost                                              USD 4.79e+03\n",
+       "Utility cost                                            USD/hr     6.49"
       ]
      },
      "execution_count": 2,
@@ -212,27 +232,6 @@
    ]
   },
   {
-   "cell_type": "code",
-   "execution_count": 3,
-   "metadata": {},
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "HeatUtility: Low pressure steam\n",
-      " duty: 1.07e+06 kJ/hr\n",
-      " flow: 27 kmol/hr\n",
-      " cost: 6.42 USD/hr\n"
-     ]
-    }
-   ],
-   "source": [
-    "for hx in hx.heat_utilities:\n",
-    "    hx.show()"
-   ]
-  },
-  {
    "cell_type": "markdown",
    "metadata": {},
    "source": [
@@ -241,7 +240,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 4,
+   "execution_count": 3,
    "metadata": {},
    "outputs": [
     {
@@ -322,7 +321,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 5,
+   "execution_count": 4,
    "metadata": {},
    "outputs": [
     {
@@ -352,6 +351,22 @@
        "    </tr>\n",
        "  </thead>\n",
        "  <tbody>\n",
+       "    <tr>\n",
+       "      <th rowspan=\"3\" valign=\"top\">Low pressure steam</th>\n",
+       "      <th>Duty</th>\n",
+       "      <td>kJ/hr</td>\n",
+       "      <td>2.04e+07</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>Flow</th>\n",
+       "      <td>kg/hr</td>\n",
+       "      <td>521</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>Cost</th>\n",
+       "      <td>USD/hr</td>\n",
+       "      <td>124</td>\n",
+       "    </tr>\n",
        "    <tr>\n",
        "      <th rowspan=\"7\" valign=\"top\">Design</th>\n",
        "      <th>Area</th>\n",
@@ -395,13 +410,14 @@
        "      <td>2.07e+04</td>\n",
        "    </tr>\n",
        "    <tr>\n",
-       "      <th rowspan=\"2\" valign=\"top\">Summary</th>\n",
        "      <th>Purchase cost</th>\n",
+       "      <th></th>\n",
        "      <td>USD</td>\n",
        "      <td>2.07e+04</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Utility cost</th>\n",
+       "      <th></th>\n",
        "      <td>USD/hr</td>\n",
        "      <td>124</td>\n",
        "    </tr>\n",
@@ -410,47 +426,29 @@
        "</div>"
       ],
       "text/plain": [
-       "Heat exchanger                                Units       hx\n",
-       "Design  Area                                   ft^2      687\n",
-       "        Overall heat transfer coefficient  kW/m^2/K        1\n",
-       "        Fouling correction factor                          1\n",
-       "        Tube side pressure drop                 psi      1.5\n",
-       "        Shell side pressure drop                psi      1.5\n",
-       "        Operating pressure                      psi       50\n",
-       "        Total tube length                        ft       20\n",
-       "Cost    Heat exchanger                          USD 2.07e+04\n",
-       "Summary Purchase cost                           USD 2.07e+04\n",
-       "        Utility cost                         USD/hr      124"
+       "Heat exchanger                                           Units       hx\n",
+       "Low pressure steam Duty                                  kJ/hr 2.04e+07\n",
+       "                   Flow                                  kg/hr      521\n",
+       "                   Cost                                 USD/hr      124\n",
+       "Design             Area                                   ft^2      687\n",
+       "                   Overall heat transfer coefficient  kW/m^2/K        1\n",
+       "                   Fouling correction factor                          1\n",
+       "                   Tube side pressure drop                 psi      1.5\n",
+       "                   Shell side pressure drop                psi      1.5\n",
+       "                   Operating pressure                      psi       50\n",
+       "                   Total tube length                        ft       20\n",
+       "Cost               Heat exchanger                          USD 2.07e+04\n",
+       "Purchase cost                                              USD 2.07e+04\n",
+       "Utility cost                                            USD/hr      124"
       ]
      },
-     "execution_count": 5,
+     "execution_count": 4,
      "metadata": {},
      "output_type": "execute_result"
     }
    ],
    "source": [
     "hx.results()"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 6,
-   "metadata": {},
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "HeatUtility: Low pressure steam\n",
-      " duty: 2.04e+07 kJ/hr\n",
-      " flow: 521 kmol/hr\n",
-      " cost: 124 USD/hr\n"
-     ]
-    }
-   ],
-   "source": [
-    "for hx in hx.heat_utilities:\n",
-    "    hx.show()"
    ]
   }
  ],

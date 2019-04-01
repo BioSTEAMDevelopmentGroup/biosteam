@@ -13,10 +13,8 @@ from .flowsheet import find
 from .stream import Stream
 from .unit import Unit
 from . import np
-from .process import Process
 from .utils import color_scheme, missing_stream, strtuple, function
 CS = color_scheme
-
 __all__ = ('System',)
 
 # %% Debugging and exception handling
@@ -29,11 +27,7 @@ def evaluate(self, command=None):
         info = CS.info("Enter to continue or type to evaluate:\n")
         command = input(Next + info + ">>> ")
     
-    if command == '':
-        return 
-    elif command == 'exit':
-        raise Stop
-    
+    if command == 'exit': raise Stop
     if command:
         # Build locals dictionary for evaluating command
         lcs = {} 
@@ -48,8 +42,7 @@ def evaluate(self, command=None):
             err = CS.exception(f'{type(err).__name__}:') + f' {str(err)}\n\n'
             info = CS.info(f"Enter to raise error or type to evaluate:\n")
             command = input(err + info + ">>> ")
-            if command == '':
-                raise err
+            if command == '': raise err
             evaluate(self, command)        
         else:
             # If successful, continue evaluating
@@ -89,16 +82,14 @@ def notify_run_wrapper(self, func):
     return wrapper
     
 # %% Other
-    
-def _flatten_network(network):
-    flattend = []
+def _unitnetwork(network):
+    flat = []
     inst = isinstance
     for i in network:
-        if inst(i, Unit):
-            flattend.append(i)
-        elif inst(i, System):
-            flattend.extend(i._flattened_network)
-    return flattend
+        if i in flat: continue
+        if inst(i, Unit): flat.append(i)
+        elif inst(i, System): flat.extend(i._unitnetwork)
+    return flat
 
 class _systemUnit(Unit):
     """Dummy unit for displaying a system."""
@@ -141,82 +132,72 @@ class System:
     # [dict] Cached downstream systems by (system, unit, with_facilities) keys
     _cached_downstream_systems = {} 
 
-    def __init__(self, ID, network=(), recycle=None, facilities=()):
+    def __init__(self, ID, network, recycle=None, facilities=None):
         #: [dict] Current molar flow and temperature errors and number of iterations made
         self._solver_error = {'mol_error': 0,
                              'T_error': 0,
                              'spec_error': 0,
                              'iter': 0}
-        #: set[Unit] All units within the network
-        self.units = set()
         
-        #: set[Stream] All streams within the network
-        self.streams = set()
+        #: list[Unit] Network of only unit operations
+        self._unitnetwork = units = _unitnetwork(network)
+        
+        #: list[Unit] All unit operations with linked streams
+        self._linkunits = [u for u in units if u._has_proxystream]
+        
+        #: list[Unit] All units in the network that have costs
+        self._costunits = [i for i in units if i._has_cost]
+        
+        #: set[Unit] All units within the system
+        self.units = set(units)
+        
+        #: set[Stream] All streams within the system
+        self.streams = streams = set()
 
-        #: set[System] All subsystems in the network
+        #: set[System] All subsystems in the system
         self.subsystems = set()
 
-        self.ID = ID
+        ID = ID.replace(' ', '_')
+        if ID != '*': find.system[ID] = self
+        self._ID = ID
         self._set_network(network)
         self.recycle = recycle
 
-        if facilities:
-            #: set[Unit] All units within facilities
-            self.offsite_units = set()
-            
-            #: set[Unit] All streams within facilities
-            self.offsite_streams = set()
-            
-            #: set[System] All subsystems within facilities
-            self.offsite_subsystems = set()
-            
-            self._set_facilities(facilities)
-        else:
-            self.offsite_units = self.offsite_streams = self.offsite_subsystems = None
-            self.facilities = (*facilities,)
-            
-        #: list[Unit] All units that have costs
-        self._costunits = [i for i in self.units if i._has_cost]
-    
-    def _set_network(self, network):
-        """Set network and cache units, streams, subsystems, feeds and products."""
-        # Sort network into surface_units and systems
-        units = self.units; units.clear()
-        streams = self.streams; streams.clear()
-        subsystems = self.subsystems; subsystems.clear()
-        inst = isinstance
-        for i in network:
-            if inst(i, Unit):
-                units.add(i)
-                streams.update(i._ins)
-                streams.update(i._outs)
-            elif inst(i, System):
-                subsystems.add(i)
-                units.update(i.units)
-                streams.update(i.streams)
-            elif not inst(i, function):
-                raise ValueError(f"Only Unit, System, and function objects are valid network elements, not '{type(i).__name__}'")
-        streams.discard(missing_stream)        
+        if facilities: self._set_facilities(facilities)
+        else: self.facilities = ()
         
         #: set[Stream] All feed streams in the system.
         self.feeds = set(filter(lambda s: not s._source and s._sink, streams))
         
         #: set[Stream] All product streams in the system.
         self.products = set(filter(lambda s: s._source and not s._sink, streams)) 
+    
+    def _set_network(self, network):
+        """Set network and cache units, streams, subsystems, feeds and products."""
+        # Sort network into surface_units and systems
+        streams = self.streams
+        subsystems = self.subsystems
+        inst = isinstance
+        for i in network:
+            if inst(i, Unit):
+                streams.update(i._ins)
+                streams.update(i._outs)
+            elif inst(i, System):
+                subsystems.add(i)
+                streams.update(i.streams)
+            elif not inst(i, function):
+                raise ValueError(f"Only Unit, System, and function objects are valid network elements, not '{type(i).__name__}'")
+        streams.discard(missing_stream)        
         
         #: tuple[Unit, function and/or System] A network that is run element by element until the recycle converges.
         self.network = (*network,)
         
-        #: list[Unit] All unit operations in order of network
-        self._flattened_network = _flatten_network(network)
-        for u in self._flattened_network: u._setup_linked_streams()
-        
     
     def _set_facilities(self, facilities):
         """Set facilities and cache offsite units, streams, subsystems, feeds and products."""
-        units = self.offsite_units; units.clear()
-        streams = self.offsite_streams; streams.clear()
-        subsystems = self.offsite_subsystems; subsystems.clear()
+        units = self.units
+        streams = self.streams
+        subsystems = self.subsystems
         inst = isinstance
         for i in facilities:
             if inst(i, Unit):
@@ -231,11 +212,6 @@ class System:
         
         #: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the network simulation.
         self.facilities = tuple(facilities)
-        
-        self.feeds.update(filter(lambda s: not s._source and s._sink,
-                                 streams))
-        self.products.update(filter(lambda s: s._source and not s._sink,
-                                    streams)) 
     
     @property
     def ID(self):
@@ -245,9 +221,12 @@ class System:
     @ID.setter
     def ID(self, ID):
         ID = ID.replace(' ', '_')
-        find.system[ID] = self
-        self._ID = ID
-
+        if ID != '*': 
+            if self._ID in find.system:
+                del find.system[self._ID]
+            self._ID = ID
+            find.system[ID] = self
+    
     @property
     def recycle(self):
         """A tear stream for the recycle loop"""
@@ -318,14 +297,13 @@ class System:
         network = self._downstream_network(unit)
         if not network:
             unit_not_found = True
-            for i in self.facilities:
-                if unit is i or (isinstance(i, System) and unit in i.units):
-                    pos = self.facilities.index(i)
+            inst = isinstance
+            for pos, i in enumerate(self.facilities):
+                if unit is i or (inst(i, System) and unit in i.units):
                     downstream_facilities = self.facilities[pos:]
                     unit_not_found = False
                     break
-            if unit_not_found:
-                raise ValueError(f'{unit} not found in system')
+            if unit_not_found: raise ValueError(f'{unit} not found in system')
         else:
             downstream_facilities = self.facilities
         system = System(f'{type(unit).__name__}-{unit} and downstream', network,
@@ -377,7 +355,7 @@ class System:
                 subsystem_unit = _systemUnit(i.ID, outs, ins)
                 subsystem_unit._ID = i.ID
                 units.add(subsystem_unit)
-        System('', units)._thorough_diagram()
+        System('*', units)._thorough_diagram()
         # Reconnect how it was
         for u in self.units:
             u.ins = u._ins
@@ -415,6 +393,7 @@ class System:
                outputorder='edgesfirst', nodesep='0.15', maxiter='10000')
         f.attr('edge', dir='foward')
 
+        connections = set()
         for s in self.streams:
             if s.ID == '' or s.ID == 'Missing Stream':
                 continue  # Ignore stream
@@ -422,7 +401,11 @@ class System:
             oU = s._source
             if oU:
                 try: oi = oU._outs.index(s) 
-                except: oi = oU._outs.index(s._upstream_connection) # The stream says it's source is that unit, but it really means that the unit is the source of the connection stream
+                except:
+                    unit_connection = (oU, s)
+                    if unit_connection not in connections:
+                        oi = oU._outs.index(s._upstream_connection) # The stream says it's source is that unit, but it really means that the unit is the source of the connection stream
+                        connections.add(unit_connection)
                 oU = oU._ID
                     
             else:
@@ -433,7 +416,10 @@ class System:
                     di = dU._ins.index(s)
                     dU = dU._ID
                 except: # The stream is the upstream connection stream
-                    continue
+                    unit_connection = (dU, s)
+                    if unit_connection not in connections:
+                        di = dU._ins.index(s._downstream_connection) # The stream says it's source is that unit, but it really means that the unit is the source of the connection stream
+                        connections.add(unit_connection)
             else:
                 di = None
 
@@ -501,7 +487,6 @@ class System:
             if inst(a, Unit): a._run()
             elif inst(a, System): a._converge()
             elif inst(a, function): a()
-            elif inst(a, Process): a._run()
         self._solver_error['iter'] += 1
     
     # Methods for convering the recycle stream
@@ -513,10 +498,6 @@ class System:
         solver_error = self._solver_error
         maxiter, mol_tol, T_tol = self.options.values()
 
-        def set_solver_error():
-            solver_error['mol_error'] = mol_error
-            solver_error['T_error'] = T_error
-
         # Outer loop
         abs_ = abs
         while True:
@@ -527,11 +508,13 @@ class System:
             T_error = abs_(recycle.T - T_old)
             if T_error < T_tol and mol_error < mol_tol: break
             if solver_error['iter'] > maxiter:
-                set_solver_error()
+                solver_error['mol_error'] = mol_error
+                solver_error['T_error'] = T_error
                 raise SolverError(f'Could not converge'
                                   + self._error_info())
 
-        set_solver_error()
+        solver_error['mol_error'] = mol_error
+        solver_error['T_error'] = T_error
 
     def _Wegstein(self):
         """Converge the system recycle iteratively using Wegstein's method."""
@@ -540,10 +523,6 @@ class System:
         run = self._run
         maxiter, mol_tol, T_tol = self.options.values()
         solver_error = self._solver_error
-
-        def set_solver_error():
-            solver_error['mol_error'] = mol_error
-            solver_error['T_error'] = T_error
 
         # Prepare variables
         len_ = recycle._Nspecies + 1
@@ -566,9 +545,6 @@ class System:
         mol_error = abs_(gx0[:-1] - x0[:-1]).sum()
         T_error = abs_(gx0[-1] - x0[-1])
         converged = mol_error < mol_tol and T_error < T_tol
-        if converged:
-            set_solver_error()
-            return
 
         # Outer loop
         while not converged:
@@ -582,7 +558,8 @@ class System:
             converged = mol_error < mol_tol and T_error < T_tol
 
             if solver_error['iter'] > maxiter:
-                set_solver_error()
+                solver_error['mol_error'] = mol_error
+                solver_error['T_error'] = T_error
                 raise SolverError(f'Could not converge'
                                   + self._error_info())
 
@@ -597,7 +574,8 @@ class System:
             x1 = w*gx1 + (1-w)*x1
             recycle.mol = x1[:-1]
             recycle.T = x1[-1]
-        set_solver_error()
+        solver_error['mol_error'] = mol_error
+        solver_error['T_error'] = T_error
     
     # Default converge method
     _converge_method = _Wegstein
@@ -642,46 +620,43 @@ class System:
 
     def _reset_iter(self):
         self._solver_error['iter'] = 0
-        for system in self.subsystems:
-            system._reset_iter()
+        for system in self.subsystems: system._reset_iter()
     
     def reset_names(self, unit_format=None, stream_format=None):
         """Reset names of all streams and units according to the network order."""
-        Unit._default_ID = unit_format if unit_format else ['U', 1]
-        Stream._default_ID = stream_format if stream_format else ['S', 1]
-        subsystems = set()
+        Unit._default_ID = unit_format if unit_format else ['U', 0]
+        Stream._default_ID = stream_format if stream_format else ['d', 0]
         streams = set()
         units = set()
-        inst = isinstance
-        for i in self.network:
-            if inst(i, Unit) and i not in units:
-                i.ID = ''
-                for s in (i._ins + i._outs):
+        for i in self._unitnetwork:
+            if i in units: continue
+            i.ID = ''
+            for s in (i._ins + i._outs):
+                if (s is not missing_stream
+                    and s._sink and s._source
+                    and s not in streams):
+                    s.ID = ''
                     streams.add(s)
-                    if (s is not missing_stream
-                        and s._sink and s._source
-                        and s not in streams):
-                        s.ID = ''  
-            elif inst(i, System) and i not in subsystems:
-                subsystems.add(i)
-                i.reset_names(Unit._default_ID, Stream._default_ID) 
+            units.add(i)
     
     def reset_flows(self):
         """Reset all process streams to zero flow."""
         self._solver_error = {'mol_error': 0,
-                             'T_error': 0,
-                             'spec_error': 0,
-                             'iter': 0}
+                              'T_error': 0,
+                              'spec_error': 0,
+                              'iter': 0}
         for stream in self.streams:
             if stream.source[0]: stream.empty()
 
     def simulate(self):
         """Converge the network and simulate all units."""
+        for u in self._linkunits: u._link_streams()
         self._reset_iter()
         self._converge()
         for u in self._costunits: u._summary()
+        inst = isinstance
         for i in self.facilities:
-            if isinstance(i, function): i()
+            if inst(i, function): i()
             else: i.simulate()
         
     # Debugging
@@ -790,7 +765,7 @@ class System:
         facilities = facilities.replace('%, ', ',\n'+' '*14)
         
         return (f"System: {self.ID}"
-                + str(recycle) + '\n'
+                + recycle + '\n'
                 + f" network: {network}\n"
                 +(f" facilities: {facilities}" if self.facilities else '')
-                + str(error)[1:])
+                + error[1:])

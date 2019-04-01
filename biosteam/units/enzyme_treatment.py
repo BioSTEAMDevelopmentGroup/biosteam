@@ -24,7 +24,7 @@ class EnzymeTreatment(Unit):
     
     def _init(self):
         self._heat_exchanger = he = HXutility('*', None) 
-        self.heat_utilities = he.heat_utilities
+        self._heat_utilities = he._heat_utilities
         he._ins = self._ins
         he._outs = self._outs
         
@@ -48,6 +48,6 @@ class EnzymeTreatment(Unit):
         Cost = r['Cost']
         Cost['Heat exchanger'] = he._results['Cost']['Heat exchanger']
         V = self.tau * self.ins[0].volnet / self.V_wf
-        self.power_utility(self.electricity_rate*V)
+        self._power_utility(self.electricity_rate*V)
         Cost['Tank'] = 12080 * V**0.525 * self.CEPCI/525.4 # Same equation as MixTank
     

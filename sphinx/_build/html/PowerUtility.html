@@ -84,7 +84,7 @@
 <blockquote>
 <div><p><strong>Parameters</strong></p>
 <blockquote>
-<div>power: [float] Power requirement (kW)</div></blockquote>
+<div>rate: [float] Power requirement (kW)</div></blockquote>
 </div></blockquote>
 </div></blockquote>
 <p><strong>Class Parameters</strong></p>
@@ -100,19 +100,19 @@
 </pre></div>
 </div>
 <p>Call object to calculate cost:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pu</span><span class="p">(</span><span class="n">power</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pu</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="mi">500</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pu</span>
 <span class="go">&lt;PowerUtility: 500 kW, 30 USD/hr&gt;</span>
 </pre></div>
 </div>
 <p>Results are accessible:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pu</span><span class="o">.</span><span class="n">power</span><span class="p">,</span> <span class="n">pu</span><span class="o">.</span><span class="n">cost</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pu</span><span class="o">.</span><span class="n">rate</span><span class="p">,</span> <span class="n">pu</span><span class="o">.</span><span class="n">cost</span>
 <span class="go">(500, 30.)</span>
 </pre></div>
 </div>
 <p>See the object with different units:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pu</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">power</span><span class="o">=</span><span class="s1">&#39;BTU/s&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="s1">&#39;USD/yr&#39;</span><span class="p">)</span>
-<span class="go">PowerUtility: power=474 BTU/s, post=2.63e+05 USD/yr</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pu</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="s1">&#39;BTU/s&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="s1">&#39;USD/yr&#39;</span><span class="p">)</span>
+<span class="go">PowerUtility: rate=474 BTU/s, cost=2.63e+05 USD/yr</span>
 </pre></div>
 </div>
 </div></blockquote>

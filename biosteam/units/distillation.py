@@ -777,7 +777,7 @@ class Distillation(Dist):
         self._boiler = HXutility('*',
                                  ins=Stream('*'),
                                  outs=MixedStream('*'))
-        self.heat_utilities = self._condenser.heat_utilities + self._boiler.heat_utilities
+        self._heat_utilities = self._condenser._heat_utilities + self._boiler._heat_utilities
         self._cached = {'condensate': Stream('*'),
                         'boil_up': Stream('*'),
                         'vapor stream': Stream('*')}
@@ -1082,7 +1082,7 @@ class Stripper(Dist):
         self._boiler = HXutility('*',
                                  ins=Stream('*'),
                                  outs=MixedStream('*'))
-        self.heat_utilities = self._boiler.heat_utilities
+        self._heat_utilities = self._boiler._heat_utilities
         self._cached = {'boil_up': Stream('*')}
     
     def plot_stages(self):

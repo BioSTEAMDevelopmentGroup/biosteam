@@ -577,15 +577,15 @@ class Stream(metaclass=metaStream):
             if flow_pairs:
                 raise ValueError('Cannot specify flow pairs when a Species object is passed')
             elif empty_flow:
-                self._molarray = np.zeros(self._Nspecies)
+                self._molarray = np.zeros(self._Nspecies, float)
             elif lenflow == self._Nspecies:
-                self._molarray = np.array(flow)
+                self._molarray = np.array(flow, float)
             else:
                 raise ValueError('If flow is not empty, length of flow must be equal to length of Species object.')
         else:
             lenspecies = len(species)
             empty_species = lenspecies == 0
-            self._molarray = np.zeros(self._Nspecies)
+            self._molarray = np.zeros(self._Nspecies, float)
             if flow_pairs and empty_flow and empty_species:
                 species = flow_pairs.keys()
                 self._molarray[self.indices(*species)] = (*flow_pairs.values(),)
@@ -595,7 +595,7 @@ class Stream(metaclass=metaStream):
                 elif not empty_flow:
                     self._molarray[self.indices(*species)] = flow
             elif empty_species and lenflow == self._Nspecies:
-                self._molarray = np.array(flow)
+                self._molarray = np.array(flow, float)
             else:
                 raise ValueError('Length of flow rates must be equal to length of species')
     
@@ -757,7 +757,6 @@ class Stream(metaclass=metaStream):
             if not_included: raise ValueError(f'{start}{not_included} not defined in stream species')
             else: raise VE
                 
-    
     # Molar flow
     @property
     def mol(self):
@@ -1694,7 +1693,7 @@ class Stream(metaclass=metaStream):
         elif inst(s_sum, Stream):
             # For Stream objects
             for s in streams:
-                s_sum._mol[:] += s.mol
+                s_sum._molarray[:] += s.mol
         else:
             raise TypeError('Must pass a valid Stream object')
 

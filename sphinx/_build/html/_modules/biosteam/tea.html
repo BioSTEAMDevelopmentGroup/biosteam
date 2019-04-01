@@ -137,7 +137,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;results&#39;</span><span class="p">,</span> <span class="s1">&#39;system&#39;</span><span class="p">,</span> <span class="s1">&#39;cashflow&#39;</span><span class="p">,</span> <span class="s1">&#39;_cached&#39;</span><span class="p">,</span>
                  <span class="s1">&#39;_options&#39;</span><span class="p">,</span> <span class="s1">&#39;_IRR_guess&#39;</span><span class="p">,</span> <span class="s1">&#39;_cost_guess&#39;</span><span class="p">,</span>
-                 <span class="s1">&#39;_summary_values&#39;</span><span class="p">)</span>
+                 <span class="s1">&#39;_costs&#39;</span><span class="p">)</span>
     
     <span class="c1">#: Default cash flow options</span>
     <span class="n">_default</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Lang factor&#39;</span><span class="p">:</span> <span class="mf">4.37</span><span class="p">,</span>
@@ -214,11 +214,9 @@
         <span class="c1">#: Guess stream cost for solve_price method</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cost_guess</span> <span class="o">=</span> <span class="kc">None</span>
         
-        <span class="n">units</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">offsite_units</span><span class="p">)</span> <span class="k">if</span> <span class="n">system</span><span class="o">.</span><span class="n">facilities</span> <span class="k">else</span> <span class="n">system</span><span class="o">.</span><span class="n">units</span>
-        
-        <span class="c1">#: All &quot;values&quot; functions of unit summaries</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_summary_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Summary&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
-                                <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span> <span class="k">if</span> <span class="n">u</span><span class="o">.</span><span class="n">_has_cost</span><span class="p">]</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">units</span>
+        <span class="c1">#: All purchase and utility costs for units</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_costs</span> <span class="o">=</span> <span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">_totalcosts</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span> <span class="k">if</span> <span class="n">u</span><span class="o">.</span><span class="n">_has_cost</span><span class="p">]</span>
         
         <span class="n">system</span><span class="o">.</span><span class="n">tea</span> <span class="o">=</span> <span class="bp">self</span>
 
@@ -246,23 +244,16 @@
 <span class="sd">        .. Note::</span>
 <span class="sd">           If there is more than one main product, The operation cost is proportionally allocated to each of the main products with respect to their marketing values. The marketing value of each product is determined by the annual production multiplied by its selling price.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        
         <span class="n">system</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span>
         <span class="n">sysfeeds</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">feeds</span>
         <span class="n">sysproducts</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">products</span>
         <span class="n">o</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span>
         <span class="n">flow_factor</span> <span class="o">=</span> <span class="mi">24</span><span class="o">*</span><span class="n">o</span><span class="p">[</span><span class="s1">&#39;Operating days&#39;</span><span class="p">]</span>
         <span class="n">o</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span>
-        <span class="n">FC_</span> <span class="o">=</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Other fixed capital&#39;</span><span class="p">]</span> <span class="c1"># Fixed capital USD</span>
-        <span class="n">UC_</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># Utility cost USD/hr</span>
+        <span class="n">FC_</span><span class="p">,</span> <span class="n">UC_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_costs</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># Fixed capital (USD) and utility cost (USD/hr)</span>
+        <span class="n">FC_</span> <span class="o">+=</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Other fixed capital&#39;</span><span class="p">]</span>
         <span class="n">MC_</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># Material cost USD/hr</span>
         <span class="n">CP_</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># Coproducts USD/hr</span>
-        <span class="n">it_</span> <span class="o">=</span> <span class="nb">iter</span>
-        <span class="n">nx_</span> <span class="o">=</span> <span class="nb">next</span>
-        <span class="k">for</span> <span class="n">sv</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summary_values</span><span class="p">:</span>
-            <span class="n">c</span> <span class="o">=</span> <span class="n">it_</span><span class="p">(</span><span class="n">sv</span><span class="p">())</span>
-            <span class="n">FC_</span> <span class="o">+=</span> <span class="n">nx_</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
-            <span class="n">UC_</span> <span class="o">+=</span> <span class="n">nx_</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sysfeeds</span><span class="p">:</span>
             <span class="n">price</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">price</span>
             <span class="k">if</span> <span class="n">price</span><span class="p">:</span> <span class="n">MC_</span> <span class="o">+=</span> <span class="n">price</span><span class="o">*</span><span class="n">s</span><span class="o">.</span><span class="n">massnet</span>
@@ -356,16 +347,10 @@
         <span class="n">feeds</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">feeds</span>
         <span class="n">products</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">products</span>
         <span class="n">o</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span>
-        <span class="n">FC_</span> <span class="o">=</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Other fixed capital&#39;</span><span class="p">]</span> <span class="c1"># Fixed capital USD</span>
-        <span class="n">UC_</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># Utility cost USD/hr</span>
+        <span class="n">FC_</span><span class="p">,</span> <span class="n">UC_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_costs</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># Fixed capital (USD) and utility cost (USD/hr)</span>
+        <span class="n">FC_</span> <span class="o">+=</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Other fixed capital&#39;</span><span class="p">]</span>
         <span class="n">MC_</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># Material cost USD/hr</span>
         <span class="n">S_</span>  <span class="o">=</span> <span class="mi">0</span> <span class="c1"># Sales USD/hr</span>
-        <span class="n">it_</span> <span class="o">=</span> <span class="nb">iter</span>
-        <span class="n">nx_</span> <span class="o">=</span> <span class="nb">next</span>
-        <span class="k">for</span> <span class="n">sv</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_summary_values</span><span class="p">:</span>
-            <span class="n">c</span> <span class="o">=</span> <span class="n">it_</span><span class="p">(</span><span class="n">sv</span><span class="p">())</span>
-            <span class="n">FC_</span> <span class="o">+=</span> <span class="n">nx_</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
-            <span class="n">UC_</span> <span class="o">+=</span> <span class="n">nx_</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">feeds</span><span class="p">:</span>
             <span class="n">price</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">price</span>
             <span class="k">if</span> <span class="n">price</span><span class="p">:</span> <span class="n">MC_</span> <span class="o">+=</span> <span class="n">price</span><span class="o">*</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">_mol</span><span class="o">*</span><span class="n">s</span><span class="o">.</span><span class="n">_MW</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>

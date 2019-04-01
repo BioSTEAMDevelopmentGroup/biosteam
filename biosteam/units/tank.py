@@ -18,7 +18,7 @@ class Tank(Unit):
     
     #: Abstract residence time attribute
     _tau = None
-    _has_linked_streams = True
+    _has_proxystream = True
 
     @property
     def tau(self):
@@ -95,7 +95,7 @@ class MixTank(Tank):
     _tau = 1
     _N_ins = 2
     _has_power_utility = True
-    _has_linked_streams = False
+    _has_proxystream = False
     _run = Mixer._run
     _bounds = {'Volume': (0.1, 30)}
     
@@ -110,7 +110,7 @@ class MixTank(Tank):
         V = self._results['Design']['Volume']
         Cost = self._results['Cost']
         Cost['Tank'] = 12080 * V**0.525 * self.CEPCI/525.4
-        self.power_utility(self.electricity_rate*V)
+        self._power_utility(self.electricity_rate*V)
 
 
 class PCT(MixTank):

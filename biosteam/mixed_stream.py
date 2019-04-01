@@ -611,12 +611,9 @@ class MixedStream(Stream):
     def copylike(self, stream):
         """Copy mol, T, P, and phase of stream to self."""
         if self._species is not stream._species:
-            self._copy_species(stream)
+            raise ValueError('species must be the same to copy stream specifications.')
         if isinstance(stream, MixedStream):
-            self.solid_mol = copy.copy(stream.solid_mol)
-            self.liquid_mol = copy.copy(stream.liquid_mol)
-            self.LIQUID_mol = copy.copy(stream.LIQUID_mol)
-            self.vapor_mol = copy.copy(stream.vapor_mol)
+            self._molarray[:] = stream._molarray
         elif isinstance(stream, Stream):
             self.empty()
             self._phases_molflow[stream.phase][:] = stream.mol
@@ -637,8 +634,7 @@ class MixedStream(Stream):
         """
         mol = self.mol
         self.__class__ = Stream
-        self.phase = phase
-        self._mol = mol
+        self.__init__(ID=self.ID, flow=mol, T=self.T, P=self.P, phase=phase)
 
     def enable_phases(self):
         """Cast stream into a MixedStream object."""

@@ -340,6 +340,22 @@ Flash: F1
   </thead>
   <tbody>
     <tr>
+      <th rowspan="3" valign="top">Medium pressure steam</th>
+      <th>Duty</th>
+      <td>kJ/hr</td>
+      <td>3.21e+07</td>
+    </tr>
+    <tr>
+      <th>Flow</th>
+      <td>kg/hr</td>
+      <td>860</td>
+    </tr>
+    <tr>
+      <th>Cost</th>
+      <td>USD/hr</td>
+      <td>237</td>
+    </tr>
+    <tr>
       <th rowspan="5" valign="top">Design</th>
       <th>SepType</th>
       <td></td>
@@ -374,45 +390,23 @@ Flash: F1
     <tr>
       <th>Heat exchanger</th>
       <td>USD</td>
-      <td>2.91e+04</td>
+      <td>2.64e+04</td>
     </tr>
     <tr>
-      <th rowspan="2" valign="top">Summary</th>
       <th>Purchase cost</th>
+      <th></th>
       <td>USD</td>
-      <td>7.3e+04</td>
+      <td>7.03e+04</td>
     </tr>
     <tr>
       <th>Utility cost</th>
+      <th></th>
       <td>USD/hr</td>
       <td>237</td>
     </tr>
   </tbody>
 </table>
 </div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [3]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="c1"># Heat utilities</span>
-<span class="k">for</span> <span class="n">hu</span> <span class="ow">in</span> <span class="n">F1</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">:</span>
-    <span class="n">hu</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">Cost</span><span class="o">=</span><span class="s1">&#39;USD/year&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-HeatUtility: Medium pressure steam
- duty: 3.21e+07 kJ/hr
- flow: 860 kmol/hr
- cost: 237 USD/hr
-</pre></div></div>
 </div>
 </div>
 

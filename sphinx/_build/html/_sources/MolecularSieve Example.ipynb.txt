@@ -157,6 +157,17 @@
        "  </thead>\n",
        "  <tbody>\n",
        "    <tr>\n",
+       "      <th rowspan=\"2\" valign=\"top\">Power</th>\n",
+       "      <th>Rate</th>\n",
+       "      <td>kW</td>\n",
+       "      <td>741</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>Cost</th>\n",
+       "      <td>kW</td>\n",
+       "      <td>57.9</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
        "      <th rowspan=\"3\" valign=\"top\">Cost</th>\n",
        "      <th>Molecular Sieve Cost</th>\n",
        "      <td>USD</td>\n",
@@ -173,13 +184,14 @@
        "      <td>6.74e+05</td>\n",
        "    </tr>\n",
        "    <tr>\n",
-       "      <th rowspan=\"2\" valign=\"top\">Summary</th>\n",
        "      <th>Purchase cost</th>\n",
+       "      <th></th>\n",
        "      <td>USD</td>\n",
        "      <td>2.9e+06</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Utility cost</th>\n",
+       "      <th></th>\n",
        "      <td>USD/hr</td>\n",
        "      <td>57.9</td>\n",
        "    </tr>\n",
@@ -188,12 +200,14 @@
        "</div>"
       ],
       "text/plain": [
-       "Molecular sieve                      Units      MS1\n",
-       "Cost    Molecular Sieve Cost           USD 2.17e+06\n",
-       "        Pressure Filter Pressing       USD 6.26e+04\n",
-       "        Pressure Filter Drying (2)     USD 6.74e+05\n",
-       "Summary Purchase cost                  USD  2.9e+06\n",
-       "        Utility cost                USD/hr     57.9"
+       "Molecular sieve                            Units      MS1\n",
+       "Power         Rate                            kW      741\n",
+       "              Cost                            kW     57.9\n",
+       "Cost          Molecular Sieve Cost           USD 2.17e+06\n",
+       "              Pressure Filter Pressing       USD 6.26e+04\n",
+       "              Pressure Filter Drying (2)     USD 6.74e+05\n",
+       "Purchase cost                                USD  2.9e+06\n",
+       "Utility cost                              USD/hr     57.9"
       ]
      },
      "execution_count": 2,
@@ -203,23 +217,6 @@
    ],
    "source": [
     "MS1.results()"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": 3,
-   "metadata": {},
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "PowerUtility: power=741 kW, cost=5.08e+05 USD/yr\n"
-     ]
-    }
-   ],
-   "source": [
-    "MS1.power_utility.show(cost='USD/yr')"
    ]
   }
  ],

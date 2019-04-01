@@ -588,11 +588,9 @@ class Dist(Unit):
         
         """
         S = alpha*V/L # Stripping factor
-        if S > 1:
-            sigma = S
-        else:
-            sigma = 1/S
-        return 0.503*mu**(-0.226)*sigma**(-0.08 )
+        e = 0.503*mu**(-0.226)*(S if S > 1 else 1/S)**(-0.08 )
+        if e < 1: return e
+        else: return 1
     
     @staticmethod
     def _calc_FlowParameter(L, V, rho_V, rho_L) -> 'F_LV':
@@ -819,7 +817,7 @@ class Distillation(Dist):
             cached['Rectifying Section Efficiency'] = E_rectifier = self._calc_MurphreeEfficiency(mu, alpha, L_Rmol, V_Rmol)
             
             # Calculate Murphree Efficiency for stripping section
-            mu = liq.mu # mPa*s
+            mu = 1000*liq.mu # mPa*s
             cached['V_Smol'] = V_Smol = (R+1)*vap_molnet - sum(vap_mol)
             cached['L_Smol'] = L_Smol = R*vap_molnet + sum(liq_mol) 
             K_light = y_stages[0]/x_stages[0] 

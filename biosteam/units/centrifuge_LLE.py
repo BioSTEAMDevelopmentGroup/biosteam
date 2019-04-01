@@ -101,8 +101,8 @@ class Centrifuge_LLE(Unit):
         Design = r['Design']
         Cost = r['Cost']
         Q = Design['Flow rate']
-        self.power_utility(self.electricity_rate*Q)
-        Cost['Vessel cost'] = 28100 * Q ** 0.574 * self.CEPCI/525.4
+        self._power_utility(self.electricity_rate*Q)
+        Cost['Centrifuge'] = 28100 * Q ** 0.574 * self.CEPCI/525.4
         return Cost
 
 class PartitionCentrifuge_LLE(Centrifuge_LLE):

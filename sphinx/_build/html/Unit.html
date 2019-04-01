@@ -83,7 +83,30 @@
 <div><p><strong>ID:</strong> [str] Unique identification</p>
 <p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
 <p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
-<p><strong>**kwargs:</strong> Keyword arguments that are accessed by setup, run, operation, design, and cost methods</p>
+<p><strong>**kwargs:</strong> Keyword arguments that are stored to instance attribute <cite>_kwargs</cite> and later accessed by _setup, _run, _design, and _cost methods.</p>
+</div></blockquote>
+<p><strong>Class Definitions</strong></p>
+<blockquote>
+<div><p><strong>CEPCI</strong> = 567.5: [float] Chemical Engineering Plant Cost Index</p>
+<p><strong>_kwargs</strong> = {}: [dict] Default keyword arguments</p>
+<dl class="docutils">
+<dt><strong>_init():</strong></dt>
+<dd>Initialize components.</dd>
+<dt><strong>_setup()</strong></dt>
+<dd>Create cached data from _kwargs.</dd>
+<dt><strong>_run()</strong></dt>
+<dd>Run rigorous simulation.</dd>
+<dt><strong>_design()</strong></dt>
+<dd>Update results “Design” dictionary with design requirements.</dd>
+<dt><strong>_cost()</strong></dt>
+<dd>Update results “Cost” dictionary with itemized cost.</dd>
+</dl>
+<p><strong>_bounds</strong> = {} [dict] Values should be tuples with lower and upper bounds.</p>
+<p><strong>_N_ins</strong> = 1: [int] Expected number of input streams</p>
+<p><strong>_N_outs</strong> = 2: [int] Expected number of output streams</p>
+<p><strong>_N_heat_utilities</strong> = 0: [int] Number of heat utilities</p>
+<p><strong>_has_power_utility</strong> = False: [bool] If True, a PowerUtility object is created for every instance.</p>
+<p>line = [Defaults to the class name of the first child class]: [str] Name denoting the type of Unit class</p>
 </div></blockquote>
 <p><strong>ins</strong></p>
 <blockquote>
@@ -134,12 +157,6 @@
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><strong>radius:</strong> [int] Maxium number streams between neighbors.</div></blockquote>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.Unit.Hnet">
-<code class="descname">Hnet</code><a class="headerlink" href="#biosteam.Unit.Hnet" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net enthalpy flow (including enthalpies of formation).</p>
 </dd></dl>
 
 <dl class="method">

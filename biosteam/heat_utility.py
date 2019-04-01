@@ -153,7 +153,9 @@ class HeatUtility:
            ('Low pressure steam', 0.00607, 0.0255, 1e+03)
            
     """
-    __slots__ = ('_fresh', '_vap', '_liq', 'ID', 'duty', 'flow', 'cost', 'efficiency')
+    __slots__ = ('_fresh', '_used', 'ID', 'duty',
+                 'flow', 'cost', 'efficiency',
+                 '_args', '_agent')
     dT = 5  #: [float] Pinch temperature difference
     
     #: Units of measure for results dictionary
@@ -179,12 +181,13 @@ class HeatUtility:
         self.flow = 0
         self.cost = 0
         self.efficiency = efficiency
+        self._args = self._agent = None
 
     def _init_streams(self, flow, species, T, P, phase):
         """Initialize utility streams."""
         self._fresh = Stream('*', flow, species, T=T, P=P, phase=phase)
-        self._liq = Stream('*', species=species, phase='l')
-        self._vap = Stream('*', species=species, phase='g')
+        self._used = object.__new__(Stream)
+        self._used.__dict__.update(self._fresh.__dict__)
 
     def __call__(self, duty:'kJ/hr', T_in:'K', T_out:'K'=None):
         """Calculate utility requirements given the essential parameters.
@@ -204,20 +207,26 @@ class HeatUtility:
         else:
             T_pinch, T_op = self._get_pinch(duty, T_in, T_out)
         
-        
-        # Select heat transfer agent
-        if duty < 0:
-            (ID, Type, price_duty,
-             price_mol, T_limit,
-             efficiency) = self._select_cooling_agent(T_op)
-        elif duty > 0:
-            (ID, Type, price_duty,
-            price_mol, T_limit,
-            efficiency) = self._select_heating_agent(T_op)
-        else:
+        if duty == 0:
             self.ID = ''
             self.flow = self.duty = self.cost = 0
             return
+        
+        negduty = duty < 0
+        args = (negduty, T_op)
+        if self._args != args:
+            self._args = args
+            # Select heat transfer agent
+            if negduty:
+                (Type, price_duty,
+                 price_mol, T_limit,
+                 efficiency) = self._select_cooling_agent(T_op)
+            else:
+                (Type, price_duty,
+                price_mol, T_limit,
+                efficiency) = self._select_heating_agent(T_op)
+        else:
+            (Type, price_duty, price_mol, T_limit, efficiency) = self._agent
         
         # Calculate utility flow rate requirement
         efficiency = self.efficiency if self.efficiency else efficiency
@@ -230,7 +239,6 @@ class HeatUtility:
             raise biosteamError(f"Invalid heat transfer agent '{ID}'.")
         
         # Update and return results
-        self.ID = ID
         self.flow = mol = self._fresh.molnet
         self.duty = duty
         self.cost = price_duty*duty + price_mol*mol
@@ -272,8 +280,14 @@ class HeatUtility:
              phase, T_limit, price_duty,
              price_mol, efficiency) = cooling_agents[ID]
             if T_max > T:
-                self._init_streams(flow, species, T, P, phase[0])
-                return ID, Type, price_duty, price_mol, T_limit, efficiency
+                agent = (Type, price_duty, price_mol, T_limit, efficiency)
+                if self.ID == ID:
+                    return agent
+                else:
+                    self._init_streams(flow, species, T, P, phase[0])
+                    self._agent = agent
+                    self.ID = ID
+                return agent
         raise biosteamError(f'No cooling agent that can cool under {T_pinch} K')
             
     def _select_heating_agent(self, T_pinch):
@@ -304,50 +318,34 @@ class HeatUtility:
              phase, T_limit, price_duty,
              price_mol, efficiency) =  heating_agents[ID]
             if T_min < T:
-                self._init_streams(flow, species, T, P, phase[0])
-                return ID, Type, price_duty, price_mol, T_limit, efficiency
+                agent = (Type, price_duty, price_mol, T_limit, efficiency)
+                if self.ID == ID:
+                    return agent
+                else:
+                    self._init_streams(flow, species, T, P, phase[0])
+                    self._agent = agent
+                    self.ID = ID
+                return agent
         raise biosteamError(f'No heating agent that can heat over {T_pinch} K')
 
     # Main Calculations
     def _update_flow_wt_pinch_T(self, duty, T_pinch, T_limit):
         """Set utility Temperature at the pinch, calculate and set minimum net flowrate of the utility to satisfy duty and update."""
-        f, v, l = self._fresh, self._vap, self._liq
-        v.P = l.P = f.P
-        if f.phase == 'l':
-            l.copylike(f)
-            u = l
-        else:
-            v.copylike(f)
-            u = v
-        u.T = self._T_exit(T_pinch, self.dT, T_limit, duty > 0)
-        self._update_utility_flow(f, u, duty)
-        f.mol = u.mol
+        self._used.T = self._T_exit(T_pinch, self.dT, T_limit, duty > 0)
+        self._update_utility_flow(self._fresh, self._used, duty)
 
     def _update_flow_wt_phase_change(self, duty):
         """Change phase of utility, calculate and set minimum net flowrate of the utility to satisfy duty and update."""
-        f, v, l = self._fresh, self._vap, self._liq
-        v.P = l.P = f.P
-        v.T = l.T = f.T
-        f_is_liq = f.phase == 'l'
-        duty_positive = duty > 0
-        if duty_positive and not f_is_liq:
-            u = l
-        elif duty_positive < 0 and f_is_liq:
-            u = v
-        else:
-            sign = 'positive' if duty_positive else 'negative'
-            raise ValueError(
-                f"Fresh utility stream phase is '{f.phase}' while duty is {sign}, consider switching phase")
+        f = self._fresh
+        u = self._used
+        u.phase = 'g' if f.phase=='l' else 'l'
         self._update_utility_flow(f, u, duty)
-        f.mol = u.mol
 
     # Subcalculations
     @staticmethod
     def _update_utility_flow(fresh, utility, duty):
         """Changes flow rate of utility such that it can meet the duty requirement"""
-        utility.mol = fresh.mol
-        dH = fresh.H - utility.H
-        utility.mol *= abs(duty/dH)
+        utility._molarray *= duty/(fresh.H - utility.H)
 
     @staticmethod
     def _T_exit(T_pinch, dT, T_limit, duty_positive):

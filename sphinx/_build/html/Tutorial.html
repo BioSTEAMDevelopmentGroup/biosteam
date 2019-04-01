@@ -568,7 +568,7 @@ Stream: feed
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>array([32.04186, 36.03056], dtype=object)
+<span></span>array([32.04186, 50.0], dtype=object)
 </pre></div>
 </div>
 </div>
@@ -589,7 +589,7 @@ Stream: feed
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>1238.6075507557673
+<span></span>1346.6344313289649
 </pre></div>
 </div>
 </div>
@@ -610,7 +610,7 @@ Stream: feed
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>36251.651792311415
+<span></span>39278.51231052598
 </pre></div>
 </div>
 </div>
@@ -633,11 +633,11 @@ Stream: feed
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 MixedStream: feed
- phase: &#39;l&#39;, T: 350.2 K, P: 101325 Pa
+ phase: &#39;l&#39;, T: 350.19 K, P: 101325 Pa
         <span class="ansi-white-fg"> species   kmol/hr</span>
  liquid: Methanol  1
          Glycerol  2
-         Water     2
+         Water     2.78
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -657,15 +657,15 @@ MixedStream: feed
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 MixedStream: feed
- phase: &#39;lg&#39;, T: 394.44 K, P: 101325 Pa
+ phase: &#39;lg&#39;, T: 381.94 K, P: 101325 Pa
         <span class="ansi-white-fg"> species   kmol/hr</span>
- liquid: Methanol  0.178
+ liquid: Methanol  0.227
          Glycerol  2
-         Water     0.324
+         Water     0.662
 
- vapor:  Methanol  0.822
-         Glycerol  0.00214
-         Water     1.68
+ vapor:  Methanol  0.773
+         Glycerol  0.00096
+         Water     2.11
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -673,7 +673,7 @@ MixedStream: feed
 </div>
 <div class="stderr output_area docutils container">
 <div class="highlight"><pre>
-C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 4.840740075451322e-08 reached
+C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 5.765637638432963e-07 reached
   warnings.warn(msg, RuntimeWarning)
 </pre></div></div>
 </div>
@@ -863,7 +863,7 @@ Flash: F1
 </div>
 <div class="stderr output_area docutils container">
 <div class="highlight"><pre>
-C:\Users\yoelr\Dropbox\Cortes-Pena-Guest_Shared\Code\biosteam\biosteam\units\flash.py:223: DesignWarning: @Flash F1: Vertical vessel weight (3772 ) is out of bounds (4200 to 1e+06 ).
+C:\Users\yoelr\Dropbox\Cortes-Pena-Guest_Shared\Code\biosteam\biosteam\units\flash.py:222: DesignWarning: @Flash F1: Vertical vessel weight (3772 lb) is out of bounds (4200 to 1e+06 lb).
   out = self._vertical()
 </pre></div></div>
 </div>
@@ -934,6 +934,22 @@ may be inaccurate. These bounds are stored in the class:</p>
   </thead>
   <tbody>
     <tr>
+      <th rowspan="3" valign="top">Medium pressure steam</th>
+      <th>Duty</th>
+      <td>kJ/hr</td>
+      <td>1.88e+07</td>
+    </tr>
+    <tr>
+      <th>Flow</th>
+      <td>kg/hr</td>
+      <td>504</td>
+    </tr>
+    <tr>
+      <th>Cost</th>
+      <td>USD/hr</td>
+      <td>139</td>
+    </tr>
+    <tr>
       <th rowspan="5" valign="top">Design</th>
       <th>SepType</th>
       <td></td>
@@ -968,16 +984,17 @@ may be inaccurate. These bounds are stored in the class:</p>
     <tr>
       <th>Heat exchanger</th>
       <td>USD</td>
-      <td>2.1e+04</td>
+      <td>1.97e+04</td>
     </tr>
     <tr>
-      <th rowspan="2" valign="top">Summary</th>
       <th>Purchase cost</th>
+      <th></th>
       <td>USD</td>
-      <td>5.78e+04</td>
+      <td>5.65e+04</td>
     </tr>
     <tr>
       <th>Utility cost</th>
+      <th></th>
       <td>USD/hr</td>
       <td>139</td>
     </tr>
@@ -1001,15 +1018,18 @@ may be inaccurate. These bounds are stored in the class:</p>
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Design   SepType           Vertical
-         Length                18.5
-         Diameter               4.5
-         Weight            3.77e+03
-         Wall thickness       0.312
-Cost     Vessel            3.68e+04
-         Heat exchanger     2.1e+04
-Summary  Purchase cost     5.78e+04
-         Utility cost           139
+<span></span>Medium pressure steam  Duty              1.88e+07
+                       Flow                   504
+                       Cost                   139
+Design                 SepType           Vertical
+                       Length                18.5
+                       Diameter               4.5
+                       Weight            3.77e+03
+                       Wall thickness       0.312
+Cost                   Vessel            3.68e+04
+                       Heat exchanger    1.97e+04
+Purchase cost                            5.65e+04
+Utility cost                                  139
 Name: F1, dtype: object
 </pre></div>
 </div>
@@ -1174,6 +1194,17 @@ System: sys1
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
+<div class="stderr output_area docutils container">
+<div class="highlight"><pre>
+C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 5.582530206993397e-07 reached
+  warnings.warn(msg, RuntimeWarning)
+C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 9.733344086271245e-08 reached
+  warnings.warn(msg, RuntimeWarning)
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 System: sys1
@@ -1189,15 +1220,11 @@ System: sys1
 </div>
 <div class="stderr output_area docutils container">
 <div class="highlight"><pre>
-C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 5.582530206993397e-07 reached
-  warnings.warn(msg, RuntimeWarning)
-C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 9.733344086271245e-08 reached
-  warnings.warn(msg, RuntimeWarning)
 C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of -3.125683178950567e-08 reached
   warnings.warn(msg, RuntimeWarning)
 C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of -8.274480478576152e-08 reached
   warnings.warn(msg, RuntimeWarning)
-C:\Users\yoelr\Dropbox\Cortes-Pena-Guest_Shared\Code\biosteam\biosteam\units\flash.py:223: DesignWarning: @Flash F1: Vertical vessel weight (4068 ) is out of bounds (4200 to 1e+06 ).
+C:\Users\yoelr\Dropbox\Cortes-Pena-Guest_Shared\Code\biosteam\biosteam\units\flash.py:222: DesignWarning: @Flash F1: Vertical vessel weight (4068 lb) is out of bounds (4200 to 1e+06 lb).
   out = self._vertical()
 </pre></div></div>
 </div>
@@ -1274,6 +1301,22 @@ Flash: F1
   </thead>
   <tbody>
     <tr>
+      <th rowspan="3" valign="top">Low pressure steam</th>
+      <th>Duty</th>
+      <td>kJ/hr</td>
+      <td>1.86e+07</td>
+    </tr>
+    <tr>
+      <th>Flow</th>
+      <td>kg/hr</td>
+      <td>475</td>
+    </tr>
+    <tr>
+      <th>Cost</th>
+      <td>USD/hr</td>
+      <td>113</td>
+    </tr>
+    <tr>
       <th rowspan="5" valign="top">Design</th>
       <th>SepType</th>
       <td></td>
@@ -1308,16 +1351,17 @@ Flash: F1
     <tr>
       <th>Heat exchanger</th>
       <td>USD</td>
-      <td>2.34e+04</td>
+      <td>2.25e+04</td>
     </tr>
     <tr>
-      <th rowspan="2" valign="top">Summary</th>
       <th>Purchase cost</th>
+      <th></th>
       <td>USD</td>
-      <td>6.15e+04</td>
+      <td>6.06e+04</td>
     </tr>
     <tr>
       <th>Utility cost</th>
+      <th></th>
       <td>USD/hr</td>
       <td>113</td>
     </tr>
@@ -1342,7 +1386,7 @@ Flash: F1
 <div class="highlight"><pre>
 HeatUtility: Low pressure steam
  duty: 1.86e+07 kJ/hr
- flow: 474 kmol/hr
+ flow: 475 kmol/hr
  cost: 113 USD/hr
 </pre></div></div>
 </div>

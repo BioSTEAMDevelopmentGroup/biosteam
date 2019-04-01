@@ -95,7 +95,7 @@ class Transesterification(Reactor):
         out.P = feed.P
 
     def _design(self):
-        self.heat_utilities[0](self.Hnet, self.outs[0].T)
+        self._heat_utilities[0](self._Hnet, self.outs[0].T)
         Design = self._results['Design']
         Design['Volume'] = self._tau * self._volnet_out / 0.8
         return Design
@@ -106,7 +106,7 @@ class Transesterification(Reactor):
         Cost = results['Cost']
         Volume = Design['Volume']
         Cost['Reactor'] = self.CEPCI/525.4 * 15000 * Volume ** 0.55
-        self.power_utility(Volume*self.electricity_rate)
+        self._power_utility(Volume*self.electricity_rate)
     
         
         

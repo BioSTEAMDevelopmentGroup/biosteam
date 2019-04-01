@@ -82,7 +82,7 @@ class Pump(Unit):
     _N_ins = 1
     _N_outs = 1
     _has_power_utility = True
-    _has_linked_streams = True
+    _has_proxystream = True
     _kwargs = {'P': None}
     
     # Pump type
@@ -160,7 +160,7 @@ class Pump(Unit):
         else:
             raise Exception('More than 1 pump required, but not yet implemented.')
         
-        self.power_utility(power/1.341)
+        self._power_utility(power/1.341)
     
     def _cost(self):
         # Parameters

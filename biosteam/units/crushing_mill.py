@@ -33,4 +33,4 @@ class CrushingMill(Unit):
         massflow = self.ins[0].massnet
         S = massflow/self.V_0
         self._results['Cost']['Crushing mill'] = (self.CEPCI/self.CEPCI_0) * self.C_0*S**self.exp
-        self.power_utility(massflow*self.electricity_rate)
+        self._power_utility(massflow*self.electricity_rate)
