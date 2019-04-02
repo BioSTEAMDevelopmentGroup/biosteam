@@ -520,24 +520,16 @@ class HXutility(HX):
         """
         in1 = self.ins[0]
         out1 = self.outs[0]
-        util = self.heat_utilities[0]
-        in2 = util._fresh
-        
-        # Make out2
-        vap_out = util._vap
-        liq_out = util._liq
-        out2 = MixedStream('u_out', species=in2.species)
-        out2.T = liq_out.T
-        out2.P = liq_out.P
-        out2.liquid_mol = liq_out.mol
-        out2.vapor_mol = vap_out.mol
+        hu = self._heat_utilities[0]
+        in2 = hu._fresh
+        out2 = hu._used
         return in1, in2, out1, out2
 
     def _design(self, duty=None):
         # Set duty and run heat utility
         if duty is None: duty = self._H_out-self._H_in
         self._duty = duty
-        self.heat_utilities[0](duty, self.ins[0].T, self.outs[0].T)
+        self._heat_utilities[0](duty, self.ins[0].T, self.outs[0].T)
         super()._design()
 
 class HXprocess(HX):
@@ -633,16 +625,16 @@ class HXprocess(HX):
                 s1f.T = s2.T + dT
             else:
                 s1f.T = s2.T - dT
-            Duty = s1.H - s1f.H
-            s2f.T += Duty/s2.C
+            duty = s1.H - s1f.H
+            s2f.T += duty/s2.C
         else:
             if s1_hot:
                 s2f.T = s1.T - dT
             else:
                 s2f.T = s1.T + dT
-            Duty = s2.H - s2f.H
-            s1f.T += Duty/s1.C
-        self._duty = Duty
+            duty = s2.H - s2f.H
+            s1f.T += duty/s1.C
+        self._duty = duty
     
     def _run_ls(self):
         s1_in, s2_in = self.ins
@@ -677,8 +669,8 @@ class HXprocess(HX):
             T_pinch = s1_in.T - dT # Maximum
         
         # Calculate maximum latent heat and new temperature of sensible stream
-        Duty = s1_in.H - s1_out.H
-        T_s2_new = s2_out.T + Duty/s2_out.C
+        duty = s1_in.H - s1_out.H
+        T_s2_new = s2_out.T + duty/s2_out.C
         s1_out.copylike(s1_in)
         
         if boiling and T_s2_new < T_pinch:
@@ -700,7 +692,7 @@ class HXprocess(HX):
             s1_out.phase = 'l'
             s2_out.T = T_s2_new
         
-        self._duty = Duty
+        self._duty = duty
     
     def _run_ll(self):
         s1_in, s2_in = self.ins
@@ -764,6 +756,6 @@ class HXprocess(HX):
             species, _ = sp_out._equilibrium_species()
             species_IDs = tuple(s.ID for s in species)
         
-        Duty = (sc_in.H-sc_out.H)
-        sp_out.VLE(species_IDs, LNK, HNK, Qin=Duty)
-        self._duty = abs(Duty)
+        duty = (sc_in.H-sc_out.H)
+        sp_out.VLE(species_IDs, LNK, HNK, Qin=duty)
+        self._duty = abs(duty)

@@ -1,0 +1,194 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>biosteam.flowsheet &#8212; BioSTEAM 0.1 documentation</title>
+    <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for biosteam.flowsheet</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">As BioSTEAM objects are created, they are automatically registered. `find` is a MainFlowsheet object that allows the user to find any Unit, Stream or System instance.  When `find` is called, it simply looks up the item and returns it. </span>
+
+<span class="sd">**Examples**</span>
+
+<span class="sd">    .. code-block:: python</span>
+
+<span class="sd">       &gt;&gt;&gt; from biosteam import find</span>
+<span class="sd">       &gt;&gt;&gt; import lipidcane # You must pip install lipidcane first</span>
+<span class="sd">       &gt;&gt;&gt; find</span>
+<span class="sd">       &lt;MainFlowsheet: Lipidcane&gt;</span>
+<span class="sd">       &gt;&gt;&gt; find(&#39;Lipid_cane&#39;)</span>
+<span class="sd">       &lt;Stream: Lipid_cane&gt;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;find&#39;</span><span class="p">,</span> <span class="s1">&#39;stream_connector&#39;</span><span class="p">,</span> <span class="s1">&#39;MainFlowsheet&#39;</span><span class="p">,</span> <span class="s1">&#39;Flowsheet&#39;</span><span class="p">)</span>
+
+<span class="c1"># %% Flowsheet search      </span>
+    
+<div class="viewcode-block" id="Flowsheet"><a class="viewcode-back" href="../../find.html#biosteam.flowsheet.Flowsheet">[docs]</a><span class="k">class</span> <span class="nc">Flowsheet</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Create a Flowsheet object which stores references to all stream, unit, and system objects.&quot;&quot;&quot;</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
+        <span class="c1">#: [str] ID of flowsheet</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span>
+        
+        <span class="c1">#: [dict] Dictionary of systems</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">system</span> <span class="o">=</span> <span class="p">{}</span>
+        
+        <span class="c1">#: [dict] Dictionary of units</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="p">{}</span>
+        
+        <span class="c1">#: [dict] Dictionary of streams</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="o">=</span> <span class="p">{}</span>
+    
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item_ID</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;item&#39;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Return requested biosteam item.</span>
+<span class="sd">    </span>
+<span class="sd">        **Parameters**</span>
+<span class="sd">    </span>
+<span class="sd">             **item_ID:** [str] ID of the requested item.</span>
+<span class="sd">    </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">item_ID</span> <span class="o">=</span> <span class="n">item_ID</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">item_ID</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">obj</span><span class="p">:</span> <span class="k">return</span> <span class="n">obj</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">item_ID</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">obj</span><span class="p">:</span> <span class="k">return</span> <span class="n">obj</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">item_ID</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">obj</span><span class="p">:</span> <span class="k">return</span> <span class="n">obj</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;No registered item &#39;</span><span class="si">{item_ID}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="s1">&gt;&#39;</span></div>
+
+
+<div class="viewcode-block" id="MainFlowsheet"><a class="viewcode-back" href="../../find.html#biosteam.flowsheet.MainFlowsheet">[docs]</a><span class="k">class</span> <span class="nc">MainFlowsheet</span><span class="p">(</span><span class="n">Flowsheet</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a Flowsheet object which stores references to all stream, unit, and system objects.&quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">()</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">flowsheet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;[Flowsheet] Main flowsheet that is updated with new biosteam objects&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">MainFlowsheet</span><span class="o">.</span><span class="n">_flowsheet</span>
+    
+    <span class="nd">@flowsheet</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">flowsheet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flowsheet</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">flowsheet</span><span class="p">,</span> <span class="n">Flowsheet</span><span class="p">):</span>
+            <span class="n">find</span><span class="o">.</span><span class="vm">__dict__</span> <span class="o">=</span> <span class="n">flowsheet</span><span class="o">.</span><span class="vm">__dict__</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Main flowsheet must be a Flowsheet object&#39;</span><span class="p">)</span>
+        <span class="n">MainFlowsheet</span><span class="o">.</span><span class="n">_flowsheet</span> <span class="o">=</span> <span class="n">flowsheet</span>
+    
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;Cannot create new MainFlowsheet object. Only one main flowsheet can exist.&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="s1">&gt;&#39;</span></div>
+    
+    
+<span class="c1">#: [MainFlowsheet] Main flowsheet where Stream, Unit, and System objects are registered.</span>
+<span class="n">find</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">MainFlowsheet</span><span class="p">)</span>
+<span class="n">find</span><span class="o">.</span><span class="n">flowsheet</span> <span class="o">=</span> <span class="n">Flowsheet</span><span class="p">(</span><span class="s1">&#39;Default&#39;</span><span class="p">)</span>
+
+
+<span class="c1"># %% Connect between different flowsheets</span>
+
+<span class="k">def</span> <span class="nf">stream_connector</span><span class="p">(</span><span class="n">upstream</span><span class="p">,</span> <span class="n">downstream</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return a function that copies specifications from `upstream` to `downstream`. This serves to connect different flowsheets.</span>
+<span class="sd">    </span>
+<span class="sd">    **Parameters**</span>
+<span class="sd">    </span>
+<span class="sd">        **upstream:** [Stream] Non-zero species of this stream should be specified in the species object of `downstream`.</span>
+<span class="sd">        </span>
+<span class="sd">        **downstream:** [Stream] Flow rate, T, P, and phase information will be copied from `upstream` to this stream.</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Source and sink.</span>
+    <span class="n">upstream</span><span class="o">.</span><span class="n">_sink</span> <span class="o">=</span> <span class="n">downstream</span><span class="o">.</span><span class="n">_sink</span>
+    <span class="n">downstream</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="n">upstream</span><span class="o">.</span><span class="n">_source</span>
+    <span class="n">downstream</span><span class="o">.</span><span class="n">_upstream_connection</span> <span class="o">=</span> <span class="n">upstream</span>
+    <span class="n">upstream</span><span class="o">.</span><span class="n">_downstream_connection</span> <span class="o">=</span> <span class="n">downstream</span>
+    <span class="k">def</span> <span class="nf">connect</span><span class="p">():</span>
+        <span class="c1"># Flow rate, T, P and phase</span>
+        <span class="n">index</span><span class="p">,</span> <span class="n">species</span> <span class="o">=</span> <span class="n">upstream</span><span class="o">.</span><span class="n">nonzero_species</span>
+        <span class="n">downstream</span><span class="o">.</span><span class="n">setflow</span><span class="p">(</span><span class="n">upstream</span><span class="o">.</span><span class="n">_molarray</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">species</span><span class="p">)</span>
+        <span class="n">downstream</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">upstream</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">downstream</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">upstream</span><span class="o">.</span><span class="n">P</span>
+        <span class="n">downstream</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="n">upstream</span><span class="o">.</span><span class="n">phase</span>
+    <span class="k">return</span> <span class="n">connect</span>
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>

@@ -212,14 +212,6 @@ class MultiEffectEvaporator(Unit):
         Design['Area'] = A = sum(As)
         Design['Volume'] = vol = self._N_evap * self.tau * self.ins[0].volnet
         Cost['Evaporators'] = sum(evap_costs)
-        # pumps = components['pumps']
-        # pumps_cost = 0
-        # for i in range(len(As)+1):
-        #     pumps.operation(); pumps.design()
-        #     pumps_cost += sum(pumps.cost().values())
-        #     del pumps.ins[0]
-        #     del pumps.outs[0]
-        # Cost['Pumps'] = pumps_cost
         
         # Calculate power
         power, cost = vacuum_system(massflow=0, volflow=0,

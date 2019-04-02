@@ -238,7 +238,7 @@ class Unit(metaclass=metaUnit):
 
         **_has_power_utility** = False: [bool] If True, a PowerUtility object is created for every instance.
 
-        line = [Defaults to the class name of the first child class]: [str] Name denoting the type of Unit class
+        **line** = [Defaults to the class name of the first child class]: [str] Name denoting the type of Unit class
 
     **ins**
         
@@ -354,28 +354,28 @@ class Unit(metaclass=metaUnit):
     def _init_outs(self, outs):
         """Initialize output streams."""
         if self._has_proxystream:
-            if isinstance(outs, str):
-                self._outs = Outs(self, ProxyStream(outs))
-            elif isinstance(outs, Stream):
-                self._outs = Outs(self, ProxyStream.asproxy(outs))
-            elif outs is None:
+            if outs is None:
                 self._outs = Outs(self, (ProxyStream('*')
                                   for i in self._N_outs))
             elif not outs:
                 self._outs = Outs(self, (ProxyStream('') for i in self._ins))
+            elif isinstance(outs, Stream):
+                self._outs = Outs(self, ProxyStream.asproxy(outs))
+            elif isinstance(outs, str):
+                self._outs = Outs(self, ProxyStream(outs))
             else:
                 self._outs = Outs(self, (ProxyStream(o) if isinstance(o, str)
                                          else ProxyStream.asproxy(o)
                                          for o in outs))
         else:
-            if isinstance(outs, str):
-                self._outs = Outs(self, Stream(outs))
-            elif isinstance(outs, Stream):
-                self._outs = Outs(self, outs)
-            elif outs is None:
+            if outs is None:
                 self._outs = Outs(self, (missing_stream for i in range(self._N_outs)))
             elif not outs:
                 self._outs = Outs(self, (Stream('') for i in range(self._N_outs)))
+            elif isinstance(outs, Stream):
+                self._outs = Outs(self, outs)
+            elif isinstance(outs, str):
+                self._outs = Outs(self, Stream(outs))
             else:
                 self._outs = Outs(self, (Stream(i) if isinstance(i, str) else i for i in outs))        
     

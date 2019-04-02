@@ -87,7 +87,7 @@ class RotaryVacuumFilter(Unit):
                                                                    volflow,
                                                                    P_suction, vol)
         power = work_rot/self.power_efficiency/1000 + work_vacuum # kW
-        self.power_utility(power)
+        self._power_utility(power)
         
         
 RVF = RotaryVacuumFilter

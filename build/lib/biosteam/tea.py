@@ -82,7 +82,7 @@ class TEA:
     """
     __slots__ = ('results', 'system', 'cashflow', '_cached',
                  '_options', '_IRR_guess', '_cost_guess',
-                 '_summary_values')
+                 '_costs')
     
     #: Default cash flow options
     _default = {'Lang factor': 4.37,
@@ -159,11 +159,9 @@ class TEA:
         #: Guess stream cost for solve_price method
         self._cost_guess = None
         
-        units = system.units.union(system.offsite_units) if system.facilities else system.units
-        
-        #: All "values" functions of unit summaries
-        self._summary_values = [u._results['Summary'].values
-                                for u in units if u._has_cost]
+        units = system.units
+        #: All purchase and utility costs for units
+        self._costs = [u._totalcosts for u in units if u._has_cost]
         
         system.tea = self
 
@@ -191,23 +189,16 @@ class TEA:
         .. Note::
            If there is more than one main product, The operation cost is proportionally allocated to each of the main products with respect to their marketing values. The marketing value of each product is determined by the annual production multiplied by its selling price.
         """
-        
         system = self.system
         sysfeeds = system.feeds
         sysproducts = system.products
         o = self.options
         flow_factor = 24*o['Operating days']
         o = self.options
-        FC_ = o['Other fixed capital'] # Fixed capital USD
-        UC_ = 0 # Utility cost USD/hr
+        FC_, UC_ = np.array(self._costs).sum(0) # Fixed capital (USD) and utility cost (USD/hr)
+        FC_ += o['Other fixed capital']
         MC_ = 0 # Material cost USD/hr
         CP_ = 0 # Coproducts USD/hr
-        it_ = iter
-        nx_ = next
-        for sv in self._summary_values:
-            c = it_(sv())
-            FC_ += nx_(c)
-            UC_ += nx_(c)
         for s in sysfeeds:
             price = s.price
             if price: MC_ += price*s.massnet
@@ -301,16 +292,10 @@ class TEA:
         feeds = system.feeds
         products = system.products
         o = self.options
-        FC_ = o['Other fixed capital'] # Fixed capital USD
-        UC_ = 0 # Utility cost USD/hr
+        FC_, UC_ = np.array(self._costs).sum(0) # Fixed capital (USD) and utility cost (USD/hr)
+        FC_ += o['Other fixed capital']
         MC_ = 0 # Material cost USD/hr
         S_  = 0 # Sales USD/hr
-        it_ = iter
-        nx_ = next
-        for sv in self._summary_values:
-            c = it_(sv())
-            FC_ += nx_(c)
-            UC_ += nx_(c)
         for s in feeds:
             price = s.price
             if price: MC_ += price*(s._mol*s._MW).sum()

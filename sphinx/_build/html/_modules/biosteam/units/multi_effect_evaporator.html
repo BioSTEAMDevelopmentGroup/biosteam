@@ -267,14 +267,6 @@
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Area&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">A</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">As</span><span class="p">)</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Volume&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_N_evap</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">volnet</span>
         <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Evaporators&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">evap_costs</span><span class="p">)</span>
-        <span class="c1"># pumps = components[&#39;pumps&#39;]</span>
-        <span class="c1"># pumps_cost = 0</span>
-        <span class="c1"># for i in range(len(As)+1):</span>
-        <span class="c1">#     pumps.operation(); pumps.design()</span>
-        <span class="c1">#     pumps_cost += sum(pumps.cost().values())</span>
-        <span class="c1">#     del pumps.ins[0]</span>
-        <span class="c1">#     del pumps.outs[0]</span>
-        <span class="c1"># Cost[&#39;Pumps&#39;] = pumps_cost</span>
         
         <span class="c1"># Calculate power</span>
         <span class="n">power</span><span class="p">,</span> <span class="n">cost</span> <span class="o">=</span> <span class="n">vacuum_system</span><span class="p">(</span><span class="n">massflow</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">volflow</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>

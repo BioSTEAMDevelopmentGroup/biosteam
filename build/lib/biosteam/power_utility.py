@@ -17,7 +17,7 @@ class PowerUtility:
         
         **Parameters**
         
-            power: [float] Power requirement (kW)
+            rate: [float] Power requirement (kW)
             
     **Class Parameters**
     
@@ -38,7 +38,7 @@ class PowerUtility:
             
         .. code-block:: python
         
-           >>> pu(power=500)
+           >>> pu(rate=500)
            >>> pu
            <PowerUtility: 500 kW, 30 USD/hr>
            
@@ -46,47 +46,47 @@ class PowerUtility:
             
         .. code-block:: python
         
-           >>> pu.power, pu.cost
+           >>> pu.rate, pu.cost
            (500, 30.)
            
         See the object with different units:
             
         .. code-block:: python
         
-           >>> pu.show(power='BTU/s', cost='USD/yr')
-           PowerUtility: power=474 BTU/s, post=2.63e+05 USD/yr
+           >>> pu.show(rate='BTU/s', cost='USD/yr')
+           PowerUtility: rate=474 BTU/s, cost=2.63e+05 USD/yr
     
     """
-    _units = dict(power='kW', cost='USD/hr')
-    __slots__ = ('power', 'cost')
+    _units = dict(rate='kW', cost='USD/hr')
+    __slots__ = ('rate', 'cost')
     price = 0.0782 #: USD/kWhr
     
     def __init__(self):
-        self.power = 0
+        self.rate = 0
         self.cost = 0
     
-    def __call__(self, power:'kW'):
-        """Return dictionary of utility requirements given the essential parameters.
+    def __call__(self, rate:'kW'):
+        """Calculate cost and save. 
         
         **Parameters**
         
-            power: [float] Power requirement (kW)
+            rate: [float] Power requirement (kW)
         
         """
-        self.power = power
-        self.cost = self.price * power
+        self.rate = rate
+        self.cost = self.price * rate
     
     # Representation
     def _info(self, **show_units):
         # Get units of measure
         su = show_units
         units = self._units
-        Power = su.get('power') or units['power']
+        Rate = su.get('rate') or units['rate']
         Cost = su.get('cost') or units['cost']
-        if self.power:
-            power = Q_(self.power, units['power']).to(Power).magnitude
+        if self.rate:
+            rate = Q_(self.rate, units['rate']).to(Rate).magnitude
             cost = Q_(self.cost, units['cost']).to(Cost).magnitude
-            return (f'{type(self).__name__}: power={power:.3g} {Power}, cost={cost:.3g} {Cost}')
+            return (f'{type(self).__name__}: rate={rate:.3g} {Rate}, cost={cost:.3g} {Cost}')
         else:
             return (f'{type(self).__name__}: None')
 
@@ -95,10 +95,10 @@ class PowerUtility:
 
     def __repr__(self):
         units = self._units
-        if self.power:
-            Power = units['power']
+        if self.rate:
+            Rate = units['rate']
             Cost = units['cost']
-            return (f'<{type(self).__name__}: {self.power:.3g} {Power}, {self.cost:.3g} {Cost}>')
+            return (f'<{type(self).__name__}: {self.rate:.3g} {Rate}, {self.cost:.3g} {Cost}>')
         else:
             return (f'<{type(self).__name__}: None>')
         

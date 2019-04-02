@@ -11,7 +11,7 @@ class ConveyingBelt(Unit):
     height = 30 #: ft
     _N_outs = 1
     _has_power_utility = True
-    _has_linked_streams = True
+    _has_proxystream = True
     _bounds = {'Volumetric flow': (120, 500)}
     
     def _run(self):
@@ -29,7 +29,7 @@ class ConveyingBelt(Unit):
         massnet = feed.massnet*0.0006124/N_belts #lb/s
         power = N_belts * 0.00058*massnet**0.82*self.length + self.height*0.00182*massnet# hp
         power *= 0.7457 # kW
-        self.power_utility(power)
+        self._power_utility(power)
         r['Cost']['Conveying belt and motor'] = N_belts * self.CEPCI/567 * 813*volnet**0.38
         
 

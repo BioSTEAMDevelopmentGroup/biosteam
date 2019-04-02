@@ -1,5 +1,13 @@
 find
 ====
 
-.. automodule:: biosteam.find
+.. automodule:: biosteam.flowsheet
+   :members: find
+
+.. module:: biosteam
+
+.. autoclass:: Flowsheet
    :members:
+
+.. autoclass:: MainFlowsheet
+   :members:   

@@ -8,7 +8,7 @@ from biosteam import Unit
 
 class Shredder(Unit):
     _has_power_utility = True
-    _has_linked_streams = True
+    _has_proxystream = True
     _N_outs = 1
     
     #: Original Price (USD)
@@ -34,4 +34,4 @@ class Shredder(Unit):
         massflow = self.ins[0].massnet
         S = massflow/self.V_0
         self._results['Cost']['Shredder'] = (self.CEPCI/self.CEPCI_0) * self.C_0*S**self.exp
-        self.power_utility(massflow*self.electricity_rate)
+        self._power_utility(massflow*self.electricity_rate)

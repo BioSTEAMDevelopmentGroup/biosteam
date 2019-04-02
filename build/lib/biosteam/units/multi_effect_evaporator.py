@@ -101,7 +101,7 @@ class MultiEffectEvaporator(Unit):
                                    component=component, P=P[i], Qin=0)
             evaporators.append(evap)
         condenser = HXutility('*', outs=Stream('*'), V=0)
-        evap0.heat_utilities[0], condenser.heat_utilities[0] = self.heat_utilities
+        evap0._heat_utilities[0], condenser._heat_utilities[0] = self._heat_utilities
         mixer = Mixer('*', outs='*')
         
         def V_error(v1):
@@ -179,13 +179,13 @@ class MultiEffectEvaporator(Unit):
         CE = self.CEPCI
         
         evap0 = evaporators[0]
-        hu = evap0.heat_utilities[0]
+        hu = evap0._heat_utilities[0]
         duty = evap0._H_out - evap0._H_in
         hu(duty, evap0.ins[0].T, evap0.outs[0].T)
         Q = abs(duty)
         Tci = evap0.ins[0].T
         Tco = evap0.outs[0].T
-        Th = evap0.heat_utilities[0]._fresh.T
+        Th = evap0._heat_utilities[0]._fresh.T
         LMTD = ht.LMTD(Th, Th, Tci, Tco)
         ft = 1
         A = HXutility._calc_area(LMTD, U, Q, ft)
@@ -226,7 +226,7 @@ class MultiEffectEvaporator(Unit):
                                     P_suction=evap.outs[0].P, vol=vol,
                                     vacuum_system_preference='Liquid-ring pump')
         Cost['Vacuum liquid-ring pump'] = cost
-        self.power_utility(power)
+        self._power_utility(power)
         return Design
 
     def _cost(self):

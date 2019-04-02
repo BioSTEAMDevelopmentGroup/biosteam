@@ -4,7 +4,7 @@ Created on Thu Aug 23 16:21:56 2018
 
 @author: yoelr
 """
-from .. import Unit, MixedStream
+from .. import Unit, MixedStream, PowerUtility
 from ..exceptions import DesignError
 from math import pi, ceil
 import copy
@@ -127,7 +127,7 @@ class Flash(Unit):
               'Diameter': 'ft',
               'Weight': 'lb',
               'Wall thickness': 'in'}
-    _has_power_utility = True
+    _has_power_utility = False
     _N_heat_utilities = 0
     
     # Column material factor
@@ -181,13 +181,15 @@ class Flash(Unit):
         vap.phase = 'g'
         liq.phase = 'l'
         self._heat_exchanger = he = HXutility('*', outs=None) 
-        self.heat_utilities = he.heat_utilities
+        self._heat_utilities = he._heat_utilities
         he._ins = self._ins
         self._mixedstream = ms = MixedStream()
         he._outs[0] = ms
 
     def _setup(self):
         self._has_hx = self._kwargs['Qin'] != 0
+        if self._kwargs['P'] < 101325 and not self._power_utility:
+            self._power_utility = PowerUtility()
 
     def _run(self):
         # Unpack
@@ -284,7 +286,7 @@ class Flash(Unit):
                                     P, vol,
                                     self.vacuum_system_preference)
         C['Liquid-ring pump'] = cost
-        self.power_utility(power)
+        self._power_utility(power)
 
     def _design_parameters(self):
         # Retrieve run_args and properties
@@ -606,6 +608,8 @@ class SplitFlash(Flash):
         top, bot = self.outs
         _, Tf, Pf, Qin = self._kwargs.values()
         self._has_hx = Qin != 0
+        if self._kwargs['P'] < 101325 and not self._power_utility:
+            self._power_utility = PowerUtility()
         bot.T = top.T = Tf
         bot.P = top.P = Pf
 
@@ -638,6 +642,8 @@ class PartitionFlash(Flash):
         top, bot = self.outs
         species_IDs, Ks, LNK, HNK, P, T = self._kwargs.values()
         index = top._IDs.index
+        if P < 101325 and not self._power_utility:
+            self._power_utility = PowerUtility()
         self._args = ([index(i) for i in species_IDs],
                       [index(i) for i in LNK],
                       [index(i) for i in HNK],

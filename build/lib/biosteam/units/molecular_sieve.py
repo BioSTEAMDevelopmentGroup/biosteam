@@ -78,7 +78,7 @@ class MolecularSieve(Unit):
         
         # Find power utility
         total_power = power0 + power1
-        self.power_utility(total_power)
+        self._power_utility(total_power)
         return Cost
         
 MolSieve = MolecularSieve        

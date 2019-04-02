@@ -37,7 +37,7 @@ class Clarifier(Unit):
         SetArea = overflow.volnet *  4.4028
         Design['Settling area'] = SetArea
         power = self._calc_energy(SetArea)*0.7457 # in kW
-        self.power_utility(power) 
+        self._power_utility(power) 
         
         # Checking to see which cost equation/material to use
         Steel_bounds, Concrete_bounds = self._bounds.values()

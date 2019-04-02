@@ -72,8 +72,68 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="find">
-<h1>find<a class="headerlink" href="#find" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-biosteam.flowsheet">
+<span id="find"></span><h1>find<a class="headerlink" href="#module-biosteam.flowsheet" title="Permalink to this headline">¶</a></h1>
+<p>As BioSTEAM objects are created, they are automatically registered. <cite>find</cite> is a MainFlowsheet object that allows the user to find any Unit, Stream or System instance.  When <cite>find</cite> is called, it simply looks up the item and returns it.</p>
+<p><strong>Examples</strong></p>
+<blockquote>
+<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">find</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">lipidcane</span> <span class="c1"># You must pip install lipidcane first</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">find</span>
+<span class="go">&lt;MainFlowsheet: Lipidcane&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;Lipid_cane&#39;</span><span class="p">)</span>
+<span class="go">&lt;Stream: Lipid_cane&gt;</span>
+</pre></div>
+</div>
+</div></blockquote>
+<dl class="data">
+<dt id="biosteam.flowsheet.find">
+<code class="descclassname">biosteam.flowsheet.</code><code class="descname">find</code><em class="property"> = &lt;MainFlowsheet: Default&gt;</em><a class="headerlink" href="#biosteam.flowsheet.find" title="Permalink to this definition">¶</a></dt>
+<dd><p>[MainFlowsheet] Main flowsheet where Stream, Unit, and System objects are registered.</p>
+</dd></dl>
+
+<span class="target" id="module-biosteam"></span><dl class="class">
+<dt id="biosteam.Flowsheet">
+<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Flowsheet</code><span class="sig-paren">(</span><em>ID</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/flowsheet.html#Flowsheet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Flowsheet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a Flowsheet object which stores references to all stream, unit, and system objects.</p>
+<dl class="attribute">
+<dt id="biosteam.Flowsheet.ID">
+<code class="descname">ID</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.Flowsheet.ID" title="Permalink to this definition">¶</a></dt>
+<dd><p>[str] ID of flowsheet</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Flowsheet.system">
+<code class="descname">system</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.Flowsheet.system" title="Permalink to this definition">¶</a></dt>
+<dd><p>[dict] Dictionary of systems</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Flowsheet.unit">
+<code class="descname">unit</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.Flowsheet.unit" title="Permalink to this definition">¶</a></dt>
+<dd><p>[dict] Dictionary of units</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Flowsheet.stream">
+<code class="descname">stream</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.Flowsheet.stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>[dict] Dictionary of streams</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="biosteam.MainFlowsheet">
+<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">MainFlowsheet</code><span class="sig-paren">(</span><em>ID</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/flowsheet.html#MainFlowsheet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.MainFlowsheet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a Flowsheet object which stores references to all stream, unit, and system objects.</p>
+<dl class="attribute">
+<dt id="biosteam.MainFlowsheet.flowsheet">
+<code class="descname">flowsheet</code><a class="headerlink" href="#biosteam.MainFlowsheet.flowsheet" title="Permalink to this definition">¶</a></dt>
+<dd><p>[Flowsheet] Main flowsheet that is updated with new biosteam objects</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 
 

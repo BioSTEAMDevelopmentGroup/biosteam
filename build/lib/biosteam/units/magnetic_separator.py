@@ -9,7 +9,7 @@ from biosteam import Unit
 
 class MagneticSeparator(Unit):
     _N_outs = 1
-    _has_linked_streams = True
+    _has_proxystream = True
     
     #: Original CEPCI
     CEPCI_0 = 576

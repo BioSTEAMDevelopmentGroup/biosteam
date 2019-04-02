@@ -87,7 +87,7 @@ class metaUnit(type):
 
         **_has_power_utility** = False: [bool] If True, a PowerUtility object is created for every instance.
 
-        line = [Defaults as the class name of the first child class]: [str] Name denoting the type of Unit class
+        line = [Defaults to the class name of the first child class]: [str] Name denoting the type of Unit class
 
 
     """
@@ -205,7 +205,40 @@ class Unit(metaclass=metaUnit):
         
         **ins:** tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.
 
-        ****kwargs:** Keyword arguments that are accessed by setup, run, operation, design, and cost methods
+        ****kwargs:** Keyword arguments that are stored to instance attribute `_kwargs` and later accessed by _setup, _run, _design, and _cost methods.
+
+    **Class Definitions** 
+    
+        **CEPCI** = 567.5: [float] Chemical Engineering Plant Cost Index
+
+        **_kwargs** = {}: [dict] Default keyword arguments
+
+        **_init():**
+            Initialize components.
+        
+        **_setup()**
+            Create cached data from _kwargs. 
+
+        **_run()**
+            Run rigorous simulation.
+
+        **_design()**
+            Update results "Design" dictionary with design requirements.
+
+        **_cost()**
+            Update results "Cost" dictionary with itemized cost.
+        
+        **_bounds** = {} [dict] Values should be tuples with lower and upper bounds.
+        
+        **_N_ins** = 1: [int] Expected number of input streams
+
+        **_N_outs** = 2: [int] Expected number of output streams
+
+        **_N_heat_utilities** = 0: [int] Number of heat utilities  
+
+        **_has_power_utility** = False: [bool] If True, a PowerUtility object is created for every instance.
+
+        line = [Defaults to the class name of the first child class]: [str] Name denoting the type of Unit class
 
     **ins**
         
@@ -229,10 +262,6 @@ class Unit(metaclass=metaUnit):
     # [dict] Default units for results Operation and Design
     _units = {}
     
-    # [dict] Units for summary dictionary
-    _summary_units = {'Utility cost': 'USD/hr',
-                      'Purchase cost': 'USD'}
-    
     # [bool] Should be True if it has any associated cost
     _has_cost = True
     
@@ -242,8 +271,8 @@ class Unit(metaclass=metaUnit):
     # [int or None] Expected number of output streams
     _N_outs = 2  
     
-    # [Bool] True if ins and outs streams are linked
-    _has_linked_streams = False
+    # [Bool] True if outs are proxy streams linked to ins
+    _has_proxystream = False
     
     # [dict] Values should be tuples with lower and upper bounds for results dictionary.
     _bounds = {}
@@ -252,7 +281,7 @@ class Unit(metaclass=metaUnit):
     _N_heat_utilities = 0
     
     # [PowerUtility] A PowerUtility object, if required
-    power_utility = None
+    _power_utility = None
     
     # [bool] If True, a PowerUtility object is created for every instance.
     _has_power_utility = False 
@@ -273,6 +302,9 @@ class Unit(metaclass=metaUnit):
     
     # Default ID
     _ID = None 
+    
+    #: [list] HeatUtility objects associated to unit
+    _heat_utilities = None
     
     ### Initialize ###
     
@@ -321,7 +353,7 @@ class Unit(metaclass=metaUnit):
     
     def _init_outs(self, outs):
         """Initialize output streams."""
-        if self._has_linked_streams:
+        if self._has_proxystream:
             if isinstance(outs, str):
                 self._outs = Outs(self, ProxyStream(outs))
             elif isinstance(outs, Stream):
@@ -350,39 +382,39 @@ class Unit(metaclass=metaUnit):
     def _init_results(self):
         """Initialize results attribute."""
         self._results = {'Design': {},
-                         'Cost': {},
-                         'Summary': {'Purchase cost': 0, 'Utility cost': 0}}
+                         'Cost': {}}
+        self._totalcosts = [0, 0] #: [list] Purchase price (USD) and utility cost (USD/hr)
     
     def _init_heat_utils(self):
         """Initialize heat utilities."""
-        #: [list] HeatUtility objects associated to unit
-        self.heat_utilities = [HeatUtility() for i in
-                               range(self._N_heat_utilities)]
+        if self._N_heat_utilities: 
+            self._heat_utilities = [HeatUtility() for i in
+                                    range(self._N_heat_utilities)]
         
     def _init_power_util(self):
         """Initialize power utility."""
         if self._has_power_utility:
-            #: [PowerUtility] Power requirements associated to unit
-            self.power_utility = PowerUtility()
+            self._power_utility = PowerUtility()
     
     def _install(self):
         """Cache objects and/or replace methods for computational efficiency."""
         if not self._has_cost:
-            self._summary = self._cost
+            self._summary = Unit._cost
             self.simulate = self._run
         else:
             # Result dictionaries for all utilities
             self._utils = utils = []
-            heat_utilities = self.heat_utilities
-            power_utility = self.power_utility
+            heat_utilities = self._heat_utilities
+            power_utility = self._power_utility
             if heat_utilities: utils.extend(heat_utilities)
             if power_utility: utils.append(power_utility)
                 
             # Itemized purchase costs
             self._purchase_costs = self._results['Cost'].values()
     
-    def _setup_linked_streams(self):
-        if self._has_linked_streams: 
+    def _link_streams(self):
+        """Setup ProxyStream objects if any."""
+        if self._has_proxystream: 
             for i, o in zip(self._ins, self._outs):
                 if isinstance(o, ProxyStream): o.link = i
     
@@ -435,17 +467,14 @@ class Unit(metaclass=metaUnit):
 
     # Summary
     def _summary(self):
-        """Run _operation, _design, and _cost methods and update results "Summary" dictionary with total utility costs and purchase price."""
+        """Run _operation, _design, and _cost methods and update purchase price and total utility costs."""
         self._design()
         self._cost()
-        Summary = self._results['Summary']
-        Summary['Utility cost'] = sum(i.cost for i in self._utils)
-        Summary['Purchase cost'] = sum(self._purchase_costs)
-        return Summary
+        self._totalcosts[:] = sum(self._purchase_costs), sum(i.cost for i in self._utils)
 
     def simulate(self):
         """Run rigourous simulation and determine all design requirements."""
-        self._setup_linked_streams()
+        self._link_streams()
         self._run()
         self._summary()
 
@@ -456,31 +485,64 @@ class Unit(metaclass=metaUnit):
         keys = []; addkey = keys.append
         vals = []; addval = vals.append
         if with_units:
-            results = results.copy()
+            if self._power_utility:
+                i = self._power_utility
+                addkey(('Power', 'Rate'))
+                addkey(('Power', 'Cost'))
+                addval(('kW', i.rate))
+                addval(('kW', i.cost))
+            if self._heat_utilities:
+                for i in self._heat_utilities:
+                    addkey((i.ID, 'Duty'))
+                    addkey((i.ID, 'Flow'))
+                    addkey((i.ID, 'Cost'))
+                    addval(('kJ/hr', i.duty))
+                    addval(('kg/hr', i.flow))
+                    addval(('USD/hr', i.cost))
             units = self._units
-            Cost = results.pop('Cost')
-            Summary = results.pop('Summary')
+            Cost = results['Cost']
             for ko, vo in results.items():
+                if vo is Cost: continue
                 for ki, vi in vo.items():
                     addkey((ko, ki))
                     addval((units.get(ki, ''), vi))
             for ki, vi in Cost.items():
                 addkey(('Cost', ki))
                 addval(('USD', vi))
-            su = self._summary_units
-            for ki, vi in Summary.items():
-                addkey(('Summary', ki))
-                addval((su[ki], vi))
+            capital, utility = self._totalcosts
+            addkey(('Purchase cost', ''))
+            addval(('USD', capital))
+            addkey(('Utility cost', ''))
+            addval(('USD/hr', utility))
             df = pd.DataFrame(vals,
                               pd.MultiIndex.from_tuples(keys),
                               ('Units', ID))
             df.columns.name = self.line
             return df
         else:
+            if self._power_utility:
+                i = self._power_utility
+                addkey(('Power', 'Rate'))
+                addkey(('Power', 'Cost'))
+                addval(i.rate)
+                addval(i.cost)
+            if self._heat_utilities:
+                for i in self._heat_utilities:
+                    addkey((i.ID, 'Duty'))
+                    addkey((i.ID, 'Flow'))
+                    addkey((i.ID, 'Cost'))
+                    addval(i.duty)
+                    addval(i.flow)
+                    addval(i.cost)
             for ko, vo in results.items():
                 for ki, vi in vo.items():
                     addkey((ko, ki))
                     addval(vi)
+            capital, utility = self._totalcosts
+            addkey(('Purchase cost', ''))
+            addval(capital)
+            addkey(('Utility cost', ''))
+            addval(utility)
             series = pd.Series(vals, pd.MultiIndex.from_tuples(keys))
             series.name = ID
             return series
@@ -793,7 +855,7 @@ class Unit(metaclass=metaUnit):
         return _Hf_out
 
     @property
-    def Hnet(self):
+    def _Hnet(self):
         """Net enthalpy flow (including enthalpies of formation)."""
         return self._H_out - self._H_in + self._Hf_out - self._Hf_in
     

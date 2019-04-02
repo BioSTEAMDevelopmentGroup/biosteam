@@ -88,10 +88,11 @@ def stream_connector(upstream, downstream):
         **downstream:** [Stream] Flow rate, T, P, and phase information will be copied from `upstream` to this stream.
     
     """
-    # Source and sink. Connection precedense goes to downstream
+    # Source and sink.
     upstream._sink = downstream._sink
     downstream._source = upstream._source
     downstream._upstream_connection = upstream
+    upstream._downstream_connection = downstream
     def connect():
         # Flow rate, T, P and phase
         index, species = upstream.nonzero_species
