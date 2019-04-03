@@ -1,43 +1,38 @@
 # -*- coding: utf-8 -*-
 """
-As BioSTEAM objects are created, they are automatically added to dictionaries. When find is called, it looks up the item in the dictionaries and returns it. The find function allows the user to find any BioSTEAM object during debbuging or at the console level.
+As BioSTEAM objects are created, they are automatically registered. `find` is a MainFlowsheet object that allows the user to find any Unit, Stream or System instance.  When `find` is called, it simply looks up the item and returns it. 
+
+**Examples**
+
+    .. code-block:: python
+
+       >>> from biosteam import find
+       >>> import lipidcane # You must pip install lipidcane first
+       >>> find
+       <MainFlowsheet: Lipidcane>
+       >>> find('Lipid_cane')
+       <Stream: Lipid_cane>
+
 """
-__all__ = ('find', 'stream_connector', 'MainFlowsheet')
+__all__ = ('find', 'stream_connector', 'MainFlowsheet', 'Flowsheet')
 
-# %% Flowsheet search
-
-class metaMain(type):
-    @property
-    def main(self):
-        """[Flowsheet] Main flowsheet that is updated with new biosteam objects"""
-        return self._main
-    
-    @main.setter
-    def main(self, flowsheet):
-        if isinstance(flowsheet, Flowsheet):
-            find.__dict__ = flowsheet.__dict__
-        else:
-            raise TypeError('main must be a Flowsheet object')
-        self._main = flowsheet
-            
+# %% Flowsheet search      
     
 class Flowsheet:
     """Create a Flowsheet object which stores references to all stream, unit, and system objects."""
+    
     def __init__(self, ID):
         #: [str] ID of flowsheet
         self.ID = ID
         
-        # [dict] Dictionary of systems
-        self.system = sys = {}
+        #: [dict] Dictionary of systems
+        self.system = {}
         
-        # [dict] Dictionary of units
-        self.unit = u = {}
+        #: [dict] Dictionary of units
+        self.unit = {}
         
-        # [dict] Dictionary of streams
-        self.stream = s = {}
-        
-        #: All search dictionaries
-        self._dicts = (s, u, sys)
+        #: [dict] Dictionary of streams
+        self.stream = {}
     
     def __call__(self, item_ID) -> 'item':
         """Return requested biosteam item.
@@ -48,32 +43,45 @@ class Flowsheet:
     
         """
         item_ID = item_ID.replace(' ', '_')
-        for dct in self._dicts:
-            obj = dct.get(item_ID)
-            if obj: return obj
+        obj = self.stream.get(item_ID)
+        if obj: return obj
+        obj = self.unit.get(item_ID)
+        if obj: return obj
+        obj = self.system.get(item_ID)
+        if obj: return obj
         print(f"No registered item '{item_ID}'")
     
     def __repr__(self):
         return f'<{type(self).__name__}: {self.ID}>'
 
 
-class MainFlowsheet(Flowsheet, metaclass=metaMain):
+class MainFlowsheet(Flowsheet):
+    """Create a Flowsheet object which stores references to all stream, unit, and system objects."""
     __slots__ = ()
-    main = metaMain.main
     
-    # [Dict] All flowsheets
-    flowsheets = {}
+    @property
+    def flowsheet(self):
+        """[Flowsheet] Main flowsheet that is updated with new biosteam objects"""
+        return MainFlowsheet._flowsheet
     
-    def __new__(cls, ID):
-        cls.flowsheets[ID] = cls.main = Flowsheet(ID)
+    @flowsheet.setter
+    def flowsheet(self, flowsheet):
+        if isinstance(flowsheet, Flowsheet):
+            find.__dict__ = flowsheet.__dict__
+        else:
+            raise TypeError('Main flowsheet must be a Flowsheet object')
+        MainFlowsheet._flowsheet = flowsheet
+    
+    def __new__(cls):
+        raise TypeError('Cannot create new MainFlowsheet object. Only one main flowsheet can exist.')
 
     def __repr__(self):
         return f'<{type(self).__name__}: {self.ID}>'
     
     
-#: [Flowsheet] Default flowsheet
+#: [MainFlowsheet] Main flowsheet where Stream, Unit, and System objects are registered.
 find = object.__new__(MainFlowsheet)
-find.flowsheets['Default'] = find.main = Flowsheet('Default')
+find.flowsheet = Flowsheet('Default')
 
 
 # %% Connect between different flowsheets

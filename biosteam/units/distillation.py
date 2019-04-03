@@ -753,22 +753,33 @@ class Distillation(Dist):
     line = 'Distillation'
     __doc__ = column_doc.replace('{Column Type}', 'Distillation')
     _N_heat_utilities = 0
-    is_divided = False #: [bool] True if the stripper and rectifier are two separate columns.    
     _graphics = Dist._graphics
-    _units = {'Minimum reflux': 'Ratio',
-              'Reflux': 'Ratio',
-              'Rectifier height': 'ft',
-              'Rectifier diameter': 'ft',
-              'Rectifier wall thickness': 'in',
-              'Rectifier weight': 'lb',
-              'Stripper height': 'ft',
-              'Stripper diameter': 'ft',
-              'Stripper wall thickness': 'in',
-              'Stripper weight': 'lb',
-              'Height': 'ft',
-              'Diameter': 'ft',
-              'Wall thickness': 'in',
-              'Weight': 'lb'}
+    _is_divided = False #: [bool] True if the stripper and rectifier are two separate columns.    
+    _units_not_divided = {'Minimum reflux': 'Ratio',
+                          'Reflux': 'Ratio',
+                          'Rectifier height': 'ft',
+                          'Rectifier diameter': 'ft',
+                          'Rectifier wall thickness': 'in',
+                          'Rectifier weight': 'lb',
+                          'Stripper height': 'ft',
+                          'Stripper diameter': 'ft',
+                          'Stripper wall thickness': 'in',
+                          'Stripper weight': 'lb',
+                          'Height': 'ft',
+                          'Diameter': 'ft',
+                          'Wall thickness': 'in',
+                          'Weight': 'lb'}
+    _units = _units_not_divided
+    _units_divided = {'Minimum reflux': 'Ratio',
+                      'Reflux': 'Ratio',
+                      'Rectifier height': 'ft',
+                      'Rectifier diameter': 'ft',
+                      'Rectifier wall thickness': 'in',
+                      'Rectifier weight': 'lb',
+                      'Stripper height': 'ft',
+                      'Stripper diameter': 'ft',
+                      'Stripper wall thickness': 'in',
+                      'Stripper weight': 'lb'}
     
     def _init(self):
         self._condenser = HXutility('*',
@@ -781,6 +792,15 @@ class Distillation(Dist):
         self._cached = {'condensate': Stream('*'),
                         'boil_up': Stream('*'),
                         'vapor stream': Stream('*')}
+    
+    @property
+    def is_divided(self):
+        return self._is_divided
+    
+    @is_divided.setter
+    def is_divided(self, is_divided):
+        self._is_divided = is_divided
+        self._units = self._units_divided if is_divided else self._units_not_divided
     
     def _calc_Nstages(self) -> 'Nstages':
         """Return a tuple with the actual number of stages for the rectifier and the stripper."""
