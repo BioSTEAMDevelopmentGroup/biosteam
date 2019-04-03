@@ -19,6 +19,11 @@ def _nested_keys(dct, keys, inst, dict_):
         if inst(v, dict_): _nested_keys(v, keys, inst, dict_)
         else: keys.append(k)
 
+def _stream_key(s):
+    num = s.ID[1:]
+    if num.isnumeric(): return int(num)
+    else: return -1
+
 # %% Helpful functions
 
 def _units_sort_by_cost(units):
@@ -265,8 +270,7 @@ def stream_table(streams, flow='kg/min', **props) -> 'DataFrame':
         raise DimensionError(f"Dimensions for flow units must be in molar, mass or volumetric flow rates, not '{flow_dim}'.")
     
     # Prepare rows and columns
-    ss = [*streams]
-    ss.sort(key=lambda s: s.ID)
+    ss = sorted(streams, key=_stream_key)
     species = ss[0]._IDs
     n = len(ss)
     m = len(species)
@@ -282,8 +286,8 @@ def stream_table(streams, flow='kg/min', **props) -> 'DataFrame':
     fracs = array[p+5:m+p+5, :]
     for j in range(n):
         s = ss[j]
-        sources[j] = str(s.source)
-        sinks[j] = str(s.sink)
+        sources[j] = str(s.source or '-')
+        sinks[j] = str(s.sink or '-')
         IDs[j] = s.ID
         phase = ''
         for i in s.phase:
