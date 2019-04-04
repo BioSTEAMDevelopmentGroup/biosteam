@@ -9,7 +9,7 @@ import IPython
 from scipy.optimize import newton
 from graphviz import Digraph
 from .exceptions import Stop, SolverError, notify_error
-from .flowsheet import find
+from .flowsheet import find, make_digraph
 from .stream import Stream
 from .unit import Unit
 from . import np
@@ -171,6 +171,9 @@ class System:
         
         #: set[Stream] All product streams in the system.
         self.products = set(filter(lambda s: s._source and not s._sink, streams)) 
+        
+        #: [TEA] System object for Techno-Economic Analysis.
+        self._TEA = None
     
     def _set_network(self, network):
         """Set network and cache units, streams, subsystems, feeds and products."""
@@ -226,6 +229,11 @@ class System:
                 del find.system[self._ID]
             self._ID = ID
             find.system[ID] = self
+    
+    @property
+    def TEA(self):
+        """[TEA] System object for Techno-Economic Analysis."""
+        return self._TEA
     
     @property
     def recycle(self):
@@ -311,7 +319,7 @@ class System:
         cached[unit] = system
         return system
     
-    def _minimal_diagram(self):
+    def _minimal_diagram(self, file):
         """Minimally display the network as a box."""
         outs = []
         ins = []
@@ -324,13 +332,13 @@ class System:
                 ins.append(s)
         subsystem_unit = _systemUnit(self.ID, outs, ins)
         subsystem_unit.line = 'System'
-        subsystem_unit.diagram()
+        subsystem_unit.diagram(file)
         # Reconnect how it was
         for u in self.units:
             u.ins = u._ins
             u.outs = u._outs
 
-    def _surface_diagram(self):
+    def _surface_diagram(self, file):
         """Display only surface elements listed in the network."""
         # Get surface items to make nodes and edges
         units = set()
@@ -355,110 +363,31 @@ class System:
                 subsystem_unit = _systemUnit(i.ID, outs, ins)
                 subsystem_unit._ID = i.ID
                 units.add(subsystem_unit)
-        System('*', units)._thorough_diagram()
+        System('*', units)._thorough_diagram(file)
         # Reconnect how it was
         for u in self.units:
             u.ins = u._ins
             u.outs = u._outs
       
-    def _thorough_diagram(self):
+    def _thorough_diagram(self, file=None):
         """Thoroughly display every unit within the network."""
         # Create a digraph and set direction left to right
-        f = Digraph(format='svg')
-        f.attr(rankdir='LR')
-
-        # Set up unit nodes
-        U = {}  # Contains units by ID
-        UD = {}  # Contains full description (ID and line) by ID
-        for unit in self.units:
-            graphics = unit._graphics
-            if unit.ID == '' or not graphics.in_system:
-                continue  # Ignore Unit
-            
-            # Initialize graphics and make Unit node with attributes
-            unit._graphics.node_function(unit)
-            Type = graphics.name if graphics.name else unit.line
-            name = unit.ID + '\n' + Type
-            f.attr('node', **unit._graphics.node)
-            f.node(name)
-            U[unit.ID] = unit
-            UD[unit.ID] = name
-            
-        keys = UD.keys()
-
-        # Set attributes for graph and streams
-        f.attr('node', shape='rarrow', fillcolor='#79dae8', orientation='0',
-               style='filled', peripheries='1', color='black')
-        f.attr('graph', splines='normal', overlap='orthoyx',
-               outputorder='edgesfirst', nodesep='0.15', maxiter='10000')
-        f.attr('edge', dir='foward')
-
-        connections = set()
-        for s in self.streams:
-            if s.ID == '' or s.ID == 'Missing Stream':
-                continue  # Ignore stream
-            
-            oU = s._source
-            if oU:
-                try: oi = oU._outs.index(s) 
-                except:
-                    unit_connection = (oU, s)
-                    if unit_connection not in connections:
-                        oi = oU._outs.index(s._upstream_connection) # The stream says it's source is that unit, but it really means that the unit is the source of the connection stream
-                        connections.add(unit_connection)
-                oU = oU._ID
-                    
+        f = make_digraph(self.units, self.streams)
+        if not file:
+            x = IPython.display.SVG(f.pipe(format='svg'))
+            IPython.display.display(x)
+        else:
+            if '.' not in file:
+                file += '.svg'
+                format_ = 'svg'
             else:
-                oi = None
-            dU = s._sink
-            if dU:
-                try:
-                    di = dU._ins.index(s)
-                    dU = dU._ID
-                except: # The stream is the upstream connection stream
-                    unit_connection = (dU, s)
-                    if unit_connection not in connections:
-                        di = dU._ins.index(s._downstream_connection) # The stream says it's source is that unit, but it really means that the unit is the source of the connection stream
-                        connections.add(unit_connection)
-            else:
-                di = None
-
-            # Make stream nodes / unit-stream edges / unit-unit edges
-            if oU not in keys and dU not in keys:
-                # Stream is not attached to anything
-                continue
-            elif oU not in keys:
-                # Feed stream case
-                f.attr('node', shape='rarrow', fillcolor='#79dae8',
-                       style='filled', orientation='0', width='0.6',
-                       height='0.6', color='black')
-                f.node(s.ID)
-                edge_in = U[dU]._graphics.edge_in
-                f.attr('edge', arrowtail='none', arrowhead='none',
-                       tailport='e', **edge_in[di])
-                f.edge(s.ID, UD[dU])
-            elif dU not in keys:
-                # Product stream case
-                f.attr('node', shape='rarrow', fillcolor='#79dae8',
-                       style='filled', orientation='0', width='0.6',
-                       height='0.6', color='black')
-                f.node(s.ID)
-                edge_out = U[oU]._graphics.edge_out
-                f.attr('edge', arrowtail='none', arrowhead='none',
-                       headport='w', **edge_out[oi])
-                f.edge(UD[oU], s.ID)
-            else:
-                # Process stream case
-                edge_in = U[dU]._graphics.edge_in
-                edge_out = U[oU]._graphics.edge_out
-                f.attr('edge', arrowtail='none', arrowhead='normal',
-                       **edge_in[di], **edge_out[oi])
-                f.edge(UD[oU], UD[dU], label=s.ID)
-
-        x = IPython.display.SVG(f.pipe(format='svg'))
-        IPython.display.display(x)
+                format_ = file[file.find('.')+1:]
+            img = f.pipe(format=format_)
+            f = open(file, 'wb')
+            f.write(img)
+            f.close()
         
-    def diagram(self, kind='surface'):
+    def diagram(self, kind='surface', file=None):
         """Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of the system.
         
         **Parameters**
@@ -468,13 +397,17 @@ class System:
                 * **'surface':** Display only surface elements listed in the network
                 * **'minimal':** Minimally display the network as a box
         
+            **file:** Must be one of the following:
+                * [str] File name to save diagram. If format not included, saves file as svg.
+                * [None] Display diagram in console.
+        
         """
         if kind == 'thorough':
-            return self._thorough_diagram()
+            return self._thorough_diagram(file)
         elif kind == 'surface':
-            return self._surface_diagram()
+            return self._surface_diagram(file)
         elif kind == 'minimal':
-            return self._minimal_diagram()
+            return self._minimal_diagram(file)
         else:
             raise ValueError(f"kind must be either 'thorough', 'surface', or 'minimal'.")
             

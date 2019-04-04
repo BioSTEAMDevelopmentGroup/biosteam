@@ -696,12 +696,16 @@ class Unit(metaclass=metaUnit):
         
         return neighborhood
 
-    def diagram(self, radius=0):
+    def diagram(self, radius=0, file=None):
         """Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of the unit and all neighboring units within given radius.
         
         **Parameters**
         
             **radius:** [int] Maxium number streams between neighbors.
+        
+            **file:** Must be one of the following:
+                * [str] File name to save diagram. If format not included, saves file as svg.
+                * [None] Display diagram in console.
         
         """
         if radius > 0:

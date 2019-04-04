@@ -7,17 +7,13 @@ Created on Sat Nov 17 09:48:34 2018
 from ..stream import Stream, mol_flow_dim, mass_flow_dim, vol_flow_dim
 from .. import Q_, pd, np
 from ..exceptions import DimensionError
+import os
 
 DataFrame = pd.DataFrame
 ExcelWriter = pd.ExcelWriter
 
 __all__ = ('stream_table', 'cost_table', 'save_system_results',
            'results_table', 'heat_utilities_table', 'power_utilities_table')
-
-def _nested_keys(dct, keys, inst, dict_):
-    for k, v in dct.items():
-        if inst(v, dict_): _nested_keys(v, keys, inst, dict_)
-        else: keys.append(k)
 
 def _stream_key(s):
     num = s.ID[1:]
@@ -64,6 +60,9 @@ def save_system_results(system, file='report.xlsx', **stream_properties):
     """Save a system table as an xlsx file."""
     writer = ExcelWriter(file)
     units = system._costunits
+    system.diagram('thorough', file='diagram.png')
+    flowsheet = writer.book.add_worksheet('Flowsheet')
+    flowsheet.insert_image('A1', 'diagram.png')
     
     # Cost table
     cost = cost_table(system)
@@ -96,7 +95,7 @@ def save_system_results(system, file='report.xlsx', **stream_properties):
     results = results_table(units)
     save(results, writer, 'Design requirements')
     writer.save()
-    
+    os.remove("diagram.png")
 
 def results_table(units):
     """Return a list of results tables for each unit type.
@@ -228,10 +227,6 @@ def heat_utilities_table(units):
     
 
 def power_utilities_table(units):
-    # power_units = units_of_measure.get('power') or 'kW'
-    # cost_units = units_of_measure.get('cost') or 'USD/hr'
-    # power_factor = factor('kW', power_units)
-    # cost_factor =  factor('USD/hr', cost_units)
     # Sort power utilities by unit type
     units = sorted(units, key=(lambda u: type(u).__name__))
     units = [u for u in units if u._power_utility]

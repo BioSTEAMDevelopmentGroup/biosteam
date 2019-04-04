@@ -113,7 +113,8 @@ class ShowFormat:
 def MassFlow(self):
     """Mass flow (kg/hr)."""
     mol, MW = self.data
-    if mol: return float(mol * MW)
+    m = mol.item(0)
+    if m: return MW * m
     else: return 0.
 
 @MassFlow.setter
@@ -125,12 +126,13 @@ def MassFlow(self, value):
 def VolumetricFlow(self):
     """Volumetric flow (m^3/hr)."""
     stream, mol = self.data
-    if mol:
+    m = mol.item(0)
+    if m:
         c = self.name # c = compound
         c.T = stream.T
         c.P = stream.P
         c.phase = stream.phase
-        return c.Vm * mol.item(0) * 1000
+        return c.Vm * m * 1000
     else:
         return 0.
 

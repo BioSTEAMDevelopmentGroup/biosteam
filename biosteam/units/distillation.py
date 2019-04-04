@@ -795,6 +795,7 @@ class Distillation(Dist):
     
     @property
     def is_divided(self):
+        """[bool] True if the stripper and rectifier are two separate columns."""
         return self._is_divided
     
     @is_divided.setter

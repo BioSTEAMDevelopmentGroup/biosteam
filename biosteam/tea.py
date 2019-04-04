@@ -138,6 +138,7 @@ class TEA:
         return self._options
     
     def __init__(self, system):
+        if system._TEA: raise ValueError(f'{repr(system)} already has a TEA object as an attribute.')
         self.system = system
         self._options = dict(**self._default)
         
@@ -163,7 +164,7 @@ class TEA:
         #: All purchase and utility costs for units
         self._costs = [u._totalcosts for u in units if u._has_cost]
         
-        system.tea = self
+        system._TEA = self
 
     def NPV(self):
         """Calculate NPV by cash flow analysis and update the "results" and "cashflow" attributes."""

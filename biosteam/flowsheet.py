@@ -1,25 +1,122 @@
 # -*- coding: utf-8 -*-
 """
 As BioSTEAM objects are created, they are automatically registered. `find` is a MainFlowsheet object that allows the user to find any Unit, Stream or System instance.  When `find` is called, it simply looks up the item and returns it. 
-
-**Examples**
-
-    .. code-block:: python
-
-       >>> from biosteam import find
-       >>> import lipidcane # You must pip install lipidcane first
-       >>> find
-       <MainFlowsheet: Lipidcane>
-       >>> find('Lipid_cane')
-       <Stream: Lipid_cane>
-
 """
+from graphviz import Digraph
+# import matplotlib.pyplot as plt
+# import matplotlib.image as mpimg
+import IPython
+# import threading
+# import time
+# import os
+# from PIL import Image
+
+
 __all__ = ('find', 'stream_connector', 'MainFlowsheet', 'Flowsheet')
+
+# dir_path = os.path.dirname(os.path.realpath(__file__)) + '\\'
+# viewer_path = dir_path + 'JPEGView64\\JPEGView.exe'
+
+def make_digraph(units, streams=None):
+    """Return digraph of units and streams."""
+    # Create a digraph and set direction left to right
+    f = Digraph(format='svg')
+    f.attr(rankdir='LR')
+    # Set up unit nodes
+    U = {}  # Contains units by ID
+    UD = {}  # Contains full description (ID and line) by ID
+    for unit in units:
+        unit._link_streams()
+        graphics = unit._graphics
+        if not graphics.in_system:
+            continue  # Ignore Unit
+        
+        # Initialize graphics and make Unit node with attributes
+        unit._graphics.node_function(unit)
+        Type = graphics.name if graphics.name else unit.line
+        name = unit.ID + '\n' + Type
+        f.attr('node', **unit._graphics.node)
+        f.node(name)
+        U[unit.ID] = unit
+        UD[unit.ID] = name
+        
+    keys = UD.keys()
+
+    # Set attributes for graph and streams
+    f.attr('node', shape='rarrow', fillcolor='#79dae8',
+           style='filled', orientation='0', width='0.6',
+           height='0.6', color='black')
+    f.attr('graph', splines='normal', overlap='orthoyx',
+           outputorder='edgesfirst', nodesep='0.15', maxiter='1000000')
+    f.attr('edge', dir='foward')
+
+    connections = set()
+    if not streams:
+        streams = set()
+        for u in units:
+            streams.update(u._ins)
+            streams.update(u._outs)
+        streams.difference_update(find._upstream_connections)
+    for s in streams:
+        if s.ID == 'Missing Stream':
+            continue  # Ignore stream
+        
+        oU = s._source
+        if oU:
+            try: oi = oU._outs.index(s) 
+            except:
+                unit_connection = (oU, s)
+                if unit_connection not in connections:
+                    oi = oU._outs.index(s._upstream_connection) # The stream says it's source is that unit, but it really means that the unit is the source of the connection stream
+                    connections.add(unit_connection)
+            oU = oU._ID
+        else: oi = None
+        
+        dU = s._sink
+        if dU:
+            try:
+                di = dU._ins.index(s)
+                dU = dU._ID
+            except: # The stream is the upstream connection stream
+                unit_connection = (dU, s)
+                if unit_connection not in connections:
+                    di = dU._ins.index(s._downstream_connection) # The stream says it's source is that unit, but it really means that the unit is the source of the connection stream
+                    connections.add(unit_connection)
+        else: di = None
+
+        # Make stream nodes / unit-stream edges / unit-unit edges
+        if oU not in keys and dU not in keys:
+            # Stream is not attached to anything
+            continue
+        elif oU not in keys:
+            # Feed stream case
+            f.node(s.ID)
+            edge_in = U[dU]._graphics.edge_in
+            f.attr('edge', arrowtail='none', arrowhead='none',
+                   tailport='e', **edge_in[di])
+            f.edge(s.ID, UD[dU])
+        elif dU not in keys:
+            # Product stream case
+            f.node(s.ID)
+            edge_out = U[oU]._graphics.edge_out
+            f.attr('edge', arrowtail='none', arrowhead='none',
+                   headport='w', **edge_out[oi])
+            f.edge(UD[oU], s.ID)
+        else:
+            # Process stream case
+            edge_in = U[dU]._graphics.edge_in
+            edge_out = U[oU]._graphics.edge_out
+            f.attr('edge', arrowtail='none', arrowhead='normal',
+                   **edge_in[di], **edge_out[oi])
+            f.edge(UD[oU], UD[dU], label=s.ID)
+    return f
+
 
 # %% Flowsheet search      
     
 class Flowsheet:
     """Create a Flowsheet object which stores references to all stream, unit, and system objects."""
+    _flowsheets = {}
     
     def __init__(self, ID):
         #: [str] ID of flowsheet
@@ -33,6 +130,21 @@ class Flowsheet:
         
         #: [dict] Dictionary of streams
         self.stream = {}
+        
+        # #: [bool] True if flowsheet is contantly rendered
+        # self.live = True
+        
+        #: [dict] All flowsheets
+        self._flowsheets[ID] = self
+    
+    @property
+    def flowsheets(self):
+        """dict[Flowsheet] All flowsheets."""
+        return self._flowsheets
+    
+    def diagram(self):
+        """Display all units and attached streams."""
+        IPython.display.display(IPython.display.SVG(make_digraph(self.unit.values()).pipe('svg')))
     
     def __call__(self, item_ID) -> 'item':
         """Return requested biosteam item.
@@ -43,13 +155,11 @@ class Flowsheet:
     
         """
         item_ID = item_ID.replace(' ', '_')
-        obj = self.stream.get(item_ID)
-        if obj: return obj
-        obj = self.unit.get(item_ID)
-        if obj: return obj
-        obj = self.system.get(item_ID)
-        if obj: return obj
-        print(f"No registered item '{item_ID}'")
+        obj = (self.stream.get(item_ID)
+               or self.unit.get(item_ID)
+               or self.system.get(item_ID))
+        if not obj: raise ValueError(f"No registered item '{item_ID}'")
+        return obj
     
     def __repr__(self):
         return f'<{type(self).__name__}: {self.ID}>'
@@ -58,19 +168,20 @@ class Flowsheet:
 class MainFlowsheet(Flowsheet):
     """Create a Flowsheet object which stores references to all stream, unit, and system objects."""
     __slots__ = ()
+    _upstream_connections = set()
     
     @property
-    def flowsheet(self):
+    def mainflowsheet(self):
         """[Flowsheet] Main flowsheet that is updated with new biosteam objects"""
         return MainFlowsheet._flowsheet
     
-    @flowsheet.setter
-    def flowsheet(self, flowsheet):
+    @mainflowsheet.setter
+    def mainflowsheet(self, flowsheet):
         if isinstance(flowsheet, Flowsheet):
             find.__dict__ = flowsheet.__dict__
         else:
             raise TypeError('Main flowsheet must be a Flowsheet object')
-        MainFlowsheet._flowsheet = flowsheet
+        MainFlowsheet._mainflowsheet = flowsheet
     
     def __new__(cls):
         raise TypeError('Cannot create new MainFlowsheet object. Only one main flowsheet can exist.')
@@ -81,7 +192,7 @@ class MainFlowsheet(Flowsheet):
     
 #: [MainFlowsheet] Main flowsheet where Stream, Unit, and System objects are registered.
 find = object.__new__(MainFlowsheet)
-find.flowsheet = Flowsheet('Default')
+find.mainflowsheet = Flowsheet('Default')
 
 
 # %% Connect between different flowsheets
@@ -101,6 +212,7 @@ def stream_connector(upstream, downstream):
     downstream._source = upstream._source
     downstream._upstream_connection = upstream
     upstream._downstream_connection = downstream
+    find._upstream_connections.add(upstream)
     def connect():
         # Flow rate, T, P and phase
         index, species = upstream.nonzero_species
@@ -110,4 +222,33 @@ def stream_connector(upstream, downstream):
         downstream.phase = upstream.phase
     return connect
 
-
+# def _show_once(self):
+    #     fig = plt.figure()
+    #     plt.axis('off')
+    #     f = open('diagram.png', 'wb')
+    #     diagram = make_digraph(self.unit.values()).pipe(format='png')
+    #     f.write(diagram)
+    #     img = mpimg.imread('diagram.png')
+    #     plt.imshow(img, interpolation='spline36')
+    #     fig.show()
+    #     # img = Image.open('diagram.png')
+    #     # img.show() 
+    
+    # def _show(self):
+    #     fig = plt.figure()
+    #     plt.axis('off')
+    #     f = open('diagram.png', 'wb')
+    #     for i in range(3):
+    #         diagram = make_digraph(self.unit.values()).pipe(format='png')
+    #         f.write(diagram)
+    #         img = mpimg.imread('diagram.png')
+    #         plt.clf() 
+    #         plt.imshow(img, interpolation='spline36')
+    #         fig.show()
+    #         time.sleep(10)
+    #     f.close()
+    #     os.remove('diagram.png')
+    
+    # def show(self):
+    #     t1 = threading.Thread(target=self._show())
+    #     t1.start()
