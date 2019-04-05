@@ -9,7 +9,7 @@
     <title>find &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -75,21 +75,11 @@
   <div class="section" id="module-biosteam.flowsheet">
 <span id="find"></span><h1>find<a class="headerlink" href="#module-biosteam.flowsheet" title="Permalink to this headline">¶</a></h1>
 <p>As BioSTEAM objects are created, they are automatically registered. <cite>find</cite> is a MainFlowsheet object that allows the user to find any Unit, Stream or System instance.  When <cite>find</cite> is called, it simply looks up the item and returns it.</p>
-<p><strong>Examples</strong></p>
-<blockquote>
-<div><div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">find</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">lipidcane</span> <span class="c1"># You must pip install lipidcane first</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">find</span>
-<span class="go">&lt;MainFlowsheet: Lipidcane&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;Lipid_cane&#39;</span><span class="p">)</span>
-<span class="go">&lt;Stream: Lipid_cane&gt;</span>
-</pre></div>
-</div>
-</div></blockquote>
+<p><a class="reference internal" href="Find unit operations and manage flowsheets.html"><span class="doc">Find unit operations and manage flowsheets</span></a></p>
 <dl class="data">
 <dt id="biosteam.flowsheet.find">
-<code class="descclassname">biosteam.flowsheet.</code><code class="descname">find</code><em class="property"> = &lt;MainFlowsheet: Default&gt;</em><a class="headerlink" href="#biosteam.flowsheet.find" title="Permalink to this definition">¶</a></dt>
-<dd><p>[MainFlowsheet] Main flowsheet where Stream, Unit, and System objects are registered.</p>
+<code class="descclassname">biosteam.flowsheet.</code><code class="descname">find</code><em class="property"> = &lt;find: mainflowsheet=Default&gt;</em><a class="reference internal" href="_modules/biosteam/flowsheet.html#find"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.flowsheet.find" title="Permalink to this definition">¶</a></dt>
+<dd><p>[find] Find BioSTEAM objects by ID.</p>
 </dd></dl>
 
 <span class="target" id="module-biosteam"></span><dl class="class">
@@ -120,16 +110,16 @@
 <dd><p>[dict] Dictionary of streams</p>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="biosteam.Flowsheet.flowsheets">
+<code class="descname">flowsheets</code><a class="headerlink" href="#biosteam.Flowsheet.flowsheets" title="Permalink to this definition">¶</a></dt>
+<dd><p>dict[Flowsheet] All flowsheets.</p>
 </dd></dl>
 
-<dl class="class">
-<dt id="biosteam.MainFlowsheet">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">MainFlowsheet</code><span class="sig-paren">(</span><em>ID</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/flowsheet.html#MainFlowsheet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.MainFlowsheet" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a Flowsheet object which stores references to all stream, unit, and system objects.</p>
-<dl class="attribute">
-<dt id="biosteam.MainFlowsheet.flowsheet">
-<code class="descname">flowsheet</code><a class="headerlink" href="#biosteam.MainFlowsheet.flowsheet" title="Permalink to this definition">¶</a></dt>
-<dd><p>[Flowsheet] Main flowsheet that is updated with new biosteam objects</p>
+<dl class="method">
+<dt id="biosteam.Flowsheet.diagram">
+<code class="descname">diagram</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/flowsheet.html#Flowsheet.diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Flowsheet.diagram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display all units and attached streams.</p>
 </dd></dl>
 
 </dd></dl>
@@ -162,7 +152,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

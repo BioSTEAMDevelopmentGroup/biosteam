@@ -9,7 +9,7 @@
     <title>biosteam.stream &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
@@ -168,7 +168,8 @@
 <span class="k">def</span> <span class="nf">MassFlow</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Mass flow (kg/hr).&quot;&quot;&quot;</span>
     <span class="n">mol</span><span class="p">,</span> <span class="n">MW</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
-    <span class="k">if</span> <span class="n">mol</span><span class="p">:</span> <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">mol</span> <span class="o">*</span> <span class="n">MW</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">mol</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">m</span><span class="p">:</span> <span class="k">return</span> <span class="n">MW</span> <span class="o">*</span> <span class="n">m</span>
     <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="mf">0.</span>
 
 <span class="nd">@MassFlow</span><span class="o">.</span><span class="n">setter</span>
@@ -180,12 +181,13 @@
 <span class="k">def</span> <span class="nf">VolumetricFlow</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Volumetric flow (m^3/hr).&quot;&quot;&quot;</span>
     <span class="n">stream</span><span class="p">,</span> <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
-    <span class="k">if</span> <span class="n">mol</span><span class="p">:</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">mol</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
         <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="c1"># c = compound</span>
         <span class="n">c</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">T</span>
         <span class="n">c</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">P</span>
         <span class="n">c</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">phase</span>
-        <span class="k">return</span> <span class="n">c</span><span class="o">.</span><span class="n">Vm</span> <span class="o">*</span> <span class="n">mol</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span>
+        <span class="k">return</span> <span class="n">c</span><span class="o">.</span><span class="n">Vm</span> <span class="o">*</span> <span class="n">m</span> <span class="o">*</span> <span class="mi">1000</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="mf">0.</span>
 
@@ -312,7 +314,7 @@
 
 <span class="sd">       &gt;&gt;&gt; # The working units do not change</span>
 <span class="sd">       &gt;&gt;&gt; s3.mol </span>
-<span class="sd">       material_array([1., 2.]) (kmol/hr)</span>
+<span class="sd">       material_array([1., 2.])</span>
 
 <span class="sd">    .. Warning:: Stream objects do not automatically calculate thermodynamic equilibrium. They simply assume the given phase, temperature and pressure are correct. To find equilibrium, use the VLE or LLE method.</span>
 
@@ -350,8 +352,8 @@
 
 <span class="sd">       &gt;&gt;&gt; # Set Water flow rate</span>
 <span class="sd">       &gt;&gt;&gt; s2.mol[1] = 18</span>
-<span class="sd">       &gt;&gt;&gt; s2.mol</span>
-<span class="sd">       material_array([1, 18]) (kmol/hr)</span>
+<span class="sd">       &gt;&gt;&gt; s2.mol # kmol/hr</span>
+<span class="sd">       material_array([1, 18])</span>
 <span class="sd">       </span>
 <span class="sd">       &gt;&gt;&gt; # A negative flow issues a RuntimeWarning</span>
 <span class="sd">       &gt;&gt;&gt; s2.mol[1] = -1</span>
@@ -361,8 +363,7 @@
 <span class="sd">       &gt;&gt;&gt; # Setting the property sets its values in place</span>
 <span class="sd">       &gt;&gt;&gt; s2.mol = [1, 2]</span>
 <span class="sd">       &gt;&gt;&gt; s2.mol</span>
-<span class="sd">       material_array([1, 2]) (kmol/hr)</span>
-
+<span class="sd">       material_array([1, 2])</span>
 <span class="sd">    .. Note::</span>
 
 <span class="sd">       material_array objects are numpy ndarrays which issue a RuntimeWarning when a negative or non-finite number is encountered.</span>
@@ -372,16 +373,15 @@
 <span class="sd">    .. code-block:: python</span>
 
 <span class="sd">       &gt;&gt;&gt; # Altering mass or volumetric flows alters the molar flow</span>
-<span class="sd">       &gt;&gt;&gt; s2.vol</span>
-<span class="sd">       property_array([0.059, 0.036]) (m^3/hr)</span>
+<span class="sd">       &gt;&gt;&gt; s2.vol # m^3/hr</span>
+<span class="sd">       property_array([0.059, 0.036])</span>
 <span class="sd">       &gt;&gt;&gt; s2.vol[:] = [1, 1]</span>
 <span class="sd">       &gt;&gt;&gt; s2.mol</span>
-<span class="sd">       material_array([17.06 , 55.343]) (kmol/hr)</span>
-<span class="sd">       </span>
+<span class="sd">       material_array([17.06 , 55.343])</span>
 <span class="sd">       &gt;&gt;&gt; # Values are always up to date with the molar flow</span>
 <span class="sd">       &gt;&gt;&gt; s2.mol[:] = [1, 2]</span>
 <span class="sd">       &gt;&gt;&gt; s2.vol</span>
-<span class="sd">       property_array([0.059, 0.036]) (m^3/hr)</span>
+<span class="sd">       property_array([0.059, 0.036])</span>
 
 <span class="sd">    .. Note::</span>
 
@@ -1906,7 +1906,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

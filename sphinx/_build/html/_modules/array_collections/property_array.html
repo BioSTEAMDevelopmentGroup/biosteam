@@ -9,7 +9,7 @@
     <title>array_collections.property_array &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
@@ -64,7 +64,7 @@
 <span class="kn">from</span> <span class="nn">.array</span> <span class="k">import</span> <span class="n">array</span>
 <span class="kn">from</span> <span class="nn">free_properties</span> <span class="k">import</span> <span class="n">FreeProperty</span>
 <span class="kn">from</span> <span class="nn">free_properties.free_property</span> <span class="k">import</span> <span class="n">inplace_magic_names</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">dim</span><span class="p">,</span> <span class="n">same_type</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">dim</span>
 <span class="kn">import</span> <span class="nn">re</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;property_array&#39;</span><span class="p">,)</span>
@@ -179,7 +179,7 @@
 <span class="sd">        .. code-block:: python</span>
 <span class="sd">       </span>
 <span class="sd">           &gt;&gt;&gt; prop_arr = property_array([weight_water, weight_water])</span>
-<span class="sd">           property_array([3000, 2367]) (kg)</span>
+<span class="sd">           property_array([3000, 2367])</span>
 <span class="sd">           </span>
 <span class="sd">        Changing the values of a property_array changes the value of its properties:</span>
 <span class="sd">           </span>
@@ -188,7 +188,7 @@
 <span class="sd">           &gt;&gt;&gt; # Addition in place</span>
 <span class="sd">           &gt;&gt;&gt; prop_arr += 3000</span>
 <span class="sd">           &gt;&gt;&gt; prop_arr</span>
-<span class="sd">           property_array([6000, 5367]) (kg)</span>
+<span class="sd">           property_array([6000, 5367])</span>
 <span class="sd">           &gt;&gt;&gt; # Note how the data also changes</span>
 <span class="sd">           &gt;&gt;&gt; water_data</span>
 <span class="sd">           {&#39;rho&#39;: 1000, &#39;vol&#39;: 6.0}</span>
@@ -223,8 +223,6 @@
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">()</span>          
     
     <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">properties</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">):</span>
-        <span class="n">flat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">properties</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-        <span class="n">same_type</span><span class="p">(</span><span class="n">flat</span><span class="p">,</span> <span class="n">FreeProperty</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">asarray</span><span class="p">(</span><span class="n">properties</span><span class="p">,</span> <span class="nb">object</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
     
     <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
@@ -276,18 +274,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">has_property</span><span class="p">(</span><span class="n">view</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">=</span> <span class="n">array</span>
             <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        
-        <span class="k">try</span><span class="p">:</span> 
-            <span class="n">units</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">view</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span><span class="o">.</span><span class="n">units</span>
-        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
-            <span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-        
-        <span class="k">if</span> <span class="n">units</span><span class="p">:</span>
-            <span class="n">all_units</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">_units</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">view</span><span class="o">.</span><span class="n">flatten</span><span class="p">()])</span>
-            <span class="n">consistent_units</span> <span class="o">=</span> <span class="p">(</span><span class="n">all_units</span> <span class="o">==</span> <span class="n">units</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">consistent_units</span><span class="p">:</span> <span class="n">units</span> <span class="o">=</span> <span class="n">dim</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39; (</span><span class="si">{units}</span><span class="s1">)&#39;</span><span class="p">)</span>
-        
-        <span class="k">return</span> <span class="n">array</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)))</span> <span class="o">+</span> <span class="n">units</span></div>
+        <span class="k">return</span> <span class="n">array</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)))</span></div>
 
 <span class="k">def</span> <span class="nf">wrap_ifunc</span><span class="p">(</span><span class="n">iname</span><span class="p">):</span>
     <span class="n">name</span> <span class="o">=</span> <span class="n">iname</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">iname</span><span class="p">[</span><span class="mi">3</span><span class="p">:]</span> <span class="c1"># Remove &#39;i&#39;</span>
@@ -326,7 +313,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

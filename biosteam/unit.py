@@ -7,7 +7,7 @@ Created on Sat Aug 18 14:40:28 2018
 
 import re
 import os
-import IPython
+from IPython import display
 from graphviz import Digraph
 from .exceptions import notify_error
 from .flowsheet import find
@@ -736,7 +736,7 @@ class Unit(metaclass=metaUnit):
         # Set stream node attributes
         f.attr('node', shape='rarrow', fillcolor='#79dae8',
                style='filled', orientation='0', width='0.6',
-               height='0.6', color='black', peripheries='1')
+               height='0.6', color='black')
 
         # Make nodes and edges for input streams
         di = 0  # Destination position of stream
@@ -762,8 +762,7 @@ class Unit(metaclass=metaUnit):
             oi += 1
 
         # Display digraph on console
-        x = IPython.display.SVG(f.pipe(format='svg'))
-        IPython.display.display(x)
+        display.display(display.Image(f.pipe(format='png')))
     
     ### Net input and output flows ###
     

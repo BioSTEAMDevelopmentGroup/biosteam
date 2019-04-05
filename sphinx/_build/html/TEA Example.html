@@ -9,7 +9,7 @@
     <title>Techno-Economic Analysis Example &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -243,11 +243,11 @@ div.nboutput div.output_area.stderr {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">lipidcane</span> <span class="k">import</span> <span class="n">lipidcane_sys</span>
-<span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">find</span><span class="p">,</span> <span class="n">TEA</span>
+<span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bs</span>
+<span class="kn">import</span> <span class="nn">lipidcane</span> <span class="k">as</span> <span class="nn">lc</span>
 
-<span class="n">lipidcane_sys</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
-<span class="n">lipidcane_tea</span> <span class="o">=</span> <span class="n">TEA</span><span class="p">(</span><span class="n">lipidcane_sys</span><span class="p">)</span>
+<span class="n">lc</span><span class="o">.</span><span class="n">lipidcane_sys</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+<span class="n">lipidcane_tea</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">TEA</span><span class="p">(</span><span class="n">lc</span><span class="o">.</span><span class="n">lipidcane_sys</span><span class="p">)</span>
 <span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">show</span><span class="p">()</span> <span class="c1"># Show summary of results</span>
 </pre></div>
 </div>
@@ -280,28 +280,28 @@ TEA: lipid_cane_system
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>{&#39;Lang factor&#39;: 4.37,
- &#39;Operating days&#39;: 330,
- &#39;IRR&#39;: 0.15,
- &#39;Wage&#39;: 50000.0,
- &#39;Year&#39;: None,
+<span></span>{&#39;Administration&#39;: 0.005,
+ &#39;Delivery&#39;: 0,
+ &#39;Depreciation&#39;: &#39;MACRS7&#39;,
+ &#39;Duration&#39;: 20,
  &#39;Employees&#39;: 50,
  &#39;Fringe benefits&#39;: 0.4,
+ &#39;IRR&#39;: 0.15,
  &#39;Income tax&#39;: 0.35,
- &#39;Property tax&#39;: 0.001,
- &#39;Property insurance&#39;: 0.005,
- &#39;Duration&#39;: 20,
- &#39;Supplies&#39;: 0.2,
- &#39;Mantainance&#39;: 0.01,
- &#39;Administration&#39;: 0.005,
- &#39;Working capital&#39;: 0.05,
- &#39;Startup cost&#39;: 0,
- &#39;Delivery&#39;: 0,
  &#39;Land&#39;: 0,
- &#39;Depreciation&#39;: &#39;MACRS7&#39;,
- &#39;Startup schedule&#39;: (0.4, 0.6),
+ &#39;Lang factor&#39;: 4.37,
+ &#39;Mantainance&#39;: 0.01,
+ &#39;Operating days&#39;: 330,
+ &#39;Other fixed capital&#39;: 0,
  &#39;Other recurring costs&#39;: 0,
- &#39;Other fixed capital&#39;: 0}
+ &#39;Property insurance&#39;: 0.005,
+ &#39;Property tax&#39;: 0.001,
+ &#39;Startup cost&#39;: 0,
+ &#39;Startup schedule&#39;: (0.4, 0.6),
+ &#39;Supplies&#39;: 0.2,
+ &#39;Wage&#39;: 50000.0,
+ &#39;Working capital&#39;: 0.05,
+ &#39;Year&#39;: None}
 </pre></div>
 </div>
 </div>
@@ -331,9 +331,9 @@ TEA: lipid_cane_system
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 TEA: lipid_cane_system
- NPV: -3e+06 <span class="ansi-white-fg">USD at 17.5% IRR</span>
- ROI: 0.125 <span class="ansi-white-fg">1/yr</span>
- PBP: 5.51 <span class="ansi-white-fg">yr</span>
+ NPV: 8.14e+06 <span class="ansi-white-fg">USD at 17.5% IRR</span>
+ ROI: 0.138 <span class="ansi-white-fg">1/yr</span>
+ PBP: 5.14 <span class="ansi-white-fg">yr</span>
 </pre></div></div>
 </div>
 <p>General results are stored as a dictionary:</p>
@@ -353,18 +353,18 @@ TEA: lipid_cane_system
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>{&#39;Fixed capital investment&#39;: 1.85e+08[37m[22m (USD)[0m,
- &#39;Working capital&#39;: 9.23e+06[37m[22m (USD)[0m,
- &#39;Total capital investment&#39;: 1.94e+08[37m[22m (USD)[0m,
- &#39;Depreciation&#39;: 9.23e+06[37m[22m (USD/yr)[0m,
- &#39;Utility cost&#39;: -8.86e+06[37m[22m (USD/yr)[0m,
- &#39;Material cost&#39;: 6.27e+07[37m[22m (USD/yr)[0m,
- &#39;Sales&#39;: 1.08e+08[37m[22m (USD/yr)[0m,
+<span></span>{&#39;Fixed capital investment&#39;: 1.86e+08[37m[22m (USD)[0m,
+ &#39;Working capital&#39;: 9.31e+06[37m[22m (USD)[0m,
+ &#39;Total capital investment&#39;: 1.95e+08[37m[22m (USD)[0m,
+ &#39;Depreciation&#39;: 9.31e+06[37m[22m (USD/yr)[0m,
+ &#39;Utility cost&#39;: -1.49e+07[37m[22m (USD/yr)[0m,
+ &#39;Material cost&#39;: 6.24e+07[37m[22m (USD/yr)[0m,
+ &#39;Sales&#39;: 1.06e+08[37m[22m (USD/yr)[0m,
  &#39;Labor&#39;: 2.5e+06[37m[22m (USD/yr)[0m,
- &#39;Annual operating cost&#39;: 7.1e+07[37m[22m (USD/yr)[0m,
- &#39;Net present value&#39;: -3e+06[37m[22m (USD)[0m,
- &#39;Return on investment&#39;: 0.125[37m[22m (1/yr)[0m,
- &#39;Pay back period&#39;: 5.51[37m[22m (yr)[0m}
+ &#39;Annual operating cost&#39;: 6.47e+07[37m[22m (USD/yr)[0m,
+ &#39;Net present value&#39;: 8.14e+06[37m[22m (USD)[0m,
+ &#39;Return on investment&#39;: 0.138[37m[22m (1/yr)[0m,
+ &#39;Pay back period&#39;: 5.14[37m[22m (yr)[0m}
 </pre></div>
 </div>
 </div>
@@ -417,243 +417,243 @@ TEA: lipid_cane_system
   <tbody>
     <tr>
       <th>2020</th>
-      <td>7.39e+07</td>
+      <td>7.45e+07</td>
       <td>0</td>
       <td>0</td>
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>-7.39e+07</td>
-      <td>-7.39e+07</td>
-      <td>-7.39e+07</td>
+      <td>-7.45e+07</td>
+      <td>-7.45e+07</td>
+      <td>-7.45e+07</td>
     </tr>
     <tr>
       <th>2021</th>
-      <td>1.11e+08</td>
+      <td>1.12e+08</td>
       <td>0</td>
       <td>0</td>
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>-1.11e+08</td>
-      <td>-9.43e+07</td>
-      <td>-1.68e+08</td>
+      <td>-1.12e+08</td>
+      <td>-9.51e+07</td>
+      <td>-1.7e+08</td>
     </tr>
     <tr>
       <th>2022</th>
       <td>0</td>
-      <td>9.23e+06</td>
-      <td>2.64e+07</td>
-      <td>6.17e+07</td>
-      <td>1.08e+08</td>
-      <td>1.31e+07</td>
-      <td>3.03e+07</td>
-      <td>2.19e+07</td>
+      <td>9.31e+06</td>
+      <td>2.66e+07</td>
+      <td>5.54e+07</td>
+      <td>1.06e+08</td>
+      <td>1.56e+07</td>
+      <td>3.29e+07</td>
+      <td>2.39e+07</td>
       <td>-1.46e+08</td>
     </tr>
     <tr>
       <th>2023</th>
       <td>0</td>
       <td>0</td>
-      <td>4.52e+07</td>
-      <td>6.17e+07</td>
-      <td>1.08e+08</td>
-      <td>8.7e+05</td>
-      <td>4.61e+07</td>
-      <td>2.84e+07</td>
-      <td>-1.18e+08</td>
+      <td>4.56e+07</td>
+      <td>5.54e+07</td>
+      <td>1.06e+08</td>
+      <td>3.31e+06</td>
+      <td>4.89e+07</td>
+      <td>3.01e+07</td>
+      <td>-1.16e+08</td>
     </tr>
     <tr>
       <th>2024</th>
       <td>0</td>
       <td>0</td>
-      <td>3.23e+07</td>
-      <td>6.17e+07</td>
-      <td>1.08e+08</td>
-      <td>9.27e+06</td>
-      <td>4.16e+07</td>
-      <td>2.18e+07</td>
-      <td>-9.6e+07</td>
+      <td>3.26e+07</td>
+      <td>5.54e+07</td>
+      <td>1.06e+08</td>
+      <td>1.18e+07</td>
+      <td>4.43e+07</td>
+      <td>2.33e+07</td>
+      <td>-9.23e+07</td>
     </tr>
     <tr>
       <th>2025</th>
       <td>0</td>
       <td>0</td>
-      <td>2.31e+07</td>
-      <td>6.17e+07</td>
-      <td>1.08e+08</td>
-      <td>1.53e+07</td>
-      <td>3.83e+07</td>
-      <td>1.71e+07</td>
-      <td>-7.89e+07</td>
+      <td>2.32e+07</td>
+      <td>5.54e+07</td>
+      <td>1.06e+08</td>
+      <td>1.78e+07</td>
+      <td>4.11e+07</td>
+      <td>1.83e+07</td>
+      <td>-7.39e+07</td>
     </tr>
     <tr>
       <th>2026</th>
       <td>0</td>
       <td>0</td>
-      <td>1.65e+07</td>
-      <td>6.17e+07</td>
-      <td>1.08e+08</td>
-      <td>1.95e+07</td>
-      <td>3.6e+07</td>
-      <td>1.37e+07</td>
-      <td>-6.52e+07</td>
+      <td>1.66e+07</td>
+      <td>5.54e+07</td>
+      <td>1.06e+08</td>
+      <td>2.21e+07</td>
+      <td>3.88e+07</td>
+      <td>1.47e+07</td>
+      <td>-5.92e+07</td>
     </tr>
     <tr>
       <th>2027</th>
       <td>0</td>
       <td>0</td>
-      <td>1.65e+07</td>
-      <td>6.17e+07</td>
-      <td>1.08e+08</td>
-      <td>1.96e+07</td>
-      <td>3.6e+07</td>
-      <td>1.17e+07</td>
-      <td>-5.35e+07</td>
+      <td>1.66e+07</td>
+      <td>5.54e+07</td>
+      <td>1.06e+08</td>
+      <td>2.21e+07</td>
+      <td>3.88e+07</td>
+      <td>1.25e+07</td>
+      <td>-4.67e+07</td>
     </tr>
     <tr>
       <th>2028</th>
       <td>0</td>
       <td>0</td>
-      <td>1.65e+07</td>
-      <td>6.17e+07</td>
-      <td>1.08e+08</td>
-      <td>1.95e+07</td>
-      <td>3.6e+07</td>
-      <td>9.92e+06</td>
-      <td>-4.36e+07</td>
+      <td>1.66e+07</td>
+      <td>5.54e+07</td>
+      <td>1.06e+08</td>
+      <td>2.21e+07</td>
+      <td>3.88e+07</td>
+      <td>1.07e+07</td>
+      <td>-3.6e+07</td>
     </tr>
     <tr>
       <th>2029</th>
       <td>0</td>
       <td>0</td>
-      <td>8.23e+06</td>
-      <td>6.17e+07</td>
-      <td>1.08e+08</td>
-      <td>2.49e+07</td>
-      <td>3.31e+07</td>
-      <td>7.76e+06</td>
-      <td>-3.59e+07</td>
+      <td>8.3e+06</td>
+      <td>5.54e+07</td>
+      <td>1.06e+08</td>
+      <td>2.75e+07</td>
+      <td>3.58e+07</td>
+      <td>8.4e+06</td>
+      <td>-2.76e+07</td>
     </tr>
     <tr>
       <th>2030</th>
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>6.17e+07</td>
-      <td>1.08e+08</td>
-      <td>3.03e+07</td>
-      <td>3.03e+07</td>
-      <td>6.03e+06</td>
-      <td>-2.98e+07</td>
+      <td>5.54e+07</td>
+      <td>1.06e+08</td>
+      <td>3.29e+07</td>
+      <td>3.29e+07</td>
+      <td>6.57e+06</td>
+      <td>-2.1e+07</td>
     </tr>
     <tr>
       <th>2031</th>
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>6.17e+07</td>
-      <td>1.08e+08</td>
-      <td>3.03e+07</td>
-      <td>3.03e+07</td>
-      <td>5.13e+06</td>
-      <td>-2.47e+07</td>
+      <td>5.54e+07</td>
+      <td>1.06e+08</td>
+      <td>3.29e+07</td>
+      <td>3.29e+07</td>
+      <td>5.59e+06</td>
+      <td>-1.54e+07</td>
     </tr>
     <tr>
       <th>2032</th>
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>6.17e+07</td>
-      <td>1.08e+08</td>
-      <td>3.03e+07</td>
-      <td>3.03e+07</td>
-      <td>4.37e+06</td>
-      <td>-2.03e+07</td>
+      <td>5.54e+07</td>
+      <td>1.06e+08</td>
+      <td>3.29e+07</td>
+      <td>3.29e+07</td>
+      <td>4.76e+06</td>
+      <td>-1.07e+07</td>
     </tr>
     <tr>
       <th>2033</th>
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>6.17e+07</td>
-      <td>1.08e+08</td>
-      <td>3.03e+07</td>
-      <td>3.03e+07</td>
-      <td>3.72e+06</td>
-      <td>-1.66e+07</td>
+      <td>5.54e+07</td>
+      <td>1.06e+08</td>
+      <td>3.29e+07</td>
+      <td>3.29e+07</td>
+      <td>4.05e+06</td>
+      <td>-6.63e+06</td>
     </tr>
     <tr>
       <th>2034</th>
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>6.17e+07</td>
-      <td>1.08e+08</td>
-      <td>3.03e+07</td>
-      <td>3.03e+07</td>
-      <td>3.16e+06</td>
-      <td>-1.34e+07</td>
+      <td>5.54e+07</td>
+      <td>1.06e+08</td>
+      <td>3.29e+07</td>
+      <td>3.29e+07</td>
+      <td>3.44e+06</td>
+      <td>-3.19e+06</td>
     </tr>
     <tr>
       <th>2035</th>
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>6.17e+07</td>
-      <td>1.08e+08</td>
-      <td>3.03e+07</td>
-      <td>3.03e+07</td>
-      <td>2.69e+06</td>
-      <td>-1.08e+07</td>
+      <td>5.54e+07</td>
+      <td>1.06e+08</td>
+      <td>3.29e+07</td>
+      <td>3.29e+07</td>
+      <td>2.93e+06</td>
+      <td>-2.55e+05</td>
     </tr>
     <tr>
       <th>2036</th>
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>6.17e+07</td>
-      <td>1.08e+08</td>
-      <td>3.03e+07</td>
-      <td>3.03e+07</td>
-      <td>2.29e+06</td>
-      <td>-8.46e+06</td>
+      <td>5.54e+07</td>
+      <td>1.06e+08</td>
+      <td>3.29e+07</td>
+      <td>3.29e+07</td>
+      <td>2.5e+06</td>
+      <td>2.24e+06</td>
     </tr>
     <tr>
       <th>2037</th>
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>6.17e+07</td>
-      <td>1.08e+08</td>
-      <td>3.03e+07</td>
-      <td>3.03e+07</td>
-      <td>1.95e+06</td>
-      <td>-6.51e+06</td>
+      <td>5.54e+07</td>
+      <td>1.06e+08</td>
+      <td>3.29e+07</td>
+      <td>3.29e+07</td>
+      <td>2.12e+06</td>
+      <td>4.36e+06</td>
     </tr>
     <tr>
       <th>2038</th>
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>6.17e+07</td>
-      <td>1.08e+08</td>
-      <td>3.03e+07</td>
-      <td>3.03e+07</td>
-      <td>1.66e+06</td>
-      <td>-4.85e+06</td>
+      <td>5.54e+07</td>
+      <td>1.06e+08</td>
+      <td>3.29e+07</td>
+      <td>3.29e+07</td>
+      <td>1.81e+06</td>
+      <td>6.17e+06</td>
     </tr>
     <tr>
       <th>2039</th>
       <td>0</td>
-      <td>-9.23e+06</td>
+      <td>-9.31e+06</td>
       <td>0</td>
-      <td>6.17e+07</td>
-      <td>1.08e+08</td>
-      <td>3.03e+07</td>
-      <td>3.95e+07</td>
-      <td>1.84e+06</td>
-      <td>-3e+06</td>
+      <td>5.54e+07</td>
+      <td>1.06e+08</td>
+      <td>3.29e+07</td>
+      <td>4.22e+07</td>
+      <td>1.97e+06</td>
+      <td>8.14e+06</td>
     </tr>
   </tbody>
 </table>
@@ -666,7 +666,7 @@ TEA: lipid_cane_system
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">feed</span> <span class="o">=</span> <span class="n">find</span><span class="p">(</span><span class="s1">&#39;Lipid cane&#39;</span><span class="p">)</span>
+<span></span><span class="n">feed</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;Lipid cane&#39;</span><span class="p">)</span>
 <span class="n">price</span> <span class="o">=</span> <span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">solve_price</span><span class="p">(</span><span class="n">feed</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Lipid cane price = </span><span class="si">{price:.3g}</span><span class="s1"> USD/kg</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="p">)</span>
 </pre></div>
@@ -677,7 +677,7 @@ TEA: lipid_cane_system
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Lipid cane price = 0.0339 USD/kg
+Lipid cane price = 0.0363 USD/kg
 
 </pre></div></div>
 </div>
@@ -699,7 +699,7 @@ Lipid cane price = 0.0339 USD/kg
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-IRR = 0.169
+IRR = 0.182
 </pre></div></div>
 </div>
 </div>
@@ -725,7 +725,7 @@ IRR = 0.169
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

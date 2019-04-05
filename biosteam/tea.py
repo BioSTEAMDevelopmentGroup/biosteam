@@ -138,7 +138,6 @@ class TEA:
         return self._options
     
     def __init__(self, system):
-        if system._TEA: raise ValueError(f'{repr(system)} already has a TEA object as an attribute.')
         self.system = system
         self._options = dict(**self._default)
         
@@ -160,9 +159,9 @@ class TEA:
         #: Guess stream cost for solve_price method
         self._cost_guess = None
         
-        units = system.units
+        units = system._costunits
         #: All purchase and utility costs for units
-        self._costs = [u._totalcosts for u in units if u._has_cost]
+        self._costs = [u._totalcosts for u in units]
         
         system._TEA = self
 

@@ -9,7 +9,7 @@
     <title>MixedStream &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -256,9 +256,8 @@ that it is a distinct phase than ‘liquid’.</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">MixedStream</span>
-<span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Species</span>
-<span class="n">MixedStream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">)</span>
+<span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bs</span>
+<span class="n">bs</span><span class="o">.</span><span class="n">MixedStream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -270,7 +269,7 @@ rates for different phases:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">ms1</span> <span class="o">=</span> <span class="n">MixedStream</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;ms1&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">351</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
+<span></span><span class="n">ms1</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">MixedStream</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;ms1&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">351</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
 <span class="n">ms1</span><span class="o">.</span><span class="n">setflow</span><span class="p">(</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">)</span>
 <span class="n">ms1</span><span class="o">.</span><span class="n">setflow</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># Assuming kmol/hr</span>
 <span class="n">ms1</span><span class="o">.</span><span class="n">getflow</span><span class="p">(</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
@@ -327,12 +326,14 @@ vapor_mol arrays:</p>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[4]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-material_array([0., 0.])<span class="ansi-white-fg"> (kmol/hr)</span>
-</pre></div></div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>material_array([0., 0.])
+</pre></div>
+</div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
@@ -345,12 +346,14 @@ material_array([0., 0.])<span class="ansi-white-fg"> (kmol/hr)</span>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[5]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-material_array([0., 1.])<span class="ansi-white-fg"> (kmol/hr)</span>
-</pre></div></div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>material_array([0., 1.])
+</pre></div>
+</div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
@@ -363,12 +366,14 @@ material_array([0., 1.])<span class="ansi-white-fg"> (kmol/hr)</span>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[6]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-material_array([0., 0.])<span class="ansi-white-fg"> (kmol/hr)</span>
-</pre></div></div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>material_array([0., 0.])
+</pre></div>
+</div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
@@ -381,12 +386,14 @@ material_array([0., 0.])<span class="ansi-white-fg"> (kmol/hr)</span>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[7]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-material_array([0., 2.])<span class="ansi-white-fg"> (kmol/hr)</span>
-</pre></div></div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>material_array([0., 2.])
+</pre></div>
+</div>
 </div>
 <p>Assign flows using these properties:</p>
 <div class="nbinput docutils container">
@@ -429,12 +436,14 @@ objects</p>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[9]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-property_array([36.031, 46.068])<span class="ansi-white-fg"> (kg/hr)</span>
-</pre></div></div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>property_array([36.031, 46.068])
+</pre></div>
+</div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
@@ -447,12 +456,14 @@ property_array([36.031, 46.068])<span class="ansi-white-fg"> (kg/hr)</span>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[10]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-property_array([0.037, 0.063])<span class="ansi-white-fg"> (m^3/hr)</span>
-</pre></div></div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>property_array([0.037, 0.063])
+</pre></div>
+</div>
 </div>
 <p>Assign flows through the mass or vol property arrays:</p>
 <div class="nbinput docutils container">
@@ -750,17 +761,47 @@ MixedStream: ms1
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="nb">print</span><span class="p">(</span><span class="n">ms1</span><span class="o">.</span><span class="n">units</span><span class="p">)</span> <span class="c1"># See documentation for more information</span>
+<span></span><span class="n">ms1</span><span class="o">.</span><span class="n">units</span> <span class="c1"># See documentation for more information</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[24]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-{&#39;MW&#39;: &#39;g/mol&#39;, &#39;mass&#39;: &#39;kg/hr&#39;, &#39;mol&#39;: &#39;kmol/hr&#39;, &#39;vol&#39;: &#39;m^3/hr&#39;, &#39;massnet&#39;: &#39;kg/hr&#39;, &#39;molnet&#39;: &#39;kmol/hr&#39;, &#39;volnet&#39;: &#39;m^3/hr&#39;, &#39;massfrac&#39;: &#39;kg/kg&#39;, &#39;molfrac&#39;: &#39;kmol/kmol&#39;, &#39;volfrac&#39;: &#39;m^3/m^3&#39;, &#39;T&#39;: &#39;K&#39;, &#39;P&#39;: &#39;Pa&#39;, &#39;H&#39;: &#39;kJ/hr&#39;, &#39;S&#39;: &#39;kJ/hr&#39;, &#39;G&#39;: &#39;kJ/hr&#39;, &#39;U&#39;: &#39;kJ/hr&#39;, &#39;A&#39;: &#39;kJ/hr&#39;, &#39;Hf&#39;: &#39;kJ/hr&#39;, &#39;C&#39;: &#39;kJ/K/hr&#39;, &#39;Vm&#39;: &#39;m^3/mol&#39;, &#39;Cpm&#39;: &#39;J/mol/K&#39;, &#39;Cp&#39;: &#39;J/g/K&#39;, &#39;rho&#39;: &#39;kg/m^3&#39;, &#39;rhom&#39;: &#39;mol/m^3&#39;, &#39;nu&#39;: &#39;m^2/s&#39;, &#39;mu&#39;: &#39;Pa*s&#39;, &#39;sigma&#39;: &#39;N/m&#39;, &#39;k&#39;: &#39;W/m/K&#39;, &#39;alpha&#39;: &#39;m^2/s&#39;}
-</pre></div></div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>{&#39;A&#39;: &#39;kJ/hr&#39;,
+ &#39;C&#39;: &#39;kJ/K/hr&#39;,
+ &#39;Cp&#39;: &#39;J/g/K&#39;,
+ &#39;Cpm&#39;: &#39;J/mol/K&#39;,
+ &#39;G&#39;: &#39;kJ/hr&#39;,
+ &#39;H&#39;: &#39;kJ/hr&#39;,
+ &#39;Hf&#39;: &#39;kJ/hr&#39;,
+ &#39;MW&#39;: &#39;g/mol&#39;,
+ &#39;P&#39;: &#39;Pa&#39;,
+ &#39;S&#39;: &#39;kJ/hr&#39;,
+ &#39;T&#39;: &#39;K&#39;,
+ &#39;U&#39;: &#39;kJ/hr&#39;,
+ &#39;Vm&#39;: &#39;m^3/mol&#39;,
+ &#39;alpha&#39;: &#39;m^2/s&#39;,
+ &#39;k&#39;: &#39;W/m/K&#39;,
+ &#39;mass&#39;: &#39;kg/hr&#39;,
+ &#39;massfrac&#39;: &#39;kg/kg&#39;,
+ &#39;massnet&#39;: &#39;kg/hr&#39;,
+ &#39;mol&#39;: &#39;kmol/hr&#39;,
+ &#39;molfrac&#39;: &#39;kmol/kmol&#39;,
+ &#39;molnet&#39;: &#39;kmol/hr&#39;,
+ &#39;mu&#39;: &#39;Pa*s&#39;,
+ &#39;nu&#39;: &#39;m^2/s&#39;,
+ &#39;rho&#39;: &#39;kg/m^3&#39;,
+ &#39;rhom&#39;: &#39;mol/m^3&#39;,
+ &#39;sigma&#39;: &#39;N/m&#39;,
+ &#39;vol&#39;: &#39;m^3/hr&#39;,
+ &#39;volfrac&#39;: &#39;m^3/m^3&#39;,
+ &#39;volnet&#39;: &#39;m^3/hr&#39;}
+</pre></div>
+</div>
 </div>
 </div>
 <div class="section" id="Vapor-Liquid-Equilibrium">
@@ -773,7 +814,7 @@ MixedStream: ms1
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">ms2</span> <span class="o">=</span> <span class="n">MixedStream</span><span class="p">(</span><span class="s1">&#39;ms2&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">370</span><span class="p">)</span>
+<span></span><span class="n">ms2</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">MixedStream</span><span class="p">(</span><span class="s1">&#39;ms2&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">370</span><span class="p">)</span>
 <span class="c1"># Set flows in same order as in Species object</span>
 <span class="n">ms2</span><span class="o">.</span><span class="n">setflow</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
 <span class="n">ms2</span><span class="o">.</span><span class="n">setflow</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
@@ -856,7 +897,7 @@ MixedStream: ms2
 </div>
 <div class="stderr output_area docutils container">
 <div class="highlight"><pre>
-C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 1.3960524825051834e-06 reached
+C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:204: RuntimeWarning: Tolerance of 1.3960524825051834e-06 reached
   warnings.warn(msg, RuntimeWarning)
 </pre></div></div>
 </div>
@@ -873,7 +914,7 @@ equilibrium</p>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1"># Make stream with hydrophobic species</span>
-<span class="n">ms3</span> <span class="o">=</span> <span class="n">MixedStream</span><span class="p">(</span><span class="s1">&#39;ms3&#39;</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Octane&#39;</span><span class="p">))</span>
+<span class="n">ms3</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">MixedStream</span><span class="p">(</span><span class="s1">&#39;ms3&#39;</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">bs</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Octane&#39;</span><span class="p">))</span>
 <span class="n">ms3</span><span class="o">.</span><span class="n">setflow</span><span class="p">(</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
 <span class="n">ms3</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
@@ -971,7 +1012,7 @@ MixedStream: ms3
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

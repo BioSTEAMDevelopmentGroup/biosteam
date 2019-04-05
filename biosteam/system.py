@@ -82,14 +82,6 @@ def notify_run_wrapper(self, func):
     return wrapper
     
 # %% Other
-def _unitnetwork(network):
-    flat = []
-    inst = isinstance
-    for i in network:
-        if i in flat: continue
-        if inst(i, Unit): flat.append(i)
-        elif inst(i, System): flat.extend(i._unitnetwork)
-    return flat
 
 class _systemUnit(Unit):
     """Dummy unit for displaying a system."""
@@ -138,32 +130,55 @@ class System:
                              'T_error': 0,
                              'spec_error': 0,
                              'iter': 0}
-        
-        #: list[Unit] Network of only unit operations
-        self._unitnetwork = units = _unitnetwork(network)
-        
-        #: list[Unit] All unit operations with linked streams
-        self._linkunits = [u for u in units if u._has_proxystream]
-        
-        #: list[Unit] All units in the network that have costs
-        self._costunits = [i for i in units if i._has_cost]
-        
-        #: set[Unit] All units within the system
-        self.units = set(units)
-        
+         
         #: set[Stream] All streams within the system
         self.streams = streams = set()
 
         #: set[System] All subsystems in the system
-        self.subsystems = set()
-
-        ID = ID.replace(' ', '_')
-        if ID != '*': find.system[ID] = self
-        self._ID = ID
-        self._set_network(network)
-        self.recycle = recycle
-
-        if facilities: self._set_facilities(facilities)
+        self.subsystems = subsystems = set()
+        
+        #: list[Unit] Network of only unit operations
+        self._unitnetwork = units = []
+        inst = isinstance
+        for i in network:
+            if i in units: continue
+            if inst(i, Unit): 
+                units.append(i)
+                streams.update(i._ins)
+                streams.update(i._outs)
+            elif inst(i, System):
+                units.extend(i._unitnetwork)
+                subsystems.add(i)
+                streams.update(i.streams)
+        streams.discard(missing_stream) 
+        
+        #: tuple[Unit, function and/or System] A network that is run element by element until the recycle converges.
+        self.network = (*network,)
+        
+        #: list[Unit] All unit operations with linked streams
+        self._linkunits = [u for u in units if u._has_proxystream]
+        
+        #: set[Unit] All units within the system
+        self.units = units = set(units)
+        
+        #: set[Unit] All units in the network that have costs
+        self._network_costunits = costunits = {i for i in units if i._has_cost}
+        
+        #: set[Unit] All units that have costs.
+        self._costunits = costunits = costunits.copy()
+        if facilities:
+            for i in facilities:
+                if inst(i, Unit):
+                    units.add(i)
+                    streams.update(i._ins + i._outs)
+                    if i._has_cost: costunits.add(i)
+                elif inst(i, System):
+                    units.update(i.units)
+                    streams.update(i.auxiliary_streams)
+                    subsystems.add(i)
+                    costunits.update(i._costunits)
+            #: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the network simulation.
+            self.facilities = tuple(facilities)
         else: self.facilities = ()
         
         #: set[Stream] All feed streams in the system.
@@ -174,47 +189,11 @@ class System:
         
         #: [TEA] System object for Techno-Economic Analysis.
         self._TEA = None
-    
-    def _set_network(self, network):
-        """Set network and cache units, streams, subsystems, feeds and products."""
-        # Sort network into surface_units and systems
-        streams = self.streams
-        subsystems = self.subsystems
-        inst = isinstance
-        for i in network:
-            if inst(i, Unit):
-                streams.update(i._ins)
-                streams.update(i._outs)
-            elif inst(i, System):
-                subsystems.add(i)
-                streams.update(i.streams)
-            elif not inst(i, function):
-                raise ValueError(f"Only Unit, System, and function objects are valid network elements, not '{type(i).__name__}'")
-        streams.discard(missing_stream)        
         
-        #: tuple[Unit, function and/or System] A network that is run element by element until the recycle converges.
-        self.network = (*network,)
-        
-    
-    def _set_facilities(self, facilities):
-        """Set facilities and cache offsite units, streams, subsystems, feeds and products."""
-        units = self.units
-        streams = self.streams
-        subsystems = self.subsystems
-        inst = isinstance
-        for i in facilities:
-            if inst(i, Unit):
-                units.add(i)
-                streams.update(i._ins + i._outs)
-            elif inst(i, System):
-                units.update(i.units)
-                streams.update(i.auxiliary_streams)
-                subsystems.add(i)
-            elif not inst(i, function):
-                raise ValueError(f"Only Unit, System, and function objects are valid auxiliary elements, not '{type(i).__name__}'")
-        
-        #: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the network simulation.
-        self.facilities = tuple(facilities)
+        ID = ID.replace(' ', '_')
+        if ID != '*': find.system[ID] = self
+        self._ID = ID
+        self.recycle = recycle
     
     @property
     def ID(self):
@@ -419,7 +398,7 @@ class System:
         for a in self.network:
             if inst(a, Unit): a._run()
             elif inst(a, System): a._converge()
-            elif inst(a, function): a()
+            else: a() # Assume it is a function
         self._solver_error['iter'] += 1
     
     # Methods for convering the recycle stream
@@ -586,11 +565,11 @@ class System:
         for u in self._linkunits: u._link_streams()
         self._reset_iter()
         self._converge()
-        for u in self._costunits: u._summary()
+        for u in self._network_costunits: u._summary()
         inst = isinstance
         for i in self.facilities:
-            if inst(i, function): i()
-            else: i.simulate()
+            if inst(i, (Unit, System)): i.simulate()
+            else: i() # Assume it is a function
         
     # Debugging
     def _debug_on(self):

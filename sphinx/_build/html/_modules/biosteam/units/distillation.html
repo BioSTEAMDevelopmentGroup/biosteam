@@ -9,7 +9,7 @@
     <title>biosteam.units.distillation &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="../../../_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
@@ -808,22 +808,33 @@
     <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Distillation&#39;</span>
     <span class="vm">__doc__</span> <span class="o">=</span> <span class="n">column_doc</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;{Column Type}&#39;</span><span class="p">,</span> <span class="s1">&#39;Distillation&#39;</span><span class="p">)</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">is_divided</span> <span class="o">=</span> <span class="kc">False</span> <span class="c1">#: [bool] True if the stripper and rectifier are two separate columns.    </span>
     <span class="n">_graphics</span> <span class="o">=</span> <span class="n">Dist</span><span class="o">.</span><span class="n">_graphics</span>
-    <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Minimum reflux&#39;</span><span class="p">:</span> <span class="s1">&#39;Ratio&#39;</span><span class="p">,</span>
-              <span class="s1">&#39;Reflux&#39;</span><span class="p">:</span> <span class="s1">&#39;Ratio&#39;</span><span class="p">,</span>
-              <span class="s1">&#39;Rectifier height&#39;</span><span class="p">:</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span>
-              <span class="s1">&#39;Rectifier diameter&#39;</span><span class="p">:</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span>
-              <span class="s1">&#39;Rectifier wall thickness&#39;</span><span class="p">:</span> <span class="s1">&#39;in&#39;</span><span class="p">,</span>
-              <span class="s1">&#39;Rectifier weight&#39;</span><span class="p">:</span> <span class="s1">&#39;lb&#39;</span><span class="p">,</span>
-              <span class="s1">&#39;Stripper height&#39;</span><span class="p">:</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span>
-              <span class="s1">&#39;Stripper diameter&#39;</span><span class="p">:</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span>
-              <span class="s1">&#39;Stripper wall thickness&#39;</span><span class="p">:</span> <span class="s1">&#39;in&#39;</span><span class="p">,</span>
-              <span class="s1">&#39;Stripper weight&#39;</span><span class="p">:</span> <span class="s1">&#39;lb&#39;</span><span class="p">,</span>
-              <span class="s1">&#39;Height&#39;</span><span class="p">:</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span>
-              <span class="s1">&#39;Diameter&#39;</span><span class="p">:</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span>
-              <span class="s1">&#39;Wall thickness&#39;</span><span class="p">:</span> <span class="s1">&#39;in&#39;</span><span class="p">,</span>
-              <span class="s1">&#39;Weight&#39;</span><span class="p">:</span> <span class="s1">&#39;lb&#39;</span><span class="p">}</span>
+    <span class="n">_is_divided</span> <span class="o">=</span> <span class="kc">False</span> <span class="c1">#: [bool] True if the stripper and rectifier are two separate columns.    </span>
+    <span class="n">_units_not_divided</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Minimum reflux&#39;</span><span class="p">:</span> <span class="s1">&#39;Ratio&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;Reflux&#39;</span><span class="p">:</span> <span class="s1">&#39;Ratio&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;Rectifier height&#39;</span><span class="p">:</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;Rectifier diameter&#39;</span><span class="p">:</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;Rectifier wall thickness&#39;</span><span class="p">:</span> <span class="s1">&#39;in&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;Rectifier weight&#39;</span><span class="p">:</span> <span class="s1">&#39;lb&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;Stripper height&#39;</span><span class="p">:</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;Stripper diameter&#39;</span><span class="p">:</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;Stripper wall thickness&#39;</span><span class="p">:</span> <span class="s1">&#39;in&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;Stripper weight&#39;</span><span class="p">:</span> <span class="s1">&#39;lb&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;Height&#39;</span><span class="p">:</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;Diameter&#39;</span><span class="p">:</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;Wall thickness&#39;</span><span class="p">:</span> <span class="s1">&#39;in&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;Weight&#39;</span><span class="p">:</span> <span class="s1">&#39;lb&#39;</span><span class="p">}</span>
+    <span class="n">_units</span> <span class="o">=</span> <span class="n">_units_not_divided</span>
+    <span class="n">_units_divided</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Minimum reflux&#39;</span><span class="p">:</span> <span class="s1">&#39;Ratio&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;Reflux&#39;</span><span class="p">:</span> <span class="s1">&#39;Ratio&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;Rectifier height&#39;</span><span class="p">:</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;Rectifier diameter&#39;</span><span class="p">:</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;Rectifier wall thickness&#39;</span><span class="p">:</span> <span class="s1">&#39;in&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;Rectifier weight&#39;</span><span class="p">:</span> <span class="s1">&#39;lb&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;Stripper height&#39;</span><span class="p">:</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;Stripper diameter&#39;</span><span class="p">:</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;Stripper wall thickness&#39;</span><span class="p">:</span> <span class="s1">&#39;in&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;Stripper weight&#39;</span><span class="p">:</span> <span class="s1">&#39;lb&#39;</span><span class="p">}</span>
     
     <span class="k">def</span> <span class="nf">_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_condenser</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">,</span>
@@ -836,6 +847,16 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;condensate&#39;</span><span class="p">:</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">),</span>
                         <span class="s1">&#39;boil_up&#39;</span><span class="p">:</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">),</span>
                         <span class="s1">&#39;vapor stream&#39;</span><span class="p">:</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">)}</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">is_divided</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;[bool] True if the stripper and rectifier are two separate columns.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_divided</span>
+    
+    <span class="nd">@is_divided</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">is_divided</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">is_divided</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_divided</span> <span class="o">=</span> <span class="n">is_divided</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units_divided</span> <span class="k">if</span> <span class="n">is_divided</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units_not_divided</span>
     
     <span class="k">def</span> <span class="nf">_calc_Nstages</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Nstages&#39;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return a tuple with the actual number of stages for the rectifier and the stripper.&quot;&quot;&quot;</span>
@@ -1300,7 +1321,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

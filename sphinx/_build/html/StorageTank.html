@@ -9,7 +9,7 @@
     <title>StorageTank &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -95,11 +95,20 @@ C_{fob}^{2007} &amp;= 250000 + 94.2 V (2*10^3 &lt; V &lt; 50*10^3 m^3) \\\end{sp
 
 <dl class="method">
 <dt id="biosteam.StorageTank.diagram">
-<code class="descname">diagram</code><span class="sig-paren">(</span><em>radius=0</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.StorageTank.diagram" title="Permalink to this definition">¶</a></dt>
+<code class="descname">diagram</code><span class="sig-paren">(</span><em>radius=0</em>, <em>file=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.StorageTank.diagram" title="Permalink to this definition">¶</a></dt>
 <dd><p>Display a <a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz</a> diagram of the unit and all neighboring units within given radius.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
-<div><strong>radius:</strong> [int] Maxium number streams between neighbors.</div></blockquote>
+<div><p><strong>radius:</strong> [int] Maxium number streams between neighbors.</p>
+<dl class="docutils">
+<dt><strong>file:</strong> Must be one of the following:</dt>
+<dd><ul class="first last simple">
+<li>[str] File name to save diagram. If format not included, saves file as svg.</li>
+<li>[None] Display diagram in console.</li>
+</ul>
+</dd>
+</dl>
+</div></blockquote>
 </dd></dl>
 
 <dl class="method">
@@ -162,7 +171,7 @@ C_{fob}^{2007} &amp;= 250000 + 94.2 V (2*10^3 &lt; V &lt; 50*10^3 m^3) \\\end{sp
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

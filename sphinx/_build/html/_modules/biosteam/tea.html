@@ -9,7 +9,7 @@
     <title>biosteam.tea &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
@@ -214,11 +214,11 @@
         <span class="c1">#: Guess stream cost for solve_price method</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cost_guess</span> <span class="o">=</span> <span class="kc">None</span>
         
-        <span class="n">units</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">units</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">_costunits</span>
         <span class="c1">#: All purchase and utility costs for units</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_costs</span> <span class="o">=</span> <span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">_totalcosts</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span> <span class="k">if</span> <span class="n">u</span><span class="o">.</span><span class="n">_has_cost</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_costs</span> <span class="o">=</span> <span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">_totalcosts</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">]</span>
         
-        <span class="n">system</span><span class="o">.</span><span class="n">tea</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="n">system</span><span class="o">.</span><span class="n">_TEA</span> <span class="o">=</span> <span class="bp">self</span>
 
 <div class="viewcode-block" id="TEA.NPV"><a class="viewcode-back" href="../../TEA.html#biosteam.TEA.NPV">[docs]</a>    <span class="k">def</span> <span class="nf">NPV</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Calculate NPV by cash flow analysis and update the &quot;results&quot; and &quot;cashflow&quot; attributes.&quot;&quot;&quot;</span>
@@ -587,7 +587,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

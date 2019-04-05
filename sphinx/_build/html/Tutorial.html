@@ -9,7 +9,7 @@
     <title>Tutorial &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -264,8 +264,8 @@ class from the Chemical Engineering Design Library.</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Chemical</span>
-<span class="n">Water</span> <span class="o">=</span> <span class="n">Chemical</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bs</span>
+<span class="n">Water</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Chemical</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">)</span>
 <span class="n">Water</span>
 </pre></div>
 </div>
@@ -402,8 +402,7 @@ object with IDs:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Species</span>
-<span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Methanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Glycerol&#39;</span><span class="p">)</span>
+<span></span><span class="n">species</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Methanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Glycerol&#39;</span><span class="p">)</span>
 <span class="n">species</span>
 </pre></div>
 </div>
@@ -473,8 +472,7 @@ objects:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Stream</span>
-<span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">species</span> <span class="c1"># From before</span>
+<span></span><span class="n">bs</span><span class="o">.</span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">species</span> <span class="c1"># From before</span>
 </pre></div>
 </div>
 </div>
@@ -486,7 +484,7 @@ pressure and phase:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">feed</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">Methanol</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">Glycerol</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span></span><span class="n">feed</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">Methanol</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">Glycerol</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 <span class="n">feed</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -510,7 +508,7 @@ Stream: feed
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">feed</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">T</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
+<span></span><span class="n">feed</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">T</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
 <span class="n">feed</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -673,7 +671,7 @@ MixedStream: feed
 </div>
 <div class="stderr output_area docutils container">
 <div class="highlight"><pre>
-C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 5.765637638432963e-07 reached
+C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:204: RuntimeWarning: Tolerance of 5.765637638432963e-07 reached
   warnings.warn(msg, RuntimeWarning)
 </pre></div></div>
 </div>
@@ -717,9 +715,8 @@ initialized with an ID, and unit specific arguments:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">biosteam.units</span> <span class="k">import</span> <span class="n">Flash</span>
-<span class="c1"># Specify vapor fraction and isobaric conditions</span>
-<span class="n">F1</span> <span class="o">=</span> <span class="n">Flash</span><span class="p">(</span><span class="s1">&#39;F1&#39;</span><span class="p">,</span> <span class="n">V</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
+<span></span><span class="c1"># Specify vapor fraction and isobaric conditions</span>
+<span class="n">F1</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Flash</span><span class="p">(</span><span class="s1">&#39;F1&#39;</span><span class="p">,</span> <span class="n">V</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -731,8 +728,16 @@ streams to outputs, <code class="docutils literal notranslate"><span class="pre"
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">F1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span></span><span class="n">F1</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span> <span class="c1"># View diagram of unit as well</span>
+<span class="n">F1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Tutorial_48_0.png" src="_images/Tutorial_48_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -799,7 +804,7 @@ Flash: F1
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">F1</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mi">220</span><span class="p">,</span> <span class="n">Glycerol</span><span class="o">=</span><span class="mi">180</span><span class="p">)</span>
+<span></span><span class="n">F1</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mi">220</span><span class="p">,</span> <span class="n">Glycerol</span><span class="o">=</span><span class="mi">180</span><span class="p">)</span>
 <span class="n">F1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -863,7 +868,7 @@ Flash: F1
 </div>
 <div class="stderr output_area docutils container">
 <div class="highlight"><pre>
-C:\Users\yoelr\Dropbox\Cortes-Pena-Guest_Shared\Code\biosteam\biosteam\units\flash.py:222: DesignWarning: @Flash F1: Vertical vessel weight (3772 lb) is out of bounds (4200 to 1e+06 lb).
+C:\Users\Guest Group\OneDrive\Code\biosteam\biosteam\units\flash.py:222: DesignWarning: @Flash F1: Vertical vessel weight (3772 lb) is out of bounds (4200 to 1e+06 lb).
   out = self._vertical()
 </pre></div></div>
 </div>
@@ -875,7 +880,7 @@ may be inaccurate. These bounds are stored in the class:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">Flash</span><span class="o">.</span><span class="n">_bounds</span>
+<span></span><span class="n">bs</span><span class="o">.</span><span class="n">Flash</span><span class="o">.</span><span class="n">_bounds</span>
 </pre></div>
 </div>
 </div>
@@ -885,10 +890,10 @@ may be inaccurate. These bounds are stored in the class:</p>
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>{&#39;Vertical vessel weight&#39;: array([   4200., 1000000.]),
+<span></span>{&#39;Diameter&#39;: array([ 3, 21]),
  &#39;Horizontal vessel weight&#39;: array([  1000., 920000.]),
- &#39;Diameter&#39;: array([ 3, 21]),
- &#39;Vertical vessel Length&#39;: array([12, 40])}
+ &#39;Vertical vessel Length&#39;: array([12, 40]),
+ &#39;Vertical vessel weight&#39;: array([   4200., 1000000.])}
 </pre></div>
 </div>
 </div>
@@ -1034,52 +1039,6 @@ Name: F1, dtype: object
 </pre></div>
 </div>
 </div>
-<p>All heat related utilities are in <code class="docutils literal notranslate"><span class="pre">heat_utilities</span></code>:</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [29]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">F1</span><span class="o">.</span><span class="n">heat_utilities</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[29]:
-</pre></div>
-</div>
-<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>[&lt;Medium pressure steam: 1.88e+07 kJ/hr, 504 kmol/hr, 139 USD/hr&gt;]
-</pre></div>
-</div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [30]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">heat_utility</span> <span class="o">=</span> <span class="n">F1</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="n">heat_utility</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-HeatUtility: Medium pressure steam
- duty: 1.88e+07 kJ/hr
- flow: 504 kmol/hr
- cost: 139 USD/hr
-</pre></div></div>
-</div>
-<p>Please refer to
-<a class="reference external" href="https://biosteam.readthedocs.io/en/latest/HeatUtility.html">HeatUtility</a>
-for a detailed example.</p>
 </div>
 <div class="section" id="Solve-recycle-loops-and-process-specifications-with-System-objects">
 <h2>Solve recycle loops and process specifications with System objects<a class="headerlink" href="#Solve-recycle-loops-and-process-specifications-with-System-objects" title="Permalink to this headline">¶</a></h2>
@@ -1092,26 +1051,45 @@ and a
 object:</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [31]:
+<span></span>In [29]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">biosteam.units</span> <span class="k">import</span> <span class="n">Mixer</span><span class="p">,</span> <span class="n">Splitter</span>
-<span class="n">M1</span> <span class="o">=</span> <span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M1&#39;</span><span class="p">)</span>
-<span class="n">S1</span> <span class="o">=</span> <span class="n">Splitter</span><span class="p">(</span><span class="s1">&#39;S1&#39;</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span> <span class="c1"># Split to 0th output stream</span>
+<span></span><span class="n">M1</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M1&#39;</span><span class="p">)</span>
+<span class="n">S1</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Splitter</span><span class="p">(</span><span class="s1">&#39;S1&#39;</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span> <span class="c1"># Split to 0th output stream</span>
 <span class="n">F1</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="s1">&#39;product&#39;</span>
 </pre></div>
+</div>
+</div>
+<p>You can <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/Find%20unit%20operations%20and%20manage%20flowsheets.html">find unit operations and manage
+flowsheets</a>
+with <code class="docutils literal notranslate"><span class="pre">find</span></code>:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [30]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Tutorial_65_0.png" src="_images/Tutorial_65_0.png" />
 </div>
 </div>
 <p>Connect streams and make a recycle loop using <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/Using%20-pipe-%20notation.html">-pipe-
 notation</a>:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [32]:
+<span></span>In [31]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">feed</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">Glycerol</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
+<span></span><span class="n">feed</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">Glycerol</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
 
 <span class="c1"># Broken down -pipe- notation</span>
 <span class="p">[</span><span class="n">S1</span><span class="o">-</span><span class="mi">0</span><span class="p">,</span> <span class="n">feed</span><span class="p">]</span><span class="o">-</span><span class="n">M1</span>     <span class="c1"># M1.ins[:] = [S1.outs[0], feed]</span>
@@ -1125,7 +1103,7 @@ notation</a>:</p>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[32]:
+<span></span>Out[31]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -1139,12 +1117,11 @@ object by specifying an ID, a <code class="docutils literal notranslate"><span c
 units:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [33]:
+<span></span>In [32]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">System</span>
-<span class="n">sys1</span> <span class="o">=</span> <span class="n">System</span><span class="p">(</span><span class="s1">&#39;sys1&#39;</span><span class="p">,</span> <span class="n">network</span><span class="o">=</span><span class="p">(</span><span class="n">M1</span><span class="p">,</span> <span class="n">F1</span><span class="p">,</span> <span class="n">S1</span><span class="p">),</span> <span class="n">recycle</span><span class="o">=</span><span class="n">S1</span><span class="o">-</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># recycle=S1.outs[0]</span>
+<span></span><span class="n">sys1</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">System</span><span class="p">(</span><span class="s1">&#39;sys1&#39;</span><span class="p">,</span> <span class="n">network</span><span class="o">=</span><span class="p">(</span><span class="n">M1</span><span class="p">,</span> <span class="n">F1</span><span class="p">,</span> <span class="n">S1</span><span class="p">),</span> <span class="n">recycle</span><span class="o">=</span><span class="n">S1</span><span class="o">-</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># recycle=S1.outs[0]</span>
 <span class="n">sys1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -1165,7 +1142,7 @@ System: sys1
 <p>View the System object as a Graphviz diagram:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [34]:
+<span></span>In [33]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1177,12 +1154,12 @@ System: sys1
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/Tutorial_73_0.svg" src="_images/Tutorial_73_0.svg" /></div>
+<img alt="_images/Tutorial_71_0.svg" src="_images/Tutorial_71_0.svg" /></div>
 </div>
 <p>Simulate the System object:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [35]:
+<span></span>In [34]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1190,17 +1167,6 @@ System: sys1
 <span class="n">sys1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="stderr output_area docutils container">
-<div class="highlight"><pre>
-C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 5.582530206993397e-07 reached
-  warnings.warn(msg, RuntimeWarning)
-C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 9.733344086271245e-08 reached
-  warnings.warn(msg, RuntimeWarning)
-</pre></div></div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
@@ -1220,17 +1186,21 @@ System: sys1
 </div>
 <div class="stderr output_area docutils container">
 <div class="highlight"><pre>
-C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of -3.125683178950567e-08 reached
+C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:204: RuntimeWarning: Tolerance of 5.582530206993397e-07 reached
   warnings.warn(msg, RuntimeWarning)
-C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of -8.274480478576152e-08 reached
+C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:204: RuntimeWarning: Tolerance of 9.733344086271245e-08 reached
   warnings.warn(msg, RuntimeWarning)
-C:\Users\yoelr\Dropbox\Cortes-Pena-Guest_Shared\Code\biosteam\biosteam\units\flash.py:222: DesignWarning: @Flash F1: Vertical vessel weight (4068 lb) is out of bounds (4200 to 1e+06 lb).
+C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:204: RuntimeWarning: Tolerance of -3.125683178950567e-08 reached
+  warnings.warn(msg, RuntimeWarning)
+C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:204: RuntimeWarning: Tolerance of -8.274480478576152e-08 reached
+  warnings.warn(msg, RuntimeWarning)
+C:\Users\Guest Group\OneDrive\Code\biosteam\biosteam\units\flash.py:222: DesignWarning: @Flash F1: Vertical vessel weight (4068 lb) is out of bounds (4200 to 1e+06 lb).
   out = self._vertical()
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [36]:
+<span></span>In [35]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1262,7 +1232,7 @@ Flash: F1
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [37]:
+<span></span>In [36]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1272,7 +1242,7 @@ Flash: F1
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[37]:
+<span></span>Out[36]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -1369,27 +1339,6 @@ Flash: F1
 </table>
 </div></div>
 </div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [38]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">F1</span><span class="o">.</span><span class="n">heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-HeatUtility: Low pressure steam
- duty: 1.86e+07 kJ/hr
- flow: 475 kmol/hr
- cost: 113 USD/hr
-</pre></div></div>
-</div>
 </div>
 </div>
 
@@ -1419,7 +1368,7 @@ HeatUtility: Low pressure steam
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

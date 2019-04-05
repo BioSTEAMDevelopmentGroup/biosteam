@@ -9,7 +9,7 @@
     <title>biosteam.unit &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
@@ -62,7 +62,7 @@
 
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">IPython</span>
+<span class="kn">from</span> <span class="nn">IPython</span> <span class="k">import</span> <span class="n">display</span>
 <span class="kn">from</span> <span class="nn">graphviz</span> <span class="k">import</span> <span class="n">Digraph</span>
 <span class="kn">from</span> <span class="nn">.exceptions</span> <span class="k">import</span> <span class="n">notify_error</span>
 <span class="kn">from</span> <span class="nn">.flowsheet</span> <span class="k">import</span> <span class="n">find</span>
@@ -555,9 +555,10 @@
                     <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">flow</span><span class="p">))</span>
                     <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;USD/hr&#39;</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">cost</span><span class="p">))</span>
             <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units</span>
-            <span class="n">Cost</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">Cost</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;Cost&#39;</span><span class="p">)</span>
+            <span class="n">GHG</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;GHG&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="s1">&#39;GHG&#39;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="kc">None</span>
             <span class="k">for</span> <span class="n">ko</span><span class="p">,</span> <span class="n">vo</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="k">if</span> <span class="n">vo</span> <span class="ow">is</span> <span class="n">Cost</span><span class="p">:</span> <span class="k">continue</span>
                 <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span> <span class="ow">in</span> <span class="n">vo</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                     <span class="n">addkey</span><span class="p">((</span><span class="n">ko</span><span class="p">,</span> <span class="n">ki</span><span class="p">))</span>
                     <span class="n">addval</span><span class="p">((</span><span class="n">units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ki</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="n">vi</span><span class="p">))</span>
@@ -569,6 +570,21 @@
             <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;USD&#39;</span><span class="p">,</span> <span class="n">capital</span><span class="p">))</span>
             <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Utility cost&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
             <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;USD/hr&#39;</span><span class="p">,</span> <span class="n">utility</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">GHG</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">ko</span><span class="p">,</span> <span class="n">vo</span> <span class="ow">in</span> <span class="n">GHG</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span> <span class="ow">in</span> <span class="n">vo</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="n">addkey</span><span class="p">((</span><span class="n">ko</span><span class="p">,</span> <span class="n">ki</span><span class="p">))</span>
+                        <span class="n">addval</span><span class="p">((</span><span class="n">units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ki</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="n">vi</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_totalGHG&#39;</span><span class="p">):</span>
+                <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_totalGHG</span>
+                <span class="n">units_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_totalGHG_units</span>
+                <span class="n">a_key</span><span class="p">,</span> <span class="n">b_key</span> <span class="o">=</span> <span class="n">units_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+                <span class="n">a_unit</span><span class="p">,</span> <span class="n">b_unit</span> <span class="o">=</span> <span class="n">units_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+                <span class="n">addkey</span><span class="p">((</span><span class="n">a_key</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+                <span class="n">addval</span><span class="p">((</span><span class="n">a_unit</span><span class="p">,</span> <span class="n">a</span><span class="p">))</span>
+                <span class="n">addkey</span><span class="p">((</span><span class="n">b_key</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+                <span class="n">addval</span><span class="p">((</span><span class="n">b_unit</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span>
+            
             <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span>
                               <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">(</span><span class="n">keys</span><span class="p">),</span>
                               <span class="p">(</span><span class="s1">&#39;Units&#39;</span><span class="p">,</span> <span class="n">ID</span><span class="p">))</span>
@@ -589,6 +605,7 @@
                     <span class="n">addval</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">duty</span><span class="p">)</span>
                     <span class="n">addval</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">flow</span><span class="p">)</span>
                     <span class="n">addval</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">cost</span><span class="p">)</span>
+            <span class="n">GHG</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;GHG&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="s1">&#39;GHG&#39;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="kc">None</span>
             <span class="k">for</span> <span class="n">ko</span><span class="p">,</span> <span class="n">vo</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span> <span class="ow">in</span> <span class="n">vo</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                     <span class="n">addkey</span><span class="p">((</span><span class="n">ko</span><span class="p">,</span> <span class="n">ki</span><span class="p">))</span>
@@ -598,6 +615,18 @@
             <span class="n">addval</span><span class="p">(</span><span class="n">capital</span><span class="p">)</span>
             <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Utility cost&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
             <span class="n">addval</span><span class="p">(</span><span class="n">utility</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">GHG</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">ko</span><span class="p">,</span> <span class="n">vo</span> <span class="ow">in</span> <span class="n">GHG</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span> <span class="ow">in</span> <span class="n">vo</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                        <span class="n">addkey</span><span class="p">((</span><span class="n">ko</span><span class="p">,</span> <span class="n">ki</span><span class="p">))</span>
+                        <span class="n">addval</span><span class="p">((</span><span class="n">units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ki</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="n">vi</span><span class="p">))</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_totalGHG&#39;</span><span class="p">):</span>
+                <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_totalGHG</span>
+                <span class="n">a_key</span><span class="p">,</span> <span class="n">b_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_totalGHG_units</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+                <span class="n">addkey</span><span class="p">((</span><span class="n">a_key</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+                <span class="n">addval</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+                <span class="n">addkey</span><span class="p">((</span><span class="n">b_key</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+                <span class="n">addval</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
             <span class="n">series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">(</span><span class="n">keys</span><span class="p">))</span>
             <span class="n">series</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">ID</span>
             <span class="k">return</span> <span class="n">series</span></div>
@@ -722,12 +751,16 @@
         
         <span class="k">return</span> <span class="n">neighborhood</span>
 
-<div class="viewcode-block" id="Unit.diagram"><a class="viewcode-back" href="../../Unit.html#biosteam.Unit.diagram">[docs]</a>    <span class="k">def</span> <span class="nf">diagram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<div class="viewcode-block" id="Unit.diagram"><a class="viewcode-back" href="../../Unit.html#biosteam.Unit.diagram">[docs]</a>    <span class="k">def</span> <span class="nf">diagram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Display a `Graphviz &lt;https://pypi.org/project/graphviz/&gt;`__ diagram of the unit and all neighboring units within given radius.</span>
 <span class="sd">        </span>
 <span class="sd">        **Parameters**</span>
 <span class="sd">        </span>
 <span class="sd">            **radius:** [int] Maxium number streams between neighbors.</span>
+<span class="sd">        </span>
+<span class="sd">            **file:** Must be one of the following:</span>
+<span class="sd">                * [str] File name to save diagram. If format not included, saves file as svg.</span>
+<span class="sd">                * [None] Display diagram in console.</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">radius</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -758,7 +791,7 @@
         <span class="c1"># Set stream node attributes</span>
         <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;node&#39;</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="s1">&#39;rarrow&#39;</span><span class="p">,</span> <span class="n">fillcolor</span><span class="o">=</span><span class="s1">&#39;#79dae8&#39;</span><span class="p">,</span>
                <span class="n">style</span><span class="o">=</span><span class="s1">&#39;filled&#39;</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="s1">&#39;0&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="s1">&#39;0.6&#39;</span><span class="p">,</span>
-               <span class="n">height</span><span class="o">=</span><span class="s1">&#39;0.6&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">peripheries</span><span class="o">=</span><span class="s1">&#39;1&#39;</span><span class="p">)</span>
+               <span class="n">height</span><span class="o">=</span><span class="s1">&#39;0.6&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
 
         <span class="c1"># Make nodes and edges for input streams</span>
         <span class="n">di</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Destination position of stream</span>
@@ -784,8 +817,7 @@
             <span class="n">oi</span> <span class="o">+=</span> <span class="mi">1</span>
 
         <span class="c1"># Display digraph on console</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">IPython</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">SVG</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;svg&#39;</span><span class="p">))</span>
-        <span class="n">IPython</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
+        <span class="n">display</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="n">display</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">)))</span></div>
     
     <span class="c1">### Net input and output flows ###</span>
     
@@ -980,7 +1012,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

@@ -9,7 +9,7 @@
     <title>System &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -93,15 +93,15 @@
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.System.units">
-<code class="descname">units</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.System.units" title="Permalink to this definition">¶</a></dt>
-<dd><p>set[Unit] All units within the system</p>
+<dt id="biosteam.System.network">
+<code class="descname">network</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.System.network" title="Permalink to this definition">¶</a></dt>
+<dd><p>tuple[Unit, function and/or System] A network that is run element by element until the recycle converges.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.System.subsystems">
-<code class="descname">subsystems</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.System.subsystems" title="Permalink to this definition">¶</a></dt>
-<dd><p>set[System] All subsystems in the system</p>
+<dt id="biosteam.System.facilities">
+<code class="descname">facilities</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.System.facilities" title="Permalink to this definition">¶</a></dt>
+<dd><p>tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the network simulation.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -123,6 +123,12 @@
 </dd></dl>
 
 <dl class="attribute">
+<dt id="biosteam.System.TEA">
+<code class="descname">TEA</code><a class="headerlink" href="#biosteam.System.TEA" title="Permalink to this definition">¶</a></dt>
+<dd><p>[TEA] System object for Techno-Economic Analysis.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="biosteam.System.recycle">
 <code class="descname">recycle</code><a class="headerlink" href="#biosteam.System.recycle" title="Permalink to this definition">¶</a></dt>
 <dd><p>A tear stream for the recycle loop</p>
@@ -136,7 +142,7 @@
 
 <dl class="method">
 <dt id="biosteam.System.diagram">
-<code class="descname">diagram</code><span class="sig-paren">(</span><em>kind='surface'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/system.html#System.diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.diagram" title="Permalink to this definition">¶</a></dt>
+<code class="descname">diagram</code><span class="sig-paren">(</span><em>kind='surface'</em>, <em>file=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/system.html#System.diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.diagram" title="Permalink to this definition">¶</a></dt>
 <dd><p>Display a <a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz</a> diagram of the system.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -146,6 +152,12 @@
 <li><strong>‘thorough’:</strong> Thoroughly display every unit within the network</li>
 <li><strong>‘surface’:</strong> Display only surface elements listed in the network</li>
 <li><strong>‘minimal’:</strong> Minimally display the network as a box</li>
+</ul>
+</dd>
+<dt><strong>file:</strong> Must be one of the following:</dt>
+<dd><ul class="first last simple">
+<li>[str] File name to save diagram. If format not included, saves file as svg.</li>
+<li>[None] Display diagram in console.</li>
 </ul>
 </dd>
 </dl>
@@ -225,7 +237,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

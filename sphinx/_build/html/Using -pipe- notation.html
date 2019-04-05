@@ -9,14 +9,14 @@
     <title>Using -pipe- notation &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Compound" href="Compound.html" />
+    <link rel="next" title="Find unit operations and manage flowsheets" href="Find unit operations and manage flowsheets.html" />
     <link rel="prev" title="Creating a Unit" href="Creating a Unit.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
@@ -29,7 +29,7 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="Compound.html" title="Compound"
+          <a href="Find unit operations and manage flowsheets.html" title="Find unit operations and manage flowsheets"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="Creating a Unit.html" title="Creating a Unit"
@@ -43,8 +43,8 @@
   <p class="topless"><a href="Creating a Unit.html"
                         title="previous chapter">Creating a Unit</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="Compound.html"
-                        title="next chapter">Compound</a></p>
+  <p class="topless"><a href="Find unit operations and manage flowsheets.html"
+                        title="next chapter">Find unit operations and manage flowsheets</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -267,14 +267,14 @@ the following format:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Mixer</span><span class="p">,</span> <span class="n">Splitter</span><span class="p">,</span> <span class="n">Stream</span>
+<span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bs</span>
 <span class="c1"># Set feed stream and units</span>
-<span class="n">feed1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed1&#39;</span><span class="p">)</span>
-<span class="n">M1</span> <span class="o">=</span> <span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M1&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="s1">&#39;s1&#39;</span><span class="p">)</span>
-<span class="n">S1</span> <span class="o">=</span> <span class="n">Splitter</span><span class="p">(</span><span class="s1">&#39;S1&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;s2&#39;</span><span class="p">,</span> <span class="s1">&#39;product1&#39;</span><span class="p">))</span>
-<span class="n">feed2</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed2&#39;</span><span class="p">)</span>
-<span class="n">M2</span> <span class="o">=</span> <span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M2&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="s1">&#39;s3&#39;</span><span class="p">)</span>
-<span class="n">S2</span> <span class="o">=</span> <span class="n">Splitter</span><span class="p">(</span><span class="s1">&#39;S2&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;recycle&#39;</span><span class="p">,</span> <span class="s1">&#39;product2&#39;</span><span class="p">))</span>
+<span class="n">feed1</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed1&#39;</span><span class="p">)</span>
+<span class="n">M1</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M1&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="s1">&#39;s1&#39;</span><span class="p">)</span>
+<span class="n">S1</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Splitter</span><span class="p">(</span><span class="s1">&#39;S1&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;s2&#39;</span><span class="p">,</span> <span class="s1">&#39;product1&#39;</span><span class="p">))</span>
+<span class="n">feed2</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed2&#39;</span><span class="p">)</span>
+<span class="n">M2</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M2&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="s1">&#39;s3&#39;</span><span class="p">)</span>
+<span class="n">S2</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Splitter</span><span class="p">(</span><span class="s1">&#39;S2&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;recycle&#39;</span><span class="p">,</span> <span class="s1">&#39;product2&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -315,8 +315,7 @@ S2 and M1:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">System</span>
-<span class="n">system</span> <span class="o">=</span> <span class="n">System</span><span class="p">(</span><span class="s1">&#39;system&#39;</span><span class="p">,</span> <span class="n">network</span><span class="o">=</span><span class="p">(</span><span class="n">M1</span><span class="p">,</span> <span class="n">S1</span><span class="p">,</span> <span class="n">M2</span><span class="p">,</span> <span class="n">S2</span><span class="p">))</span>
+<span></span><span class="n">system</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">System</span><span class="p">(</span><span class="s1">&#39;system&#39;</span><span class="p">,</span> <span class="n">network</span><span class="o">=</span><span class="p">(</span><span class="n">M1</span><span class="p">,</span> <span class="n">S1</span><span class="p">,</span> <span class="n">M2</span><span class="p">,</span> <span class="n">S2</span><span class="p">))</span>
 <span class="n">system</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -345,7 +344,7 @@ S2 and M1:</p>
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="Compound.html" title="Compound"
+          <a href="Find unit operations and manage flowsheets.html" title="Find unit operations and manage flowsheets"
              >next</a> |</li>
         <li class="right" >
           <a href="Creating a Unit.html" title="Creating a Unit"
@@ -355,7 +354,7 @@ S2 and M1:</p>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

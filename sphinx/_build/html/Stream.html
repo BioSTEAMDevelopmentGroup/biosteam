@@ -9,7 +9,7 @@
     <title>Stream &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -127,7 +127,7 @@
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># The working units do not change</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s3</span><span class="o">.</span><span class="n">mol</span> 
-<span class="go">material_array([1., 2.]) (kmol/hr)</span>
+<span class="go">material_array([1., 2.])</span>
 </pre></div>
 </div>
 <div class="admonition warning">
@@ -165,8 +165,8 @@
 <p>Flow rates are stored internally as a material_array in the ‘mol’ attribute.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Set Water flow rate</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">18</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">mol</span>
-<span class="go">material_array([1, 18]) (kmol/hr)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">mol</span> <span class="c1"># kmol/hr</span>
+<span class="go">material_array([1, 18])</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># A negative flow issues a RuntimeWarning</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
@@ -176,7 +176,7 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Setting the property sets its values in place</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">mol</span>
-<span class="go">material_array([1, 2]) (kmol/hr)</span>
+<span class="go">material_array([1, 2])</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -185,16 +185,15 @@
 </div>
 <p>Mass and volumetric flow rates are also available as property_arrays of the molar flow rate. As such, they are always up to date with the molar flow rate and altering them also alters the molar flow rate:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Altering mass or volumetric flows alters the molar flow</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">vol</span>
-<span class="go">property_array([0.059, 0.036]) (m^3/hr)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">vol</span> <span class="c1"># m^3/hr</span>
+<span class="go">property_array([0.059, 0.036])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">vol</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">mol</span>
-<span class="go">material_array([17.06 , 55.343]) (kmol/hr)</span>
-
+<span class="go">material_array([17.06 , 55.343])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Values are always up to date with the molar flow</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">vol</span>
-<span class="go">property_array([0.059, 0.036]) (m^3/hr)</span>
+<span class="go">property_array([0.059, 0.036])</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -954,7 +953,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

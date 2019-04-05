@@ -10,7 +10,7 @@
     <title>Index &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
@@ -225,6 +225,8 @@
       <li><a href="Distillation.html#biosteam.Distillation.diagram">diagram() (biosteam.Distillation method)</a>
 
       <ul>
+        <li><a href="find.html#biosteam.Flowsheet.diagram">(biosteam.Flowsheet method)</a>
+</li>
         <li><a href="MixTank.html#biosteam.MixTank.diagram">(biosteam.MixTank method)</a>
 </li>
         <li><a href="StorageTank.html#biosteam.StorageTank.diagram">(biosteam.StorageTank method)</a>
@@ -304,6 +306,8 @@
 </li>
       <li><a href="Distillation.html#biosteam.Distillation.F_F">F_F (biosteam.Distillation attribute)</a>
 </li>
+      <li><a href="System.html#biosteam.System.facilities">facilities (biosteam.System attribute)</a>
+</li>
       <li><a href="Compound.html#biosteam.Compound.Factory">Factory() (biosteam.Compound class method)</a>
 </li>
       <li><a href="System.html#biosteam.System.feeds">feeds (biosteam.System attribute)</a>
@@ -316,9 +320,9 @@
 </li>
       <li><a href="Flash.html#biosteam.Flash">Flash (class in biosteam)</a>
 </li>
-      <li><a href="find.html#biosteam.MainFlowsheet.flowsheet">flowsheet (biosteam.MainFlowsheet attribute)</a>
-</li>
       <li><a href="find.html#biosteam.Flowsheet">Flowsheet (class in biosteam)</a>
+</li>
+      <li><a href="find.html#biosteam.Flowsheet.flowsheets">flowsheets (biosteam.Flowsheet attribute)</a>
 </li>
       <li><a href="utils.html#biosteam.utils.fraction">fraction() (in module biosteam.utils)</a>
 </li>
@@ -502,8 +506,6 @@
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="find.html#biosteam.MainFlowsheet">MainFlowsheet (class in biosteam)</a>
-</li>
       <li><a href="MixedStream.html#biosteam.MixedStream.mass">mass (biosteam.MixedStream attribute)</a>
 
       <ul>
@@ -534,10 +536,10 @@
 </li>
       <li><a href="utils.html#biosteam.utils.MissingStream">MissingStream (class in biosteam.utils)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="Flash.html#biosteam.Flash.Mist">Mist (biosteam.Flash attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="MixedStream.html#biosteam.MixedStream">MixedStream (class in biosteam)</a>
 </li>
       <li><a href="Mixer.html#biosteam.Mixer">Mixer (class in biosteam)</a>
@@ -580,10 +582,12 @@
 </li>
       <li><a href="utils.html#biosteam.utils.Workbook.named_styles">named_styles (biosteam.utils.Workbook attribute)</a>
 </li>
-      <li><a href="Stream.html#biosteam.Stream.nonzero_species">nonzero_species (biosteam.Stream attribute)</a>
+      <li><a href="System.html#biosteam.System.network">network (biosteam.System attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="Stream.html#biosteam.Stream.nonzero_species">nonzero_species (biosteam.Stream attribute)</a>
+</li>
       <li><a href="exceptions.html#biosteam.exceptions.notify_error">notify_error() (in module biosteam.exceptions)</a>
 </li>
       <li><a href="TEA.html#biosteam.TEA.NPV">NPV() (biosteam.TEA method)</a>
@@ -800,14 +804,14 @@
         <li><a href="Unit.html#biosteam.Unit.simulate">(biosteam.Unit method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="Stream.html#biosteam.Stream.sink">sink (biosteam.Stream attribute)</a>
 
       <ul>
         <li><a href="utils.html#biosteam.utils.Ins.sink">(biosteam.utils.Ins attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="utils.html#biosteam.utils.Sink">Sink (class in biosteam.utils)</a>
 </li>
       <li><a href="MixedStream.html#biosteam.MixedStream.solid_mass">solid_mass (biosteam.MixedStream attribute)</a>
@@ -856,8 +860,6 @@
 </li>
       <li><a href="utils.html#biosteam.utils.Workbook.style_names">style_names (biosteam.utils.Workbook attribute)</a>
 </li>
-      <li><a href="System.html#biosteam.System.subsystems">subsystems (biosteam.System attribute)</a>
-</li>
       <li><a href="Stream.html#biosteam.Stream.sum">sum() (biosteam.Stream static method)</a>
 </li>
       <li><a href="Flash.html#biosteam.Flash.SurgeTime">SurgeTime (biosteam.Flash attribute)</a>
@@ -896,12 +898,16 @@
 </li>
       <li><a href="DissolvedCompound.html#biosteam.DissolvedCompound.Tb">Tb (biosteam.DissolvedCompound attribute)</a>
 </li>
-      <li><a href="TEA.html#biosteam.TEA">TEA (class in biosteam)</a>
+      <li><a href="System.html#biosteam.System.TEA">TEA (biosteam.System attribute)</a>
+
+      <ul>
+        <li><a href="TEA.html#biosteam.TEA">(class in biosteam)</a>
 </li>
-      <li><a href="utils.html#biosteam.utils.Timer.tic">tic() (biosteam.utils.Timer method)</a>
-</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="utils.html#biosteam.utils.Timer.tic">tic() (biosteam.utils.Timer method)</a>
+</li>
       <li><a href="utils.html#biosteam.utils.Timer.tictoc">tictoc (biosteam.utils.Timer attribute)</a>
 </li>
       <li><a href="utils.html#biosteam.utils.Timer">Timer (class in biosteam.utils)</a>
@@ -939,11 +945,7 @@
       <li><a href="Unit.html#biosteam.Unit">Unit (class in biosteam)</a>
 </li>
       <li><a href="Compound.html#biosteam.Compound.units">units (biosteam.Compound attribute)</a>
-
-      <ul>
-        <li><a href="System.html#biosteam.System.units">(biosteam.System attribute)</a>
 </li>
-      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -1044,7 +1046,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
     </div>
   </body>
 </html>

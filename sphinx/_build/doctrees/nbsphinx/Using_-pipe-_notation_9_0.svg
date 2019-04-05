@@ -5,7 +5,7 @@
 <!-- M1
 Mixer&#45;&gt;S1
 Splitter -->
-<g class="edge" id="edge4"><title>M1
+<g class="edge" id="edge7"><title>M1
 Mixer:e-&gt;S1
 Splitter:w</title>
 <path d="M222.593,-53.7401C252.988,-53.7401 241.072,-100.502 261.551,-111.461" fill="none" stroke="black"/>
@@ -15,7 +15,7 @@ Splitter:w</title>
 <!-- M2
 Mixer&#45;&gt;S2
 Splitter -->
-<g class="edge" id="edge3"><title>M2
+<g class="edge" id="edge2"><title>M2
 Mixer:e-&gt;S2
 Splitter:w</title>
 <path d="M644.578,-183.74C690.573,-183.74 651.006,-97.9049 683.632,-84.4932" fill="none" stroke="black"/>
@@ -25,7 +25,7 @@ Splitter:w</title>
 <!-- S2
 Splitter&#45;&gt;M1
 Mixer -->
-<g class="edge" id="edge8"><title>S2
+<g class="edge" id="edge6"><title>S2
 Splitter:c-&gt;M1
 Mixer:c</title>
 <path d="M707.088,-76.3896C687.058,-74.4899 664.912,-72.4572 644.578,-70.7401 549.278,-62.6927 525.551,-58.4715 429.985,-54.7401 362.561,-52.1076 285.792,-52.0712 230.417,-52.57" fill="none" stroke="black"/>
@@ -34,14 +34,14 @@ Mixer:c</title>
 </g>
 <!-- S2
 Splitter&#45;&gt;product2 -->
-<g class="edge" id="edge1"><title>S2
+<g class="edge" id="edge5"><title>S2
 Splitter:c-&gt;product2:w</title>
 <path d="M812.699,-82.7401C835.021,-82.7401 863.571,-82.7401 888.97,-82.7401" fill="none" stroke="black"/>
 </g>
 <!-- S1
 Splitter&#45;&gt;M2
 Mixer -->
-<g class="edge" id="edge5"><title>S1
+<g class="edge" id="edge1"><title>S1
 Splitter:c-&gt;M2
 Mixer:c</title>
 <path d="M390.544,-125.933C429.766,-138.273 490.281,-157.312 531.038,-170.135" fill="none" stroke="black"/>
@@ -50,21 +50,21 @@ Mixer:c</title>
 </g>
 <!-- S1
 Splitter&#45;&gt;product1 -->
-<g class="edge" id="edge7"><title>S1
+<g class="edge" id="edge3"><title>S1
 Splitter:c-&gt;product1:w</title>
 <path d="M390.695,-108.501C428.752,-103.835 488.391,-97.7401 540.281,-97.7401" fill="none" stroke="black"/>
 </g>
-<!-- feed1&#45;&gt;M1
-Mixer -->
-<g class="edge" id="edge2"><title>feed1:e-&gt;M1
-Mixer:c</title>
-<path d="M47,-53.7401C70.9476,-53.7401 97.9589,-53.7401 118.627,-53.7401" fill="none" stroke="black"/>
-</g>
 <!-- feed2&#45;&gt;M2
 Mixer -->
-<g class="edge" id="edge6"><title>feed2:e-&gt;M2
+<g class="edge" id="edge4"><title>feed2:e-&gt;M2
 Mixer:c</title>
 <path d="M375.789,-199.74C433.87,-199.74 501.203,-192.849 540.632,-188.112" fill="none" stroke="black"/>
+</g>
+<!-- feed1&#45;&gt;M1
+Mixer -->
+<g class="edge" id="edge8"><title>feed1:e-&gt;M1
+Mixer:c</title>
+<path d="M47,-53.7401C70.9476,-53.7401 97.9589,-53.7401 118.627,-53.7401" fill="none" stroke="black"/>
 </g>
 <!-- M1
 Mixer -->
@@ -122,25 +122,25 @@ Splitter</title>
 <text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="350.789" y="-117.54">S1</text>
 <text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="350.789" y="-102.54">Splitter</text>
 </g>
+<!-- product1 -->
+<g class="node" id="node5"><title>product1</title>
+<polygon fill="#79dae8" points="591.281,-113.24 541.281,-113.24 541.281,-82.2401 591.281,-82.2401 591.281,-76.2401 609.281,-97.7401 591.281,-119.24 591.281,-113.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="575.281" y="-94.0401">product1</text>
+</g>
+<!-- feed2 -->
+<g class="node" id="node6"><title>feed2</title>
+<polygon fill="#79dae8" points="356.289,-215.24 327.289,-215.24 327.289,-184.24 356.289,-184.24 356.289,-178.24 374.289,-199.74 356.289,-221.24 356.289,-215.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="350.789" y="-196.04">feed2</text>
+</g>
 <!-- product2 -->
-<g class="node" id="node5"><title>product2</title>
+<g class="node" id="node7"><title>product2</title>
 <polygon fill="#79dae8" points="938.97,-98.2401 888.97,-98.2401 888.97,-67.2401 938.97,-67.2401 938.97,-61.2401 956.97,-82.7401 938.97,-104.24 938.97,-98.2401" stroke="black"/>
 <text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="922.97" y="-79.0401">product2</text>
 </g>
 <!-- feed1 -->
-<g class="node" id="node6"><title>feed1</title>
+<g class="node" id="node8"><title>feed1</title>
 <polygon fill="#79dae8" points="29,-69.2401 -3.55271e-015,-69.2401 -3.55271e-015,-38.2401 29,-38.2401 29,-32.2401 47,-53.7401 29,-75.2401 29,-69.2401" stroke="black"/>
 <text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="23.5" y="-50.0401">feed1</text>
-</g>
-<!-- feed2 -->
-<g class="node" id="node7"><title>feed2</title>
-<polygon fill="#79dae8" points="356.289,-215.24 327.289,-215.24 327.289,-184.24 356.289,-184.24 356.289,-178.24 374.289,-199.74 356.289,-221.24 356.289,-215.24" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="350.789" y="-196.04">feed2</text>
-</g>
-<!-- product1 -->
-<g class="node" id="node8"><title>product1</title>
-<polygon fill="#79dae8" points="591.281,-113.24 541.281,-113.24 541.281,-82.2401 591.281,-82.2401 591.281,-76.2401 609.281,-97.7401 591.281,-119.24 591.281,-113.24" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="575.281" y="-94.0401">product1</text>
 </g>
 </g>
 </svg>

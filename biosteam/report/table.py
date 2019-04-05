@@ -59,7 +59,7 @@ def save(tables, writer, sheet_name='Sheet1', n_row=1):
 def save_system_results(system, file='report.xlsx', **stream_properties):
     """Save a system table as an xlsx file."""
     writer = ExcelWriter(file)
-    units = system._costunits
+    units = list(system._costunits)
     system.diagram('thorough', file='diagram.png')
     flowsheet = writer.book.add_worksheet('Flowsheet')
     flowsheet.insert_image('A1', 'diagram.png')
@@ -152,10 +152,11 @@ def cost_table(system):
     
     # Initialize data
     try:
-        o = system.tea.options
-    except AttributeError:
-        if not hasattr(system, 'tea'):
+        o = system.TEA.options
+    except AttributeError as AE:
+        if not hasattr(system, 'TEA'):
             raise ValueError('Cannot find TEA object related to system. A TEA object of the system must be created first.')
+        else: raise AE
     lang_factor = o['Lang factor']
     operating_days = o['Operating days']
     N_units = len(units)

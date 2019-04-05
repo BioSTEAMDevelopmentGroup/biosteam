@@ -39,6 +39,7 @@ BioSTEAM objects serve as basic building blocks to design and simulate a biorefi
    Tutorial
    Creating a Unit
    Using -pipe- notation
+   Find unit operations and manage flowsheets
 
 Base Classes
 ------------

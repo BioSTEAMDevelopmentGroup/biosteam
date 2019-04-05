@@ -1,18 +1,22 @@
 # -*- coding: utf-8 -*-
 """
 As BioSTEAM objects are created, they are automatically registered. `find` is a MainFlowsheet object that allows the user to find any Unit, Stream or System instance.  When `find` is called, it simply looks up the item and returns it. 
+
+:doc:`Find unit operations and manage flowsheets` 
+
 """
 from graphviz import Digraph
 # import matplotlib.pyplot as plt
 # import matplotlib.image as mpimg
-import IPython
+from IPython import display
 # import threading
 # import time
 # import os
-# from PIL import Image
+from PIL import Image
+import io
 
 
-__all__ = ('find', 'stream_connector', 'MainFlowsheet', 'Flowsheet')
+__all__ = ('find', 'stream_connector', 'Flowsheet')
 
 # dir_path = os.path.dirname(os.path.realpath(__file__)) + '\\'
 # viewer_path = dir_path + 'JPEGView64\\JPEGView.exe'
@@ -32,7 +36,7 @@ def make_digraph(units, streams=None):
             continue  # Ignore Unit
         
         # Initialize graphics and make Unit node with attributes
-        unit._graphics.node_function(unit)
+        graphics.node_function(unit)
         Type = graphics.name if graphics.name else unit.line
         name = unit.ID + '\n' + Type
         f.attr('node', **unit._graphics.node)
@@ -85,9 +89,8 @@ def make_digraph(units, streams=None):
         else: di = None
 
         # Make stream nodes / unit-stream edges / unit-unit edges
-        if oU not in keys and dU not in keys:
+        if oU not in keys and dU not in keys: pass
             # Stream is not attached to anything
-            continue
         elif oU not in keys:
             # Feed stream case
             f.node(s.ID)
@@ -144,7 +147,8 @@ class Flowsheet:
     
     def diagram(self):
         """Display all units and attached streams."""
-        IPython.display.display(IPython.display.SVG(make_digraph(self.unit.values()).pipe('svg')))
+        img = make_digraph(self.unit.values()).pipe('png')
+        display.display(display.Image(img))
     
     def __call__(self, item_ID) -> 'item':
         """Return requested biosteam item.
@@ -165,15 +169,15 @@ class Flowsheet:
         return f'<{type(self).__name__}: {self.ID}>'
 
 
-class MainFlowsheet(Flowsheet):
-    """Create a Flowsheet object which stores references to all stream, unit, and system objects."""
+class find(Flowsheet):
+    """Create a find object which can search through flowsheets."""
     __slots__ = ()
     _upstream_connections = set()
     
     @property
     def mainflowsheet(self):
         """[Flowsheet] Main flowsheet that is updated with new biosteam objects"""
-        return MainFlowsheet._flowsheet
+        return find._flowsheet
     
     @mainflowsheet.setter
     def mainflowsheet(self, flowsheet):
@@ -181,17 +185,17 @@ class MainFlowsheet(Flowsheet):
             find.__dict__ = flowsheet.__dict__
         else:
             raise TypeError('Main flowsheet must be a Flowsheet object')
-        MainFlowsheet._mainflowsheet = flowsheet
+        find._mainflowsheet = flowsheet
     
     def __new__(cls):
-        raise TypeError('Cannot create new MainFlowsheet object. Only one main flowsheet can exist.')
+        raise TypeError('Cannot create new Find object.')
 
     def __repr__(self):
-        return f'<{type(self).__name__}: {self.ID}>'
+        return f'<{type(self).__name__}: mainflowsheet={self.ID}>'
     
     
-#: [MainFlowsheet] Main flowsheet where Stream, Unit, and System objects are registered.
-find = object.__new__(MainFlowsheet)
+#: [find] Find BioSTEAM objects by ID.
+find = object.__new__(find)
 find.mainflowsheet = Flowsheet('Default')
 
 
