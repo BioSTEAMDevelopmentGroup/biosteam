@@ -29,7 +29,6 @@ class PowerUtility:
         
         .. code-block:: python
         
-           >>> from biosteam import PowerUtility
            >>> pu = PowerUtility()
            >>> pu
            <PowerUtility: None>

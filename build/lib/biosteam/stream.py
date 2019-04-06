@@ -113,7 +113,8 @@ class ShowFormat:
 def MassFlow(self):
     """Mass flow (kg/hr)."""
     mol, MW = self.data
-    if mol: return float(mol * MW)
+    m = mol.item(0)
+    if m: return MW * m
     else: return 0.
 
 @MassFlow.setter
@@ -125,12 +126,13 @@ def MassFlow(self, value):
 def VolumetricFlow(self):
     """Volumetric flow (m^3/hr)."""
     stream, mol = self.data
-    if mol:
+    m = mol.item(0)
+    if m:
         c = self.name # c = compound
         c.T = stream.T
         c.P = stream.P
         c.phase = stream.phase
-        return c.Vm * mol.item(0) * 1000
+        return c.Vm * m * 1000
     else:
         return 0.
 
@@ -257,7 +259,7 @@ class Stream(metaclass=metaStream):
 
        >>> # The working units do not change
        >>> s3.mol 
-       material_array([1., 2.]) (kmol/hr)
+       material_array([1., 2.])
 
     .. Warning:: Stream objects do not automatically calculate thermodynamic equilibrium. They simply assume the given phase, temperature and pressure are correct. To find equilibrium, use the VLE or LLE method.
 
@@ -295,8 +297,8 @@ class Stream(metaclass=metaStream):
 
        >>> # Set Water flow rate
        >>> s2.mol[1] = 18
-       >>> s2.mol
-       material_array([1, 18]) (kmol/hr)
+       >>> s2.mol # kmol/hr
+       material_array([1, 18])
        
        >>> # A negative flow issues a RuntimeWarning
        >>> s2.mol[1] = -1
@@ -306,8 +308,7 @@ class Stream(metaclass=metaStream):
        >>> # Setting the property sets its values in place
        >>> s2.mol = [1, 2]
        >>> s2.mol
-       material_array([1, 2]) (kmol/hr)
-
+       material_array([1, 2])
     .. Note::
 
        material_array objects are numpy ndarrays which issue a RuntimeWarning when a negative or non-finite number is encountered.
@@ -317,16 +318,15 @@ class Stream(metaclass=metaStream):
     .. code-block:: python
 
        >>> # Altering mass or volumetric flows alters the molar flow
-       >>> s2.vol
-       property_array([0.059, 0.036]) (m^3/hr)
+       >>> s2.vol # m^3/hr
+       property_array([0.059, 0.036])
        >>> s2.vol[:] = [1, 1]
        >>> s2.mol
-       material_array([17.06 , 55.343]) (kmol/hr)
-       
+       material_array([17.06 , 55.343])
        >>> # Values are always up to date with the molar flow
        >>> s2.mol[:] = [1, 2]
        >>> s2.vol
-       property_array([0.059, 0.036]) (m^3/hr)
+       property_array([0.059, 0.036])
 
     .. Note::
 

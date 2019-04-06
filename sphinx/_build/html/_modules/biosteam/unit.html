@@ -9,7 +9,7 @@
     <title>biosteam.unit &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
@@ -149,7 +149,7 @@
     <span class="n">_enforce_bounds</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">_CEPCI</span> <span class="o">=</span> <span class="mf">567.5</span> <span class="c1"># Chemical engineering plant cost index (567.5 at 2017)</span>
     <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">clsname</span><span class="p">,</span> <span class="n">superclasses</span><span class="p">,</span> <span class="n">new_definitions</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Prepare unit methods with wrappers for error notification, and add kwargs as key word arguments to __init__. Also initiallize by adding new Unit class to the main flowsheet line dictionary.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Prepare unit methods with wrappers for error notification, and add _kwargs as key word arguments to __init__. &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">_Unit_is_done</span><span class="p">:</span>
             <span class="c1"># Abstract Unit class</span>
@@ -309,7 +309,7 @@
 <span class="sd">        </span>
 <span class="sd">        :doc:`Using -pipe- notation`</span>
 <span class="sd">        </span>
-<span class="sd">        :doc:`Subclassing a Unit`</span>
+<span class="sd">        :doc:`Inheriting from Unit`</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span> 
     <span class="c1">### Abstract Attributes ###</span>
@@ -320,10 +320,10 @@
     <span class="c1"># [bool] Should be True if it has any associated cost</span>
     <span class="n">_has_cost</span> <span class="o">=</span> <span class="kc">True</span>
     
-    <span class="c1"># [int or None] Expected number of input streams</span>
+    <span class="c1"># [int] Expected number of input streams</span>
     <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">1</span>  
     
-    <span class="c1"># [int or None] Expected number of output streams</span>
+    <span class="c1"># [int] Expected number of output streams</span>
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">2</span>  
     
     <span class="c1"># [Bool] True if outs are proxy streams linked to ins</span>
@@ -353,7 +353,7 @@
     <span class="c1">### Other defaults ###</span>
 
     <span class="c1"># [list] Default ID starting letter and number</span>
-    <span class="n">_default_ID</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">_default_ID</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
     
     <span class="c1"># Default ID</span>
     <span class="n">_ID</span> <span class="o">=</span> <span class="kc">None</span> 
@@ -1012,7 +1012,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
     </div>
   </body>
 </html>

@@ -93,7 +93,7 @@ class CoolingWater(Utility):
     ID = 'Cooling water'
     _attr2show = ('flow', 'grassroots')
     units = {'price': 'USD/m^3',
-             'flow': 'm^3'}
+             'flow': 'm^3/s'}
     _flowbounds = (0.01, 10)
     
     def __init__(self, flow, grassroots=True):

@@ -9,7 +9,7 @@
     <title>openpyxl.workbook.workbook &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="../../../_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../../_static/doctools.js"></script>
@@ -54,14 +54,14 @@
             
   <h1>Source code for openpyxl.workbook.workbook</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span>
-<span class="c1"># Copyright (c) 2010-2017 openpyxl</span>
+<span class="c1"># Copyright (c) 2010-2018 openpyxl</span>
 
 <span class="sd">&quot;&quot;&quot;Workbook is the top-level container for all document information.&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">openpyxl.compat</span> <span class="k">import</span> <span class="n">deprecated</span>
-<span class="kn">from</span> <span class="nn">openpyxl.compat</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">openpyxl.worksheet</span> <span class="k">import</span> <span class="n">Worksheet</span>
 <span class="kn">from</span> <span class="nn">openpyxl.worksheet.read_only</span> <span class="k">import</span> <span class="n">ReadOnlyWorksheet</span>
+<span class="kn">from</span> <span class="nn">openpyxl.worksheet.write_only</span> <span class="k">import</span> <span class="n">WriteOnlyWorksheet</span>
 <span class="kn">from</span> <span class="nn">openpyxl.worksheet.copier</span> <span class="k">import</span> <span class="n">WorksheetCopy</span>
 
 <span class="kn">from</span> <span class="nn">openpyxl.utils</span> <span class="k">import</span> <span class="n">quote_sheetname</span>
@@ -69,8 +69,7 @@
 <span class="kn">from</span> <span class="nn">openpyxl.utils.datetime</span>  <span class="k">import</span> <span class="n">CALENDAR_WINDOWS_1900</span>
 <span class="kn">from</span> <span class="nn">openpyxl.utils.exceptions</span> <span class="k">import</span> <span class="n">ReadOnlyWorkbookException</span>
 
-<span class="kn">from</span> <span class="nn">openpyxl.writer.write_only</span> <span class="k">import</span> <span class="n">WriteOnlyWorksheet</span><span class="p">,</span> <span class="n">save_dump</span>
-<span class="kn">from</span> <span class="nn">openpyxl.writer.excel</span> <span class="k">import</span> <span class="n">save_workbook</span>
+<span class="kn">from</span> <span class="nn">openpyxl.writer.excel</span> <span class="k">import</span> <span class="n">save_workbook</span><span class="p">,</span> <span class="n">save_dump</span>
 
 <span class="kn">from</span> <span class="nn">openpyxl.styles.cell_style</span> <span class="k">import</span> <span class="n">StyleArray</span>
 <span class="kn">from</span> <span class="nn">openpyxl.styles.named_styles</span> <span class="k">import</span> <span class="n">NamedStyle</span>
@@ -89,6 +88,9 @@
 <span class="kn">from</span> <span class="nn">openpyxl.packaging.core</span> <span class="k">import</span> <span class="n">DocumentProperties</span>
 <span class="kn">from</span> <span class="nn">openpyxl.packaging.relationship</span> <span class="k">import</span> <span class="n">RelationshipList</span>
 <span class="kn">from</span> <span class="nn">.protection</span> <span class="k">import</span> <span class="n">DocumentSecurity</span>
+<span class="kn">from</span> <span class="nn">.properties</span> <span class="k">import</span> <span class="n">CalcProperties</span>
+<span class="kn">from</span> <span class="nn">.views</span> <span class="k">import</span> <span class="n">BookView</span>
+
 
 <span class="kn">from</span> <span class="nn">openpyxl.xml.constants</span> <span class="k">import</span> <span class="p">(</span>
     <span class="n">XLSM</span><span class="p">,</span>
@@ -109,8 +111,10 @@
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">write_only</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="n">iso_dates</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                  <span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sheets</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pivots</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_active_sheet_index</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">defined_names</span> <span class="o">=</span> <span class="n">DefinedNameList</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_external_links</span> <span class="o">=</span> <span class="p">[]</span>
@@ -128,11 +132,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">code_name</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">excel_base_date</span> <span class="o">=</span> <span class="n">CALENDAR_WINDOWS_1900</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">encoding</span> <span class="o">=</span> <span class="s2">&quot;utf-8&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">iso_dates</span> <span class="o">=</span> <span class="n">iso_dates</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">write_only</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_sheets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Worksheet</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">rels</span> <span class="o">=</span> <span class="n">RelationshipList</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">calculation</span> <span class="o">=</span> <span class="n">CalcProperties</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">views</span> <span class="o">=</span> <span class="p">[</span><span class="n">BookView</span><span class="p">()]</span>
 
 
     <span class="k">def</span> <span class="nf">_setup_styles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -185,7 +192,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">active</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get the currently active sheet or None</span>
-<span class="sd">        </span>
+
 <span class="sd">        :type: :class:`openpyxl.worksheet.worksheet.Worksheet`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
@@ -289,7 +296,7 @@
 <span class="sd">        :type name: string</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">sheet</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">worksheets</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">sheet</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">worksheets</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">chartsheets</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">sheet</span><span class="o">.</span><span class="n">title</span> <span class="o">==</span> <span class="n">key</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">sheet</span>
         <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;Worksheet </span><span class="si">{0}</span><span class="s2"> does not exist.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
@@ -309,7 +316,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">worksheets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;A list of sheets in this workbook</span>
-<span class="sd">        </span>
+
 <span class="sd">        :type: list of :class:`openpyxl.worksheet.worksheet.Worksheet`</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sheets</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="p">(</span><span class="n">Worksheet</span><span class="p">,</span> <span class="n">ReadOnlyWorksheet</span><span class="p">,</span> <span class="n">WriteOnlyWorksheet</span><span class="p">))]</span>
@@ -471,7 +478,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
     </div>
   </body>
 </html>

@@ -1,0 +1,586 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Inheriting from Unit &#8212; BioSTEAM 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Compound" href="Compound.html" />
+    <link rel="prev" title="Using -pipe- notation" href="Using -pipe- notation.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Compound.html" title="Compound"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="Using -pipe- notation.html" title="Using -pipe- notation"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Inheriting from Unit</a><ul>
+<li><a class="reference internal" href="#Create-a-Boiler-class-which-boils-off-a-stream-according-to-given-vapor-fraction:">Create a Boiler class which boils off a stream according to given vapor fraction:</a></li>
+<li><a class="reference internal" href="#Test-Boiler-with-a-stream-of-water:">Test Boiler with a stream of water:</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="Using -pipe- notation.html"
+                        title="previous chapter">Using -pipe- notation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="Compound.html"
+                        title="next chapter">Compound</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/Inheriting from Unit.ipynb.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput,
+div.nbinput div.prompt,
+div.nbinput div.input_area,
+div.nbinput div[class*=highlight],
+div.nbinput div[class*=highlight] pre,
+div.nboutput,
+div.nbinput div.prompt,
+div.nbinput div.output_area,
+div.nboutput div[class*=highlight],
+div.nboutput div[class*=highlight] pre {
+    background: none;
+    border: none;
+    padding: 0 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+/* avoid gaps between output lines */
+div.nboutput div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput,
+div.nboutput {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput,
+    div.nboutput {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput div.prompt pre {
+    color: #303F9F;
+}
+
+/* output prompt */
+div.nboutput div.prompt pre {
+    color: #D84315;
+}
+
+/* all prompts */
+div.nbinput div.prompt,
+div.nboutput div.prompt {
+    min-width: 9ex;
+    padding-top: 0.4em;
+    padding-right: 0.4em;
+    text-align: right;
+    flex: 0;
+}
+@media (max-width: 540px) {
+    div.nbinput div.prompt,
+    div.nboutput div.prompt {
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput div.prompt.empty {
+        padding: 0;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput div.prompt pre,
+div.nboutput div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput div.input_area,
+div.nboutput div.output_area {
+    padding: 0.4em;
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput div.input_area,
+    div.nboutput div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput div.input_area {
+    border: 1px solid #cfcfcf;
+    border-radius: 2px;
+    background: #f7f7f7;
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.pngmath center alignment in output cells */
+div.nboutput div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+</style>
+<div class="section" id="Inheriting-from-Unit">
+<h1>Inheriting from Unit<a class="headerlink" href="#Inheriting-from-Unit" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="Create-a-Boiler-class-which-boils-off-a-stream-according-to-given-vapor-fraction:">
+<h2>Create a Boiler class which boils off a stream according to given vapor fraction:<a class="headerlink" href="#Create-a-Boiler-class-which-boils-off-a-stream-according-to-given-vapor-fraction:" title="Permalink to this headline">¶</a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bs</span>
+<span class="k">class</span> <span class="nc">Boiler</span><span class="p">(</span><span class="n">bs</span><span class="o">.</span><span class="n">Unit</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a Boiler object that partially boils feed.</span>
+
+<span class="sd">    Parameters</span>
+
+<span class="sd">        V: Vapor fraction</span>
+
+<span class="sd">        P: Operating pressure (Pascal)</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># [dict] Key word arguments for the __init__ method</span>
+    <span class="c1">#        The __init__ method will store these in a new dictionary</span>
+    <span class="c1">#        as an instance attribue `_kwargs` (same name)</span>
+    <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;V&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+               <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="mi">101325</span><span class="p">}</span>
+
+    <span class="c1"># [int] Expected number of input streams</span>
+    <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1"># [int] Expected number of output streams</span>
+    <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">2</span>
+
+    <span class="c1"># [int] Number of heat utilities.</span>
+    <span class="c1">#       these will be created with the unit and stored in `_heat_utilities` list</span>
+    <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1"># [bool] If True, a PowerUtility object is created for every instance.</span>
+    <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1"># [dict] Units for _results &#39;Design&#39; items</span>
+    <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Area&#39;</span><span class="p">:</span> <span class="s1">&#39;m^2&#39;</span><span class="p">}</span>
+
+    <span class="c1"># [dict] Values should be array-like with lower and upper bounds for results dictionary.</span>
+    <span class="n">_bounds</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Area&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">9.29</span><span class="p">,</span> <span class="mf">743.224</span><span class="p">)}</span>
+
+    <span class="c1"># [Bool] If True, `outs` will become proxy streams linked to ins.</span>
+    <span class="c1">#        Only use this if `outs` streams will have same specifications</span>
+    <span class="c1">#        (mol, T, P, and phase) as `ins` streams.</span>
+    <span class="n">_has_proxystream</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="c1"># The _init method is called at the end of the __init__ function</span>
+    <span class="c1"># to initialize any additional objects related to the unit</span>
+    <span class="k">def</span> <span class="nf">_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">gas</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+
+        <span class="c1"># Initialize top stream as a gas</span>
+        <span class="n">gas</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span>
+
+        <span class="c1"># Initialize bottom stream as a liquid</span>
+        <span class="n">liq</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
+
+        <span class="c1"># Initialize MixedStream object to perform vapor-liquid equilibrium later</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mixedstream</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">MixedStream</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">)</span>
+        <span class="c1"># NOTE: Use &#39;*&#39; as ID to denote hidden object and prevent it from appearing in `find`</span>
+
+    <span class="c1"># The _setup method is called before simulation</span>
+    <span class="c1"># to cache any values before simulation and check kwargs</span>
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="s1">&#39;V&#39;</span><span class="p">]</span> <span class="c1"># Key word arguments from __init__ are stored here</span>
+        <span class="k">if</span> <span class="n">V</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">V</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Vapor fraction must be between 0 and 1, not </span><span class="si">{V}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="c1"># The _run method is called during Unit simulation and/or System convergece</span>
+    <span class="c1"># and should only perform the necessary calculations for heat and mass balance</span>
+    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">gas</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+        <span class="n">ms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mixedstream</span>
+        <span class="n">ms</span><span class="o">.</span><span class="n">liquid_mol</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span>
+        <span class="n">ms</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">)</span>
+        <span class="n">gas</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">vapor_mol</span>
+        <span class="n">liq</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">liquid_mol</span>
+        <span class="n">ms</span><span class="o">.</span><span class="n">vapor_mol</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># Resent vapor flow to prevent accumulation in multiple simulations</span>
+        <span class="n">gas</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">gas</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">P</span>
+
+    <span class="c1"># The _cost method is called after _run and/or System convergence</span>
+    <span class="c1"># and should only find design and cost requirements for the unit.</span>
+    <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Design and cost requirements are stored in the _results &#39;Design&#39; and &#39;Cost&#39; dictionaries</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
+        <span class="n">Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
+
+        <span class="c1"># Calculate heat utility requirement (please read docs for HeatUtility objects)</span>
+        <span class="n">T_operation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mixedstream</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">hu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">duty</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">H</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">H</span>
+        <span class="k">if</span> <span class="n">duty</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;{repr(self)} is cooling.&#39;</span><span class="p">)</span>
+        <span class="n">hu</span><span class="p">(</span><span class="n">duty</span><span class="p">,</span> <span class="n">T_operation</span><span class="p">)</span>
+
+        <span class="c1"># Temperature of utility at entrance</span>
+        <span class="n">T_utility</span> <span class="o">=</span> <span class="n">hu</span><span class="o">.</span><span class="n">_fresh</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="c1"># Temeperature gradient</span>
+        <span class="n">dT</span> <span class="o">=</span> <span class="n">T_utility</span> <span class="o">-</span> <span class="n">T_operation</span>
+
+        <span class="c1"># Heat transfer coefficient kJ/(hr*m2*K)</span>
+        <span class="n">U</span> <span class="o">=</span> <span class="mf">8176.699</span>
+
+        <span class="c1"># Area requirement (m^2)</span>
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Area&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">A</span> <span class="o">=</span> <span class="n">duty</span><span class="o">/</span><span class="p">(</span><span class="n">U</span><span class="o">*</span><span class="n">dT</span><span class="p">)</span>
+
+        <span class="c1"># Will return a warning if area too big or small.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_checkbounds</span><span class="p">(</span><span class="s1">&#39;Area&#39;</span><span class="p">,</span> <span class="n">A</span><span class="p">)</span>
+
+        <span class="c1"># Long-tube vertical boiler cost correlation from</span>
+        <span class="c1"># &quot;Product process and design&quot;. Warren et. al. (2016) Table 22.32, pg 592</span>
+        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Boiler&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CEPCI</span><span class="o">*</span><span class="mf">3.086</span><span class="o">*</span><span class="n">A</span><span class="o">**</span><span class="mf">0.55</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Test-Boiler-with-a-stream-of-water:">
+<h2>Test Boiler with a stream of water:<a class="headerlink" href="#Test-Boiler-with-a-stream-of-water:" title="Permalink to this headline">¶</a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">bs</span><span class="o">.</span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="n">water</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;water&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+<span class="n">B1</span> <span class="o">=</span> <span class="n">Boiler</span><span class="p">(</span><span class="s1">&#39;B1&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">water</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;gas&#39;</span><span class="p">,</span> <span class="s1">&#39;liq&#39;</span><span class="p">),</span> <span class="n">V</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="n">B1</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
+<span class="n">B1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Inheriting_from_Unit_4_0.png" src="_images/Inheriting_from_Unit_4_0.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Boiler: B1
+<span class="ansi-white-fg">ins...</span>
+[0] water
+    phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
+    flow (kmol/hr): Water  300
+<span class="ansi-white-fg">outs...</span>
+[0] gas
+    phase: &#39;g&#39;, T: 298.15 K, P: 101325 Pa
+    flow: 0
+[1] liq
+    phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
+    flow: 0
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">B1</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+<span class="n">B1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Boiler: B1
+<span class="ansi-white-fg">ins...</span>
+[0] water
+    phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
+    flow (kmol/hr): Water  300
+<span class="ansi-white-fg">outs...</span>
+[0] gas
+    phase: &#39;g&#39;, T: 373.16 K, P: 101325 Pa
+    flow (kmol/hr): Water  150
+[1] liq
+    phase: &#39;l&#39;, T: 373.16 K, P: 101325 Pa
+    flow (kmol/hr): Water  150
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">B1</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[4]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Boiler</th>
+      <th>Units</th>
+      <th>B1</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="3" valign="top">Low pressure steam</th>
+      <th>Duty</th>
+      <td>kJ/hr</td>
+      <td>8.69e+06</td>
+    </tr>
+    <tr>
+      <th>Flow</th>
+      <td>kg/hr</td>
+      <td>222</td>
+    </tr>
+    <tr>
+      <th>Cost</th>
+      <td>USD/hr</td>
+      <td>52.7</td>
+    </tr>
+    <tr>
+      <th>Design</th>
+      <th>Area</th>
+      <td>m^2</td>
+      <td>24.9</td>
+    </tr>
+    <tr>
+      <th>Cost</th>
+      <th>Boiler</th>
+      <td>USD</td>
+      <td>1.03e+04</td>
+    </tr>
+    <tr>
+      <th>Purchase cost</th>
+      <th></th>
+      <td>USD</td>
+      <td>1.03e+04</td>
+    </tr>
+    <tr>
+      <th>Utility cost</th>
+      <th></th>
+      <td>USD/hr</td>
+      <td>52.7</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>Note that key word arguments from <code class="docutils literal notranslate"><span class="pre">_kwargs</span></code> are automatically added to
+<code class="docutils literal notranslate"><span class="pre">__init__</span></code> method uppon class creation:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">inspect</span> <span class="k">import</span> <span class="n">signature</span>
+<span class="n">signature</span><span class="p">(</span><span class="n">Boiler</span><span class="o">.</span><span class="fm">__init__</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[5]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>&lt;Signature (self, ID=&#39;&#39;, outs=(), ins=None, V=None, P=None)&gt;
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Compound.html" title="Compound"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="Using -pipe- notation.html" title="Using -pipe- notation"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>

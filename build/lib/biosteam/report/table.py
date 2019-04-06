@@ -7,6 +7,7 @@ Created on Sat Nov 17 09:48:34 2018
 from ..stream import Stream, mol_flow_dim, mass_flow_dim, vol_flow_dim
 from .. import Q_, pd, np
 from ..exceptions import DimensionError
+import os
 
 DataFrame = pd.DataFrame
 ExcelWriter = pd.ExcelWriter
@@ -14,27 +15,12 @@ ExcelWriter = pd.ExcelWriter
 __all__ = ('stream_table', 'cost_table', 'save_system_results',
            'results_table', 'heat_utilities_table', 'power_utilities_table')
 
-def _nested_keys(dct, keys, inst, dict_):
-    for k, v in dct.items():
-        if inst(k, dict_): _nested_keys(v, keys, inst, dict_)
-        else: keys.append(k)
+def _stream_key(s):
+    num = s.ID[1:]
+    if num.isnumeric(): return int(num)
+    else: return -1
 
 # %% Helpful functions
-
-def _units_wt_cost(units):
-    """Remove units that do not have capital or operating cost."""
-    r = 0
-    units = list(units)
-    for i in range(len(units)):
-        i -= r
-        unit = units[i]
-        Summary = unit.results['Summary']
-        ci = Summary['Purchase cost']
-        co = Summary['Utility cost']
-        if not (ci or co):
-            del units[i]
-            r += 1
-    return units
 
 def _units_sort_by_cost(units):
     """Sort by first grouping units by line and then order groups by maximum capital."""
@@ -43,10 +29,10 @@ def _units_sort_by_cost(units):
     for u in units:
         line_dict[u.line].append(u)
     units = []
-    unit_lines.sort(key=lambda ut: max(u.results['Summary']['Purchase cost'] for u in line_dict[ut]), reverse=True)
+    unit_lines.sort(key=lambda ut: max(u._totalcosts[0] for u in line_dict[ut]), reverse=True)
     for key in unit_lines:
         ulist = line_dict[key]
-        ulist.sort(key=lambda x: x.results['Summary']['Purchase cost'], reverse=True)
+        ulist.sort(key=lambda x: x._totalcosts[0], reverse=True)
         units += ulist
     return units
 
@@ -73,7 +59,10 @@ def save(tables, writer, sheet_name='Sheet1', n_row=1):
 def save_system_results(system, file='report.xlsx', **stream_properties):
     """Save a system table as an xlsx file."""
     writer = ExcelWriter(file)
-    units = system.units
+    units = list(system._costunits)
+    system.diagram('thorough', file='diagram.png')
+    flowsheet = writer.book.add_worksheet('Flowsheet')
+    flowsheet.insert_image('A1', 'diagram.png')
     
     # Cost table
     cost = cost_table(system)
@@ -81,9 +70,16 @@ def save_system_results(system, file='report.xlsx', **stream_properties):
                   index_label=cost.columns.name)
     
     # Stream tables
-    table = stream_table(system.streams, **stream_properties)
-    table.to_excel(writer, 'Stream table', 
-                    index_label=cost.columns.name)
+    # Organize streams by species first
+    streams_by_species = {}
+    for i in system.streams:
+        s = i.species
+        if s in streams_by_species: streams_by_species[s].append(i)
+        else: streams_by_species[s] = [i]
+    streamtables = []
+    for streams in streams_by_species.values():
+        streamtables.append(stream_table(streams, **stream_properties))
+    save(streamtables, writer, 'Stream table')
     
     # Heat utility tables
     heat_utilities = heat_utilities_table(units)
@@ -99,7 +95,7 @@ def save_system_results(system, file='report.xlsx', **stream_properties):
     results = results_table(units)
     save(results, writer, 'Design requirements')
     writer.save()
-    
+    os.remove("diagram.png")
 
 def results_table(units):
     """Return a list of results tables for each unit type.
@@ -113,34 +109,26 @@ def results_table(units):
         **tables:** list[DataFrame]
     
     """
-    units = _units_wt_cost(units)
     units.sort(key=(lambda u: u.line))
     
-    # First table and set keys to compare with
-    r = units[0]._results
-    keys = []
-    inst = isinstance
-    dict_ = dict
-    _nested_keys(r, keys, inst, dict_)
-    table = units[0].results()
-    del units[0]
+    # Organize units by units of measure:
+    organized = {}
+    for u in units:
+        uom = (*u._units.keys(), u.line)
+        if uom in organized: organized[uom].append(u)
+        else: organized[uom] = [u]
     
     # Make a list of tables, keeping all results with same keys in one table
     tables = []
-    for u in units:
-        r = u._results
-        new_keys = []
-        _nested_keys(r, new_keys, inst, dict_)
-        if new_keys == keys:
-            table = pd.concat((table, u.results(with_units=False)), axis=1)
-        else:
-            tables.append(table)
-            table = u.results()
-            keys = new_keys
-    
-    # Add the last table
-    tables.append(table)
-    
+    for units in organized.values():
+        # First table with units of measure
+        u = units[0]
+        table = u.results()
+        for u in units[1:]:
+            table[u.ID] = u.results(with_units=False)
+        table.columns.name = (u.line, '')
+        tables.append(table)
+        table = u.results()
     return tables
     
 def cost_table(system):
@@ -152,25 +140,23 @@ def cost_table(system):
          
     **Returns**
     
-        **unit_table:** [DataFrame] Units as indexes with the following columns
-            * 'Unit Type': Type of unit
-            * 'CI (10^6 USD)': Capital investment
-            * 'UC (10^6 USD/yr)': Annual utility cost
+        **cost_table:** [DataFrame] 
 
     """
-    columns = ('Type',
-              f'Fixed Capital Investment (10^6 USD)',
-              f'Utility Cost (10^6 USD/yr)')
+    columns = ('Unit operation',
+              f'Fixed capital investment (10^6 USD)',
+              f'Utility cost (10^6 USD/yr)')
     units = system.units
-    units = _units_wt_cost(units)
+    units = system._costunits
     units = _units_sort_by_cost(units)
     
     # Initialize data
     try:
-        o = system.tea.options
-    except AttributeError:
-        if not hasattr(system, 'tea'):
+        o = system.TEA.options
+    except AttributeError as AE:
+        if not hasattr(system, 'TEA'):
             raise ValueError('Cannot find TEA object related to system. A TEA object of the system must be created first.')
+        else: raise AE
     lang_factor = o['Lang factor']
     operating_days = o['Operating days']
     N_units = len(units)
@@ -183,10 +169,10 @@ def cost_table(system):
     # Get data
     for i in range(N_units):
         unit = units[i]
-        Summary = unit.results['Summary']
+        ci, co = unit._totalcosts
         types[i] = unit.line
-        C_cap[i] = Summary['Purchase cost'] * lang_factor / 1e6
-        C_op[i] = Summary['Utility cost'] * operating_days * 24  / 1e6
+        C_cap[i] = ci * lang_factor / 1e6
+        C_op[i] = co * operating_days * 24  / 1e6
         IDs.append(unit.ID)
     
     return DataFrame(array, columns=columns, index=IDs)    
@@ -208,57 +194,50 @@ def heat_utilities_table(units):
     source = {}
     heat_utils = []
     for u in units:
-        hus = u.heat_utilities
-        name = u.line + ': ' + u.ID
-        for i in hus: source[i] = name
+        hus = u._heat_utilities
+        if not hus: continue
+        for i in hus: source[i] = u
         heat_utils.extend(hus)
-    heat_utils.sort(key=lambda hu: hu.ID)
+
+    # Organize heatutility by ID
+    heat_utils_dict = {}
+    for i in heat_utils:
+        ID = i.ID
+        if ID in heat_utils_dict: heat_utils_dict[ID].append(i)
+        else: heat_utils_dict[ID] = [i]
     
     # First table and set Type to compare with
     hu = heat_utils[0]
     Type = hu.ID
     
     # Make a list of tables, keeping all results with same Type in one table
-    index = []
-    table = []
     tables = []
-    for hu in heat_utils:
-        Type_new = hu.ID
-        if Type == Type_new:
-            index.append(source[hu])
-            table.append((hu.duty, hu.flow, hu.cost))
-        else:
-            table = DataFrame(table, index=index,
-                               columns=('Duty (kJ/hr)',
-                                        'Flow (kmol/hr)',
-                                        'Cost (USD/hr)'))
-            table.columns.name = Type
-            tables.append(table)
-            index = [source[hu]]
-            table = [(hu.duty, hu.flow, hu.cost)]
-            Type = Type_new
-    
-    # Add the last table
-    table = DataFrame(table, index=index,
-                               columns=('Duty (kJ/hr)', 'Flow (kmol/hr)', 'Cost (USD/hr)'))
-    table.columns.name = Type
-    tables.append(table)
+    for Type, heat_utils in heat_utils_dict.items():
+        data = []; index = []
+        for hu in heat_utils:
+            data.append((source[hu].line, hu.duty, hu.flow, hu.cost))
+            index.append(source[hu].ID)
+        table = DataFrame(data, index=index,
+                          columns=('Unit operation',
+                                   'Duty (kJ/hr)',
+                                   'Flow (kmol/hr)',
+                                   'Cost (USD/hr)'))
+        table.columns.name = Type
+        tables.append(table)
     return tables
     
 
 def power_utilities_table(units):
-    # power_units = units_of_measure.get('power') or 'kW'
-    # cost_units = units_of_measure.get('cost') or 'USD/hr'
-    # power_factor = factor('kW', power_units)
-    # cost_factor =  factor('USD/hr', cost_units)
     # Sort power utilities by unit type
     units = sorted(units, key=(lambda u: type(u).__name__))
-    power_utilities = [u.power_utility for u in units if u.power_utility]
-    array = np.zeros([len(power_utilities), 2])
-    for i, pu in enumerate(power_utilities):
-        array[i] = (pu.power, pu.cost)
-    return DataFrame(array, index=[f'{type(u).__name__}: {u.ID}' for u in units if u.power_utility],
-                     columns=(f'Power (kW)', f'Cost (USD/hr)'))
+    units = [u for u in units if u._power_utility]
+    power_utilities = [u._power_utility for u in units]
+    lenght = len(power_utilities)
+    data = []
+    for i, u, pu in zip(range(lenght), units, power_utilities):
+        data.append((u.line, pu.rate, pu.cost))
+    return DataFrame(data, index=[u.ID for u in units if u._power_utility],
+                     columns=('Unit Operation', 'Rate (kW)', 'Cost (USD/hr)'))
 
 
 # %% Streams
@@ -287,9 +266,7 @@ def stream_table(streams, flow='kg/min', **props) -> 'DataFrame':
         raise DimensionError(f"Dimensions for flow units must be in molar, mass or volumetric flow rates, not '{flow_dim}'.")
     
     # Prepare rows and columns
-    streams.discard(None)
-    ss = [*streams]
-    ss.sort(key=lambda s: s.ID)
+    ss = sorted(streams, key=_stream_key)
     species = ss[0]._IDs
     n = len(ss)
     m = len(species)
@@ -305,8 +282,8 @@ def stream_table(streams, flow='kg/min', **props) -> 'DataFrame':
     fracs = array[p+5:m+p+5, :]
     for j in range(n):
         s = ss[j]
-        sources[j] = str(s.source)
-        sinks[j] = str(s.sink)
+        sources[j] = str(s.source or '-')
+        sinks[j] = str(s.sink or '-')
         IDs[j] = s.ID
         phase = ''
         for i in s.phase:

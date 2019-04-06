@@ -9,15 +9,15 @@
     <title>Using -pipe- notation &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Find unit operations and manage flowsheets" href="Find unit operations and manage flowsheets.html" />
-    <link rel="prev" title="Creating a Unit" href="Creating a Unit.html" /> 
+    <link rel="next" title="Inheriting from Unit" href="Inheriting from Unit.html" />
+    <link rel="prev" title="Find unit operations and manage flowsheets" href="Find unit operations and manage flowsheets.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -29,10 +29,10 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="Find unit operations and manage flowsheets.html" title="Find unit operations and manage flowsheets"
+          <a href="Inheriting from Unit.html" title="Inheriting from Unit"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="Creating a Unit.html" title="Creating a Unit"
+          <a href="Find unit operations and manage flowsheets.html" title="Find unit operations and manage flowsheets"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
       </ul>
@@ -40,11 +40,11 @@
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
-  <p class="topless"><a href="Creating a Unit.html"
-                        title="previous chapter">Creating a Unit</a></p>
-  <h4>Next topic</h4>
   <p class="topless"><a href="Find unit operations and manage flowsheets.html"
-                        title="next chapter">Find unit operations and manage flowsheets</a></p>
+                        title="previous chapter">Find unit operations and manage flowsheets</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="Inheriting from Unit.html"
+                        title="next chapter">Inheriting from Unit</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -261,7 +261,7 @@ the following format:</p>
 </div>
 </div>
 <p>As an example, create 2 feeds, 2 Mixers and 2 Splitters:</p>
-<div class="nbinput nblast docutils container">
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [2]:
 </pre></div>
@@ -275,7 +275,15 @@ the following format:</p>
 <span class="n">feed2</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed2&#39;</span><span class="p">)</span>
 <span class="n">M2</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M2&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="s1">&#39;s3&#39;</span><span class="p">)</span>
 <span class="n">S2</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Splitter</span><span class="p">(</span><span class="s1">&#39;S2&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;recycle&#39;</span><span class="p">,</span> <span class="s1">&#39;product2&#39;</span><span class="p">))</span>
+<span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
 </pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Using_-pipe-_notation_5_0.png" src="_images/Using_-pipe-_notation_5_0.png" />
 </div>
 </div>
 <p>Now connect streams linearly along the units, and create a loop between
@@ -295,28 +303,8 @@ S2 and M1:</p>
 <span class="c1"># S1.ins[:] = M1.outs</span>
 <span class="c1"># M2.ins[:] = (feed2, S1.outs[0])</span>
 <span class="c1"># S2.ins[:] = M2.outs</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[3]:
-</pre></div>
-</div>
-<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>&lt;Splitter: S2&gt;
-</pre></div>
-</div>
-</div>
-<p>Create a system to help view the connections:</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [4]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">system</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">System</span><span class="p">(</span><span class="s1">&#39;system&#39;</span><span class="p">,</span> <span class="n">network</span><span class="o">=</span><span class="p">(</span><span class="n">M1</span><span class="p">,</span> <span class="n">S1</span><span class="p">,</span> <span class="n">M2</span><span class="p">,</span> <span class="n">S2</span><span class="p">))</span>
-<span class="n">system</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
+
+<span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -324,7 +312,8 @@ S2 and M1:</p>
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/Using_-pipe-_notation_9_0.svg" src="_images/Using_-pipe-_notation_9_0.svg" /></div>
+<img alt="_images/Using_-pipe-_notation_7_0.png" src="_images/Using_-pipe-_notation_7_0.png" />
+</div>
 </div>
 </div>
 
@@ -344,17 +333,17 @@ S2 and M1:</p>
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="Find unit operations and manage flowsheets.html" title="Find unit operations and manage flowsheets"
+          <a href="Inheriting from Unit.html" title="Inheriting from Unit"
              >next</a> |</li>
         <li class="right" >
-          <a href="Creating a Unit.html" title="Creating a Unit"
+          <a href="Find unit operations and manage flowsheets.html" title="Find unit operations and manage flowsheets"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
     </div>
   </body>
 </html>

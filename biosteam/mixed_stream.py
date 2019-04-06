@@ -107,7 +107,7 @@ class MixedStream(Stream):
 
     **Examples**
 
-         :doc:`MixedStream Example`
+         :doc:`Thermodynamic equilibrium`
     """
     #: The default phase when flow rates are zero.
     _default_phase = 'l'

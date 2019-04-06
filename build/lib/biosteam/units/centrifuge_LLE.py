@@ -5,8 +5,7 @@ Created on Thu Aug 23 21:23:56 2018
 @author: yoelr
 """
 from biosteam import Unit, MixedStream
-from biosteam.exceptions import DesignError
-from biosteam.units.flash import Flash, RatioFlash, PartitionFlash
+from biosteam.units.flash import RatioFlash, PartitionFlash
 from .splitter import Splitter
 import copy
 

@@ -37,9 +37,11 @@ BioSTEAM objects serve as basic building blocks to design and simulate a biorefi
    :maxdepth: 2
 
    Tutorial
+   Thermodynamic equilibrium
    Creating a Unit
-   Using -pipe- notation
    Find unit operations and manage flowsheets
+   Using -pipe- notation
+   Inheriting from Unit
 
 Base Classes
 ------------

@@ -94,7 +94,7 @@ class metaUnit(type):
     _enforce_bounds = True
     _CEPCI = 567.5 # Chemical engineering plant cost index (567.5 at 2017)
     def __new__(mcl, clsname, superclasses, new_definitions):
-        """Prepare unit methods with wrappers for error notification, and add kwargs as key word arguments to __init__. Also initiallize by adding new Unit class to the main flowsheet line dictionary."""
+        """Prepare unit methods with wrappers for error notification, and add _kwargs as key word arguments to __init__. """
 
         if not _Unit_is_done:
             # Abstract Unit class
@@ -254,7 +254,7 @@ class Unit(metaclass=metaUnit):
         
         :doc:`Using -pipe- notation`
         
-        :doc:`Subclassing a Unit`
+        :doc:`Inheriting from Unit`
     
     """ 
     ### Abstract Attributes ###
@@ -265,10 +265,10 @@ class Unit(metaclass=metaUnit):
     # [bool] Should be True if it has any associated cost
     _has_cost = True
     
-    # [int or None] Expected number of input streams
+    # [int] Expected number of input streams
     _N_ins = 1  
     
-    # [int or None] Expected number of output streams
+    # [int] Expected number of output streams
     _N_outs = 2  
     
     # [Bool] True if outs are proxy streams linked to ins
@@ -298,7 +298,7 @@ class Unit(metaclass=metaUnit):
     ### Other defaults ###
 
     # [list] Default ID starting letter and number
-    _default_ID = ['U', 0]
+    _default_ID = ['U', 1]
     
     # Default ID
     _ID = None 

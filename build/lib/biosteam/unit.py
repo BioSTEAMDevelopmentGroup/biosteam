@@ -7,7 +7,7 @@ Created on Sat Aug 18 14:40:28 2018
 
 import re
 import os
-import IPython
+from IPython import display
 from graphviz import Digraph
 from .exceptions import notify_error
 from .flowsheet import find
@@ -500,9 +500,10 @@ class Unit(metaclass=metaUnit):
                     addval(('kg/hr', i.flow))
                     addval(('USD/hr', i.cost))
             units = self._units
-            Cost = results['Cost']
+            results = self._results.copy()
+            Cost = results.pop('Cost')
+            GHG = results.pop('GHG') if 'GHG' in results else None
             for ko, vo in results.items():
-                if vo is Cost: continue
                 for ki, vi in vo.items():
                     addkey((ko, ki))
                     addval((units.get(ki, ''), vi))
@@ -514,6 +515,21 @@ class Unit(metaclass=metaUnit):
             addval(('USD', capital))
             addkey(('Utility cost', ''))
             addval(('USD/hr', utility))
+            if GHG:
+                for ko, vo in GHG.items():
+                    for ki, vi in vo.items():
+                        addkey((ko, ki))
+                        addval((units.get(ki, ''), vi))
+            if hasattr(self, '_totalGHG'):
+                a, b = self._totalGHG
+                units_dict = self._totalGHG_units
+                a_key, b_key = units_dict.keys()
+                a_unit, b_unit = units_dict.values()
+                addkey((a_key, ''))
+                addval((a_unit, a))
+                addkey((b_key, ''))
+                addval((b_unit, b))
+            
             df = pd.DataFrame(vals,
                               pd.MultiIndex.from_tuples(keys),
                               ('Units', ID))
@@ -534,6 +550,7 @@ class Unit(metaclass=metaUnit):
                     addval(i.duty)
                     addval(i.flow)
                     addval(i.cost)
+            GHG = results.pop('GHG') if 'GHG' in results else None
             for ko, vo in results.items():
                 for ki, vi in vo.items():
                     addkey((ko, ki))
@@ -543,6 +560,18 @@ class Unit(metaclass=metaUnit):
             addval(capital)
             addkey(('Utility cost', ''))
             addval(utility)
+            if GHG:
+                for ko, vo in GHG.items():
+                    for ki, vi in vo.items():
+                        addkey((ko, ki))
+                        addval((units.get(ki, ''), vi))
+            if hasattr(self, '_totalGHG'):
+                a, b = self._totalGHG
+                a_key, b_key = self._totalGHG_units.keys()
+                addkey((a_key, ''))
+                addval(a)
+                addkey((b_key, ''))
+                addval(b)
             series = pd.Series(vals, pd.MultiIndex.from_tuples(keys))
             series.name = ID
             return series
@@ -667,12 +696,16 @@ class Unit(metaclass=metaUnit):
         
         return neighborhood
 
-    def diagram(self, radius=0):
+    def diagram(self, radius=0, file=None):
         """Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of the unit and all neighboring units within given radius.
         
         **Parameters**
         
             **radius:** [int] Maxium number streams between neighbors.
+        
+            **file:** Must be one of the following:
+                * [str] File name to save diagram. If format not included, saves file as svg.
+                * [None] Display diagram in console.
         
         """
         if radius > 0:
@@ -703,7 +736,7 @@ class Unit(metaclass=metaUnit):
         # Set stream node attributes
         f.attr('node', shape='rarrow', fillcolor='#79dae8',
                style='filled', orientation='0', width='0.6',
-               height='0.6', color='black', peripheries='1')
+               height='0.6', color='black')
 
         # Make nodes and edges for input streams
         di = 0  # Destination position of stream
@@ -729,8 +762,7 @@ class Unit(metaclass=metaUnit):
             oi += 1
 
         # Display digraph on console
-        x = IPython.display.SVG(f.pipe(format='svg'))
-        IPython.display.display(x)
+        display.display(display.Image(f.pipe(format='png')))
     
     ### Net input and output flows ###
     

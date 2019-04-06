@@ -9,7 +9,7 @@ import IPython
 from scipy.optimize import newton
 from graphviz import Digraph
 from .exceptions import Stop, SolverError, notify_error
-from .flowsheet import find
+from .flowsheet import find, make_digraph
 from .stream import Stream
 from .unit import Unit
 from . import np
@@ -82,14 +82,6 @@ def notify_run_wrapper(self, func):
     return wrapper
     
 # %% Other
-def _unitnetwork(network):
-    flat = []
-    inst = isinstance
-    for i in network:
-        if i in flat: continue
-        if inst(i, Unit): flat.append(i)
-        elif inst(i, System): flat.extend(i._unitnetwork)
-    return flat
 
 class _systemUnit(Unit):
     """Dummy unit for displaying a system."""
@@ -138,32 +130,55 @@ class System:
                              'T_error': 0,
                              'spec_error': 0,
                              'iter': 0}
-        
-        #: list[Unit] Network of only unit operations
-        self._unitnetwork = units = _unitnetwork(network)
-        
-        #: list[Unit] All unit operations with linked streams
-        self._linkunits = [u for u in units if u._has_proxystream]
-        
-        #: list[Unit] All units in the network that have costs
-        self._costunits = [i for i in units if i._has_cost]
-        
-        #: set[Unit] All units within the system
-        self.units = set(units)
-        
+         
         #: set[Stream] All streams within the system
         self.streams = streams = set()
 
         #: set[System] All subsystems in the system
-        self.subsystems = set()
-
-        ID = ID.replace(' ', '_')
-        if ID != '*': find.system[ID] = self
-        self._ID = ID
-        self._set_network(network)
-        self.recycle = recycle
-
-        if facilities: self._set_facilities(facilities)
+        self.subsystems = subsystems = set()
+        
+        #: list[Unit] Network of only unit operations
+        self._unitnetwork = units = []
+        inst = isinstance
+        for i in network:
+            if i in units: continue
+            if inst(i, Unit): 
+                units.append(i)
+                streams.update(i._ins)
+                streams.update(i._outs)
+            elif inst(i, System):
+                units.extend(i._unitnetwork)
+                subsystems.add(i)
+                streams.update(i.streams)
+        streams.discard(missing_stream) 
+        
+        #: tuple[Unit, function and/or System] A network that is run element by element until the recycle converges.
+        self.network = (*network,)
+        
+        #: list[Unit] All unit operations with linked streams
+        self._linkunits = [u for u in units if u._has_proxystream]
+        
+        #: set[Unit] All units within the system
+        self.units = units = set(units)
+        
+        #: set[Unit] All units in the network that have costs
+        self._network_costunits = costunits = {i for i in units if i._has_cost}
+        
+        #: set[Unit] All units that have costs.
+        self._costunits = costunits = costunits.copy()
+        if facilities:
+            for i in facilities:
+                if inst(i, Unit):
+                    units.add(i)
+                    streams.update(i._ins + i._outs)
+                    if i._has_cost: costunits.add(i)
+                elif inst(i, System):
+                    units.update(i.units)
+                    streams.update(i.auxiliary_streams)
+                    subsystems.add(i)
+                    costunits.update(i._costunits)
+            #: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the network simulation.
+            self.facilities = tuple(facilities)
         else: self.facilities = ()
         
         #: set[Stream] All feed streams in the system.
@@ -171,47 +186,14 @@ class System:
         
         #: set[Stream] All product streams in the system.
         self.products = set(filter(lambda s: s._source and not s._sink, streams)) 
-    
-    def _set_network(self, network):
-        """Set network and cache units, streams, subsystems, feeds and products."""
-        # Sort network into surface_units and systems
-        streams = self.streams
-        subsystems = self.subsystems
-        inst = isinstance
-        for i in network:
-            if inst(i, Unit):
-                streams.update(i._ins)
-                streams.update(i._outs)
-            elif inst(i, System):
-                subsystems.add(i)
-                streams.update(i.streams)
-            elif not inst(i, function):
-                raise ValueError(f"Only Unit, System, and function objects are valid network elements, not '{type(i).__name__}'")
-        streams.discard(missing_stream)        
         
-        #: tuple[Unit, function and/or System] A network that is run element by element until the recycle converges.
-        self.network = (*network,)
+        #: [TEA] System object for Techno-Economic Analysis.
+        self._TEA = None
         
-    
-    def _set_facilities(self, facilities):
-        """Set facilities and cache offsite units, streams, subsystems, feeds and products."""
-        units = self.units
-        streams = self.streams
-        subsystems = self.subsystems
-        inst = isinstance
-        for i in facilities:
-            if inst(i, Unit):
-                units.add(i)
-                streams.update(i._ins + i._outs)
-            elif inst(i, System):
-                units.update(i.units)
-                streams.update(i.auxiliary_streams)
-                subsystems.add(i)
-            elif not inst(i, function):
-                raise ValueError(f"Only Unit, System, and function objects are valid auxiliary elements, not '{type(i).__name__}'")
-        
-        #: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the network simulation.
-        self.facilities = tuple(facilities)
+        ID = ID.replace(' ', '_')
+        if ID != '*': find.system[ID] = self
+        self._ID = ID
+        self.recycle = recycle
     
     @property
     def ID(self):
@@ -226,6 +208,11 @@ class System:
                 del find.system[self._ID]
             self._ID = ID
             find.system[ID] = self
+    
+    @property
+    def TEA(self):
+        """[TEA] System object for Techno-Economic Analysis."""
+        return self._TEA
     
     @property
     def recycle(self):
@@ -311,7 +298,7 @@ class System:
         cached[unit] = system
         return system
     
-    def _minimal_diagram(self):
+    def _minimal_diagram(self, file):
         """Minimally display the network as a box."""
         outs = []
         ins = []
@@ -324,13 +311,13 @@ class System:
                 ins.append(s)
         subsystem_unit = _systemUnit(self.ID, outs, ins)
         subsystem_unit.line = 'System'
-        subsystem_unit.diagram()
+        subsystem_unit.diagram(file)
         # Reconnect how it was
         for u in self.units:
             u.ins = u._ins
             u.outs = u._outs
 
-    def _surface_diagram(self):
+    def _surface_diagram(self, file):
         """Display only surface elements listed in the network."""
         # Get surface items to make nodes and edges
         units = set()
@@ -355,110 +342,31 @@ class System:
                 subsystem_unit = _systemUnit(i.ID, outs, ins)
                 subsystem_unit._ID = i.ID
                 units.add(subsystem_unit)
-        System('*', units)._thorough_diagram()
+        System('*', units)._thorough_diagram(file)
         # Reconnect how it was
         for u in self.units:
             u.ins = u._ins
             u.outs = u._outs
       
-    def _thorough_diagram(self):
+    def _thorough_diagram(self, file=None):
         """Thoroughly display every unit within the network."""
         # Create a digraph and set direction left to right
-        f = Digraph(format='svg')
-        f.attr(rankdir='LR')
-
-        # Set up unit nodes
-        U = {}  # Contains units by ID
-        UD = {}  # Contains full description (ID and line) by ID
-        for unit in self.units:
-            graphics = unit._graphics
-            if unit.ID == '' or not graphics.in_system:
-                continue  # Ignore Unit
-            
-            # Initialize graphics and make Unit node with attributes
-            unit._graphics.node_function(unit)
-            Type = graphics.name if graphics.name else unit.line
-            name = unit.ID + '\n' + Type
-            f.attr('node', **unit._graphics.node)
-            f.node(name)
-            U[unit.ID] = unit
-            UD[unit.ID] = name
-            
-        keys = UD.keys()
-
-        # Set attributes for graph and streams
-        f.attr('node', shape='rarrow', fillcolor='#79dae8', orientation='0',
-               style='filled', peripheries='1', color='black')
-        f.attr('graph', splines='normal', overlap='orthoyx',
-               outputorder='edgesfirst', nodesep='0.15', maxiter='10000')
-        f.attr('edge', dir='foward')
-
-        connections = set()
-        for s in self.streams:
-            if s.ID == '' or s.ID == 'Missing Stream':
-                continue  # Ignore stream
-            
-            oU = s._source
-            if oU:
-                try: oi = oU._outs.index(s) 
-                except:
-                    unit_connection = (oU, s)
-                    if unit_connection not in connections:
-                        oi = oU._outs.index(s._upstream_connection) # The stream says it's source is that unit, but it really means that the unit is the source of the connection stream
-                        connections.add(unit_connection)
-                oU = oU._ID
-                    
+        f = make_digraph(self.units, self.streams)
+        if not file:
+            x = IPython.display.SVG(f.pipe(format='svg'))
+            IPython.display.display(x)
+        else:
+            if '.' not in file:
+                file += '.svg'
+                format_ = 'svg'
             else:
-                oi = None
-            dU = s._sink
-            if dU:
-                try:
-                    di = dU._ins.index(s)
-                    dU = dU._ID
-                except: # The stream is the upstream connection stream
-                    unit_connection = (dU, s)
-                    if unit_connection not in connections:
-                        di = dU._ins.index(s._downstream_connection) # The stream says it's source is that unit, but it really means that the unit is the source of the connection stream
-                        connections.add(unit_connection)
-            else:
-                di = None
-
-            # Make stream nodes / unit-stream edges / unit-unit edges
-            if oU not in keys and dU not in keys:
-                # Stream is not attached to anything
-                continue
-            elif oU not in keys:
-                # Feed stream case
-                f.attr('node', shape='rarrow', fillcolor='#79dae8',
-                       style='filled', orientation='0', width='0.6',
-                       height='0.6', color='black')
-                f.node(s.ID)
-                edge_in = U[dU]._graphics.edge_in
-                f.attr('edge', arrowtail='none', arrowhead='none',
-                       tailport='e', **edge_in[di])
-                f.edge(s.ID, UD[dU])
-            elif dU not in keys:
-                # Product stream case
-                f.attr('node', shape='rarrow', fillcolor='#79dae8',
-                       style='filled', orientation='0', width='0.6',
-                       height='0.6', color='black')
-                f.node(s.ID)
-                edge_out = U[oU]._graphics.edge_out
-                f.attr('edge', arrowtail='none', arrowhead='none',
-                       headport='w', **edge_out[oi])
-                f.edge(UD[oU], s.ID)
-            else:
-                # Process stream case
-                edge_in = U[dU]._graphics.edge_in
-                edge_out = U[oU]._graphics.edge_out
-                f.attr('edge', arrowtail='none', arrowhead='normal',
-                       **edge_in[di], **edge_out[oi])
-                f.edge(UD[oU], UD[dU], label=s.ID)
-
-        x = IPython.display.SVG(f.pipe(format='svg'))
-        IPython.display.display(x)
+                format_ = file[file.find('.')+1:]
+            img = f.pipe(format=format_)
+            f = open(file, 'wb')
+            f.write(img)
+            f.close()
         
-    def diagram(self, kind='surface'):
+    def diagram(self, kind='surface', file=None):
         """Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of the system.
         
         **Parameters**
@@ -468,13 +376,17 @@ class System:
                 * **'surface':** Display only surface elements listed in the network
                 * **'minimal':** Minimally display the network as a box
         
+            **file:** Must be one of the following:
+                * [str] File name to save diagram. If format not included, saves file as svg.
+                * [None] Display diagram in console.
+        
         """
         if kind == 'thorough':
-            return self._thorough_diagram()
+            return self._thorough_diagram(file)
         elif kind == 'surface':
-            return self._surface_diagram()
+            return self._surface_diagram(file)
         elif kind == 'minimal':
-            return self._minimal_diagram()
+            return self._minimal_diagram(file)
         else:
             raise ValueError(f"kind must be either 'thorough', 'surface', or 'minimal'.")
             
@@ -486,7 +398,7 @@ class System:
         for a in self.network:
             if inst(a, Unit): a._run()
             elif inst(a, System): a._converge()
-            elif inst(a, function): a()
+            else: a() # Assume it is a function
         self._solver_error['iter'] += 1
     
     # Methods for convering the recycle stream
@@ -653,11 +565,11 @@ class System:
         for u in self._linkunits: u._link_streams()
         self._reset_iter()
         self._converge()
-        for u in self._costunits: u._summary()
+        for u in self._network_costunits: u._summary()
         inst = isinstance
         for i in self.facilities:
-            if inst(i, function): i()
-            else: i.simulate()
+            if inst(i, (Unit, System)): i.simulate()
+            else: i() # Assume it is a function
         
     # Debugging
     def _debug_on(self):

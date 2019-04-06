@@ -127,9 +127,9 @@ class System:
     def __init__(self, ID, network, recycle=None, facilities=None):
         #: [dict] Current molar flow and temperature errors and number of iterations made
         self._solver_error = {'mol_error': 0,
-                             'T_error': 0,
-                             'spec_error': 0,
-                             'iter': 0}
+                              'T_error': 0,
+                              'spec_error': 0,
+                              'iter': 0}
          
         #: set[Stream] All streams within the system
         self.streams = streams = set()
@@ -270,8 +270,7 @@ class System:
                 if unit is i:
                     unit_found = True
                     network.append(unit)
-                elif inst(i, System):
-                    if unit in i.units:
+                elif inst(i, System) and unit in i.units:
                         unit_found = True   
                         network.append(i)
         return network

@@ -6,16 +6,18 @@
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>MixedStream &#8212; BioSTEAM 0.1 documentation</title>
+    <title>Thermodynamic equilibrium &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Creating a Unit" href="Creating a Unit.html" />
+    <link rel="prev" title="Tutorial" href="Tutorial.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -26,6 +28,12 @@
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
+        <li class="right" >
+          <a href="Creating a Unit.html" title="Creating a Unit"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="Tutorial.html" title="Tutorial"
+             accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
       </ul>
     </div>
@@ -33,23 +41,28 @@
         <div class="sphinxsidebarwrapper">
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">MixedStream</a><ul>
-<li><a class="reference internal" href="#Multi-phase-streams-with-liquid-LIQUID,-and-vapor-liquid-equilibrium.">Multi-phase streams with liquid-LIQUID, and vapor-liquid equilibrium.</a></li>
+<li><a class="reference internal" href="#">Thermodynamic equilibrium</a><ul>
 <li><a class="reference internal" href="#Creating-MixedStream-Objects">Creating MixedStream Objects</a></li>
-<li><a class="reference internal" href="#Getting-and-Setting-Flow-Rates">Getting and Setting Flow Rates</a></li>
-<li><a class="reference internal" href="#Single-Phase-Flow-Properties:">Single Phase Flow Properties:</a></li>
-<li><a class="reference internal" href="#Overall-Flow-Properties:">Overall Flow Properties:</a></li>
-<li><a class="reference internal" href="#Material-and-Thermodynamic-Properties">Material and Thermodynamic Properties</a></li>
-<li><a class="reference internal" href="#Vapor-Liquid-Equilibrium">Vapor-Liquid Equilibrium</a></li>
-<li><a class="reference internal" href="#Liquid-LIQUID-Equilibrium">Liquid-LIQUID Equilibrium</a></li>
+<li><a class="reference internal" href="#Getting-and-setting-flow-rates">Getting and setting flow rates</a></li>
+<li><a class="reference internal" href="#Single-phase-flow-properties:">Single phase flow properties:</a></li>
+<li><a class="reference internal" href="#Overall-flow-properties:">Overall flow properties:</a></li>
+<li><a class="reference internal" href="#Material-and-thermodynamic-properties">Material and thermodynamic properties</a></li>
+<li><a class="reference internal" href="#Vapor-liquid-equilibrium">Vapor-liquid equilibrium</a></li>
+<li><a class="reference internal" href="#Liquid-liquid-equilibrium">Liquid-liquid equilibrium</a></li>
 </ul>
 </li>
 </ul>
 
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="Tutorial.html"
+                        title="previous chapter">Tutorial</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="Creating a Unit.html"
+                        title="next chapter">Creating a Unit</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
-      <li><a href="_sources/MixedStream Example.ipynb.txt"
+      <li><a href="_sources/Thermodynamic equilibrium.ipynb.txt"
             rel="nofollow">Show Source</a></li>
     </ul>
    </div>
@@ -239,14 +252,11 @@ div.nboutput div.output_area.stderr {
 .ansi-bold { font-weight: bold; }
 .ansi-underline { text-decoration: underline; }
 </style>
-<div class="section" id="MixedStream">
-<h1>MixedStream<a class="headerlink" href="#MixedStream" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="Multi-phase-streams-with-liquid-LIQUID,-and-vapor-liquid-equilibrium.">
-<h2>Multi-phase streams with liquid-LIQUID, and vapor-liquid equilibrium.<a class="headerlink" href="#Multi-phase-streams-with-liquid-LIQUID,-and-vapor-liquid-equilibrium." title="Permalink to this headline">¶</a></h2>
+<div class="section" id="Thermodynamic-equilibrium">
+<h1>Thermodynamic equilibrium<a class="headerlink" href="#Thermodynamic-equilibrium" title="Permalink to this headline">¶</a></h1>
 <p>MixedStream is an extention of Stream with ‘s’ (solid), ‘l’ (liquid),
 ‘L’ (LIQUID), and ‘g’ (gas) flow rates. The upper case ‘LIQUID’ denotes
-that it is a distinct phase than ‘liquid’.</p>
-</div>
+that it is a distinct phase from ‘liquid’.</p>
 <div class="section" id="Creating-MixedStream-Objects">
 <h2>Creating MixedStream Objects<a class="headerlink" href="#Creating-MixedStream-Objects" title="Permalink to this headline">¶</a></h2>
 <p>Before initializing MixedStream objects, first set the species:</p>
@@ -311,8 +321,8 @@ MixedStream: ms1
 </pre></div></div>
 </div>
 </div>
-<div class="section" id="Getting-and-Setting-Flow-Rates">
-<h2>Getting and Setting Flow Rates<a class="headerlink" href="#Getting-and-Setting-Flow-Rates" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="Getting-and-setting-flow-rates">
+<h2>Getting and setting flow rates<a class="headerlink" href="#Getting-and-setting-flow-rates" title="Permalink to this headline">¶</a></h2>
 <p>Flow rates are stored in solid_mol, liquid_mol, LIQUID_mol, and
 vapor_mol arrays:</p>
 <div class="nbinput docutils container">
@@ -521,8 +531,8 @@ MixedStream: ms1
 </pre></div></div>
 </div>
 </div>
-<div class="section" id="Single-Phase-Flow-Properties:">
-<h2>Single Phase Flow Properties:<a class="headerlink" href="#Single-Phase-Flow-Properties:" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="Single-phase-flow-properties:">
+<h2>Single phase flow properties:<a class="headerlink" href="#Single-phase-flow-properties:" title="Permalink to this headline">¶</a></h2>
 <p>Add ‘net’ to get the net flow rate</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
@@ -647,8 +657,8 @@ MixedStream: ms1
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">Note:</span> <span class="pre">When</span> <span class="pre">a</span> <span class="pre">phase</span> <span class="pre">has</span> <span class="pre">no</span> <span class="pre">flow</span> <span class="pre">rate,</span> <span class="pre">all</span> <span class="pre">specie</span> <span class="pre">fractions</span> <span class="pre">will</span> <span class="pre">be</span> <span class="pre">equal.</span></code></p>
 </div>
-<div class="section" id="Overall-Flow-Properties:">
-<h2>Overall Flow Properties:<a class="headerlink" href="#Overall-Flow-Properties:" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="Overall-flow-properties:">
+<h2>Overall flow properties:<a class="headerlink" href="#Overall-flow-properties:" title="Permalink to this headline">¶</a></h2>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [19]:
@@ -711,8 +721,8 @@ MixedStream: ms1
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">Note:</span> <span class="pre">Overall</span> <span class="pre">flow</span> <span class="pre">rate</span> <span class="pre">properties</span> <span class="pre">'molnet',</span> <span class="pre">'massnet',</span> <span class="pre">'volnet',</span> <span class="pre">'molfrac',</span> <span class="pre">'massfrac',</span> <span class="pre">and</span> <span class="pre">'volfrac'</span> <span class="pre">are</span> <span class="pre">also</span> <span class="pre">available</span></code></p>
 </div>
-<div class="section" id="Material-and-Thermodynamic-Properties">
-<h2>Material and Thermodynamic Properties<a class="headerlink" href="#Material-and-Thermodynamic-Properties" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="Material-and-thermodynamic-properties">
+<h2>Material and thermodynamic properties<a class="headerlink" href="#Material-and-thermodynamic-properties" title="Permalink to this headline">¶</a></h2>
 <p>Access the same properties as Stream objects:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
@@ -771,42 +781,41 @@ MixedStream: ms1
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>{&#39;A&#39;: &#39;kJ/hr&#39;,
- &#39;C&#39;: &#39;kJ/K/hr&#39;,
- &#39;Cp&#39;: &#39;J/g/K&#39;,
- &#39;Cpm&#39;: &#39;J/mol/K&#39;,
- &#39;G&#39;: &#39;kJ/hr&#39;,
- &#39;H&#39;: &#39;kJ/hr&#39;,
- &#39;Hf&#39;: &#39;kJ/hr&#39;,
- &#39;MW&#39;: &#39;g/mol&#39;,
- &#39;P&#39;: &#39;Pa&#39;,
- &#39;S&#39;: &#39;kJ/hr&#39;,
- &#39;T&#39;: &#39;K&#39;,
- &#39;U&#39;: &#39;kJ/hr&#39;,
- &#39;Vm&#39;: &#39;m^3/mol&#39;,
- &#39;alpha&#39;: &#39;m^2/s&#39;,
- &#39;k&#39;: &#39;W/m/K&#39;,
+<span></span>{&#39;MW&#39;: &#39;g/mol&#39;,
  &#39;mass&#39;: &#39;kg/hr&#39;,
- &#39;massfrac&#39;: &#39;kg/kg&#39;,
- &#39;massnet&#39;: &#39;kg/hr&#39;,
  &#39;mol&#39;: &#39;kmol/hr&#39;,
- &#39;molfrac&#39;: &#39;kmol/kmol&#39;,
+ &#39;vol&#39;: &#39;m^3/hr&#39;,
+ &#39;massnet&#39;: &#39;kg/hr&#39;,
  &#39;molnet&#39;: &#39;kmol/hr&#39;,
- &#39;mu&#39;: &#39;Pa*s&#39;,
- &#39;nu&#39;: &#39;m^2/s&#39;,
+ &#39;volnet&#39;: &#39;m^3/hr&#39;,
+ &#39;massfrac&#39;: &#39;kg/kg&#39;,
+ &#39;molfrac&#39;: &#39;kmol/kmol&#39;,
+ &#39;volfrac&#39;: &#39;m^3/m^3&#39;,
+ &#39;T&#39;: &#39;K&#39;,
+ &#39;P&#39;: &#39;Pa&#39;,
+ &#39;H&#39;: &#39;kJ/hr&#39;,
+ &#39;S&#39;: &#39;kJ/hr&#39;,
+ &#39;G&#39;: &#39;kJ/hr&#39;,
+ &#39;U&#39;: &#39;kJ/hr&#39;,
+ &#39;A&#39;: &#39;kJ/hr&#39;,
+ &#39;Hf&#39;: &#39;kJ/hr&#39;,
+ &#39;C&#39;: &#39;kJ/K/hr&#39;,
+ &#39;Vm&#39;: &#39;m^3/mol&#39;,
+ &#39;Cpm&#39;: &#39;J/mol/K&#39;,
+ &#39;Cp&#39;: &#39;J/g/K&#39;,
  &#39;rho&#39;: &#39;kg/m^3&#39;,
  &#39;rhom&#39;: &#39;mol/m^3&#39;,
+ &#39;nu&#39;: &#39;m^2/s&#39;,
+ &#39;mu&#39;: &#39;Pa*s&#39;,
  &#39;sigma&#39;: &#39;N/m&#39;,
- &#39;vol&#39;: &#39;m^3/hr&#39;,
- &#39;volfrac&#39;: &#39;m^3/m^3&#39;,
- &#39;volnet&#39;: &#39;m^3/hr&#39;}
+ &#39;k&#39;: &#39;W/m/K&#39;,
+ &#39;alpha&#39;: &#39;m^2/s&#39;}
 </pre></div>
 </div>
 </div>
 </div>
-<div class="section" id="Vapor-Liquid-Equilibrium">
-<h2>Vapor-Liquid Equilibrium<a class="headerlink" href="#Vapor-Liquid-Equilibrium" title="Permalink to this headline">¶</a></h2>
-<p>MixedStream objects can be used to calculate vapor-liquid equilibrium.</p>
+<div class="section" id="Vapor-liquid-equilibrium">
+<h2>Vapor-liquid equilibrium<a class="headerlink" href="#Vapor-liquid-equilibrium" title="Permalink to this headline">¶</a></h2>
 <p>Adiabatic and isobaric conditions:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
@@ -817,7 +826,7 @@ MixedStream: ms1
 <span></span><span class="n">ms2</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">MixedStream</span><span class="p">(</span><span class="s1">&#39;ms2&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">370</span><span class="p">)</span>
 <span class="c1"># Set flows in same order as in Species object</span>
 <span class="n">ms2</span><span class="o">.</span><span class="n">setflow</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-<span class="n">ms2</span><span class="o">.</span><span class="n">setflow</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">ms2</span><span class="o">.</span><span class="n">setflow</span><span class="p">(</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
 <span class="n">ms2</span><span class="o">.</span><span class="n">VLE</span><span class="p">()</span>
 <span class="n">ms2</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
@@ -829,13 +838,13 @@ MixedStream: ms1
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 MixedStream: ms2
- phase: &#39;lg&#39;, T: 363.32 K, P: 101325 Pa
+ phase: &#39;lg&#39;, T: 354.96 K, P: 101325 Pa
         <span class="ansi-white-fg"> species  kmol/hr</span>
- liquid: Water    1.1e-05
-         Ethanol  5.83e-07
+ liquid: Water    1.78
+         Ethanol  0.945
 
- vapor:  Water    2
-         Ethanol  1
+ vapor:  Water    1.22
+         Ethanol  2.06
 </pre></div></div>
 </div>
 <p>Isothermal and isobaric conditions:</p>
@@ -858,11 +867,11 @@ MixedStream: ms2
 MixedStream: ms2
  phase: &#39;lg&#39;, T: 355 K, P: 101325 Pa
         <span class="ansi-white-fg"> species  kmol/hr</span>
- liquid: Water    1.77
-         Ethanol  0.686
+ liquid: Water    1.76
+         Ethanol  0.918
 
- vapor:  Water    0.234
-         Ethanol  0.314
+ vapor:  Water    1.24
+         Ethanol  2.08
 </pre></div></div>
 </div>
 <p>Contant vapor fraction and isobaric conditions:</p>
@@ -883,13 +892,13 @@ MixedStream: ms2
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 MixedStream: ms2
- phase: &#39;lg&#39;, T: 357.2 K, P: 101325 Pa
+ phase: &#39;lg&#39;, T: 354.76 K, P: 101325 Pa
         <span class="ansi-white-fg"> species  kmol/hr</span>
- liquid: Water    1.26
-         Ethanol  0.239
+ liquid: Water    1.9
+         Ethanol  1.1
 
- vapor:  Water    0.739
-         Ethanol  0.761
+ vapor:  Water    1.1
+         Ethanol  1.9
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -897,16 +906,15 @@ MixedStream: ms2
 </div>
 <div class="stderr output_area docutils container">
 <div class="highlight"><pre>
-C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:204: RuntimeWarning: Tolerance of 1.3960524825051834e-06 reached
+C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 1.1165063824591925e-06 reached
   warnings.warn(msg, RuntimeWarning)
 </pre></div></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">Note:</span> <span class="pre">It</span> <span class="pre">is</span> <span class="pre">also</span> <span class="pre">possible</span> <span class="pre">to</span> <span class="pre">set</span> <span class="pre">light</span> <span class="pre">and</span> <span class="pre">heavy</span> <span class="pre">keys</span> <span class="pre">that</span> <span class="pre">are</span> <span class="pre">not</span> <span class="pre">used</span> <span class="pre">to</span> <span class="pre">calculate</span> <span class="pre">equilibrium.</span> <span class="pre">Please</span> <span class="pre">see</span> <span class="pre">documentation</span> <span class="pre">for</span> <span class="pre">more</span> <span class="pre">information.</span></code></p>
 </div>
-<div class="section" id="Liquid-LIQUID-Equilibrium">
-<h2>Liquid-LIQUID Equilibrium<a class="headerlink" href="#Liquid-LIQUID-Equilibrium" title="Permalink to this headline">¶</a></h2>
-<p>MixedStream objects can also be used to calculate liquid-LIQUID
-equilibrium</p>
+<div class="section" id="Liquid-liquid-equilibrium">
+<h2>Liquid-liquid equilibrium<a class="headerlink" href="#Liquid-liquid-equilibrium" title="Permalink to this headline">¶</a></h2>
+<p>Initialize with MixedStream object with water and octane:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [28]:
@@ -932,7 +940,7 @@ MixedStream: ms3
          Octane   2
 </pre></div></div>
 </div>
-<p>Adiabatic and isobaric conditions</p>
+<p>Adiabatic and isobaric conditions:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [29]:
@@ -961,7 +969,7 @@ MixedStream: ms3
 </pre></div></div>
 </div>
 <p><code class="docutils literal notranslate"><span class="pre">Note:</span> <span class="pre">LLE</span> <span class="pre">assumes</span> <span class="pre">no</span> <span class="pre">significat</span> <span class="pre">temperature</span> <span class="pre">change</span> <span class="pre">with</span> <span class="pre">phase</span> <span class="pre">partitioning,</span> <span class="pre">resulting</span> <span class="pre">in</span> <span class="pre">constant</span> <span class="pre">temperature.</span></code></p>
-<p>Isothermal and isobaric conditions</p>
+<p>Isothermal and isobaric conditions:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [30]:
@@ -1007,12 +1015,18 @@ MixedStream: ms3
         <li class="right" >
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
+        <li class="right" >
+          <a href="Creating a Unit.html" title="Creating a Unit"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="Tutorial.html" title="Tutorial"
+             >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
     </div>
   </body>
 </html>

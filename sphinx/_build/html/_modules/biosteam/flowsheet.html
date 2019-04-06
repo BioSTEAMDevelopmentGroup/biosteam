@@ -9,7 +9,7 @@
     <title>biosteam.flowsheet &#8212; BioSTEAM 0.1 documentation</title>
     <link rel="stylesheet" href="../../_static/sphinxdoc.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
@@ -84,20 +84,20 @@
     <span class="c1"># Set up unit nodes</span>
     <span class="n">U</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Contains units by ID</span>
     <span class="n">UD</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Contains full description (ID and line) by ID</span>
-    <span class="k">for</span> <span class="n">unit</span> <span class="ow">in</span> <span class="n">units</span><span class="p">:</span>
-        <span class="n">unit</span><span class="o">.</span><span class="n">_link_streams</span><span class="p">()</span>
-        <span class="n">graphics</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">_graphics</span>
+    <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">:</span>
+        <span class="n">u</span><span class="o">.</span><span class="n">_link_streams</span><span class="p">()</span>
+        <span class="n">graphics</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">_graphics</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">graphics</span><span class="o">.</span><span class="n">in_system</span><span class="p">:</span>
             <span class="k">continue</span>  <span class="c1"># Ignore Unit</span>
         
         <span class="c1"># Initialize graphics and make Unit node with attributes</span>
-        <span class="n">graphics</span><span class="o">.</span><span class="n">node_function</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
-        <span class="n">Type</span> <span class="o">=</span> <span class="n">graphics</span><span class="o">.</span><span class="n">name</span> <span class="k">if</span> <span class="n">graphics</span><span class="o">.</span><span class="n">name</span> <span class="k">else</span> <span class="n">unit</span><span class="o">.</span><span class="n">line</span>
-        <span class="n">name</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">ID</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">Type</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;node&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">unit</span><span class="o">.</span><span class="n">_graphics</span><span class="o">.</span><span class="n">node</span><span class="p">)</span>
+        <span class="n">graphics</span><span class="o">.</span><span class="n">node_function</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+        <span class="n">Type</span> <span class="o">=</span> <span class="n">graphics</span><span class="o">.</span><span class="n">name</span> <span class="k">if</span> <span class="n">graphics</span><span class="o">.</span><span class="n">name</span> <span class="k">else</span> <span class="n">u</span><span class="o">.</span><span class="n">line</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">ID</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">Type</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;node&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">u</span><span class="o">.</span><span class="n">_graphics</span><span class="o">.</span><span class="n">node</span><span class="p">)</span>
         <span class="n">f</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-        <span class="n">U</span><span class="p">[</span><span class="n">unit</span><span class="o">.</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="n">unit</span>
-        <span class="n">UD</span><span class="p">[</span><span class="n">unit</span><span class="o">.</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="n">U</span><span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span>
+        <span class="n">UD</span><span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
         
     <span class="n">keys</span> <span class="o">=</span> <span class="n">UD</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
 
@@ -189,9 +189,6 @@
         <span class="c1">#: [dict] Dictionary of streams</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="o">=</span> <span class="p">{}</span>
         
-        <span class="c1"># #: [bool] True if flowsheet is contantly rendered</span>
-        <span class="c1"># self.live = True</span>
-        
         <span class="c1">#: [dict] All flowsheets</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_flowsheets</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
     
@@ -202,7 +199,9 @@
     
 <div class="viewcode-block" id="Flowsheet.diagram"><a class="viewcode-back" href="../../find.html#biosteam.flowsheet.Flowsheet.diagram">[docs]</a>    <span class="k">def</span> <span class="nf">diagram</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Display all units and attached streams.&quot;&quot;&quot;</span>
-        <span class="n">img</span> <span class="o">=</span> <span class="n">make_digraph</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="o">.</span><span class="n">values</span><span class="p">())</span><span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="s1">&#39;png&#39;</span><span class="p">)</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">units</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">make_digraph</span><span class="p">(</span><span class="n">units</span><span class="p">)</span><span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="s1">&#39;png&#39;</span><span class="p">)</span>
         <span class="n">display</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="n">display</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">img</span><span class="p">))</span></div>
     
     <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item_ID</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;item&#39;</span><span class="p">:</span>
@@ -281,6 +280,11 @@
         <span class="n">downstream</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="n">upstream</span><span class="o">.</span><span class="n">phase</span>
     <span class="k">return</span> <span class="n">connect</span>
 
+
+        
+    <span class="c1"># #: [bool] True if flowsheet is contantly rendered</span>
+    <span class="c1"># self.live = True</span>
+
 <span class="c1"># def _show_once(self):</span>
     <span class="c1">#     fig = plt.figure()</span>
     <span class="c1">#     plt.axis(&#39;off&#39;)</span>
@@ -333,7 +337,7 @@
     </div>
     <div class="footer" role="contentinfo">
         &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.9.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
     </div>
   </body>
 </html>
