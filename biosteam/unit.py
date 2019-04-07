@@ -467,7 +467,7 @@ class Unit(metaclass=metaUnit):
 
     # Summary
     def _summary(self):
-        """Run _operation, _design, and _cost methods and update purchase price and total utility costs."""
+        """Run _design, and _cost methods and update purchase price and total utility costs."""
         self._design()
         self._cost()
         self._totalcosts[:] = sum(self._purchase_costs), sum(i.cost for i in self._utils)
@@ -727,8 +727,7 @@ class Unit(metaclass=metaUnit):
             f.attr('graph', nodesep='0.4')
 
         # Initialize node arguments based on unit and make node
-        graphics.node_function(self)
-        type_ = graphics.name if graphics.name else self.line
+        type_ = graphics.node_function(self) or self.line
         name = self.ID + '\n' + type_
         f.attr('node', **self._graphics.node)
         f.node(name)
@@ -736,7 +735,7 @@ class Unit(metaclass=metaUnit):
         # Set stream node attributes
         f.attr('node', shape='rarrow', fillcolor='#79dae8',
                style='filled', orientation='0', width='0.6',
-               height='0.6', color='black')
+               height='0.6', color='black', peripheries='1')
 
         # Make nodes and edges for input streams
         di = 0  # Destination position of stream

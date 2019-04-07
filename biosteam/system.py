@@ -13,6 +13,7 @@ from .flowsheet import find, make_digraph
 from .stream import Stream
 from .unit import Unit
 from . import np
+from .report import save_report
 from .utils import color_scheme, missing_stream, strtuple, function
 CS = color_scheme
 __all__ = ('System',)
@@ -87,7 +88,10 @@ class _systemUnit(Unit):
     """Dummy unit for displaying a system."""
     line = 'System'
     ID = None
-    
+
+_sysgraphics = _systemUnit._graphics
+_sysgraphics.edge_in = _sysgraphics.edge_in * 10
+_sysgraphics.edge_out = _sysgraphics.edge_out * 10
 _systemUnit._graphics.node['peripheries'] = '2'
 
 
@@ -194,6 +198,8 @@ class System:
         if ID != '*': find.system[ID] = self
         self._ID = ID
         self.recycle = recycle
+    
+    save_report = save_report
     
     @property
     def ID(self):
@@ -310,7 +316,7 @@ class System:
                 ins.append(s)
         subsystem_unit = _systemUnit(self.ID, outs, ins)
         subsystem_unit.line = 'System'
-        subsystem_unit.diagram(file)
+        subsystem_unit.diagram(0, file)
         # Reconnect how it was
         for u in self.units:
             u.ins = u._ins

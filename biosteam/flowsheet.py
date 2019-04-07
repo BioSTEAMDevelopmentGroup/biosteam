@@ -36,8 +36,7 @@ def make_digraph(units, streams=None):
             continue  # Ignore Unit
         
         # Initialize graphics and make Unit node with attributes
-        graphics.node_function(u)
-        Type = graphics.name if graphics.name else u.line
+        Type = graphics.node_function(u) or u.line
         name = u.ID + '\n' + Type
         f.attr('node', **u._graphics.node)
         f.node(name)
@@ -49,7 +48,7 @@ def make_digraph(units, streams=None):
     # Set attributes for graph and streams
     f.attr('node', shape='rarrow', fillcolor='#79dae8',
            style='filled', orientation='0', width='0.6',
-           height='0.6', color='black')
+           height='0.6', color='black', peripheries='1')
     f.attr('graph', splines='normal', overlap='orthoyx',
            outputorder='edgesfirst', nodesep='0.15', maxiter='1000000')
     f.attr('edge', dir='foward')

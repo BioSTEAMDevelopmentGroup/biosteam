@@ -362,7 +362,7 @@
         <span class="n">vap</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LNK_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">LNK_mol</span>
         <span class="n">liq</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">HNK_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">HNK_mol</span>
     
-    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>        <span class="c1"># Run mass balance</span>
+    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mass_balance</span><span class="p">()</span>
         
         <span class="c1"># Unpack arguments</span>
@@ -809,7 +809,7 @@
     <span class="vm">__doc__</span> <span class="o">=</span> <span class="n">column_doc</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;{Column Type}&#39;</span><span class="p">,</span> <span class="s1">&#39;Distillation&#39;</span><span class="p">)</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">_graphics</span> <span class="o">=</span> <span class="n">Dist</span><span class="o">.</span><span class="n">_graphics</span>
-    <span class="n">_is_divided</span> <span class="o">=</span> <span class="kc">False</span> <span class="c1">#: [bool] True if the stripper and rectifier are two separate columns.    </span>
+    <span class="n">_is_divided</span> <span class="o">=</span> <span class="kc">False</span> <span class="c1">#: [bool] True if the stripper and rectifier are two separate columns.</span>
     <span class="n">_units_not_divided</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Minimum reflux&#39;</span><span class="p">:</span> <span class="s1">&#39;Ratio&#39;</span><span class="p">,</span>
                           <span class="s1">&#39;Reflux&#39;</span><span class="p">:</span> <span class="s1">&#39;Ratio&#39;</span><span class="p">,</span>
                           <span class="s1">&#39;Rectifier height&#39;</span><span class="p">:</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span>
@@ -1074,7 +1074,6 @@
         
     <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_divided</span><span class="p">:</span> <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
-        
         <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
         <span class="n">Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
         

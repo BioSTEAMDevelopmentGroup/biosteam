@@ -23,9 +23,9 @@ _Water = Species('Water')
 
 # %% Data for cooling utilities 
 
-_columns = ('Type', 'species', 'molar fraction', 'T (K)',
-            'P (Pa)', 'phase', 'T limit (K)',
-            'price (USD/kJ)', 'price (USD/kmol)', 'efficiency')
+_columns = ('Type', 'Species', 'Molar fraction', 'Temperature (K)',
+            'Pressure (Pa)', 'Phase', 'Temperature limit (K)',
+            'Price (USD/kJ)', 'Price (USD/kmol)', 'Heat transfer efficiency')
 
 _cooling_index = ('Cooling water',
                   'Chilled water',
@@ -236,7 +236,7 @@ class HeatUtility:
         elif Type == 'latent':
             self._update_flow_wt_phase_change(duty)
         else:
-            raise biosteamError(f"Invalid heat transfer agent '{ID}'.")
+            raise biosteamError(f"Invalid heat transfer agent '{self.ID}'.")
         
         # Update and return results
         self.flow = mol = self._fresh.molnet

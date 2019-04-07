@@ -83,7 +83,7 @@
 <div><strong>system:</strong> [System] Should contain feed and product streams.</div></blockquote>
 <p><strong>Examples</strong></p>
 <blockquote>
-<div><a class="reference internal" href="TEA Example.html"><span class="doc">Techno-Economic Analysis Example</span></a></div></blockquote>
+<div><a class="reference internal" href="Techno-economic analysis of a biorefinery.html"><span class="doc">Techno-economic analysis of a biorefinery</span></a></div></blockquote>
 <dl class="attribute">
 <dt id="biosteam.TEA.options">
 <code class="descname">options</code><a class="headerlink" href="#biosteam.TEA.options" title="Permalink to this definition">¶</a></dt>
@@ -118,15 +118,15 @@
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.TEA.results">
-<code class="descname">results</code><a class="headerlink" href="#biosteam.TEA.results" title="Permalink to this definition">¶</a></dt>
-<dd><p>[dict] Summarized results of cash flow analysis</p>
-</dd></dl>
-
-<dl class="attribute">
 <dt id="biosteam.TEA.cashflow">
 <code class="descname">cashflow</code><a class="headerlink" href="#biosteam.TEA.cashflow" title="Permalink to this definition">¶</a></dt>
 <dd><p>[DataFrame] Cash flow table</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.TEA.results">
+<code class="descname">results</code><span class="sig-paren">(</span><em>with_units=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/tea.html#TEA.results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return results of techno-economic analysis as a DataFrame object if <cite>with_units</cite> is True or as a Series otherwise.</p>
 </dd></dl>
 
 <dl class="method">

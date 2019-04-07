@@ -17,7 +17,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Compound" href="Compound.html" />
-    <link rel="prev" title="Using -pipe- notation" href="Using -pipe- notation.html" /> 
+    <link rel="prev" title="Techno-economic analysis of a biorefinery" href="Techno-economic analysis of a biorefinery.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -32,7 +32,7 @@
           <a href="Compound.html" title="Compound"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="Using -pipe- notation.html" title="Using -pipe- notation"
+          <a href="Techno-economic analysis of a biorefinery.html" title="Techno-economic analysis of a biorefinery"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
       </ul>
@@ -42,15 +42,17 @@
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Inheriting from Unit</a><ul>
-<li><a class="reference internal" href="#Create-a-Boiler-class-which-boils-off-a-stream-according-to-given-vapor-fraction:">Create a Boiler class which boils off a stream according to given vapor fraction:</a></li>
-<li><a class="reference internal" href="#Test-Boiler-with-a-stream-of-water:">Test Boiler with a stream of water:</a></li>
+<li><a class="reference internal" href="#Abstract-attributes-and-methods">Abstract attributes and methods</a></li>
+<li><a class="reference internal" href="#Subclass-example">Subclass example</a></li>
+<li><a class="reference internal" href="#Simulation-test">Simulation test</a></li>
+<li><a class="reference internal" href="#Graphviz-attributes">Graphviz attributes</a></li>
 </ul>
 </li>
 </ul>
 
   <h4>Previous topic</h4>
-  <p class="topless"><a href="Using -pipe- notation.html"
-                        title="previous chapter">Using -pipe- notation</a></p>
+  <p class="topless"><a href="Techno-economic analysis of a biorefinery.html"
+                        title="previous chapter">Techno-economic analysis of a biorefinery</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="Compound.html"
                         title="next chapter">Compound</a></p>
@@ -249,8 +251,59 @@ div.nboutput div.output_area.stderr {
 </style>
 <div class="section" id="Inheriting-from-Unit">
 <h1>Inheriting from Unit<a class="headerlink" href="#Inheriting-from-Unit" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="Create-a-Boiler-class-which-boils-off-a-stream-according-to-given-vapor-fraction:">
-<h2>Create a Boiler class which boils off a stream according to given vapor fraction:<a class="headerlink" href="#Create-a-Boiler-class-which-boils-off-a-stream-according-to-given-vapor-fraction:" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="Abstract-attributes-and-methods">
+<h2>Abstract attributes and methods<a class="headerlink" href="#Abstract-attributes-and-methods" title="Permalink to this headline">¶</a></h2>
+<div class="figure">
+<img alt="Unit UML Diagram" src="_images/UML_Unit.png" />
+</div>
+<p><strong>A Unit subclass has class attributes that dictate how an instance is
+initialized:</strong></p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">_kwargs</span></code>: [dict] Key word arguments to extend the <code class="docutils literal notranslate"><span class="pre">__init__</span></code>
+signature.</li>
+<li><code class="docutils literal notranslate"><span class="pre">_N_ins</span></code>: [int] Expected number of input streams</li>
+<li><code class="docutils literal notranslate"><span class="pre">_N_outs</span></code>: [int] Expected number of output streams</li>
+<li><code class="docutils literal notranslate"><span class="pre">_N_heat_utilities</span></code>: [int] Number of heat utility objects in the
+<code class="docutils literal notranslate"><span class="pre">_heat_utilities</span></code> list.</li>
+<li><code class="docutils literal notranslate"><span class="pre">_has_power_utility</span></code>: [bool] If True, a PowerUtility object is
+created for every instance.</li>
+<li><code class="docutils literal notranslate"><span class="pre">_units</span></code>: [dict] Units of measure for <code class="docutils literal notranslate"><span class="pre">_results</span></code> ‘Design’ items</li>
+<li><code class="docutils literal notranslate"><span class="pre">_bounds</span></code>: [dict] Items should be array-like with lower and upper
+bounds for items in <code class="docutils literal notranslate"><span class="pre">_results</span></code>.</li>
+</ul>
+<p><strong>Abstract methods are used to initialize components, setup values for
+simulation, run heat and mass balances, and cost the unit:</strong></p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">_init()</span></code>: Called at the end of the <code class="docutils literal notranslate"><span class="pre">__init__</span></code> function to
+initialize objects related to the unit</li>
+<li><code class="docutils literal notranslate"><span class="pre">_setup()</span></code>: Called before System convergence to cache any values
+and check <code class="docutils literal notranslate"><span class="pre">_kwargs</span></code>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">_run()</span></code>: Called during System convergece to specify <code class="docutils literal notranslate"><span class="pre">outs</span></code>
+streams.</li>
+<li><code class="docutils literal notranslate"><span class="pre">_design()</span></code>: Called after System convergence to find design
+requirements.</li>
+<li><code class="docutils literal notranslate"><span class="pre">_cost()</span></code>: Called after System convergence to find cost
+requirements.</li>
+</ul>
+<p><strong>These abstract methods will rely on the following instance
+attributes:</strong></p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">_ins</span></code>: Ins[Stream] Input streams.</li>
+<li><code class="docutils literal notranslate"><span class="pre">_outs</span></code>: Outs[Stream] Output streams.</li>
+<li><code class="docutils literal notranslate"><span class="pre">_kwargs</span></code>: [dict] Key word arguments passed from the <code class="docutils literal notranslate"><span class="pre">__init__</span></code>
+method.</li>
+<li><code class="docutils literal notranslate"><span class="pre">_power_utility</span></code>: [PowerUtility] Can find electricity rate
+requirement.</li>
+<li><code class="docutils literal notranslate"><span class="pre">_heat_utilities</span></code>: list[HeatUtility] Can find cooling and heating
+requirements.</li>
+<li><code class="docutils literal notranslate"><span class="pre">_results</span></code>: dict[dict] Contains “Design” requirements and itemized
+purchase “Cost” dictionaries.</li>
+</ul>
+</div>
+<div class="section" id="Subclass-example">
+<h2>Subclass example<a class="headerlink" href="#Subclass-example" title="Permalink to this headline">¶</a></h2>
+<p>The following example depicts inheritance from Unit by creating a new
+Boiler class:</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [1]:
@@ -261,46 +314,32 @@ div.nboutput div.output_area.stderr {
 <span class="k">class</span> <span class="nc">Boiler</span><span class="p">(</span><span class="n">bs</span><span class="o">.</span><span class="n">Unit</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a Boiler object that partially boils feed.</span>
 
-<span class="sd">    Parameters</span>
+<span class="sd">    **Parameters**</span>
 
-<span class="sd">        V: Vapor fraction</span>
+<span class="sd">        **V:** Vapor fraction</span>
 
-<span class="sd">        P: Operating pressure (Pascal)</span>
+<span class="sd">        **P:** Operating pressure (Pascal)</span>
+
+<span class="sd">    **ins:**</span>
+
+<span class="sd">        [0] feed</span>
+
+<span class="sd">    **outs:**</span>
+
+<span class="sd">        [0] vapor product</span>
+
+<span class="sd">        [1] liquid product</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="c1"># [dict] Key word arguments for the __init__ method</span>
-    <span class="c1">#        The __init__ method will store these in a new dictionary</span>
-    <span class="c1">#        as an instance attribue `_kwargs` (same name)</span>
     <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;V&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
                <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="mi">101325</span><span class="p">}</span>
-
-    <span class="c1"># [int] Expected number of input streams</span>
     <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">1</span>
-
-    <span class="c1"># [int] Expected number of output streams</span>
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">2</span>
-
-    <span class="c1"># [int] Number of heat utilities.</span>
-    <span class="c1">#       these will be created with the unit and stored in `_heat_utilities` list</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">1</span>
-
-    <span class="c1"># [bool] If True, a PowerUtility object is created for every instance.</span>
     <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">False</span>
-
-    <span class="c1"># [dict] Units for _results &#39;Design&#39; items</span>
     <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Area&#39;</span><span class="p">:</span> <span class="s1">&#39;m^2&#39;</span><span class="p">}</span>
-
-    <span class="c1"># [dict] Values should be array-like with lower and upper bounds for results dictionary.</span>
     <span class="n">_bounds</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Area&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">9.29</span><span class="p">,</span> <span class="mf">743.224</span><span class="p">)}</span>
 
-    <span class="c1"># [Bool] If True, `outs` will become proxy streams linked to ins.</span>
-    <span class="c1">#        Only use this if `outs` streams will have same specifications</span>
-    <span class="c1">#        (mol, T, P, and phase) as `ins` streams.</span>
-    <span class="n">_has_proxystream</span> <span class="o">=</span> <span class="kc">False</span>
-
-    <span class="c1"># The _init method is called at the end of the __init__ function</span>
-    <span class="c1"># to initialize any additional objects related to the unit</span>
     <span class="k">def</span> <span class="nf">_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">gas</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
 
@@ -314,15 +353,11 @@ div.nboutput div.output_area.stderr {
         <span class="bp">self</span><span class="o">.</span><span class="n">_mixedstream</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">MixedStream</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">)</span>
         <span class="c1"># NOTE: Use &#39;*&#39; as ID to denote hidden object and prevent it from appearing in `find`</span>
 
-    <span class="c1"># The _setup method is called before simulation</span>
-    <span class="c1"># to cache any values before simulation and check kwargs</span>
     <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="s1">&#39;V&#39;</span><span class="p">]</span> <span class="c1"># Key word arguments from __init__ are stored here</span>
         <span class="k">if</span> <span class="n">V</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">V</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Vapor fraction must be between 0 and 1, not </span><span class="si">{V}</span><span class="s1">&#39;</span><span class="p">)</span>
 
-    <span class="c1"># The _run method is called during Unit simulation and/or System convergece</span>
-    <span class="c1"># and should only perform the necessary calculations for heat and mass balance</span>
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">gas</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
@@ -331,16 +366,13 @@ div.nboutput div.output_area.stderr {
         <span class="n">ms</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">)</span>
         <span class="n">gas</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">vapor_mol</span>
         <span class="n">liq</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">liquid_mol</span>
-        <span class="n">ms</span><span class="o">.</span><span class="n">vapor_mol</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># Resent vapor flow to prevent accumulation in multiple simulations</span>
+        <span class="n">ms</span><span class="o">.</span><span class="n">vapor_mol</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># Reset vapor flow to prevent accumulation in multiple simulations</span>
         <span class="n">gas</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">T</span>
         <span class="n">gas</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">P</span>
 
-    <span class="c1"># The _cost method is called after _run and/or System convergence</span>
-    <span class="c1"># and should only find design and cost requirements for the unit.</span>
-    <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Design and cost requirements are stored in the _results &#39;Design&#39; and &#39;Cost&#39; dictionaries</span>
         <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
-        <span class="n">Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
 
         <span class="c1"># Calculate heat utility requirement (please read docs for HeatUtility objects)</span>
         <span class="n">T_operation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mixedstream</span><span class="o">.</span><span class="n">T</span>
@@ -365,6 +397,9 @@ div.nboutput div.output_area.stderr {
         <span class="c1"># Will return a warning if area too big or small.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_checkbounds</span><span class="p">(</span><span class="s1">&#39;Area&#39;</span><span class="p">,</span> <span class="n">A</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">][</span><span class="s1">&#39;Area&#39;</span><span class="p">]</span>
         <span class="c1"># Long-tube vertical boiler cost correlation from</span>
         <span class="c1"># &quot;Product process and design&quot;. Warren et. al. (2016) Table 22.32, pg 592</span>
         <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Boiler&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CEPCI</span><span class="o">*</span><span class="mf">3.086</span><span class="o">*</span><span class="n">A</span><span class="o">**</span><span class="mf">0.55</span>
@@ -372,8 +407,8 @@ div.nboutput div.output_area.stderr {
 </div>
 </div>
 </div>
-<div class="section" id="Test-Boiler-with-a-stream-of-water:">
-<h2>Test Boiler with a stream of water:<a class="headerlink" href="#Test-Boiler-with-a-stream-of-water:" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="Simulation-test">
+<h2>Simulation test<a class="headerlink" href="#Simulation-test" title="Permalink to this headline">¶</a></h2>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [2]:
@@ -392,7 +427,7 @@ div.nboutput div.output_area.stderr {
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/Inheriting_from_Unit_4_0.png" src="_images/Inheriting_from_Unit_4_0.png" />
+<img alt="_images/Inheriting_from_Unit_8_0.png" src="_images/Inheriting_from_Unit_8_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -547,10 +582,174 @@ Boiler: B1
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>&lt;Signature (self, ID=&#39;&#39;, outs=(), ins=None, V=None, P=None)&gt;
+<span></span>&lt;Signature (self, ID=&#39;&#39;, outs=(), ins=None, V=None, P=101325)&gt;
 </pre></div>
 </div>
 </div>
+</div>
+<div class="section" id="Graphviz-attributes">
+<h2>Graphviz attributes<a class="headerlink" href="#Graphviz-attributes" title="Permalink to this headline">¶</a></h2>
+<p>All <a class="reference external" href="https://graphviz.readthedocs.io/en/stable/manual.html">graphviz</a>
+attributes to generate a diagram are stored in <code class="docutils literal notranslate"><span class="pre">_graphics</span></code> as Graphics
+object. One Graphics object is generated for each Unit subclass:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">graphics</span> <span class="o">=</span> <span class="n">Boiler</span><span class="o">.</span><span class="n">_graphics</span>
+<span class="n">edge_in</span> <span class="o">=</span> <span class="n">graphics</span><span class="o">.</span><span class="n">edge_in</span>
+<span class="n">edge_out</span> <span class="o">=</span> <span class="n">graphics</span><span class="o">.</span><span class="n">edge_out</span>
+<span class="n">node</span> <span class="o">=</span> <span class="n">graphics</span><span class="o">.</span><span class="n">node</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Attributes correspond to each ins stream respectively</span>
+<span class="c1"># For example: Attributes for B1.ins[0] would correspond to edge_in[0]</span>
+<span class="n">edge_in</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[7]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>[{&#39;headport&#39;: &#39;c&#39;}, {&#39;headport&#39;: &#39;c&#39;}, {&#39;headport&#39;: &#39;c&#39;}]
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">edge_out</span> <span class="c1"># Attributes correspond to each outs stream respectively</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[8]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>[{&#39;tailport&#39;: &#39;c&#39;}, {&#39;tailport&#39;: &#39;c&#39;}, {&#39;tailport&#39;: &#39;c&#39;}]
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">node</span> <span class="c1"># The node is the actuall unit</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[9]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>{&#39;shape&#39;: &#39;box&#39;,
+ &#39;fillcolor&#39;: &#39;white:#CDCDCD&#39;,
+ &#39;style&#39;: &#39;filled&#39;,
+ &#39;gradientangle&#39;: &#39;0&#39;,
+ &#39;width&#39;: &#39;0.6&#39;,
+ &#39;height&#39;: &#39;0.6&#39;,
+ &#39;orientation&#39;: &#39;0.0&#39;,
+ &#39;color&#39;: &#39;black&#39;,
+ &#39;peripheries&#39;: &#39;1&#39;,
+ &#39;margin&#39;: &#39;default&#39;}
+</pre></div>
+</div>
+</div>
+<p>These attributes can be changed to the user’s liking:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">edge_out</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;tailport&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;n&#39;</span>
+<span class="n">edge_out</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;tailport&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;s&#39;</span>
+<span class="n">node</span><span class="p">[</span><span class="s1">&#39;width&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;1&#39;</span>
+<span class="n">node</span><span class="p">[</span><span class="s1">&#39;height&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;1.2&#39;</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">B1</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Inheriting_from_Unit_21_0.png" src="_images/Inheriting_from_Unit_21_0.png" />
+</div>
+</div>
+<p>It is also possible to dynamically adjust node and edge attributes by
+adding a node_function:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="k">def</span> <span class="nf">boiler_node_function</span><span class="p">(</span><span class="n">unit</span><span class="p">):</span>
+    <span class="n">graphics</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">_graphics</span>
+    <span class="n">feed</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">gas</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">outs</span>
+    <span class="k">if</span> <span class="n">gas</span><span class="o">.</span><span class="n">T</span> <span class="o">&gt;</span> <span class="n">feed</span><span class="o">.</span><span class="n">T</span> <span class="ow">or</span> <span class="n">gas</span><span class="o">.</span><span class="n">molnet</span><span class="p">:</span>
+        <span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;white:#fad6d8&#39;</span>
+        <span class="n">unit_op_name</span> <span class="o">=</span> <span class="s1">&#39;Active boiler&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;white:#CDCDCD&#39;</span>
+        <span class="n">unit_op_name</span> <span class="o">=</span> <span class="s1">&#39;Inactive boiler&#39;</span>
+    <span class="k">return</span> <span class="n">unit_op_name</span> <span class="c1"># If a string is returned, it will replace the Unit operation name</span>
+
+<span class="n">graphics</span><span class="o">.</span><span class="n">node_function</span> <span class="o">=</span> <span class="n">boiler_node_function</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">B1</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Inheriting_from_Unit_24_0.png" src="_images/Inheriting_from_Unit_24_0.png" />
+</div>
+</div>
+<p><strong>NOTE: The example implementation of the node_function is not
+suggested; best to keep diagrams simple.</strong></p>
 </div>
 </div>
 
@@ -573,7 +772,7 @@ Boiler: B1
           <a href="Compound.html" title="Compound"
              >next</a> |</li>
         <li class="right" >
-          <a href="Using -pipe- notation.html" title="Using -pipe- notation"
+          <a href="Techno-economic analysis of a biorefinery.html" title="Techno-economic analysis of a biorefinery"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
       </ul>

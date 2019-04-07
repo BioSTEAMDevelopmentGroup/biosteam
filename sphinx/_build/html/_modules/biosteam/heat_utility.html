@@ -78,9 +78,9 @@
 
 <span class="c1"># %% Data for cooling utilities </span>
 
-<span class="n">_columns</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Type&#39;</span><span class="p">,</span> <span class="s1">&#39;species&#39;</span><span class="p">,</span> <span class="s1">&#39;molar fraction&#39;</span><span class="p">,</span> <span class="s1">&#39;T (K)&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;P (Pa)&#39;</span><span class="p">,</span> <span class="s1">&#39;phase&#39;</span><span class="p">,</span> <span class="s1">&#39;T limit (K)&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;price (USD/kJ)&#39;</span><span class="p">,</span> <span class="s1">&#39;price (USD/kmol)&#39;</span><span class="p">,</span> <span class="s1">&#39;efficiency&#39;</span><span class="p">)</span>
+<span class="n">_columns</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Type&#39;</span><span class="p">,</span> <span class="s1">&#39;Species&#39;</span><span class="p">,</span> <span class="s1">&#39;Molar fraction&#39;</span><span class="p">,</span> <span class="s1">&#39;Temperature (K)&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Pressure (Pa)&#39;</span><span class="p">,</span> <span class="s1">&#39;Phase&#39;</span><span class="p">,</span> <span class="s1">&#39;Temperature limit (K)&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Price (USD/kJ)&#39;</span><span class="p">,</span> <span class="s1">&#39;Price (USD/kmol)&#39;</span><span class="p">,</span> <span class="s1">&#39;Heat transfer efficiency&#39;</span><span class="p">)</span>
 
 <span class="n">_cooling_index</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Cooling water&#39;</span><span class="p">,</span>
                   <span class="s1">&#39;Chilled water&#39;</span><span class="p">,</span>
@@ -291,7 +291,7 @@
         <span class="k">elif</span> <span class="n">Type</span> <span class="o">==</span> <span class="s1">&#39;latent&#39;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_update_flow_wt_phase_change</span><span class="p">(</span><span class="n">duty</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">biosteamError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Invalid heat transfer agent &#39;</span><span class="si">{ID}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">biosteamError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Invalid heat transfer agent &#39;</span><span class="si">{self.ID}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
         
         <span class="c1"># Update and return results</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">flow</span> <span class="o">=</span> <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fresh</span><span class="o">.</span><span class="n">molnet</span>

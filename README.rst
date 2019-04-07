@@ -44,7 +44,7 @@ BioSTEAM's documentation is available on the web:
 Getting started
 ---------------
 
-BioSTEAM objects serve as basic building blocks to design and simulate a biorefinery. These include objects that handle material properties, material flows, unit operations, recycle loops and process specifications. To get started, please visit the `Tutorial <https://biosteam.readthedocs.io/en/latest/Tutorial.html>`__.
+BioSTEAM objects serve as basic building blocks to design and simulate a biorefinery. These include objects that handle material properties, material flows, unit operations, recycle loops and process specifications. To get started, please visit the `Tutorial <https://biosteam.readthedocs.io/en/latest/Getting started.html>`__.
 
 Bug reports
 -----------

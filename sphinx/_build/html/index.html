@@ -16,7 +16,7 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Tutorial" href="Tutorial.html" /> 
+    <link rel="next" title="Getting started" href="Getting started.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -28,7 +28,7 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="Tutorial.html" title="Tutorial"
+          <a href="Getting started.html" title="Getting started"
              accesskey="N">next</a> |</li>
         <li class="nav-item nav-item-0"><a href="#">BioSTEAM 0.1 documentation</a> &#187;</li> 
       </ul>
@@ -39,7 +39,7 @@
   <ul>
 <li><a class="reference internal" href="#">BioSTEAM: The Open-Source Bioprocess Simulation and Techno-Economic Analysis Modules in Python</a><ul>
 <li><a class="reference internal" href="#overview">Overview</a></li>
-<li><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li><a class="reference internal" href="#tutorial">Tutorial</a></li>
 <li><a class="reference internal" href="#base-classes">Base Classes</a></li>
 <li><a class="reference internal" href="#unit-operations">Unit Operations</a></li>
 <li><a class="reference internal" href="#unit-examples">Unit Examples</a></li>
@@ -50,8 +50,8 @@
 </ul>
 
   <h4>Next topic</h4>
-  <p class="topless"><a href="Tutorial.html"
-                        title="next chapter">Tutorial</a></p>
+  <p class="topless"><a href="Getting started.html"
+                        title="next chapter">Getting started</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -95,39 +95,49 @@
 <p><a class="reference internal" href="Unit.html"><span class="doc">Unit</span></a>: A base class with an abstract <cite>_run</cite> method that changes output streams given parameters and input streams. Other abstract methods including <cite>_design</cite>, and <cite>_cost</cite> which are used after process simulation for design and costing.</p>
 <p><a class="reference internal" href="System.html"><span class="doc">System</span></a>: Iteratively runs a network, <cite>network</cite>, of units until the <cite>recycle</cite> stream converges. When a network contains a system, it converges the inner system first and then continues running the remaining elements.</p>
 </div>
-<div class="section" id="getting-started">
-<h2>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="tutorial">
+<h2>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h2>
 <p>BioSTEAM objects serve as basic building blocks to design and simulate a biorefinery. These include objects that handle material properties, material flows, unit operations, recycle loops and process specifications.</p>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="Tutorial.html">Tutorial</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial.html#Get-thermodynamic-and-material-properties-using-Chemical-objects">Get thermodynamic and material properties using Chemical objects</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial.html#Group-Chemical-objects-with-a-Species-object">Group Chemical objects with a Species object</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial.html#Material-flows-and-mixture-properties-with-Stream-objects">Material flows and mixture properties with Stream objects</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial.html#Find-design-requirements-and-cost-with-Unit-objects">Find design requirements and cost with Unit objects</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Tutorial.html#Solve-recycle-loops-and-process-specifications-with-System-objects">Solve recycle loops and process specifications with System objects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Getting started.html">Getting started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Getting started.html#Get-thermodynamic-and-material-properties-using-Chemical-objects">Get thermodynamic and material properties using Chemical objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Getting started.html#Group-Chemical-objects-with-a-Species-object">Group Chemical objects with a Species object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Getting started.html#Material-flows-and-mixture-properties-with-Stream-objects">Material flows and mixture properties with Stream objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Getting started.html#Find-design-requirements-and-cost-with-Unit-objects">Find design requirements and cost with Unit objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Getting started.html#Process-settings">Process settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Getting started.html#Solve-recycle-loops-and-process-specifications-with-System-objects">Solve recycle loops and process specifications with System objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Getting started.html#Join-the-community!">Join the community!</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="Thermodynamic equilibrium.html">Thermodynamic equilibrium</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Thermodynamic equilibrium.html#Creating-MixedStream-Objects">Creating MixedStream Objects</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Thermodynamic equilibrium.html#Getting-and-setting-flow-rates">Getting and setting flow rates</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Thermodynamic equilibrium.html#Single-phase-flow-properties:">Single phase flow properties:</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Thermodynamic equilibrium.html#Overall-flow-properties:">Overall flow properties:</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Thermodynamic equilibrium.html#Material-and-thermodynamic-properties">Material and thermodynamic properties</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Thermodynamic equilibrium.html#Vapor-liquid-equilibrium">Vapor-liquid equilibrium</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Thermodynamic equilibrium.html#Liquid-liquid-equilibrium">Liquid-liquid equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MixedStream objects and thermodynamic equilibrium.html">MixedStream objects and thermodynamic equilibrium</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="MixedStream objects and thermodynamic equilibrium.html#Create-MixedStream-Objects">Create MixedStream Objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MixedStream objects and thermodynamic equilibrium.html#Get-and-set-flow-rates">Get and set flow rates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MixedStream objects and thermodynamic equilibrium.html#Single-phase-flow-properties">Single phase flow properties</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MixedStream objects and thermodynamic equilibrium.html#Overall-flow-properties">Overall flow properties</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MixedStream objects and thermodynamic equilibrium.html#Material-and-thermodynamic-properties">Material and thermodynamic properties</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MixedStream objects and thermodynamic equilibrium.html#Vapor-liquid-equilibrium">Vapor-liquid equilibrium</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MixedStream objects and thermodynamic equilibrium.html#Liquid-liquid-equilibrium">Liquid-liquid equilibrium</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">Creating a Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Find unit operations and manage flowsheets.html">Find unit operations and manage flowsheets</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Find unit operations and manage flowsheets.html#Retrieve-any-Unit,-Stream-or-System-object-by-ID:">Retrieve any Unit, Stream or System object by ID:</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Find unit operations and manage flowsheets.html#Switch-between-flowsheets:">Switch between flowsheets:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Find unit operations and manage flowsheets.html#Retrieve-any-Unit,-Stream-or-System-object-by-ID">Retrieve any Unit, Stream or System object by ID</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Find unit operations and manage flowsheets.html#Switch-between-flowsheets">Switch between flowsheets</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">Techno-economic analysis of a biorefinery</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html#Perform-cash-flow-analysis">Perform cash flow analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html#Find-operating-cost,-price,-and-IRR">Find operating cost, price, and IRR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html#System-report">System report</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">Inheriting from Unit</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Inheriting from Unit.html#Create-a-Boiler-class-which-boils-off-a-stream-according-to-given-vapor-fraction:">Create a Boiler class which boils off a stream according to given vapor fraction:</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Inheriting from Unit.html#Test-Boiler-with-a-stream-of-water:">Test Boiler with a stream of water:</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Inheriting from Unit.html#Abstract-attributes-and-methods">Abstract attributes and methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Inheriting from Unit.html#Subclass-example">Subclass example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Inheriting from Unit.html#Simulation-test">Simulation test</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Inheriting from Unit.html#Graphviz-attributes">Graphviz attributes</a></li>
 </ul>
 </li>
 </ul>
@@ -149,7 +159,6 @@
 <li class="toctree-l1"><a class="reference internal" href="System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="find.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="exceptions.html">exceptions</a></li>
 </ul>
 </div>
 </div>
@@ -229,7 +238,7 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="Tutorial.html" title="Tutorial"
+          <a href="Getting started.html" title="Getting started"
              >next</a> |</li>
         <li class="nav-item nav-item-0"><a href="#">BioSTEAM 0.1 documentation</a> &#187;</li> 
       </ul>

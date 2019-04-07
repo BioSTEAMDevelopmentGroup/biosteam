@@ -28,19 +28,20 @@ Overview
 :doc:`System`: Iteratively runs a network, `network`, of units until the `recycle` stream converges. When a network contains a system, it converges the inner system first and then continues running the remaining elements.
 
 
-Getting Started
----------------
+Tutorial
+--------
 
 BioSTEAM objects serve as basic building blocks to design and simulate a biorefinery. These include objects that handle material properties, material flows, unit operations, recycle loops and process specifications.
 
 .. toctree::
    :maxdepth: 2
 
-   Tutorial
-   Thermodynamic equilibrium
+   Getting started
+   MixedStream objects and thermodynamic equilibrium
    Creating a Unit
    Find unit operations and manage flowsheets
    Using -pipe- notation
+   Techno-economic analysis of a biorefinery
    Inheriting from Unit
 
 Base Classes
@@ -61,8 +62,6 @@ Base Classes
    System
    TEA
    find
-   reports
-   exceptions
 
 Unit Operations
 ---------------

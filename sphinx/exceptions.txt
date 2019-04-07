@@ -1,5 +1,0 @@
-exceptions
-==========
-
-.. automodule:: biosteam.exceptions
-   :members:

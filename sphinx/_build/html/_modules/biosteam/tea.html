@@ -61,7 +61,6 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">pd</span><span class="p">,</span> <span class="n">np</span>
-<span class="kn">from</span> <span class="nn">bookkeep</span> <span class="k">import</span> <span class="n">SmartBook</span>
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">newton</span>
 <span class="kn">from</span> <span class="nn">biosteam.utils</span> <span class="k">import</span> <span class="n">CS</span>
 
@@ -107,19 +106,6 @@
                      <span class="s1">&#39;Discounted cash flow&#39;</span><span class="p">,</span>
                      <span class="s1">&#39;Cumulative cash flow&#39;</span><span class="p">)</span>
 
-<span class="n">_results_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Pay back period&#39;</span><span class="p">:</span> <span class="s1">&#39;yr&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;Return on investment&#39;</span><span class="p">:</span> <span class="s1">&#39;1/yr&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;Net present value&#39;</span><span class="p">:</span> <span class="s1">&#39;USD&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;Fixed capital investment&#39;</span><span class="p">:</span> <span class="s1">&#39;USD&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;Total capital investment&#39;</span><span class="p">:</span> <span class="s1">&#39;USD&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;Depreciation&#39;</span><span class="p">:</span> <span class="s1">&#39;USD/yr&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;Annual operating cost&#39;</span><span class="p">:</span> <span class="s1">&#39;USD/yr&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;Working capital&#39;</span><span class="p">:</span> <span class="s1">&#39;USD&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;Utility cost&#39;</span><span class="p">:</span> <span class="s1">&#39;USD/yr&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;Material cost&#39;</span><span class="p">:</span> <span class="s1">&#39;USD/yr&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;Sales&#39;</span><span class="p">:</span> <span class="s1">&#39;USD/yr&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;Labor&#39;</span><span class="p">:</span> <span class="s1">&#39;USD/yr&#39;</span><span class="p">}</span>
-
 
 <span class="c1"># %% Techno-Economic Analysis</span>
 
@@ -132,10 +118,10 @@
 <span class="sd">            </span>
 <span class="sd">        **Examples**</span>
 <span class="sd">        </span>
-<span class="sd">            :doc:`TEA Example` </span>
+<span class="sd">            :doc:`Techno-economic analysis of a biorefinery` </span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;results&#39;</span><span class="p">,</span> <span class="s1">&#39;system&#39;</span><span class="p">,</span> <span class="s1">&#39;cashflow&#39;</span><span class="p">,</span> <span class="s1">&#39;_cached&#39;</span><span class="p">,</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;_results&#39;</span><span class="p">,</span> <span class="s1">&#39;system&#39;</span><span class="p">,</span> <span class="s1">&#39;cashflow&#39;</span><span class="p">,</span> <span class="s1">&#39;_cached&#39;</span><span class="p">,</span>
                  <span class="s1">&#39;_options&#39;</span><span class="p">,</span> <span class="s1">&#39;_IRR_guess&#39;</span><span class="p">,</span> <span class="s1">&#39;_cost_guess&#39;</span><span class="p">,</span>
                  <span class="s1">&#39;_costs&#39;</span><span class="p">)</span>
     
@@ -162,6 +148,19 @@
                 <span class="s1">&#39;Startup schedule&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">),</span>
                 <span class="s1">&#39;Other recurring costs&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
                 <span class="s1">&#39;Other fixed capital&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+    
+    <span class="n">_results_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Pay back period&#39;</span><span class="p">:</span> <span class="s1">&#39;yr&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;Return on investment&#39;</span><span class="p">:</span> <span class="s1">&#39;1/yr&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;Net present value&#39;</span><span class="p">:</span> <span class="s1">&#39;USD&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;Fixed capital investment&#39;</span><span class="p">:</span> <span class="s1">&#39;USD&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;Total capital investment&#39;</span><span class="p">:</span> <span class="s1">&#39;USD&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;Depreciation&#39;</span><span class="p">:</span> <span class="s1">&#39;USD/yr&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;Annual operating cost&#39;</span><span class="p">:</span> <span class="s1">&#39;USD/yr&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;Working capital&#39;</span><span class="p">:</span> <span class="s1">&#39;USD&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;Utility cost&#39;</span><span class="p">:</span> <span class="s1">&#39;USD/yr&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;Material cost&#39;</span><span class="p">:</span> <span class="s1">&#39;USD/yr&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;Sales&#39;</span><span class="p">:</span> <span class="s1">&#39;USD/yr&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;Labor&#39;</span><span class="p">:</span> <span class="s1">&#39;USD/yr&#39;</span><span class="p">}</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">options</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -203,7 +202,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span> <span class="o">=</span> <span class="p">{}</span>
         
         <span class="c1">#: [dict] Summarized results of cash flow analysis</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="n">SmartBook</span><span class="p">(</span><span class="n">_results_units</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_results</span> <span class="o">=</span> <span class="p">{}</span>
         
         <span class="c1">#: [DataFrame] Cash flow table</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cashflow</span> <span class="o">=</span> <span class="kc">None</span>
@@ -219,6 +218,19 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_costs</span> <span class="o">=</span> <span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">_totalcosts</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">]</span>
         
         <span class="n">system</span><span class="o">.</span><span class="n">_TEA</span> <span class="o">=</span> <span class="bp">self</span>
+
+<div class="viewcode-block" id="TEA.results"><a class="viewcode-back" href="../../TEA.html#biosteam.TEA.results">[docs]</a>    <span class="k">def</span> <span class="nf">results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_units</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return results of techno-economic analysis as a DataFrame object if `with_units` is True or as a Series otherwise.&quot;&quot;&quot;</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">addkey</span> <span class="o">=</span> <span class="n">keys</span><span class="o">.</span><span class="n">append</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">addval</span> <span class="o">=</span> <span class="n">vals</span><span class="o">.</span><span class="n">append</span>
+        <span class="k">if</span> <span class="n">with_units</span><span class="p">:</span>
+            <span class="n">results_units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results_units</span>
+            <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">addkey</span><span class="p">(</span><span class="n">ki</span><span class="p">)</span>
+                <span class="n">addval</span><span class="p">((</span><span class="n">results_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ki</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="n">vi</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;Units&#39;</span><span class="p">,</span> <span class="s1">&#39;Value&#39;</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="TEA.NPV"><a class="viewcode-back" href="../../TEA.html#biosteam.TEA.NPV">[docs]</a>    <span class="k">def</span> <span class="nf">NPV</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Calculate NPV by cash flow analysis and update the &quot;results&quot; and &quot;cashflow&quot; attributes.&quot;&quot;&quot;</span>
@@ -426,7 +438,7 @@
         <span class="n">ROI</span> <span class="o">=</span> <span class="n">net_earnings</span><span class="o">/</span><span class="n">TCI</span>
         <span class="n">PBP</span> <span class="o">=</span> <span class="n">FCI</span><span class="o">/</span><span class="p">(</span><span class="n">net_earnings</span> <span class="o">+</span> <span class="n">D</span><span class="p">)</span>
         
-        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span>
         <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Fixed capital investment&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">FCI</span>
         <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Working capital&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">WC</span>
         <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Total capital investment&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">TCI</span>
@@ -542,7 +554,7 @@
         <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{self.system.ID}</span><span class="s1">&gt;&#39;</span>
     
     <span class="k">def</span> <span class="nf">_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span>
         <span class="n">out</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;{type(self).__name__}: </span><span class="si">{self.system.ID}</span><span class="se">\n</span><span class="s1">&#39;</span>
         <span class="n">IRR</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;IRR&#39;</span><span class="p">]</span><span class="o">*</span><span class="mi">100</span>
         <span class="k">if</span> <span class="n">r</span><span class="p">:</span>
