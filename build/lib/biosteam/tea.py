@@ -6,7 +6,6 @@ Created on Mon Feb  4 19:38:37 2019
 """
 
 from . import pd, np
-from bookkeep import SmartBook
 from scipy.optimize import newton
 from biosteam.utils import CS
 
@@ -52,19 +51,6 @@ _cashflow_columns = ('Depreciable capital',
                      'Discounted cash flow',
                      'Cumulative cash flow')
 
-_results_units = {'Pay back period': 'yr',
-                  'Return on investment': '1/yr',
-                  'Net present value': 'USD',
-                  'Fixed capital investment': 'USD',
-                  'Total capital investment': 'USD',
-                  'Depreciation': 'USD/yr',
-                  'Annual operating cost': 'USD/yr',
-                  'Working capital': 'USD',
-                  'Utility cost': 'USD/yr',
-                  'Material cost': 'USD/yr',
-                  'Sales': 'USD/yr',
-                  'Labor': 'USD/yr'}
-
 
 # %% Techno-Economic Analysis
 
@@ -77,10 +63,10 @@ class TEA:
             
         **Examples**
         
-            :doc:`TEA Example` 
+            :doc:`Techno-economic analysis of a biorefinery` 
     
     """
-    __slots__ = ('results', 'system', 'cashflow', '_cached',
+    __slots__ = ('_results', 'system', 'cashflow', '_cached',
                  '_options', '_IRR_guess', '_cost_guess',
                  '_costs')
     
@@ -107,6 +93,19 @@ class TEA:
                 'Startup schedule': (0.4, 0.6),
                 'Other recurring costs': 0,
                 'Other fixed capital': 0}
+    
+    _results_units = {'Pay back period': 'yr',
+                      'Return on investment': '1/yr',
+                      'Net present value': 'USD',
+                      'Fixed capital investment': 'USD',
+                      'Total capital investment': 'USD',
+                      'Depreciation': 'USD/yr',
+                      'Annual operating cost': 'USD/yr',
+                      'Working capital': 'USD',
+                      'Utility cost': 'USD/yr',
+                      'Material cost': 'USD/yr',
+                      'Sales': 'USD/yr',
+                      'Labor': 'USD/yr'}
     
     @property
     def options(self):
@@ -148,7 +147,7 @@ class TEA:
         self._cached = {}
         
         #: [dict] Summarized results of cash flow analysis
-        self.results = SmartBook(_results_units)
+        self._results = {}
         
         #: [DataFrame] Cash flow table
         self.cashflow = None
@@ -164,6 +163,19 @@ class TEA:
         self._costs = [u._totalcosts for u in units]
         
         system._TEA = self
+
+    def results(self, with_units=True):
+        """Return results of techno-economic analysis as a DataFrame object if `with_units` is True or as a Series otherwise."""
+        keys = []; addkey = keys.append
+        vals = []; addval = vals.append
+        if with_units:
+            results_units = self._results_units
+            for ki, vi in self._results.items():
+                addkey(ki)
+                addval((results_units.get(ki, ''), vi))
+            return pd.DataFrame(vals, keys, ('Units', 'Value'))
+        else:
+            return pd.Series(self._results)
 
     def NPV(self):
         """Calculate NPV by cash flow analysis and update the "results" and "cashflow" attributes."""
@@ -371,7 +383,7 @@ class TEA:
         ROI = net_earnings/TCI
         PBP = FCI/(net_earnings + D)
         
-        r = self.results
+        r = self._results
         r['Fixed capital investment'] = FCI
         r['Working capital'] = WC
         r['Total capital investment'] = TCI
@@ -487,7 +499,7 @@ class TEA:
         return f'<{type(self).__name__}: {self.system.ID}>'
     
     def _info(self):
-        r = self.results
+        r = self._results
         out = f'{type(self).__name__}: {self.system.ID}\n'
         IRR = self.options['IRR']*100
         if r:

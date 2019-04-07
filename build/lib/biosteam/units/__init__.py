@@ -47,6 +47,16 @@ __all__.extend(flash.__all__)
 
 # %% Enhance Graphics
 
+# Mixer
+_mixgraphics = Mixer._graphics
+_mixgraphics.edge_in = _mixgraphics.edge_in * 3
+_mixgraphics.edge_out = _mixgraphics.edge_out * 3
+
+# MixTank
+_mixgraphics = MixTank._graphics
+_mixgraphics.edge_in = _mixgraphics.edge_in * 3
+_mixgraphics.edge_out = _mixgraphics.edge_out * 3
+
 # Flash
 edge_out = Flash._graphics.edge_out
 edge_out[0]['tailport'] = 'n'
@@ -82,15 +92,16 @@ def HXutility_node(hx):
         graphics = hx._graphics
         if Ti > To or (gi and lo):
             graphics.node['fillcolor'] = '#cfecf0'
-            graphics.name = 'Cooling'
+            name = 'Cooling'
         elif Ti < To or (li and go):
             graphics.node['fillcolor'] = '#fad6d8'
-            graphics.name = 'Heating'
+            name = 'Heating'
         else:
             graphics.node['fillcolor'] = '#cfecf0:#fad6d8'
     except:
         graphics = hx._graphics
-        graphics.name = 'Heat exchange'
+        name = 'Heat exchange'
+    return name
 
 graphics.node_function = HXutility_node
 

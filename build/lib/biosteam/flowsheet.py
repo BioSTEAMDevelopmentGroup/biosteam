@@ -29,27 +29,26 @@ def make_digraph(units, streams=None):
     # Set up unit nodes
     U = {}  # Contains units by ID
     UD = {}  # Contains full description (ID and line) by ID
-    for unit in units:
-        unit._link_streams()
-        graphics = unit._graphics
+    for u in units:
+        u._link_streams()
+        graphics = u._graphics
         if not graphics.in_system:
             continue  # Ignore Unit
         
         # Initialize graphics and make Unit node with attributes
-        graphics.node_function(unit)
-        Type = graphics.name if graphics.name else unit.line
-        name = unit.ID + '\n' + Type
-        f.attr('node', **unit._graphics.node)
+        Type = graphics.node_function(u) or u.line
+        name = u.ID + '\n' + Type
+        f.attr('node', **u._graphics.node)
         f.node(name)
-        U[unit.ID] = unit
-        UD[unit.ID] = name
+        U[u.ID] = u
+        UD[u.ID] = name
         
     keys = UD.keys()
 
     # Set attributes for graph and streams
     f.attr('node', shape='rarrow', fillcolor='#79dae8',
            style='filled', orientation='0', width='0.6',
-           height='0.6', color='black')
+           height='0.6', color='black', peripheries='1')
     f.attr('graph', splines='normal', overlap='orthoyx',
            outputorder='edgesfirst', nodesep='0.15', maxiter='1000000')
     f.attr('edge', dir='foward')
@@ -134,9 +133,6 @@ class Flowsheet:
         #: [dict] Dictionary of streams
         self.stream = {}
         
-        # #: [bool] True if flowsheet is contantly rendered
-        # self.live = True
-        
         #: [dict] All flowsheets
         self._flowsheets[ID] = self
     
@@ -147,7 +143,9 @@ class Flowsheet:
     
     def diagram(self):
         """Display all units and attached streams."""
-        img = make_digraph(self.unit.values()).pipe('png')
+        units = list(self.unit.values())
+        units.reverse()
+        img = make_digraph(units).pipe('png')
         display.display(display.Image(img))
     
     def __call__(self, item_ID) -> 'item':
@@ -225,6 +223,11 @@ def stream_connector(upstream, downstream):
         downstream.P = upstream.P
         downstream.phase = upstream.phase
     return connect
+
+
+        
+    # #: [bool] True if flowsheet is contantly rendered
+    # self.live = True
 
 # def _show_once(self):
     #     fig = plt.figure()

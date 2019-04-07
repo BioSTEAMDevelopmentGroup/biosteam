@@ -484,6 +484,7 @@ class Unit(metaclass=metaUnit):
         ID = self.ID
         keys = []; addkey = keys.append
         vals = []; addval = vals.append
+        include_GHG = hasattr(self, '_totalGHG')
         if with_units:
             if self._power_utility:
                 i = self._power_utility
@@ -502,7 +503,8 @@ class Unit(metaclass=metaUnit):
             units = self._units
             results = self._results.copy()
             Cost = results.pop('Cost')
-            GHG = results.pop('GHG') if 'GHG' in results else None
+            if include_GHG:
+                GHG = results.pop('GHG') if 'GHG' in results else None
             for ko, vo in results.items():
                 for ki, vi in vo.items():
                     addkey((ko, ki))
@@ -515,19 +517,18 @@ class Unit(metaclass=metaUnit):
             addval(('USD', capital))
             addkey(('Utility cost', ''))
             addval(('USD/hr', utility))
-            if GHG:
+            if include_GHG:
+                a, b = self._totalGHG
+                GHG_units =  self._GHG_units
                 for ko, vo in GHG.items():
                     for ki, vi in vo.items():
                         addkey((ko, ki))
-                        addval((units.get(ki, ''), vi))
-            if hasattr(self, '_totalGHG'):
-                a, b = self._totalGHG
-                units_dict = self._totalGHG_units
-                a_key, b_key = units_dict.keys()
-                a_unit, b_unit = units_dict.values()
-                addkey((a_key, ''))
+                        addval((GHG_units.get(ko, ''), vi))
+                a_key, b_key = GHG_units.keys()
+                a_unit, b_unit = GHG_units.values()
+                addkey(('Total ' + a_key, ''))
                 addval((a_unit, a))
-                addkey((b_key, ''))
+                addkey(('Total ' + b_key, ''))
                 addval((b_unit, b))
             
             df = pd.DataFrame(vals,
@@ -550,7 +551,8 @@ class Unit(metaclass=metaUnit):
                     addval(i.duty)
                     addval(i.flow)
                     addval(i.cost)
-            GHG = results.pop('GHG') if 'GHG' in results else None
+            if include_GHG:
+                GHG = results.pop('GHG') if 'GHG' in results else None
             for ko, vo in results.items():
                 for ki, vi in vo.items():
                     addkey((ko, ki))
@@ -560,17 +562,17 @@ class Unit(metaclass=metaUnit):
             addval(capital)
             addkey(('Utility cost', ''))
             addval(utility)
-            if GHG:
+            if include_GHG:
+                GHG_units =  self._GHG_units
                 for ko, vo in GHG.items():
                     for ki, vi in vo.items():
                         addkey((ko, ki))
-                        addval((units.get(ki, ''), vi))
-            if hasattr(self, '_totalGHG'):
+                        addval(vi)
                 a, b = self._totalGHG
-                a_key, b_key = self._totalGHG_units.keys()
-                addkey((a_key, ''))
+                a_key, b_key = GHG_units.keys()
+                addkey(('Total ' + a_key, ''))
                 addval(a)
-                addkey((b_key, ''))
+                addkey(('Total ' + b_key, ''))
                 addval(b)
             series = pd.Series(vals, pd.MultiIndex.from_tuples(keys))
             series.name = ID

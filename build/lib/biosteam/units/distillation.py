@@ -307,7 +307,7 @@ class Dist(Unit):
         vap.mol[LNK_index] = LNK_mol
         liq.mol[HNK_index] = HNK_mol
     
-    def _run(self):        # Run mass balance
+    def _run(self):
         self._mass_balance()
         
         # Unpack arguments
@@ -754,7 +754,7 @@ class Distillation(Dist):
     __doc__ = column_doc.replace('{Column Type}', 'Distillation')
     _N_heat_utilities = 0
     _graphics = Dist._graphics
-    _is_divided = False #: [bool] True if the stripper and rectifier are two separate columns.    
+    _is_divided = False #: [bool] True if the stripper and rectifier are two separate columns.
     _units_not_divided = {'Minimum reflux': 'Ratio',
                           'Reflux': 'Ratio',
                           'Rectifier height': 'ft',
@@ -1019,7 +1019,6 @@ class Distillation(Dist):
         
     def _cost(self):
         if not self.is_divided: return super()._cost()
-        
         Design = self._results['Design']
         Cost = self._results['Cost']
         

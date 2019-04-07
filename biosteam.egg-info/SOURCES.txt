@@ -30,6 +30,7 @@ biosteam/inspect/separation.py
 biosteam/price/__init__.py
 biosteam/price/utilities.py
 biosteam/report/__init__.py
+biosteam/report/diagram.png
 biosteam/report/plot.py
 biosteam/report/table.py
 biosteam/sim/__init__.py

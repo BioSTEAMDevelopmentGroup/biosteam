@@ -4,6 +4,7 @@ Created on Sat Nov 17 09:48:34 2018
 
 @author: yoelr
 """
+from warnings import warn
 from ..stream import Stream, mol_flow_dim, mass_flow_dim, vol_flow_dim
 from .. import Q_, pd, np
 from ..exceptions import DimensionError
@@ -13,7 +14,8 @@ DataFrame = pd.DataFrame
 ExcelWriter = pd.ExcelWriter
 
 __all__ = ('stream_table', 'cost_table', 'save_system_results',
-           'results_table', 'heat_utilities_table', 'power_utilities_table')
+           'save_report', 'results_table', 'heat_utilities_table',
+           'power_utilities_table')
 
 def _stream_key(s):
     num = s.ID[1:]
@@ -36,7 +38,7 @@ def _units_sort_by_cost(units):
         units += ulist
     return units
 
-def save(tables, writer, sheet_name='Sheet1', n_row=1):
+def _save(tables, writer, sheet_name='Sheet1', n_row=1):
     """Save a list of tables as an excel file.
     
     **Parameters**
@@ -56,18 +58,36 @@ def save(tables, writer, sheet_name='Sheet1', n_row=1):
 
 # %% Units
 
-def save_system_results(system, file='report.xlsx', **stream_properties):
-    """Save a system table as an xlsx file."""
+def save_report(system, file='report.xlsx', **stream_properties):
+    """Save a system report as an xlsx file.
+    
+    **Parameters**
+    
+        **file:** [str] File name to save report
+    
+        ****stream_properties:** [str] Additional stream properties and units as key-value pairs (e.g. T='degC', flow='gpm', H='kW', etc..)
+        
+    """
     writer = ExcelWriter(file)
     units = list(system._costunits)
     system.diagram('thorough', file='diagram.png')
     flowsheet = writer.book.add_worksheet('Flowsheet')
     flowsheet.insert_image('A1', 'diagram.png')
     
-    # Cost table
-    cost = cost_table(system)
-    cost.to_excel(writer, 'Itemized costs', 
-                  index_label=cost.columns.name)
+    if system._TEA:
+        # Cost table
+        cost = cost_table(system)
+        cost.to_excel(writer, 'Itemized costs')
+        
+        # Cash flow
+        TEA = system._TEA
+        TEA.cashflow.to_excel(writer, 'Cash flow')
+        
+        # TEA
+        TEA.results().to_excel(writer, 'Techno-Economic Analysis')
+    else:
+        warn(RuntimeWarning(f'Cannot find TEA object in {repr(system)}. Ignoring TEA sheets.'), stacklevel=2)
+    
     
     # Stream tables
     # Organize streams by species first
@@ -79,11 +99,11 @@ def save_system_results(system, file='report.xlsx', **stream_properties):
     streamtables = []
     for streams in streams_by_species.values():
         streamtables.append(stream_table(streams, **stream_properties))
-    save(streamtables, writer, 'Stream table')
+    _save(streamtables, writer, 'Stream table')
     
     # Heat utility tables
     heat_utilities = heat_utilities_table(units)
-    n_row = save(heat_utilities, writer, 'Utilities')
+    n_row = _save(heat_utilities, writer, 'Utilities')
     
     # Power utility table
     power_utility = power_utilities_table(units)
@@ -93,9 +113,11 @@ def save_system_results(system, file='report.xlsx', **stream_properties):
     
     # General desing requirements
     results = results_table(units)
-    save(results, writer, 'Design requirements')
+    _save(results, writer, 'Design requirements')
     writer.save()
     os.remove("diagram.png")
+
+save_system_results = save_report
 
 def results_table(units):
     """Return a list of results tables for each unit type.

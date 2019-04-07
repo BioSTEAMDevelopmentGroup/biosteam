@@ -12,8 +12,8 @@ __all__ = ('Graphics',)
 
 # %%
 
-_edge_in = [{'headport': 'c'} for i in range(15)]
-_edge_out = [{'tailport': 'c'} for i in range(15)]
+_edge_in = [{'headport': 'c'} for i in range(3)]
+_edge_out = [{'tailport': 'c'} for i in range(3)]
 _node = {'shape': 'box',
          'fillcolor': "white:#CDCDCD",
          'style': 'filled',
@@ -42,21 +42,5 @@ class Graphics:
         self.node_function = node_function
         self.name = None
         Graphics._all.append(weakref.ref(self))
-
-    def default(self):
-        """Set all attribute to default attributes"""
-        self.edge_in = copy.deepcopy(_edge_in)
-        self.edge_out = copy.deepcopy(_edge_out)
-        self.node = copy.deepcopy(_node)
-        self.node_function = lambda unit: None
-
-    @staticmethod
-    def default_all():
-        """Set attributes of all objects in this class to default"""
-        for ref in Graphics._all:
-            ref = ref()
-            if ref is None: del ref
-            else: ref.default()
-
 
 default_graphics = Graphics()

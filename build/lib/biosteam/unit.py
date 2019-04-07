@@ -94,7 +94,7 @@ class metaUnit(type):
     _enforce_bounds = True
     _CEPCI = 567.5 # Chemical engineering plant cost index (567.5 at 2017)
     def __new__(mcl, clsname, superclasses, new_definitions):
-        """Prepare unit methods with wrappers for error notification, and add kwargs as key word arguments to __init__. Also initiallize by adding new Unit class to the main flowsheet line dictionary."""
+        """Prepare unit methods with wrappers for error notification, and add _kwargs as key word arguments to __init__. """
 
         if not _Unit_is_done:
             # Abstract Unit class
@@ -254,7 +254,7 @@ class Unit(metaclass=metaUnit):
         
         :doc:`Using -pipe- notation`
         
-        :doc:`Subclassing a Unit`
+        :doc:`Inheriting from Unit`
     
     """ 
     ### Abstract Attributes ###
@@ -265,10 +265,10 @@ class Unit(metaclass=metaUnit):
     # [bool] Should be True if it has any associated cost
     _has_cost = True
     
-    # [int or None] Expected number of input streams
+    # [int] Expected number of input streams
     _N_ins = 1  
     
-    # [int or None] Expected number of output streams
+    # [int] Expected number of output streams
     _N_outs = 2  
     
     # [Bool] True if outs are proxy streams linked to ins
@@ -298,7 +298,7 @@ class Unit(metaclass=metaUnit):
     ### Other defaults ###
 
     # [list] Default ID starting letter and number
-    _default_ID = ['U', 0]
+    _default_ID = ['U', 1]
     
     # Default ID
     _ID = None 
@@ -467,7 +467,7 @@ class Unit(metaclass=metaUnit):
 
     # Summary
     def _summary(self):
-        """Run _operation, _design, and _cost methods and update purchase price and total utility costs."""
+        """Run _design, and _cost methods and update purchase price and total utility costs."""
         self._design()
         self._cost()
         self._totalcosts[:] = sum(self._purchase_costs), sum(i.cost for i in self._utils)
@@ -484,6 +484,7 @@ class Unit(metaclass=metaUnit):
         ID = self.ID
         keys = []; addkey = keys.append
         vals = []; addval = vals.append
+        include_GHG = hasattr(self, '_totalGHG')
         if with_units:
             if self._power_utility:
                 i = self._power_utility
@@ -502,7 +503,8 @@ class Unit(metaclass=metaUnit):
             units = self._units
             results = self._results.copy()
             Cost = results.pop('Cost')
-            GHG = results.pop('GHG') if 'GHG' in results else None
+            if include_GHG:
+                GHG = results.pop('GHG') if 'GHG' in results else None
             for ko, vo in results.items():
                 for ki, vi in vo.items():
                     addkey((ko, ki))
@@ -515,19 +517,18 @@ class Unit(metaclass=metaUnit):
             addval(('USD', capital))
             addkey(('Utility cost', ''))
             addval(('USD/hr', utility))
-            if GHG:
+            if include_GHG:
+                a, b = self._totalGHG
+                GHG_units =  self._GHG_units
                 for ko, vo in GHG.items():
                     for ki, vi in vo.items():
                         addkey((ko, ki))
-                        addval((units.get(ki, ''), vi))
-            if hasattr(self, '_totalGHG'):
-                a, b = self._totalGHG
-                units_dict = self._totalGHG_units
-                a_key, b_key = units_dict.keys()
-                a_unit, b_unit = units_dict.values()
-                addkey((a_key, ''))
+                        addval((GHG_units.get(ko, ''), vi))
+                a_key, b_key = GHG_units.keys()
+                a_unit, b_unit = GHG_units.values()
+                addkey(('Total ' + a_key, ''))
                 addval((a_unit, a))
-                addkey((b_key, ''))
+                addkey(('Total ' + b_key, ''))
                 addval((b_unit, b))
             
             df = pd.DataFrame(vals,
@@ -550,7 +551,8 @@ class Unit(metaclass=metaUnit):
                     addval(i.duty)
                     addval(i.flow)
                     addval(i.cost)
-            GHG = results.pop('GHG') if 'GHG' in results else None
+            if include_GHG:
+                GHG = results.pop('GHG') if 'GHG' in results else None
             for ko, vo in results.items():
                 for ki, vi in vo.items():
                     addkey((ko, ki))
@@ -560,17 +562,17 @@ class Unit(metaclass=metaUnit):
             addval(capital)
             addkey(('Utility cost', ''))
             addval(utility)
-            if GHG:
+            if include_GHG:
+                GHG_units =  self._GHG_units
                 for ko, vo in GHG.items():
                     for ki, vi in vo.items():
                         addkey((ko, ki))
-                        addval((units.get(ki, ''), vi))
-            if hasattr(self, '_totalGHG'):
+                        addval(vi)
                 a, b = self._totalGHG
-                a_key, b_key = self._totalGHG_units.keys()
-                addkey((a_key, ''))
+                a_key, b_key = GHG_units.keys()
+                addkey(('Total ' + a_key, ''))
                 addval(a)
-                addkey((b_key, ''))
+                addkey(('Total ' + b_key, ''))
                 addval(b)
             series = pd.Series(vals, pd.MultiIndex.from_tuples(keys))
             series.name = ID
@@ -727,8 +729,7 @@ class Unit(metaclass=metaUnit):
             f.attr('graph', nodesep='0.4')
 
         # Initialize node arguments based on unit and make node
-        graphics.node_function(self)
-        type_ = graphics.name if graphics.name else self.line
+        type_ = graphics.node_function(self) or self.line
         name = self.ID + '\n' + type_
         f.attr('node', **self._graphics.node)
         f.node(name)
@@ -736,7 +737,7 @@ class Unit(metaclass=metaUnit):
         # Set stream node attributes
         f.attr('node', shape='rarrow', fillcolor='#79dae8',
                style='filled', orientation='0', width='0.6',
-               height='0.6', color='black')
+               height='0.6', color='black', peripheries='1')
 
         # Make nodes and edges for input streams
         di = 0  # Destination position of stream
