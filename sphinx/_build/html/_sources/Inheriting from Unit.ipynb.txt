@@ -51,7 +51,7 @@
     "\n",
     "* `_design()`: Called after System convergence to find design requirements. \n",
     "\n",
-    "* `_cost()`: Called after System convergence to find cost requirements.\n",
+    "* `_cost()`: Called after `_design` to find cost requirements.\n",
     "\n",
     "**These abstract methods will rely on the following instance attributes:**\n",
     "\n",
@@ -397,7 +397,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "All [graphviz](https://graphviz.readthedocs.io/en/stable/manual.html) attributes to generate a diagram are stored in `_graphics` as Graphics object. One Graphics object is generated for each Unit subclass:"
+    "All [graphviz](https://graphviz.readthedocs.io/en/stable/manual.html) attributes for generating a diagram are stored in `_graphics` as a Graphics object. One Graphics object is generated for each Unit subclass:"
    ]
   },
   {
@@ -451,7 +451,9 @@
     }
    ],
    "source": [
-    "edge_out # Attributes correspond to each outs stream respectively"
+    "# Attributes correspond to each outs stream respectively\n",
+    "# For example: Attributes for B1.outs[0] would correspond to edge_out[0]\n",
+    "edge_out"
    ]
   },
   {

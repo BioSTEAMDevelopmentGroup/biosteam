@@ -282,8 +282,7 @@ and check <code class="docutils literal notranslate"><span class="pre">_kwargs</
 streams.</li>
 <li><code class="docutils literal notranslate"><span class="pre">_design()</span></code>: Called after System convergence to find design
 requirements.</li>
-<li><code class="docutils literal notranslate"><span class="pre">_cost()</span></code>: Called after System convergence to find cost
-requirements.</li>
+<li><code class="docutils literal notranslate"><span class="pre">_cost()</span></code>: Called after <code class="docutils literal notranslate"><span class="pre">_design</span></code> to find cost requirements.</li>
 </ul>
 <p><strong>These abstract methods will rely on the following instance
 attributes:</strong></p>
@@ -590,8 +589,9 @@ Boiler: B1
 <div class="section" id="Graphviz-attributes">
 <h2>Graphviz attributes<a class="headerlink" href="#Graphviz-attributes" title="Permalink to this headline">¶</a></h2>
 <p>All <a class="reference external" href="https://graphviz.readthedocs.io/en/stable/manual.html">graphviz</a>
-attributes to generate a diagram are stored in <code class="docutils literal notranslate"><span class="pre">_graphics</span></code> as Graphics
-object. One Graphics object is generated for each Unit subclass:</p>
+attributes for generating a diagram are stored in <code class="docutils literal notranslate"><span class="pre">_graphics</span></code> as a
+Graphics object. One Graphics object is generated for each Unit
+subclass:</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [6]:
@@ -633,7 +633,9 @@ object. One Graphics object is generated for each Unit subclass:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">edge_out</span> <span class="c1"># Attributes correspond to each outs stream respectively</span>
+<span></span><span class="c1"># Attributes correspond to each outs stream respectively</span>
+<span class="c1"># For example: Attributes for B1.outs[0] would correspond to edge_out[0]</span>
+<span class="n">edge_out</span>
 </pre></div>
 </div>
 </div>

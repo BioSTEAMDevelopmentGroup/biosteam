@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-As BioSTEAM objects are created, they are automatically registered. `find` is a MainFlowsheet object that allows the user to find any Unit, Stream or System instance.  When `find` is called, it simply looks up the item and returns it. 
+As BioSTEAM objects are created, they are automatically registered. The `find` object allows the user to find any Unit, Stream or System instance.  When `find` is called, it simply looks up the item and returns it. 
 
 :doc:`Find unit operations and manage flowsheets` 
 
