@@ -539,6 +539,7 @@
         <span class="n">ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span>
         <span class="n">keys</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">addkey</span> <span class="o">=</span> <span class="n">keys</span><span class="o">.</span><span class="n">append</span>
         <span class="n">vals</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">addval</span> <span class="o">=</span> <span class="n">vals</span><span class="o">.</span><span class="n">append</span>
+        <span class="n">include_GHG</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_totalGHG&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">with_units</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span><span class="p">:</span>
                 <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span>
@@ -557,7 +558,8 @@
             <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units</span>
             <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
             <span class="n">Cost</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;Cost&#39;</span><span class="p">)</span>
-            <span class="n">GHG</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;GHG&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="s1">&#39;GHG&#39;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">include_GHG</span><span class="p">:</span>
+                <span class="n">GHG</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;GHG&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="s1">&#39;GHG&#39;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="kc">None</span>
             <span class="k">for</span> <span class="n">ko</span><span class="p">,</span> <span class="n">vo</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span> <span class="ow">in</span> <span class="n">vo</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                     <span class="n">addkey</span><span class="p">((</span><span class="n">ko</span><span class="p">,</span> <span class="n">ki</span><span class="p">))</span>
@@ -570,19 +572,18 @@
             <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;USD&#39;</span><span class="p">,</span> <span class="n">capital</span><span class="p">))</span>
             <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Utility cost&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
             <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;USD/hr&#39;</span><span class="p">,</span> <span class="n">utility</span><span class="p">))</span>
-            <span class="k">if</span> <span class="n">GHG</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">include_GHG</span><span class="p">:</span>
+                <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_totalGHG</span>
+                <span class="n">GHG_units</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">_GHG_units</span>
                 <span class="k">for</span> <span class="n">ko</span><span class="p">,</span> <span class="n">vo</span> <span class="ow">in</span> <span class="n">GHG</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                     <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span> <span class="ow">in</span> <span class="n">vo</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                         <span class="n">addkey</span><span class="p">((</span><span class="n">ko</span><span class="p">,</span> <span class="n">ki</span><span class="p">))</span>
-                        <span class="n">addval</span><span class="p">((</span><span class="n">units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ki</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="n">vi</span><span class="p">))</span>
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_totalGHG&#39;</span><span class="p">):</span>
-                <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_totalGHG</span>
-                <span class="n">units_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_totalGHG_units</span>
-                <span class="n">a_key</span><span class="p">,</span> <span class="n">b_key</span> <span class="o">=</span> <span class="n">units_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
-                <span class="n">a_unit</span><span class="p">,</span> <span class="n">b_unit</span> <span class="o">=</span> <span class="n">units_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
-                <span class="n">addkey</span><span class="p">((</span><span class="n">a_key</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+                        <span class="n">addval</span><span class="p">((</span><span class="n">GHG_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ko</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="n">vi</span><span class="p">))</span>
+                <span class="n">a_key</span><span class="p">,</span> <span class="n">b_key</span> <span class="o">=</span> <span class="n">GHG_units</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+                <span class="n">a_unit</span><span class="p">,</span> <span class="n">b_unit</span> <span class="o">=</span> <span class="n">GHG_units</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+                <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Total &#39;</span> <span class="o">+</span> <span class="n">a_key</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
                 <span class="n">addval</span><span class="p">((</span><span class="n">a_unit</span><span class="p">,</span> <span class="n">a</span><span class="p">))</span>
-                <span class="n">addkey</span><span class="p">((</span><span class="n">b_key</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+                <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Total &#39;</span> <span class="o">+</span> <span class="n">b_key</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
                 <span class="n">addval</span><span class="p">((</span><span class="n">b_unit</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span>
             
             <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span>
@@ -605,7 +606,8 @@
                     <span class="n">addval</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">duty</span><span class="p">)</span>
                     <span class="n">addval</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">flow</span><span class="p">)</span>
                     <span class="n">addval</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">cost</span><span class="p">)</span>
-            <span class="n">GHG</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;GHG&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="s1">&#39;GHG&#39;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">include_GHG</span><span class="p">:</span>
+                <span class="n">GHG</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;GHG&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="s1">&#39;GHG&#39;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="kc">None</span>
             <span class="k">for</span> <span class="n">ko</span><span class="p">,</span> <span class="n">vo</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span> <span class="ow">in</span> <span class="n">vo</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                     <span class="n">addkey</span><span class="p">((</span><span class="n">ko</span><span class="p">,</span> <span class="n">ki</span><span class="p">))</span>
@@ -615,17 +617,17 @@
             <span class="n">addval</span><span class="p">(</span><span class="n">capital</span><span class="p">)</span>
             <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Utility cost&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
             <span class="n">addval</span><span class="p">(</span><span class="n">utility</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">GHG</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">include_GHG</span><span class="p">:</span>
+                <span class="n">GHG_units</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">_GHG_units</span>
                 <span class="k">for</span> <span class="n">ko</span><span class="p">,</span> <span class="n">vo</span> <span class="ow">in</span> <span class="n">GHG</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                     <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span> <span class="ow">in</span> <span class="n">vo</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                         <span class="n">addkey</span><span class="p">((</span><span class="n">ko</span><span class="p">,</span> <span class="n">ki</span><span class="p">))</span>
-                        <span class="n">addval</span><span class="p">((</span><span class="n">units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ki</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="n">vi</span><span class="p">))</span>
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_totalGHG&#39;</span><span class="p">):</span>
+                        <span class="n">addval</span><span class="p">(</span><span class="n">vi</span><span class="p">)</span>
                 <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_totalGHG</span>
-                <span class="n">a_key</span><span class="p">,</span> <span class="n">b_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_totalGHG_units</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
-                <span class="n">addkey</span><span class="p">((</span><span class="n">a_key</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+                <span class="n">a_key</span><span class="p">,</span> <span class="n">b_key</span> <span class="o">=</span> <span class="n">GHG_units</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+                <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Total &#39;</span> <span class="o">+</span> <span class="n">a_key</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
                 <span class="n">addval</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
-                <span class="n">addkey</span><span class="p">((</span><span class="n">b_key</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+                <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Total &#39;</span> <span class="o">+</span> <span class="n">b_key</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
                 <span class="n">addval</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
             <span class="n">series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">(</span><span class="n">keys</span><span class="p">))</span>
             <span class="n">series</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">ID</span>
