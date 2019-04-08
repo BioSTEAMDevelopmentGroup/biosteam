@@ -107,7 +107,7 @@ class Fermentation(BatchReactor):
         self._N_reactors = N
 
     def _init(self):
-        self._cooler = hx = HXutility('*')
+        self._cooler = hx = HXutility(None)
         self._heat_utilities = hx._heat_utilities
     
     def _setup(self):

@@ -199,7 +199,7 @@ class Unit(metaclass=metaUnit):
 
     **Parameters**
 
-        **ID:** [str] Unique identification
+        **ID:** [str] A unique identification. If ID is an empty string (i.e. '' ), a default ID will be chosen. If ID is None, unit will not be registered in flowsheet.
 
         **outs:** tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.
         
@@ -309,19 +309,6 @@ class Unit(metaclass=metaUnit):
     ### Initialize ###
     
     def __init__(self, ID='', outs=(), ins=None, **kwargs):
-        """Initialize Unit object. See help(type(self)) for accurate signature.
-
-        **Parameters**
-
-            **ID:** [str] Unique identification
-
-            **outs:** tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.
-            
-            **ins:** tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.
-    
-            ****kwargs:** Keyword arguments that are accessed by setup, run, operation, design, and cost methods
-        
-        """
         self.ID = ID
         self._kwargs = kwargs
         self._init_ins(ins)
@@ -349,7 +336,7 @@ class Unit(metaclass=metaUnit):
         elif not ins:
             self._ins = Ins(self, (Stream('') for i in range(self._N_ins)))
         else:
-            self._ins = Ins(self, (Stream(i) if isinstance(i, str) else i for i in ins))
+            self._ins = Ins(self, (i if isinstance(i, Stream) else Stream(i) for i in ins))
     
     def _init_outs(self, outs):
         """Initialize output streams."""
@@ -364,8 +351,8 @@ class Unit(metaclass=metaUnit):
             elif isinstance(outs, str):
                 self._outs = Outs(self, ProxyStream(outs))
             else:
-                self._outs = Outs(self, (ProxyStream(o) if isinstance(o, str)
-                                         else ProxyStream.asproxy(o)
+                self._outs = Outs(self, (ProxyStream.asproxy(o) if isinstance(o, Stream)
+                                         else ProxyStream(o)
                                          for o in outs))
         else:
             if outs is None:
@@ -377,7 +364,7 @@ class Unit(metaclass=metaUnit):
             elif isinstance(outs, str):
                 self._outs = Outs(self, Stream(outs))
             else:
-                self._outs = Outs(self, (Stream(i) if isinstance(i, str) else i for i in outs))        
+                self._outs = Outs(self, (i if isinstance(i, Stream) else Stream(i) for i in outs))        
     
     def _init_results(self):
         """Initialize results attribute."""
@@ -595,28 +582,24 @@ class Unit(metaclass=metaUnit):
 
     @ID.setter
     def ID(self, ID):
+        unit = find.unit
+        ID_old = self._ID
+        if ID_old and ID_old in unit: del unit[ID_old]
         if ID == '':
             # Select a default ID if requested
-            Unit = type(self)
-            letter, number = Unit._default_ID
-            Unit._default_ID[1] += 1
+            letter, number = self._default_ID
+            self._default_ID[1] += 1
             ID = letter + str(number)
-            if not self._ID:
-                self._ID = ID
-                find.unit[ID] = self
-                return
-        elif ID == '*':
             self._ID = ID
+            unit[ID] = self
             return
-        elif any(i in ID for i in '`~!@#$%^&():'):
-            raise ValueError('ID cannot contain any of the following special characters: `~!@#$%^&():')
-        else:
+        elif ID:
             ID = ID.replace(' ', '_')
-        # Remove old reference to this object
-        unitdict = find.unit
-        if self._ID in unitdict: del unitdict[self._ID]
-        unitdict[ID] = self
-        self._ID = ID
+            ID_words = ID.split('_')
+            if not all(word.isalnum() for word in ID_words):
+                raise ValueError('ID cannot have any special characters')
+            unit[ID] = self
+            self._ID = ID
 
     # Input and output streams
     @property
@@ -895,8 +878,11 @@ class Unit(metaclass=metaUnit):
     # Representation
     def _info(self, **show_units):
         """Information on unit."""
-        info = (f'{type(self).__name__}: {self.ID}\n'
-              + f'{CS.dim("ins...")}\n')
+        if self.ID:
+            info = f'{type(self).__name__}: {self.ID}\n'
+        else:
+            info = f'{type(self).__name__}\n'
+        info+= f'{CS.dim("ins...")}\n'
         i = 0
         for stream in self.ins:
             stream_info = stream._info(**show_units)
@@ -930,9 +916,15 @@ class Unit(metaclass=metaUnit):
         print(self._info(**show_units))
     
     def __str__(self):
-        return self.ID
+        if self.ID:
+            return self.ID
+        else:
+            return type(self).__name__
 
     def __repr__(self):
-        return '<' + type(self).__name__ + ': ' + self.ID + '>'
+        if self.ID:
+            return f'<{type(self).__name__}: {self.ID}>'
+        else:
+            return f'<{type(self).__name__}>'
 
 _Unit_is_done = True

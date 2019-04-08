@@ -199,7 +199,7 @@ class Stream(metaclass=metaStream):
 
 **Parameters**
 
-    **ID:** [str] ID of the stream. If ID is '', a default ID will be chosen.
+    **ID:** [str] A unique identification. If ID is an empty string (i.e. '' ), a default ID will be chosen. If ID is None, stream will not be registered in flowsheet.
 
     **flow:** [tuple] All flow rates corresponding to `species`.
 
@@ -676,29 +676,24 @@ class Stream(metaclass=metaStream):
 
     @ID.setter
     def ID(self, ID):
+        stream = find.stream
+        ID_old = self._ID
+        if ID_old and ID_old in stream: del stream[ID_old]
         if ID == '':
             # Select a default ID if requested
             letter, number = self._default_ID
             self._default_ID[1] += 1
             num = str(number)
             ID = letter + num
-            if not self._ID:
-                self._ID = ID
-                find.stream[ID] = self
-                return 
-        elif ID == '*':
-            # Ignore and do not include in find dicts
             self._ID = ID
-            return
-        elif any(i in ID for i in '`~!@#$%^&():'):
-            raise ValueError('ID cannot contain any of the following special characters: `~!@#$%^&():')
-        else:
+            stream[ID] = self
+        elif ID:
             ID = ID.replace(' ', '_')
-        # Remove old ref and set a new ref
-        stream = find.stream
-        if self._ID in stream: del stream[self._ID]
-        stream[ID] = self
-        self._ID = ID
+            ID_words = ID.split('_')
+            if not all(word.isalnum() for word in ID_words):
+                raise ValueError('ID cannot have any special characters')
+            stream[ID] = self
+            self._ID = ID
 
     @property
     def cost(self):
@@ -1745,7 +1740,10 @@ class Stream(metaclass=metaStream):
             sink = ''
         else:
             sink = f'  to  {type(unit).__name__}-{unit}'
-        return f"{type(self).__name__}: {self.ID}{source}{sink}"
+        if self.ID:
+            return f"{type(self).__name__}: {self.ID}{source}{sink}"
+        else:
+            return f"{type(self).__name__}{source}{sink}"
 
     def _info_units(self, show_units):
         """Return unit format selection."""
@@ -1823,9 +1821,14 @@ class Stream(metaclass=metaStream):
         print(self._info(**show_units))
 
     def __str__(self):
-        return self.ID
+        if self.ID:
+            return self.ID
+        else:
+            return type(self).__name__
 
     def __repr__(self):
-        return f'<{type(self).__name__}: {self.ID}>'
-
+        if self.ID:
+            return f'<{type(self).__name__}: {self.ID}>'
+        else:
+            return f'<{type(self).__name__}>'
 from . import mixed_stream as MS

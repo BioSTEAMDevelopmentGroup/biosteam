@@ -782,16 +782,16 @@ class Distillation(Dist):
                       'Stripper weight': 'lb'}
     
     def _init(self):
-        self._condenser = HXutility('*',
-                                    ins=Stream('*', phase='g'),
-                                    outs=MixedStream('*'))
-        self._boiler = HXutility('*',
-                                 ins=Stream('*'),
-                                 outs=MixedStream('*'))
+        self._condenser = HXutility(None,
+                                    ins=Stream(None, phase='g'),
+                                    outs=MixedStream(None))
+        self._boiler = HXutility(None,
+                                 ins=Stream(None),
+                                 outs=MixedStream(None))
         self._heat_utilities = self._condenser._heat_utilities + self._boiler._heat_utilities
-        self._cached = {'condensate': Stream('*'),
-                        'boil_up': Stream('*'),
-                        'vapor stream': Stream('*')}
+        self._cached = {'condensate': Stream(None),
+                        'boil_up': Stream(None),
+                        'vapor stream': Stream(None)}
     
     @property
     def is_divided(self):
@@ -1099,11 +1099,11 @@ class Stripper(Dist):
              'Weight': 'lb'}
     
     def _init(self):
-        self._boiler = HXutility('*',
-                                 ins=Stream('*'),
-                                 outs=MixedStream('*'))
+        self._boiler = HXutility(None,
+                                 ins=Stream(None),
+                                 outs=MixedStream(None))
         self._heat_utilities = self._boiler._heat_utilities
-        self._cached = {'boil_up': Stream('*')}
+        self._cached = {'boil_up': Stream(None)}
     
     def plot_stages(self):
         # Plot stages, graphical aid and equilibrium curve
