@@ -23,7 +23,7 @@ class EnzymeTreatment(Unit):
     electricity_rate = 0.591
     
     def _init(self):
-        self._heat_exchanger = he = HXutility('*', None) 
+        self._heat_exchanger = he = HXutility(None, None) 
         self._heat_utilities = he._heat_utilities
         he._ins = self._ins
         he._outs = self._outs

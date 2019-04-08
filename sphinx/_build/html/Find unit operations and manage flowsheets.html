@@ -464,11 +464,11 @@ searching them would raise an error:</p>
 <span class="ansi-green-intense-fg ansi-bold">----&gt; 1</span><span class="ansi-yellow-intense-fg ansi-bold"> </span>bs<span class="ansi-yellow-intense-fg ansi-bold">.</span>find<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-blue-intense-fg ansi-bold">&#39;M0&#39;</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
 
 <span class="ansi-green-intense-fg ansi-bold">~\OneDrive\Code\biosteam\biosteam\flowsheet.py</span> in <span class="ansi-cyan-fg">__call__</span><span class="ansi-blue-intense-fg ansi-bold">(self, item_ID)</span>
-<span class="ansi-green-fg">    160</span>                <span class="ansi-green-intense-fg ansi-bold">or</span> self<span class="ansi-yellow-intense-fg ansi-bold">.</span>unit<span class="ansi-yellow-intense-fg ansi-bold">.</span>get<span class="ansi-yellow-intense-fg ansi-bold">(</span>item_ID<span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">    161</span>                or self.system.get(item_ID))
-<span class="ansi-green-intense-fg ansi-bold">--&gt; 162</span><span class="ansi-yellow-intense-fg ansi-bold">         </span><span class="ansi-green-intense-fg ansi-bold">if</span> <span class="ansi-green-intense-fg ansi-bold">not</span> obj<span class="ansi-yellow-intense-fg ansi-bold">:</span> <span class="ansi-green-intense-fg ansi-bold">raise</span> ValueError<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-blue-intense-fg ansi-bold">f&#34;No registered item &#39;{item_ID}&#39;&#34;</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">    163</span>         <span class="ansi-green-intense-fg ansi-bold">return</span> obj
-<span class="ansi-green-fg">    164</span>
+<span class="ansi-green-fg">    156</span>                <span class="ansi-green-intense-fg ansi-bold">or</span> self<span class="ansi-yellow-intense-fg ansi-bold">.</span>unit<span class="ansi-yellow-intense-fg ansi-bold">.</span>get<span class="ansi-yellow-intense-fg ansi-bold">(</span>item_ID<span class="ansi-yellow-intense-fg ansi-bold">)</span>
+<span class="ansi-green-fg">    157</span>                or self.system.get(item_ID))
+<span class="ansi-green-intense-fg ansi-bold">--&gt; 158</span><span class="ansi-yellow-intense-fg ansi-bold">         </span><span class="ansi-green-intense-fg ansi-bold">if</span> <span class="ansi-green-intense-fg ansi-bold">not</span> obj<span class="ansi-yellow-intense-fg ansi-bold">:</span> <span class="ansi-green-intense-fg ansi-bold">raise</span> ValueError<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-blue-intense-fg ansi-bold">f&#34;No registered item &#39;{item_ID}&#39;&#34;</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
+<span class="ansi-green-fg">    159</span>         <span class="ansi-green-intense-fg ansi-bold">return</span> obj
+<span class="ansi-green-fg">    160</span>
 
 <span class="ansi-red-intense-fg ansi-bold">ValueError</span>: No registered item &#39;M0&#39;
 </pre></div></div>
@@ -481,7 +481,7 @@ Switching between flowsheets is easy:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">mainflowsheet</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">flowsheets</span><span class="p">[</span><span class="s1">&#39;Default&#39;</span><span class="p">]</span> <span class="c1"># Switch back to default flowsheet</span>
+<span></span><span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">mainflowsheet</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">flowsheet</span><span class="p">[</span><span class="s1">&#39;Default&#39;</span><span class="p">]</span> <span class="c1"># Switch back to default flowsheet</span>
 <span class="n">bs</span><span class="o">.</span><span class="n">find</span>
 </pre></div>
 </div>

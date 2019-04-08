@@ -837,16 +837,16 @@
                       <span class="s1">&#39;Stripper weight&#39;</span><span class="p">:</span> <span class="s1">&#39;lb&#39;</span><span class="p">}</span>
     
     <span class="k">def</span> <span class="nf">_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_condenser</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">,</span>
-                                    <span class="n">ins</span><span class="o">=</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">),</span>
-                                    <span class="n">outs</span><span class="o">=</span><span class="n">MixedStream</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_boiler</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">,</span>
-                                 <span class="n">ins</span><span class="o">=</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">),</span>
-                                 <span class="n">outs</span><span class="o">=</span><span class="n">MixedStream</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_condenser</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span>
+                                    <span class="n">ins</span><span class="o">=</span><span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">),</span>
+                                    <span class="n">outs</span><span class="o">=</span><span class="n">MixedStream</span><span class="p">(</span><span class="kc">None</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_boiler</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span>
+                                 <span class="n">ins</span><span class="o">=</span><span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span>
+                                 <span class="n">outs</span><span class="o">=</span><span class="n">MixedStream</span><span class="p">(</span><span class="kc">None</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_condenser</span><span class="o">.</span><span class="n">_heat_utilities</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_boiler</span><span class="o">.</span><span class="n">_heat_utilities</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;condensate&#39;</span><span class="p">:</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">),</span>
-                        <span class="s1">&#39;boil_up&#39;</span><span class="p">:</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">),</span>
-                        <span class="s1">&#39;vapor stream&#39;</span><span class="p">:</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">)}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;condensate&#39;</span><span class="p">:</span> <span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span>
+                        <span class="s1">&#39;boil_up&#39;</span><span class="p">:</span> <span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span>
+                        <span class="s1">&#39;vapor stream&#39;</span><span class="p">:</span> <span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">)}</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">is_divided</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1154,11 +1154,11 @@
              <span class="s1">&#39;Weight&#39;</span><span class="p">:</span> <span class="s1">&#39;lb&#39;</span><span class="p">}</span>
     
     <span class="k">def</span> <span class="nf">_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_boiler</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">,</span>
-                                 <span class="n">ins</span><span class="o">=</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">),</span>
-                                 <span class="n">outs</span><span class="o">=</span><span class="n">MixedStream</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_boiler</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span>
+                                 <span class="n">ins</span><span class="o">=</span><span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span>
+                                 <span class="n">outs</span><span class="o">=</span><span class="n">MixedStream</span><span class="p">(</span><span class="kc">None</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_boiler</span><span class="o">.</span><span class="n">_heat_utilities</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;boil_up&#39;</span><span class="p">:</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">)}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;boil_up&#39;</span><span class="p">:</span> <span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">)}</span>
     
     <span class="k">def</span> <span class="nf">plot_stages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Plot stages, graphical aid and equilibrium curve</span>

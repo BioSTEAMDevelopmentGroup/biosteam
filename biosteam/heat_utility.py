@@ -185,7 +185,7 @@ class HeatUtility:
 
     def _init_streams(self, flow, species, T, P, phase):
         """Initialize utility streams."""
-        self._fresh = Stream('*', flow, species, T=T, P=P, phase=phase)
+        self._fresh = Stream(None, flow, species, T=T, P=P, phase=phase)
         self._used = object.__new__(Stream)
         self._used.__dict__.update(self._fresh.__dict__)
 

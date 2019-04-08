@@ -80,7 +80,7 @@
 <dd><p>Abstract parent class for Unit objects. Child objects must contain _setup, _run, _design and _cost methods to setup internal objects, estimate stream outputs of a Unit and find design and cost information. These methods should store information in the ‘_results’ dictionary (an instance attribute).</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
-<div><p><strong>ID:</strong> [str] Unique identification</p>
+<div><p><strong>ID:</strong> [str] A unique identification. If ID is an empty string (i.e. ‘’ ), a default ID will be chosen. If ID is None, unit will not be registered in flowsheet.</p>
 <p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
 <p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
 <p><strong>**kwargs:</strong> Keyword arguments that are stored to instance attribute <cite>_kwargs</cite> and later accessed by _setup, _run, _design, and _cost methods.</p>

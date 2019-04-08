@@ -81,7 +81,7 @@
 <dd><p>Create a Stream object that defines a thermodynamic state along with material flow rates. Stream objects calculate thermodynamic and transport properties of the mixture and its components. The Species object define the chemical species avalilable for the Stream class. Ideal mixture is assumed for stream properties and excess energies [enthalpy and entropy] are ignored as a simplifying assumption for low pressure processes.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
-<div><p><strong>ID:</strong> [str] ID of the stream. If ID is ‘’, a default ID will be chosen.</p>
+<div><p><strong>ID:</strong> [str] A unique identification. If ID is an empty string (i.e. ‘’ ), a default ID will be chosen. If ID is None, stream will not be registered in flowsheet.</p>
 <p><strong>flow:</strong> [tuple] All flow rates corresponding to <cite>species</cite>.</p>
 <p><strong>species:</strong> tuple[str] or [Species] Species corresponding to <cite>flow</cite>. If empty, assume same species as class.</p>
 <p><strong>units:</strong> [str] The units of the flow rates (only mass, molar, and volumetric flow rates are valid)</p>

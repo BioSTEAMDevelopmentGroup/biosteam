@@ -157,7 +157,7 @@
 
 <span class="sd">    **Parameters**</span>
 
-<span class="sd">         **ID:** [str] A unique identification</span>
+<span class="sd">         **ID:** [str] A unique identification. If ID is None, instance will not be registered in flowsheet.</span>
 
 <span class="sd">         **network:** tuple[Unit, function and/or System] A network that is run element by element until the recycle converges.</span>
 
@@ -167,6 +167,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1">### Instance attributes ###</span>
+    <span class="n">_ID</span> <span class="o">=</span> <span class="kc">None</span>
     
     <span class="n">_recycle</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Tear stream</span>
 
@@ -248,10 +249,7 @@
         
         <span class="c1">#: [TEA] System object for Techno-Economic Analysis.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_TEA</span> <span class="o">=</span> <span class="kc">None</span>
-        
-        <span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">ID</span> <span class="o">!=</span> <span class="s1">&#39;*&#39;</span><span class="p">:</span> <span class="n">find</span><span class="o">.</span><span class="n">system</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="n">ID</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">recycle</span> <span class="o">=</span> <span class="n">recycle</span>
     
     <span class="n">save_report</span> <span class="o">=</span> <span class="n">save_report</span>
@@ -263,12 +261,16 @@
 
     <span class="nd">@ID</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">ID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
-        <span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">ID</span> <span class="o">!=</span> <span class="s1">&#39;*&#39;</span><span class="p">:</span> 
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="ow">in</span> <span class="n">find</span><span class="o">.</span><span class="n">system</span><span class="p">:</span>
-                <span class="k">del</span> <span class="n">find</span><span class="o">.</span><span class="n">system</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ID</span><span class="p">]</span>
+        <span class="n">ID_old</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span>
+        <span class="n">system</span> <span class="o">=</span> <span class="n">find</span><span class="o">.</span><span class="n">system</span>
+        <span class="k">if</span> <span class="n">ID_old</span> <span class="ow">and</span> <span class="n">ID_old</span> <span class="ow">in</span> <span class="n">system</span><span class="p">:</span> <span class="k">del</span> <span class="n">system</span><span class="p">[</span><span class="n">ID_old</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">ID</span><span class="p">:</span>
+            <span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
+            <span class="n">ID_words</span> <span class="o">=</span> <span class="n">ID</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">word</span><span class="o">.</span><span class="n">isalnum</span><span class="p">()</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">ID_words</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;ID cannot have any special characters&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="n">ID</span>
-            <span class="n">find</span><span class="o">.</span><span class="n">system</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
+            <span class="n">system</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">TEA</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

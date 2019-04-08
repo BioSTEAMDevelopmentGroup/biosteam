@@ -81,7 +81,7 @@
 <dd><p>Create a System object that can iteratively run each element in a network of BioSTREAM objects until the recycle stream is converged. A network can have function, Unit and/or System objects. When the network contains an inner System object, it converges/solves it in each loop/iteration.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
-<div><p><strong>ID:</strong> [str] A unique identification</p>
+<div><p><strong>ID:</strong> [str] A unique identification. If ID is None, instance will not be registered in flowsheet.</p>
 <p><strong>network:</strong> tuple[Unit, function and/or System] A network that is run element by element until the recycle converges.</p>
 <p><strong>recycle:</strong> [Stream] A tear stream for the recycle loop.</p>
 <p><strong>facilities:</strong> tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the network simulation.</p>

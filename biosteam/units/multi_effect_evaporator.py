@@ -91,18 +91,18 @@ class MultiEffectEvaporator(Unit):
         # Create components
         self._N_evap = n = len(P) # Number of evaporators
         Stream.species = liq.species
-        evap0 = Evaporator_PV('*', outs=('*', '*'),
+        evap0 = Evaporator_PV(None, outs=(None, None),
                              component=component, P=P[0])
         
         evaporators = [evap0]
         for i in range(1, n):
-            evap = Evaporator_PQin('*',
-                                   outs=('*', '*', '*'),
+            evap = Evaporator_PQin(None,
+                                   outs=(None, None, None),
                                    component=component, P=P[i], Qin=0)
             evaporators.append(evap)
-        condenser = HXutility('*', outs=Stream('*'), V=0)
+        condenser = HXutility(None, outs=Stream(None), V=0)
         evap0._heat_utilities[0], condenser._heat_utilities[0] = self._heat_utilities
-        mixer = Mixer('*', outs='*')
+        mixer = Mixer(None, outs=Stream(None))
         
         def V_error(v1):
             # Run first evaporator
@@ -136,7 +136,7 @@ class MultiEffectEvaporator(Unit):
         # Set-up components
         components = self.components
         evaporators = components['evaporators']
-        evaporators[0].ins = [Stream.like(i, '*') for i in ins]
+        evaporators[0].ins = [Stream.like(i, None) for i in ins]
         condenser = components['condenser']
         mixer = components['mixer']
         brentq(self._V_error, 0.0001, 0.9909, xtol=0.0001)

@@ -102,7 +102,7 @@ class System:
 
     **Parameters**
 
-         **ID:** [str] A unique identification
+         **ID:** [str] A unique identification. If ID is None, instance will not be registered in flowsheet.
 
          **network:** tuple[Unit, function and/or System] A network that is run element by element until the recycle converges.
 
@@ -112,6 +112,7 @@ class System:
 
     """
     ### Instance attributes ###
+    _ID = None
     
     _recycle = None  # Tear stream
 
@@ -193,10 +194,7 @@ class System:
         
         #: [TEA] System object for Techno-Economic Analysis.
         self._TEA = None
-        
-        ID = ID.replace(' ', '_')
-        if ID != '*': find.system[ID] = self
-        self._ID = ID
+        self.ID = ID
         self.recycle = recycle
     
     save_report = save_report
@@ -208,12 +206,16 @@ class System:
 
     @ID.setter
     def ID(self, ID):
-        ID = ID.replace(' ', '_')
-        if ID != '*': 
-            if self._ID in find.system:
-                del find.system[self._ID]
+        ID_old = self._ID
+        system = find.system
+        if ID_old and ID_old in system: del system[ID_old]
+        if ID:
+            ID = ID.replace(' ', '_')
+            ID_words = ID.split('_')
+            if not all(word.isalnum() for word in ID_words):
+                raise ValueError('ID cannot have any special characters')
             self._ID = ID
-            find.system[ID] = self
+            system[ID] = self
     
     @property
     def TEA(self):

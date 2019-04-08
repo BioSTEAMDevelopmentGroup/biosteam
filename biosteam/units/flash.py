@@ -180,10 +180,10 @@ class Flash(Unit):
         vap, liq = self.outs
         vap.phase = 'g'
         liq.phase = 'l'
-        self._heat_exchanger = he = HXutility('*', outs=None) 
+        self._heat_exchanger = he = HXutility(None, outs=None) 
         self._heat_utilities = he._heat_utilities
         he._ins = self._ins
-        self._mixedstream = ms = MixedStream()
+        self._mixedstream = ms = MixedStream(None)
         he._outs[0] = ms
 
     def _setup(self):

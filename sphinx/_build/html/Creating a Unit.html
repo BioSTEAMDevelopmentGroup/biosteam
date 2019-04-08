@@ -242,8 +242,9 @@ div.nboutput div.output_area.stderr {
 <h1>Creating a Unit<a class="headerlink" href="#Creating-a-Unit" title="Permalink to this headline">¶</a></h1>
 <p><strong>A Unit object is created with optional input and output streams or
 stream IDs. A Unit subclass may include additional key word arguments.</strong></p>
-<p>Initialize a Unit with inputs, <code class="docutils literal notranslate"><span class="pre">ins</span></code>, and outputs ,<code class="docutils literal notranslate"><span class="pre">outs</span></code>, with
-either an iterable of Stream objects, or a Stream object:</p>
+<p>Initialize a Unit with an <code class="docutils literal notranslate"><span class="pre">ID</span></code>, <code class="docutils literal notranslate"><span class="pre">ins</span></code> streams, and <code class="docutils literal notranslate"><span class="pre">outs</span></code> streams.
+Either an iterable of Stream objects, or a Stream object work for
+<code class="docutils literal notranslate"><span class="pre">ins</span></code> and <code class="docutils literal notranslate"><span class="pre">outs</span></code>:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [1]:
@@ -251,10 +252,9 @@ either an iterable of Stream objects, or a Stream object:</p>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">Stream</span>
-<span class="n">ID</span> <span class="o">=</span> <span class="s1">&#39;P1&#39;</span>
-<span class="n">ins</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">()</span>
-<span class="n">outs</span> <span class="o">=</span> <span class="p">(</span><span class="n">Stream</span><span class="p">(),</span> <span class="n">Stream</span><span class="p">())</span>
-<span class="n">P1</span> <span class="o">=</span> <span class="n">Unit</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="n">outs</span><span class="p">)</span>
+<span class="n">ins</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;in0&#39;</span><span class="p">)</span>
+<span class="n">outs</span> <span class="o">=</span> <span class="p">(</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;out0&#39;</span><span class="p">),</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;out1&#39;</span><span class="p">))</span>
+<span class="n">P1</span> <span class="o">=</span> <span class="n">Unit</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;P1&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="n">outs</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">ins</span><span class="p">)</span>
 <span class="n">P1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -266,14 +266,14 @@ either an iterable of Stream objects, or a Stream object:</p>
 <div class="highlight"><pre>
 Unit: P1
 <span class="ansi-white-fg">ins...</span>
-[0] d1
+[0] in0
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
 <span class="ansi-white-fg">outs...</span>
-[0] d2
+[0] out0
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
-[1] d3
+[1] out1
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
 </pre></div></div>
@@ -293,7 +293,8 @@ Unit: P1
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/Creating_a_Unit_5_0.svg" src="_images/Creating_a_Unit_5_0.svg" /></div>
+<img alt="_images/Creating_a_Unit_5_0.png" src="_images/Creating_a_Unit_5_0.png" />
+</div>
 </div>
 <p>IDs for Stream objects can also be used instead:</p>
 <div class="nbinput docutils container">
@@ -302,7 +303,7 @@ Unit: P1
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">P1</span> <span class="o">=</span> <span class="n">Unit</span><span class="p">(</span><span class="s1">&#39;P1&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="s1">&#39;in1&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;out0&#39;</span><span class="p">,</span> <span class="s1">&#39;out1&#39;</span><span class="p">))</span>
+<span></span><span class="n">P1</span> <span class="o">=</span> <span class="n">Unit</span><span class="p">(</span><span class="s1">&#39;P1&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;out0&#39;</span><span class="p">,</span> <span class="s1">&#39;out1&#39;</span><span class="p">),</span> <span class="n">ins</span><span class="o">=</span><span class="s1">&#39;in0&#39;</span><span class="p">)</span>
 <span class="n">P1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -314,7 +315,7 @@ Unit: P1
 <div class="highlight"><pre>
 Unit: P1
 <span class="ansi-white-fg">ins...</span>
-[0] in1
+[0] in0
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
 <span class="ansi-white-fg">outs...</span>
@@ -344,14 +345,14 @@ Unit: P1
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Unit: U0
+Unit: U1
 <span class="ansi-white-fg">ins...</span>
 [0] Missing Stream
 <span class="ansi-white-fg">outs...</span>
-[0] d4
+[0] d1
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
-[1] d5
+[1] d2
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
 </pre></div></div>
@@ -401,14 +402,14 @@ Unit: P1
 <div class="highlight"><pre>
 Unit: P1
 <span class="ansi-white-fg">ins...</span>
-[0] d6
+[0] d3
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
 <span class="ansi-white-fg">outs...</span>
-[0] d7
+[0] d4
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
-[1] d8
+[1] d5
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
 </pre></div></div>
@@ -430,12 +431,12 @@ Unit: P1
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Mixer: U1
+Mixer: U2
 <span class="ansi-white-fg">ins...</span>
 [0] Missing Stream
 [1] Missing Stream
 <span class="ansi-white-fg">outs...</span>
-[0] d9
+[0] d6
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
 </pre></div></div>
@@ -455,14 +456,14 @@ Mixer: U1
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Splitter: U2
+Splitter: U3
 <span class="ansi-white-fg">ins...</span>
 [0] Missing Stream
 <span class="ansi-white-fg">outs...</span>
-[0] d10
+[0] d7
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
-[1] d11
+[1] d8
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
 </pre></div></div>

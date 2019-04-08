@@ -173,7 +173,7 @@
     
 <div class="viewcode-block" id="Flowsheet"><a class="viewcode-back" href="../../find.html#biosteam.flowsheet.Flowsheet">[docs]</a><span class="k">class</span> <span class="nc">Flowsheet</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Create a Flowsheet object which stores references to all stream, unit, and system objects.&quot;&quot;&quot;</span>
-    <span class="n">_flowsheets</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">flowsheet</span> <span class="o">=</span> <span class="p">{}</span>
     
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
         <span class="c1">#: [str] ID of flowsheet</span>
@@ -189,12 +189,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="o">=</span> <span class="p">{}</span>
         
         <span class="c1">#: [dict] All flowsheets</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_flowsheets</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
-    
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">flowsheets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;dict[Flowsheet] All flowsheets.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flowsheets</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flowsheet</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
     
 <div class="viewcode-block" id="Flowsheet.diagram"><a class="viewcode-back" href="../../find.html#biosteam.flowsheet.Flowsheet.diagram">[docs]</a>    <span class="k">def</span> <span class="nf">diagram</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Display all units and attached streams.&quot;&quot;&quot;</span>
@@ -230,7 +225,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mainflowsheet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;[Flowsheet] Main flowsheet that is updated with new biosteam objects&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">find</span><span class="o">.</span><span class="n">_flowsheet</span>
+        <span class="k">return</span> <span class="n">find</span><span class="o">.</span><span class="n">_mainflowsheet</span>
     
     <span class="nd">@mainflowsheet</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">mainflowsheet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flowsheet</span><span class="p">):</span>

@@ -70,7 +70,7 @@ class Centrifuge_LLE(Unit):
         liq.phase = 'l'
         LIQ.phase = 'l'
         self._cached = cached = {}
-        cached['mixed stream'] =  MixedStream()
+        cached['mixed stream'] =  MixedStream(None)
         if self._kwargs['species_IDs'] is None:
             self._kwargs['species_IDs'] = liq.species_IDs
 
