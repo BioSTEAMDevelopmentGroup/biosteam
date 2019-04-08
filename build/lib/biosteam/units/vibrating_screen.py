@@ -10,6 +10,7 @@ from numpy import ceil
 
 class VibratingScreen(Unit):
     # Assume 3-deck vibrating screen
+    _units = {'Area': 'ft^2'}
     _kwargs = Splitter._kwargs
     _run = Splitter._run
     
