@@ -118,7 +118,7 @@ def make_digraph(units, streams=None):
     
 class Flowsheet:
     """Create a Flowsheet object which stores references to all stream, unit, and system objects."""
-    _flowsheets = {}
+    flowsheet = {}
     
     def __init__(self, ID):
         #: [str] ID of flowsheet
@@ -134,12 +134,7 @@ class Flowsheet:
         self.stream = {}
         
         #: [dict] All flowsheets
-        self._flowsheets[ID] = self
-    
-    @property
-    def flowsheets(self):
-        """dict[Flowsheet] All flowsheets."""
-        return self._flowsheets
+        self.flowsheet[ID] = self
     
     def diagram(self):
         """Display all units and attached streams."""
@@ -175,7 +170,7 @@ class find(Flowsheet):
     @property
     def mainflowsheet(self):
         """[Flowsheet] Main flowsheet that is updated with new biosteam objects"""
-        return find._flowsheet
+        return find._mainflowsheet
     
     @mainflowsheet.setter
     def mainflowsheet(self, flowsheet):
