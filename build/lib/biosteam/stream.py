@@ -5,7 +5,7 @@ Created on Sat Aug 18 14:05:10 2018
 
 @author: yoelr
 """
-from biosteam import Q_, units_of_measure
+from biosteam import Q_
 import copy
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,8 +15,7 @@ from .utils import material_array, property_array, PropertyFactory, \
 from .flowsheet import find
 from .species import Species
 from .compound import Compound
-from .exceptions import SolverError, EquilibriumError, \
-                                DimensionError
+from .exceptions import SolverError, EquilibriumError, DimensionError
 from .equilibrium import DORTMUND
 
 inf = np.inf
@@ -48,6 +47,37 @@ def nonzero_species(num_IDs, flow):
 
 
 # %% Units of measure
+
+# Biosteam units of measure
+units_of_measure = dict(MW='g/mol',
+                        mass='kg/hr',
+                        mol='kmol/hr',
+                        vol='m^3/hr',
+                        massnet='kg/hr',
+                        molnet='kmol/hr',
+                        volnet='m^3/hr',
+                        massfrac='kg/kg',
+                        molfrac='kmol/kmol',
+                        volfrac='m^3/m^3',
+                        T='K',
+                        P='Pa',
+                        H='kJ/hr',
+                        S='kJ/hr',
+                        G='kJ/hr',
+                        U='kJ/hr',
+                        A='kJ/hr',
+                        Hf='kJ/hr',
+                        C='kJ/K/hr',
+                        Vm='m^3/mol',
+                        Cpm='J/mol/K',
+                        Cp='J/g/K',
+                        rho='kg/m^3',
+                        rhom='mol/m^3',
+                        nu='m^2/s',
+                        mu='Pa*s',
+                        sigma='N/m',
+                        k='W/m/K',
+                        alpha='m^2/s')
 
 mol_flow_dim = Q_(0, units_of_measure['mol']).dimensionality
 mass_flow_dim = Q_(0, units_of_measure['mass']).dimensionality
@@ -318,7 +348,7 @@ class Stream(metaclass=metaStream):
        >>> s1.rho
        983.4747955832584
 
-    A dictionary of available material properties is available in `Stream.units`. You may also find it useful to use the `help` method to search for a property:
+    A dictionary of available stream properties is available in `Stream.units`. You may also find it useful to use the `help` method to search for a property:
         
     .. code-block:: python
 

@@ -5,7 +5,6 @@ Created on Sat Aug 18 14:36:58 2018
 @author: yoelr
 """
 import copy
-import weakref
 
 __all__ = ('Graphics',)
 
@@ -29,7 +28,6 @@ _node = {'shape': 'box',
     
 class Graphics:
     """Create a Graphics object that contains specifications for Graphviz node and edge styles"""
-    _all = []
     in_system = True #: [bool] True for Unit object to appear within a system diagram
     def __init__(self, edge_in=_edge_in,
                  edge_out=_edge_out,
@@ -41,6 +39,5 @@ class Graphics:
         self.node = copy.deepcopy(node)
         self.node_function = node_function
         self.name = None
-        Graphics._all.append(weakref.ref(self))
 
 default_graphics = Graphics()

@@ -8,7 +8,7 @@ biosteam/exceptions.py
 biosteam/flowsheet.py
 biosteam/graphics.py
 biosteam/heat_utility.py
-biosteam/meta_classes.py
+biosteam/meta_final.py
 biosteam/mixed_stream.py
 biosteam/my_units_defs.txt
 biosteam/power_utility.py

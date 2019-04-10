@@ -6,7 +6,6 @@ Created on Sat Aug 18 13:26:29 2018
 """
 from scipy import integrate
 from math import log
-from bookkeep import ReadOnlyBook
 from biosteam import Q_
 
 __all__ = ('Compound',)
@@ -92,25 +91,25 @@ class Compound(metaclass=metaCompound):
 
     """
     #: [dict] Units of measure for material properties (class attribute). 
-    units = ReadOnlyBook(MW='g/mol',
-                         T='K',
-                         P='Pa',
-                         H='J/mol',
-                         S='J/mol',
-                         G='J/mol',
-                         U='J/mol',
-                         A='J/mol',
-                         Hf='J/mol',
-                         Vm='m^3/mol',
-                         Cpm='J/mol',
-                         Cp='J/g',
-                         rho='kg/m^3',
-                         rhom='mol/m^3',
-                         nu='m^2/s',
-                         mu='Pa*s',
-                         sigma='N/m',
-                         k='W/m/K',
-                         alpha='m^2/s')
+    units = dict(MW='g/mol',
+                 T='K',
+                 P='Pa',
+                 H='J/mol',
+                 S='J/mol',
+                 G='J/mol',
+                 U='J/mol',
+                 A='J/mol',
+                 Hf='J/mol',
+                 Vm='m^3/mol',
+                 Cpm='J/mol',
+                 Cp='J/g',
+                 rho='kg/m^3',
+                 rhom='mol/m^3',
+                 nu='m^2/s',
+                 mu='Pa*s',
+                 sigma='N/m',
+                 k='W/m/K',
+                 alpha='m^2/s')
     
     phase_ref = 'l' # Reference phase
     P_ref = 101325  # Reference pressure (Pa)

@@ -9,16 +9,16 @@ import re
 import os
 from IPython import display
 from graphviz import Digraph
-from .exceptions import notify_error
+from .exceptions import notify_error, DesignWarning
 from .flowsheet import find
 from .graphics import Graphics, default_graphics
 from .stream import Stream
 from .proxy_stream import ProxyStream
 from .heat_utility import HeatUtility
 from .utils import color_scheme, Ins, Outs, missing_stream
-from bookkeep import SmartBook
 from .power_utility import PowerUtility
-from . import np, pd
+from . import np, pd, Q_
+from warnings import warn
 import biosteam
 CS = color_scheme
 
@@ -27,8 +27,88 @@ dir_path = os.path.dirname(os.path.realpath(__file__)) + '\\'
 
 __all__ = ('Unit',)
 
+
+# %% Bounds checking
+
+def _warning(source, msg, category=Warning):
+        """Return a Warning object with source description."""
+        if isinstance(source, str):
+            msg = f'@{source}: ' + msg
+        elif source:
+            msg = f'@{type(source).__name__} {str(source)}: ' + msg
+        return category(msg)
+
+def _warnbounds(key, value, units, bounds, stacklevel, source):
+        """A lower level, functional version of "_checkbounds". Issue a warning if value is out of bounds.
+        
+        **Parameters**
+        
+            **key:** [str] Name of value
+            
+            **value:** [number, Quantity, or array]
+            
+            **units:** [str] Units of measure
+            
+            **bounds:** [array or Quantity-array] Lower and upper bounds
+            
+            **stacklevel:** [int] Stacklevel for warning.
+        
+            **source:** [str or object] Short description or object it describes.
+        
+        """
+        # Include bound limits for inclusive values
+        lb, ub = bounds
+        try: within_bounds = (lb<=value).all() and (ub>=value).all()
+        # Handle exception when value or bounds is a Quantity object but the other is not
+        except ValueError as VE:
+            value_is_Q = isinstance(value, Q_)
+            bounds_is_Q = isinstance(bounds, Q_)
+            if value_is_Q and not bounds_is_Q:           
+                value.ito(units)
+                value = value.magnitude
+                is_Q = 'value'
+                not_Q = 'bounds'                        
+            elif bounds_is_Q and not value_is_Q:
+                bounds.ito(units)
+                bounds = bounds.magnitude
+                is_Q = 'bounds'
+                not_Q = 'value'
+            else: raise VE
+            # Warn to prevent bad usage of SmartBook
+            name = "'" + key + "'" if isinstance(key, str) else key
+            msg = f"For key, {name}, {is_Q} is a Quantity object, while {not_Q} is not."
+            warn(_warning(source, msg, DesignWarning),
+                 stacklevel=stacklevel)
+            # Try again recursively
+            return _warnbounds(key, value, units, bounds,
+                                    stacklevel+1, source)
+        
+        # Handle exception when bounds is not an array
+        except AttributeError as AE:
+            if not isinstance(bounds, np.ndarray):
+                # Warn to prevent bad usage of SmartBook
+                name = f"'{key}'" if isinstance(key, str) else key
+                msg = f"For key, {name}, bounds should be an array, not {type(bounds).__name__}."
+                warn(_warning(source, msg, DesignWarning),
+                     stacklevel=stacklevel)
+                # Try again recursively
+                return _warnbounds(key, value, units, np.asarray(bounds),
+                                        stacklevel+1, source)
+            else:
+                raise AE
+                
+        # Warn when value is out of bounds
+        if not within_bounds:
+            units = ' ' + units
+            try:
+                msg = f"{key} ({value:.4g}{units}) is out of bounds ({lb:.4g} to {ub:.4g}{units})."
+            except:  # Handle format errors
+                msg = f"{key} ({value:.4g}{units}) is out of bounds ({lb} to {ub} {units})."
+            
+            warn(_warning(source, msg, DesignWarning), stacklevel=stacklevel)
+
 def _checkbounds(self, key, value):
-        """Return True if value is within bounds. Return False if value is out of bounds and issue a warning.
+        """Issue a warning if value is out of bounds.
         
         **Parameters**
         
@@ -38,13 +118,10 @@ def _checkbounds(self, key, value):
             
         """
         bounds = self._bounds.get(key)
-        if bounds is None:
-            within_bounds = True
-        else:
-            within_bounds = SmartBook._checkbounds(key, value,
-                                                   self._units.get(key, ''),
-                                                   bounds, 4, self)
-        return within_bounds
+        if bounds is not None:
+            _warnbounds(key, value, self._units.get(key, ''), bounds, 4, self)
+
+def _boundsignore(*args, **kwargs): pass
 
 
 # %% Unit metaclass
@@ -167,7 +244,7 @@ class metaUnit(type):
     @enforce_bounds.setter
     def enforce_bounds(cls, val):
         val = bool(val)
-        cls._checkbounds = _checkbounds if val else SmartBook._boundsignore
+        cls._checkbounds = _checkbounds if val else _boundsignore
         cls._enforce_bounds = val
     
     @property

@@ -5,8 +5,7 @@ Created on Thu Aug 23 14:34:07 2018
 @author: yoelr
 """
 from biosteam import Unit, Stream
-from biosteam.meta_classes import metaFinal
-
+from biosteam.meta_final import metaFinal
 
 class Splitter(Unit, metaclass=metaFinal):
     """Create a splitter that separates mixed streams based on splits.

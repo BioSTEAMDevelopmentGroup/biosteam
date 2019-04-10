@@ -6,17 +6,12 @@ Created on Sat Aug 18 13:42:33 2018
 """
 from .chemical import Chemical
 from .compound import Compound
-from . import np
-from .exceptions import IDconflict
-from .utils import missing_method
 
 __all__ = ('Species',)
 
 # TODO: Fix how Dortmund groups are selected in thermo.Chemical. Glycerol defaults to wrong value.
 
 # %% Managing ChEDL thermodynamic properties
-inf = np.inf
-TPphase = ('T', 'P', 'phase')
 
 class Species:
     """Create Species object that contains Compound objects as attributes.
@@ -113,18 +108,19 @@ class Species:
     @staticmethod
     def _getprops(species, prop_ID, T, P, phase) -> list:
         """Return list of the desired property, prop_ID, for given species."""
-        props = []
+        props = []; sat = setattr; gat = getattr
         for s in species:
-            for attr, val in zip(TPphase, (T, P, phase)):
-                if val: setattr(s, attr, val)
-            props.append(getattr(s, prop_ID))
+            if T: sat(s, 'T', T)
+            if P: sat(s, 'P', P)
+            if phase: sat(s, 'phase', phase)
+            props.append(gat(s, prop_ID))
         return props
 
     def setprops(self, species_IDs, prop_ID, new_values):
         """Set new values to specie property, prop_ID, for given species_IDs."""
-        for ID in species_IDs:
-            specie = getattr(self, ID)
-            setattr(specie, prop_ID, new_values)
+        sat = setattr; gat = getattr
+        for ID in species_IDs: 
+            sat(gat(self, ID), prop_ID, new_values)
 
     # Representation
     def _info(self):

@@ -8,37 +8,22 @@ This module includes classes and functions relating exception handling.
 @author: Yoel Rene Cortes-Pena
 """
 
-from warnings import warn
-
 # %% Biosteam errors
 
 class biosteamError(Exception):
     """General exception in biosteam."""
 
-
 class Stop(biosteamError):
     """Exception to Stop code."""
-
-
-class IDconflict(biosteamError):
-    """Exception regarding ID conflicts."""
-
 
 class DesignError(biosteamError):
     """Exception regarding unit design."""
 
-
-class metaError(biosteamError):
-    """Exception regarding metaclasses."""
-
-
 class SolverError(biosteamError):
     """Exception regarding solvers."""
 
-
 class EquilibriumError(biosteamError):
     """Exception regarding equilibrium."""
-
 
 class DimensionError(biosteamError):
     """Exception regarding wrong dimensions."""
@@ -46,6 +31,7 @@ class DimensionError(biosteamError):
 
 # Python's built in KeyError quotes the message, used as a by-pass for the debbuger
 KE = type('KeyError', (biosteamError, ), {})
+
 
 # %% Biosteam Warnings
 

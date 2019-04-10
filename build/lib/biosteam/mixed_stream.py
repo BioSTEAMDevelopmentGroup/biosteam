@@ -13,7 +13,6 @@ from biosteam.utils import fraction, tuple_array, material_array, \
 from biosteam.exceptions import EquilibriumError, DimensionError
 from bookkeep import Q_
 from biosteam import np
-import copy
 
 ln = np.log
 exp = np.exp
