@@ -6,7 +6,7 @@ Created on Sat Sep  1 17:35:28 2018
 """
 from biosteam import np, Stream, Unit
 from biosteam.utils import MissingStream
-from biosteam.meta_classes import metaFinal
+from biosteam.meta_final import metaFinal
 
 __all__ = ['MassBalance']
 

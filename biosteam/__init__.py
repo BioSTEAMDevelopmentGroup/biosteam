@@ -14,11 +14,19 @@ __all__ = ['exceptions', 'utils', 'inspect', 'find', 'Compound', 'Chemical', 'Di
 
 import pandas as pd
 import numpy as np
-from bookkeep.unit_registry import ureg, Q_
-from bookkeep import ReadOnlyBook, SmartBook
+from pint import UnitRegistry
+import os
 
-# Allias
-Quantity = Q_
+# Remove latex formating
+def _new_format(self): return self.__format__('')
+
+# Set pint Unit Registry
+ureg = UnitRegistry()
+ureg.default_format = '~P'
+dir_path = os.path.dirname(os.path.realpath(__file__)) + '/'
+ureg.load_definitions(dir_path + 'my_units_defs.txt')
+Q_ = ureg.Quantity
+Q_._repr_latex_ = Q_._repr_html_ = Q_.__str__ = Q_.__repr__ = _new_format
 
 # Set number of digits displayed
 np.set_printoptions(suppress=False)
@@ -27,37 +35,6 @@ pd.options.display.float_format = '{:.3g}'.format
 pd.set_option('display.max_rows', 35)
 pd.set_option('display.max_columns', 10)
 pd.set_option('max_colwidth', 35)
-
-# Biosteam units of measure
-units_of_measure = ReadOnlyBook(MW='g/mol',
-                                mass='kg/hr',
-                                mol='kmol/hr',
-                                vol='m^3/hr',
-                                massnet='kg/hr',
-                                molnet='kmol/hr',
-                                volnet='m^3/hr',
-                                massfrac='kg/kg',
-                                molfrac='kmol/kmol',
-                                volfrac='m^3/m^3',
-                                T='K',
-                                P='Pa',
-                                H='kJ/hr',
-                                S='kJ/hr',
-                                G='kJ/hr',
-                                U='kJ/hr',
-                                A='kJ/hr',
-                                Hf='kJ/hr',
-                                C='kJ/K/hr',
-                                Vm='m^3/mol',
-                                Cpm='J/mol/K',
-                                Cp='J/g/K',
-                                rho='kg/m^3',
-                                rhom='mol/m^3',
-                                nu='m^2/s',
-                                mu='Pa*s',
-                                sigma='N/m',
-                                k='W/m/K',
-                                alpha='m^2/s')
 
 
 # %% Import biosteam classes
@@ -115,4 +92,3 @@ __all__.extend(tea.__all__)
 __all__.extend(flowsheet.__all__)
 __all__.extend(report.__all__)
 __all__.extend(units.__all__)
-SmartBook.Warning = exceptions.DesignWarning

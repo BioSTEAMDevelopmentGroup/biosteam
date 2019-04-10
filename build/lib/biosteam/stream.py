@@ -53,59 +53,6 @@ mol_flow_dim = Q_(0, units_of_measure['mol']).dimensionality
 mass_flow_dim = Q_(0, units_of_measure['mass']).dimensionality
 vol_flow_dim = Q_(0, units_of_measure['vol']).dimensionality
 
-class ShowFormat:
-    __slots__ = ['_T', '_P', '_flow', '_fraction']
-    def __init__(self):
-        self._T = 'K'
-        self._P = 'Pa'
-        self._flow = 'kmol/hr'
-        self._fraction = False
-    
-    @property
-    def T(self):
-        return self._T
-    @T.setter
-    def T(self, T):
-        # Test to make sure it has temperature units
-        Q_(0, T).ito('K')
-        self._T = T
-    
-    @property
-    def P(self):
-        return self._P
-    @P.setter
-    def P(self, P):
-        # Test to make sure it has pressure units
-        Q_(0, P).ito('Pa')
-        self._P = P
-    
-    @property
-    def flow(self):
-        return self._flow
-    @flow.setter
-    def flow(self, flow):
-        # Test to make sure it has flow units
-        flow_dim = Q_(0, flow).dimensionality
-        invalid_dimension = True
-        for dim in (mol_flow_dim, mass_flow_dim, vol_flow_dim):
-            if flow_dim == dim:
-                invalid_dimension = False
-                break
-        if invalid_dimension:
-            raise DimensionError(f"Dimensions for flow units must be in molar, mass or volumetric flow rates, not '{flow_dim}'.")
-        self._flow = flow
-    
-    @property
-    def fraction(self):
-        return self._fraction
-    @fraction.setter
-    def fraction(self, fraction):
-        self._fraction = bool(fraction)
-    
-    def __repr__(self):
-        dummy = '-in fractions-' if self.fraction else ''
-        return f"<{type(self).__name__}: T='{self.T}', P='{self.P}', flow='{self.flow}'{dummy}>"
-
 
 # %% Flow properties
 
@@ -183,11 +130,6 @@ class metaStream(type):
                 cl._MW = MW
             species._immutable.add(species)
         else: raise ValueError('Must pass a Species object')
-            
-    @property
-    def show_format(cls):
-        """[ShowFormat] Contains attributes with the units of measure for the show method."""
-        return cls._show_format
 
     def __repr__(cls):
         if cls is Stream: return f'biosteam.{cls.__name__}'
@@ -422,9 +364,6 @@ class Stream(metaclass=metaStream):
         ['volfrac',  'volumetric fractions',     'TP',        'm^3/m^3',   'np.array']]
 
     ### Class attributes for working species ###
-    
-    #: Representation format
-    _show_format = ShowFormat()
     
     #: Species defined in stream
     _species = None
@@ -666,8 +605,6 @@ class Stream(metaclass=metaStream):
     def species(self):
         """[Species] Contains pure component thermodynamic properties for computing overall properties of Stream instances."""
         return self._species
-    
-    show_format = metaStream.show_format
     
     @property
     def ID(self):
@@ -1747,11 +1684,10 @@ class Stream(metaclass=metaStream):
 
     def _info_units(self, show_units):
         """Return unit format selection."""
-        show_format = self.show_format
-        return (show_units.get('T', show_format.T),
-                show_units.get('P', show_format.P),
-                show_units.get('flow', show_format.flow),
-                show_units.get('fraction', show_format.fraction))
+        return (show_units.get('T', 'K'),
+                show_units.get('P', 'Pa'),
+                show_units.get('flow', 'kmol/hr'),
+                show_units.get('fraction', False))
         
     def _info_phaseTP(self, phases, T_units, P_units):
         T = Q_(self.T, self.units['T']).to(T_units).magnitude

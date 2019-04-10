@@ -1,11 +1,9 @@
 ht
 fluids
-colorama
 pint
 scipy
 IPython
 thermo
-bookkeep
 colorpalette
 pandas
 cashflows
