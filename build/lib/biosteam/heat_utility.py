@@ -7,8 +7,7 @@ Created on Sat Aug 18 14:25:34 2018
 from biosteam.exceptions import DimensionError, biosteamError
 from biosteam.species import Species
 from biosteam.stream import Stream, mol_flow_dim, mass_flow_dim, vol_flow_dim
-from bookkeep import SmartBook, UnitManager
-from biosteam import Q_, pd, np
+from biosteam import Q_, pd
 
 
 __all__ = ('HeatUtility',)

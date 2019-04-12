@@ -9,10 +9,9 @@ from biosteam.species import Species
 from biosteam.stream import Stream, nonzero_species, MassFlow, \
                             mol_flow_dim, mass_flow_dim, vol_flow_dim
 from biosteam.utils import fraction, tuple_array, material_array, \
-                           PropertyFactory, property_array, reorder, CS
+                           PropertyFactory, property_array, CS
 from biosteam.exceptions import EquilibriumError, DimensionError
-from bookkeep import Q_
-from biosteam import np
+from biosteam import np, Q_
 
 ln = np.log
 exp = np.exp
