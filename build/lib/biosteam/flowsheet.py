@@ -12,14 +12,9 @@ from IPython import display
 # import threading
 # import time
 # import os
-from PIL import Image
-import io
-
 
 __all__ = ('find', 'stream_connector', 'Flowsheet')
 
-# dir_path = os.path.dirname(os.path.realpath(__file__)) + '\\'
-# viewer_path = dir_path + 'JPEGView64\\JPEGView.exe'
 
 def make_digraph(units, streams=None):
     """Return digraph of units and streams."""

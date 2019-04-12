@@ -1,7 +1,7 @@
-Transesterification
-===================
+Splitter
+========
 
 .. module:: biosteam
 
-.. autoclass:: Transesterification
+.. autoclass:: Splitter
    :members:

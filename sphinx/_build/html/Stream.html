@@ -78,22 +78,22 @@
 <span class="target" id="module-biosteam"></span><dl class="class">
 <dt id="biosteam.Stream">
 <em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Stream</code><span class="sig-paren">(</span><em>ID=''</em>, <em>flow=()</em>, <em>species=()</em>, <em>units='kmol/hr'</em>, <em>phase='l'</em>, <em>T=298.15</em>, <em>P=101325</em>, <em>*</em>, <em>price=0</em>, <em>**flow_pairs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/stream.html#Stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a Stream object that defines a thermodynamic state along with material flow rates. Stream objects calculate thermodynamic and transport properties of the mixture and its components. The Species object define the chemical species avalilable for the Stream class. Ideal mixture is assumed for stream properties and excess energies [enthalpy and entropy] are ignored as a simplifying assumption for low pressure processes.</p>
+<dd><p>Create a Stream object that defines material flow rates along its thermodynamic state. Thermodynamic and transport properties of a stream are readily available. Ideal mixture is assumed for stream properties and excess thermodynamic energies are neglected as a simplifying assumption for low pressure processes.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>ID:</strong> [str] A unique identification. If ID is an empty string (i.e. ‘’ ), a default ID will be chosen. If ID is None, stream will not be registered in flowsheet.</p>
 <p><strong>flow:</strong> [tuple] All flow rates corresponding to <cite>species</cite>.</p>
 <p><strong>species:</strong> tuple[str] or [Species] Species corresponding to <cite>flow</cite>. If empty, assume same species as class.</p>
 <p><strong>units:</strong> [str] The units of the flow rates (only mass, molar, and volumetric flow rates are valid)</p>
-<p><strong>phase:</strong> [str] ‘l’ for liquid, ‘g’ for gas</p>
-<p><strong>T:</strong> [float] Temperature (K)</p>
-<p><strong>P:</strong> [float] Pressure (Pa)</p>
-<p><strong>price:</strong> [float] (USD/kg)</p>
-<p><strong>**flow_pairs:</strong> Specie-flow pairs</p>
+<p><strong>phase:</strong> [str] ‘l’ for liquid, ‘g’ for gas, or ‘s’ for solid.</p>
+<p><strong>T:</strong> [float] Temperature (K).</p>
+<p><strong>P:</strong> [float] Pressure (Pa).</p>
+<p><strong>price:</strong> [float] (USD/kg).</p>
+<p><strong>**flow_pairs:</strong> Compound-flow pairs,</p>
 </div></blockquote>
 <p><strong>Class Properties</strong></p>
 <blockquote>
-<div><strong>species</strong> = Species(): [Species] Contains pure component thermodynamic properties for computing overall properties of Stream instances</div></blockquote>
+<div><strong>species</strong> = Species(): [Species] Contains pure component thermodynamic properties for computing overall properties of Stream instances.</div></blockquote>
 <p><strong>Examples</strong></p>
 <blockquote>
 <div><p>Before making a stream, set the species using a Species object:</p>
@@ -102,14 +102,14 @@
 </pre></div>
 </div>
 <p>Stream objects may be created a variety of ways:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a stream specifying species and flow rate pairs:</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a stream specifying compound and flow rate pairs:</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 <span class="go">Stream: s1</span>
 <span class="go"> phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
 <span class="go"> flow (kmol/hr): Water  2</span>
 
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a stream assuming same specie order as given in species:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a stream assuming same order as given in species:</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;s2&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 <span class="go">Stream: s2</span>
@@ -242,9 +242,9 @@
 <span class="go">983.4747955832584</span>
 </pre></div>
 </div>
-<p>A dictionary of available material properties is available in <cite>Stream.units</cite>. You may also find it useful to use the <cite>help</cite> method to search for a property:</p>
+<p>A dictionary of available stream properties is available in <cite>Stream.units</cite>. You may also find it useful to use the <cite>help</cite> method to search for a property:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">help</span><span class="p">(</span><span class="s1">&#39;conductivity&#39;</span><span class="p">)</span>
-<span class="go">Thermal conductivity, k, is dependent on T and P with units, W/m/K, and type, float.</span>
+<span class="go">k: [float] Thermal conductivity as a function of T and P (W/m/K).</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -269,7 +269,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.phase">
 <code class="descname">phase</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.Stream.phase" title="Permalink to this definition">¶</a></dt>
-<dd><p>[str] ‘l’ (liquid), or ‘g’ (gas)</p>
+<dd><p>[str] ‘l’ for liquid, ‘g’ for gas, or ‘s’ for solid.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -349,12 +349,12 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.mol">
 <code class="descname">mol</code><a class="headerlink" href="#biosteam.Stream.mol" title="Permalink to this definition">¶</a></dt>
-<dd><p>Array of molar flow rates (array kmol/hr):</p>
+<dd><p>Array of molar flow rates (kmol/hr):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">mol</span>
-<span class="go">material_array([0, 2]) (kmol/hr)</span>
+<span class="go">material_array([0, 2])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">mol</span>
-<span class="go">material_array([1, 2]) (kmol/hr)</span>
+<span class="go">material_array([1, 2])</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -362,7 +362,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.molfrac">
 <code class="descname">molfrac</code><a class="headerlink" href="#biosteam.Stream.molfrac" title="Permalink to this definition">¶</a></dt>
-<dd><p>Array of molar fractions (molar fractions).</p>
+<dd><p>Array of molar fractions.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">molfrac</span>
 <span class="go">tuple_array([0., 1.])</span>
 </pre></div>
@@ -382,7 +382,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.mass">
 <code class="descname">mass</code><a class="headerlink" href="#biosteam.Stream.mass" title="Permalink to this definition">¶</a></dt>
-<dd><p>Array of mass flow rates (array kg/hr)</p>
+<dd><p>Array of mass flow rates (kg/hr)</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">mass</span>
 <span class="go">property_array([ 0.   , 36.031])</span>
 </pre></div>
@@ -392,7 +392,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.massfrac">
 <code class="descname">massfrac</code><a class="headerlink" href="#biosteam.Stream.massfrac" title="Permalink to this definition">¶</a></dt>
-<dd><p>Array of mass fractions (mass fractions).</p>
+<dd><p>Array of mass fractions.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">massfrac</span>
 <span class="go">tuple_array([0, 1])</span>
 </pre></div>
@@ -412,7 +412,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.vol">
 <code class="descname">vol</code><a class="headerlink" href="#biosteam.Stream.vol" title="Permalink to this definition">¶</a></dt>
-<dd><p>Array of volumetric flow rates (array m^3/hr). T and P dependent.</p>
+<dd><p>Array of volumetric flow rates as a function of T and P (m^3/hr).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">vol</span>
 <span class="go">property_array([0.059, 0.036])</span>
 </pre></div>
@@ -422,7 +422,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.volfrac">
 <code class="descname">volfrac</code><a class="headerlink" href="#biosteam.Stream.volfrac" title="Permalink to this definition">¶</a></dt>
-<dd><p>Array of volumetric fractions (volumetric fractions). T and P dependent.</p>
+<dd><p>Array of volumetric fractions as a function of T and P.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">volfrac</span>
 <span class="go">tuple_array([0.619, 0.381])</span>
 </pre></div>
@@ -432,7 +432,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.volnet">
 <code class="descname">volnet</code><a class="headerlink" href="#biosteam.Stream.volnet" title="Permalink to this definition">¶</a></dt>
-<dd><p>Net volumetric flow rate (m^3/hr). T and P dependent.</p>
+<dd><p>Net volumetric flow rate as a function of T and P (m^3/hr).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">volnet</span> <span class="c1"># a liquid stream</span>
 <span class="go">0.09475552896916632</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s3</span><span class="o">.</span><span class="n">volnet</span> <span class="c1"># a gas stream</span>
@@ -444,7 +444,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.H">
 <code class="descname">H</code><a class="headerlink" href="#biosteam.Stream.H" title="Permalink to this definition">¶</a></dt>
-<dd><p>Enthalpy flow rate (kJ/hr) without formation energies. Only T dependent.</p>
+<dd><p>Enthalpy flow rate as a function of T, excluding formation energies (kJ/hr).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">H</span> <span class="c1"># The stream is at the reference state</span>
 <span class="go">0.0</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">H</span> <span class="o">=</span> <span class="mi">1000</span>
@@ -483,7 +483,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.S">
 <code class="descname">S</code><a class="headerlink" href="#biosteam.Stream.S" title="Permalink to this definition">¶</a></dt>
-<dd><p>Entropy flow rate (kJ/hr) without formation energies. T and P dependent.</p>
+<dd><p>Entropy flow rate as a function of T and P, excluding formation energies (kJ/hr).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">S</span> <span class="c1"># The stream is at the reference state</span>
 <span class="go">0.0</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="mi">320</span>
@@ -496,7 +496,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.G">
 <code class="descname">G</code><a class="headerlink" href="#biosteam.Stream.G" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gibbs free energy flow rate (kJ/hr) without formation energies. T and P dependent.</p>
+<dd><p>Gibbs free energy flow rate as a function of T and P, excluding formation energies (kJ/hr).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">G</span> <span class="c1"># The stream is at the reference state</span>
 <span class="go">0.0</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="mi">320</span>
@@ -509,7 +509,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.U">
 <code class="descname">U</code><a class="headerlink" href="#biosteam.Stream.U" title="Permalink to this definition">¶</a></dt>
-<dd><p>Internal energy flow rate (kJ/hr) without formation energies. T and P dependent.</p>
+<dd><p>Internal energy flow rate as a function of T and P, excluding formation energies (kJ/hr).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">U</span> <span class="c1"># The stream is at the reference state</span>
 <span class="go">0.0</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="mi">320</span>
@@ -522,7 +522,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.A">
 <code class="descname">A</code><a class="headerlink" href="#biosteam.Stream.A" title="Permalink to this definition">¶</a></dt>
-<dd><p>Helmholtz energy flow rate (kJ/hr) without formation energies. T and P dependent.</p>
+<dd><p>Helmholtz energy flow rate as a function of T and P, excluding formation energies (kJ/hr).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">A</span> <span class="c1"># The stream is at the reference state</span>
 <span class="go">0.0</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="mi">320</span>
@@ -535,7 +535,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.C">
 <code class="descname">C</code><a class="headerlink" href="#biosteam.Stream.C" title="Permalink to this definition">¶</a></dt>
-<dd><p>Heat capacity flow rate (kJ/K/hr). T dependent.</p>
+<dd><p>Heat capacity flow rate as a function of T (kJ/K/hr).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">C</span>
 <span class="go">262.74816631655267</span>
 </pre></div>
@@ -545,7 +545,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.Cp">
 <code class="descname">Cp</code><a class="headerlink" href="#biosteam.Stream.Cp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Specific heat capacity (J/g/K). T dependent.</p>
+<dd><p>Specific heat capacity as a function of T (kJ/kg/K).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">Cp</span>
 <span class="go">4.180597021827335</span>
 </pre></div>
@@ -555,7 +555,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.Cpm">
 <code class="descname">Cpm</code><a class="headerlink" href="#biosteam.Stream.Cpm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Molar heat capacity (J/mol/K). T dependent.</p>
+<dd><p>Molar heat capacity as a function of T (kJ/kmol/K).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">Cpm</span> <span class="c1"># (J/mol/K)</span>
 <span class="go">75.31462591538556</span>
 </pre></div>
@@ -565,7 +565,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.Vm">
 <code class="descname">Vm</code><a class="headerlink" href="#biosteam.Stream.Vm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Molar volume (m^3/mol). T and P dependent.</p>
+<dd><p>Molar volume as a function of T and P (m^3/mol).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">Vm</span>
 <span class="go">1.8069039870122814e-05</span>
 </pre></div>
@@ -575,7 +575,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.rho">
 <code class="descname">rho</code><a class="headerlink" href="#biosteam.Stream.rho" title="Permalink to this definition">¶</a></dt>
-<dd><p>Density (kg/m^3). T and P dependent.</p>
+<dd><p>Density as a function of T (kg/m^3).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">rho</span>
 <span class="go">997.0247522552814</span>
 </pre></div>
@@ -585,7 +585,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.rhom">
 <code class="descname">rhom</code><a class="headerlink" href="#biosteam.Stream.rhom" title="Permalink to this definition">¶</a></dt>
-<dd><p>Molar density (mol/m^3). T and P dependent.</p>
+<dd><p>Molar density as a function of T and P (mol/m^3).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">rhom</span>
 <span class="go">55343.283715561534</span>
 </pre></div>
@@ -595,7 +595,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.nu">
 <code class="descname">nu</code><a class="headerlink" href="#biosteam.Stream.nu" title="Permalink to this definition">¶</a></dt>
-<dd><p>Kinematic viscosity (m^2/s). T and P dependent.</p>
+<dd><p>Kinematic viscosity as a function of T and P (m^2/s).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">nu</span>
 <span class="go">9.154438858391748e-07</span>
 </pre></div>
@@ -605,7 +605,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.mu">
 <code class="descname">mu</code><a class="headerlink" href="#biosteam.Stream.mu" title="Permalink to this definition">¶</a></dt>
-<dd><p>Hydraulic viscosity (Pa*s). T and P dependent.</p>
+<dd><p>Hydraulic viscosity as a function of T and P (Pa*s).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">mu</span>
 <span class="go">0.0009127202134824155</span>
 </pre></div>
@@ -615,7 +615,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.k">
 <code class="descname">k</code><a class="headerlink" href="#biosteam.Stream.k" title="Permalink to this definition">¶</a></dt>
-<dd><p>Thermal conductivity (W/m/k). T and P dependent.</p>
+<dd><p>Thermal conductivity as a function of T and P (W/m/k).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">k</span>
 <span class="go">0.5942044328004411</span>
 </pre></div>
@@ -625,7 +625,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.alpha">
 <code class="descname">alpha</code><a class="headerlink" href="#biosteam.Stream.alpha" title="Permalink to this definition">¶</a></dt>
-<dd><p>Thermal diffusivity (m^2/s). T and P dependent.</p>
+<dd><p>Thermal diffusivity as a function of T and P (m^2/s).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">alpha</span>
 <span class="go">1.4255801521655763e-07</span>
 </pre></div>
@@ -635,7 +635,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.sigma">
 <code class="descname">sigma</code><a class="headerlink" href="#biosteam.Stream.sigma" title="Permalink to this definition">¶</a></dt>
-<dd><p>Surface tension (N/m). T dependent.</p>
+<dd><p>Surface tension as a function of T (N/m).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">sigma</span>
 <span class="go">0.07205503890847455</span>
 </pre></div>
@@ -645,7 +645,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.Pr">
 <code class="descname">Pr</code><a class="headerlink" href="#biosteam.Stream.Pr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Prandtl number (non-dimensional). T and P dependent.</p>
+<dd><p>Prandtl number as a function of T and P (non-dimensional).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">Pr</span>
 <span class="go">6.421553249380879</span>
 </pre></div>
@@ -667,12 +667,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.nonzero_species">
 <code class="descname">nonzero_species</code><a class="headerlink" href="#biosteam.Stream.nonzero_species" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return flow indices and species that have a non-zero flow rate.</p>
-<p><strong>Return</strong></p>
-<blockquote>
-<div><p><strong>index:</strong> list[float] flow indexes that are not zero</p>
-<p><strong>species:</strong> list[Compound] species corresponding to index</p>
-</div></blockquote>
+<dd><p>Flow indices and species that have a non-zero flow rate.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">nonzero_species</span>
 <span class="go">[1], [&#39;Water&#39;]</span>
 </pre></div>
@@ -738,7 +733,7 @@
 <dd><p>Set flow rates to zero</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">mol</span>
-<span class="go">material_array([0, 0]) kmol/hr</span>
+<span class="go">material_array([0, 0])</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -804,9 +799,9 @@
 <div><strong>prop:</strong> [str] name or description of a property</div></blockquote>
 <p>Example</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">help</span><span class="p">(</span><span class="s1">&#39;rho&#39;</span><span class="p">)</span>
-<span class="go">Density, rho, is dependent on T and P with units, kg/m^3, and type, float.</span>
+<span class="go">rho: [float] Density as a function of T and P (kg/m^3).</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">help</span><span class="p">(</span><span class="s1">&#39;density&#39;</span><span class="p">)</span>
-<span class="go">Density, rho, is dependent on T and P with units, kg/m^3, and type, float.</span>
+<span class="go">rho: [float] Density as a function of T and P (kg/m^3).</span>
 </pre></div>
 </div>
 </dd></dl>

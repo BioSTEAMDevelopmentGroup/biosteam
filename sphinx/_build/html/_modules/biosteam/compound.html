@@ -61,7 +61,6 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">integrate</span>
 <span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">log</span>
-<span class="kn">from</span> <span class="nn">bookkeep</span> <span class="k">import</span> <span class="n">ReadOnlyBook</span>
 <span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Q_</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Compound&#39;</span><span class="p">,)</span>
@@ -147,25 +146,25 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1">#: [dict] Units of measure for material properties (class attribute). </span>
-    <span class="n">units</span> <span class="o">=</span> <span class="n">ReadOnlyBook</span><span class="p">(</span><span class="n">MW</span><span class="o">=</span><span class="s1">&#39;g/mol&#39;</span><span class="p">,</span>
-                         <span class="n">T</span><span class="o">=</span><span class="s1">&#39;K&#39;</span><span class="p">,</span>
-                         <span class="n">P</span><span class="o">=</span><span class="s1">&#39;Pa&#39;</span><span class="p">,</span>
-                         <span class="n">H</span><span class="o">=</span><span class="s1">&#39;J/mol&#39;</span><span class="p">,</span>
-                         <span class="n">S</span><span class="o">=</span><span class="s1">&#39;J/mol&#39;</span><span class="p">,</span>
-                         <span class="n">G</span><span class="o">=</span><span class="s1">&#39;J/mol&#39;</span><span class="p">,</span>
-                         <span class="n">U</span><span class="o">=</span><span class="s1">&#39;J/mol&#39;</span><span class="p">,</span>
-                         <span class="n">A</span><span class="o">=</span><span class="s1">&#39;J/mol&#39;</span><span class="p">,</span>
-                         <span class="n">Hf</span><span class="o">=</span><span class="s1">&#39;J/mol&#39;</span><span class="p">,</span>
-                         <span class="n">Vm</span><span class="o">=</span><span class="s1">&#39;m^3/mol&#39;</span><span class="p">,</span>
-                         <span class="n">Cpm</span><span class="o">=</span><span class="s1">&#39;J/mol&#39;</span><span class="p">,</span>
-                         <span class="n">Cp</span><span class="o">=</span><span class="s1">&#39;J/g&#39;</span><span class="p">,</span>
-                         <span class="n">rho</span><span class="o">=</span><span class="s1">&#39;kg/m^3&#39;</span><span class="p">,</span>
-                         <span class="n">rhom</span><span class="o">=</span><span class="s1">&#39;mol/m^3&#39;</span><span class="p">,</span>
-                         <span class="n">nu</span><span class="o">=</span><span class="s1">&#39;m^2/s&#39;</span><span class="p">,</span>
-                         <span class="n">mu</span><span class="o">=</span><span class="s1">&#39;Pa*s&#39;</span><span class="p">,</span>
-                         <span class="n">sigma</span><span class="o">=</span><span class="s1">&#39;N/m&#39;</span><span class="p">,</span>
-                         <span class="n">k</span><span class="o">=</span><span class="s1">&#39;W/m/K&#39;</span><span class="p">,</span>
-                         <span class="n">alpha</span><span class="o">=</span><span class="s1">&#39;m^2/s&#39;</span><span class="p">)</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">MW</span><span class="o">=</span><span class="s1">&#39;g/mol&#39;</span><span class="p">,</span>
+                 <span class="n">T</span><span class="o">=</span><span class="s1">&#39;K&#39;</span><span class="p">,</span>
+                 <span class="n">P</span><span class="o">=</span><span class="s1">&#39;Pa&#39;</span><span class="p">,</span>
+                 <span class="n">H</span><span class="o">=</span><span class="s1">&#39;J/mol&#39;</span><span class="p">,</span>
+                 <span class="n">S</span><span class="o">=</span><span class="s1">&#39;J/mol&#39;</span><span class="p">,</span>
+                 <span class="n">G</span><span class="o">=</span><span class="s1">&#39;J/mol&#39;</span><span class="p">,</span>
+                 <span class="n">U</span><span class="o">=</span><span class="s1">&#39;J/mol&#39;</span><span class="p">,</span>
+                 <span class="n">A</span><span class="o">=</span><span class="s1">&#39;J/mol&#39;</span><span class="p">,</span>
+                 <span class="n">Hf</span><span class="o">=</span><span class="s1">&#39;J/mol&#39;</span><span class="p">,</span>
+                 <span class="n">Vm</span><span class="o">=</span><span class="s1">&#39;m^3/mol&#39;</span><span class="p">,</span>
+                 <span class="n">Cpm</span><span class="o">=</span><span class="s1">&#39;J/mol&#39;</span><span class="p">,</span>
+                 <span class="n">Cp</span><span class="o">=</span><span class="s1">&#39;J/g&#39;</span><span class="p">,</span>
+                 <span class="n">rho</span><span class="o">=</span><span class="s1">&#39;kg/m^3&#39;</span><span class="p">,</span>
+                 <span class="n">rhom</span><span class="o">=</span><span class="s1">&#39;mol/m^3&#39;</span><span class="p">,</span>
+                 <span class="n">nu</span><span class="o">=</span><span class="s1">&#39;m^2/s&#39;</span><span class="p">,</span>
+                 <span class="n">mu</span><span class="o">=</span><span class="s1">&#39;Pa*s&#39;</span><span class="p">,</span>
+                 <span class="n">sigma</span><span class="o">=</span><span class="s1">&#39;N/m&#39;</span><span class="p">,</span>
+                 <span class="n">k</span><span class="o">=</span><span class="s1">&#39;W/m/K&#39;</span><span class="p">,</span>
+                 <span class="n">alpha</span><span class="o">=</span><span class="s1">&#39;m^2/s&#39;</span><span class="p">)</span>
     
     <span class="n">phase_ref</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span> <span class="c1"># Reference phase</span>
     <span class="n">P_ref</span> <span class="o">=</span> <span class="mi">101325</span>  <span class="c1"># Reference pressure (Pa)</span>

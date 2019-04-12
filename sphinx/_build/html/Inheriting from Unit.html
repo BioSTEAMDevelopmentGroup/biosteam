@@ -375,11 +375,10 @@ Boiler class:</p>
 
         <span class="c1"># Calculate heat utility requirement (please read docs for HeatUtility objects)</span>
         <span class="n">T_operation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mixedstream</span><span class="o">.</span><span class="n">T</span>
-        <span class="n">hu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">duty</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">H</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">H</span>
         <span class="k">if</span> <span class="n">duty</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;{repr(self)} is cooling.&#39;</span><span class="p">)</span>
-        <span class="n">hu</span><span class="p">(</span><span class="n">duty</span><span class="p">,</span> <span class="n">T_operation</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">duty</span><span class="p">,</span> <span class="n">T_operation</span><span class="p">)</span>
 
         <span class="c1"># Temperature of utility at entrance</span>
         <span class="n">T_utility</span> <span class="o">=</span> <span class="n">hu</span><span class="o">.</span><span class="n">_fresh</span><span class="o">.</span><span class="n">T</span>

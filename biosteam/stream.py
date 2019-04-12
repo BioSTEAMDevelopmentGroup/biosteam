@@ -45,6 +45,24 @@ def nonzero_species(num_IDs, flow):
             species.append(ID)
     return index, species
 
+def _print_helpdata(helpdata):
+    """Print help data."""
+    # Only one helplist, print a nice string
+    if isinstance(helpdata[0], str):
+        propID, description, dependency, units, datatype = helpdata
+        if dependency == 'TP':
+            dependency = 'as a function of T and P '
+        elif dependency == 'T':
+            dependency = 'as a function of T '
+        elif dependency == 'P':
+            dependency = 'as a function of P '
+        print(f"{propID}: [{datatype}] {description.capitalize()} {dependency}({units}).")
+
+    # Many helpdata, print all the nice strings
+    else:
+        for i in helpdata:
+            _print_helpdata(i)
+
 
 # %% Units of measure
 
@@ -97,13 +115,13 @@ def MassFlow(self):
 @MassFlow.setter
 def MassFlow(self, value):
     mol, MW = self.data
-    mol[0] = value/MW if value else 0
+    mol[0] = value/MW if value else 0.
 
 @PropertyFactory    
 def VolumetricFlow(self):
     """Volumetric flow (m^3/hr)."""
     stream, mol = self.data
-    m = mol.item(0)
+    m = mol[0]
     if m:
         c = self.name # c = compound
         c.T = stream.T
@@ -161,13 +179,9 @@ class metaStream(type):
             species._immutable.add(species)
         else: raise ValueError('Must pass a Species object')
 
-    def __repr__(cls):
-        if cls is Stream: return f'biosteam.{cls.__name__}'
-        else: return f'Stream.{cls.__name__}'
-
 
 class Stream(metaclass=metaStream):
-    """Create a Stream object that defines a thermodynamic state along with material flow rates. Stream objects calculate thermodynamic and transport properties of the mixture and its components. The Species object define the chemical species avalilable for the Stream class. Ideal mixture is assumed for stream properties and excess energies [enthalpy and entropy] are ignored as a simplifying assumption for low pressure processes.
+    """Create a Stream object that defines material flow rates along its thermodynamic state. Thermodynamic and transport properties of a stream are readily available. Ideal mixture is assumed for stream properties and excess thermodynamic energies are neglected as a simplifying assumption for low pressure processes.
 
 **Parameters**
 
@@ -179,19 +193,19 @@ class Stream(metaclass=metaStream):
 
     **units:** [str] The units of the flow rates (only mass, molar, and volumetric flow rates are valid)
 
-    **phase:** [str] 'l' for liquid, 'g' for gas
+    **phase:** [str] 'l' for liquid, 'g' for gas, or 's' for solid.
 
-    **T:** [float] Temperature (K)
+    **T:** [float] Temperature (K).
 
-    **P:** [float] Pressure (Pa)
+    **P:** [float] Pressure (Pa).
 
-    **price:** [float] (USD/kg)
+    **price:** [float] (USD/kg).
     
-    ****flow_pairs:** Specie-flow pairs
+    ****flow_pairs:** Compound-flow pairs,
 
 **Class Properties**
 
-    **species** = Species(): [Species] Contains pure component thermodynamic properties for computing overall properties of Stream instances
+    **species** = Species(): [Species] Contains pure component thermodynamic properties for computing overall properties of Stream instances.
 
 **Examples**
 
@@ -206,14 +220,14 @@ class Stream(metaclass=metaStream):
 
     .. code-block:: python
 
-       >>> # Create a stream specifying species and flow rate pairs:
+       >>> # Create a stream specifying compound and flow rate pairs:
        >>> s1 = Stream(ID='s1', Water=2)
        >>> s1.show()
        Stream: s1
         phase: 'l', T: 298.15 K, P: 101325 Pa
         flow (kmol/hr): Water  2
 
-       >>> # Create a stream assuming same specie order as given in species:
+       >>> # Create a stream assuming same order as given in species:
        >>> s2 = Stream(ID='s2', flow=(1, 2))
        >>> s2.show()
        Stream: s2
@@ -353,7 +367,7 @@ class Stream(metaclass=metaStream):
     .. code-block:: python
 
        >>> Stream.help('conductivity')
-       Thermal conductivity, k, is dependent on T and P with units, W/m/K, and type, float.
+       k: [float] Thermal conductivity as a function of T and P (W/m/K).
 
     """
     activity_coefficients = DORTMUND
@@ -361,37 +375,37 @@ class Stream(metaclass=metaStream):
     # [dict] Units of measure for material properties (class attribute). 
     units = units_of_measure
 
-    # Utils information regarding properties
-    _prop_molar_info = [
+    # Information regarding properties
+    _prop_info = (
         # ID         # Description               # Dependency # Units      # Type
-        ['T',        'temperature',              '',          'K',         'float'],
-        ['H',        'enthalpy',                 'T',         'kJ/hr',     'float'],
-        ['S',        'entropy',                  'TP',        'kJ/hr',     'float'],
-        ['G',        'Gibbs free energy',        'TP',        'kJ/hr',     'float'],
-        ['U',        'interal energy',           'TP',        'kJ/hr',     'float'],
-        ['A',        'Helmholtz free energy',    'TP',        'kJ/hr',     'float'],
-        ['Hf',       'enthalpy of formation',    '',          'kJ/hr',     'float'],
-        ['P',        'pressure',                 '',          'Pa',        'float'],
-        ['Cpm',      'molar heat capacity',      'T',         'J/mol/K',   'float'],
-        ['Cp',       'specific heat capacity',   'T',         'J/kg/K',    'float'],
-        ['Vm',       'molar volume',             'TP',        'm^3/mol',   'float'],
-        ['rho',      'density',                  'TP',        'kg/m^3',    'float'],
-        ['rhom',     'molar density',            'TP',        'mol/m^3',   'float'],
-        ['nu',       'kinematic viscosity',      'TP',        'm^2/s',     'float'],
-        ['mu',       'hydraulic viscosity',      'TP',        'Pa*s',      'float'],
-        ['sigma',    'surface tension',          'T',         'N/m',       'float'],
-        ['k',        'thermal conductivity',     'TP',        'W/m/K',     'float'],
-        ['alpha',    'thermal diffusivity',      'TP',        'm^2/s',     'float'],
-        ['Pr',       'Prantl number',            'TP',        "''",        'float'],
-        ['mass',     'mass flow rates',          '',          'kg/hr',     'np.array'],
-        ['mol',      'molar flow rates',         '',          'kmol/hr',   'np.array'],
-        ['vol',      'volumetric flow rates',    'TP',        'm^3/hr',    'np.array'],
-        ['massnet',  'net mass flow rate',       '',          'kg/hr',     'float'],
-        ['molnet',   'net molar flow rate',      '',          'kmol/hr',   'float'],
-        ['volnet',   'net volumetric flow rate', 'TP',        'm^3/hr',    'float'],
-        ['massfrac', 'mass fractions',           '',          'kg/kg',     'np.array'],
-        ['molfrac',  'molar fractions',          '',          'kmol/kmol', 'np.array'],
-        ['volfrac',  'volumetric fractions',     'TP',        'm^3/m^3',   'np.array']]
+        ('T',        'temperature',              '',          'K',         'float'),
+        ('H',        'enthalpy',                 'T',         'kJ/hr',     'float'),
+        ('S',        'entropy',                  'TP',        'kJ/hr',     'float'),
+        ('G',        'Gibbs free energy',        'TP',        'kJ/hr',     'float'),
+        ('U',        'interal energy',           'TP',        'kJ/hr',     'float'),
+        ('A',        'Helmholtz free energy',    'TP',        'kJ/hr',     'float'),
+        ('Hf',       'enthalpy of formation',    '',          'kJ/hr',     'float'),
+        ('P',        'pressure',                 '',          'Pa',        'float'),
+        ('Cpm',      'molar heat capacity',      'T',         'J/mol/K',   'float'),
+        ('Cp',       'specific heat capacity',   'T',         'J/kg/K',    'float'),
+        ('Vm',       'molar volume',             'TP',        'm^3/mol',   'float'),
+        ('rho',      'density',                  'TP',        'kg/m^3',    'float'),
+        ('rhom',     'molar density',            'TP',        'mol/m^3',   'float'),
+        ('nu',       'kinematic viscosity',      'TP',        'm^2/s',     'float'),
+        ('mu',       'hydraulic viscosity',      'TP',        'Pa*s',      'float'),
+        ('sigma',    'surface tension',          'T',         'N/m',       'float'),
+        ('k',        'thermal conductivity',     'TP',        'W/m/K',     'float'),
+        ('alpha',    'thermal diffusivity',      'TP',        'm^2/s',     'float'),
+        ('Pr',       'Prantl number',            'TP',        "''",        'float'),
+        ('mass',     'mass flow rates',          '',          'kg/hr',     'ndarray'),
+        ('mol',      'molar flow rates',         '',          'kmol/hr',   'ndarray'),
+        ('vol',      'volumetric flow rates',    'TP',        'm^3/hr',    'ndarray'),
+        ('massnet',  'net mass flow rate',       '',          'kg/hr',     'float'),
+        ('molnet',   'net molar flow rate',      '',          'kmol/hr',   'float'),
+        ('volnet',   'net volumetric flow rate', 'TP',        'm^3/hr',    'float'),
+        ('massfrac', 'mass fractions',           '',          'kg/kg',     'ndarray'),
+        ('molfrac',  'molar fractions',          '',          'kmol/kmol', 'ndarray'),
+        ('volfrac',  'volumetric fractions',     'TP',        'm^3/m^3',   'ndarray'))
 
     ### Class attributes for working species ###
     
@@ -467,13 +481,13 @@ class Stream(metaclass=metaStream):
         # {species: lL_split}
         self._lL_split_cached = {}
         
-        #: tuple with source unit ID and outs position
+        #: Unit source
         self._source = None
         
-        #: tuple with sink unit ID and ins position
+        #: Unit sink
         self._sink = None
         
-        #: [str] 'l' (liquid), or 'g' (gas)
+        #: [str] 'l' for liquid, 'g' for gas, or 's' for solid.
         self.phase = phase
         
         #: [float] Temperature (K)
@@ -722,13 +736,13 @@ class Stream(metaclass=metaStream):
     # Molar flow
     @property
     def mol(self):
-        """Array of molar flow rates (array kmol/hr):
+        """Array of molar flow rates (kmol/hr):
 
         >>> s1.mol
-        material_array([0, 2]) (kmol/hr)
+        material_array([0, 2])
         >>> s1.mol = [1, 2]
         >>> s1.mol
-        material_array([1, 2]) (kmol/hr)
+        material_array([1, 2])
         """
         return self._mol
 
@@ -743,7 +757,7 @@ class Stream(metaclass=metaStream):
 
     @property
     def molfrac(self):
-        """Array of molar fractions (molar fractions).
+        """Array of molar fractions.
 
         >>> s1.molfrac
         tuple_array([0., 1.])
@@ -762,7 +776,7 @@ class Stream(metaclass=metaStream):
     # Mass flow
     @property
     def mass(self):
-        """Array of mass flow rates (array kg/hr)
+        """Array of mass flow rates (kg/hr)
 
         >>> s1.mass
         property_array([ 0.   , 36.031])
@@ -775,7 +789,7 @@ class Stream(metaclass=metaStream):
 
     @property
     def massfrac(self):
-        """Array of mass fractions (mass fractions).
+        """Array of mass fractions.
 
         >>> s1.massfrac
         tuple_array([0, 1])
@@ -794,7 +808,7 @@ class Stream(metaclass=metaStream):
     # Volumetric flow
     @property
     def vol(self):
-        """Array of volumetric flow rates (array m^3/hr). T and P dependent.
+        """Array of volumetric flow rates as a function of T and P (m^3/hr).
 
         >>> s2.vol
         property_array([0.059, 0.036])
@@ -808,7 +822,7 @@ class Stream(metaclass=metaStream):
 
     @property
     def volfrac(self):
-        """Array of volumetric fractions (volumetric fractions). T and P dependent.
+        """Array of volumetric fractions as a function of T and P.
 
         >>> s2.volfrac
         tuple_array([0.619, 0.381])
@@ -817,7 +831,7 @@ class Stream(metaclass=metaStream):
         
     @property
     def volnet(self):
-        """Net volumetric flow rate (m^3/hr). T and P dependent.
+        """Net volumetric flow rate as a function of T and P (m^3/hr).
 
         >>> s2.volnet # a liquid stream
         0.09475552896916632
@@ -831,7 +845,7 @@ class Stream(metaclass=metaStream):
     # Enthalpy
     @property
     def H(self):
-        """Enthalpy flow rate (kJ/hr) without formation energies. Only T dependent.
+        """Enthalpy flow rate as a function of T, excluding formation energies (kJ/hr).
 
         >>> s1.H # The stream is at the reference state
         0.0
@@ -889,7 +903,7 @@ class Stream(metaclass=metaStream):
     # Entropy
     @property
     def S(self):
-        """Entropy flow rate (kJ/hr) without formation energies. T and P dependent.
+        """Entropy flow rate as a function of T and P, excluding formation energies (kJ/hr).
 
         >>> s1.S # The stream is at the reference state
         0.0
@@ -902,7 +916,7 @@ class Stream(metaclass=metaStream):
     # Gibbs free energy
     @property
     def G(self):
-        """Gibbs free energy flow rate (kJ/hr) without formation energies. T and P dependent.
+        """Gibbs free energy flow rate as a function of T and P, excluding formation energies (kJ/hr).
 
         >>> s1.G # The stream is at the reference state
         0.0
@@ -915,7 +929,7 @@ class Stream(metaclass=metaStream):
     # Internal energy
     @property
     def U(self):
-        """Internal energy flow rate (kJ/hr) without formation energies. T and P dependent.
+        """Internal energy flow rate as a function of T and P, excluding formation energies (kJ/hr).
 
         >>> s1.U # The stream is at the reference state
         0.0
@@ -928,7 +942,7 @@ class Stream(metaclass=metaStream):
     # Helmholtz
     @property
     def A(self):
-        """Helmholtz energy flow rate (kJ/hr) without formation energies. T and P dependent.
+        """Helmholtz energy flow rate as a function of T and P, excluding formation energies (kJ/hr).
 
         >>> s1.A # The stream is at the reference state
         0.0
@@ -941,7 +955,7 @@ class Stream(metaclass=metaStream):
     # Capacity flow rate
     @property
     def C(self):
-        """Heat capacity flow rate (kJ/K/hr). T dependent.
+        """Heat capacity flow rate as a function of T (kJ/K/hr).
 
         >>> s2.C
         262.74816631655267
@@ -951,7 +965,7 @@ class Stream(metaclass=metaStream):
     # Material properties
     @property
     def Cp(self):
-        """Specific heat capacity (J/g/K). T dependent.
+        """Specific heat capacity as a function of T (kJ/kg/K).
 
         >>> s1.Cp
         4.180597021827335
@@ -960,7 +974,7 @@ class Stream(metaclass=metaStream):
 
     @property
     def Cpm(self):
-        """Molar heat capacity (J/mol/K). T dependent.
+        """Molar heat capacity as a function of T (kJ/kmol/K).
 
         >>> s1.Cpm # (J/mol/K)
         75.31462591538556
@@ -969,7 +983,7 @@ class Stream(metaclass=metaStream):
 
     @property
     def Vm(self):
-        """Molar volume (m^3/mol). T and P dependent.
+        """Molar volume as a function of T and P (m^3/mol).
 
         >>> s1.Vm
         1.8069039870122814e-05
@@ -978,7 +992,7 @@ class Stream(metaclass=metaStream):
 
     @property
     def rho(self):
-        """Density (kg/m^3). T and P dependent.
+        """Density as a function of T (kg/m^3).
 
         >>> s1.rho
         997.0247522552814
@@ -987,7 +1001,7 @@ class Stream(metaclass=metaStream):
 
     @property
     def rhom(self):
-        """Molar density (mol/m^3). T and P dependent.
+        """Molar density as a function of T and P (mol/m^3).
 
         >>> s1.rhom
         55343.283715561534
@@ -996,7 +1010,7 @@ class Stream(metaclass=metaStream):
 
     @property
     def nu(self):
-        """Kinematic viscosity (m^2/s). T and P dependent.
+        """Kinematic viscosity as a function of T and P (m^2/s).
 
         >>> s1.nu
         9.154438858391748e-07
@@ -1005,7 +1019,7 @@ class Stream(metaclass=metaStream):
 
     @property
     def mu(self):
-        """Hydraulic viscosity (Pa*s). T and P dependent.
+        """Hydraulic viscosity as a function of T and P (Pa*s).
 
         >>> s1.mu
         0.0009127202134824155
@@ -1020,7 +1034,7 @@ class Stream(metaclass=metaStream):
 
     @property
     def k(self):
-        """Thermal conductivity (W/m/k). T and P dependent.
+        """Thermal conductivity as a function of T and P (W/m/k).
 
         >>> s1.k
         0.5942044328004411
@@ -1029,7 +1043,7 @@ class Stream(metaclass=metaStream):
 
     @property
     def alpha(self):
-        """Thermal diffusivity (m^2/s). T and P dependent.
+        """Thermal diffusivity as a function of T and P (m^2/s).
 
         >>> s1.alpha
         1.4255801521655763e-07
@@ -1038,7 +1052,7 @@ class Stream(metaclass=metaStream):
 
     @property
     def sigma(self):
-        """Surface tension (N/m). T dependent.
+        """Surface tension as a function of T (N/m).
 
         >>> s1.sigma
         0.07205503890847455
@@ -1047,7 +1061,7 @@ class Stream(metaclass=metaStream):
 
     @property
     def Pr(self):
-        """Prandtl number (non-dimensional). T and P dependent.
+        """Prandtl number as a function of T and P (non-dimensional).
 
         >>> s1.Pr
         6.421553249380879
@@ -1067,13 +1081,7 @@ class Stream(metaclass=metaStream):
 
     @property
     def nonzero_species(self):
-        """Return flow indices and species that have a non-zero flow rate.
-
-        **Return**
-
-             **index:** list[float] flow indexes that are not zero
-
-             **species:** list[Compound] species corresponding to index
+        """Flow indices and species that have a non-zero flow rate.
 
         >>> s1.nonzero_species
         [1], ['Water']
@@ -1144,7 +1152,7 @@ class Stream(metaclass=metaStream):
         getattr_ = getattr
         P = self.P
         T = self.T
-        phase = self.phase.lower()
+        phase = self.phase
         for i, s in self._num_compounds:
             if nextmol() != 0:
                 s.P = P
@@ -1212,7 +1220,7 @@ class Stream(metaclass=metaStream):
 
         >>> s1.empty()
         >>> s1.mol
-        material_array([0, 0]) kmol/hr
+        material_array([0, 0])
         """
         self._molarray[:] = 0
         
@@ -1455,7 +1463,7 @@ class Stream(metaclass=metaStream):
 
     # Class methods
     @classmethod
-    def _helplist(cls, prop):
+    def _helpdata(cls, prop):
         """Return information related to a property.
 
         **Parameters**
@@ -1464,7 +1472,7 @@ class Stream(metaclass=metaStream):
 
         Return
 
-             **out:** list[str] where elements are:
+             **out:** tupple[str] where elements are:
                   * **ID:** [str] name of the property
 
                   * **Description:** [str] description of the property
@@ -1478,28 +1486,27 @@ class Stream(metaclass=metaStream):
         Example
 
         >>> Stream._helplist('k')
-        ['k', 'thermal conductivity', 'TP', 'W/m/K', 'float']
+        ('k', 'thermal conductivity', 'TP', 'W/m/K', 'float')
 
         >>> Stream._helplist('viscosity')
-        [['nu', 'kinematic viscosity', 'TP', 'm^2/s', 'float'],
-         ['mu', 'hydraulic viscosity', 'TP', 'Pa*s', 'float']]
+        (('nu', 'kinematic viscosity', 'TP', 'm^2/s', 'float'),
+         ('mu', 'hydraulic viscosity', 'TP', 'Pa*s', 'float'))
 
         >>> Stream._helplist('kmol/hr')
-        [['mol', 'molar flow rates', '', 'kmol/hr', 'np.array'],
-         ['molnet', 'net molar flow rate', '', 'kmol/hr', 'float']]
+        (('mol', 'molar flow rates', '', 'kmol/hr', 'np.array'),
+         ('molnet', 'net molar flow rate', '', 'kmol/hr', 'float'))
         """
-        out = []
         # Compare by both ID and description
         for index in (0, 1):
             # Search for exact matches
-            for l in cls._prop_molar_info:
-                if prop == l[index]:
-                    return l
+            for l in cls._prop_info:
+                if prop == l[index]: return l
+        
+        out = []
+        for index in (0, 1):    
             # If no matches found, search harder
-            if len(out) == 0:
-                for l in cls._prop_molar_info:
-                    if prop.lower() in l[index].lower():
-                        out.append(l)
+            for l in cls._prop_info:
+                if prop.lower() in l[index].lower(): out.append(l)
         return out
 
     @classmethod
@@ -1513,37 +1520,13 @@ class Stream(metaclass=metaStream):
         Example
 
         >>> Stream.help('rho')
-        Density, rho, is dependent on T and P with units, kg/m^3, and type, float.
+        rho: [float] Density as a function of T and P (kg/m^3).
         >>> Stream.help('density')
-        Density, rho, is dependent on T and P with units, kg/m^3, and type, float.
+        rho: [float] Density as a function of T and P (kg/m^3).
         """
-        def make_nice(helplist):
-            """Make the helplist into a nice string"""
-
-            # No helplist
-            if helplist == []:
-                pass
-
-            # Only one helplist, print a nice string
-            elif type(helplist[0]) is str:
-                propID, description, dependency, units, datatype = helplist
-                if dependency == 'TP':
-                    dependency = 'is dependent on T and P '
-                elif dependency == 'T':
-                    dependency = 'is dependent on T '
-                elif dependency == 'P':
-                    dependency = 'is dependent on P '
-                print(f"{description.capitalize()}, {propID}, {dependency}with units, {units}, and type, {datatype}.")
-
-            # Many helplists, print all the nice strings
-            elif type(helplist[0]) is list:
-                for i in helplist:
-                    make_nice(i)
-                    print()
-            else:
-                raise Exception('Unknown error with ' + str(helplist))
-
-        make_nice(cls._helplist(prop))
+        data = cls._helpdata(prop)
+        if data: _print_helpdata(data)
+        else: print(f"No matching property '{prop}'.")
 
     @staticmethod
     def eqT(streams, T_guess=None, Q_in=0, approximate=True):
@@ -1787,14 +1770,12 @@ class Stream(metaclass=metaStream):
         print(self._info(**show_units))
 
     def __str__(self):
-        if self.ID:
-            return self.ID
-        else:
-            return type(self).__name__
+        if self.ID: return self.ID
+        else: return type(self).__name__
 
     def __repr__(self):
-        if self.ID:
-            return f'<{type(self).__name__}: {self.ID}>'
-        else:
-            return f'<{type(self).__name__}>'
+        if self.ID: return f'<{type(self).__name__}: {self.ID}>'
+        else: return f'<{type(self).__name__}>'
+        
+        
 from . import mixed_stream as MS

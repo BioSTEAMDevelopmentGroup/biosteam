@@ -72,4 +72,3 @@ biosteam/utils/color_utils.py
 biosteam/utils/excel_utils.py
 biosteam/utils/other_utils.py
 biosteam/utils/stream_utils.py
-biosteam/utils/timer.py

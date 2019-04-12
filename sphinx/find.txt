@@ -8,6 +8,3 @@ find
 
 .. autoclass:: Flowsheet
    :members:
-
-.. autoclass:: MainFlowsheet
-   :members:   

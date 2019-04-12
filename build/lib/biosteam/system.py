@@ -91,7 +91,7 @@ class _systemUnit(Unit):
 
 _sysgraphics = _systemUnit._graphics
 _sysgraphics.edge_in = _sysgraphics.edge_in * 10
-_sysgraphics.edge_out = _sysgraphics.edge_out * 10
+_sysgraphics.edge_out = _sysgraphics.edge_out * 15
 _systemUnit._graphics.node['peripheries'] = '2'
 
 
@@ -185,6 +185,13 @@ class System:
             #: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the network simulation.
             self.facilities = tuple(facilities)
         else: self.facilities = ()
+        
+        has = hasattr
+        upstream_connections = set()
+        for s in streams:
+            if has(s, '_downstream_connection'):
+                upstream_connections.add(s)
+        streams.difference_update(upstream_connections)
         
         #: set[Stream] All feed streams in the system.
         self.feeds = set(filter(lambda s: not s._source and s._sink, streams))
@@ -349,7 +356,7 @@ class System:
                 subsystem_unit = _systemUnit(i.ID, outs, ins)
                 subsystem_unit._ID = i.ID
                 units.add(subsystem_unit)
-        System('*', units)._thorough_diagram(file)
+        System(None, units)._thorough_diagram(file)
         # Reconnect how it was
         for u in self.units:
             u.ins = u._ins

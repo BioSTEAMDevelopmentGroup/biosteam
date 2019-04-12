@@ -12,7 +12,7 @@ __all__ = ('Graphics',)
 # %%
 
 _edge_in = [{'headport': 'c'} for i in range(3)]
-_edge_out = [{'tailport': 'c'} for i in range(3)]
+_edge_out = [{'tailport': 'c'} for i in range(2)]
 _node = {'shape': 'box',
          'fillcolor': "white:#CDCDCD",
          'style': 'filled',

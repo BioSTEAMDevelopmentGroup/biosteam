@@ -60,7 +60,7 @@
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Q_</span><span class="p">,</span> <span class="n">units_of_measure</span>
+<span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Q_</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
@@ -70,8 +70,7 @@
 <span class="kn">from</span> <span class="nn">.flowsheet</span> <span class="k">import</span> <span class="n">find</span>
 <span class="kn">from</span> <span class="nn">.species</span> <span class="k">import</span> <span class="n">Species</span>
 <span class="kn">from</span> <span class="nn">.compound</span> <span class="k">import</span> <span class="n">Compound</span>
-<span class="kn">from</span> <span class="nn">.exceptions</span> <span class="k">import</span> <span class="n">SolverError</span><span class="p">,</span> <span class="n">EquilibriumError</span><span class="p">,</span> \
-                                <span class="n">DimensionError</span>
+<span class="kn">from</span> <span class="nn">.exceptions</span> <span class="k">import</span> <span class="n">SolverError</span><span class="p">,</span> <span class="n">EquilibriumError</span><span class="p">,</span> <span class="n">DimensionError</span>
 <span class="kn">from</span> <span class="nn">.equilibrium</span> <span class="k">import</span> <span class="n">DORTMUND</span>
 
 <span class="n">inf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
@@ -101,65 +100,61 @@
             <span class="n">species</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">index</span><span class="p">,</span> <span class="n">species</span>
 
+<span class="k">def</span> <span class="nf">_print_helpdata</span><span class="p">(</span><span class="n">helpdata</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Print help data.&quot;&quot;&quot;</span>
+    <span class="c1"># Only one helplist, print a nice string</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">helpdata</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">propID</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">dependency</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">datatype</span> <span class="o">=</span> <span class="n">helpdata</span>
+        <span class="k">if</span> <span class="n">dependency</span> <span class="o">==</span> <span class="s1">&#39;TP&#39;</span><span class="p">:</span>
+            <span class="n">dependency</span> <span class="o">=</span> <span class="s1">&#39;as a function of T and P &#39;</span>
+        <span class="k">elif</span> <span class="n">dependency</span> <span class="o">==</span> <span class="s1">&#39;T&#39;</span><span class="p">:</span>
+            <span class="n">dependency</span> <span class="o">=</span> <span class="s1">&#39;as a function of T &#39;</span>
+        <span class="k">elif</span> <span class="n">dependency</span> <span class="o">==</span> <span class="s1">&#39;P&#39;</span><span class="p">:</span>
+            <span class="n">dependency</span> <span class="o">=</span> <span class="s1">&#39;as a function of P &#39;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="si">{propID}</span><span class="s2">: [</span><span class="si">{datatype}</span><span class="s2">] {description.capitalize()} </span><span class="si">{dependency}</span><span class="s2">(</span><span class="si">{units}</span><span class="s2">).&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Many helpdata, print all the nice strings</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">helpdata</span><span class="p">:</span>
+            <span class="n">_print_helpdata</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
 
 <span class="c1"># %% Units of measure</span>
+
+<span class="c1"># Biosteam units of measure</span>
+<span class="n">units_of_measure</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">MW</span><span class="o">=</span><span class="s1">&#39;g/mol&#39;</span><span class="p">,</span>
+                        <span class="n">mass</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">,</span>
+                        <span class="n">mol</span><span class="o">=</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">,</span>
+                        <span class="n">vol</span><span class="o">=</span><span class="s1">&#39;m^3/hr&#39;</span><span class="p">,</span>
+                        <span class="n">massnet</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">,</span>
+                        <span class="n">molnet</span><span class="o">=</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">,</span>
+                        <span class="n">volnet</span><span class="o">=</span><span class="s1">&#39;m^3/hr&#39;</span><span class="p">,</span>
+                        <span class="n">massfrac</span><span class="o">=</span><span class="s1">&#39;kg/kg&#39;</span><span class="p">,</span>
+                        <span class="n">molfrac</span><span class="o">=</span><span class="s1">&#39;kmol/kmol&#39;</span><span class="p">,</span>
+                        <span class="n">volfrac</span><span class="o">=</span><span class="s1">&#39;m^3/m^3&#39;</span><span class="p">,</span>
+                        <span class="n">T</span><span class="o">=</span><span class="s1">&#39;K&#39;</span><span class="p">,</span>
+                        <span class="n">P</span><span class="o">=</span><span class="s1">&#39;Pa&#39;</span><span class="p">,</span>
+                        <span class="n">H</span><span class="o">=</span><span class="s1">&#39;kJ/hr&#39;</span><span class="p">,</span>
+                        <span class="n">S</span><span class="o">=</span><span class="s1">&#39;kJ/hr&#39;</span><span class="p">,</span>
+                        <span class="n">G</span><span class="o">=</span><span class="s1">&#39;kJ/hr&#39;</span><span class="p">,</span>
+                        <span class="n">U</span><span class="o">=</span><span class="s1">&#39;kJ/hr&#39;</span><span class="p">,</span>
+                        <span class="n">A</span><span class="o">=</span><span class="s1">&#39;kJ/hr&#39;</span><span class="p">,</span>
+                        <span class="n">Hf</span><span class="o">=</span><span class="s1">&#39;kJ/hr&#39;</span><span class="p">,</span>
+                        <span class="n">C</span><span class="o">=</span><span class="s1">&#39;kJ/K/hr&#39;</span><span class="p">,</span>
+                        <span class="n">Vm</span><span class="o">=</span><span class="s1">&#39;m^3/mol&#39;</span><span class="p">,</span>
+                        <span class="n">Cpm</span><span class="o">=</span><span class="s1">&#39;J/mol/K&#39;</span><span class="p">,</span>
+                        <span class="n">Cp</span><span class="o">=</span><span class="s1">&#39;J/g/K&#39;</span><span class="p">,</span>
+                        <span class="n">rho</span><span class="o">=</span><span class="s1">&#39;kg/m^3&#39;</span><span class="p">,</span>
+                        <span class="n">rhom</span><span class="o">=</span><span class="s1">&#39;mol/m^3&#39;</span><span class="p">,</span>
+                        <span class="n">nu</span><span class="o">=</span><span class="s1">&#39;m^2/s&#39;</span><span class="p">,</span>
+                        <span class="n">mu</span><span class="o">=</span><span class="s1">&#39;Pa*s&#39;</span><span class="p">,</span>
+                        <span class="n">sigma</span><span class="o">=</span><span class="s1">&#39;N/m&#39;</span><span class="p">,</span>
+                        <span class="n">k</span><span class="o">=</span><span class="s1">&#39;W/m/K&#39;</span><span class="p">,</span>
+                        <span class="n">alpha</span><span class="o">=</span><span class="s1">&#39;m^2/s&#39;</span><span class="p">)</span>
 
 <span class="n">mol_flow_dim</span> <span class="o">=</span> <span class="n">Q_</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">units_of_measure</span><span class="p">[</span><span class="s1">&#39;mol&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">dimensionality</span>
 <span class="n">mass_flow_dim</span> <span class="o">=</span> <span class="n">Q_</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">units_of_measure</span><span class="p">[</span><span class="s1">&#39;mass&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">dimensionality</span>
 <span class="n">vol_flow_dim</span> <span class="o">=</span> <span class="n">Q_</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">units_of_measure</span><span class="p">[</span><span class="s1">&#39;vol&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">dimensionality</span>
-
-<span class="k">class</span> <span class="nc">ShowFormat</span><span class="p">:</span>
-    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_T&#39;</span><span class="p">,</span> <span class="s1">&#39;_P&#39;</span><span class="p">,</span> <span class="s1">&#39;_flow&#39;</span><span class="p">,</span> <span class="s1">&#39;_fraction&#39;</span><span class="p">]</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_T</span> <span class="o">=</span> <span class="s1">&#39;K&#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_P</span> <span class="o">=</span> <span class="s1">&#39;Pa&#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_flow</span> <span class="o">=</span> <span class="s1">&#39;kmol/hr&#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_fraction</span> <span class="o">=</span> <span class="kc">False</span>
-    
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">T</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_T</span>
-    <span class="nd">@T</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">T</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
-        <span class="c1"># Test to make sure it has temperature units</span>
-        <span class="n">Q_</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">ito</span><span class="p">(</span><span class="s1">&#39;K&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_T</span> <span class="o">=</span> <span class="n">T</span>
-    
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">P</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_P</span>
-    <span class="nd">@P</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">P</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">P</span><span class="p">):</span>
-        <span class="c1"># Test to make sure it has pressure units</span>
-        <span class="n">Q_</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span><span class="o">.</span><span class="n">ito</span><span class="p">(</span><span class="s1">&#39;Pa&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_P</span> <span class="o">=</span> <span class="n">P</span>
-    
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">flow</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_flow</span>
-    <span class="nd">@flow</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">flow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flow</span><span class="p">):</span>
-        <span class="c1"># Test to make sure it has flow units</span>
-        <span class="n">flow_dim</span> <span class="o">=</span> <span class="n">Q_</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">flow</span><span class="p">)</span><span class="o">.</span><span class="n">dimensionality</span>
-        <span class="n">invalid_dimension</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="p">(</span><span class="n">mol_flow_dim</span><span class="p">,</span> <span class="n">mass_flow_dim</span><span class="p">,</span> <span class="n">vol_flow_dim</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">flow_dim</span> <span class="o">==</span> <span class="n">dim</span><span class="p">:</span>
-                <span class="n">invalid_dimension</span> <span class="o">=</span> <span class="kc">False</span>
-                <span class="k">break</span>
-        <span class="k">if</span> <span class="n">invalid_dimension</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">DimensionError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Dimensions for flow units must be in molar, mass or volumetric flow rates, not &#39;</span><span class="si">{flow_dim}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_flow</span> <span class="o">=</span> <span class="n">flow</span>
-    
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">fraction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fraction</span>
-    <span class="nd">@fraction</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">fraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fraction</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_fraction</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">fraction</span><span class="p">)</span>
-    
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">dummy</span> <span class="o">=</span> <span class="s1">&#39;-in fractions-&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fraction</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
-        <span class="k">return</span> <span class="n">f</span><span class="s2">&quot;&lt;{type(self).__name__}: T=&#39;</span><span class="si">{self.T}</span><span class="s2">&#39;, P=&#39;</span><span class="si">{self.P}</span><span class="s2">&#39;, flow=&#39;</span><span class="si">{self.flow}</span><span class="s2">&#39;</span><span class="si">{dummy}</span><span class="s2">&gt;&quot;</span>
 
 
 <span class="c1"># %% Flow properties</span>
@@ -175,13 +170,13 @@
 <span class="nd">@MassFlow</span><span class="o">.</span><span class="n">setter</span>
 <span class="k">def</span> <span class="nf">MassFlow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
     <span class="n">mol</span><span class="p">,</span> <span class="n">MW</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
-    <span class="n">mol</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span><span class="o">/</span><span class="n">MW</span> <span class="k">if</span> <span class="n">value</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="n">mol</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span><span class="o">/</span><span class="n">MW</span> <span class="k">if</span> <span class="n">value</span> <span class="k">else</span> <span class="mf">0.</span>
 
 <span class="nd">@PropertyFactory</span>    
 <span class="k">def</span> <span class="nf">VolumetricFlow</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Volumetric flow (m^3/hr).&quot;&quot;&quot;</span>
     <span class="n">stream</span><span class="p">,</span> <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span>
-    <span class="n">m</span> <span class="o">=</span> <span class="n">mol</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">mol</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
         <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="c1"># c = compound</span>
         <span class="n">c</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">T</span>
@@ -238,19 +233,10 @@
                 <span class="n">cl</span><span class="o">.</span><span class="n">_MW</span> <span class="o">=</span> <span class="n">MW</span>
             <span class="n">species</span><span class="o">.</span><span class="n">_immutable</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Must pass a Species object&#39;</span><span class="p">)</span>
-            
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">show_format</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[ShowFormat] Contains attributes with the units of measure for the show method.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_show_format</span>
-
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">cls</span> <span class="ow">is</span> <span class="n">Stream</span><span class="p">:</span> <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;biosteam.</span><span class="si">{cls.__name__}</span><span class="s1">&#39;</span>
-        <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;Stream.</span><span class="si">{cls.__name__}</span><span class="s1">&#39;</span>
 
 
 <div class="viewcode-block" id="Stream"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream">[docs]</a><span class="k">class</span> <span class="nc">Stream</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">metaStream</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Create a Stream object that defines a thermodynamic state along with material flow rates. Stream objects calculate thermodynamic and transport properties of the mixture and its components. The Species object define the chemical species avalilable for the Stream class. Ideal mixture is assumed for stream properties and excess energies [enthalpy and entropy] are ignored as a simplifying assumption for low pressure processes.</span>
+    <span class="sd">&quot;&quot;&quot;Create a Stream object that defines material flow rates along its thermodynamic state. Thermodynamic and transport properties of a stream are readily available. Ideal mixture is assumed for stream properties and excess thermodynamic energies are neglected as a simplifying assumption for low pressure processes.</span>
 
 <span class="sd">**Parameters**</span>
 
@@ -262,19 +248,19 @@
 
 <span class="sd">    **units:** [str] The units of the flow rates (only mass, molar, and volumetric flow rates are valid)</span>
 
-<span class="sd">    **phase:** [str] &#39;l&#39; for liquid, &#39;g&#39; for gas</span>
+<span class="sd">    **phase:** [str] &#39;l&#39; for liquid, &#39;g&#39; for gas, or &#39;s&#39; for solid.</span>
 
-<span class="sd">    **T:** [float] Temperature (K)</span>
+<span class="sd">    **T:** [float] Temperature (K).</span>
 
-<span class="sd">    **P:** [float] Pressure (Pa)</span>
+<span class="sd">    **P:** [float] Pressure (Pa).</span>
 
-<span class="sd">    **price:** [float] (USD/kg)</span>
+<span class="sd">    **price:** [float] (USD/kg).</span>
 <span class="sd">    </span>
-<span class="sd">    ****flow_pairs:** Specie-flow pairs</span>
+<span class="sd">    ****flow_pairs:** Compound-flow pairs,</span>
 
 <span class="sd">**Class Properties**</span>
 
-<span class="sd">    **species** = Species(): [Species] Contains pure component thermodynamic properties for computing overall properties of Stream instances</span>
+<span class="sd">    **species** = Species(): [Species] Contains pure component thermodynamic properties for computing overall properties of Stream instances.</span>
 
 <span class="sd">**Examples**</span>
 
@@ -289,14 +275,14 @@
 
 <span class="sd">    .. code-block:: python</span>
 
-<span class="sd">       &gt;&gt;&gt; # Create a stream specifying species and flow rate pairs:</span>
+<span class="sd">       &gt;&gt;&gt; # Create a stream specifying compound and flow rate pairs:</span>
 <span class="sd">       &gt;&gt;&gt; s1 = Stream(ID=&#39;s1&#39;, Water=2)</span>
 <span class="sd">       &gt;&gt;&gt; s1.show()</span>
 <span class="sd">       Stream: s1</span>
 <span class="sd">        phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
 <span class="sd">        flow (kmol/hr): Water  2</span>
 
-<span class="sd">       &gt;&gt;&gt; # Create a stream assuming same specie order as given in species:</span>
+<span class="sd">       &gt;&gt;&gt; # Create a stream assuming same order as given in species:</span>
 <span class="sd">       &gt;&gt;&gt; s2 = Stream(ID=&#39;s2&#39;, flow=(1, 2))</span>
 <span class="sd">       &gt;&gt;&gt; s2.show()</span>
 <span class="sd">       Stream: s2</span>
@@ -431,12 +417,12 @@
 <span class="sd">       &gt;&gt;&gt; s1.rho</span>
 <span class="sd">       983.4747955832584</span>
 
-<span class="sd">    A dictionary of available material properties is available in `Stream.units`. You may also find it useful to use the `help` method to search for a property:</span>
+<span class="sd">    A dictionary of available stream properties is available in `Stream.units`. You may also find it useful to use the `help` method to search for a property:</span>
 <span class="sd">        </span>
 <span class="sd">    .. code-block:: python</span>
 
 <span class="sd">       &gt;&gt;&gt; Stream.help(&#39;conductivity&#39;)</span>
-<span class="sd">       Thermal conductivity, k, is dependent on T and P with units, W/m/K, and type, float.</span>
+<span class="sd">       k: [float] Thermal conductivity as a function of T and P (W/m/K).</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">activity_coefficients</span> <span class="o">=</span> <span class="n">DORTMUND</span>
@@ -444,42 +430,39 @@
     <span class="c1"># [dict] Units of measure for material properties (class attribute). </span>
     <span class="n">units</span> <span class="o">=</span> <span class="n">units_of_measure</span>
 
-    <span class="c1"># Utils information regarding properties</span>
-    <span class="n">_prop_molar_info</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="c1"># Information regarding properties</span>
+    <span class="n">_prop_info</span> <span class="o">=</span> <span class="p">(</span>
         <span class="c1"># ID         # Description               # Dependency # Units      # Type</span>
-        <span class="p">[</span><span class="s1">&#39;T&#39;</span><span class="p">,</span>        <span class="s1">&#39;temperature&#39;</span><span class="p">,</span>              <span class="s1">&#39;&#39;</span><span class="p">,</span>          <span class="s1">&#39;K&#39;</span><span class="p">,</span>         <span class="s1">&#39;float&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;H&#39;</span><span class="p">,</span>        <span class="s1">&#39;enthalpy&#39;</span><span class="p">,</span>                 <span class="s1">&#39;T&#39;</span><span class="p">,</span>         <span class="s1">&#39;kJ/hr&#39;</span><span class="p">,</span>     <span class="s1">&#39;float&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;S&#39;</span><span class="p">,</span>        <span class="s1">&#39;entropy&#39;</span><span class="p">,</span>                  <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s1">&#39;kJ/hr&#39;</span><span class="p">,</span>     <span class="s1">&#39;float&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;G&#39;</span><span class="p">,</span>        <span class="s1">&#39;Gibbs free energy&#39;</span><span class="p">,</span>        <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s1">&#39;kJ/hr&#39;</span><span class="p">,</span>     <span class="s1">&#39;float&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">,</span>        <span class="s1">&#39;interal energy&#39;</span><span class="p">,</span>           <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s1">&#39;kJ/hr&#39;</span><span class="p">,</span>     <span class="s1">&#39;float&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">,</span>        <span class="s1">&#39;Helmholtz free energy&#39;</span><span class="p">,</span>    <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s1">&#39;kJ/hr&#39;</span><span class="p">,</span>     <span class="s1">&#39;float&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;Hf&#39;</span><span class="p">,</span>       <span class="s1">&#39;enthalpy of formation&#39;</span><span class="p">,</span>    <span class="s1">&#39;&#39;</span><span class="p">,</span>          <span class="s1">&#39;kJ/hr&#39;</span><span class="p">,</span>     <span class="s1">&#39;float&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;P&#39;</span><span class="p">,</span>        <span class="s1">&#39;pressure&#39;</span><span class="p">,</span>                 <span class="s1">&#39;&#39;</span><span class="p">,</span>          <span class="s1">&#39;Pa&#39;</span><span class="p">,</span>        <span class="s1">&#39;float&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;Cpm&#39;</span><span class="p">,</span>      <span class="s1">&#39;molar heat capacity&#39;</span><span class="p">,</span>      <span class="s1">&#39;T&#39;</span><span class="p">,</span>         <span class="s1">&#39;J/mol/K&#39;</span><span class="p">,</span>   <span class="s1">&#39;float&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;Cp&#39;</span><span class="p">,</span>       <span class="s1">&#39;specific heat capacity&#39;</span><span class="p">,</span>   <span class="s1">&#39;T&#39;</span><span class="p">,</span>         <span class="s1">&#39;J/kg/K&#39;</span><span class="p">,</span>    <span class="s1">&#39;float&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;Vm&#39;</span><span class="p">,</span>       <span class="s1">&#39;molar volume&#39;</span><span class="p">,</span>             <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s1">&#39;m^3/mol&#39;</span><span class="p">,</span>   <span class="s1">&#39;float&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;rho&#39;</span><span class="p">,</span>      <span class="s1">&#39;density&#39;</span><span class="p">,</span>                  <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s1">&#39;kg/m^3&#39;</span><span class="p">,</span>    <span class="s1">&#39;float&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;rhom&#39;</span><span class="p">,</span>     <span class="s1">&#39;molar density&#39;</span><span class="p">,</span>            <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s1">&#39;mol/m^3&#39;</span><span class="p">,</span>   <span class="s1">&#39;float&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;nu&#39;</span><span class="p">,</span>       <span class="s1">&#39;kinematic viscosity&#39;</span><span class="p">,</span>      <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s1">&#39;m^2/s&#39;</span><span class="p">,</span>     <span class="s1">&#39;float&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;mu&#39;</span><span class="p">,</span>       <span class="s1">&#39;hydraulic viscosity&#39;</span><span class="p">,</span>      <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s1">&#39;Pa*s&#39;</span><span class="p">,</span>      <span class="s1">&#39;float&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;sigma&#39;</span><span class="p">,</span>    <span class="s1">&#39;surface tension&#39;</span><span class="p">,</span>          <span class="s1">&#39;T&#39;</span><span class="p">,</span>         <span class="s1">&#39;N/m&#39;</span><span class="p">,</span>       <span class="s1">&#39;float&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">,</span>        <span class="s1">&#39;thermal conductivity&#39;</span><span class="p">,</span>     <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s1">&#39;W/m/K&#39;</span><span class="p">,</span>     <span class="s1">&#39;float&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span>    <span class="s1">&#39;thermal diffusivity&#39;</span><span class="p">,</span>      <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s1">&#39;m^2/s&#39;</span><span class="p">,</span>     <span class="s1">&#39;float&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;Pr&#39;</span><span class="p">,</span>       <span class="s1">&#39;Prantl number&#39;</span><span class="p">,</span>            <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s2">&quot;&#39;&#39;&quot;</span><span class="p">,</span>        <span class="s1">&#39;float&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;mass&#39;</span><span class="p">,</span>     <span class="s1">&#39;mass flow rates&#39;</span><span class="p">,</span>          <span class="s1">&#39;&#39;</span><span class="p">,</span>          <span class="s1">&#39;kg/hr&#39;</span><span class="p">,</span>     <span class="s1">&#39;np.array&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;mol&#39;</span><span class="p">,</span>      <span class="s1">&#39;molar flow rates&#39;</span><span class="p">,</span>         <span class="s1">&#39;&#39;</span><span class="p">,</span>          <span class="s1">&#39;kmol/hr&#39;</span><span class="p">,</span>   <span class="s1">&#39;np.array&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;vol&#39;</span><span class="p">,</span>      <span class="s1">&#39;volumetric flow rates&#39;</span><span class="p">,</span>    <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s1">&#39;m^3/hr&#39;</span><span class="p">,</span>    <span class="s1">&#39;np.array&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;massnet&#39;</span><span class="p">,</span>  <span class="s1">&#39;net mass flow rate&#39;</span><span class="p">,</span>       <span class="s1">&#39;&#39;</span><span class="p">,</span>          <span class="s1">&#39;kg/hr&#39;</span><span class="p">,</span>     <span class="s1">&#39;float&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;molnet&#39;</span><span class="p">,</span>   <span class="s1">&#39;net molar flow rate&#39;</span><span class="p">,</span>      <span class="s1">&#39;&#39;</span><span class="p">,</span>          <span class="s1">&#39;kmol/hr&#39;</span><span class="p">,</span>   <span class="s1">&#39;float&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;volnet&#39;</span><span class="p">,</span>   <span class="s1">&#39;net volumetric flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s1">&#39;m^3/hr&#39;</span><span class="p">,</span>    <span class="s1">&#39;float&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;massfrac&#39;</span><span class="p">,</span> <span class="s1">&#39;mass fractions&#39;</span><span class="p">,</span>           <span class="s1">&#39;&#39;</span><span class="p">,</span>          <span class="s1">&#39;kg/kg&#39;</span><span class="p">,</span>     <span class="s1">&#39;np.array&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;molfrac&#39;</span><span class="p">,</span>  <span class="s1">&#39;molar fractions&#39;</span><span class="p">,</span>          <span class="s1">&#39;&#39;</span><span class="p">,</span>          <span class="s1">&#39;kmol/kmol&#39;</span><span class="p">,</span> <span class="s1">&#39;np.array&#39;</span><span class="p">],</span>
-        <span class="p">[</span><span class="s1">&#39;volfrac&#39;</span><span class="p">,</span>  <span class="s1">&#39;volumetric fractions&#39;</span><span class="p">,</span>     <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s1">&#39;m^3/m^3&#39;</span><span class="p">,</span>   <span class="s1">&#39;np.array&#39;</span><span class="p">]]</span>
+        <span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">,</span>        <span class="s1">&#39;temperature&#39;</span><span class="p">,</span>              <span class="s1">&#39;&#39;</span><span class="p">,</span>          <span class="s1">&#39;K&#39;</span><span class="p">,</span>         <span class="s1">&#39;float&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">,</span>        <span class="s1">&#39;enthalpy&#39;</span><span class="p">,</span>                 <span class="s1">&#39;T&#39;</span><span class="p">,</span>         <span class="s1">&#39;kJ/hr&#39;</span><span class="p">,</span>     <span class="s1">&#39;float&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;S&#39;</span><span class="p">,</span>        <span class="s1">&#39;entropy&#39;</span><span class="p">,</span>                  <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s1">&#39;kJ/hr&#39;</span><span class="p">,</span>     <span class="s1">&#39;float&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;G&#39;</span><span class="p">,</span>        <span class="s1">&#39;Gibbs free energy&#39;</span><span class="p">,</span>        <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s1">&#39;kJ/hr&#39;</span><span class="p">,</span>     <span class="s1">&#39;float&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;U&#39;</span><span class="p">,</span>        <span class="s1">&#39;interal energy&#39;</span><span class="p">,</span>           <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s1">&#39;kJ/hr&#39;</span><span class="p">,</span>     <span class="s1">&#39;float&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;A&#39;</span><span class="p">,</span>        <span class="s1">&#39;Helmholtz free energy&#39;</span><span class="p">,</span>    <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s1">&#39;kJ/hr&#39;</span><span class="p">,</span>     <span class="s1">&#39;float&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;Hf&#39;</span><span class="p">,</span>       <span class="s1">&#39;enthalpy of formation&#39;</span><span class="p">,</span>    <span class="s1">&#39;&#39;</span><span class="p">,</span>          <span class="s1">&#39;kJ/hr&#39;</span><span class="p">,</span>     <span class="s1">&#39;float&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;P&#39;</span><span class="p">,</span>        <span class="s1">&#39;pressure&#39;</span><span class="p">,</span>                 <span class="s1">&#39;&#39;</span><span class="p">,</span>          <span class="s1">&#39;Pa&#39;</span><span class="p">,</span>        <span class="s1">&#39;float&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;Cpm&#39;</span><span class="p">,</span>      <span class="s1">&#39;molar heat capacity&#39;</span><span class="p">,</span>      <span class="s1">&#39;T&#39;</span><span class="p">,</span>         <span class="s1">&#39;J/mol/K&#39;</span><span class="p">,</span>   <span class="s1">&#39;float&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;Cp&#39;</span><span class="p">,</span>       <span class="s1">&#39;specific heat capacity&#39;</span><span class="p">,</span>   <span class="s1">&#39;T&#39;</span><span class="p">,</span>         <span class="s1">&#39;J/kg/K&#39;</span><span class="p">,</span>    <span class="s1">&#39;float&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;Vm&#39;</span><span class="p">,</span>       <span class="s1">&#39;molar volume&#39;</span><span class="p">,</span>             <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s1">&#39;m^3/mol&#39;</span><span class="p">,</span>   <span class="s1">&#39;float&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;rho&#39;</span><span class="p">,</span>      <span class="s1">&#39;density&#39;</span><span class="p">,</span>                  <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s1">&#39;kg/m^3&#39;</span><span class="p">,</span>    <span class="s1">&#39;float&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;rhom&#39;</span><span class="p">,</span>     <span class="s1">&#39;molar density&#39;</span><span class="p">,</span>            <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s1">&#39;mol/m^3&#39;</span><span class="p">,</span>   <span class="s1">&#39;float&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;nu&#39;</span><span class="p">,</span>       <span class="s1">&#39;kinematic viscosity&#39;</span><span class="p">,</span>      <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s1">&#39;m^2/s&#39;</span><span class="p">,</span>     <span class="s1">&#39;float&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;mu&#39;</span><span class="p">,</span>       <span class="s1">&#39;hydraulic viscosity&#39;</span><span class="p">,</span>      <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s1">&#39;Pa*s&#39;</span><span class="p">,</span>      <span class="s1">&#39;float&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;sigma&#39;</span><span class="p">,</span>    <span class="s1">&#39;surface tension&#39;</span><span class="p">,</span>          <span class="s1">&#39;T&#39;</span><span class="p">,</span>         <span class="s1">&#39;N/m&#39;</span><span class="p">,</span>       <span class="s1">&#39;float&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;k&#39;</span><span class="p">,</span>        <span class="s1">&#39;thermal conductivity&#39;</span><span class="p">,</span>     <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s1">&#39;W/m/K&#39;</span><span class="p">,</span>     <span class="s1">&#39;float&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span>    <span class="s1">&#39;thermal diffusivity&#39;</span><span class="p">,</span>      <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s1">&#39;m^2/s&#39;</span><span class="p">,</span>     <span class="s1">&#39;float&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;Pr&#39;</span><span class="p">,</span>       <span class="s1">&#39;Prantl number&#39;</span><span class="p">,</span>            <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s2">&quot;&#39;&#39;&quot;</span><span class="p">,</span>        <span class="s1">&#39;float&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;mass&#39;</span><span class="p">,</span>     <span class="s1">&#39;mass flow rates&#39;</span><span class="p">,</span>          <span class="s1">&#39;&#39;</span><span class="p">,</span>          <span class="s1">&#39;kg/hr&#39;</span><span class="p">,</span>     <span class="s1">&#39;ndarray&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;mol&#39;</span><span class="p">,</span>      <span class="s1">&#39;molar flow rates&#39;</span><span class="p">,</span>         <span class="s1">&#39;&#39;</span><span class="p">,</span>          <span class="s1">&#39;kmol/hr&#39;</span><span class="p">,</span>   <span class="s1">&#39;ndarray&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;vol&#39;</span><span class="p">,</span>      <span class="s1">&#39;volumetric flow rates&#39;</span><span class="p">,</span>    <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s1">&#39;m^3/hr&#39;</span><span class="p">,</span>    <span class="s1">&#39;ndarray&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;massnet&#39;</span><span class="p">,</span>  <span class="s1">&#39;net mass flow rate&#39;</span><span class="p">,</span>       <span class="s1">&#39;&#39;</span><span class="p">,</span>          <span class="s1">&#39;kg/hr&#39;</span><span class="p">,</span>     <span class="s1">&#39;float&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;molnet&#39;</span><span class="p">,</span>   <span class="s1">&#39;net molar flow rate&#39;</span><span class="p">,</span>      <span class="s1">&#39;&#39;</span><span class="p">,</span>          <span class="s1">&#39;kmol/hr&#39;</span><span class="p">,</span>   <span class="s1">&#39;float&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;volnet&#39;</span><span class="p">,</span>   <span class="s1">&#39;net volumetric flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s1">&#39;m^3/hr&#39;</span><span class="p">,</span>    <span class="s1">&#39;float&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;massfrac&#39;</span><span class="p">,</span> <span class="s1">&#39;mass fractions&#39;</span><span class="p">,</span>           <span class="s1">&#39;&#39;</span><span class="p">,</span>          <span class="s1">&#39;kg/kg&#39;</span><span class="p">,</span>     <span class="s1">&#39;ndarray&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;molfrac&#39;</span><span class="p">,</span>  <span class="s1">&#39;molar fractions&#39;</span><span class="p">,</span>          <span class="s1">&#39;&#39;</span><span class="p">,</span>          <span class="s1">&#39;kmol/kmol&#39;</span><span class="p">,</span> <span class="s1">&#39;ndarray&#39;</span><span class="p">),</span>
+        <span class="p">(</span><span class="s1">&#39;volfrac&#39;</span><span class="p">,</span>  <span class="s1">&#39;volumetric fractions&#39;</span><span class="p">,</span>     <span class="s1">&#39;TP&#39;</span><span class="p">,</span>        <span class="s1">&#39;m^3/m^3&#39;</span><span class="p">,</span>   <span class="s1">&#39;ndarray&#39;</span><span class="p">))</span>
 
     <span class="c1">### Class attributes for working species ###</span>
-    
-    <span class="c1">#: Representation format</span>
-    <span class="n">_show_format</span> <span class="o">=</span> <span class="n">ShowFormat</span><span class="p">()</span>
     
     <span class="c1">#: Species defined in stream</span>
     <span class="n">_species</span> <span class="o">=</span> <span class="kc">None</span>
@@ -553,13 +536,13 @@
         <span class="c1"># {species: lL_split}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_lL_split_cached</span> <span class="o">=</span> <span class="p">{}</span>
         
-        <span class="c1">#: tuple with source unit ID and outs position</span>
+        <span class="c1">#: Unit source</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="kc">None</span>
         
-        <span class="c1">#: tuple with sink unit ID and ins position</span>
+        <span class="c1">#: Unit sink</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sink</span> <span class="o">=</span> <span class="kc">None</span>
         
-        <span class="c1">#: [str] &#39;l&#39; (liquid), or &#39;g&#39; (gas)</span>
+        <span class="c1">#: [str] &#39;l&#39; for liquid, &#39;g&#39; for gas, or &#39;s&#39; for solid.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="n">phase</span>
         
         <span class="c1">#: [float] Temperature (K)</span>
@@ -722,8 +705,6 @@
         <span class="sd">&quot;&quot;&quot;[Species] Contains pure component thermodynamic properties for computing overall properties of Stream instances.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span>
     
-    <span class="n">show_format</span> <span class="o">=</span> <span class="n">metaStream</span><span class="o">.</span><span class="n">show_format</span>
-    
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ID</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Unique identification (str). If set as &#39;&#39;, it will choose a default ID.&quot;&quot;&quot;</span>
@@ -810,13 +791,13 @@
     <span class="c1"># Molar flow</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mol</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Array of molar flow rates (array kmol/hr):</span>
+        <span class="sd">&quot;&quot;&quot;Array of molar flow rates (kmol/hr):</span>
 
 <span class="sd">        &gt;&gt;&gt; s1.mol</span>
-<span class="sd">        material_array([0, 2]) (kmol/hr)</span>
+<span class="sd">        material_array([0, 2])</span>
 <span class="sd">        &gt;&gt;&gt; s1.mol = [1, 2]</span>
 <span class="sd">        &gt;&gt;&gt; s1.mol</span>
-<span class="sd">        material_array([1, 2]) (kmol/hr)</span>
+<span class="sd">        material_array([1, 2])</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span>
 
@@ -831,7 +812,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">molfrac</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Array of molar fractions (molar fractions).</span>
+        <span class="sd">&quot;&quot;&quot;Array of molar fractions.</span>
 
 <span class="sd">        &gt;&gt;&gt; s1.molfrac</span>
 <span class="sd">        tuple_array([0., 1.])</span>
@@ -850,7 +831,7 @@
     <span class="c1"># Mass flow</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mass</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Array of mass flow rates (array kg/hr)</span>
+        <span class="sd">&quot;&quot;&quot;Array of mass flow rates (kg/hr)</span>
 
 <span class="sd">        &gt;&gt;&gt; s1.mass</span>
 <span class="sd">        property_array([ 0.   , 36.031])</span>
@@ -863,7 +844,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">massfrac</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Array of mass fractions (mass fractions).</span>
+        <span class="sd">&quot;&quot;&quot;Array of mass fractions.</span>
 
 <span class="sd">        &gt;&gt;&gt; s1.massfrac</span>
 <span class="sd">        tuple_array([0, 1])</span>
@@ -882,7 +863,7 @@
     <span class="c1"># Volumetric flow</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">vol</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Array of volumetric flow rates (array m^3/hr). T and P dependent.</span>
+        <span class="sd">&quot;&quot;&quot;Array of volumetric flow rates as a function of T and P (m^3/hr).</span>
 
 <span class="sd">        &gt;&gt;&gt; s2.vol</span>
 <span class="sd">        property_array([0.059, 0.036])</span>
@@ -896,7 +877,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">volfrac</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Array of volumetric fractions (volumetric fractions). T and P dependent.</span>
+        <span class="sd">&quot;&quot;&quot;Array of volumetric fractions as a function of T and P.</span>
 
 <span class="sd">        &gt;&gt;&gt; s2.volfrac</span>
 <span class="sd">        tuple_array([0.619, 0.381])</span>
@@ -905,7 +886,7 @@
         
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">volnet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Net volumetric flow rate (m^3/hr). T and P dependent.</span>
+        <span class="sd">&quot;&quot;&quot;Net volumetric flow rate as a function of T and P (m^3/hr).</span>
 
 <span class="sd">        &gt;&gt;&gt; s2.volnet # a liquid stream</span>
 <span class="sd">        0.09475552896916632</span>
@@ -919,7 +900,7 @@
     <span class="c1"># Enthalpy</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">H</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Enthalpy flow rate (kJ/hr) without formation energies. Only T dependent.</span>
+        <span class="sd">&quot;&quot;&quot;Enthalpy flow rate as a function of T, excluding formation energies (kJ/hr).</span>
 
 <span class="sd">        &gt;&gt;&gt; s1.H # The stream is at the reference state</span>
 <span class="sd">        0.0</span>
@@ -977,7 +958,7 @@
     <span class="c1"># Entropy</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">S</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Entropy flow rate (kJ/hr) without formation energies. T and P dependent.</span>
+        <span class="sd">&quot;&quot;&quot;Entropy flow rate as a function of T and P, excluding formation energies (kJ/hr).</span>
 
 <span class="sd">        &gt;&gt;&gt; s1.S # The stream is at the reference state</span>
 <span class="sd">        0.0</span>
@@ -990,7 +971,7 @@
     <span class="c1"># Gibbs free energy</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">G</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Gibbs free energy flow rate (kJ/hr) without formation energies. T and P dependent.</span>
+        <span class="sd">&quot;&quot;&quot;Gibbs free energy flow rate as a function of T and P, excluding formation energies (kJ/hr).</span>
 
 <span class="sd">        &gt;&gt;&gt; s1.G # The stream is at the reference state</span>
 <span class="sd">        0.0</span>
@@ -1003,7 +984,7 @@
     <span class="c1"># Internal energy</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">U</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Internal energy flow rate (kJ/hr) without formation energies. T and P dependent.</span>
+        <span class="sd">&quot;&quot;&quot;Internal energy flow rate as a function of T and P, excluding formation energies (kJ/hr).</span>
 
 <span class="sd">        &gt;&gt;&gt; s1.U # The stream is at the reference state</span>
 <span class="sd">        0.0</span>
@@ -1016,7 +997,7 @@
     <span class="c1"># Helmholtz</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">A</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Helmholtz energy flow rate (kJ/hr) without formation energies. T and P dependent.</span>
+        <span class="sd">&quot;&quot;&quot;Helmholtz energy flow rate as a function of T and P, excluding formation energies (kJ/hr).</span>
 
 <span class="sd">        &gt;&gt;&gt; s1.A # The stream is at the reference state</span>
 <span class="sd">        0.0</span>
@@ -1029,7 +1010,7 @@
     <span class="c1"># Capacity flow rate</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">C</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Heat capacity flow rate (kJ/K/hr). T dependent.</span>
+        <span class="sd">&quot;&quot;&quot;Heat capacity flow rate as a function of T (kJ/K/hr).</span>
 
 <span class="sd">        &gt;&gt;&gt; s2.C</span>
 <span class="sd">        262.74816631655267</span>
@@ -1039,7 +1020,7 @@
     <span class="c1"># Material properties</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">Cp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Specific heat capacity (J/g/K). T dependent.</span>
+        <span class="sd">&quot;&quot;&quot;Specific heat capacity as a function of T (kJ/kg/K).</span>
 
 <span class="sd">        &gt;&gt;&gt; s1.Cp</span>
 <span class="sd">        4.180597021827335</span>
@@ -1048,7 +1029,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">Cpm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Molar heat capacity (J/mol/K). T dependent.</span>
+        <span class="sd">&quot;&quot;&quot;Molar heat capacity as a function of T (kJ/kmol/K).</span>
 
 <span class="sd">        &gt;&gt;&gt; s1.Cpm # (J/mol/K)</span>
 <span class="sd">        75.31462591538556</span>
@@ -1057,7 +1038,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">Vm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Molar volume (m^3/mol). T and P dependent.</span>
+        <span class="sd">&quot;&quot;&quot;Molar volume as a function of T and P (m^3/mol).</span>
 
 <span class="sd">        &gt;&gt;&gt; s1.Vm</span>
 <span class="sd">        1.8069039870122814e-05</span>
@@ -1066,7 +1047,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">rho</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Density (kg/m^3). T and P dependent.</span>
+        <span class="sd">&quot;&quot;&quot;Density as a function of T (kg/m^3).</span>
 
 <span class="sd">        &gt;&gt;&gt; s1.rho</span>
 <span class="sd">        997.0247522552814</span>
@@ -1075,7 +1056,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">rhom</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Molar density (mol/m^3). T and P dependent.</span>
+        <span class="sd">&quot;&quot;&quot;Molar density as a function of T and P (mol/m^3).</span>
 
 <span class="sd">        &gt;&gt;&gt; s1.rhom</span>
 <span class="sd">        55343.283715561534</span>
@@ -1084,7 +1065,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">nu</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Kinematic viscosity (m^2/s). T and P dependent.</span>
+        <span class="sd">&quot;&quot;&quot;Kinematic viscosity as a function of T and P (m^2/s).</span>
 
 <span class="sd">        &gt;&gt;&gt; s1.nu</span>
 <span class="sd">        9.154438858391748e-07</span>
@@ -1093,7 +1074,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mu</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Hydraulic viscosity (Pa*s). T and P dependent.</span>
+        <span class="sd">&quot;&quot;&quot;Hydraulic viscosity as a function of T and P (Pa*s).</span>
 
 <span class="sd">        &gt;&gt;&gt; s1.mu</span>
 <span class="sd">        0.0009127202134824155</span>
@@ -1108,7 +1089,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">k</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Thermal conductivity (W/m/k). T and P dependent.</span>
+        <span class="sd">&quot;&quot;&quot;Thermal conductivity as a function of T and P (W/m/k).</span>
 
 <span class="sd">        &gt;&gt;&gt; s1.k</span>
 <span class="sd">        0.5942044328004411</span>
@@ -1117,7 +1098,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">alpha</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Thermal diffusivity (m^2/s). T and P dependent.</span>
+        <span class="sd">&quot;&quot;&quot;Thermal diffusivity as a function of T and P (m^2/s).</span>
 
 <span class="sd">        &gt;&gt;&gt; s1.alpha</span>
 <span class="sd">        1.4255801521655763e-07</span>
@@ -1126,7 +1107,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">sigma</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Surface tension (N/m). T dependent.</span>
+        <span class="sd">&quot;&quot;&quot;Surface tension as a function of T (N/m).</span>
 
 <span class="sd">        &gt;&gt;&gt; s1.sigma</span>
 <span class="sd">        0.07205503890847455</span>
@@ -1135,7 +1116,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">Pr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Prandtl number (non-dimensional). T and P dependent.</span>
+        <span class="sd">&quot;&quot;&quot;Prandtl number as a function of T and P (non-dimensional).</span>
 
 <span class="sd">        &gt;&gt;&gt; s1.Pr</span>
 <span class="sd">        6.421553249380879</span>
@@ -1155,13 +1136,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">nonzero_species</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return flow indices and species that have a non-zero flow rate.</span>
-
-<span class="sd">        **Return**</span>
-
-<span class="sd">             **index:** list[float] flow indexes that are not zero</span>
-
-<span class="sd">             **species:** list[Compound] species corresponding to index</span>
+        <span class="sd">&quot;&quot;&quot;Flow indices and species that have a non-zero flow rate.</span>
 
 <span class="sd">        &gt;&gt;&gt; s1.nonzero_species</span>
 <span class="sd">        [1], [&#39;Water&#39;]</span>
@@ -1232,7 +1207,7 @@
         <span class="n">getattr_</span> <span class="o">=</span> <span class="nb">getattr</span>
         <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span>
         <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span>
-        <span class="n">phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_compounds</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">nextmol</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">s</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span>
@@ -1300,7 +1275,7 @@
 
 <span class="sd">        &gt;&gt;&gt; s1.empty()</span>
 <span class="sd">        &gt;&gt;&gt; s1.mol</span>
-<span class="sd">        material_array([0, 0]) kmol/hr</span>
+<span class="sd">        material_array([0, 0])</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_molarray</span><span class="p">[:]</span> <span class="o">=</span> <span class="mi">0</span></div>
         
@@ -1543,7 +1518,7 @@
 
     <span class="c1"># Class methods</span>
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">_helplist</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">prop</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_helpdata</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">prop</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return information related to a property.</span>
 
 <span class="sd">        **Parameters**</span>
@@ -1552,7 +1527,7 @@
 
 <span class="sd">        Return</span>
 
-<span class="sd">             **out:** list[str] where elements are:</span>
+<span class="sd">             **out:** tupple[str] where elements are:</span>
 <span class="sd">                  * **ID:** [str] name of the property</span>
 
 <span class="sd">                  * **Description:** [str] description of the property</span>
@@ -1566,28 +1541,27 @@
 <span class="sd">        Example</span>
 
 <span class="sd">        &gt;&gt;&gt; Stream._helplist(&#39;k&#39;)</span>
-<span class="sd">        [&#39;k&#39;, &#39;thermal conductivity&#39;, &#39;TP&#39;, &#39;W/m/K&#39;, &#39;float&#39;]</span>
+<span class="sd">        (&#39;k&#39;, &#39;thermal conductivity&#39;, &#39;TP&#39;, &#39;W/m/K&#39;, &#39;float&#39;)</span>
 
 <span class="sd">        &gt;&gt;&gt; Stream._helplist(&#39;viscosity&#39;)</span>
-<span class="sd">        [[&#39;nu&#39;, &#39;kinematic viscosity&#39;, &#39;TP&#39;, &#39;m^2/s&#39;, &#39;float&#39;],</span>
-<span class="sd">         [&#39;mu&#39;, &#39;hydraulic viscosity&#39;, &#39;TP&#39;, &#39;Pa*s&#39;, &#39;float&#39;]]</span>
+<span class="sd">        ((&#39;nu&#39;, &#39;kinematic viscosity&#39;, &#39;TP&#39;, &#39;m^2/s&#39;, &#39;float&#39;),</span>
+<span class="sd">         (&#39;mu&#39;, &#39;hydraulic viscosity&#39;, &#39;TP&#39;, &#39;Pa*s&#39;, &#39;float&#39;))</span>
 
 <span class="sd">        &gt;&gt;&gt; Stream._helplist(&#39;kmol/hr&#39;)</span>
-<span class="sd">        [[&#39;mol&#39;, &#39;molar flow rates&#39;, &#39;&#39;, &#39;kmol/hr&#39;, &#39;np.array&#39;],</span>
-<span class="sd">         [&#39;molnet&#39;, &#39;net molar flow rate&#39;, &#39;&#39;, &#39;kmol/hr&#39;, &#39;float&#39;]]</span>
+<span class="sd">        ((&#39;mol&#39;, &#39;molar flow rates&#39;, &#39;&#39;, &#39;kmol/hr&#39;, &#39;np.array&#39;),</span>
+<span class="sd">         (&#39;molnet&#39;, &#39;net molar flow rate&#39;, &#39;&#39;, &#39;kmol/hr&#39;, &#39;float&#39;))</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="c1"># Compare by both ID and description</span>
         <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
             <span class="c1"># Search for exact matches</span>
-            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_prop_molar_info</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">prop</span> <span class="o">==</span> <span class="n">l</span><span class="p">[</span><span class="n">index</span><span class="p">]:</span>
-                    <span class="k">return</span> <span class="n">l</span>
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_prop_info</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">prop</span> <span class="o">==</span> <span class="n">l</span><span class="p">[</span><span class="n">index</span><span class="p">]:</span> <span class="k">return</span> <span class="n">l</span>
+        
+        <span class="n">out</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>    
             <span class="c1"># If no matches found, search harder</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_prop_molar_info</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">prop</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">l</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
-                        <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_prop_info</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">prop</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">l</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span> <span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">out</span>
 
 <div class="viewcode-block" id="Stream.help"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.help">[docs]</a>    <span class="nd">@classmethod</span>
@@ -1601,37 +1575,13 @@
 <span class="sd">        Example</span>
 
 <span class="sd">        &gt;&gt;&gt; Stream.help(&#39;rho&#39;)</span>
-<span class="sd">        Density, rho, is dependent on T and P with units, kg/m^3, and type, float.</span>
+<span class="sd">        rho: [float] Density as a function of T and P (kg/m^3).</span>
 <span class="sd">        &gt;&gt;&gt; Stream.help(&#39;density&#39;)</span>
-<span class="sd">        Density, rho, is dependent on T and P with units, kg/m^3, and type, float.</span>
+<span class="sd">        rho: [float] Density as a function of T and P (kg/m^3).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">def</span> <span class="nf">make_nice</span><span class="p">(</span><span class="n">helplist</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot;Make the helplist into a nice string&quot;&quot;&quot;</span>
-
-            <span class="c1"># No helplist</span>
-            <span class="k">if</span> <span class="n">helplist</span> <span class="o">==</span> <span class="p">[]:</span>
-                <span class="k">pass</span>
-
-            <span class="c1"># Only one helplist, print a nice string</span>
-            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">helplist</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
-                <span class="n">propID</span><span class="p">,</span> <span class="n">description</span><span class="p">,</span> <span class="n">dependency</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">datatype</span> <span class="o">=</span> <span class="n">helplist</span>
-                <span class="k">if</span> <span class="n">dependency</span> <span class="o">==</span> <span class="s1">&#39;TP&#39;</span><span class="p">:</span>
-                    <span class="n">dependency</span> <span class="o">=</span> <span class="s1">&#39;is dependent on T and P &#39;</span>
-                <span class="k">elif</span> <span class="n">dependency</span> <span class="o">==</span> <span class="s1">&#39;T&#39;</span><span class="p">:</span>
-                    <span class="n">dependency</span> <span class="o">=</span> <span class="s1">&#39;is dependent on T &#39;</span>
-                <span class="k">elif</span> <span class="n">dependency</span> <span class="o">==</span> <span class="s1">&#39;P&#39;</span><span class="p">:</span>
-                    <span class="n">dependency</span> <span class="o">=</span> <span class="s1">&#39;is dependent on P &#39;</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;{description.capitalize()}, </span><span class="si">{propID}</span><span class="s2">, </span><span class="si">{dependency}</span><span class="s2">with units, </span><span class="si">{units}</span><span class="s2">, and type, </span><span class="si">{datatype}</span><span class="s2">.&quot;</span><span class="p">)</span>
-
-            <span class="c1"># Many helplists, print all the nice strings</span>
-            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">helplist</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">is</span> <span class="nb">list</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">helplist</span><span class="p">:</span>
-                    <span class="n">make_nice</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-                    <span class="nb">print</span><span class="p">()</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Unknown error with &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">helplist</span><span class="p">))</span>
-
-        <span class="n">make_nice</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_helplist</span><span class="p">(</span><span class="n">prop</span><span class="p">))</span></div>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_helpdata</span><span class="p">(</span><span class="n">prop</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">data</span><span class="p">:</span> <span class="n">_print_helpdata</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;No matching property &#39;</span><span class="si">{prop}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Stream.eqT"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.eqT">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">eqT</span><span class="p">(</span><span class="n">streams</span><span class="p">,</span> <span class="n">T_guess</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Q_in</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">approximate</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
@@ -1802,11 +1752,10 @@
 
     <span class="k">def</span> <span class="nf">_info_units</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">show_units</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return unit format selection.&quot;&quot;&quot;</span>
-        <span class="n">show_format</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">show_format</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">show_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="n">show_format</span><span class="o">.</span><span class="n">T</span><span class="p">),</span>
-                <span class="n">show_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">show_format</span><span class="o">.</span><span class="n">P</span><span class="p">),</span>
-                <span class="n">show_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;flow&#39;</span><span class="p">,</span> <span class="n">show_format</span><span class="o">.</span><span class="n">flow</span><span class="p">),</span>
-                <span class="n">show_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fraction&#39;</span><span class="p">,</span> <span class="n">show_format</span><span class="o">.</span><span class="n">fraction</span><span class="p">))</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">show_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">),</span>
+                <span class="n">show_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;Pa&#39;</span><span class="p">),</span>
+                <span class="n">show_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;flow&#39;</span><span class="p">,</span> <span class="s1">&#39;kmol/hr&#39;</span><span class="p">),</span>
+                <span class="n">show_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fraction&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
         
     <span class="k">def</span> <span class="nf">_info_phaseTP</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">T_units</span><span class="p">,</span> <span class="n">P_units</span><span class="p">):</span>
         <span class="n">T</span> <span class="o">=</span> <span class="n">Q_</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="p">[</span><span class="s1">&#39;T&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">T_units</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
@@ -1876,16 +1825,14 @@
         <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="o">**</span><span class="n">show_units</span><span class="p">))</span></div>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span>
+        <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="s1">&gt;&#39;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;&lt;{type(self).__name__}&gt;&#39;</span></div>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">:</span> <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="s1">&gt;&#39;</span>
+        <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;&lt;{type(self).__name__}&gt;&#39;</span></div>
+        
+        
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">mixed_stream</span> <span class="k">as</span> <span class="n">MS</span>
 </pre></div>
 
