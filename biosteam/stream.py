@@ -8,10 +8,9 @@ Created on Sat Aug 18 14:05:10 2018
 from biosteam import Q_
 import copy
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy.optimize import newton, least_squares
 from .utils import material_array, property_array, PropertyFactory, \
-                   tuple_array, reorder, fraction, Sink, Source
+                   tuple_array, fraction, Sink, Source
 from .flowsheet import find
 from .species import Species
 from .compound import Compound
@@ -23,8 +22,6 @@ ln = np.log
 exp = np.exp
 ndarray = np.ndarray
 array = np.array
-#plt.style.use('dark_background')
-#CS = color_scheme
 
 __all__ = ('Stream',)
 

@@ -87,7 +87,6 @@ class TEA:
                 'Administration': 0.005,
                 'Working capital': 0.05,
                 'Startup cost': 0,
-                'Delivery': 0,
                 'Land': 0,
                 'Depreciation': 'MACRS7',
                 'Startup schedule': (0.4, 0.6),
@@ -127,7 +126,6 @@ class TEA:
             * **Administration:** Yearly fee as a fraction of fixed capital investment.
             * **Working capital:** Fee as a fraction of fixed capital investment.
             * **Startup cost:** Cost of start up as a fraction of fixed capital investment.
-            * **Delivery:** Delibery of equipment fee as a fraction of fixed capital investment .
             * **Land:** Cost of land as a fraction of fixed capital investment.
             * **Depreciation:** 'MACRS' + number of years (e.g. 'MACRS7').
             * **Startup schedule:** tuple of startup investment fractions per year, starting from year 0. For example, for 50% capital investment in year 0 and 50% investment in year 1: array([0.5, 0.5]).
@@ -222,7 +220,7 @@ class TEA:
         UC_ *= flow_factor
         MC_ *= flow_factor
         CP_ *= flow_factor
-        FC_ *= (1 + o['Startup cost'] + o['Delivery'] + o['Land'])*o['Lang factor']
+        FC_ *= (1 + o['Startup cost'] + o['Land'])*o['Lang factor']
         fb = o['Fringe benefits'] + o['Supplies']
         f =  (o['Mantainance']
             + o['Administration']
@@ -318,7 +316,7 @@ class TEA:
         UC_ *= flow_factor
         MC_ *= flow_factor
         S_ *= flow_factor
-        FC_ *= (1 + o['Startup cost'] + o['Delivery'] + o['Land'])*o['Lang factor']
+        FC_ *= (1 + o['Startup cost'] + o['Land'])*o['Lang factor']
         fb = o['Fringe benefits'] + o['Supplies']
         f =  (o['Mantainance']
             + o['Administration']

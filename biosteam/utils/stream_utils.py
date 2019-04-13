@@ -204,7 +204,7 @@ class Sink:
         >>> stream = Stream('s1')
         >>> unit = Mixer('M1')
     
-    Sink objects are created using piping notation:
+    Sink objects are created using -pipe- notation:
         
     .. code-block:: python
     
@@ -223,11 +223,11 @@ class Sink:
         [0] Missing stream
         [1] s1
             phase: 'l', T: 298.15 K, P: 101325 Pa
-            flows:  0
+            flow:  0
         outs...
         [0] d27
             phase: 'l', T: 298.15 K, P: 101325 Pa
-            flows:  0
+            flow:  0
     
     """
     __slots__ = ('stream', 'index')
@@ -248,6 +248,47 @@ class Sink:
 
 
 class Source:
+    """Create a Source object that connects a stream to a unit using piping notation:
+    
+    **Parameters**
+    
+        stream: [Stream]
+        
+        index: [int]
+        
+    **Example**
+    
+    First create a stream and a Mixer:
+    
+    .. code-block:: python
+    
+        >>> stream = Stream('s1')
+        >>> unit = Mixer('M1')
+    
+    Source objects are created using -pipe- notation:
+        
+    .. code-block:: python
+    
+        >>> 1**stream
+        <Source: 1-s1>
+    
+    Use -pipe- notation to create a source and connect the stream:
+    
+    .. code-block:: python
+    
+        >>> unit**0**stream
+        >>> M1.show()
+        
+        Mixer: M1
+        ins...
+        [0] Missing stream
+        [1] Missing stream
+        outs...
+        [0] s1
+            phase: 'l', T: 298.15 K, P: 101325 Pa
+            flow:  0
+    
+    """
     __slots__ = ('stream', 'index')
     def __init__(self, stream, index):
         self.stream = stream
