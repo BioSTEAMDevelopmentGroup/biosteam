@@ -138,18 +138,23 @@ class HeatUtility:
         .. code-block:: python
         
            >>> hu(1000, 300, 350)
+           >>> hu
+           <Low pressure steam: 1.11e+03 kJ/hr, 0.0284 kmol/hr, 0.00674 USD/hr>
            >>> hu.show()
            HeatUtility: Low pressure steam
-            duty: 0.00607 USD/hr
-            flow: 0.0255 kmol/hr
-            cost: 1e+03 kJ/hr
+            duty: 1.11e+03 kJ/hr
+            flow: 0.0284 kmol/hr
+            cost: 0.00674 USD/hr
        
         All results are accessible:
             
         .. code-block:: python
         
            >>> hu.ID, hu.duty, hu.flow, hu.cost
-           ('Low pressure steam', 0.00607, 0.0255, 1e+03)
+           ('Low pressure steam',
+            1111.111111111111,
+            0.028351477551759364,
+            0.006741981361808377)
            
     """
     __slots__ = ('_fresh', '_used', 'ID', 'duty',
