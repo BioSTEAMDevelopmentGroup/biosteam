@@ -113,6 +113,7 @@ def make_digraph(units, streams=None):
     
 class Flowsheet:
     """Create a Flowsheet object which stores references to all stream, unit, and system objects."""
+    #: [dict] All flowsheets
     flowsheet = {}
     
     def __init__(self, ID):
@@ -128,7 +129,6 @@ class Flowsheet:
         #: [dict] Dictionary of streams
         self.stream = {}
         
-        #: [dict] All flowsheets
         self.flowsheet[ID] = self
     
     def diagram(self):

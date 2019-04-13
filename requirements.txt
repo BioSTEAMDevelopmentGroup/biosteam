@@ -6,7 +6,6 @@ IPython
 thermo
 colorpalette
 pandas
-cashflows
 numpy
 graphviz
 matplotlib
