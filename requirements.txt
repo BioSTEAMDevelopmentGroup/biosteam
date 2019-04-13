@@ -9,6 +9,5 @@ pandas
 numpy
 graphviz
 matplotlib
-openpyxl
 nbsphinx
 lipidcane
