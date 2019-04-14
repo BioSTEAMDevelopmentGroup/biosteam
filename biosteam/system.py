@@ -7,7 +7,6 @@ Created on Sat Aug 18 15:04:55 2018
 from copy import copy
 import IPython
 from scipy.optimize import newton
-from graphviz import Digraph
 from .exceptions import Stop, SolverError, notify_error
 from .flowsheet import find, make_digraph
 from .stream import Stream
@@ -15,13 +14,14 @@ from .unit import Unit
 from . import np
 from .report import save_report
 from .utils import color_scheme, missing_stream, strtuple, function
-CS = color_scheme
+
 __all__ = ('System',)
 
 # %% Debugging and exception handling
 
-def evaluate(self, command=None):
+def _evaluate(self, command=None):
     """Evaluate a command and request user input for next command. If no command, return. This function is used for debugging a System object."""    
+    CS = color_scheme
     # Done evaluating if no command, exit debugger if 'exit'
     if command is None:
         Next = CS.next('Next: ') + f'{repr(self)}\n'
@@ -44,7 +44,7 @@ def evaluate(self, command=None):
             info = CS.info(f"Enter to raise error or type to evaluate:\n")
             command = input(err + info + ">>> ")
             if command == '': raise err
-            evaluate(self, command)        
+            _evaluate(self, command)        
         else:
             # If successful, continue evaluating
             if out is None:
@@ -53,13 +53,13 @@ def evaluate(self, command=None):
             else:
                 print(out)
             command = input(">>> ")
-            evaluate(self, command)
+            _evaluate(self, command)
 
-def method_debug(self, func):
+def _method_debug(self, func):
     """Method decorator for debugging system."""
     def wrapper(*args, **kwargs):
         # Run method and ask to evaluate
-        evaluate(self)
+        _evaluate(self)
         func(*args, **kwargs)
         
     wrapper.__name__ = func.__name__
@@ -68,7 +68,7 @@ def method_debug(self, func):
     return wrapper
 
 
-def notify_run_wrapper(self, func):
+def _notify_run_wrapper(self, func):
     """Decorate a System run method to notify you after each loop"""
     def wrapper(*args, **kwargs):
         if self.recycle:
@@ -82,7 +82,7 @@ def notify_run_wrapper(self, func):
     wrapper._original = func
     return wrapper
     
-# %% Other
+# %% System node for diagram
 
 class _systemUnit(Unit):
     """Dummy unit for displaying a system."""
@@ -93,6 +93,11 @@ _sysgraphics = _systemUnit._graphics
 _sysgraphics.edge_in = _sysgraphics.edge_in * 10
 _sysgraphics.edge_out = _sysgraphics.edge_out * 15
 _systemUnit._graphics.node['peripheries'] = '2'
+
+# %% Other
+
+_isfeed = lambda stream: not stream._source and stream._sink
+_isproduct = lambda stream: not stream._sink and stream._source
 
 
 # %% Process flow
@@ -158,7 +163,7 @@ class System:
         streams.discard(missing_stream) 
         
         #: tuple[Unit, function and/or System] A network that is run element by element until the recycle converges.
-        self.network = (*network,)
+        self.network = tuple(network)
         
         #: list[Unit] All unit operations with linked streams
         self._linkunits = [u for u in units if u._has_proxystream]
@@ -179,7 +184,7 @@ class System:
                     if i._has_cost: costunits.add(i)
                 elif inst(i, System):
                     units.update(i.units)
-                    streams.update(i.auxiliary_streams)
+                    streams.update(i.streams)
                     subsystems.add(i)
                     costunits.update(i._costunits)
             #: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the network simulation.
@@ -194,10 +199,10 @@ class System:
         streams.difference_update(upstream_connections)
         
         #: set[Stream] All feed streams in the system.
-        self.feeds = set(filter(lambda s: not s._source and s._sink, streams))
+        self.feeds = set(filter(_isfeed, streams))
         
         #: set[Stream] All product streams in the system.
-        self.products = set(filter(lambda s: s._source and not s._sink, streams)) 
+        self.products = set(filter(_isproduct, streams)) 
         
         #: [TEA] System object for Techno-Economic Analysis.
         self._TEA = None
@@ -588,15 +593,15 @@ class System:
     # Debugging
     def _debug_on(self):
         """Turn on debug mode."""
-        self._run = notify_run_wrapper(self, self._run)
+        self._run = _notify_run_wrapper(self, self._run)
         self.network = network = list(self.network)
         for i, item in enumerate(network):
             if isinstance(item, Unit):
-                item._run = method_debug(item, item._run)
+                item._run = _method_debug(item, item._run)
             elif isinstance(item, System):
-                item._converge = method_debug(item, item._converge)
+                item._converge = _method_debug(item, item._converge)
             elif isinstance(item, function):
-                network[i] = method_debug(item, item)
+                network[i] = _method_debug(item, item)
 
     def _debug_off(self):
         """Turn off debug mode."""
@@ -642,6 +647,7 @@ class System:
 
     def _error_info(self):
         """Return information on convergence."""
+        CS = color_scheme
         x = self._solver_error
         recycle = self.recycle
 

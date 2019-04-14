@@ -17,8 +17,8 @@ def compound_split(streams):
     mol_out = sum(s._molarray for s in streams)
     mol_out[mol_out==0] = 1
     return pd.DataFrame(data=np.array([i.mol/mol_out for i in streams]).transpose(),
-                       index=streams[0]._IDs,
-                       columns=[i.ID for i in streams])
+                        index=streams[0]._IDs,
+                        columns=[i.ID for i in streams])
 
 def partition_coefficient(streams):
     """Return partition coefficient information as a pandas Series."""

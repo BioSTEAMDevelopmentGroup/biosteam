@@ -255,11 +255,6 @@ class metaUnit(type):
     def CEPCI(cls, CEPCI):
         cls._CEPCI = CEPCI
     
-    @property
-    def instances(cls):
-        """Dictionary of weak references to all instances of the Unit class."""
-        return cls._instances
-    
     def __repr__(cls):
         if cls.line == 'Unit' and cls.__name__ == 'Unit':
             return f'biosteam.{cls.__name__}'
@@ -286,6 +281,8 @@ class Unit(metaclass=metaUnit):
 
     **Class Definitions** 
     
+        **line** = [Defaults to the class name of the first child class]: [str] Name denoting the type of Unit class    
+    
         **CEPCI** = 567.5: [float] Chemical Engineering Plant Cost Index
 
         **_kwargs** = {}: [dict] Default keyword arguments
@@ -305,6 +302,8 @@ class Unit(metaclass=metaUnit):
         **_cost()**
             Update results "Cost" dictionary with itemized cost.
         
+        **_units** = {}: [dict] Default units for results Operation and Design
+        
         **_bounds** = {} [dict] Values should be tuples with lower and upper bounds.
         
         **_N_ins** = 1: [int] Expected number of input streams
@@ -314,8 +313,12 @@ class Unit(metaclass=metaUnit):
         **_N_heat_utilities** = 0: [int] Number of heat utilities  
 
         **_has_power_utility** = False: [bool] If True, a PowerUtility object is created for every instance.
-
-        **line** = [Defaults to the class name of the first child class]: [str] Name denoting the type of Unit class
+        
+        **_has_cost** = True: [bool] Should be True if it has any associated cost
+    
+        **_has_proxystream** = False: [bool] True if outs are proxy streams linked to ins
+    
+        **_graphics** = default_graphics: [biosteam Graphics] a Graphics object for diagram representation.
 
     **ins**
         
@@ -348,7 +351,7 @@ class Unit(metaclass=metaUnit):
     # [int] Expected number of output streams
     _N_outs = 2  
     
-    # [Bool] True if outs are proxy streams linked to ins
+    # [bool] True if outs are proxy streams linked to ins
     _has_proxystream = False
     
     # [dict] Values should be tuples with lower and upper bounds for results dictionary.

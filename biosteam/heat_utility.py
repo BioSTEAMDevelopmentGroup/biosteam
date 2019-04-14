@@ -236,7 +236,7 @@ class HeatUtility:
         efficiency = self.efficiency if self.efficiency else efficiency
         duty = duty/efficiency
         if Type == 'sensible':
-            self._update_flow_wt_pinch_T(duty, T_pinch, T_limit)
+            self._update_flow_wt_pinch_T(duty, T_pinch, T_limit, negduty)
         elif Type == 'latent':
             self._update_flow_wt_phase_change(duty)
         else:
@@ -285,9 +285,7 @@ class HeatUtility:
              price_mol, efficiency) = cooling_agents[ID]
             if T_max > T:
                 agent = (Type, price_duty, price_mol, T_limit, efficiency)
-                if self.ID == ID:
-                    return agent
-                else:
+                if self.ID != ID:
                     self._init_streams(flow, species, T, P, phase[0])
                     self._agent = agent
                     self.ID = ID
@@ -323,9 +321,7 @@ class HeatUtility:
              price_mol, efficiency) =  heating_agents[ID]
             if T_min < T:
                 agent = (Type, price_duty, price_mol, T_limit, efficiency)
-                if self.ID == ID:
-                    return agent
-                else:
+                if self.ID != ID:
                     self._init_streams(flow, species, T, P, phase[0])
                     self._agent = agent
                     self.ID = ID
@@ -333,9 +329,9 @@ class HeatUtility:
         raise biosteamError(f'No heating agent that can heat over {T_pinch} K')
 
     # Main Calculations
-    def _update_flow_wt_pinch_T(self, duty, T_pinch, T_limit):
+    def _update_flow_wt_pinch_T(self, duty, T_pinch, T_limit, negduty):
         """Set utility Temperature at the pinch, calculate and set minimum net flowrate of the utility to satisfy duty and update."""
-        self._used.T = self._T_exit(T_pinch, self.dT, T_limit, duty > 0)
+        self._used.T = self._T_exit(T_pinch, self.dT, T_limit, negduty)
         self._update_utility_flow(self._fresh, self._used, duty)
 
     def _update_flow_wt_phase_change(self, duty):
@@ -352,8 +348,8 @@ class HeatUtility:
         utility._molarray *= duty/(fresh.H - utility.H)
 
     @staticmethod
-    def _T_exit(T_pinch, dT, T_limit, duty_positive):
-        """Return exit temperature of a stream in a counter current heat exchanger
+    def _T_exit(T_pinch, dT, T_limit, negduty):
+        """Return exit temperature of the utility in a counter current heat exchanger
 
         **Parameters**
 
@@ -361,17 +357,15 @@ class HeatUtility:
 
              **dT:** [float] Pinch temperature difference (K)
 
-             **duty_positve:** [bool] True if exit temperature should be higher (stream is loosing energy)
+             **negduty:** [bool] True if exit temperature should be lower (process stream is gaining energy)
 
         """
-        if duty_positive:
-            T_exit = T_pinch + dT
-            if T_limit and T_limit > T_exit:
-                T_exit = T_limit
-        else:
+        if negduty:
             T_exit = T_pinch - dT
-            if T_limit and T_limit < T_exit:
-                T_exit = T_limit
+            if T_limit and T_limit < T_exit: T_exit = T_limit
+        else:
+            T_exit = T_pinch + dT
+            if T_limit and T_limit > T_exit: T_exit = T_limit
         return T_exit
 
     # Representation

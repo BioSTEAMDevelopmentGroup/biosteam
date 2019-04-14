@@ -7,6 +7,7 @@ This module includes classes and functions relating exception handling.
 
 @author: Yoel Rene Cortes-Pena
 """
+import sys
 
 # %% Biosteam errors
 
@@ -36,7 +37,7 @@ KE = type('KeyError', (biosteamError, ), {})
 # %% Biosteam Warnings
 
 class DesignWarning(Warning):
-    """Exception regarding design constraints."""
+    """Warning regarding design constraints."""
     
 #%% Decorators and functions
 
@@ -46,10 +47,9 @@ def notify_error(func):
         func = func._original
 
     def wrapper(self, *args, **kwargs):
-        try:
-            return func(self, *args, **kwargs)
+        try: return func(self, *args, **kwargs)
         except Exception as e:
-            # biosteam_Warnings already include location, so it is removed
+            # If exception already include location, it is replaced
             location = f'@{type(self).__name__} {self}'
             msg = str(e).strip('\n').replace(location + ': ', '')
             
@@ -58,7 +58,6 @@ def notify_error(func):
                 msg = location + f'.{func.__name__}:\n' + msg                 
             
             # Raise exception with same traceback but new message
-            import sys
             if type(e) is KeyError:
                 raise KE(msg).with_traceback(sys.exc_info()[2])
             else:
