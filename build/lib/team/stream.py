@@ -13,6 +13,7 @@ from .utils import material_array, property_array, PropertyFactory, \
                    tuple_array, fraction, Sink, Source
 from .flowsheet import find
 from .species import Species
+from .compound import Compound
 from .exceptions import SolverError, EquilibriumError, DimensionError
 from .equilibrium import DORTMUND
 
@@ -1142,18 +1143,20 @@ class Stream(metaclass=metaStream):
     def _prop_list(self, prop_ID):
         """Return component property list."""
         out = np.zeros(self._Nspecies)
+        i_c = self._num_compounds.__iter__().__next__
         getattr_ = getattr
         P = self.P
         T = self.T
         phase = self.phase
-        for m, ic in zip(self._molarray, self._num_compounds):
+        for m in self._molarray:
             if m: 
-                i, c = ic
+                i, c = i_c()
                 c.P = P
                 c.T = T
                 c.phase = phase
                 prop = getattr_(c, prop_ID)
                 out[i] = prop if prop else 0
+            else: i_c()
         return out
 
     def _prop_molar_flow(self, prop_ID):
@@ -1220,32 +1223,26 @@ class Stream(metaclass=metaStream):
         
     def _equilibrium_species(self):
         """Return species and indexes of species in equilibrium."""
-        species = []; index = []
-        for m, ic in zip(self.mol, self._num_compounds):
-            if m:
-                i, c = ic
-                if c.UNIFAC_Dortmund_groups and c.Tb not in (inf, None):
-                    species.append(c); index.append(i)
+        species = []; index = []; nextmol = self.mol.__iter__().__next__
+        for i, s in self._num_compounds:
+            if nextmol() and s.UNIFAC_Dortmund_groups and s.Tb not in (inf, None):
+                species.append(s); index.append(i)
         return species, index
 
     def _heavy_species(self):
         """Return species and indexes of heavy species not in equilibrium."""
-        species = []; index = [];
-        for m, ic in zip(self.mol, self._num_compounds):
-            if m:
-                i, c = ic
-                if c.Tb in (inf, None) or not c.UNIFAC_Dortmund_groups:
-                    species.append(c); index.append(i)
+        species = []; index = []; nextmol = self.mol.__iter__().__next__
+        for i, s in self._num_compounds:
+            if nextmol() and s.Tb in (inf, None) or not s.UNIFAC_Dortmund_groups:
+                species.append(s); index.append(i)
         return species, index
 
     def _light_species(self):
         """Return species and indexes of light species not in equilibrium."""
-        species = []; index = []
-        for m, ic in zip(self.mol, self._num_compounds):
-            if m:
-                i, c = ic
-                if c.Tb is -inf:
-                    species.append(c); index.append(i)
+        species = []; index = []; nextmol = self.mol.__iter__().__next__
+        for i, s in self._num_compounds:
+            if nextmol() and s.Tb is -inf:
+                species.append(s); index.append(i)
         return species, index
 
     # Equilibrium

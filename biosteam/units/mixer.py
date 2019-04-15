@@ -4,8 +4,8 @@ Created on Thu Aug 23 14:26:41 2018
 
 @author: yoelr
 """
-from biosteam import Unit, Stream
-from biosteam.meta_final import metaFinal
+from .. import Unit, Stream
+from ..meta_final import metaFinal
 
 class Mixer(Unit, metaclass=metaFinal):
     """Create a mixer that mixes any number of streams together.

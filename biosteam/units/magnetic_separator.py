@@ -5,7 +5,7 @@ Created on Mon Mar  4 11:32:01 2019
 @author: yoelr
 """
 
-from biosteam import Unit
+from .. import Unit
 
 class MagneticSeparator(Unit):
     _N_outs = 1

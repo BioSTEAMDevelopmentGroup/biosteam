@@ -4,7 +4,7 @@ Created on Mon Mar  4 10:57:12 2019
 
 @author: yoelr
 """
-from biosteam import Unit
+from .. import Unit
 
 class Shredder(Unit):
     _has_power_utility = True

@@ -131,12 +131,95 @@ class Flowsheet:
         
         self.flowsheet[ID] = self
     
-    def diagram(self):
-        """Display all units and attached streams."""
+    def diagram(self, kind='surface'):
+        """Display all units and attached streams.
+        
+        **kind:** Must be one of the following:
+                * **'thorough':** Thoroughly display every unit.
+                * **'surface':** Display units and recycle systems.
+                * **'minimal':** Minimally display flowsheet as a box with feeds and products.
+        
+        """
+        if kind == 'thorough':
+            return self._thorough_diagram()
+        elif kind == 'surface':
+            return self._surface_diagram()
+        elif kind == 'minimal':
+            return self._minimal_diagram()
+        else:
+            raise ValueError(f"kind must be either 'thorough', 'surface', or 'minimal'.")
+    
+    def _thorough_diagram(self):
         units = list(self.unit.values())
         units.reverse()
-        img = make_digraph(units).pipe('png')
-        display.display(display.Image(img))
+        x = display.SVG(make_digraph(units).pipe(format='svg'))
+        display.display(x)
+        # img = make_digraph(units).pipe('png')
+        # display.display(display.Image(img))
+    
+    def _minimal_diagram(self):
+        from . import system, Stream
+        streams = self.stream.values()
+        feeds = set(filter(system._isfeed, streams))
+        products = set(filter(system._isproduct, streams))
+        product = Stream(None)
+        product._ID = ''
+        feed = Stream(None)
+        feed._ID = ''
+        system._streamUnit('\n'.join([i.ID for i in feeds]),
+                           feed)
+        system._streamUnit('\n'.join([i.ID for i in products]),
+                           None, product)
+        unit = system._systemUnit(self.ID, product, feed)
+        unit.line = 'flowsheet'
+        unit.diagram(1)
+        
+    def _surface_diagram(self):
+        from . import system, Stream
+        units = set(self.unit.values())
+        StrUnit = system._streamUnit
+        refresh_units = set()
+        for i in self.system.values():
+            if i.recycle and not any(sub.recycle for sub in i.subsystems):
+                outs = []
+                ins = []
+                feeds = []
+                products = []
+                for s in i.streams:
+                    source = s._source
+                    sink = s._sink
+                    if source in i.units and sink not in i.units:
+                        if sink: outs.append(s)
+                        else: products.append(s)
+                        refresh_units.add(source)
+                    elif sink in i.units and source not in i.units:
+                        if source: ins.append(s)
+                        else: feeds.append(s)
+                        refresh_units.add(sink)
+                
+                if len(feeds) > 1:
+                    feed = Stream(None)
+                    feed._ID = ''
+                    units.add(StrUnit('\n'.join([i.ID for i in feeds]), feed))
+                    ins.append(feed)
+                else: ins += feeds
+                
+                if len(products) > 1:
+                    product = Stream(None)
+                    product._ID = ''
+                    units.add(StrUnit('\n'.join([i.ID for i in products]),
+                                      None, product))
+                    outs.append(product)
+                else: outs += products
+                
+                subsystem_unit = system._systemUnit(i.ID, outs, ins)
+                units.difference_update(i.units)
+                units.add(subsystem_unit)
+        
+        system.System(None, units)._thorough_diagram()
+        for i in refresh_units:
+            i.ins = i._ins
+            i.outs = i._outs
     
     def __call__(self, item_ID) -> 'item':
         """Return requested biosteam item.
@@ -194,7 +277,7 @@ def stream_connector(upstream, downstream):
     
     **Parameters**
     
-        **upstream:** [Stream] Non-zero species of this stream should be specified in the species object of `downstream`.
+        **upstream:** [Stream] Stream that will be copied to `downstream`.
         
         **downstream:** [Stream] Flow rate, T, P, and phase information will be copied from `upstream` to this stream.
     
@@ -205,10 +288,12 @@ def stream_connector(upstream, downstream):
     downstream._upstream_connection = upstream
     upstream._downstream_connection = downstream
     find._upstream_connections.add(upstream)
+    species = set(upstream._IDs).intersection(downstream._IDs)
+    upindex = upstream.indices(*species)
+    downindex = downstream.indices(*species)
     def connect():
         # Flow rate, T, P and phase
-        index, species = upstream.nonzero_species
-        downstream.setflow(upstream._molarray[index], species)
+        downstream._molarray[downindex] = upstream._molarray[upindex]
         downstream.T = upstream.T
         downstream.P = upstream.P
         downstream.phase = upstream.phase

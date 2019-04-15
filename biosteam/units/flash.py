@@ -5,7 +5,6 @@ Created on Thu Aug 23 16:21:56 2018
 @author: yoelr
 """
 from .. import Unit, MixedStream, PowerUtility
-from ..exceptions import DesignError
 from math import pi, ceil
 import copy
 import numpy as np

@@ -4,10 +4,10 @@ Created on Thu Aug 23 21:23:56 2018
 
 @author: yoelr
 """
-from biosteam import Unit, MixedStream
-from biosteam.units.flash import RatioFlash, PartitionFlash
+from .. import Unit, MixedStream
+from ..units.flash import RatioFlash, PartitionFlash
 from .splitter import Splitter
-import copy
+from copy import copy
 
 __all__ = ('Centrifuge_LLE', 'RatioCentrifuge_LLE',
            'SplitCentrifuge_LLE', 'PartitionCentrifuge_LLE')
@@ -79,7 +79,7 @@ class Centrifuge_LLE(Unit):
         feed = self.ins[0]
 
         kwargs = self._kwargs
-        LLE_kwargs = copy.copy(kwargs)
+        LLE_kwargs = copy(kwargs)
 
         ms = self._cached['mixed stream']
         ms.empty()

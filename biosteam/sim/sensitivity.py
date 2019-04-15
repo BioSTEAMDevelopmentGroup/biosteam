@@ -4,7 +4,7 @@ Created on Thu Mar  7 23:17:38 2019
 
 @author: yoelr
 """
-from biosteam import Unit, np, pd
+from .. import Unit, np, pd
 from .block import Block
 
 __all__ = ('Sensitivity',)

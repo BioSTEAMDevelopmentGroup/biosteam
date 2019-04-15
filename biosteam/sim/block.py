@@ -5,10 +5,9 @@ Created on Wed Mar  6 15:22:37 2019
 @author: yoelr
 """
         
-from biosteam import Unit, Stream, np
+from .. import Unit, Stream
 from inspect import signature
-from biosteam.utils import function
-from copy import copy
+from ..utils import function
 
 __all__ = ('Block', 'emptyblock')
 

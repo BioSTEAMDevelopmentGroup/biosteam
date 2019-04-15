@@ -88,22 +88,11 @@ class _systemUnit(Unit):
     """Dummy unit for displaying a system."""
     line = 'System'
     ID = None
-    @property
-    def _ID(self): return self.ID
 
 _sysgraphics = _systemUnit._graphics
 _sysgraphics.edge_in = _sysgraphics.edge_in * 10
 _sysgraphics.edge_out = _sysgraphics.edge_out * 15
-_sysgraphics.node['peripheries'] = '2'
-
-class _streamUnit(Unit):
-    line = ''
-    ID = None
-    _ID = _systemUnit._ID
-    
-_strgraphics = _streamUnit._graphics
-_strgraphics.node['fillcolor'] = 'white:#79dae8'
-
+_systemUnit._graphics.node['peripheries'] = '2'
 
 # %% Other
 
@@ -339,63 +328,42 @@ class System:
                 outs.append(s)
             elif sink in self.units and source not in self.units:
                 ins.append(s)
-        product = Stream(None)
-        product._ID = ''
-        feed = Stream(None)
-        feed._ID = ''
-        _streamUnit('\n'.join([i.ID for i in self.feeds]),
-                    feed)
-        _streamUnit('\n'.join([i.ID for i in self.products]),
-                    None, product)
-        unit = _systemUnit(self.ID, product, feed)
-        unit.diagram(1, file)
+        subsystem_unit = _systemUnit(self.ID, outs, ins)
+        subsystem_unit.line = 'System'
+        subsystem_unit.diagram(0, file)
+        # Reconnect how it was
+        for u in self.units:
+            u.ins = u._ins
+            u.outs = u._outs
 
     def _surface_diagram(self, file):
         """Display only surface elements listed in the network."""
         # Get surface items to make nodes and edges
-        units = set()  
-        refresh_units = set()
+        units = set()
+        streams = set()        
         for i in self.network:
             if isinstance(i, Unit):
                 units.add(i)
+                streams.update(i._ins)
+                streams.update(i._outs)
             elif isinstance(i, System):
                 outs = []
                 ins = []
-                feeds = []
-                products = []
                 for s in i.streams:
                     source = s._source
                     sink = s._sink
                     if source in i.units and sink not in i.units:
-                        if sink: outs.append(s)
-                        else: products.append(s)
-                        refresh_units.add(source)
+                        streams.add(s)
+                        outs.append(s)
                     elif sink in i.units and source not in i.units:
-                        if source: ins.append(s)
-                        else: feeds.append(s)
-                        refresh_units.add(sink)
-                
-                if len(feeds) > 1:
-                    feed = Stream(None)
-                    feed._ID = ''
-                    units.add(_streamUnit('\n'.join([i.ID for i in feeds]), feed))
-                    ins.append(feed)
-                else: ins += feeds
-                
-                if len(products) > 1:
-                    product = Stream(None)
-                    product._ID = ''
-                    units.add(_streamUnit('\n'.join([i.ID for i in products]),
-                                          None, product))
-                    outs.append(product)
-                else: outs += products
-                
+                        streams.add(s)
+                        ins.append(s)
                 subsystem_unit = _systemUnit(i.ID, outs, ins)
+                subsystem_unit._ID = i.ID
                 units.add(subsystem_unit)
-                
         System(None, units)._thorough_diagram(file)
         # Reconnect how it was
-        for u in refresh_units:
+        for u in self.units:
             u.ins = u._ins
             u.outs = u._outs
       
@@ -668,12 +636,10 @@ class System:
 
     # Representation
     def __str__(self):
-        if self.ID: return self.ID
-        else: return type(self).__name__ 
+        return self.ID
     
     def __repr__(self):
-        if self.ID: return f'<{type(self).__name__}: {self.ID}>'
-        else: return f'<{type(self).__name__}>'
+        return '<' + type(self).__name__ + ': ' + self.ID + '>'
 
     def show(self):
         """Print all specifications."""
@@ -718,24 +684,20 @@ class System:
                 last_i = i
             elif i == -1: break
         network = network.replace('%, ', ',\n'+' '*11)
-        
-        if self.facilities:
-            facilities = strtuple(self.facilities)
-            i = 1; last_i = 0
-            while True:
-                i += 2
-                i = facilities.find(', ', i)
-                if (i - last_i) > 35:
-                    facilities = (facilities[:i] + '%' + facilities[i:])
-                    last_i = i
-                elif i == -1: break
-            facilities = facilities.replace('%, ', ',\n'+' '*14)
-            facilities = f"\n facilities: {facilities}" 
-        else:
-            facilities = ''
+            
+        facilities = strtuple(self.facilities)
+        i = 1; last_i = 0
+        while True:
+            i += 2
+            i = facilities.find(', ', i)
+            if (i - last_i) > 35:
+                facilities = (facilities[:i] + '%' + facilities[i:])
+                last_i = i
+            elif i == -1: break
+        facilities = facilities.replace('%, ', ',\n'+' '*14)
         
         return (f"System: {self.ID}"
-                + recycle
-                + f"\n network: {network}"
-                + facilities
-                + error)
+                + recycle + '\n'
+                + f" network: {network}\n"
+                +(f" facilities: {facilities}" if self.facilities else '')
+                + error[1:])

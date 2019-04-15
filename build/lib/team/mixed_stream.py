@@ -565,16 +565,19 @@ class MixedStream(Stream):
         """Return component property lists for given phase."""
         getattr_ = getattr
         out = np.zeros(self._Nspecies)
+        mol = self._phases_molflow[phase]
+        i_c = self._num_compounds.__iter__().__next__
         phase = phase.lower()
         P = self.P
         T = self.T
-        for m, ic in zip(self._phases_molflow[phase], self._num_compounds):
+        for m in mol:
             if m:
-                i, c = ic
+                i, c = i_c()
                 c.P = P
                 c.T = T
                 c.phase = phase
                 out[i] = getattr_(c, prop_ID)
+            else: i_c()
         return out
 
     def _phaseprop_molar_flow(self, prop_ID, phase):

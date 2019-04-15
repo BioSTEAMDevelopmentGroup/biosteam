@@ -5,8 +5,8 @@ Created on Thu Aug 23 22:18:16 2018
 @author: yoelr
 """
 
-from biosteam.unit import Unit
-from biosteam.exceptions import DesignError
+from ..unit import Unit
+from ..exceptions import DesignError
 from . import Splitter
 import numpy as np
 

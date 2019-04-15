@@ -4,8 +4,8 @@ Created on Thu Aug 23 14:38:34 2018
 
 @author: yoelr
 """
-from biosteam import Unit, Stream, MixedStream
-from biosteam.exceptions import biosteamError
+from .. import Unit, Stream, MixedStream
+from ..exceptions import biosteamError
 from fluids import nearest_pipe
 import ht
 import numpy as np

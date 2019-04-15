@@ -5,8 +5,8 @@ Created on Thu Aug 23 22:17:05 2018
 @author: yoelr
 """
 
-from biosteam.units.splitter import Splitter
-from biosteam import PowerUtility, Unit
+from .splitter import Splitter
+from .. import PowerUtility, Unit
 
 __all__ = ['MolecularSieve', 'MolSieve']
 

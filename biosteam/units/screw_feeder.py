@@ -4,7 +4,7 @@ Created on Mon Mar  4 16:40:50 2019
 
 @author: yoelr
 """
-from biosteam import Unit, np
+from .. import Unit, np
 
 class ScrewFeeder(Unit):
     length = 30 #: ft

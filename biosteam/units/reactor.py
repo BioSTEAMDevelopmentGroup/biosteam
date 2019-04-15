@@ -4,8 +4,8 @@ Created on Thu Aug 23 22:56:55 2018
 
 @author: yoelr
 """
-from biosteam import Unit, np
-from biosteam.units import Tank
+from .. import Unit, np
+from . import Tank
 
 
 class Reactor(Unit):

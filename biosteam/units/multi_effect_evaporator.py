@@ -4,7 +4,7 @@ Created on Thu Aug 23 21:43:13 2018
 
 @author: yoelr
 """
-from biosteam import Unit, Stream, np, ProxyStream
+from .. import Unit, Stream, np
 from scipy.optimize import brentq
 from . import Evaporator_PV, Evaporator_PQin, Pump, Mixer, HXutility
 from .designtools import vacuum_system

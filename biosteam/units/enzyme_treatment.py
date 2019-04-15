@@ -4,7 +4,7 @@ Created on Thu Aug 23 22:07:01 2018
 
 @author: yoelr
 """
-from biosteam import Unit
+from .. import Unit
 from .hx import HXutility
 
 class EnzymeTreatment(Unit):

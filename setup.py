@@ -5,14 +5,16 @@ Created on Sat Nov 18 16:17:00 2017
 @author: Yoel Cortes-Pena
 """
 from setuptools import setup
+#from Cython.Build import cythonize
 
 setup(
-    name='biosteam',
-    packages=['biosteam'],
+    name='team',
+    packages=['team'],
     license='MIT',
     version='0.1.0',
-    description='The Open-Source Bioprocess Simulation and Techno-Economic Analysis Modules',
+    description='The Techno-Economic Analysis Modules',
     long_description=open('README.rst').read(),
+    #ext_modules=cythonize('biosteam/stream.pyx'),
     author='Yoel Cortes-Pena',
     install_requires=['pint==0.9', 'ht==0.1.52', 'fluids==0.1.74',
                       'scipy', 'IPython', 'thermo==0.1.39', 'colorpalette==0.1.1',

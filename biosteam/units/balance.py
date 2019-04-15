@@ -4,9 +4,9 @@ Created on Sat Sep  1 17:35:28 2018
 
 @author: yoelr
 """
-from biosteam import np, Stream, Unit
-from biosteam.utils import MissingStream
-from biosteam.meta_final import metaFinal
+from .. import np, Stream, Unit
+from ..utils import MissingStream
+from ..meta_final import metaFinal
 
 __all__ = ['MassBalance']
 

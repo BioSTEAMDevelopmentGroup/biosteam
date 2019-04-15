@@ -4,7 +4,7 @@ Created on Thu Aug 23 22:15:20 2018
 
 @author: yoelr
 """
-from biosteam import Unit
+from .. import Unit
 from .splitter import Splitter
 from .designtools import vacuum_system
 import numpy as np

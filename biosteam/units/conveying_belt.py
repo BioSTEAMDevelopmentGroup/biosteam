@@ -4,7 +4,7 @@ Created on Mon Mar  4 11:10:49 2019
 
 @author: yoelr
 """
-from biosteam import Unit, np
+from .. import Unit, np
 
 class ConveyingBelt(Unit):
     length = 50 #: ft

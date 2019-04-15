@@ -5,11 +5,11 @@ Created on Thu Aug 23 19:33:20 2018
 
 @author: yoelr
 """
-from biosteam import Unit, np, MixedStream, Stream
-from biosteam.utils import approx2step
-from biosteam.exceptions import biosteamError
+from .. import Unit, np, MixedStream, Stream
+from ..utils import approx2step
+from ..exceptions import biosteamError
 from scipy.optimize import brentq
-from biosteam.units.hx import HXutility
+from .hx import HXutility
 import matplotlib.pyplot as plt
 
 array = np.array
@@ -827,7 +827,7 @@ class Distillation(Dist):
             cached['L_Rmol'] = L_Rmol = R*vap_molnet
             cached['V_Rmol'] = V_Rmol = (R+1)*vap_molnet
             condensate = cached['condensate']
-            condensate.setflow(condensate_molfrac, vle_top)
+            condensate.setflow(condensate_molfrac, [i.ID for i in vle_top])
             condensate.T = vap.T
             condensate.P = vap.P
             condensate.mol *= L_Rmol

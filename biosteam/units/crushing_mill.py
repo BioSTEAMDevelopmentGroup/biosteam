@@ -4,7 +4,7 @@ Created on Thu Aug 23 22:14:01 2018
 
 @author: yoelr
 """
-from biosteam import Unit
+from .. import Unit
 from . import Splitter
 
 

@@ -4,8 +4,7 @@ Created on Thu Aug 23 15:53:14 2018
 
 @author: yoelr
 """
-from biosteam import Unit
-from biosteam import np
+from .. import Unit, np
 from fluids.pump import nema_sizes_hp
 from .designtools.vacuum import _calc_MotorEfficiency, _calc_BreakEfficiency
 

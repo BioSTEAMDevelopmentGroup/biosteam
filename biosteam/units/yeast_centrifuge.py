@@ -5,9 +5,9 @@ Created on Thu Aug 23 22:18:36 2018
 @author: yoelr
 """
 
-from biosteam.units.splitter import Splitter
-from biosteam import Unit, np
-from biosteam.exceptions import DesignError
+from .splitter import Splitter
+from .. import Unit, np
+from ..exceptions import DesignError
 
 
 class YeastCentrifuge(Unit):
