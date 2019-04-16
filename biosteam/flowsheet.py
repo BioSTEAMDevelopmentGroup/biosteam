@@ -6,12 +6,7 @@ As BioSTEAM objects are created, they are automatically registered. The `find` o
 
 """
 from graphviz import Digraph
-# import matplotlib.pyplot as plt
-# import matplotlib.image as mpimg
 from IPython import display
-# import threading
-# import time
-# import os
 
 __all__ = ('find', 'stream_connector', 'Flowsheet')
 

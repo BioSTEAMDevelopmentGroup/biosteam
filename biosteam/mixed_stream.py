@@ -568,13 +568,15 @@ class MixedStream(Stream):
         phase = phase.lower()
         P = self.P
         T = self.T
-        for m, ic in zip(self._phases_molflow[phase], self._num_compounds):
+        ic = self._num_compounds.__iter__().__next__
+        for m in self._phases_molflow[phase]:
             if m:
-                i, c = ic
+                i, c = ic()
                 c.P = P
                 c.T = T
                 c.phase = phase
                 out[i] = getattr_(c, prop_ID)
+            else: ic()
         return out
 
     def _phaseprop_molar_flow(self, prop_ID, phase):

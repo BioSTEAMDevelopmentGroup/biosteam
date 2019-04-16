@@ -19,7 +19,6 @@ from .equilibrium import DORTMUND
 inf = np.inf
 ln = np.log
 exp = np.exp
-ndarray = np.ndarray
 array = np.array
 
 __all__ = ('Stream',)
@@ -366,7 +365,7 @@ class Stream(metaclass=metaStream):
        k: [float] Thermal conductivity as a function of T and P (W/m/K).
 
     """
-    activity_coefficients = DORTMUND
+    activity_coefficients = staticmethod(DORTMUND)
 
     # [dict] Units of measure for material properties (class attribute). 
     units = units_of_measure
@@ -407,10 +406,6 @@ class Stream(metaclass=metaStream):
     
     #: Species defined in stream
     _species = None
-    
-    #: UNIFAC parameters cached
-    # {species: (chemgroups, rs, qs, group_counts)}
-    _UNIFAC_cached = {}
     
     #: CAS of species
     _CAS = ()
@@ -1096,7 +1091,7 @@ class Stream(metaclass=metaStream):
 
         """
         attr = getattr(self, prop_ID)
-        if isinstance(attr, ndarray):
+        if isinstance(attr, np.ndarray):
             attr = np.array(attr.astype(float))
         return Q_(attr, self.units[prop_ID])
 
@@ -1146,14 +1141,16 @@ class Stream(metaclass=metaStream):
         P = self.P
         T = self.T
         phase = self.phase
-        for m, ic in zip(self._molarray, self._num_compounds):
+        ic = self._num_compounds.__iter__().__next__
+        for m in self._molarray:
             if m: 
-                i, c = ic
+                i, c = ic()
                 c.P = P
                 c.T = T
                 c.phase = phase
                 prop = getattr_(c, prop_ID)
                 out[i] = prop if prop else 0
+            else: ic()
         return out
 
     def _prop_molar_flow(self, prop_ID):

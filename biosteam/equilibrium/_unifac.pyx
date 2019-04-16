@@ -5,6 +5,8 @@ Created on Mon Apr 16 08:58:41 2018
 
 @author: Yoel Rene Cortes-Pena
 """
+cimport numpy as np
+from numpy cimport ndarray
 from thermo.utils import log, exp
 import thermo.unifac
 import os
@@ -14,8 +16,11 @@ __all__ = ('DORTMUND',)
 # %% Data
 folder = os.path.join(os.path.dirname(thermo.unifac.__file__), 'Phase Change')
 
-class UNIFAC_subgroup:
-    def __init__(self, group, main_group_id, main_group, R, Q):
+cdef class UNIFAC_subgroup:
+    cdef readonly str group, main_group
+    cdef readonly int main_group_id
+    cdef readonly float R, Q
+    def __init__(self, str group, int main_group_id, str main_group, float R, float Q):
         self.group = group
         self.main_group_id = main_group_id
         self.main_group = main_group
@@ -871,10 +876,12 @@ with open(os.path.join(folder, 'PSRK interaction parameters.tsv')) as f:
 
 
 # %% Set up
-def calc_set_up(subgroups, chemgroups):
-    rs = []
-    qs = []
-    group_counts = {}
+cdef calc_set_up(dict subgroups, list chemgroups):
+    cdef list rs = []
+    cdef list qs = []
+    cdef dict group_counts = {}
+    cdef float ri, qi
+    cdef int count, group
     for groups in chemgroups:
         ri = 0.
         qi = 0.
@@ -925,14 +932,15 @@ def DORTMUND(species, xs, T, cached={}):
 def loggammacs_UNIFAC(qs, rs, xs):
     rsxs = sum(ri*xi for ri, xi in zip(rs, xs))
     Vis = [ri/rsxs for ri in rs]
-    qsxs = sum(qi*xi for qi, xi in zip(qs, xs))
+    qsxs = sum([qi*xi for qi, xi in zip(qs, xs)])
     Fis = [qi/qsxs for qi in qs]
 
     loggammacs = [1. - Visi + log(Visi) - 5.*qsi*(1. - Visi/Fisi + log(Visi/Fisi))
                   for Visi, Fisi, qsi in zip(Vis, Fis, qs)]
     return loggammacs
 
-def loggammacs_DORTMUND(qs, rs, xs):
+cdef loggammacs_DORTMUND(list qs, list rs, ndarray[np.float_t, ndim=1] xs):
+    cdef np.float_t rsxs, qsxs, rsxs2, qi, ri, ri_34, Vi, Fi, Vi2
     rsxs = 0.; qsxs = 0.; rsxs2 = 0.; rs_34 = []; loggammacs = []
     for xi, ri, qi in zip(xs, rs, qs):
         rsxs += ri*xi
@@ -968,6 +976,10 @@ def UNIFAC_Coeffictients(xs, T, subgroups, interactions,
                          psi_function, loggammacs_function, chemgroups,
                          rs, qs, group_counts):
     """For both DORTMUND and UNIFAC VLE and LLE"""
+    cdef int count, group, m, k
+    cdef dict g
+    cdef np.float_t x, sum1, sum2, sum3, tot_numerator, Q_sum_term
+    
     gckeys = tuple(group_counts.keys())
     sum_ = sum
     xs_chemgroups = tuple(zip(xs, chemgroups))

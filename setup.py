@@ -6,15 +6,17 @@ Created on Sat Nov 18 16:17:00 2017
 """
 from setuptools import setup
 #from Cython.Build import cythonize
+#import numpy
 
 setup(
-    name='team',
-    packages=['team'],
+    name='biosteam',
+    packages=['biosteam'],
     license='MIT',
     version='0.1.0',
     description='The Techno-Economic Analysis Modules',
     long_description=open('README.rst').read(),
-    #ext_modules=cythonize('biosteam/stream.pyx'),
+    #ext_modules=cythonize('biosteam/equilibrium/unifac.pyx'),
+    #include_dirs=[numpy.get_include()],
     author='Yoel Cortes-Pena',
     install_requires=['pint==0.9', 'ht==0.1.52', 'fluids==0.1.74',
                       'scipy', 'IPython', 'thermo==0.1.39', 'colorpalette==0.1.1',
