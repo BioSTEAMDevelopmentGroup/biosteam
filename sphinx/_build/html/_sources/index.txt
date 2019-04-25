@@ -15,18 +15,25 @@ Overview
 
    **Figure 1.** A simplified UML class diagram depicts the core classes of BioSTEAM. Only main attributes and methods are included. In aggregation relationships, the labels represent where the aggregates are stored.
 
-:doc:`Chemical`: A thermo.Chemical object from the Chemical Engineering Design Library (ChEDL) with minor extensions for compatibility. It contains pure component transport and thermodynamic properties.
+:doc:`Compound`: Base class for objects with pure component thermodynamic and transport properties.
 
-:doc:`Species`: Contains Compound and Chemical objects.
+:doc:`Chemical`: A thermo.Chemical object from the Chemical Engineering Design Library (ChEDL) with minor extensions for compatibility.
 
-:doc:`Stream`: Used to pass material information between units. Stream properties are calculated using ideal mixture rules and pure component data from the Species object.
+:doc:`Species`: Contains Compound and Chemical objects that will be accessed by Stream objects.
+
+:doc:`Stream`: Used to pass material information between units and calculate material properties.
 
 :doc:`MixedStream`: An extension of the Stream class that can handle multi-phase flow with phase equilibria.
    
-:doc:`Unit`: A base class with an abstract `_run` method that changes output streams given parameters and input streams. Other abstract methods including `_design`, and `_cost` which are used after process simulation for design and costing.
+:doc:`Unit`: A base class for all unit operations.
 
-:doc:`System`: Iteratively runs a `network` of units until the `recycle` stream converges. When a network contains a system, it converges the inner system first and then continues running the remaining elements.
+:doc:`HeatUtility`: Contains settings for heating agents and cooling agents (e.g. price, pressure, compostion, etc.). Unit objects use HeatUtility objects to specify cooling and heating requirements.
 
+:doc:`PowerUtility`: Contains the price of electricity. Unit objects use a PowerUtility object to specify electricity demand.
+
+:doc:`System`: Iteratively runs a `network` of units, functions and subsystems until the `recycle` stream converges.
+
+:doc:`TEA`: Used to perform techno-economic analysis given a System object and a set of options.
 
 Tutorial
 --------

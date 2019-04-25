@@ -60,11 +60,11 @@
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">np</span><span class="p">,</span> <span class="n">MixedStream</span><span class="p">,</span> <span class="n">Stream</span>
-<span class="kn">from</span> <span class="nn">biosteam.utils</span> <span class="k">import</span> <span class="n">approx2step</span>
-<span class="kn">from</span> <span class="nn">biosteam.exceptions</span> <span class="k">import</span> <span class="n">biosteamError</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">np</span><span class="p">,</span> <span class="n">MixedStream</span><span class="p">,</span> <span class="n">Stream</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="n">approx2step</span>
+<span class="kn">from</span> <span class="nn">..exceptions</span> <span class="k">import</span> <span class="n">biosteamError</span>
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">brentq</span>
-<span class="kn">from</span> <span class="nn">biosteam.units.hx</span> <span class="k">import</span> <span class="n">HXutility</span>
+<span class="kn">from</span> <span class="nn">.hx</span> <span class="k">import</span> <span class="n">HXutility</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
 <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span>
@@ -882,7 +882,7 @@
             <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;L_Rmol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">L_Rmol</span> <span class="o">=</span> <span class="n">R</span><span class="o">*</span><span class="n">vap_molnet</span>
             <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;V_Rmol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">V_Rmol</span> <span class="o">=</span> <span class="p">(</span><span class="n">R</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">vap_molnet</span>
             <span class="n">condensate</span> <span class="o">=</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;condensate&#39;</span><span class="p">]</span>
-            <span class="n">condensate</span><span class="o">.</span><span class="n">setflow</span><span class="p">(</span><span class="n">condensate_molfrac</span><span class="p">,</span> <span class="n">vle_top</span><span class="p">)</span>
+            <span class="n">condensate</span><span class="o">.</span><span class="n">setflow</span><span class="p">(</span><span class="n">condensate_molfrac</span><span class="p">,</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">vle_top</span><span class="p">])</span>
             <span class="n">condensate</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">vap</span><span class="o">.</span><span class="n">T</span>
             <span class="n">condensate</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">vap</span><span class="o">.</span><span class="n">P</span>
             <span class="n">condensate</span><span class="o">.</span><span class="n">mol</span> <span class="o">*=</span> <span class="n">L_Rmol</span>

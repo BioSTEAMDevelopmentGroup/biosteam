@@ -248,15 +248,16 @@
 </pre></div>
 </div>
 </div></blockquote>
-<dl class="method">
+<dl class="staticmethod">
 <dt id="biosteam.Stream.activity_coefficients">
-<code class="descname">activity_coefficients</code><span class="sig-paren">(</span><em>species</em>, <em>xs</em>, <em>T</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.Stream.activity_coefficients" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">activity_coefficients</code><span class="sig-paren">(</span><em>species</em>, <em>xs</em>, <em>T</em>, <em>cached={}</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.Stream.activity_coefficients" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return list of Dortmund modified UNIFAC coefficients.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p>species: tuple[Compound] Species corresponding to molar fractions</p>
 <p>xs: [array_like] Molar fractions</p>
 <p>T: [float] Temperature (K)</p>
+<p>cached: {species: (chemgroups, rs, qs, group_counts)} Cached UNIFAC parameters</p>
 </div></blockquote>
 </dd></dl>
 
@@ -877,9 +878,9 @@
 <p><strong>Optional parameters</strong></p>
 <blockquote>
 <div><p><strong>P:</strong> [float] Operating pressure (Pa)</p>
-<p><strong>species_IDs:</strong> [list] IDs of equilibrium species</p>
-<p><strong>LNK:</strong> list[str] Light non-keys</p>
-<p><strong>HNK:</strong> list[str] Heavy non-keys</p>
+<p><strong>species_IDs:</strong> [tuple] IDs of equilibrium species</p>
+<p><strong>LNK:</strong> tuple[str] Light non-keys</p>
+<p><strong>HNK:</strong> tuple[str] Heavy non-keys</p>
 <dl class="docutils">
 <dt><strong>User may define one:</strong></dt>
 <dd><ul class="first last simple">

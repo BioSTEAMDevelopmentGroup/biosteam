@@ -11,7 +11,7 @@ from IPython import display
 __all__ = ('find', 'stream_connector', 'Flowsheet')
 
 
-def make_digraph(units, streams=None):
+def make_digraph(units, streams):
     """Return digraph of units and streams."""
     # Create a digraph and set direction left to right
     f = Digraph(format='svg')
@@ -44,12 +44,6 @@ def make_digraph(units, streams=None):
     f.attr('edge', dir='foward')
 
     connections = set()
-    if not streams:
-        streams = set()
-        for u in units:
-            streams.update(u._ins)
-            streams.update(u._outs)
-        streams.difference_update(find._upstream_connections)
     for s in streams:
         if s.ID == 'Missing Stream':
             continue  # Ignore stream
@@ -147,7 +141,12 @@ class Flowsheet:
     def _thorough_diagram(self):
         units = list(self.unit.values())
         units.reverse()
-        x = display.SVG(make_digraph(units).pipe(format='svg'))
+        streams = set()
+        for u in units:
+            streams.update(u._ins)
+            streams.update(u._outs)
+        streams.difference_update(self._upstream_connections)
+        x = display.SVG(make_digraph(units, streams).pipe(format='svg'))
         display.display(x)
         # img = make_digraph(units).pipe('png')
         # display.display(display.Image(img))
@@ -211,7 +210,8 @@ class Flowsheet:
                 units.difference_update(i.units)
                 units.add(subsystem_unit)
         
-        system.System(None, units)._thorough_diagram()
+        sys = system.System(None, units)
+        sys._thorough_diagram()
         for i in refresh_units:
             i.ins = i._ins
             i.outs = i._outs
@@ -267,7 +267,7 @@ find.mainflowsheet = Flowsheet('Default')
 
 # %% Connect between different flowsheets
 
-def stream_connector(upstream, downstream):
+def stream_connector(upstream, downstream, species=None):
     """Return a function that copies specifications from `upstream` to `downstream`. This serves to connect different flowsheets.
     
     **Parameters**
@@ -275,6 +275,8 @@ def stream_connector(upstream, downstream):
         **upstream:** [Stream] Stream that will be copied to `downstream`.
         
         **downstream:** [Stream] Flow rate, T, P, and phase information will be copied from `upstream` to this stream.
+        
+        **species:** list[str] IDs of species to be passed down. If None, all species in common will be passed.
     
     """
     # Source and sink.
@@ -283,7 +285,8 @@ def stream_connector(upstream, downstream):
     downstream._upstream_connection = upstream
     upstream._downstream_connection = downstream
     find._upstream_connections.add(upstream)
-    species = set(upstream._IDs).intersection(downstream._IDs)
+    if not species:
+        species = set(upstream._IDs).intersection(downstream._IDs)
     upindex = upstream.indices(*species)
     downindex = downstream.indices(*species)
     def connect():

@@ -62,7 +62,6 @@
 <span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">copy</span>
 <span class="kn">import</span> <span class="nn">IPython</span>
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">newton</span>
-<span class="kn">from</span> <span class="nn">graphviz</span> <span class="k">import</span> <span class="n">Digraph</span>
 <span class="kn">from</span> <span class="nn">.exceptions</span> <span class="k">import</span> <span class="n">Stop</span><span class="p">,</span> <span class="n">SolverError</span><span class="p">,</span> <span class="n">notify_error</span>
 <span class="kn">from</span> <span class="nn">.flowsheet</span> <span class="k">import</span> <span class="n">find</span><span class="p">,</span> <span class="n">make_digraph</span>
 <span class="kn">from</span> <span class="nn">.stream</span> <span class="k">import</span> <span class="n">Stream</span>
@@ -70,13 +69,14 @@
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">np</span>
 <span class="kn">from</span> <span class="nn">.report</span> <span class="k">import</span> <span class="n">save_report</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">color_scheme</span><span class="p">,</span> <span class="n">missing_stream</span><span class="p">,</span> <span class="n">strtuple</span><span class="p">,</span> <span class="n">function</span>
-<span class="n">CS</span> <span class="o">=</span> <span class="n">color_scheme</span>
+
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;System&#39;</span><span class="p">,)</span>
 
 <span class="c1"># %% Debugging and exception handling</span>
 
-<span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Evaluate a command and request user input for next command. If no command, return. This function is used for debugging a System object.&quot;&quot;&quot;</span>    
+    <span class="n">CS</span> <span class="o">=</span> <span class="n">color_scheme</span>
     <span class="c1"># Done evaluating if no command, exit debugger if &#39;exit&#39;</span>
     <span class="k">if</span> <span class="n">command</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">Next</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">next</span><span class="p">(</span><span class="s1">&#39;Next: &#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">f</span><span class="s1">&#39;{repr(self)}</span><span class="se">\n</span><span class="s1">&#39;</span>
@@ -99,7 +99,7 @@
             <span class="n">info</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Enter to raise error or type to evaluate:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">command</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="n">err</span> <span class="o">+</span> <span class="n">info</span> <span class="o">+</span> <span class="s2">&quot;&gt;&gt;&gt; &quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">command</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span> <span class="k">raise</span> <span class="n">err</span>
-            <span class="n">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">)</span>        
+            <span class="n">_evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">)</span>        
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># If successful, continue evaluating</span>
             <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -108,13 +108,13 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
             <span class="n">command</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;&gt;&gt;&gt; &quot;</span><span class="p">)</span>
-            <span class="n">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">)</span>
+            <span class="n">_evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">method_debug</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_method_debug</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Method decorator for debugging system.&quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="c1"># Run method and ask to evaluate</span>
-        <span class="n">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">_evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         
     <span class="n">wrapper</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="n">func</span><span class="o">.</span><span class="vm">__name__</span>
@@ -123,7 +123,7 @@
     <span class="k">return</span> <span class="n">wrapper</span>
 
 
-<span class="k">def</span> <span class="nf">notify_run_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_notify_run_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Decorate a System run method to notify you after each loop&quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">recycle</span><span class="p">:</span>
@@ -137,17 +137,33 @@
     <span class="n">wrapper</span><span class="o">.</span><span class="n">_original</span> <span class="o">=</span> <span class="n">func</span>
     <span class="k">return</span> <span class="n">wrapper</span>
     
-<span class="c1"># %% Other</span>
+<span class="c1"># %% System node for diagram</span>
 
 <span class="k">class</span> <span class="nc">_systemUnit</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Dummy unit for displaying a system.&quot;&quot;&quot;</span>
     <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;System&#39;</span>
     <span class="n">ID</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">_ID</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span>
 
 <span class="n">_sysgraphics</span> <span class="o">=</span> <span class="n">_systemUnit</span><span class="o">.</span><span class="n">_graphics</span>
 <span class="n">_sysgraphics</span><span class="o">.</span><span class="n">edge_in</span> <span class="o">=</span> <span class="n">_sysgraphics</span><span class="o">.</span><span class="n">edge_in</span> <span class="o">*</span> <span class="mi">10</span>
 <span class="n">_sysgraphics</span><span class="o">.</span><span class="n">edge_out</span> <span class="o">=</span> <span class="n">_sysgraphics</span><span class="o">.</span><span class="n">edge_out</span> <span class="o">*</span> <span class="mi">15</span>
-<span class="n">_systemUnit</span><span class="o">.</span><span class="n">_graphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;peripheries&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;2&#39;</span>
+<span class="n">_sysgraphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;peripheries&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;2&#39;</span>
+
+<span class="k">class</span> <span class="nc">_streamUnit</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
+    <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">ID</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_ID</span> <span class="o">=</span> <span class="n">_systemUnit</span><span class="o">.</span><span class="n">_ID</span>
+    
+<span class="n">_strgraphics</span> <span class="o">=</span> <span class="n">_streamUnit</span><span class="o">.</span><span class="n">_graphics</span>
+<span class="n">_strgraphics</span><span class="o">.</span><span class="n">node</span><span class="p">[</span><span class="s1">&#39;fillcolor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;white:#79dae8&#39;</span>
+
+
+<span class="c1"># %% Other</span>
+
+<span class="n">_isfeed</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">stream</span><span class="p">:</span> <span class="ow">not</span> <span class="n">stream</span><span class="o">.</span><span class="n">_source</span> <span class="ow">and</span> <span class="n">stream</span><span class="o">.</span><span class="n">_sink</span>
+<span class="n">_isproduct</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">stream</span><span class="p">:</span> <span class="ow">not</span> <span class="n">stream</span><span class="o">.</span><span class="n">_sink</span> <span class="ow">and</span> <span class="n">stream</span><span class="o">.</span><span class="n">_source</span>
 
 
 <span class="c1"># %% Process flow</span>
@@ -213,7 +229,7 @@
         <span class="n">streams</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="n">missing_stream</span><span class="p">)</span> 
         
         <span class="c1">#: tuple[Unit, function and/or System] A network that is run element by element until the recycle converges.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">network</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="n">network</span><span class="p">,)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">network</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">network</span><span class="p">)</span>
         
         <span class="c1">#: list[Unit] All unit operations with linked streams</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_linkunits</span> <span class="o">=</span> <span class="p">[</span><span class="n">u</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span> <span class="k">if</span> <span class="n">u</span><span class="o">.</span><span class="n">_has_proxystream</span><span class="p">]</span>
@@ -234,7 +250,7 @@
                     <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">_has_cost</span><span class="p">:</span> <span class="n">costunits</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
                 <span class="k">elif</span> <span class="n">inst</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">System</span><span class="p">):</span>
                     <span class="n">units</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">units</span><span class="p">)</span>
-                    <span class="n">streams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">auxiliary_streams</span><span class="p">)</span>
+                    <span class="n">streams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">streams</span><span class="p">)</span>
                     <span class="n">subsystems</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
                     <span class="n">costunits</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">_costunits</span><span class="p">)</span>
             <span class="c1">#: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the network simulation.</span>
@@ -249,10 +265,10 @@
         <span class="n">streams</span><span class="o">.</span><span class="n">difference_update</span><span class="p">(</span><span class="n">upstream_connections</span><span class="p">)</span>
         
         <span class="c1">#: set[Stream] All feed streams in the system.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">feeds</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="ow">not</span> <span class="n">s</span><span class="o">.</span><span class="n">_source</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">_sink</span><span class="p">,</span> <span class="n">streams</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">feeds</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="n">_isfeed</span><span class="p">,</span> <span class="n">streams</span><span class="p">))</span>
         
         <span class="c1">#: set[Stream] All product streams in the system.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">products</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">_source</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">s</span><span class="o">.</span><span class="n">_sink</span><span class="p">,</span> <span class="n">streams</span><span class="p">))</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">products</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="n">_isproduct</span><span class="p">,</span> <span class="n">streams</span><span class="p">))</span> 
         
         <span class="c1">#: [TEA] System object for Techno-Economic Analysis.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_TEA</span> <span class="o">=</span> <span class="kc">None</span>
@@ -378,42 +394,63 @@
                 <span class="n">outs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">sink</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span> <span class="ow">and</span> <span class="n">source</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="p">:</span>
                 <span class="n">ins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-        <span class="n">subsystem_unit</span> <span class="o">=</span> <span class="n">_systemUnit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="n">outs</span><span class="p">,</span> <span class="n">ins</span><span class="p">)</span>
-        <span class="n">subsystem_unit</span><span class="o">.</span><span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;System&#39;</span>
-        <span class="n">subsystem_unit</span><span class="o">.</span><span class="n">diagram</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
-        <span class="c1"># Reconnect how it was</span>
-        <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="p">:</span>
-            <span class="n">u</span><span class="o">.</span><span class="n">ins</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">_ins</span>
-            <span class="n">u</span><span class="o">.</span><span class="n">outs</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">_outs</span>
+        <span class="n">product</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">product</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">feed</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">feed</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">_streamUnit</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">feeds</span><span class="p">]),</span>
+                    <span class="n">feed</span><span class="p">)</span>
+        <span class="n">_streamUnit</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">products</span><span class="p">]),</span>
+                    <span class="kc">None</span><span class="p">,</span> <span class="n">product</span><span class="p">)</span>
+        <span class="n">unit</span> <span class="o">=</span> <span class="n">_systemUnit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="n">product</span><span class="p">,</span> <span class="n">feed</span><span class="p">)</span>
+        <span class="n">unit</span><span class="o">.</span><span class="n">diagram</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">file</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_surface_diagram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Display only surface elements listed in the network.&quot;&quot;&quot;</span>
         <span class="c1"># Get surface items to make nodes and edges</span>
-        <span class="n">units</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-        <span class="n">streams</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>        
+        <span class="n">units</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>  
+        <span class="n">refresh_units</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">network</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">Unit</span><span class="p">):</span>
                 <span class="n">units</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-                <span class="n">streams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">_ins</span><span class="p">)</span>
-                <span class="n">streams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">_outs</span><span class="p">)</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">System</span><span class="p">):</span>
                 <span class="n">outs</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="n">ins</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">feeds</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">products</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">streams</span><span class="p">:</span>
                     <span class="n">source</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">_source</span>
                     <span class="n">sink</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">_sink</span>
                     <span class="k">if</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">units</span> <span class="ow">and</span> <span class="n">sink</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">units</span><span class="p">:</span>
-                        <span class="n">streams</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-                        <span class="n">outs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">sink</span><span class="p">:</span> <span class="n">outs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span> <span class="n">products</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                        <span class="n">refresh_units</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
                     <span class="k">elif</span> <span class="n">sink</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">units</span> <span class="ow">and</span> <span class="n">source</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">units</span><span class="p">:</span>
-                        <span class="n">streams</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-                        <span class="n">ins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">source</span><span class="p">:</span> <span class="n">ins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span> <span class="n">feeds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                        <span class="n">refresh_units</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">sink</span><span class="p">)</span>
+                
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">feeds</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">feed</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+                    <span class="n">feed</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+                    <span class="n">units</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">_streamUnit</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">feeds</span><span class="p">]),</span> <span class="n">feed</span><span class="p">))</span>
+                    <span class="n">ins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feed</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span> <span class="n">ins</span> <span class="o">+=</span> <span class="n">feeds</span>
+                
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">products</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">product</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+                    <span class="n">product</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+                    <span class="n">units</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">_streamUnit</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">products</span><span class="p">]),</span>
+                                          <span class="kc">None</span><span class="p">,</span> <span class="n">product</span><span class="p">))</span>
+                    <span class="n">outs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">product</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span> <span class="n">outs</span> <span class="o">+=</span> <span class="n">products</span>
+                
                 <span class="n">subsystem_unit</span> <span class="o">=</span> <span class="n">_systemUnit</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="n">outs</span><span class="p">,</span> <span class="n">ins</span><span class="p">)</span>
-                <span class="n">subsystem_unit</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">ID</span>
                 <span class="n">units</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">subsystem_unit</span><span class="p">)</span>
+                
         <span class="n">System</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span><span class="o">.</span><span class="n">_thorough_diagram</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
         <span class="c1"># Reconnect how it was</span>
-        <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">refresh_units</span><span class="p">:</span>
             <span class="n">u</span><span class="o">.</span><span class="n">ins</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">_ins</span>
             <span class="n">u</span><span class="o">.</span><span class="n">outs</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">_outs</span>
       
@@ -643,15 +680,15 @@
     <span class="c1"># Debugging</span>
     <span class="k">def</span> <span class="nf">_debug_on</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Turn on debug mode.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_run</span> <span class="o">=</span> <span class="n">notify_run_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_run</span> <span class="o">=</span> <span class="n">_notify_run_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">network</span> <span class="o">=</span> <span class="n">network</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">network</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">network</span><span class="p">):</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">Unit</span><span class="p">):</span>
-                <span class="n">item</span><span class="o">.</span><span class="n">_run</span> <span class="o">=</span> <span class="n">method_debug</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">_run</span><span class="p">)</span>
+                <span class="n">item</span><span class="o">.</span><span class="n">_run</span> <span class="o">=</span> <span class="n">_method_debug</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">_run</span><span class="p">)</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">System</span><span class="p">):</span>
-                <span class="n">item</span><span class="o">.</span><span class="n">_converge</span> <span class="o">=</span> <span class="n">method_debug</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">_converge</span><span class="p">)</span>
+                <span class="n">item</span><span class="o">.</span><span class="n">_converge</span> <span class="o">=</span> <span class="n">_method_debug</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">item</span><span class="o">.</span><span class="n">_converge</span><span class="p">)</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">function</span><span class="p">):</span>
-                <span class="n">network</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">method_debug</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+                <span class="n">network</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">_method_debug</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_debug_off</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Turn off debug mode.&quot;&quot;&quot;</span>
@@ -686,10 +723,12 @@
 
     <span class="c1"># Representation</span>
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span>
+        <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> 
     
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s1">&#39;&lt;&#39;</span> <span class="o">+</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">+</span> <span class="s1">&#39;&gt;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">:</span> <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="s1">&gt;&#39;</span>
+        <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;&lt;{type(self).__name__}&gt;&#39;</span>
 
 <div class="viewcode-block" id="System.show"><a class="viewcode-back" href="../../System.html#biosteam.System.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Print all specifications.&quot;&quot;&quot;</span>
@@ -697,6 +736,7 @@
 
     <span class="k">def</span> <span class="nf">_error_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return information on convergence.&quot;&quot;&quot;</span>
+        <span class="n">CS</span> <span class="o">=</span> <span class="n">color_scheme</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solver_error</span>
         <span class="n">recycle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recycle</span>
 
@@ -733,23 +773,27 @@
                 <span class="n">last_i</span> <span class="o">=</span> <span class="n">i</span>
             <span class="k">elif</span> <span class="n">i</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="k">break</span>
         <span class="n">network</span> <span class="o">=</span> <span class="n">network</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;%, &#39;</span><span class="p">,</span> <span class="s1">&#39;,</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">+</span><span class="s1">&#39; &#39;</span><span class="o">*</span><span class="mi">11</span><span class="p">)</span>
-            
-        <span class="n">facilities</span> <span class="o">=</span> <span class="n">strtuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">facilities</span><span class="p">)</span>
-        <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">last_i</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-            <span class="n">i</span> <span class="o">+=</span> <span class="mi">2</span>
-            <span class="n">i</span> <span class="o">=</span> <span class="n">facilities</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="n">last_i</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">35</span><span class="p">:</span>
-                <span class="n">facilities</span> <span class="o">=</span> <span class="p">(</span><span class="n">facilities</span><span class="p">[:</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;%&#39;</span> <span class="o">+</span> <span class="n">facilities</span><span class="p">[</span><span class="n">i</span><span class="p">:])</span>
-                <span class="n">last_i</span> <span class="o">=</span> <span class="n">i</span>
-            <span class="k">elif</span> <span class="n">i</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="k">break</span>
-        <span class="n">facilities</span> <span class="o">=</span> <span class="n">facilities</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;%, &#39;</span><span class="p">,</span> <span class="s1">&#39;,</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">+</span><span class="s1">&#39; &#39;</span><span class="o">*</span><span class="mi">14</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">facilities</span><span class="p">:</span>
+            <span class="n">facilities</span> <span class="o">=</span> <span class="n">strtuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">facilities</span><span class="p">)</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="n">last_i</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">2</span>
+                <span class="n">i</span> <span class="o">=</span> <span class="n">facilities</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="n">last_i</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">35</span><span class="p">:</span>
+                    <span class="n">facilities</span> <span class="o">=</span> <span class="p">(</span><span class="n">facilities</span><span class="p">[:</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;%&#39;</span> <span class="o">+</span> <span class="n">facilities</span><span class="p">[</span><span class="n">i</span><span class="p">:])</span>
+                    <span class="n">last_i</span> <span class="o">=</span> <span class="n">i</span>
+                <span class="k">elif</span> <span class="n">i</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span> <span class="k">break</span>
+            <span class="n">facilities</span> <span class="o">=</span> <span class="n">facilities</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;%, &#39;</span><span class="p">,</span> <span class="s1">&#39;,</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">+</span><span class="s1">&#39; &#39;</span><span class="o">*</span><span class="mi">14</span><span class="p">)</span>
+            <span class="n">facilities</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> facilities: </span><span class="si">{facilities}</span><span class="s2">&quot;</span> 
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">facilities</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
         
         <span class="k">return</span> <span class="p">(</span><span class="n">f</span><span class="s2">&quot;System: </span><span class="si">{self.ID}</span><span class="s2">&quot;</span>
-                <span class="o">+</span> <span class="n">recycle</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
-                <span class="o">+</span> <span class="n">f</span><span class="s2">&quot; network: </span><span class="si">{network}</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="o">+</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot; facilities: </span><span class="si">{facilities}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">facilities</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-                <span class="o">+</span> <span class="n">error</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span></div>
+                <span class="o">+</span> <span class="n">recycle</span>
+                <span class="o">+</span> <span class="n">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> network: </span><span class="si">{network}</span><span class="s2">&quot;</span>
+                <span class="o">+</span> <span class="n">facilities</span>
+                <span class="o">+</span> <span class="n">error</span><span class="p">)</span></div>
 </pre></div>
 
           </div>

@@ -61,7 +61,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">integrate</span>
 <span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">log</span>
-<span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Q_</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">Q_</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Compound&#39;</span><span class="p">,)</span>
 
@@ -89,39 +89,7 @@
 
 <span class="c1"># %% Compound class</span>
 
-
-<span class="k">class</span> <span class="nc">metaCompound</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Metaclass for Compound. Includes property for setting the integral_type, which specifies the rigour of the integral for computing thermodynamic energies.&quot;&quot;&quot;</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">integral_type</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_integral_type</span>
-
-    <span class="nd">@integral_type</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">integral_type</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">integral_type</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Change the enthalpy and entropy property calculator to different levels of rigour.</span>
-
-<span class="sd">        **Parameters**</span>
-
-<span class="sd">             int_type: [str] One of the following:</span>
-<span class="sd">                      * &#39;rigorous&#39;: Compute integral by full integration</span>
-<span class="sd">                      * &#39;average&#39;: Compute integral at an average function value</span>
-<span class="sd">                      * &#39;constant&#39;: Compute integral using current function value</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">integral_type</span> <span class="o">==</span> <span class="s1">&#39;rigorous&#39;</span><span class="p">:</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">_func_integral</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">_func_int_rigorous</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">integral_type</span> <span class="o">==</span> <span class="s1">&#39;average&#39;</span><span class="p">:</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">_func_integral</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">_func_int_average</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">integral_type</span> <span class="o">==</span> <span class="s1">&#39;final&#39;</span><span class="p">:</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">_func_integral</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">_func_int_final</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">integral_type</span> <span class="o">==</span> <span class="s1">&#39;initial&#39;</span><span class="p">:</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">_func_integral</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">_func_int_final</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Must pass one of the following types of Cp integration: &#39;rigorous&#39;, &#39;average&#39;, &#39;initial&#39;, or &#39;final&#39;&quot;</span><span class="p">)</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">_integral_type</span> <span class="o">=</span> <span class="n">integral_type</span>
-
-
-<div class="viewcode-block" id="Compound"><a class="viewcode-back" href="../../Compound.html#biosteam.Compound">[docs]</a><span class="k">class</span> <span class="nc">Compound</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">metaCompound</span><span class="p">):</span>
+<div class="viewcode-block" id="Compound"><a class="viewcode-back" href="../../Compound.html#biosteam.Compound">[docs]</a><span class="k">class</span> <span class="nc">Compound</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Abstract class, Compound, for making objects that contain pure component thermodynamic and transport properties. The enthalpy property, H, ignores excess ethalpies and calculates based on latent heats and the heat capacity at a constant pressure of 101325 Pa. It is suitable for solids and liquids which are weak functions of pressure</span>
 
 <span class="sd">    **Parameters**</span>
@@ -342,6 +310,29 @@
             <span class="nb">setattr</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="s1">&#39;HeatCapacityGas&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">T</span><span class="p">:</span> <span class="n">const</span><span class="p">)</span>
         
         <span class="k">return</span> <span class="n">child</span></div>
+
+<div class="viewcode-block" id="Compound.set_integral_type"><a class="viewcode-back" href="../../Compound.html#biosteam.Compound.set_integral_type">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">set_integral_type</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">integral_type</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Change the enthalpy and entropy property calculator to different levels of rigour.</span>
+
+<span class="sd">        **Parameters**</span>
+
+<span class="sd">             int_type: [str] One of the following:</span>
+<span class="sd">                      * &#39;rigorous&#39;: Compute integral by full integration</span>
+<span class="sd">                      * &#39;average&#39;: Compute integral at an average function value</span>
+<span class="sd">                      * &#39;constant&#39;: Compute integral using current function value</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">integral_type</span> <span class="o">==</span> <span class="s1">&#39;rigorous&#39;</span><span class="p">:</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_func_integral</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">_func_int_rigorous</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">integral_type</span> <span class="o">==</span> <span class="s1">&#39;average&#39;</span><span class="p">:</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_func_integral</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">_func_int_average</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">integral_type</span> <span class="o">==</span> <span class="s1">&#39;final&#39;</span><span class="p">:</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_func_integral</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">_func_int_final</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">integral_type</span> <span class="o">==</span> <span class="s1">&#39;initial&#39;</span><span class="p">:</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_func_integral</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">_func_int_final</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Must pass one of the following types of Cp integration: &#39;rigorous&#39;, &#39;average&#39;, &#39;initial&#39;, or &#39;final&#39;&quot;</span><span class="p">)</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_integral_type</span> <span class="o">=</span> <span class="n">integral_type</span></div>
 
     <span class="c1"># Representation</span>
     <span class="k">def</span> <span class="nf">_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">show_units</span><span class="p">):</span>

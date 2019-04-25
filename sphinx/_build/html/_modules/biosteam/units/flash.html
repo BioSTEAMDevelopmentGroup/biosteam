@@ -60,7 +60,6 @@
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">MixedStream</span><span class="p">,</span> <span class="n">PowerUtility</span>
-<span class="kn">from</span> <span class="nn">..exceptions</span> <span class="k">import</span> <span class="n">DesignError</span>
 <span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">pi</span><span class="p">,</span> <span class="n">ceil</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -398,7 +397,7 @@
 
         <span class="c1"># Calculate internal diameter, Dvd</span>
         <span class="n">Dvd</span> <span class="o">=</span> <span class="p">(</span><span class="mf">4.0</span><span class="o">*</span><span class="n">Qv</span><span class="o">/</span><span class="p">(</span><span class="n">pi</span><span class="o">*</span><span class="n">Uv</span><span class="p">))</span><span class="o">**</span><span class="mf">0.5</span>
-        <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">Mist</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">Mist</span><span class="p">:</span>
             <span class="n">D</span> <span class="o">=</span> <span class="n">FinalValue</span><span class="p">(</span><span class="n">Dvd</span> <span class="o">+</span> <span class="mf">0.4</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">D</span> <span class="o">=</span> <span class="n">FinalValue</span><span class="p">(</span><span class="n">Dvd</span><span class="p">)</span>
@@ -432,7 +431,7 @@
 
         <span class="c1"># Calculate the vapor disengagement height</span>
         <span class="n">Hv</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">Dvd</span>
-        <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">Mist</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">Mist</span><span class="p">:</span>
             <span class="n">Hv2</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">+</span> <span class="n">dN</span><span class="o">/</span><span class="mf">2.0</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">Hv2</span> <span class="o">=</span> <span class="mf">3.0</span> <span class="o">+</span> <span class="n">dN</span><span class="o">/</span><span class="mf">2.0</span>
@@ -443,7 +442,7 @@
 
         <span class="c1"># Calculate total height, Ht</span>
         <span class="n">Hme</span> <span class="o">=</span> <span class="mf">0.0</span>
-        <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">Mist</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">Mist</span><span class="p">:</span>
             <span class="n">Hme</span> <span class="o">=</span> <span class="mf">1.5</span>
         <span class="n">Ht</span> <span class="o">=</span> <span class="n">Hlll</span> <span class="o">+</span> <span class="n">Hh</span> <span class="o">+</span> <span class="n">Hs</span> <span class="o">+</span> <span class="n">Hlin</span> <span class="o">+</span> <span class="n">Hv</span> <span class="o">+</span> <span class="n">Hme</span>
         <span class="n">Ht</span> <span class="o">=</span> <span class="n">FinalValue</span><span class="p">(</span><span class="n">Ht</span><span class="p">)</span>
@@ -514,7 +513,7 @@
 
             <span class="c1"># Calculate the Vapor  disengagement area, Av</span>
             <span class="n">Hv</span> <span class="o">=</span> <span class="mf">0.2</span><span class="o">*</span><span class="n">D</span>
-            <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">Mist</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">Hv</span> <span class="o">&lt;=</span> <span class="mf">2.0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">Mist</span> <span class="ow">and</span> <span class="n">Hv</span> <span class="o">&lt;=</span> <span class="mf">2.0</span><span class="p">:</span>
                 <span class="n">Hv</span> <span class="o">=</span> <span class="mf">2.0</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">Hv</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">:</span>
@@ -523,7 +522,7 @@
             <span class="n">Y</span> <span class="o">=</span> <span class="n">HNATable</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span>
             <span class="n">Av</span> <span class="o">=</span> <span class="n">Y</span><span class="o">*</span><span class="n">At</span>
 
-            <span class="c1"># Calculate minimum length fo surge and holdup</span>
+            <span class="c1"># Calculate minimum length for surge and holdup</span>
             <span class="n">L</span> <span class="o">=</span> <span class="p">(</span><span class="n">Vh</span> <span class="o">+</span> <span class="n">Vs</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">At</span> <span class="o">-</span> <span class="n">Av</span> <span class="o">-</span> <span class="n">Alll</span><span class="p">)</span>
             <span class="c1"># Calculate liquid dropout</span>
             <span class="n">Phi</span> <span class="o">=</span> <span class="n">Hv</span><span class="o">/</span><span class="n">Uv</span>
@@ -558,9 +557,9 @@
                 <span class="k">while</span> <span class="ow">not</span> <span class="n">converged1</span> <span class="ow">and</span> <span class="n">innerIter</span> <span class="o">&lt;</span> <span class="n">maxIter</span><span class="p">:</span>
                     <span class="n">innerIter</span> <span class="o">+=</span> <span class="mi">1</span>
                     <span class="n">Hv</span> <span class="o">=</span> <span class="n">Hv</span> <span class="o">+</span> <span class="n">sign</span><span class="o">*</span><span class="mf">0.5</span>
-                    <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">Mist</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">Hv</span> <span class="o">&lt;=</span> <span class="mf">2.0</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">Mist</span> <span class="ow">and</span> <span class="n">Hv</span> <span class="o">&lt;=</span> <span class="mf">2.0</span><span class="p">:</span>
                         <span class="n">Hv</span> <span class="o">=</span> <span class="mf">2.0</span>
-                    <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">Mist</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">Hv</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">Mist</span> <span class="ow">and</span> <span class="n">Hv</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">:</span>
                         <span class="n">Hv</span> <span class="o">=</span> <span class="mf">1.0</span>
                     <span class="n">X</span> <span class="o">=</span> <span class="n">Hv</span><span class="o">/</span><span class="n">D</span>
                     <span class="n">Y</span> <span class="o">=</span> <span class="n">HNATable</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span>

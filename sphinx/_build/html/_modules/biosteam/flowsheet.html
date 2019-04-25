@@ -61,17 +61,12 @@
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">graphviz</span> <span class="k">import</span> <span class="n">Digraph</span>
-<span class="c1"># import matplotlib.pyplot as plt</span>
-<span class="c1"># import matplotlib.image as mpimg</span>
 <span class="kn">from</span> <span class="nn">IPython</span> <span class="k">import</span> <span class="n">display</span>
-<span class="c1"># import threading</span>
-<span class="c1"># import time</span>
-<span class="c1"># import os</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;find&#39;</span><span class="p">,</span> <span class="s1">&#39;stream_connector&#39;</span><span class="p">,</span> <span class="s1">&#39;Flowsheet&#39;</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">make_digraph</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">streams</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">make_digraph</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">streams</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Return digraph of units and streams.&quot;&quot;&quot;</span>
     <span class="c1"># Create a digraph and set direction left to right</span>
     <span class="n">f</span> <span class="o">=</span> <span class="n">Digraph</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;svg&#39;</span><span class="p">)</span>
@@ -104,12 +99,6 @@
     <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;edge&#39;</span><span class="p">,</span> <span class="nb">dir</span><span class="o">=</span><span class="s1">&#39;foward&#39;</span><span class="p">)</span>
 
     <span class="n">connections</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">streams</span><span class="p">:</span>
-        <span class="n">streams</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">:</span>
-            <span class="n">streams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">_ins</span><span class="p">)</span>
-            <span class="n">streams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">_outs</span><span class="p">)</span>
-        <span class="n">streams</span><span class="o">.</span><span class="n">difference_update</span><span class="p">(</span><span class="n">find</span><span class="o">.</span><span class="n">_upstream_connections</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">streams</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">ID</span> <span class="o">==</span> <span class="s1">&#39;Missing Stream&#39;</span><span class="p">:</span>
             <span class="k">continue</span>  <span class="c1"># Ignore stream</span>
@@ -168,6 +157,7 @@
     
 <div class="viewcode-block" id="Flowsheet"><a class="viewcode-back" href="../../find.html#biosteam.flowsheet.Flowsheet">[docs]</a><span class="k">class</span> <span class="nc">Flowsheet</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Create a Flowsheet object which stores references to all stream, unit, and system objects.&quot;&quot;&quot;</span>
+    <span class="c1">#: [dict] All flowsheets</span>
     <span class="n">flowsheet</span> <span class="o">=</span> <span class="p">{}</span>
     
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
@@ -183,15 +173,103 @@
         <span class="c1">#: [dict] Dictionary of streams</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="o">=</span> <span class="p">{}</span>
         
-        <span class="c1">#: [dict] All flowsheets</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">flowsheet</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
     
-<div class="viewcode-block" id="Flowsheet.diagram"><a class="viewcode-back" href="../../find.html#biosteam.flowsheet.Flowsheet.diagram">[docs]</a>    <span class="k">def</span> <span class="nf">diagram</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Display all units and attached streams.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Flowsheet.diagram"><a class="viewcode-back" href="../../find.html#biosteam.flowsheet.Flowsheet.diagram">[docs]</a>    <span class="k">def</span> <span class="nf">diagram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;surface&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Display all units and attached streams.</span>
+<span class="sd">        </span>
+<span class="sd">        **kind:** Must be one of the following:</span>
+<span class="sd">                * **&#39;thorough&#39;:** Thoroughly display every unit.</span>
+<span class="sd">                * **&#39;surface&#39;:** Display units and recycle systems.</span>
+<span class="sd">                * **&#39;minimal&#39;:** Minimally display flowsheet as a box with feeds and products.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;thorough&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_thorough_diagram</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;surface&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_surface_diagram</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;minimal&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_minimal_diagram</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;kind must be either &#39;thorough&#39;, &#39;surface&#39;, or &#39;minimal&#39;.&quot;</span><span class="p">)</span></div>
+    
+    <span class="k">def</span> <span class="nf">_thorough_diagram</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">units</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
         <span class="n">units</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
-        <span class="n">img</span> <span class="o">=</span> <span class="n">make_digraph</span><span class="p">(</span><span class="n">units</span><span class="p">)</span><span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="s1">&#39;png&#39;</span><span class="p">)</span>
-        <span class="n">display</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="n">display</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">img</span><span class="p">))</span></div>
+        <span class="n">streams</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">:</span>
+            <span class="n">streams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">_ins</span><span class="p">)</span>
+            <span class="n">streams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">_outs</span><span class="p">)</span>
+        <span class="n">streams</span><span class="o">.</span><span class="n">difference_update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_upstream_connections</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">display</span><span class="o">.</span><span class="n">SVG</span><span class="p">(</span><span class="n">make_digraph</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">streams</span><span class="p">)</span><span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;svg&#39;</span><span class="p">))</span>
+        <span class="n">display</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="c1"># img = make_digraph(units).pipe(&#39;png&#39;)</span>
+        <span class="c1"># display.display(display.Image(img))</span>
+    
+    <span class="k">def</span> <span class="nf">_minimal_diagram</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">system</span><span class="p">,</span> <span class="n">Stream</span>
+        <span class="n">streams</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="n">feeds</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">_isfeed</span><span class="p">,</span> <span class="n">streams</span><span class="p">))</span>
+        <span class="n">products</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">_isproduct</span><span class="p">,</span> <span class="n">streams</span><span class="p">))</span>
+        <span class="n">product</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">product</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">feed</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">feed</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">system</span><span class="o">.</span><span class="n">_streamUnit</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">feeds</span><span class="p">]),</span>
+                           <span class="n">feed</span><span class="p">)</span>
+        <span class="n">system</span><span class="o">.</span><span class="n">_streamUnit</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">products</span><span class="p">]),</span>
+                           <span class="kc">None</span><span class="p">,</span> <span class="n">product</span><span class="p">)</span>
+        <span class="n">unit</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">_systemUnit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="n">product</span><span class="p">,</span> <span class="n">feed</span><span class="p">)</span>
+        <span class="n">unit</span><span class="o">.</span><span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;flowsheet&#39;</span>
+        <span class="n">unit</span><span class="o">.</span><span class="n">diagram</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">_surface_diagram</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">system</span><span class="p">,</span> <span class="n">Stream</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">StrUnit</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">_streamUnit</span>
+        <span class="n">refresh_units</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">recycle</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">sub</span><span class="o">.</span><span class="n">recycle</span> <span class="k">for</span> <span class="n">sub</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">subsystems</span><span class="p">):</span>
+                <span class="n">outs</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">ins</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">feeds</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">products</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">streams</span><span class="p">:</span>
+                    <span class="n">source</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">_source</span>
+                    <span class="n">sink</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">_sink</span>
+                    <span class="k">if</span> <span class="n">source</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">units</span> <span class="ow">and</span> <span class="n">sink</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">units</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">sink</span><span class="p">:</span> <span class="n">outs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span> <span class="n">products</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                        <span class="n">refresh_units</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">source</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">sink</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">units</span> <span class="ow">and</span> <span class="n">source</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">units</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">source</span><span class="p">:</span> <span class="n">ins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span> <span class="n">feeds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                        <span class="n">refresh_units</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">sink</span><span class="p">)</span>
+                
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">feeds</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">feed</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+                    <span class="n">feed</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+                    <span class="n">units</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">StrUnit</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">feeds</span><span class="p">]),</span> <span class="n">feed</span><span class="p">))</span>
+                    <span class="n">ins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">feed</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span> <span class="n">ins</span> <span class="o">+=</span> <span class="n">feeds</span>
+                
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">products</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">product</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+                    <span class="n">product</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+                    <span class="n">units</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">StrUnit</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">products</span><span class="p">]),</span>
+                                      <span class="kc">None</span><span class="p">,</span> <span class="n">product</span><span class="p">))</span>
+                    <span class="n">outs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">product</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span> <span class="n">outs</span> <span class="o">+=</span> <span class="n">products</span>
+                
+                <span class="n">subsystem_unit</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">_systemUnit</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="n">outs</span><span class="p">,</span> <span class="n">ins</span><span class="p">)</span>
+                <span class="n">units</span><span class="o">.</span><span class="n">difference_update</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">units</span><span class="p">)</span>
+                <span class="n">units</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">subsystem_unit</span><span class="p">)</span>
+        
+        <span class="n">sys</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">System</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">_thorough_diagram</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">refresh_units</span><span class="p">:</span>
+            <span class="n">i</span><span class="o">.</span><span class="n">ins</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">_ins</span>
+            <span class="n">i</span><span class="o">.</span><span class="n">outs</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">_outs</span>
     
     <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item_ID</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;item&#39;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return requested biosteam item.</span>
@@ -244,14 +322,16 @@
 
 <span class="c1"># %% Connect between different flowsheets</span>
 
-<span class="k">def</span> <span class="nf">stream_connector</span><span class="p">(</span><span class="n">upstream</span><span class="p">,</span> <span class="n">downstream</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">stream_connector</span><span class="p">(</span><span class="n">upstream</span><span class="p">,</span> <span class="n">downstream</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Return a function that copies specifications from `upstream` to `downstream`. This serves to connect different flowsheets.</span>
 <span class="sd">    </span>
 <span class="sd">    **Parameters**</span>
 <span class="sd">    </span>
-<span class="sd">        **upstream:** [Stream] Non-zero species of this stream should be specified in the species object of `downstream`.</span>
+<span class="sd">        **upstream:** [Stream] Stream that will be copied to `downstream`.</span>
 <span class="sd">        </span>
 <span class="sd">        **downstream:** [Stream] Flow rate, T, P, and phase information will be copied from `upstream` to this stream.</span>
+<span class="sd">        </span>
+<span class="sd">        **species:** list[str] IDs of species to be passed down. If None, all species in common will be passed.</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Source and sink.</span>
@@ -260,10 +340,13 @@
     <span class="n">downstream</span><span class="o">.</span><span class="n">_upstream_connection</span> <span class="o">=</span> <span class="n">upstream</span>
     <span class="n">upstream</span><span class="o">.</span><span class="n">_downstream_connection</span> <span class="o">=</span> <span class="n">downstream</span>
     <span class="n">find</span><span class="o">.</span><span class="n">_upstream_connections</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">upstream</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">species</span><span class="p">:</span>
+        <span class="n">species</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">upstream</span><span class="o">.</span><span class="n">_IDs</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">downstream</span><span class="o">.</span><span class="n">_IDs</span><span class="p">)</span>
+    <span class="n">upindex</span> <span class="o">=</span> <span class="n">upstream</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="o">*</span><span class="n">species</span><span class="p">)</span>
+    <span class="n">downindex</span> <span class="o">=</span> <span class="n">downstream</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="o">*</span><span class="n">species</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">connect</span><span class="p">():</span>
         <span class="c1"># Flow rate, T, P and phase</span>
-        <span class="n">index</span><span class="p">,</span> <span class="n">species</span> <span class="o">=</span> <span class="n">upstream</span><span class="o">.</span><span class="n">nonzero_species</span>
-        <span class="n">downstream</span><span class="o">.</span><span class="n">setflow</span><span class="p">(</span><span class="n">upstream</span><span class="o">.</span><span class="n">_molarray</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">species</span><span class="p">)</span>
+        <span class="n">downstream</span><span class="o">.</span><span class="n">_molarray</span><span class="p">[</span><span class="n">downindex</span><span class="p">]</span> <span class="o">=</span> <span class="n">upstream</span><span class="o">.</span><span class="n">_molarray</span><span class="p">[</span><span class="n">upindex</span><span class="p">]</span>
         <span class="n">downstream</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">upstream</span><span class="o">.</span><span class="n">T</span>
         <span class="n">downstream</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">upstream</span><span class="o">.</span><span class="n">P</span>
         <span class="n">downstream</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="n">upstream</span><span class="o">.</span><span class="n">phase</span>

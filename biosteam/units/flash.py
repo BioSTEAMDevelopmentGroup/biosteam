@@ -342,7 +342,7 @@ class Flash(Unit):
 
         # Calculate internal diameter, Dvd
         Dvd = (4.0*Qv/(pi*Uv))**0.5
-        if int(Mist) == 1:
+        if Mist:
             D = FinalValue(Dvd + 0.4)
         else:
             D = FinalValue(Dvd)
@@ -376,7 +376,7 @@ class Flash(Unit):
 
         # Calculate the vapor disengagement height
         Hv = 0.5*Dvd
-        if int(Mist) == 1:
+        if Mist:
             Hv2 = 2.0 + dN/2.0
         else:
             Hv2 = 3.0 + dN/2.0
@@ -387,7 +387,7 @@ class Flash(Unit):
 
         # Calculate total height, Ht
         Hme = 0.0
-        if int(Mist) == 1:
+        if Mist:
             Hme = 1.5
         Ht = Hlll + Hh + Hs + Hlin + Hv + Hme
         Ht = FinalValue(Ht)
@@ -458,7 +458,7 @@ class Flash(Unit):
 
             # Calculate the Vapor  disengagement area, Av
             Hv = 0.2*D
-            if int(Mist) == 1 and Hv <= 2.0:
+            if Mist and Hv <= 2.0:
                 Hv = 2.0
             else:
                 if Hv <= 1.0:
@@ -467,7 +467,7 @@ class Flash(Unit):
             Y = HNATable(1, X)
             Av = Y*At
 
-            # Calculate minimum length fo surge and holdup
+            # Calculate minimum length for surge and holdup
             L = (Vh + Vs)/(At - Av - Alll)
             # Calculate liquid dropout
             Phi = Hv/Uv
@@ -502,9 +502,9 @@ class Flash(Unit):
                 while not converged1 and innerIter < maxIter:
                     innerIter += 1
                     Hv = Hv + sign*0.5
-                    if int(Mist) == 1 and Hv <= 2.0:
+                    if Mist and Hv <= 2.0:
                         Hv = 2.0
-                    if int(Mist) == 0 and Hv <= 1.0:
+                    if Mist and Hv <= 1.0:
                         Hv = 1.0
                     X = Hv/D
                     Y = HNATable(1, X)

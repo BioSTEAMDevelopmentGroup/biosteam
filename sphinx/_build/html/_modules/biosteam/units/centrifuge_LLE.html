@@ -59,10 +59,10 @@
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">MixedStream</span>
-<span class="kn">from</span> <span class="nn">biosteam.units.flash</span> <span class="k">import</span> <span class="n">RatioFlash</span><span class="p">,</span> <span class="n">PartitionFlash</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">MixedStream</span>
+<span class="kn">from</span> <span class="nn">..units.flash</span> <span class="k">import</span> <span class="n">RatioFlash</span><span class="p">,</span> <span class="n">PartitionFlash</span>
 <span class="kn">from</span> <span class="nn">.splitter</span> <span class="k">import</span> <span class="n">Splitter</span>
-<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">copy</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Centrifuge_LLE&#39;</span><span class="p">,</span> <span class="s1">&#39;RatioCentrifuge_LLE&#39;</span><span class="p">,</span>
            <span class="s1">&#39;SplitCentrifuge_LLE&#39;</span><span class="p">,</span> <span class="s1">&#39;PartitionCentrifuge_LLE&#39;</span><span class="p">)</span>
@@ -134,7 +134,7 @@
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span>
-        <span class="n">LLE_kwargs</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">LLE_kwargs</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="n">ms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span><span class="p">[</span><span class="s1">&#39;mixed stream&#39;</span><span class="p">]</span>
         <span class="n">ms</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>

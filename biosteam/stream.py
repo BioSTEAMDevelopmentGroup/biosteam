@@ -1197,7 +1197,7 @@ class Stream(metaclass=metaStream):
         phase = stream.phase
         if len(phase) == 1:
             if not (self._species is stream._species):
-                self._copy_species(stream)
+                raise ValueError('species must be the same to copy stream specifications.')
             self._mol[:] = copy.copy(stream.mol)
             self.P = stream.P
             self.phase = phase
@@ -1217,32 +1217,35 @@ class Stream(metaclass=metaStream):
         
     def _equilibrium_species(self):
         """Return species and indexes of species in equilibrium."""
-        species = []; index = []
-        for m, ic in zip(self.mol, self._num_compounds):
+        species = []; index = []; ic = self._num_compounds.__iter__().__next__
+        for m in self.mol:
             if m:
-                i, c = ic
+                i, c = ic()
                 if c.UNIFAC_Dortmund_groups and c.Tb not in (inf, None):
                     species.append(c); index.append(i)
+            else: ic()
         return species, index
 
     def _heavy_species(self):
         """Return species and indexes of heavy species not in equilibrium."""
-        species = []; index = [];
-        for m, ic in zip(self.mol, self._num_compounds):
+        species = []; index = []; ic = self._num_compounds.__iter__().__next__
+        for m in self.mol:
             if m:
-                i, c = ic
+                i, c = ic()
                 if c.Tb in (inf, None) or not c.UNIFAC_Dortmund_groups:
                     species.append(c); index.append(i)
+            else: ic()
         return species, index
 
     def _light_species(self):
         """Return species and indexes of light species not in equilibrium."""
-        species = []; index = []
-        for m, ic in zip(self.mol, self._num_compounds):
+        species = []; index = []; ic = self._num_compounds.__iter__().__next__
+        for m in self.mol:
             if m:
-                i, c = ic
+                i, c = ic()
                 if c.Tb is -inf:
                     species.append(c); index.append(i)
+            else: ic()
         return species, index
 
     # Equilibrium
@@ -1566,8 +1569,7 @@ class Stream(metaclass=metaStream):
         T_guess = T
         for s in streams:
             s.T = T_guess
-        if approximate:
-            return
+        if approximate: return
         
         # Solve enthalpy by iteration
         it = 1

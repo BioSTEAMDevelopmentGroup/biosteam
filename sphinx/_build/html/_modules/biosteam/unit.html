@@ -310,11 +310,6 @@
     <span class="k">def</span> <span class="nf">CEPCI</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">CEPCI</span><span class="p">):</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_CEPCI</span> <span class="o">=</span> <span class="n">CEPCI</span>
     
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">instances</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Dictionary of weak references to all instances of the Unit class.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_instances</span>
-    
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">line</span> <span class="o">==</span> <span class="s1">&#39;Unit&#39;</span> <span class="ow">and</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;Unit&#39;</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;biosteam.</span><span class="si">{cls.__name__}</span><span class="s1">&#39;</span>
@@ -341,6 +336,8 @@
 
 <span class="sd">    **Class Definitions** </span>
 <span class="sd">    </span>
+<span class="sd">        **line** = [Defaults to the class name of the first child class]: [str] Name denoting the type of Unit class    </span>
+<span class="sd">    </span>
 <span class="sd">        **CEPCI** = 567.5: [float] Chemical Engineering Plant Cost Index</span>
 
 <span class="sd">        **_kwargs** = {}: [dict] Default keyword arguments</span>
@@ -360,6 +357,8 @@
 <span class="sd">        **_cost()**</span>
 <span class="sd">            Update results &quot;Cost&quot; dictionary with itemized cost.</span>
 <span class="sd">        </span>
+<span class="sd">        **_units** = {}: [dict] Default units for results Operation and Design</span>
+<span class="sd">        </span>
 <span class="sd">        **_bounds** = {} [dict] Values should be tuples with lower and upper bounds.</span>
 <span class="sd">        </span>
 <span class="sd">        **_N_ins** = 1: [int] Expected number of input streams</span>
@@ -369,8 +368,12 @@
 <span class="sd">        **_N_heat_utilities** = 0: [int] Number of heat utilities  </span>
 
 <span class="sd">        **_has_power_utility** = False: [bool] If True, a PowerUtility object is created for every instance.</span>
-
-<span class="sd">        **line** = [Defaults to the class name of the first child class]: [str] Name denoting the type of Unit class</span>
+<span class="sd">        </span>
+<span class="sd">        **_has_cost** = True: [bool] Should be True if it has any associated cost</span>
+<span class="sd">    </span>
+<span class="sd">        **_has_proxystream** = False: [bool] True if outs are proxy streams linked to ins</span>
+<span class="sd">    </span>
+<span class="sd">        **_graphics** = default_graphics: [biosteam Graphics] a Graphics object for diagram representation.</span>
 
 <span class="sd">    **ins**</span>
 <span class="sd">        </span>
@@ -403,7 +406,7 @@
     <span class="c1"># [int] Expected number of output streams</span>
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">2</span>  
     
-    <span class="c1"># [Bool] True if outs are proxy streams linked to ins</span>
+    <span class="c1"># [bool] True if outs are proxy streams linked to ins</span>
     <span class="n">_has_proxystream</span> <span class="o">=</span> <span class="kc">False</span>
     
     <span class="c1"># [dict] Values should be tuples with lower and upper bounds for results dictionary.</span>

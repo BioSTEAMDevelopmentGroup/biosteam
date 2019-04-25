@@ -648,11 +648,11 @@ class MixedStream(Stream):
 
             **P:** [float] Operating pressure (Pa)
                 
-            **species_IDs:** [list] IDs of equilibrium species
+            **species_IDs:** [tuple] IDs of equilibrium species
                  
-            **LNK:** list[str] Light non-keys
+            **LNK:** tuple[str] Light non-keys
     
-            **HNK:** list[str] Heavy non-keys
+            **HNK:** tuple[str] Heavy non-keys
 
             **User may define one:**
                 * **Qin:** [float] Energy input (kJ/hr)

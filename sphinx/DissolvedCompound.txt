@@ -1,5 +1,5 @@
 DissolvedCompound
-===============
+=================
 
 .. module:: biosteam
 

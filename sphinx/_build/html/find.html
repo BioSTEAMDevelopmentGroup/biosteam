@@ -87,6 +87,12 @@
 <em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Flowsheet</code><span class="sig-paren">(</span><em>ID</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/flowsheet.html#Flowsheet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Flowsheet" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Flowsheet object which stores references to all stream, unit, and system objects.</p>
 <dl class="attribute">
+<dt id="biosteam.Flowsheet.flowsheet">
+<code class="descname">flowsheet</code><em class="property"> = {'Default': &lt;Flowsheet: Default&gt;}</em><a class="headerlink" href="#biosteam.Flowsheet.flowsheet" title="Permalink to this definition">¶</a></dt>
+<dd><p>[dict] All flowsheets</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="biosteam.Flowsheet.ID">
 <code class="descname">ID</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.Flowsheet.ID" title="Permalink to this definition">¶</a></dt>
 <dd><p>[str] ID of flowsheet</p>
@@ -112,8 +118,17 @@
 
 <dl class="method">
 <dt id="biosteam.Flowsheet.diagram">
-<code class="descname">diagram</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/flowsheet.html#Flowsheet.diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Flowsheet.diagram" title="Permalink to this definition">¶</a></dt>
+<code class="descname">diagram</code><span class="sig-paren">(</span><em>kind='surface'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/flowsheet.html#Flowsheet.diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Flowsheet.diagram" title="Permalink to this definition">¶</a></dt>
 <dd><p>Display all units and attached streams.</p>
+<dl class="docutils">
+<dt><strong>kind:</strong> Must be one of the following:</dt>
+<dd><ul class="first last simple">
+<li><strong>‘thorough’:</strong> Thoroughly display every unit.</li>
+<li><strong>‘surface’:</strong> Display units and recycle systems.</li>
+<li><strong>‘minimal’:</strong> Minimally display flowsheet as a box with feeds and products.</li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>

@@ -60,14 +60,13 @@
 <span class="sd">@author: Guest Group</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">least_squares</span><span class="p">,</span> <span class="n">brentq</span><span class="p">,</span> <span class="n">minimize_scalar</span><span class="p">,</span> <span class="n">newton</span>
-<span class="kn">from</span> <span class="nn">biosteam.species</span> <span class="k">import</span> <span class="n">Species</span>
-<span class="kn">from</span> <span class="nn">biosteam.stream</span> <span class="k">import</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">nonzero_species</span><span class="p">,</span> <span class="n">MassFlow</span><span class="p">,</span> \
+<span class="kn">from</span> <span class="nn">.species</span> <span class="k">import</span> <span class="n">Species</span>
+<span class="kn">from</span> <span class="nn">.stream</span> <span class="k">import</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">nonzero_species</span><span class="p">,</span> <span class="n">MassFlow</span><span class="p">,</span> \
                             <span class="n">mol_flow_dim</span><span class="p">,</span> <span class="n">mass_flow_dim</span><span class="p">,</span> <span class="n">vol_flow_dim</span>
-<span class="kn">from</span> <span class="nn">biosteam.utils</span> <span class="k">import</span> <span class="n">fraction</span><span class="p">,</span> <span class="n">tuple_array</span><span class="p">,</span> <span class="n">material_array</span><span class="p">,</span> \
-                           <span class="n">PropertyFactory</span><span class="p">,</span> <span class="n">property_array</span><span class="p">,</span> <span class="n">reorder</span><span class="p">,</span> <span class="n">CS</span>
-<span class="kn">from</span> <span class="nn">biosteam.exceptions</span> <span class="k">import</span> <span class="n">EquilibriumError</span><span class="p">,</span> <span class="n">DimensionError</span>
-<span class="kn">from</span> <span class="nn">bookkeep</span> <span class="k">import</span> <span class="n">Q_</span>
-<span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">np</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">fraction</span><span class="p">,</span> <span class="n">tuple_array</span><span class="p">,</span> <span class="n">material_array</span><span class="p">,</span> \
+                           <span class="n">PropertyFactory</span><span class="p">,</span> <span class="n">property_array</span><span class="p">,</span> <span class="n">CS</span>
+<span class="kn">from</span> <span class="nn">.exceptions</span> <span class="k">import</span> <span class="n">EquilibriumError</span><span class="p">,</span> <span class="n">DimensionError</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">np</span><span class="p">,</span> <span class="n">Q_</span>
 
 <span class="n">ln</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span>
 <span class="n">exp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span>
@@ -621,16 +620,18 @@
         <span class="sd">&quot;&quot;&quot;Return component property lists for given phase.&quot;&quot;&quot;</span>
         <span class="n">getattr_</span> <span class="o">=</span> <span class="nb">getattr</span>
         <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_Nspecies</span><span class="p">)</span>
-        <span class="n">nextmol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phases_molflow</span><span class="p">[</span><span class="n">phase</span><span class="p">]</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">()</span><span class="o">.</span><span class="fm">__next__</span>
         <span class="n">phase</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span>
         <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_compounds</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">nextmol</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">s</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span>
-                <span class="n">s</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span>
-                <span class="n">s</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="n">phase</span>
-                <span class="n">out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">getattr_</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">)</span>
+        <span class="n">ic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_compounds</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">()</span><span class="o">.</span><span class="fm">__next__</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phases_molflow</span><span class="p">[</span><span class="n">phase</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">m</span><span class="p">:</span>
+                <span class="n">i</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">ic</span><span class="p">()</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span>
+                <span class="n">c</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="n">phase</span>
+                <span class="n">out</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">getattr_</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span> <span class="n">ic</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">out</span>
 
     <span class="k">def</span> <span class="nf">_phaseprop_molar_flow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">,</span> <span class="n">phase</span><span class="p">):</span>
@@ -702,11 +703,11 @@
 
 <span class="sd">            **P:** [float] Operating pressure (Pa)</span>
 <span class="sd">                </span>
-<span class="sd">            **species_IDs:** [list] IDs of equilibrium species</span>
+<span class="sd">            **species_IDs:** [tuple] IDs of equilibrium species</span>
 <span class="sd">                 </span>
-<span class="sd">            **LNK:** list[str] Light non-keys</span>
+<span class="sd">            **LNK:** tuple[str] Light non-keys</span>
 <span class="sd">    </span>
-<span class="sd">            **HNK:** list[str] Heavy non-keys</span>
+<span class="sd">            **HNK:** tuple[str] Heavy non-keys</span>
 
 <span class="sd">            **User may define one:**</span>
 <span class="sd">                * **Qin:** [float] Energy input (kJ/hr)</span>

@@ -88,12 +88,16 @@
 <img alt="_images/UML.png" src="_images/UML.png" />
 <p class="caption"><span class="caption-text"><strong>Figure 1.</strong> A simplified UML class diagram depicts the core classes of BioSTEAM. Only main attributes and methods are included. In aggregation relationships, the labels represent where the aggregates are stored.</span></p>
 </div>
-<p><a class="reference internal" href="Chemical.html"><span class="doc">Chemical</span></a>: A thermo.Chemical object from the Chemical Engineering Design Library (ChEDL) with minor extensions for compatibility. It contains pure component transport and thermodynamic properties.</p>
-<p><a class="reference internal" href="Species.html"><span class="doc">Species</span></a>: Contains Compound and Chemical objects.</p>
-<p><a class="reference internal" href="Stream.html"><span class="doc">Stream</span></a>: Used to pass material information between units. Stream properties are calculated using ideal mixture rules and pure component data from the Species object.</p>
+<p><a class="reference internal" href="Compound.html"><span class="doc">Compound</span></a>: Base class for objects with pure component thermodynamic and transport properties.</p>
+<p><a class="reference internal" href="Chemical.html"><span class="doc">Chemical</span></a>: A thermo.Chemical object from the Chemical Engineering Design Library (ChEDL) with minor extensions for compatibility.</p>
+<p><a class="reference internal" href="Species.html"><span class="doc">Species</span></a>: Contains Compound and Chemical objects that will be accessed by Stream objects.</p>
+<p><a class="reference internal" href="Stream.html"><span class="doc">Stream</span></a>: Used to pass material information between units and calculate material properties.</p>
 <p><a class="reference internal" href="MixedStream.html"><span class="doc">MixedStream</span></a>: An extension of the Stream class that can handle multi-phase flow with phase equilibria.</p>
-<p><a class="reference internal" href="Unit.html"><span class="doc">Unit</span></a>: A base class with an abstract <cite>_run</cite> method that changes output streams given parameters and input streams. Other abstract methods including <cite>_design</cite>, and <cite>_cost</cite> which are used after process simulation for design and costing.</p>
-<p><a class="reference internal" href="System.html"><span class="doc">System</span></a>: Iteratively runs a <cite>network</cite> of units until the <cite>recycle</cite> stream converges. When a network contains a system, it converges the inner system first and then continues running the remaining elements.</p>
+<p><a class="reference internal" href="Unit.html"><span class="doc">Unit</span></a>: A base class for all unit operations.</p>
+<p><a class="reference internal" href="HeatUtility.html"><span class="doc">HeatUtility</span></a>: Contains settings for heating agents and cooling agents (e.g. price, pressure, compostion, etc.). Unit objects use HeatUtility objects to specify cooling and heating requirements.</p>
+<p><a class="reference internal" href="PowerUtility.html"><span class="doc">PowerUtility</span></a>: Contains the price of electricity. Unit objects use a PowerUtility object to specify electricity demand.</p>
+<p><a class="reference internal" href="System.html"><span class="doc">System</span></a>: Iteratively runs a <cite>network</cite> of units, functions and subsystems until the <cite>recycle</cite> stream converges.</p>
+<p><a class="reference internal" href="TEA.html"><span class="doc">TEA</span></a>: Used to perform techno-economic analysis given a System object and a set of options.</p>
 </div>
 <div class="section" id="tutorial">
 <h2>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h2>
