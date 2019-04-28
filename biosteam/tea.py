@@ -7,7 +7,6 @@ Created on Mon Feb  4 19:38:37 2019
 
 from . import pd, np
 from scipy.optimize import newton
-from .utils import CS
 
 __all__ = ('TEA',)
 
@@ -42,8 +41,9 @@ _MACRS = {'MACRS5':  _array([.2000, .3200, .1920,
 # %% Cash flow and results info
 
 _cashflow_columns = ('Depreciable capital',
-                     'Working capital',
                      'Depreciation',
+                     'Fixed capital',
+                     'Working capital',
                      'Annual operating cost (excl. depr.)',
                      'Sales',
                      'Net earnings',
@@ -68,7 +68,7 @@ class TEA:
     """
     __slots__ = ('_results', 'system', 'cashflow', '_cached',
                  '_options', '_IRR_guess', '_cost_guess',
-                 '_costs')
+                 '_costs', '_costs_data')
     
     #: Default cash flow options
     _default = {'Lang factor': 4.37,
@@ -86,8 +86,9 @@ class TEA:
                 'Mantainance': 0.01,
                 'Administration': 0.005,
                 'Working capital': 0.05,
-                'Startup cost': 0,
+                'Startup': 0,
                 'Land': 0,
+                'Royalties': 0,
                 'Depreciation': 'MACRS7',
                 'Startup schedule': (0.4, 0.6),
                 'Other recurring costs': 0,
@@ -96,6 +97,7 @@ class TEA:
     _results_units = {'Pay back period': 'yr',
                       'Return on investment': '1/yr',
                       'Net present value': 'USD',
+                      'Depreciable capital': 'USD',
                       'Fixed capital investment': 'USD',
                       'Total capital investment': 'USD',
                       'Depreciation': 'USD/yr',
@@ -125,10 +127,11 @@ class TEA:
             * **Mantainance:** Yearly fee as a fraction of fixed capital investment.
             * **Administration:** Yearly fee as a fraction of fixed capital investment.
             * **Working capital:** Fee as a fraction of fixed capital investment.
-            * **Startup cost:** Cost of start up as a fraction of fixed capital investment.
-            * **Land:** Cost of land as a fraction of fixed capital investment.
+            * **Startup:** Cost of start up as a fraction of depreciable capital.
+            * **Land:** Cost of land as a fraction of depreciable capital.
+            * **Royalties:** Cost of royalties as a fraction of depreciable capital.
             * **Depreciation:** 'MACRS' + number of years (e.g. 'MACRS7').
-            * **Startup schedule:** tuple of startup investment fractions per year, starting from year 0. For example, for 50% capital investment in year 0 and 50% investment in year 1: array([0.5, 0.5]).
+            * **Startup schedule:** tuple of startup investment fractions per year, starting from year 0. For example, for 50% capital investment in year 0 and 50% investment in year 1: (0.5, 0.5).
             * **Other recurring costs:** Any additional recurring costs per year of operation.
             * **Other fixed capital:** Any additional investment not accounted for in equipment cost.
         """
@@ -141,7 +144,7 @@ class TEA:
         # [dict] Cached values from '_init' methods:
         #  {operating_days: flowrate_factor,
         #   year_duration: (duration_array, cashflow_data),
-        #   depreciation_schedule: (start, Depreciation, D_len, index_schedule)}
+        #   depreciation_schedule: (start, Depreciation, D_len, schedule)}
         self._cached = {}
         
         #: [dict] Summarized results of cash flow analysis
@@ -157,10 +160,26 @@ class TEA:
         self._cost_guess = None
         
         units = system._costunits
+        units = sorted(units, key=lambda x: x.line)
+        costs = [u._totalcosts for u in units]
+        
         #: All purchase and utility costs for units
-        self._costs = [u._totalcosts for u in units]
+        self._costs_data = costs
+        
+        index = pd.MultiIndex.from_tuples((u.line, u.ID) for u in units)
+        columns = ('Purchase cost (USD)',
+                   'Utility cost (USD/hr)')
+        
+        #: [DataFrame] All purchase and utility costs for units
+        self._costs = pd.DataFrame(costs, index, columns)
         
         system._TEA = self
+
+    @property
+    def costs(self):
+        """[DataFrame] All purchase and utility costs for units."""
+        self._costs[:] = self._costs_data
+        return self._costs
 
     def results(self, with_units=True):
         """Return results of techno-economic analysis as a DataFrame object if `with_units` is True or as a Series otherwise."""
@@ -189,15 +208,15 @@ class TEA:
         self._update_results(parameters, cashflow_data[-1, -1])
         return NPV
     
-    def operating_cost(self, *products):
-        """Return operating cost of products.
+    def production_cost(self, *products):
+        """Return production cost of products.
         
         **Parameters**
         
             ***products:** [Stream] Main products of the system
         
         .. Note::
-           If there is more than one main product, The operation cost is proportionally allocated to each of the main products with respect to their marketing values. The marketing value of each product is determined by the annual production multiplied by its selling price.
+           If there is more than one main product, The production cost is proportionally allocated to each of the main products with respect to their marketing values. The marketing value of each product is determined by the annual production multiplied by its selling price.
         """
         system = self.system
         sysfeeds = system.feeds
@@ -205,8 +224,7 @@ class TEA:
         o = self.options
         flow_factor = 24*o['Operating days']
         o = self.options
-        FC_, UC_ = np.array(self._costs).sum(0) # Fixed capital (USD) and utility cost (USD/hr)
-        FC_ += o['Other fixed capital']
+        DC_, UC_ = self.costs.sum(0) # Depreciable capital (USD) and utility cost (USD/hr)
         MC_ = 0 # Material cost USD/hr
         CP_ = 0 # Coproducts USD/hr
         for s in sysfeeds:
@@ -220,15 +238,16 @@ class TEA:
         UC_ *= flow_factor
         MC_ *= flow_factor
         CP_ *= flow_factor
-        FC_ *= (1 + o['Startup cost'] + o['Land'])*o['Lang factor']
+        DC_ *= o['Lang factor']
+        FC_ = DC_ * (1 + o['Startup'] + o['Land'] + o['Royalties']) + o['Other fixed capital']
         fb = o['Fringe benefits'] + o['Supplies']
         f =  (o['Mantainance']
             + o['Administration']
             + o['Property tax']
-            + o['Property insurance']
-            + 1/o['Duration']) # Depreciation
+            + o['Property insurance'])
+        d = DC_/o['Duration'] # Depreciation
         L_ = o['Wage']*o['Employees']
-        total_operating_cost = UC_ + (1+fb)*L_ + MC_ + f*FC_ + o['Other recurring costs']
+        total_operating_cost = UC_ + (1+fb)*L_ + MC_ + f*FC_ + d + o['Other recurring costs']
         market_values = np.array([i.cost for i in products])
         weights = market_values/market_values.sum()
         operating_cost = weights*total_operating_cost
@@ -268,7 +287,7 @@ class TEA:
         if not cashflow_info:
             year, duration = year_duration
             index = tuple(range(year, year + duration)) if year else None
-            data = np.zeros((duration, 9))
+            data = np.zeros((duration, 10))
             self.cashflow = _DataFrame(data, index, _cashflow_columns, dtype=float)
             cashflow_data = _asarray(self.cashflow).transpose()
             duration_array = _array(range(duration))
@@ -278,11 +297,11 @@ class TEA:
             Depreciation = _MACRS[depreciation]
             start = len(schedule)
             end = start + len(Depreciation)
-            index_schedule = tuple(enumerate(schedule))
+            schedule = np.array(schedule)
             depreciation_data = (start,
                                  Depreciation,
                                  end,
-                                 index_schedule)
+                                 schedule)
             cached[depreciation_schedule] = depreciation_data
         
         return flow_factor, cashflow_info, depreciation_data
@@ -290,8 +309,9 @@ class TEA:
     def _calc_parameters(self, flow_factor):
         """Return elementary cash flow parameters."""
         # Cash flow parameters (USD or USD/yr)
-        # FC_: Fixed capital cost
-        # WC_: Working capital cost
+        # DC_: Depreciable capital
+        # FC_: Fixed capital
+        # WC_: Working capital
         # UC_: Utility cost
         # MC_: Material cost
         # S_: Sales
@@ -302,8 +322,7 @@ class TEA:
         feeds = system.feeds
         products = system.products
         o = self.options
-        FC_, UC_ = np.array(self._costs).sum(0) # Fixed capital (USD) and utility cost (USD/hr)
-        FC_ += o['Other fixed capital']
+        DC_, UC_ = self.costs.sum(0) # Depreciable capital (USD) and utility cost (USD/hr)
         MC_ = 0 # Material cost USD/hr
         S_  = 0 # Sales USD/hr
         for s in feeds:
@@ -316,7 +335,8 @@ class TEA:
         UC_ *= flow_factor
         MC_ *= flow_factor
         S_ *= flow_factor
-        FC_ *= (1 + o['Startup cost'] + o['Land'])*o['Lang factor']
+        DC_ *= o['Lang factor']
+        FC_ = DC_*(1 + o['Startup'] + o['Land'] + o['Royalties']) + o['Other fixed capital']
         fb = o['Fringe benefits'] + o['Supplies']
         f =  (o['Mantainance']
             + o['Administration']
@@ -325,7 +345,7 @@ class TEA:
         WC_ = o['Working capital']*FC_
         L_ = o['Wage']*o['Employees']
         C_ = UC_ + (1+fb)*L_ + MC_ + f*FC_ + o['Other recurring costs']
-        return FC_, WC_, S_, C_, o['Income tax'], UC_, MC_, L_
+        return DC_, FC_, WC_, S_, C_, o['Income tax'], UC_, MC_, L_
     
     @staticmethod
     def _calc_cashflow(cashflow_data,
@@ -333,8 +353,9 @@ class TEA:
                        depreciation_data):
         """Perform cash flow analysis and return net present value."""
         # Cash flow data and parameters
-        # C_DC: Depreciable capital cost
-        # C_WC: Working capital cost
+        # C_DC: Depreciable capital
+        # C_FC: Fixed capital
+        # C_WC: Working capital
         # D: Depreciation
         # C: Annual operating cost (excluding depreciation)
         # S: Sales
@@ -342,21 +363,21 @@ class TEA:
         # CF: Cash flow
         # DCF: Discounted cash flow
         # CPV: Cumulative present value
-        start, Depreciation, end, index_schedule = depreciation_data
-        C_DC, C_WC, D, C, S, NE, CF, DCF, CPV = cashflow_data
-        FC_, WC_, S_, C_, tax = parameters
+        start, Depreciation, end, schedule = depreciation_data
+        C_DC, D, C_FC, C_WC, C, S, NE, CF, DCF, CPV = cashflow_data
+        DC_, FC_, WC_, S_, C_, tax = parameters
         
         # Calculate
         D[:] = 0.0
-        for i, f in index_schedule:
-            C_DC[i] = f*FC_
-        D[start:end] = FC_*Depreciation
+        C_DC[:start] = DC_*schedule
+        C_FC[:start] = FC_*schedule
+        D[start:end] = DC_*Depreciation
         C_WC[start] = WC_
         C_WC[-1] = -WC_
         C[start:] = C_
         S[start:] = S_
         NE[:] = (S - C - D)*(1 - tax)
-        CF[:] = (NE + D) - C_DC - C_WC
+        CF[:] = (NE + D) - C_FC - C_WC
     
     @staticmethod
     def _calc_NPV_and_update(IRR, CF_subset, duration_array):
@@ -373,7 +394,7 @@ class TEA:
     
     def _update_results(self, parameters, NPV):
         """Update results attribute."""
-        FCI, WC, S, C, tax, UC, MC, L = parameters
+        DC, FCI, WC, S, C, tax, UC, MC, L = parameters
         D = FCI/self._options['Duration']
         AOC = C + D
         TCI = FCI + WC
@@ -382,6 +403,7 @@ class TEA:
         PBP = FCI/(net_earnings + D)
         
         r = self._results
+        r['Depreciable capital'] = DC
         r['Fixed capital investment'] = FCI
         r['Working capital'] = WC
         r['Total capital investment'] = TCI
@@ -422,12 +444,14 @@ class TEA:
             self._calc_cashflow(cashflow_data,
                                 parameters[:-3],
                                 depreciation_data)
-            self._IRR_guess = IRR = newton(self._calc_NPV_and_update, IRR_guess, args=args)
+            self._IRR_guess = IRR = newton(self._calc_NPV_and_update,
+                                           IRR_guess, args=args, tol=1e-5)
             self.options['IRR'] = IRR
             self._update_results(parameters, data_subset[-1, -1])
         else:
             self._IRR_guess = IRR = newton(self._calc_NPV, IRR_guess,
-                                           args=(cashflow_data[-3], duration_array))
+                                           args=(cashflow_data[-3], duration_array),
+                                           tol=1e-5)
         return IRR
     
     def solve_price(self, stream, update=False):
@@ -504,13 +528,13 @@ class TEA:
             NPV = r['Net present value']
             ROI = r['Return on investment']
             PBP = r['Pay back period']
-            out += f' NPV: {NPV:.3g} ' + CS.dim(f'USD at {IRR:.1f}% IRR') + '\n'
-            out += f' ROI: {ROI:.3g} ' + CS.dim('1/yr') + '\n'
-            out += f' PBP: {PBP:.3g} ' + CS.dim('yr') 
+            out += f' NPV: {NPV:.3g} USD at {IRR:.1f}% IRR\n'
+            out += f' ROI: {ROI:.3g} 1/yr\n'
+            out += f' PBP: {PBP:.3g} yr' 
         else:
-            out += f' NPV: ' + CS.dim('None') + '\n'
-            out += f' ROI: ' + CS.dim('None') + '\n'
-            out += f' PBP: ' + CS.dim('None')
+            out += f' NPV: None\n'
+            out += f' ROI: None\n'
+            out += f' PBP: None'
         return out
     
     def show(self):

@@ -82,6 +82,17 @@
             <span class="n">_fill_space</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">num_stack</span><span class="p">[:</span><span class="n">i</span><span class="p">],</span> <span class="n">argspace</span><span class="p">,</span> <span class="n">thread</span><span class="p">,</span> <span class="n">tuple_</span><span class="p">)</span>
         <span class="n">fargs</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
 
+<span class="k">def</span> <span class="nf">_ordered_space</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">num_stack</span><span class="p">,</span> <span class="n">argspace</span><span class="p">,</span> <span class="n">thread</span><span class="p">,</span> <span class="n">tuple_</span><span class="p">,</span> <span class="n">space</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">fargs</span> <span class="ow">in</span> <span class="n">num_stack</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">fargs</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="n">args</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">a</span>
+            <span class="n">new</span> <span class="o">=</span> <span class="n">tuple_</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">new</span> <span class="ow">in</span> <span class="n">space</span><span class="p">:</span>
+                <span class="n">argspace</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new</span><span class="p">)</span>
+                <span class="n">thread</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">f</span><span class="p">,</span> <span class="n">a</span><span class="p">))</span>
+                <span class="n">_ordered_space</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">num_stack</span><span class="p">[:</span><span class="n">i</span><span class="p">],</span> <span class="n">argspace</span><span class="p">,</span> <span class="n">thread</span><span class="p">,</span> <span class="n">tuple_</span><span class="p">,</span> <span class="n">space</span><span class="p">)</span>
+        <span class="n">fargs</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+
 <span class="c1"># %% Grid of simulation blocks</span>
 
 <div class="viewcode-block" id="Sensitivity"><a class="viewcode-back" href="../../../Sensitivity.html#biosteam.Sensitivity">[docs]</a><span class="k">class</span> <span class="nc">Sensitivity</span><span class="p">:</span>
@@ -158,7 +169,7 @@
         <span class="n">system</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">isolated</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_stack</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">Block</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">system</span><span class="p">)(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getter</span><span class="p">,</span> <span class="n">setter</span><span class="p">),</span> <span class="n">values</span><span class="p">))</span></div>
     
-    <span class="k">def</span> <span class="nf">_loadstack</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_loadstack</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">asproduct</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Load argument space and cache a thread of block functions and arguments.&quot;&quot;&quot;</span>
         <span class="n">system</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span>
         <span class="n">stack</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stack</span>
@@ -186,7 +197,11 @@
         <span class="n">initial_args</span> <span class="o">=</span> <span class="n">tuple_</span><span class="p">(</span><span class="n">initial_args</span><span class="p">)</span>
         <span class="n">argspace</span> <span class="o">=</span> <span class="p">[</span><span class="n">initial_args</span><span class="p">]</span>
         <span class="n">thread</span> <span class="o">=</span> <span class="p">[(</span><span class="n">funcs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">initial_args</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
-        <span class="n">_fill_space</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">num_stack</span><span class="p">,</span> <span class="n">argspace</span><span class="p">,</span> <span class="n">thread</span><span class="p">,</span> <span class="n">tuple_</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">asproduct</span><span class="p">:</span>
+            <span class="n">_fill_space</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">num_stack</span><span class="p">,</span> <span class="n">argspace</span><span class="p">,</span> <span class="n">thread</span><span class="p">,</span> <span class="n">tuple_</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">space</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">all_args</span><span class="p">))</span>
+            <span class="n">_ordered_space</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">num_stack</span><span class="p">,</span> <span class="n">argspace</span><span class="p">,</span> <span class="n">thread</span><span class="p">,</span> <span class="n">tuple_</span><span class="p">,</span> <span class="n">space</span><span class="p">)</span>
         <span class="n">paramIDs</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">_param</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span>
                     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">funcs</span><span class="p">]</span>
         <span class="n">spacelen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">argspace</span><span class="p">)</span>
@@ -213,10 +228,18 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,)</span><span class="o">*</span><span class="n">spacelen</span>
         
         
-<div class="viewcode-block" id="Sensitivity.simulate"><a class="viewcode-back" href="../../../Sensitivity.html#biosteam.Sensitivity.simulate">[docs]</a>    <span class="k">def</span> <span class="nf">simulate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Simulate sensitivity over the argument space.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Sensitivity.simulate"><a class="viewcode-back" href="../../../Sensitivity.html#biosteam.Sensitivity.simulate">[docs]</a>    <span class="k">def</span> <span class="nf">simulate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">asproduct</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Simulate sensitivity over the argument space.</span>
+<span class="sd">        </span>
+<span class="sd">        **Parameters**</span>
+<span class="sd">        </span>
+<span class="sd">            **asproduct:** [bool] </span>
+<span class="sd">                * True: The argument space is the cartesian product of parameter values.</span>
+<span class="sd">                * False: The argument space is a matrix constructed from parameter values.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Setup units before simulation</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_loadstack</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_loadstack</span><span class="p">(</span><span class="n">asproduct</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">func</span><span class="p">,</span> <span class="n">arg</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_funcs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initial_args</span><span class="p">):</span>
             <span class="n">func</span><span class="o">.</span><span class="n">_setter</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
         

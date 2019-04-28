@@ -1,0 +1,21 @@
+Whr = 3600*J = Wh
+bu = 56*lb
+s2 = s**2
+s3 = s**3
+cfm = ft^3/min
+cm2 = (cm)**2
+cm3 = (cm)**3
+m2 = m**2
+m3 = m**3
+ft2 = ft**2
+ft3 = ft**3 = cf
+s2 = s**2
+yr = year
+USD = [currency] = usd
+CAD = 0.74 usd = cad
+EUR = 1.12 usd = eur
+gpm = gal/min
+gmol = mol
+lbmol = 453.59237*mol
+MM- = 10**6
+molar = mol/L = M

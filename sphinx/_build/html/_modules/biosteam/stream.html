@@ -588,7 +588,7 @@
         <span class="n">flow_wt_units</span> <span class="o">=</span> <span class="n">Q_</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
         <span class="n">dim</span> <span class="o">=</span> <span class="n">flow_wt_units</span><span class="o">.</span><span class="n">dimensionality</span>
         <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="n">mol_flow_dim</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">*</span><span class="n">flow_wt_units</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_molarray</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">*</span><span class="n">flow_wt_units</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
         <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="n">mass_flow_dim</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mass</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">*</span><span class="n">flow_wt_units</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
         <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="n">vol_flow_dim</span><span class="p">:</span>
@@ -871,7 +871,7 @@
 <span class="sd">        &gt;&gt;&gt; s2.volfrac</span>
 <span class="sd">        tuple_array([0.619, 0.381])</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">fraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vol</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vol</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">tuple_array</span><span class="p">)</span>
         
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">volnet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

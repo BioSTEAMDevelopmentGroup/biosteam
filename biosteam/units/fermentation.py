@@ -59,7 +59,7 @@ class Fermentation(BatchReactor):
     _N_heat_utilities = 0
     _has_power_utility = True
     
-    #: Cleaning and unloading time
+    #: Cleaning and unloading time (hr)
     tau_0 = 12 
     
     #: Number of reactors

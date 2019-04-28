@@ -9,7 +9,7 @@ from .species import Species
 from .stream import Stream, nonzero_species, MassFlow, \
                             mol_flow_dim, mass_flow_dim, vol_flow_dim
 from .utils import fraction, tuple_array, material_array, \
-                           PropertyFactory, property_array, CS
+                           PropertyFactory, property_array
 from .exceptions import EquilibriumError, DimensionError
 from . import np, Q_
 
@@ -1189,10 +1189,8 @@ class MixedStream(Stream):
             # Add header to flow rates
             if first_phase:
                 spaces = ' ' * (maxlen - 7)
-                beginning = (new_line_spaces[:-1] +
-                             CS.dim(' species' + 
-                             spaces + '  ' + flow_units) + 
-                             '\n' + beginning)
+                beginning = (f'{new_line_spaces}species{spaces}  {flow_units}\n'
+                             + beginning)
 
             # Put it together
             phases_flowrates_info += beginning + flowrates + end + '\n\n'

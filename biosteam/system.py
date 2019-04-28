@@ -323,7 +323,7 @@ class System:
             if unit_not_found: raise ValueError(f'{unit} not found in system')
         else:
             downstream_facilities = self.facilities
-        system = System(f'{type(unit).__name__}-{unit} and downstream', network,
+        system = System(f'{type(unit).__name__} {unit} and downstream', network,
                         facilities=downstream_facilities)
         cached[unit] = system
         return system
@@ -681,7 +681,6 @@ class System:
 
     def _error_info(self):
         """Return information on convergence."""
-        CS = color_scheme
         x = self._solver_error
         recycle = self.recycle
 
@@ -692,8 +691,8 @@ class System:
             error_info += f'\n specification error: {spec:.3g}'
 
         if recycle:
-            error_info += f"\n convergence error: Flow rate   {x['mol_error']:.2e} {CS.dim('kmol/hr')}"
-            error_info += f"\n                    Temperature {x['T_error']:.2e} {CS.dim('K')}"
+            error_info += f"\n convergence error: Flow rate   {x['mol_error']:.2e} kmol/hr"
+            error_info += f"\n                    Temperature {x['T_error']:.2e} K"
 
         if spec or recycle:
             error_info += f"\n iterations: {x['iter']}"

@@ -13,7 +13,7 @@ class Transesterification(Reactor):
     
     **Parameters**
     
-        **eff:** Efficiency of conversion (on a 'Lipid' basis)
+        **efficiency:** Efficiency of conversion (on a 'Lipid' basis)
         
         **r:** Methanol to lipid molar ratio
         

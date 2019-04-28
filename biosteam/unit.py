@@ -15,12 +15,11 @@ from .graphics import Graphics, default_graphics
 from .stream import Stream
 from .proxy_stream import ProxyStream
 from .heat_utility import HeatUtility
-from .utils import color_scheme, Ins, Outs, missing_stream
+from .utils import Ins, Outs, missing_stream
 from .power_utility import PowerUtility
 from . import np, pd, Q_
 from warnings import warn
 import biosteam
-CS = color_scheme
 
 dir_path = os.path.dirname(os.path.realpath(__file__)) + '\\'
 
@@ -962,7 +961,7 @@ class Unit(metaclass=metaUnit):
             info = f'{type(self).__name__}: {self.ID}\n'
         else:
             info = f'{type(self).__name__}\n'
-        info+= f'{CS.dim("ins...")}\n'
+        info+= f'ins...\n'
         i = 0
         for stream in self.ins:
             stream_info = stream._info(**show_units)
@@ -975,7 +974,7 @@ class Unit(metaclass=metaUnit):
             source_info = f'  from  {type(unit).__name__}-{unit}\n' if unit else '\n'
             info += f'[{i}] {stream.ID}' + source_info + stream_info[index+1:] + '\n'
             i += 1
-        info += f'{CS.dim("outs...")}\n'
+        info += f'outs...\n'
         i = 0
         for stream in self._outs:
             stream_info = stream._info(**show_units)

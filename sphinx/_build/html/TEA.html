@@ -105,10 +105,11 @@
 <li><strong>Mantainance:</strong> Yearly fee as a fraction of fixed capital investment.</li>
 <li><strong>Administration:</strong> Yearly fee as a fraction of fixed capital investment.</li>
 <li><strong>Working capital:</strong> Fee as a fraction of fixed capital investment.</li>
-<li><strong>Startup cost:</strong> Cost of start up as a fraction of fixed capital investment.</li>
-<li><strong>Land:</strong> Cost of land as a fraction of fixed capital investment.</li>
+<li><strong>Startup:</strong> Cost of start up as a fraction of depreciable capital.</li>
+<li><strong>Land:</strong> Cost of land as a fraction of depreciable capital.</li>
+<li><strong>Royalties:</strong> Cost of royalties as a fraction of depreciable capital.</li>
 <li><strong>Depreciation:</strong> ‘MACRS’ + number of years (e.g. ‘MACRS7’).</li>
-<li><strong>Startup schedule:</strong> tuple of startup investment fractions per year, starting from year 0. For example, for 50% capital investment in year 0 and 50% investment in year 1: array([0.5, 0.5]).</li>
+<li><strong>Startup schedule:</strong> tuple of startup investment fractions per year, starting from year 0. For example, for 50% capital investment in year 0 and 50% investment in year 1: (0.5, 0.5).</li>
 <li><strong>Other recurring costs:</strong> Any additional recurring costs per year of operation.</li>
 <li><strong>Other fixed capital:</strong> Any additional investment not accounted for in equipment cost.</li>
 </ul>
@@ -120,6 +121,12 @@
 <dt id="biosteam.TEA.cashflow">
 <code class="descname">cashflow</code><a class="headerlink" href="#biosteam.TEA.cashflow" title="Permalink to this definition">¶</a></dt>
 <dd><p>[DataFrame] Cash flow table</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.costs">
+<code class="descname">costs</code><a class="headerlink" href="#biosteam.TEA.costs" title="Permalink to this definition">¶</a></dt>
+<dd><p>[DataFrame] All purchase and utility costs for units.</p>
 </dd></dl>
 
 <dl class="method">
@@ -135,15 +142,15 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.TEA.operating_cost">
-<code class="descname">operating_cost</code><span class="sig-paren">(</span><em>*products</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/tea.html#TEA.operating_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.operating_cost" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return operating cost of products.</p>
+<dt id="biosteam.TEA.production_cost">
+<code class="descname">production_cost</code><span class="sig-paren">(</span><em>*products</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/tea.html#TEA.production_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.production_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return production cost of products.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><strong>*products:</strong> [Stream] Main products of the system</div></blockquote>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">If there is more than one main product, The operation cost is proportionally allocated to each of the main products with respect to their marketing values. The marketing value of each product is determined by the annual production multiplied by its selling price.</p>
+<p class="last">If there is more than one main product, The production cost is proportionally allocated to each of the main products with respect to their marketing values. The marketing value of each product is determined by the annual production multiplied by its selling price.</p>
 </div>
 </dd></dl>
 

@@ -6,5 +6,5 @@ Use the sim package to perform optimized sensitivity analysis and block simulati
 .. toctree::
    :maxdepth: 1
 
-   Sensitivity
+   Grid
    Block

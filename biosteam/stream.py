@@ -533,7 +533,7 @@ class Stream(metaclass=metaStream):
         flow_wt_units = Q_(1, units)
         dim = flow_wt_units.dimensionality
         if dim == mol_flow_dim:
-            return self._mol[index]*flow_wt_units.to('kmol/hr').magnitude
+            return self._molarray[index]*flow_wt_units.to('kmol/hr').magnitude
         elif dim == mass_flow_dim:
             return self._mass[index]*flow_wt_units.to('kg/hr').magnitude
         elif dim == vol_flow_dim:
@@ -816,7 +816,7 @@ class Stream(metaclass=metaStream):
         >>> s2.volfrac
         tuple_array([0.619, 0.381])
         """
-        return fraction(self._vol)
+        return fraction(self._vol).view(tuple_array)
         
     @property
     def volnet(self):

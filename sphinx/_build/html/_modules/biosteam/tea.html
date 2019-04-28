@@ -97,8 +97,9 @@
 <span class="c1"># %% Cash flow and results info</span>
 
 <span class="n">_cashflow_columns</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Depreciable capital&#39;</span><span class="p">,</span>
-                     <span class="s1">&#39;Working capital&#39;</span><span class="p">,</span>
                      <span class="s1">&#39;Depreciation&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;Fixed capital&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;Working capital&#39;</span><span class="p">,</span>
                      <span class="s1">&#39;Annual operating cost (excl. depr.)&#39;</span><span class="p">,</span>
                      <span class="s1">&#39;Sales&#39;</span><span class="p">,</span>
                      <span class="s1">&#39;Net earnings&#39;</span><span class="p">,</span>
@@ -123,7 +124,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;_results&#39;</span><span class="p">,</span> <span class="s1">&#39;system&#39;</span><span class="p">,</span> <span class="s1">&#39;cashflow&#39;</span><span class="p">,</span> <span class="s1">&#39;_cached&#39;</span><span class="p">,</span>
                  <span class="s1">&#39;_options&#39;</span><span class="p">,</span> <span class="s1">&#39;_IRR_guess&#39;</span><span class="p">,</span> <span class="s1">&#39;_cost_guess&#39;</span><span class="p">,</span>
-                 <span class="s1">&#39;_costs&#39;</span><span class="p">)</span>
+                 <span class="s1">&#39;_costs&#39;</span><span class="p">,</span> <span class="s1">&#39;_costs_data&#39;</span><span class="p">)</span>
     
     <span class="c1">#: Default cash flow options</span>
     <span class="n">_default</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Lang factor&#39;</span><span class="p">:</span> <span class="mf">4.37</span><span class="p">,</span>
@@ -141,8 +142,9 @@
                 <span class="s1">&#39;Mantainance&#39;</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">,</span>
                 <span class="s1">&#39;Administration&#39;</span><span class="p">:</span> <span class="mf">0.005</span><span class="p">,</span>
                 <span class="s1">&#39;Working capital&#39;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>
-                <span class="s1">&#39;Startup cost&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s1">&#39;Startup&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
                 <span class="s1">&#39;Land&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="s1">&#39;Royalties&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
                 <span class="s1">&#39;Depreciation&#39;</span><span class="p">:</span> <span class="s1">&#39;MACRS7&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;Startup schedule&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">),</span>
                 <span class="s1">&#39;Other recurring costs&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
@@ -180,10 +182,11 @@
 <span class="sd">            * **Mantainance:** Yearly fee as a fraction of fixed capital investment.</span>
 <span class="sd">            * **Administration:** Yearly fee as a fraction of fixed capital investment.</span>
 <span class="sd">            * **Working capital:** Fee as a fraction of fixed capital investment.</span>
-<span class="sd">            * **Startup cost:** Cost of start up as a fraction of fixed capital investment.</span>
-<span class="sd">            * **Land:** Cost of land as a fraction of fixed capital investment.</span>
+<span class="sd">            * **Startup:** Cost of start up as a fraction of depreciable capital.</span>
+<span class="sd">            * **Land:** Cost of land as a fraction of depreciable capital.</span>
+<span class="sd">            * **Royalties:** Cost of royalties as a fraction of depreciable capital.</span>
 <span class="sd">            * **Depreciation:** &#39;MACRS&#39; + number of years (e.g. &#39;MACRS7&#39;).</span>
-<span class="sd">            * **Startup schedule:** tuple of startup investment fractions per year, starting from year 0. For example, for 50% capital investment in year 0 and 50% investment in year 1: array([0.5, 0.5]).</span>
+<span class="sd">            * **Startup schedule:** tuple of startup investment fractions per year, starting from year 0. For example, for 50% capital investment in year 0 and 50% investment in year 1: (0.5, 0.5).</span>
 <span class="sd">            * **Other recurring costs:** Any additional recurring costs per year of operation.</span>
 <span class="sd">            * **Other fixed capital:** Any additional investment not accounted for in equipment cost.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -196,7 +199,7 @@
         <span class="c1"># [dict] Cached values from &#39;_init&#39; methods:</span>
         <span class="c1">#  {operating_days: flowrate_factor,</span>
         <span class="c1">#   year_duration: (duration_array, cashflow_data),</span>
-        <span class="c1">#   depreciation_schedule: (start, Depreciation, D_len, index_schedule)}</span>
+        <span class="c1">#   depreciation_schedule: (start, Depreciation, D_len, schedule)}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span> <span class="o">=</span> <span class="p">{}</span>
         
         <span class="c1">#: [dict] Summarized results of cash flow analysis</span>
@@ -212,10 +215,26 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_cost_guess</span> <span class="o">=</span> <span class="kc">None</span>
         
         <span class="n">units</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">_costunits</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">line</span><span class="p">)</span>
+        <span class="n">costs</span> <span class="o">=</span> <span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">_totalcosts</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">]</span>
+        
         <span class="c1">#: All purchase and utility costs for units</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_costs</span> <span class="o">=</span> <span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">_totalcosts</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_costs_data</span> <span class="o">=</span> <span class="n">costs</span>
+        
+        <span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">((</span><span class="n">u</span><span class="o">.</span><span class="n">line</span><span class="p">,</span> <span class="n">u</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">)</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Purchase cost (USD)&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;Utility cost (USD/hr)&#39;</span><span class="p">)</span>
+        
+        <span class="c1">#: [DataFrame] All purchase and utility costs for units</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_costs</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">costs</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">columns</span><span class="p">)</span>
         
         <span class="n">system</span><span class="o">.</span><span class="n">_TEA</span> <span class="o">=</span> <span class="bp">self</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">costs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;[DataFrame] All purchase and utility costs for units.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_costs</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_costs_data</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_costs</span>
 
 <div class="viewcode-block" id="TEA.results"><a class="viewcode-back" href="../../TEA.html#biosteam.TEA.results">[docs]</a>    <span class="k">def</span> <span class="nf">results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_units</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return results of techno-economic analysis as a DataFrame object if `with_units` is True or as a Series otherwise.&quot;&quot;&quot;</span>
@@ -244,15 +263,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_results</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">cashflow_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">NPV</span></div>
     
-<div class="viewcode-block" id="TEA.operating_cost"><a class="viewcode-back" href="../../TEA.html#biosteam.TEA.operating_cost">[docs]</a>    <span class="k">def</span> <span class="nf">operating_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">products</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return operating cost of products.</span>
+<div class="viewcode-block" id="TEA.production_cost"><a class="viewcode-back" href="../../TEA.html#biosteam.TEA.production_cost">[docs]</a>    <span class="k">def</span> <span class="nf">production_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">products</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return production cost of products.</span>
 <span class="sd">        </span>
 <span class="sd">        **Parameters**</span>
 <span class="sd">        </span>
 <span class="sd">            ***products:** [Stream] Main products of the system</span>
 <span class="sd">        </span>
 <span class="sd">        .. Note::</span>
-<span class="sd">           If there is more than one main product, The operation cost is proportionally allocated to each of the main products with respect to their marketing values. The marketing value of each product is determined by the annual production multiplied by its selling price.</span>
+<span class="sd">           If there is more than one main product, The production cost is proportionally allocated to each of the main products with respect to their marketing values. The marketing value of each product is determined by the annual production multiplied by its selling price.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">system</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span>
         <span class="n">sysfeeds</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">feeds</span>
@@ -260,8 +279,7 @@
         <span class="n">o</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span>
         <span class="n">flow_factor</span> <span class="o">=</span> <span class="mi">24</span><span class="o">*</span><span class="n">o</span><span class="p">[</span><span class="s1">&#39;Operating days&#39;</span><span class="p">]</span>
         <span class="n">o</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span>
-        <span class="n">FC_</span><span class="p">,</span> <span class="n">UC_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_costs</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># Fixed capital (USD) and utility cost (USD/hr)</span>
-        <span class="n">FC_</span> <span class="o">+=</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Other fixed capital&#39;</span><span class="p">]</span>
+        <span class="n">DC_</span><span class="p">,</span> <span class="n">UC_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">costs</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># Depreciable capital (USD) and utility cost (USD/hr)</span>
         <span class="n">MC_</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># Material cost USD/hr</span>
         <span class="n">CP_</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># Coproducts USD/hr</span>
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sysfeeds</span><span class="p">:</span>
@@ -275,15 +293,16 @@
         <span class="n">UC_</span> <span class="o">*=</span> <span class="n">flow_factor</span>
         <span class="n">MC_</span> <span class="o">*=</span> <span class="n">flow_factor</span>
         <span class="n">CP_</span> <span class="o">*=</span> <span class="n">flow_factor</span>
-        <span class="n">FC_</span> <span class="o">*=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Startup cost&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Land&#39;</span><span class="p">])</span><span class="o">*</span><span class="n">o</span><span class="p">[</span><span class="s1">&#39;Lang factor&#39;</span><span class="p">]</span>
+        <span class="n">DC_</span> <span class="o">*=</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Lang factor&#39;</span><span class="p">]</span>
+        <span class="n">FC_</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Startup&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Land&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Royalties&#39;</span><span class="p">])</span><span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Other fixed capital&#39;</span><span class="p">]</span>
         <span class="n">fb</span> <span class="o">=</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Fringe benefits&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Supplies&#39;</span><span class="p">]</span>
         <span class="n">f</span> <span class="o">=</span>  <span class="p">(</span><span class="n">o</span><span class="p">[</span><span class="s1">&#39;Mantainance&#39;</span><span class="p">]</span>
             <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Administration&#39;</span><span class="p">]</span>
             <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Property tax&#39;</span><span class="p">]</span>
-            <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Property insurance&#39;</span><span class="p">]</span>
-            <span class="o">+</span> <span class="mi">1</span><span class="o">/</span><span class="n">o</span><span class="p">[</span><span class="s1">&#39;Duration&#39;</span><span class="p">])</span> <span class="c1"># Depreciation</span>
+            <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Property insurance&#39;</span><span class="p">])</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">DC_</span><span class="o">/</span><span class="n">o</span><span class="p">[</span><span class="s1">&#39;Duration&#39;</span><span class="p">]</span> <span class="c1"># Depreciation</span>
         <span class="n">L_</span> <span class="o">=</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Wage&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">o</span><span class="p">[</span><span class="s1">&#39;Employees&#39;</span><span class="p">]</span>
-        <span class="n">total_operating_cost</span> <span class="o">=</span> <span class="n">UC_</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">fb</span><span class="p">)</span><span class="o">*</span><span class="n">L_</span> <span class="o">+</span> <span class="n">MC_</span> <span class="o">+</span> <span class="n">f</span><span class="o">*</span><span class="n">FC_</span> <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Other recurring costs&#39;</span><span class="p">]</span>
+        <span class="n">total_operating_cost</span> <span class="o">=</span> <span class="n">UC_</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">fb</span><span class="p">)</span><span class="o">*</span><span class="n">L_</span> <span class="o">+</span> <span class="n">MC_</span> <span class="o">+</span> <span class="n">f</span><span class="o">*</span><span class="n">FC_</span> <span class="o">+</span> <span class="n">d</span> <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Other recurring costs&#39;</span><span class="p">]</span>
         <span class="n">market_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">cost</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">products</span><span class="p">])</span>
         <span class="n">weights</span> <span class="o">=</span> <span class="n">market_values</span><span class="o">/</span><span class="n">market_values</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
         <span class="n">operating_cost</span> <span class="o">=</span> <span class="n">weights</span><span class="o">*</span><span class="n">total_operating_cost</span>
@@ -323,7 +342,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">cashflow_info</span><span class="p">:</span>
             <span class="n">year</span><span class="p">,</span> <span class="n">duration</span> <span class="o">=</span> <span class="n">year_duration</span>
             <span class="n">index</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">year</span> <span class="o">+</span> <span class="n">duration</span><span class="p">))</span> <span class="k">if</span> <span class="n">year</span> <span class="k">else</span> <span class="kc">None</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">duration</span><span class="p">,</span> <span class="mi">9</span><span class="p">))</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">duration</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">cashflow</span> <span class="o">=</span> <span class="n">_DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">_cashflow_columns</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
             <span class="n">cashflow_data</span> <span class="o">=</span> <span class="n">_asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cashflow</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
             <span class="n">duration_array</span> <span class="o">=</span> <span class="n">_array</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">duration</span><span class="p">))</span>
@@ -333,11 +352,11 @@
             <span class="n">Depreciation</span> <span class="o">=</span> <span class="n">_MACRS</span><span class="p">[</span><span class="n">depreciation</span><span class="p">]</span>
             <span class="n">start</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">schedule</span><span class="p">)</span>
             <span class="n">end</span> <span class="o">=</span> <span class="n">start</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">Depreciation</span><span class="p">)</span>
-            <span class="n">index_schedule</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">schedule</span><span class="p">))</span>
+            <span class="n">schedule</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">schedule</span><span class="p">)</span>
             <span class="n">depreciation_data</span> <span class="o">=</span> <span class="p">(</span><span class="n">start</span><span class="p">,</span>
                                  <span class="n">Depreciation</span><span class="p">,</span>
                                  <span class="n">end</span><span class="p">,</span>
-                                 <span class="n">index_schedule</span><span class="p">)</span>
+                                 <span class="n">schedule</span><span class="p">)</span>
             <span class="n">cached</span><span class="p">[</span><span class="n">depreciation_schedule</span><span class="p">]</span> <span class="o">=</span> <span class="n">depreciation_data</span>
         
         <span class="k">return</span> <span class="n">flow_factor</span><span class="p">,</span> <span class="n">cashflow_info</span><span class="p">,</span> <span class="n">depreciation_data</span>
@@ -345,8 +364,9 @@
     <span class="k">def</span> <span class="nf">_calc_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flow_factor</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return elementary cash flow parameters.&quot;&quot;&quot;</span>
         <span class="c1"># Cash flow parameters (USD or USD/yr)</span>
-        <span class="c1"># FC_: Fixed capital cost</span>
-        <span class="c1"># WC_: Working capital cost</span>
+        <span class="c1"># DC_: Depreciable capital</span>
+        <span class="c1"># FC_: Fixed capital</span>
+        <span class="c1"># WC_: Working capital</span>
         <span class="c1"># UC_: Utility cost</span>
         <span class="c1"># MC_: Material cost</span>
         <span class="c1"># S_: Sales</span>
@@ -357,8 +377,7 @@
         <span class="n">feeds</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">feeds</span>
         <span class="n">products</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">products</span>
         <span class="n">o</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">options</span>
-        <span class="n">FC_</span><span class="p">,</span> <span class="n">UC_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_costs</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># Fixed capital (USD) and utility cost (USD/hr)</span>
-        <span class="n">FC_</span> <span class="o">+=</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Other fixed capital&#39;</span><span class="p">]</span>
+        <span class="n">DC_</span><span class="p">,</span> <span class="n">UC_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">costs</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># Depreciable capital (USD) and utility cost (USD/hr)</span>
         <span class="n">MC_</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># Material cost USD/hr</span>
         <span class="n">S_</span>  <span class="o">=</span> <span class="mi">0</span> <span class="c1"># Sales USD/hr</span>
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">feeds</span><span class="p">:</span>
@@ -371,7 +390,8 @@
         <span class="n">UC_</span> <span class="o">*=</span> <span class="n">flow_factor</span>
         <span class="n">MC_</span> <span class="o">*=</span> <span class="n">flow_factor</span>
         <span class="n">S_</span> <span class="o">*=</span> <span class="n">flow_factor</span>
-        <span class="n">FC_</span> <span class="o">*=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Startup cost&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Land&#39;</span><span class="p">])</span><span class="o">*</span><span class="n">o</span><span class="p">[</span><span class="s1">&#39;Lang factor&#39;</span><span class="p">]</span>
+        <span class="n">DC_</span> <span class="o">*=</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Lang factor&#39;</span><span class="p">]</span>
+        <span class="n">FC_</span> <span class="o">=</span> <span class="n">DC_</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Startup&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Land&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Royalties&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Other fixed capital&#39;</span><span class="p">]</span>
         <span class="n">fb</span> <span class="o">=</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Fringe benefits&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Supplies&#39;</span><span class="p">]</span>
         <span class="n">f</span> <span class="o">=</span>  <span class="p">(</span><span class="n">o</span><span class="p">[</span><span class="s1">&#39;Mantainance&#39;</span><span class="p">]</span>
             <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Administration&#39;</span><span class="p">]</span>
@@ -380,7 +400,7 @@
         <span class="n">WC_</span> <span class="o">=</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Working capital&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">FC_</span>
         <span class="n">L_</span> <span class="o">=</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Wage&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">o</span><span class="p">[</span><span class="s1">&#39;Employees&#39;</span><span class="p">]</span>
         <span class="n">C_</span> <span class="o">=</span> <span class="n">UC_</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">fb</span><span class="p">)</span><span class="o">*</span><span class="n">L_</span> <span class="o">+</span> <span class="n">MC_</span> <span class="o">+</span> <span class="n">f</span><span class="o">*</span><span class="n">FC_</span> <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Other recurring costs&#39;</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">FC_</span><span class="p">,</span> <span class="n">WC_</span><span class="p">,</span> <span class="n">S_</span><span class="p">,</span> <span class="n">C_</span><span class="p">,</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Income tax&#39;</span><span class="p">],</span> <span class="n">UC_</span><span class="p">,</span> <span class="n">MC_</span><span class="p">,</span> <span class="n">L_</span>
+        <span class="k">return</span> <span class="n">DC_</span><span class="p">,</span> <span class="n">FC_</span><span class="p">,</span> <span class="n">WC_</span><span class="p">,</span> <span class="n">S_</span><span class="p">,</span> <span class="n">C_</span><span class="p">,</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Income tax&#39;</span><span class="p">],</span> <span class="n">UC_</span><span class="p">,</span> <span class="n">MC_</span><span class="p">,</span> <span class="n">L_</span>
     
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_calc_cashflow</span><span class="p">(</span><span class="n">cashflow_data</span><span class="p">,</span>
@@ -388,8 +408,9 @@
                        <span class="n">depreciation_data</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Perform cash flow analysis and return net present value.&quot;&quot;&quot;</span>
         <span class="c1"># Cash flow data and parameters</span>
-        <span class="c1"># C_DC: Depreciable capital cost</span>
-        <span class="c1"># C_WC: Working capital cost</span>
+        <span class="c1"># C_DC: Depreciable capital</span>
+        <span class="c1"># C_FC: Fixed capital</span>
+        <span class="c1"># C_WC: Working capital</span>
         <span class="c1"># D: Depreciation</span>
         <span class="c1"># C: Annual operating cost (excluding depreciation)</span>
         <span class="c1"># S: Sales</span>
@@ -397,21 +418,21 @@
         <span class="c1"># CF: Cash flow</span>
         <span class="c1"># DCF: Discounted cash flow</span>
         <span class="c1"># CPV: Cumulative present value</span>
-        <span class="n">start</span><span class="p">,</span> <span class="n">Depreciation</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">index_schedule</span> <span class="o">=</span> <span class="n">depreciation_data</span>
-        <span class="n">C_DC</span><span class="p">,</span> <span class="n">C_WC</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">NE</span><span class="p">,</span> <span class="n">CF</span><span class="p">,</span> <span class="n">DCF</span><span class="p">,</span> <span class="n">CPV</span> <span class="o">=</span> <span class="n">cashflow_data</span>
-        <span class="n">FC_</span><span class="p">,</span> <span class="n">WC_</span><span class="p">,</span> <span class="n">S_</span><span class="p">,</span> <span class="n">C_</span><span class="p">,</span> <span class="n">tax</span> <span class="o">=</span> <span class="n">parameters</span>
+        <span class="n">start</span><span class="p">,</span> <span class="n">Depreciation</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">schedule</span> <span class="o">=</span> <span class="n">depreciation_data</span>
+        <span class="n">C_DC</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">C_FC</span><span class="p">,</span> <span class="n">C_WC</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">NE</span><span class="p">,</span> <span class="n">CF</span><span class="p">,</span> <span class="n">DCF</span><span class="p">,</span> <span class="n">CPV</span> <span class="o">=</span> <span class="n">cashflow_data</span>
+        <span class="n">DC_</span><span class="p">,</span> <span class="n">FC_</span><span class="p">,</span> <span class="n">WC_</span><span class="p">,</span> <span class="n">S_</span><span class="p">,</span> <span class="n">C_</span><span class="p">,</span> <span class="n">tax</span> <span class="o">=</span> <span class="n">parameters</span>
         
         <span class="c1"># Calculate</span>
         <span class="n">D</span><span class="p">[:]</span> <span class="o">=</span> <span class="mf">0.0</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">index_schedule</span><span class="p">:</span>
-            <span class="n">C_DC</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="o">*</span><span class="n">FC_</span>
-        <span class="n">D</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span> <span class="o">=</span> <span class="n">FC_</span><span class="o">*</span><span class="n">Depreciation</span>
+        <span class="n">C_DC</span><span class="p">[:</span><span class="n">start</span><span class="p">]</span> <span class="o">=</span> <span class="n">DC_</span><span class="o">*</span><span class="n">schedule</span>
+        <span class="n">C_FC</span><span class="p">[:</span><span class="n">start</span><span class="p">]</span> <span class="o">=</span> <span class="n">FC_</span><span class="o">*</span><span class="n">schedule</span>
+        <span class="n">D</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span> <span class="o">=</span> <span class="n">DC_</span><span class="o">*</span><span class="n">Depreciation</span>
         <span class="n">C_WC</span><span class="p">[</span><span class="n">start</span><span class="p">]</span> <span class="o">=</span> <span class="n">WC_</span>
         <span class="n">C_WC</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">WC_</span>
         <span class="n">C</span><span class="p">[</span><span class="n">start</span><span class="p">:]</span> <span class="o">=</span> <span class="n">C_</span>
         <span class="n">S</span><span class="p">[</span><span class="n">start</span><span class="p">:]</span> <span class="o">=</span> <span class="n">S_</span>
         <span class="n">NE</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">(</span><span class="n">S</span> <span class="o">-</span> <span class="n">C</span> <span class="o">-</span> <span class="n">D</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">tax</span><span class="p">)</span>
-        <span class="n">CF</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">(</span><span class="n">NE</span> <span class="o">+</span> <span class="n">D</span><span class="p">)</span> <span class="o">-</span> <span class="n">C_DC</span> <span class="o">-</span> <span class="n">C_WC</span>
+        <span class="n">CF</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">(</span><span class="n">NE</span> <span class="o">+</span> <span class="n">D</span><span class="p">)</span> <span class="o">-</span> <span class="n">C_FC</span> <span class="o">-</span> <span class="n">C_WC</span>
     
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_calc_NPV_and_update</span><span class="p">(</span><span class="n">IRR</span><span class="p">,</span> <span class="n">CF_subset</span><span class="p">,</span> <span class="n">duration_array</span><span class="p">):</span>
@@ -428,7 +449,7 @@
     
     <span class="k">def</span> <span class="nf">_update_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">NPV</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Update results attribute.&quot;&quot;&quot;</span>
-        <span class="n">FCI</span><span class="p">,</span> <span class="n">WC</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">tax</span><span class="p">,</span> <span class="n">UC</span><span class="p">,</span> <span class="n">MC</span><span class="p">,</span> <span class="n">L</span> <span class="o">=</span> <span class="n">parameters</span>
+        <span class="n">DC</span><span class="p">,</span> <span class="n">FCI</span><span class="p">,</span> <span class="n">WC</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">tax</span><span class="p">,</span> <span class="n">UC</span><span class="p">,</span> <span class="n">MC</span><span class="p">,</span> <span class="n">L</span> <span class="o">=</span> <span class="n">parameters</span>
         <span class="n">D</span> <span class="o">=</span> <span class="n">FCI</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="p">[</span><span class="s1">&#39;Duration&#39;</span><span class="p">]</span>
         <span class="n">AOC</span> <span class="o">=</span> <span class="n">C</span> <span class="o">+</span> <span class="n">D</span>
         <span class="n">TCI</span> <span class="o">=</span> <span class="n">FCI</span> <span class="o">+</span> <span class="n">WC</span>
@@ -437,6 +458,7 @@
         <span class="n">PBP</span> <span class="o">=</span> <span class="n">FCI</span><span class="o">/</span><span class="p">(</span><span class="n">net_earnings</span> <span class="o">+</span> <span class="n">D</span><span class="p">)</span>
         
         <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span>
+        <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Depreciable capital&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">DC</span>
         <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Fixed capital investment&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">FCI</span>
         <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Working capital&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">WC</span>
         <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Total capital investment&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">TCI</span>
