@@ -75,5 +75,12 @@ This material is based upon work supported by the National Science Foundation Gr
 Disclaimer
 ----------
 
-The data and information within the software has been obtained from a wide variety of literature sources. While reasonable care has been exercised in the collection of data and testing of this software, the author of the software disclaims any warranty, expressed or implied, as to the accuracy or reliability of the data or calculations contained therein. The results of calculations obtained from the software yield approximate results, which will not always be suitable for every application. The software is designed for use by trained professional personnel and is not a substitute for sound professional judgment. It is the sole responsibility of the user to validate the data presented by the software and to determine whether the results of this program are accurate and suitable for any specific purpose. No guarantee of accuracy or fitness for any purpose is expressed or implied. The author strongly recommends that the data be checked against other sources and/or methods before use and application. The author shall not be held liable for any direct, indirect, consequential or incidental damages incurred through use of the data or calculations. 
+The data and information within the software has been obtained from a wide variety of literature sources. While reasonable care has been exercised in the collection of data and testing of this software, the authors of the software disclaim any warranty, expressed or implied, as to the accuracy or reliability of the data or calculations contained therein. The results of calculations obtained from the software yield approximate results, which will not always be suitable for every application. The software is designed for use by trained professional personnel and is not a substitute for sound professional judgment. It is the sole responsibility of the user to validate the data presented by the software and to determine whether the results of this program are accurate and suitable for any specific purpose. No guarantee of accuracy or fitness for any purpose is expressed or implied. The authors strongly recommend that the data be checked against other sources and/or methods before use and application. The authors shall not be held liable for any direct, indirect, consequential or incidental damages incurred through use of the data or calculations. 
 
+Citation
+--------
+
+To cite BioSTEAM in publications use::
+
+    Yoel Cortes-Pena, Jeremy Guest (2019). BioSTEAM: The Open-Source Bioprocess Simulation and Techno-Economic Analysis Modules in Python
+    https://github.com/yoelcortes/biosteam

@@ -7,7 +7,9 @@ This module includes classes and functions relating exception handling.
 
 @author: Yoel Rene Cortes-Pena
 """
-import sys
+import sys as _sys
+
+__all__ = ('biosteamError', 'Stop', 'DesignError', 'SolverError', 'EquilibriumError','DimensionError', 'DesignWarning')
 
 # %% Biosteam errors
 
@@ -31,7 +33,7 @@ class DimensionError(biosteamError):
 
 
 # Python's built in KeyError quotes the message, used as a by-pass for the debbuger
-KE = type('KeyError', (biosteamError, ), {})
+_KE = type('KeyError', (biosteamError, ), {})
 
 
 # %% Biosteam Warnings
@@ -41,7 +43,7 @@ class DesignWarning(Warning):
     
 #%% Decorators and functions
 
-def notify_error(func):
+def _notify_error(func):
     """Decorate class method to provide a location summary when an error occurs."""
     if hasattr(func, '_original'):
         func = func._original
@@ -59,9 +61,9 @@ def notify_error(func):
             
             # Raise exception with same traceback but new message
             if type(e) is KeyError:
-                raise KE(msg).with_traceback(sys.exc_info()[2])
+                raise _KE(msg).with_traceback(_sys.exc_info()[2])
             else:
-                raise type(e)(msg).with_traceback(sys.exc_info()[2])
+                raise type(e)(msg).with_traceback(_sys.exc_info()[2])
     
     wrapper.__name__ = func.__name__
     wrapper.__doc__ = func.__doc__

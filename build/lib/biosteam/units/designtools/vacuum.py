@@ -5,7 +5,7 @@ Created on Fri Feb 22 17:31:50 2019
 @author: yoelr
 """
 import numpy as np
-from biosteam.utils import checkbounds
+from biosteam._utils import checkbounds
 from biosteam.exceptions import DesignError
 
 __all__ = ('vacuum_system', '_calc_MotorEfficiency', '_calc_BreakEfficiency')

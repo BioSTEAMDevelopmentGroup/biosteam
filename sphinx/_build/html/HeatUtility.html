@@ -82,11 +82,6 @@
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><strong>efficiency:</strong> [float] Fraction of heat transfered after accounting for heat loss.</div></blockquote>
-<p><strong>Class Attributes</strong></p>
-<blockquote>
-<div><p><strong>cooling_agents:</strong> [DataFrame] All cooling utilities available</p>
-<p><strong>heating_agents:</strong> [DataFrame] All heating utilities available</p>
-</div></blockquote>
 <p><strong>Examples</strong></p>
 <blockquote>
 <div><p>Create a heat utility with a source:</p>
@@ -122,6 +117,18 @@
 <dt id="biosteam.HeatUtility.dT">
 <code class="descname">dT</code><em class="property"> = 5</em><a class="headerlink" href="#biosteam.HeatUtility.dT" title="Permalink to this definition">¶</a></dt>
 <dd><p>[float] Pinch temperature difference</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.HeatUtility.cooling_agents">
+<code class="descname">cooling_agents</code><em class="property"> =                              Cooling water     Chilled water     Chilled Brine Type                              sensible          sensible          sensible Species                   &lt;Species: Water&gt;  &lt;Species: Water&gt;  &lt;Species: Water&gt; Molar fraction                        (1,)              (1,)              (1,) Temperature (K)                        305               280               255 Pressure (Pa)                       101325            101325            101325 Phase                                  liq               liq               liq Temperature limit (K)                  325               300               275 Price (USD/kJ)                           0            -5e-06         -8.15e-06 Price (USD/kmol)                  0.000488                 0                 0 Heat transfer efficiency                 1                 1                 1</em><a class="headerlink" href="#biosteam.HeatUtility.cooling_agents" title="Permalink to this definition">¶</a></dt>
+<dd><p>[DataFrame] All cooling utilities available</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.HeatUtility.heating_agents">
+<code class="descname">heating_agents</code><em class="property"> =                          Low pressure steam Medium pressure steam  \ Type                                 latent                latent    Species                    &lt;Species: Water&gt;      &lt;Species: Water&gt;    Molar fraction                         (1,)                  (1,)    Temperature (K)                         411                   454    Pressure (Pa)                      3.45e+05              1.03e+06    Phase                                   gas                   gas    Temperature limit (K)                  None                  None    Price (USD/kJ)                            0                     0    Price (USD/kmol)                      0.238                 0.276    Heat transfer efficiency                0.9                   0.8                              High pressure steam   Type                                  latent   Species                     &lt;Species: Water&gt;   Molar fraction                          (1,)   Temperature (K)                          509   Pressure (Pa)                        3.1e+06   Phase                                    gas   Temperature limit (K)                   None   Price (USD/kJ)                             0   Price (USD/kmol)                       0.317   Heat transfer efficiency                 0.7  </em><a class="headerlink" href="#biosteam.HeatUtility.heating_agents" title="Permalink to this definition">¶</a></dt>
+<dd><p>[DataFrame] All heating utilities available</p>
 </dd></dl>
 
 <dl class="method">
