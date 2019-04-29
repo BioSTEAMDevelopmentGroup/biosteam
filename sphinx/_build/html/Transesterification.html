@@ -72,18 +72,18 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-biosteam">
-<span id="transesterification"></span><h1>Transesterification<a class="headerlink" href="#module-biosteam" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-biosteam.units">
+<span id="transesterification"></span><h1>Transesterification<a class="headerlink" href="#module-biosteam.units" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
-<dt id="biosteam.Transesterification">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Transesterification</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>efficiency=None</em>, <em>r=None</em>, <em>T=None</em>, <em>catalyst_molfrac=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/transesterification.html#Transesterification"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Transesterification" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Transesterification">
+<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">Transesterification</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>efficiency=None</em>, <em>r=None</em>, <em>T=None</em>, <em>catalyst_molfrac=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_transesterification.html#Transesterification"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Transesterification" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a transesterification reactor that converts ‘Lipid’ and ‘Methanol’ to ‘Biodiesel’ and ‘Glycerol’. Finds the amount of catalyist ‘NaOCH3’ required and consumes it to ‘NaOH’ and ‘Methanol’.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>ID:</strong> [str] Unique identification. If set as ‘’, a default ID will be chosen.</p>
 <p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
 <p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
-<p><strong>eff:</strong> Efficiency of conversion (on a ‘Lipid’ basis)</p>
+<p><strong>efficiency:</strong> Efficiency of conversion (on a ‘Lipid’ basis)</p>
 <p><strong>r:</strong> Methanol to lipid molar ratio</p>
 <p><strong>catalyst_molfrac:</strong> Molar fraction of catalyst in methanol feed</p>
 <p><strong>T:</strong> Operating temperature (K)</p>
@@ -100,8 +100,8 @@
 <blockquote>
 <div><a class="reference internal" href="Transesterification Example.html"><span class="doc">Transesterification</span></a></div></blockquote>
 <dl class="attribute">
-<dt id="biosteam.Transesterification.electricity_rate">
-<code class="descname">electricity_rate</code><em class="property"> = 1.5</em><a class="headerlink" href="#biosteam.Transesterification.electricity_rate" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Transesterification.electricity_rate">
+<code class="descname">electricity_rate</code><em class="property"> = 1.5</em><a class="headerlink" href="#biosteam.units.Transesterification.electricity_rate" title="Permalink to this definition">¶</a></dt>
 <dd><p>kW/m3</p>
 </dd></dl>
 

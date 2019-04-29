@@ -70,12 +70,11 @@
 <span class="kn">from</span> <span class="nn">.stream</span> <span class="k">import</span> <span class="n">Stream</span>
 <span class="kn">from</span> <span class="nn">.proxy_stream</span> <span class="k">import</span> <span class="n">ProxyStream</span>
 <span class="kn">from</span> <span class="nn">.heat_utility</span> <span class="k">import</span> <span class="n">HeatUtility</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">color_scheme</span><span class="p">,</span> <span class="n">Ins</span><span class="p">,</span> <span class="n">Outs</span><span class="p">,</span> <span class="n">missing_stream</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">Ins</span><span class="p">,</span> <span class="n">Outs</span><span class="p">,</span> <span class="n">missing_stream</span>
 <span class="kn">from</span> <span class="nn">.power_utility</span> <span class="k">import</span> <span class="n">PowerUtility</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">np</span><span class="p">,</span> <span class="n">pd</span><span class="p">,</span> <span class="n">Q_</span>
 <span class="kn">from</span> <span class="nn">warnings</span> <span class="k">import</span> <span class="n">warn</span>
 <span class="kn">import</span> <span class="nn">biosteam</span>
-<span class="n">CS</span> <span class="o">=</span> <span class="n">color_scheme</span>
 
 <span class="n">dir_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span>
 
@@ -1017,7 +1016,7 @@
             <span class="n">info</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="se">\n</span><span class="s1">&#39;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">info</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;{type(self).__name__}</span><span class="se">\n</span><span class="s1">&#39;</span>
-        <span class="n">info</span><span class="o">+=</span> <span class="n">f</span><span class="s1">&#39;{CS.dim(&quot;ins...&quot;)}</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">info</span><span class="o">+=</span> <span class="n">f</span><span class="s1">&#39;ins...</span><span class="se">\n</span><span class="s1">&#39;</span>
         <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">:</span>
             <span class="n">stream_info</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="o">**</span><span class="n">show_units</span><span class="p">)</span>
@@ -1030,7 +1029,7 @@
             <span class="n">source_info</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;  from  {type(unit).__name__}-</span><span class="si">{unit}</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="n">unit</span> <span class="k">else</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
             <span class="n">info</span> <span class="o">+=</span> <span class="n">f</span><span class="s1">&#39;[</span><span class="si">{i}</span><span class="s1">] </span><span class="si">{stream.ID}</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">source_info</span> <span class="o">+</span> <span class="n">stream_info</span><span class="p">[</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">:]</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
             <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="n">info</span> <span class="o">+=</span> <span class="n">f</span><span class="s1">&#39;{CS.dim(&quot;outs...&quot;)}</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">info</span> <span class="o">+=</span> <span class="n">f</span><span class="s1">&#39;outs...</span><span class="se">\n</span><span class="s1">&#39;</span>
         <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">:</span>
             <span class="n">stream_info</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="o">**</span><span class="n">show_units</span><span class="p">)</span>

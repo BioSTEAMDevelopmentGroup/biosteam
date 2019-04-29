@@ -76,7 +76,7 @@
 <span id="tea"></span><h1>TEA<a class="headerlink" href="#module-biosteam" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.TEA">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">TEA</code><span class="sig-paren">(</span><em>system</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/tea.html#TEA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">TEA</code><span class="sig-paren">(</span><em>system</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a TEA object that can perform cash flow analysis on a System object.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -131,19 +131,19 @@
 
 <dl class="method">
 <dt id="biosteam.TEA.results">
-<code class="descname">results</code><span class="sig-paren">(</span><em>with_units=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/tea.html#TEA.results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.results" title="Permalink to this definition">¶</a></dt>
+<code class="descname">results</code><span class="sig-paren">(</span><em>with_units=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.results" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return results of techno-economic analysis as a DataFrame object if <cite>with_units</cite> is True or as a Series otherwise.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.TEA.NPV">
-<code class="descname">NPV</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/tea.html#TEA.NPV"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.NPV" title="Permalink to this definition">¶</a></dt>
+<code class="descname">NPV</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.NPV"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.NPV" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate NPV by cash flow analysis and update the “results” and “cashflow” attributes.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.TEA.production_cost">
-<code class="descname">production_cost</code><span class="sig-paren">(</span><em>*products</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/tea.html#TEA.production_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.production_cost" title="Permalink to this definition">¶</a></dt>
+<code class="descname">production_cost</code><span class="sig-paren">(</span><em>*products</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.production_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.production_cost" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return production cost of products.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -156,7 +156,7 @@
 
 <dl class="method">
 <dt id="biosteam.TEA.solve_IRR">
-<code class="descname">solve_IRR</code><span class="sig-paren">(</span><em>update=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/tea.html#TEA.solve_IRR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.solve_IRR" title="Permalink to this definition">¶</a></dt>
+<code class="descname">solve_IRR</code><span class="sig-paren">(</span><em>update=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.solve_IRR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.solve_IRR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the IRR at the break even point (NPV = 0) through cash flow analysis.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -165,7 +165,7 @@
 
 <dl class="method">
 <dt id="biosteam.TEA.solve_price">
-<code class="descname">solve_price</code><span class="sig-paren">(</span><em>stream</em>, <em>update=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/tea.html#TEA.solve_price"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.solve_price" title="Permalink to this definition">¶</a></dt>
+<code class="descname">solve_price</code><span class="sig-paren">(</span><em>stream</em>, <em>update=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.solve_price"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.solve_price" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the price (USD/kg) of stream at the break even point (NPV = 0) through cash flow analysis.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -176,7 +176,7 @@
 
 <dl class="method">
 <dt id="biosteam.TEA.show">
-<code class="descname">show</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/tea.html#TEA.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.show" title="Permalink to this definition">¶</a></dt>
+<code class="descname">show</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print information on TEA.</p>
 </dd></dl>
 

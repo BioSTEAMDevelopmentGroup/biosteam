@@ -108,7 +108,8 @@
     }
    ],
    "source": [
-    "from biosteam import Species, Stream, Distillation\n",
+    "from biosteam import Species, Stream\n",
+    "from biosteam.units import Distillation\n",
     "\n",
     "# Set up stream\n",
     "Stream.species = Species('Water', 'Methanol', 'Glycerol')\n",

@@ -72,11 +72,11 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-biosteam">
-<span id="mixtank"></span><h1>MixTank<a class="headerlink" href="#module-biosteam" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-biosteam.units">
+<span id="mixtank"></span><h1>MixTank<a class="headerlink" href="#module-biosteam.units" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
-<dt id="biosteam.MixTank">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">MixTank</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/tank.html#MixTank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.MixTank" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.MixTank">
+<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">MixTank</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_tank.html#MixTank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.MixTank" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a mixing tank with volume based on residence time.</p>
 <div class="math notranslate nohighlight">
 \[ \begin{align}\begin{aligned}V &amp;= \frac{\tau* Q}{0.8}\\C_{fob}^{2007} &amp;= 12080 * V^{0.525} (0.1 &lt; V &lt; 30 m^3)\end{aligned}\end{align} \]</div>
@@ -84,20 +84,20 @@
 <blockquote>
 <div>[1] I.K. Kookos, Preliminary Chemical Process Synthesis and Design, Tziolas Publishing, Thessalonika, Greece, 2008 (book in Greek).</div></blockquote>
 <dl class="attribute">
-<dt id="biosteam.MixTank.electricity_rate">
-<code class="descname">electricity_rate</code><em class="property"> = 0.591</em><a class="headerlink" href="#biosteam.MixTank.electricity_rate" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.MixTank.electricity_rate">
+<code class="descname">electricity_rate</code><em class="property"> = 0.591</em><a class="headerlink" href="#biosteam.units.MixTank.electricity_rate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Electricity rate (kW/m3)</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.MixTank.ID">
-<code class="descname">ID</code><a class="headerlink" href="#biosteam.MixTank.ID" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.MixTank.ID">
+<code class="descname">ID</code><a class="headerlink" href="#biosteam.units.MixTank.ID" title="Permalink to this definition">¶</a></dt>
 <dd><p>Unique Identification (str). If set as ‘’, it will choose a default ID.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.MixTank.diagram">
-<code class="descname">diagram</code><span class="sig-paren">(</span><em>radius=0</em>, <em>file=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.MixTank.diagram" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.MixTank.diagram">
+<code class="descname">diagram</code><span class="sig-paren">(</span><em>radius=0</em>, <em>file=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.MixTank.diagram" title="Permalink to this definition">¶</a></dt>
 <dd><p>Display a <a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz</a> diagram of the unit and all neighboring units within given radius.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -114,32 +114,32 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.MixTank.reset">
-<code class="descname">reset</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.MixTank.reset" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.MixTank.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.MixTank.reset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reset unit with new kwargs.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.MixTank.results">
-<code class="descname">results</code><span class="sig-paren">(</span><em>with_units=True</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.MixTank.results" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.MixTank.results">
+<code class="descname">results</code><span class="sig-paren">(</span><em>with_units=True</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.MixTank.results" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return key results from simulation as a DataFrame if <cite>with_units</cite> is True or as a Series otherwise.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.MixTank.show">
-<code class="descname">show</code><span class="sig-paren">(</span><em>**show_units</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.MixTank.show" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.MixTank.show">
+<code class="descname">show</code><span class="sig-paren">(</span><em>**show_units</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.MixTank.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prints information on unit.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.MixTank.simulate">
-<code class="descname">simulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.MixTank.simulate" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.MixTank.simulate">
+<code class="descname">simulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.MixTank.simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run rigourous simulation and determine all design requirements.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.MixTank.tau">
-<code class="descname">tau</code><a class="headerlink" href="#biosteam.MixTank.tau" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.MixTank.tau">
+<code class="descname">tau</code><a class="headerlink" href="#biosteam.units.MixTank.tau" title="Permalink to this definition">¶</a></dt>
 <dd><p>Residence time (hr).</p>
 </dd></dl>
 

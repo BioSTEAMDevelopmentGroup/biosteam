@@ -51,15 +51,12 @@ BioSTEAM objects serve as basic building blocks to design and simulate a biorefi
    Techno-economic analysis of a biorefinery
    Inheriting from Unit
 
-Base Classes
+BioSTEAM API
 ------------
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    
-   Compound
-   DissolvedCompound
-   Chemical
    Species
    Stream
    MixedStream
@@ -69,35 +66,15 @@ Base Classes
    System
    TEA
    find
+   compounds
+   units
 
-Unit Operations
----------------
-
-.. toctree::
-   :maxdepth: 1
-
-   Centrifuge_LLE
-   Distillation
-   Fermentation
-   Flash
-   HXprocess
-   HXutility
-   MassBalance
-   MixTank
-   Mixer
-   MolecularSieve
-   MultiEffectEvaporator
-   Pump
-   Splitter
-   StorageTank
-   Transesterification
-
-Unit Examples
--------------
+Unit Operation Examples
+-----------------------
 
 .. toctree::
    :maxdepth: 1
-
+   
    Centrifuge_LLE Example
    Distillation Example
    Fermentation Example
@@ -115,7 +92,7 @@ Advanced Simulation
 .. toctree::
    :maxdepth: 2
 
-   sim
+   evaluation
 
 Indices and tables
 ==================

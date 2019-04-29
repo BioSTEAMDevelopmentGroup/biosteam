@@ -3,7 +3,7 @@ Chemical
 
 A Chemical object represents a chemical component used in the proces
 
-.. module:: biosteam
+.. module:: biosteam.compounds
 
 .. autoclass:: Chemical
    :members:

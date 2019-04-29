@@ -72,11 +72,11 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-biosteam">
-<span id="flash"></span><h1>Flash<a class="headerlink" href="#module-biosteam" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-biosteam.units">
+<span id="flash"></span><h1>Flash<a class="headerlink" href="#module-biosteam.units" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
-<dt id="biosteam.Flash">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Flash</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>species_IDs=None</em>, <em>LNK=None</em>, <em>HNK=None</em>, <em>V=None</em>, <em>T=None</em>, <em>Qin=None</em>, <em>P=None</em>, <em>y=None</em>, <em>x=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/flash.html#Flash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Flash" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Flash">
+<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">Flash</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>species_IDs=None</em>, <em>LNK=None</em>, <em>HNK=None</em>, <em>V=None</em>, <em>T=None</em>, <em>Qin=None</em>, <em>P=None</em>, <em>y=None</em>, <em>x=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_flash.html#Flash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Flash" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create an equlibrium based flash drum with the option of having light non-keys and heavy non-keys completly separate into their respective phases. Design procedure is based on heuristics by Wayne D. Monnery &amp; William Y. Svrcek [1]. The f.o.b cost is based on classical Guthrie’s correlation [2]:</p>
 <p><span class="math notranslate nohighlight">\(C_{fob}^{2007} = 6500 V^{0.62} (0.1 &lt; V &lt; 70 m^3)\)</span></p>
 <p><strong>Parameters</strong></p>
@@ -120,32 +120,32 @@
 <blockquote>
 <div><a class="reference internal" href="Flash Example.html"><span class="doc">Flash</span></a></div></blockquote>
 <dl class="attribute">
-<dt id="biosteam.Flash.vacuum_system_preference">
-<code class="descname">vacuum_system_preference</code><em class="property"> = 'Liquid-ring pump'</em><a class="headerlink" href="#biosteam.Flash.vacuum_system_preference" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Flash.vacuum_system_preference">
+<code class="descname">vacuum_system_preference</code><em class="property"> = 'Liquid-ring pump'</em><a class="headerlink" href="#biosteam.units.Flash.vacuum_system_preference" title="Permalink to this definition">¶</a></dt>
 <dd><p>If a vacuum system is needed, it will choose one according to this preference.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.Flash.SepType">
-<code class="descname">SepType</code><em class="property"> = 'Default'</em><a class="headerlink" href="#biosteam.Flash.SepType" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Flash.SepType">
+<code class="descname">SepType</code><em class="property"> = 'Default'</em><a class="headerlink" href="#biosteam.units.Flash.SepType" title="Permalink to this definition">¶</a></dt>
 <dd><p>[str] ‘Horizontal’, ‘Vertical’, or ‘Default’</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.Flash.HoldupTime">
-<code class="descname">HoldupTime</code><em class="property"> = 15</em><a class="headerlink" href="#biosteam.Flash.HoldupTime" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Flash.HoldupTime">
+<code class="descname">HoldupTime</code><em class="property"> = 15</em><a class="headerlink" href="#biosteam.units.Flash.HoldupTime" title="Permalink to this definition">¶</a></dt>
 <dd><p>[float] Time it takes to raise liquid to half full (min)</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.Flash.SurgeTime">
-<code class="descname">SurgeTime</code><em class="property"> = 7.5</em><a class="headerlink" href="#biosteam.Flash.SurgeTime" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Flash.SurgeTime">
+<code class="descname">SurgeTime</code><em class="property"> = 7.5</em><a class="headerlink" href="#biosteam.units.Flash.SurgeTime" title="Permalink to this definition">¶</a></dt>
 <dd><p>[float] Time it takes to reach from normal to maximum liquied level (min)</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.Flash.Mist">
-<code class="descname">Mist</code><em class="property"> = False</em><a class="headerlink" href="#biosteam.Flash.Mist" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Flash.Mist">
+<code class="descname">Mist</code><em class="property"> = False</em><a class="headerlink" href="#biosteam.units.Flash.Mist" title="Permalink to this definition">¶</a></dt>
 <dd><p>[bool] True if using a mist eliminator pad</p>
 </dd></dl>
 

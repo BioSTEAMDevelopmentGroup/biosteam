@@ -25,7 +25,7 @@ setup(
     python_requires=">=3.6",
     package_data=
         {'biosteam': ['equilibrium/*', 'inspect/*', 'price/*', 'report/*',
-                      'my_units_defs.txt', 'utils/*', 'units/*', 'sim/*',
+                      'my_units_defs.txt', 'utils/*', 'units/*', 'evaluation/*',
                       'units/designtools/*'], },
     platforms=["Windows", "Mac"],
     author_email='yoelcortes@gmail.com',

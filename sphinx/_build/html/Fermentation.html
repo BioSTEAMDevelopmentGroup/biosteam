@@ -72,11 +72,11 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-biosteam">
-<span id="fermentation"></span><h1>Fermentation<a class="headerlink" href="#module-biosteam" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-biosteam.units">
+<span id="fermentation"></span><h1>Fermentation<a class="headerlink" href="#module-biosteam.units" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
-<dt id="biosteam.Fermentation">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Fermentation</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>tau=None</em>, <em>efficiency=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/fermentation.html#Fermentation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Fermentation" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Fermentation">
+<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">Fermentation</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>tau=None</em>, <em>efficiency=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_fermentation.html#Fermentation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Fermentation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Fermentation object which models large-scale batch fermentation for the production of 1st generation ethanol using yeast [1, 2, 3, 4]. Only sucrose and glucose are taken into account. Conversion is based on reaction time, <em>tau</em>. Cleaning and unloading time, <em>tau_0</em>, fraction of working volume, <em>V_wf</em>, and number of reactors, N_reactors, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3].</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -110,68 +110,68 @@
 <blockquote>
 <div><a class="reference internal" href="Fermentation Example.html"><span class="doc">Fermentation</span></a></div></blockquote>
 <dl class="attribute">
-<dt id="biosteam.Fermentation.tau_0">
-<code class="descname">tau_0</code><em class="property"> = 12</em><a class="headerlink" href="#biosteam.Fermentation.tau_0" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Fermentation.tau_0">
+<code class="descname">tau_0</code><em class="property"> = 12</em><a class="headerlink" href="#biosteam.units.Fermentation.tau_0" title="Permalink to this definition">¶</a></dt>
 <dd><p>Cleaning and unloading time (hr)</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.Fermentation.V_wf">
-<code class="descname">V_wf</code><em class="property"> = 0.8</em><a class="headerlink" href="#biosteam.Fermentation.V_wf" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Fermentation.V_wf">
+<code class="descname">V_wf</code><em class="property"> = 0.8</em><a class="headerlink" href="#biosteam.units.Fermentation.V_wf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fraction of filled tank to total tank volume</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.Fermentation.CEPCI_0">
-<code class="descname">CEPCI_0</code><em class="property"> = 521.9</em><a class="headerlink" href="#biosteam.Fermentation.CEPCI_0" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Fermentation.CEPCI_0">
+<code class="descname">CEPCI_0</code><em class="property"> = 521.9</em><a class="headerlink" href="#biosteam.units.Fermentation.CEPCI_0" title="Permalink to this definition">¶</a></dt>
 <dd><p>Base CEPCI</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.Fermentation.C_0">
-<code class="descname">C_0</code><em class="property"> = 844000</em><a class="headerlink" href="#biosteam.Fermentation.C_0" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Fermentation.C_0">
+<code class="descname">C_0</code><em class="property"> = 844000</em><a class="headerlink" href="#biosteam.units.Fermentation.C_0" title="Permalink to this definition">¶</a></dt>
 <dd><p>Base price (USD)</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.Fermentation.V_0">
-<code class="descname">V_0</code><em class="property"> = 3785</em><a class="headerlink" href="#biosteam.Fermentation.V_0" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Fermentation.V_0">
+<code class="descname">V_0</code><em class="property"> = 3785</em><a class="headerlink" href="#biosteam.units.Fermentation.V_0" title="Permalink to this definition">¶</a></dt>
 <dd><p>Base volume (m3)</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.Fermentation.exp">
-<code class="descname">exp</code><em class="property"> = 0.6</em><a class="headerlink" href="#biosteam.Fermentation.exp" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Fermentation.exp">
+<code class="descname">exp</code><em class="property"> = 0.6</em><a class="headerlink" href="#biosteam.units.Fermentation.exp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Scaling exponent for costing</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.Fermentation.C_A">
-<code class="descname">C_A</code><em class="property"> = 52500</em><a class="headerlink" href="#biosteam.Fermentation.C_A" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Fermentation.C_A">
+<code class="descname">C_A</code><em class="property"> = 52500</em><a class="headerlink" href="#biosteam.units.Fermentation.C_A" title="Permalink to this definition">¶</a></dt>
 <dd><p>Base agitator price (USD)</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.Fermentation.A_p">
-<code class="descname">A_p</code><em class="property"> = 22.371</em><a class="headerlink" href="#biosteam.Fermentation.A_p" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Fermentation.A_p">
+<code class="descname">A_p</code><em class="property"> = 22.371</em><a class="headerlink" href="#biosteam.units.Fermentation.A_p" title="Permalink to this definition">¶</a></dt>
 <dd><p>Base agitator power (kW)</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.Fermentation.kinetic_constants">
-<code class="descname">kinetic_constants</code><em class="property"> = (0.31, 1.01, 1.88, 2.81, 82.8, 108.2, 113.4, 0.45, 0.18)</em><a class="headerlink" href="#biosteam.Fermentation.kinetic_constants" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Fermentation.kinetic_constants">
+<code class="descname">kinetic_constants</code><em class="property"> = (0.31, 1.01, 1.88, 2.81, 82.8, 108.2, 113.4, 0.45, 0.18)</em><a class="headerlink" href="#biosteam.units.Fermentation.kinetic_constants" title="Permalink to this definition">¶</a></dt>
 <dd><p>tuple of kinetic parameters for the kinetic model. Default constants are fitted for Oliveria’s model (mu_m1, mu_m2, Ks1, Ks2, Pm1, Pm2, Xm, Y_PS, a)</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.Fermentation.N_reactors">
-<code class="descname">N_reactors</code><a class="headerlink" href="#biosteam.Fermentation.N_reactors" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Fermentation.N_reactors">
+<code class="descname">N_reactors</code><a class="headerlink" href="#biosteam.units.Fermentation.N_reactors" title="Permalink to this definition">¶</a></dt>
 <dd><p>Enforced Number of batch reactors.</p>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="biosteam.Fermentation.kinetic_model">
-<em class="property">static </em><code class="descname">kinetic_model</code><span class="sig-paren">(</span><em>z</em>, <em>t</em>, <em>*kinetic_constants) -&gt; (dXdt</em>, <em>dPdt</em>, <em>dSdt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/fermentation.html#Fermentation.kinetic_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Fermentation.kinetic_model" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Fermentation.kinetic_model">
+<em class="property">static </em><code class="descname">kinetic_model</code><span class="sig-paren">(</span><em>z</em>, <em>t</em>, <em>*kinetic_constants) -&gt; (dXdt</em>, <em>dPdt</em>, <em>dSdt</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_fermentation.html#Fermentation.kinetic_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Fermentation.kinetic_model" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return change of yeast, ethanol, and substrate concentration in kg/m3.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>

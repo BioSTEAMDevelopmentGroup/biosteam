@@ -85,7 +85,8 @@
     }
    ],
    "source": [
-    "from biosteam import Species, Stream, HXutility\n",
+    "from biosteam import Species, Stream\n",
+    "from biosteam.units import HXutility\n",
     "Stream.species = Species('Water', 'Ethanol')\n",
     "\n",
     "# Simulate heat exchanger\n",

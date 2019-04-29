@@ -111,7 +111,8 @@
     }
    ],
    "source": [
-    "from biosteam import Stream, Transesterification\n",
+    "from biosteam import Stream\n",
+    "from biosteam.units import Transesterification\n",
     "from lipidcane import biodiesel_species\n",
     "\n",
     "# Set up stream\n",

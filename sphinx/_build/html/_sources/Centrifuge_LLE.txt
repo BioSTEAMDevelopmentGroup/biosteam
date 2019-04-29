@@ -1,7 +1,7 @@
 Centrifuge_LLE
 ==============
 
-.. module:: biosteam
+.. module:: biosteam.units
 
 .. autoclass:: Centrifuge_LLE
    :members:

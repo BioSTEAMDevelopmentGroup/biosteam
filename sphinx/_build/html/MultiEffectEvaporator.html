@@ -72,11 +72,11 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-biosteam">
-<span id="multieffectevaporator"></span><h1>MultiEffectEvaporator<a class="headerlink" href="#module-biosteam" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-biosteam.units">
+<span id="multieffectevaporator"></span><h1>MultiEffectEvaporator<a class="headerlink" href="#module-biosteam.units" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
-<dt id="biosteam.MultiEffectEvaporator">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">MultiEffectEvaporator</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>component='Water'</em>, <em>P=(101325</em>, <em>)</em>, <em>V=0.5</em>, <em>P_liq=101325</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/multi_effect_evaporator.html#MultiEffectEvaporator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.MultiEffectEvaporator" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.MultiEffectEvaporator">
+<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">MultiEffectEvaporator</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>component='Water'</em>, <em>P=(101325</em>, <em>)</em>, <em>V=0.5</em>, <em>P_liq=101325</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_multi_effect_evaporator.html#MultiEffectEvaporator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.MultiEffectEvaporator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates evaporatorators with pressures given by P (a list of pressures). Adjusts first evaporator vapor fraction to satisfy an overall fraction evaporated. All evaporators after the first have zero duty. Condenses the vapor coming out of the last evaporator. Pumps all liquid streams to prevent back flow in later parts. All liquid evaporated is ultimately recondensed. Cost is based on required heat transfer area. Vacuum system is based on air leakage. Air leakage is based on volume, as given by residence time <cite>tau</cite> and flow rate to each evaporator.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -89,14 +89,14 @@
 <p><strong>P_liq:</strong> <em>[tuple]</em> Liquid pressure after pumping (Pa)</p>
 </div></blockquote>
 <dl class="attribute">
-<dt id="biosteam.MultiEffectEvaporator.tau">
-<code class="descname">tau</code><em class="property"> = 0.3</em><a class="headerlink" href="#biosteam.MultiEffectEvaporator.tau" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.MultiEffectEvaporator.tau">
+<code class="descname">tau</code><em class="property"> = 0.3</em><a class="headerlink" href="#biosteam.units.MultiEffectEvaporator.tau" title="Permalink to this definition">¶</a></dt>
 <dd><p>Residence time (hr)</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.MultiEffectEvaporator.Type">
-<code class="descname">Type</code><a class="headerlink" href="#biosteam.MultiEffectEvaporator.Type" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.MultiEffectEvaporator.Type">
+<code class="descname">Type</code><a class="headerlink" href="#biosteam.units.MultiEffectEvaporator.Type" title="Permalink to this definition">¶</a></dt>
 <dd><p>Evaporation type.</p>
 </dd></dl>
 

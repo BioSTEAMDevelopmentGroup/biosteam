@@ -5,45 +5,42 @@ Created on Sun Apr 15 20:39:46 2018
 
 @author: Yoel Rene Cortes-Pena
 """
-import numpy as np
 from . import designtools
-from . import flash
-from . import centrifuge_LLE
+from . import _flash
+from . import _centrifuge_LLE
 
-from biosteam.graphics import Graphics
-from .designtools import *
-from .mixer import Mixer
-from .splitter import Splitter, InvSplitter
-from .pump import Pump
-from .hx import HX, HXutility, HXprocess
-from .flash import *
-from .flash import Flash
-from .multi_effect_evaporator import MultiEffectEvaporator
-from .centrifuge_LLE import *
-from .distillation import Dist, Distillation, Stripper
-from .tank import Tank, StorageTank, MixTank, PCT
-from .transesterification import Transesterification
-from .fermentation import Fermentation
-from .enzyme_treatment import EnzymeTreatment
-from .clarifier import Clarifier
-from .yeast_centrifuge import YeastCentrifuge
-from .crushing_mill import CrushingMill
-from .rvf import RVF
-from .molecular_sieve import MolecularSieve, MolSieve
-from .reactor import Reactor, BatchReactor
-from .balance import MassBalance, EnergyBalance
-from .conveying_belt import ConveyingBelt
-from .shredder import Shredder
-from .magnetic_separator import MagneticSeparator
-from .screw_feeder import ScrewFeeder
-from .vibrating_screen import VibratingScreen
+from .._graphics import Graphics
+from ._mixer import Mixer
+from ._splitter import Splitter, InvSplitter
+from ._pump import Pump
+from ._hx import HX, HXutility, HXprocess
+from ._flash import *
+from ._flash import Flash
+from ._multi_effect_evaporator import MultiEffectEvaporator
+from ._centrifuge_LLE import *
+from ._distillation import Dist, Distillation, Stripper
+from ._tank import Tank, StorageTank, MixTank
+from ._transesterification import Transesterification
+from ._fermentation import Fermentation
+from ._enzyme_treatment import EnzymeTreatment
+from ._clarifier import Clarifier
+from ._yeast_centrifuge import YeastCentrifuge
+from ._crushing_mill import CrushingMill
+from ._rvf import RVF
+from ._molecular_sieve import MolecularSieve, MolSieve
+from ._reactor import Reactor, BatchReactor
+from ._balance import MassBalance, EnergyBalance
+from ._conveying_belt import ConveyingBelt
+from ._shredder import Shredder
+from ._magnetic_separator import MagneticSeparator
+from ._screw_feeder import ScrewFeeder
+from ._vibrating_screen import VibratingScreen
 
 # %% All units
 
-__all__ = ['Mixer', 'Splitter', 'InvSplitter', 'Tank', 'MixTank', 'StorageTank', 'HX', 'HXutility', 'HXprocess', 'Pump', 'Distillation', 'Stripper', 'Transesterification', 'Fermentation', 'Centrifuge_LLE', 'MultiEffectEvaporator', 'EnzymeTreatment', 'CrushingMill', 'RVF', 'MolecularSieve', 'MolSieve', 'PCT', 'YeastCentrifuge', 'Clarifier', 'Reactor', 'BatchReactor', 'MassBalance', 'EnergyBalance', 'ConveyingBelt', 'Shredder', 'MagneticSeparator', 'ScrewFeeder', 'VibratingScreen']
+__all__ = ['Mixer', 'Splitter', 'InvSplitter', 'Tank', 'MixTank', 'StorageTank', 'HX', 'HXutility', 'HXprocess', 'Pump', 'Distillation', 'Stripper', 'Transesterification', 'Fermentation', 'Centrifuge_LLE', 'MultiEffectEvaporator', 'EnzymeTreatment', 'CrushingMill', 'RVF', 'MolecularSieve', 'MolSieve', 'YeastCentrifuge', 'Clarifier', 'Reactor', 'BatchReactor', 'MassBalance', 'EnergyBalance', 'ConveyingBelt', 'Shredder', 'MagneticSeparator', 'ScrewFeeder', 'VibratingScreen']
 
-__all__.extend(designtools.__all__)
-__all__.extend(flash.__all__)
+__all__.extend(_flash.__all__)
 
 # %% Enhance Graphics
 
@@ -126,7 +123,9 @@ Splitter._graphics.node['fillcolor'] = "#bfbfbf:white"
 Splitter._graphics.edge_in[0]['headport'] = 'w'
 
 # Balance
-MBG = MassBalance._graphics
-MBG.node['shape'] = 'note'
-MBG.node['fillcolor'] = '#F0F0F0'
-MBG.in_system = False
+graphics = MassBalance._graphics
+graphics.node['shape'] = 'note'
+graphics.node['fillcolor'] = '#F0F0F0'
+graphics.in_system = False
+
+del HXutility_node, graphics, edge_out, node

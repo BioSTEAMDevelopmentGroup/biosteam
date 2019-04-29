@@ -17,7 +17,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="DissolvedCompound" href="DissolvedCompound.html" />
-    <link rel="prev" title="Inheriting from Unit" href="Inheriting from Unit.html" /> 
+    <link rel="prev" title="compounds" href="compounds.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -32,16 +32,17 @@
           <a href="DissolvedCompound.html" title="DissolvedCompound"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="Inheriting from Unit.html" title="Inheriting from Unit"
+          <a href="compounds.html" title="compounds"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="compounds.html" accesskey="U">compounds</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
-  <p class="topless"><a href="Inheriting from Unit.html"
-                        title="previous chapter">Inheriting from Unit</a></p>
+  <p class="topless"><a href="compounds.html"
+                        title="previous chapter">compounds</a></p>
   <h4>Next topic</h4>
   <p class="topless"><a href="DissolvedCompound.html"
                         title="next chapter">DissolvedCompound</a></p>
@@ -72,18 +73,18 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-biosteam">
-<span id="compound"></span><h1>Compound<a class="headerlink" href="#module-biosteam" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-biosteam.compounds">
+<span id="compound"></span><h1>Compound<a class="headerlink" href="#module-biosteam.compounds" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
-<dt id="biosteam.Compound">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Compound</code><a class="reference internal" href="_modules/biosteam/compound.html#Compound"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Compound" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.compounds.Compound">
+<em class="property">class </em><code class="descclassname">biosteam.compounds.</code><code class="descname">Compound</code><a class="reference internal" href="_modules/biosteam/compounds/_compound.html#Compound"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.compounds.Compound" title="Permalink to this definition">¶</a></dt>
 <dd><p>Abstract class, Compound, for making objects that contain pure component thermodynamic and transport properties. The enthalpy property, H, ignores excess ethalpies and calculates based on latent heats and the heat capacity at a constant pressure of 101325 Pa. It is suitable for solids and liquids which are weak functions of pressure</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
-<div><p><strong>IDs:</strong> <em>[str]</em> A unique identification</p>
-<p><strong>T:</strong> <em>[float]</em> Temperature (K)</p>
-<p><strong>P:</strong> <em>[float]</em> Pressure (Pa)</p>
-<p><strong>phase:</strong> <em>[str]</em> ‘l’(iquid) or ‘g’(as)</p>
+<div><p><strong>IDs:</strong> [str] A unique identification</p>
+<p><strong>T:</strong> [float] Temperature (K)</p>
+<p><strong>P:</strong> [float] Pressure (Pa)</p>
+<p><strong>phase:</strong> [str] ‘l’(iquid) or ‘g’(as)</p>
 </div></blockquote>
 <p><strong>Class Attributes</strong></p>
 <blockquote>
@@ -93,14 +94,14 @@
 <p><strong>P_ref</strong> = 101325: Reference pressure (Pa)</p>
 </div></blockquote>
 <dl class="attribute">
-<dt id="biosteam.Compound.units">
-<code class="descname">units</code><em class="property"> = {'A': 'J/mol', 'Cp': 'J/g', 'Cpm': 'J/mol', 'G': 'J/mol', 'H': 'J/mol', 'Hf': 'J/mol', 'MW': 'g/mol', 'P': 'Pa', 'S': 'J/mol', 'T': 'K', 'U': 'J/mol', 'Vm': 'm^3/mol', 'alpha': 'm^2/s', 'k': 'W/m/K', 'mu': 'Pa*s', 'nu': 'm^2/s', 'rho': 'kg/m^3', 'rhom': 'mol/m^3', 'sigma': 'N/m'}</em><a class="headerlink" href="#biosteam.Compound.units" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.compounds.Compound.units">
+<code class="descname">units</code><em class="property"> = {'A': 'J/mol', 'Cp': 'J/g', 'Cpm': 'J/mol', 'G': 'J/mol', 'H': 'J/mol', 'Hf': 'J/mol', 'MW': 'g/mol', 'P': 'Pa', 'S': 'J/mol', 'T': 'K', 'U': 'J/mol', 'Vm': 'm^3/mol', 'alpha': 'm^2/s', 'k': 'W/m/K', 'mu': 'Pa*s', 'nu': 'm^2/s', 'rho': 'kg/m^3', 'rhom': 'mol/m^3', 'sigma': 'N/m'}</em><a class="headerlink" href="#biosteam.compounds.Compound.units" title="Permalink to this definition">¶</a></dt>
 <dd><p>[dict] Units of measure for material properties (class attribute).</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.Compound.quantity">
-<code class="descname">quantity</code><span class="sig-paren">(</span><em>prop_ID</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/compound.html#Compound.quantity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Compound.quantity" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.compounds.Compound.quantity">
+<code class="descname">quantity</code><span class="sig-paren">(</span><em>prop_ID</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/compounds/_compound.html#Compound.quantity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.compounds.Compound.quantity" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a material property as a Quantity object as described in the <a class="reference external" href="https://pint.readthedocs.io/en/latest/">pint package</a></p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -108,20 +109,20 @@
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.Compound.H">
-<code class="descname">H</code><a class="headerlink" href="#biosteam.Compound.H" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.compounds.Compound.H">
+<code class="descname">H</code><a class="headerlink" href="#biosteam.compounds.Compound.H" title="Permalink to this definition">¶</a></dt>
 <dd><p>Enthapy (kJ/kmol) disregarding pressure and assuming the specified phase.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.Compound.S">
-<code class="descname">S</code><a class="headerlink" href="#biosteam.Compound.S" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.compounds.Compound.S">
+<code class="descname">S</code><a class="headerlink" href="#biosteam.compounds.Compound.S" title="Permalink to this definition">¶</a></dt>
 <dd><p>Entropy (kJ/kmol) assuming the specified phase.</p>
 </dd></dl>
 
 <dl class="classmethod">
-<dt id="biosteam.Compound.Factory">
-<em class="property">classmethod </em><code class="descname">Factory</code><span class="sig-paren">(</span><em>ID</em>, <em>const_prop_molar_dct={}</em>, <em>state_dep_prop_molar_dct={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/compound.html#Compound.Factory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Compound.Factory" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.compounds.Compound.Factory">
+<em class="property">classmethod </em><code class="descname">Factory</code><span class="sig-paren">(</span><em>ID</em>, <em>const_prop_molar_dct={}</em>, <em>state_dep_prop_molar_dct={}</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/compounds/_compound.html#Compound.Factory"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.compounds.Compound.Factory" title="Permalink to this definition">¶</a></dt>
 <dd><p>Make new child class with constant and temperature dependent properties.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -132,8 +133,8 @@
 </dd></dl>
 
 <dl class="classmethod">
-<dt id="biosteam.Compound.set_integral_type">
-<em class="property">classmethod </em><code class="descname">set_integral_type</code><span class="sig-paren">(</span><em>integral_type</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/compound.html#Compound.set_integral_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Compound.set_integral_type" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.compounds.Compound.set_integral_type">
+<em class="property">classmethod </em><code class="descname">set_integral_type</code><span class="sig-paren">(</span><em>integral_type</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/compounds/_compound.html#Compound.set_integral_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.compounds.Compound.set_integral_type" title="Permalink to this definition">¶</a></dt>
 <dd><p>Change the enthalpy and entropy property calculator to different levels of rigour.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -150,8 +151,8 @@
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.Compound.show">
-<code class="descname">show</code><span class="sig-paren">(</span><em>**show_units</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/compound.html#Compound.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Compound.show" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.compounds.Compound.show">
+<code class="descname">show</code><span class="sig-paren">(</span><em>**show_units</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/compounds/_compound.html#Compound.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.compounds.Compound.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>print information on self</p>
 </dd></dl>
 
@@ -178,9 +179,10 @@
           <a href="DissolvedCompound.html" title="DissolvedCompound"
              >next</a> |</li>
         <li class="right" >
-          <a href="Inheriting from Unit.html" title="Inheriting from Unit"
+          <a href="compounds.html" title="compounds"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="compounds.html" >compounds</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

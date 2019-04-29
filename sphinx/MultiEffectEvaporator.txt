@@ -1,7 +1,7 @@
 MultiEffectEvaporator
 =====================
 
-.. module:: biosteam
+.. module:: biosteam.units
 
 .. autoclass:: MultiEffectEvaporator
    :members:

@@ -1,7 +1,7 @@
 StorageTank
 ===========
 
-.. module:: biosteam
+.. module:: biosteam.units
 
 .. autoclass:: StorageTank
    :inherited-members: Tank

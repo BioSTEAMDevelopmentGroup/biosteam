@@ -286,7 +286,8 @@
     }
    ],
    "source": [
-    "from biosteam import Mixer, Splitter, Tank, Pump, Flash, Species, Stream, System, MassBalance\n",
+    "from biosteam import Species, Stream, System\n",
+    "from biosteam.units import Mixer, Splitter, Tank, Pump, Flash, MassBalance\n",
     "Stream.species = Species('Ethanol', 'Water')\n",
     "\n",
     "water = Stream('water',\n",

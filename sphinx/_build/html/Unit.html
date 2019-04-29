@@ -76,7 +76,7 @@
 <span id="unit"></span><h1>Unit<a class="headerlink" href="#module-biosteam" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.Unit">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Unit</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/unit.html#Unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Unit</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit" title="Permalink to this definition">¶</a></dt>
 <dd><p>Abstract parent class for Unit objects. Child objects must contain _setup, _run, _design and _cost methods to setup internal objects, estimate stream outputs of a Unit and find design and cost information. These methods should store information in the ‘_results’ dictionary (an instance attribute).</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -132,19 +132,19 @@
 
 <dl class="method">
 <dt id="biosteam.Unit.reset">
-<code class="descname">reset</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/unit.html#Unit.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.reset" title="Permalink to this definition">¶</a></dt>
+<code class="descname">reset</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.reset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reset unit with new kwargs.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.Unit.simulate">
-<code class="descname">simulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/unit.html#Unit.simulate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.simulate" title="Permalink to this definition">¶</a></dt>
+<code class="descname">simulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit.simulate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run rigourous simulation and determine all design requirements.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.Unit.results">
-<code class="descname">results</code><span class="sig-paren">(</span><em>with_units=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/unit.html#Unit.results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.results" title="Permalink to this definition">¶</a></dt>
+<code class="descname">results</code><span class="sig-paren">(</span><em>with_units=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit.results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.results" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return key results from simulation as a DataFrame if <cite>with_units</cite> is True or as a Series otherwise.</p>
 </dd></dl>
 
@@ -156,7 +156,7 @@
 
 <dl class="method">
 <dt id="biosteam.Unit.diagram">
-<code class="descname">diagram</code><span class="sig-paren">(</span><em>radius=0</em>, <em>file=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/unit.html#Unit.diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.diagram" title="Permalink to this definition">¶</a></dt>
+<code class="descname">diagram</code><span class="sig-paren">(</span><em>radius=0</em>, <em>file=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit.diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.diagram" title="Permalink to this definition">¶</a></dt>
 <dd><p>Display a <a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz</a> diagram of the unit and all neighboring units within given radius.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -174,7 +174,7 @@
 
 <dl class="method">
 <dt id="biosteam.Unit.show">
-<code class="descname">show</code><span class="sig-paren">(</span><em>**show_units</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/unit.html#Unit.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.show" title="Permalink to this definition">¶</a></dt>
+<code class="descname">show</code><span class="sig-paren">(</span><em>**show_units</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prints information on unit.</p>
 </dd></dl>
 

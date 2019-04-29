@@ -267,7 +267,7 @@ class from the Chemical Engineering Design Library.</p>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bs</span>
-<span class="n">Water</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Chemical</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="n">Water</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">compounds</span><span class="o">.</span><span class="n">Chemical</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">)</span>
 <span class="n">Water</span>
 </pre></div>
 </div>
@@ -634,7 +634,7 @@ Stream: feed
 <div class="highlight"><pre>
 MixedStream: feed
  phase: &#39;l&#39;, T: 350.19 K, P: 101325 Pa
-        <span class="ansi-white-fg"> species   kmol/hr</span>
+         species   kmol/hr
  liquid: Methanol  1
          Glycerol  2
          Water     2.78
@@ -658,7 +658,7 @@ MixedStream: feed
 <div class="highlight"><pre>
 MixedStream: feed
  phase: &#39;lg&#39;, T: 381.94 K, P: 101325 Pa
-        <span class="ansi-white-fg"> species   kmol/hr</span>
+         species   kmol/hr
  liquid: Methanol  0.227
          Glycerol  2
          Water     0.662
@@ -718,7 +718,7 @@ initialized with an ID, and unit specific arguments:</p>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1"># Specify vapor fraction and isobaric conditions</span>
-<span class="n">F1</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Flash</span><span class="p">(</span><span class="s1">&#39;F1&#39;</span><span class="p">,</span> <span class="n">V</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
+<span class="n">F1</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">Flash</span><span class="p">(</span><span class="s1">&#39;F1&#39;</span><span class="p">,</span> <span class="n">V</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -748,9 +748,9 @@ streams to outputs, <code class="docutils literal notranslate"><span class="pre"
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Flash: F1
-<span class="ansi-white-fg">ins...</span>
+ins...
 [0] Missing Stream
-<span class="ansi-white-fg">outs...</span>
+outs...
 [0] d1
     phase: &#39;g&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
@@ -817,12 +817,12 @@ Flash: F1
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Flash: F1
-<span class="ansi-white-fg">ins...</span>
-[0] d4
+ins...
+[0] d3
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow (kmol/hr): Glycerol  180
                     Water     220
-<span class="ansi-white-fg">outs...</span>
+outs...
 [0] d1
     phase: &#39;g&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
@@ -849,12 +849,12 @@ Flash: F1
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Flash: F1
-<span class="ansi-white-fg">ins...</span>
-[0] d4
+ins...
+[0] d3
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow (kmol/hr): Glycerol  180
                     Water     220
-<span class="ansi-white-fg">outs...</span>
+outs...
 [0] d1
     phase: &#39;g&#39;, T: 416.81 K, P: 101325 Pa
     flow (kmol/hr): Glycerol  0.72
@@ -870,7 +870,7 @@ Flash: F1
 </div>
 <div class="stderr output_area docutils container">
 <div class="highlight"><pre>
-C:\Users\yoelr\OneDrive\Code\biosteam\biosteam\units\flash.py:222: DesignWarning: @Flash F1: Vertical vessel weight (3772 lb) is out of bounds (4200 to 1e+06 lb).
+C:\Users\yoelr\OneDrive\Code\biosteam\biosteam\units\flash.py:221: DesignWarning: @Flash F1: Vertical vessel weight (3772 lb) is out of bounds (4200 to 1e+06 lb).
   out = self._vertical()
 </pre></div></div>
 </div>
@@ -882,7 +882,7 @@ may be inaccurate. These bounds are stored in the class:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bs</span><span class="o">.</span><span class="n">Flash</span><span class="o">.</span><span class="n">_bounds</span>
+<span></span><span class="n">bs</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">Flash</span><span class="o">.</span><span class="n">_bounds</span>
 </pre></div>
 </div>
 </div>
@@ -1347,8 +1347,8 @@ object:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">M1</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M1&#39;</span><span class="p">)</span>
-<span class="n">S1</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Splitter</span><span class="p">(</span><span class="s1">&#39;S1&#39;</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span> <span class="c1"># Split to 0th output stream</span>
+<span></span><span class="n">M1</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M1&#39;</span><span class="p">)</span>
+<span class="n">S1</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">Splitter</span><span class="p">(</span><span class="s1">&#39;S1&#39;</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span> <span class="c1"># Split to 0th output stream</span>
 <span class="n">F1</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="s1">&#39;product&#39;</span>
 </pre></div>
 </div>
@@ -1381,7 +1381,7 @@ notation</a>:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">feed</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">Glycerol</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
+<span></span><span class="n">feed</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">Glycerol</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">450</span><span class="p">)</span>
 
 <span class="c1"># Broken down -pipe- notation</span>
 <span class="p">[</span><span class="n">S1</span><span class="o">-</span><span class="mi">0</span><span class="p">,</span> <span class="n">feed</span><span class="p">]</span><span class="o">-</span><span class="n">M1</span>     <span class="c1"># M1.ins[:] = [S1.outs[0], feed]</span>
@@ -1424,10 +1424,10 @@ units:</p>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 System: sys1
- recycle: d6
+ recycle: d5
  network: (M1, F1, S1)
- convergence error: Flow rate   0.00e+00 <span class="ansi-white-fg">kmol/hr</span>
-                    Temperature 0.00e+00 <span class="ansi-white-fg">K</span>
+ convergence error: Flow rate   0.00e+00 kmol/hr
+                    Temperature 0.00e+00 K
  iterations: 0
 </pre></div></div>
 </div>
@@ -1446,7 +1446,8 @@ System: sys1
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/Getting_started_83_0.svg" src="_images/Getting_started_83_0.svg" /></div>
+<img alt="_images/Getting_started_83_0.png" src="_images/Getting_started_83_0.png" />
+</div>
 </div>
 <p>Simulate the System object:</p>
 <div class="nbinput docutils container">
@@ -1463,13 +1464,26 @@ System: sys1
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
 </div>
+<div class="stderr output_area docutils container">
+<div class="highlight"><pre>
+C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 1.8499520137993386e-08 reached
+  warnings.warn(msg, RuntimeWarning)
+C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 3.0562853226001607e-07 reached
+  warnings.warn(msg, RuntimeWarning)
+C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 7.95389780705591e-07 reached
+  warnings.warn(msg, RuntimeWarning)
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 System: sys1
- recycle: d6
+ recycle: d5
  network: (M1, F1, S1)
- convergence error: Flow rate   3.55e-02 <span class="ansi-white-fg">kmol/hr</span>
-                    Temperature 2.64e-03 <span class="ansi-white-fg">K</span>
+ convergence error: Flow rate   4.29e-02 kmol/hr
+                    Temperature 3.99e-03 K
  iterations: 7
 </pre></div></div>
 </div>
@@ -1478,16 +1492,10 @@ System: sys1
 </div>
 <div class="stderr output_area docutils container">
 <div class="highlight"><pre>
-C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 5.582530206993397e-07 reached
+C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 3.8928249068703735e-08 reached
   warnings.warn(msg, RuntimeWarning)
-C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 9.733344086271245e-08 reached
+C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of -1.9522678940120386e-07 reached
   warnings.warn(msg, RuntimeWarning)
-C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of -3.125683178950567e-08 reached
-  warnings.warn(msg, RuntimeWarning)
-C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of -8.274480478576152e-08 reached
-  warnings.warn(msg, RuntimeWarning)
-C:\Users\yoelr\OneDrive\Code\biosteam\biosteam\units\flash.py:222: DesignWarning: @Flash F1: Vertical vessel weight (4068 lb) is out of bounds (4200 to 1e+06 lb).
-  out = self._vertical()
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -1506,20 +1514,20 @@ C:\Users\yoelr\OneDrive\Code\biosteam\biosteam\units\flash.py:222: DesignWarning
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Flash: F1
-<span class="ansi-white-fg">ins...</span>
-[0] d5  from  Mixer-M1
-    phase: &#39;l&#39;, T: 326.58 K, P: 101325 Pa
-    flow (kmol/hr): Glycerol  160
-                    Water     480
-<span class="ansi-white-fg">outs...</span>
+ins...
+[0] d4  from  Mixer-M1
+    phase: &#39;l&#39;, T: 327.55 K, P: 101325 Pa
+    flow (kmol/hr): Glycerol  200
+                    Water     533
+outs...
 [0] product
-    phase: &#39;g&#39;, T: 376.18 K, P: 101325 Pa
-    flow (kmol/hr): Glycerol  0.061
-                    Water     320
+    phase: &#39;g&#39;, T: 377.44 K, P: 101325 Pa
+    flow (kmol/hr): Glycerol  0.0795
+                    Water     367
 [1] d2  to  Splitter-S1
-    phase: &#39;l&#39;, T: 376.18 K, P: 101325 Pa
-    flow (kmol/hr): Glycerol  160
-                    Water     160
+    phase: &#39;l&#39;, T: 377.44 K, P: 101325 Pa
+    flow (kmol/hr): Glycerol  200
+                    Water     167
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -1566,17 +1574,17 @@ Flash: F1
       <th rowspan="3" valign="top">Low pressure steam</th>
       <th>Duty</th>
       <td>kJ/hr</td>
-      <td>1.86e+07</td>
+      <td>2.15e+07</td>
     </tr>
     <tr>
       <th>Flow</th>
       <td>kg/hr</td>
-      <td>475</td>
+      <td>549</td>
     </tr>
     <tr>
       <th>Cost</th>
       <td>USD/hr</td>
-      <td>95</td>
+      <td>110</td>
     </tr>
     <tr>
       <th rowspan="5" valign="top">Design</th>
@@ -1587,45 +1595,45 @@ Flash: F1
     <tr>
       <th>Length</th>
       <td>ft</td>
-      <td>15.5</td>
+      <td>16.5</td>
     </tr>
     <tr>
       <th>Diameter</th>
       <td>ft</td>
-      <td>5.5</td>
+      <td>6.5</td>
     </tr>
     <tr>
       <th>Weight</th>
       <td>lb</td>
-      <td>4.07e+03</td>
+      <td>6.25e+03</td>
     </tr>
     <tr>
       <th>Wall thickness</th>
       <td>in</td>
-      <td>0.312</td>
+      <td>0.375</td>
     </tr>
     <tr>
       <th rowspan="2" valign="top">Cost</th>
       <th>Vessel</th>
       <td>USD</td>
-      <td>3.82e+04</td>
+      <td>4.78e+04</td>
     </tr>
     <tr>
       <th>Heat exchanger</th>
       <td>USD</td>
-      <td>2.25e+04</td>
+      <td>2.39e+04</td>
     </tr>
     <tr>
       <th>Purchase cost</th>
       <th></th>
       <td>USD</td>
-      <td>6.06e+04</td>
+      <td>7.17e+04</td>
     </tr>
     <tr>
       <th>Utility cost</th>
       <th></th>
       <td>USD/hr</td>
-      <td>95</td>
+      <td>110</td>
     </tr>
   </tbody>
 </table>

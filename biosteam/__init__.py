@@ -5,9 +5,8 @@ Created on Sat Oct 28 17:28:09 2017
 
 @author: Yoel Rene Cortes-Pena
 """
-name = 'biosteam'
 
-__all__ = ['exceptions', 'utils', 'inspect', 'find', 'Compound', 'Chemical', 'DissolvedCompound', 'Species', 'Stream', 'MixedStream', 'HeatUtility', 'PowerUtility', 'Unit', 'System', 'TEA', 'ProxyStream', 'inspect', 'Sensitivity']
+__all__ = ['units', 'evaluation', 'exceptions', 'inspect', 'find', 'compounds', 'Species', 'Stream', 'MixedStream', 'HeatUtility', 'PowerUtility', 'Unit', 'System', 'TEA']
 
 
 # %% Import base utils
@@ -17,16 +16,12 @@ import numpy as np
 from pint import UnitRegistry
 import os
 
-# Remove latex formating
-def _new_format(self): return self.__format__('')
-
 # Set pint Unit Registry
 ureg = UnitRegistry()
 ureg.default_format = '~P'
-dir_path = os.path.dirname(os.path.realpath(__file__)) + '/'
-ureg.load_definitions(dir_path + 'my_units_defs.txt')
-Q_ = ureg.Quantity
-Q_._repr_latex_ = Q_._repr_html_ = Q_.__str__ = Q_.__repr__ = _new_format
+ureg.load_definitions(os.path.dirname(os.path.realpath(__file__)) + '/my_units_defs.txt')
+_Q = ureg.Quantity
+_Q._repr_latex_ = _Q._repr_html_ = _Q.__str__ = _Q.__repr__ = lambda self: self.__format__('')
 
 # Set number of digits displayed
 np.set_printoptions(suppress=False)
@@ -35,60 +30,41 @@ pd.options.display.float_format = '{:.3g}'.format
 pd.set_option('display.max_rows', 35)
 pd.set_option('display.max_columns', 10)
 pd.set_option('max_colwidth', 35)
-
+del np, pd, os, UnitRegistry, ureg
 
 # %% Import biosteam classes
 
-from .compound import *
-from .chemical import *
-from .dissolved_compound import *
-from .species import *
-from .stream import *
-from .mixed_stream import *
-from .proxy_stream import *
-from .heat_utility import *
-from .power_utility import *
-from .unit import *
-from .sim import *
-from .system import *
-from .tea import *
-from .flowsheet import *
-from .report import *
-from .units import *
+from ._species import *
+from ._stream import *
+from ._mixed_stream import *
+from ._heat_utility import *
+from ._power_utility import *
+from ._unit import *
+from ._system import *
+from ._tea import *
+from ._flowsheet import *
 
 from . import exceptions
-from . import utils
 from . import inspect
-from . import compound 
-from . import chemical
-from . import dissolved_compound 
-from . import species 
-from . import stream
-from . import mixed_stream
-from . import proxy_stream
-from . import unit
-from . import heat_utility
-from . import power_utility
-from . import sim
-from . import system 
-from . import tea
-from . import flowsheet
-from . import report
+from . import compounds
+from . import _species 
+from . import _stream
+from . import _mixed_stream
+from . import _unit
+from . import _heat_utility
+from . import _power_utility
+from . import evaluation
+from . import _system 
+from . import _tea
+from . import _flowsheet
 from . import units
 
-__all__.extend(compound.__all__)
-__all__.extend(chemical.__all__)
-__all__.extend(dissolved_compound.__all__)
-__all__.extend(species.__all__)
-__all__.extend(stream.__all__)
-__all__.extend(mixed_stream.__all__)
-__all__.extend(proxy_stream.__all__)
-__all__.extend(heat_utility.__all__)
-__all__.extend(power_utility.__all__)
-__all__.extend(unit.__all__)
-__all__.extend(sim.__all__)
-__all__.extend(system.__all__)
-__all__.extend(tea.__all__)
-__all__.extend(flowsheet.__all__)
-__all__.extend(report.__all__)
-__all__.extend(units.__all__)
+__all__.extend(_species.__all__)
+__all__.extend(_stream.__all__)
+__all__.extend(_mixed_stream.__all__)
+__all__.extend(_heat_utility.__all__)
+__all__.extend(_power_utility.__all__)
+__all__.extend(_unit.__all__)
+__all__.extend(_system.__all__)
+__all__.extend(_tea.__all__)
+__all__.extend(_flowsheet.__all__)

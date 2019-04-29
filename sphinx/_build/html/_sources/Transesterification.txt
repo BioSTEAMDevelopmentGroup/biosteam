@@ -1,7 +1,7 @@
 Transesterification
 ===================
 
-.. module:: biosteam
+.. module:: biosteam.units
 
 .. autoclass:: Transesterification
    :members:

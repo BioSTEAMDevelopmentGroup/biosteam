@@ -1,0 +1,433 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>biosteam._report.table &#8212; BioSTEAM 0.1 documentation</title>
+    <link rel="stylesheet" href="../../../_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for biosteam._report.table</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Sat Nov 17 09:48:34 2018</span>
+
+<span class="sd">@author: yoelr</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">warnings</span> <span class="k">import</span> <span class="n">warn</span>
+<span class="kn">from</span> <span class="nn">.._stream</span> <span class="k">import</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">mol_flow_dim</span><span class="p">,</span> <span class="n">mass_flow_dim</span><span class="p">,</span> <span class="n">vol_flow_dim</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">_Q</span>
+<span class="kn">from</span> <span class="nn">..exceptions</span> <span class="k">import</span> <span class="n">DimensionError</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
+<span class="n">ExcelWriter</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">ExcelWriter</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;stream_table&#39;</span><span class="p">,</span> <span class="s1">&#39;cost_table&#39;</span><span class="p">,</span> <span class="s1">&#39;save_system_results&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;save_report&#39;</span><span class="p">,</span> <span class="s1">&#39;results_table&#39;</span><span class="p">,</span> <span class="s1">&#39;heat_utilities_table&#39;</span><span class="p">,</span>
+           <span class="s1">&#39;power_utilities_table&#39;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_stream_key</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="n">num</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">ID</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+    <span class="k">if</span> <span class="n">num</span><span class="o">.</span><span class="n">isnumeric</span><span class="p">():</span> <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+
+<span class="c1"># %% Helpful functions</span>
+
+<span class="k">def</span> <span class="nf">_units_sort_by_cost</span><span class="p">(</span><span class="n">units</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sort by first grouping units by line and then order groups by maximum capital.&quot;&quot;&quot;</span>
+    <span class="n">unit_lines</span> <span class="o">=</span> <span class="nb">list</span><span class="p">({</span><span class="n">u</span><span class="o">.</span><span class="n">line</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">})</span>
+    <span class="n">line_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">ut</span><span class="p">:[]</span> <span class="k">for</span> <span class="n">ut</span> <span class="ow">in</span> <span class="n">unit_lines</span><span class="p">}</span>
+    <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">:</span>
+        <span class="n">line_dict</span><span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">line</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">unit_lines</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">ut</span><span class="p">:</span> <span class="nb">max</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">_totalcosts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">line_dict</span><span class="p">[</span><span class="n">ut</span><span class="p">]),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">unit_lines</span><span class="p">:</span>
+        <span class="n">ulist</span> <span class="o">=</span> <span class="n">line_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+        <span class="n">ulist</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">_totalcosts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">units</span> <span class="o">+=</span> <span class="n">ulist</span>
+    <span class="k">return</span> <span class="n">units</span>
+
+<span class="k">def</span> <span class="nf">_save</span><span class="p">(</span><span class="n">tables</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">sheet_name</span><span class="o">=</span><span class="s1">&#39;Sheet1&#39;</span><span class="p">,</span> <span class="n">n_row</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Save a list of tables as an excel file.</span>
+<span class="sd">    </span>
+<span class="sd">    **Parameters**</span>
+<span class="sd">    </span>
+<span class="sd">        **tables:** iterable[DataFrame]</span>
+<span class="sd">        </span>
+<span class="sd">        **writer:** [ExcelWritter]</span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tables</span><span class="p">:</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">name</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="n">sheet_name</span><span class="p">,</span> 
+                   <span class="n">startrow</span><span class="o">=</span><span class="n">n_row</span><span class="p">,</span> <span class="n">index_label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+        <span class="n">n_row</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">index</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span>
+    
+    <span class="k">return</span> <span class="n">n_row</span>
+
+<span class="c1"># %% Units</span>
+
+<span class="k">def</span> <span class="nf">save_report</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="s1">&#39;report.xlsx&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">stream_properties</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Save a system report as an xlsx file.</span>
+<span class="sd">    </span>
+<span class="sd">    **Parameters**</span>
+<span class="sd">    </span>
+<span class="sd">        **file:** [str] File name to save report</span>
+<span class="sd">    </span>
+<span class="sd">        ****stream_properties:** [str] Additional stream properties and units as key-value pairs (e.g. T=&#39;degC&#39;, flow=&#39;gpm&#39;, H=&#39;kW&#39;, etc..)</span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">writer</span> <span class="o">=</span> <span class="n">ExcelWriter</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">_costunits</span><span class="p">)</span>
+    <span class="n">system</span><span class="o">.</span><span class="n">diagram</span><span class="p">(</span><span class="s1">&#39;thorough&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="s1">&#39;diagram.png&#39;</span><span class="p">)</span>
+    <span class="n">flowsheet</span> <span class="o">=</span> <span class="n">writer</span><span class="o">.</span><span class="n">book</span><span class="o">.</span><span class="n">add_worksheet</span><span class="p">(</span><span class="s1">&#39;Flowsheet&#39;</span><span class="p">)</span>
+    <span class="n">flowsheet</span><span class="o">.</span><span class="n">insert_image</span><span class="p">(</span><span class="s1">&#39;A1&#39;</span><span class="p">,</span> <span class="s1">&#39;diagram.png&#39;</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="n">system</span><span class="o">.</span><span class="n">_TEA</span><span class="p">:</span>
+        <span class="c1"># Cost table</span>
+        <span class="n">cost</span> <span class="o">=</span> <span class="n">cost_table</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
+        <span class="n">cost</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="s1">&#39;Itemized costs&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Cash flow</span>
+        <span class="n">TEA</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">_TEA</span>
+        <span class="n">TEA</span><span class="o">.</span><span class="n">cashflow</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="s1">&#39;Cash flow&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># TEA</span>
+        <span class="n">TEA</span><span class="o">.</span><span class="n">results</span><span class="p">()</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="s1">&#39;Techno-Economic Analysis&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">warn</span><span class="p">(</span><span class="ne">RuntimeWarning</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Cannot find TEA object in {repr(system)}. Ignoring TEA sheets.&#39;</span><span class="p">),</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    
+    
+    <span class="c1"># Stream tables</span>
+    <span class="c1"># Organize streams by species first</span>
+    <span class="n">streams_by_species</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">system</span><span class="o">.</span><span class="n">streams</span><span class="p">:</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">species</span>
+        <span class="k">if</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">streams_by_species</span><span class="p">:</span> <span class="n">streams_by_species</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> <span class="n">streams_by_species</span><span class="p">[</span><span class="n">s</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="n">streamtables</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">streams</span> <span class="ow">in</span> <span class="n">streams_by_species</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="n">streamtables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stream_table</span><span class="p">(</span><span class="n">streams</span><span class="p">,</span> <span class="o">**</span><span class="n">stream_properties</span><span class="p">))</span>
+    <span class="n">_save</span><span class="p">(</span><span class="n">streamtables</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="s1">&#39;Stream table&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Heat utility tables</span>
+    <span class="n">heat_utilities</span> <span class="o">=</span> <span class="n">heat_utilities_table</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+    <span class="n">n_row</span> <span class="o">=</span> <span class="n">_save</span><span class="p">(</span><span class="n">heat_utilities</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="s1">&#39;Utilities&#39;</span><span class="p">)</span>
+    
+    <span class="c1"># Power utility table</span>
+    <span class="n">power_utility</span> <span class="o">=</span> <span class="n">power_utilities_table</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+    <span class="n">power_utility</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="s1">&#39;Utilities&#39;</span><span class="p">,</span> 
+                           <span class="n">index_label</span><span class="o">=</span><span class="s1">&#39;Electricity&#39;</span><span class="p">,</span>
+                           <span class="n">startrow</span><span class="o">=</span><span class="n">n_row</span><span class="p">)</span>
+    
+    <span class="c1"># General desing requirements</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">results_table</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+    <span class="n">_save</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="s1">&#39;Design requirements&#39;</span><span class="p">)</span>
+    <span class="n">writer</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;diagram.png&quot;</span><span class="p">)</span>
+
+<span class="n">save_system_results</span> <span class="o">=</span> <span class="n">save_report</span>
+
+<span class="k">def</span> <span class="nf">results_table</span><span class="p">(</span><span class="n">units</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return a list of results tables for each unit type.</span>
+
+<span class="sd">    **Parameters**</span>
+
+<span class="sd">        **units:** iterable[Unit]</span>
+<span class="sd">        </span>
+<span class="sd">    **Returns:**</span>
+<span class="sd">    </span>
+<span class="sd">        **tables:** list[DataFrame]</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">units</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="p">(</span><span class="k">lambda</span> <span class="n">u</span><span class="p">:</span> <span class="n">u</span><span class="o">.</span><span class="n">line</span><span class="p">))</span>
+    
+    <span class="c1"># Organize units by units of measure:</span>
+    <span class="n">organized</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">:</span>
+        <span class="n">uom</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">_units</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">u</span><span class="o">.</span><span class="n">line</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">uom</span> <span class="ow">in</span> <span class="n">organized</span><span class="p">:</span> <span class="n">organized</span><span class="p">[</span><span class="n">uom</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> <span class="n">organized</span><span class="p">[</span><span class="n">uom</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">u</span><span class="p">]</span>
+    
+    <span class="c1"># Make a list of tables, keeping all results with same keys in one table</span>
+    <span class="n">tables</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">units</span> <span class="ow">in</span> <span class="n">organized</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+        <span class="c1"># First table with units of measure</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">units</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+            <span class="n">table</span><span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">results</span><span class="p">(</span><span class="n">with_units</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">line</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">tables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">tables</span>
+    
+<span class="k">def</span> <span class="nf">cost_table</span><span class="p">(</span><span class="n">system</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return a cost table as a pandas DataFrame object.</span>
+
+<span class="sd">    **Parameters**:</span>
+
+<span class="sd">        **units:** array_like[Unit]</span>
+<span class="sd">         </span>
+<span class="sd">    **Returns**</span>
+<span class="sd">    </span>
+<span class="sd">        **cost_table:** [DataFrame] </span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">columns</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Unit operation&#39;</span><span class="p">,</span>
+              <span class="n">f</span><span class="s1">&#39;Fixed capital investment (10^6 USD)&#39;</span><span class="p">,</span>
+              <span class="n">f</span><span class="s1">&#39;Utility cost (10^6 USD/yr)&#39;</span><span class="p">)</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">units</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">_costunits</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="n">_units_sort_by_cost</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+    
+    <span class="c1"># Initialize data</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">o</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">TEA</span><span class="o">.</span><span class="n">options</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">AE</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="s1">&#39;TEA&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Cannot find TEA object related to system. A TEA object of the system must be created first.&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="n">AE</span>
+    <span class="n">lang_factor</span> <span class="o">=</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Lang factor&#39;</span><span class="p">]</span>
+    <span class="n">operating_days</span> <span class="o">=</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Operating days&#39;</span><span class="p">]</span>
+    <span class="n">N_units</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+    <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">N_units</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+    <span class="n">IDs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">types</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="mi">0</span><span class="p">:,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">C_cap</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="mi">0</span><span class="p">:,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">C_op</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="mi">0</span><span class="p">:,</span> <span class="mi">2</span><span class="p">]</span>
+    
+    <span class="c1"># Get data</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N_units</span><span class="p">):</span>
+        <span class="n">unit</span> <span class="o">=</span> <span class="n">units</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">ci</span><span class="p">,</span> <span class="n">co</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">_totalcosts</span>
+        <span class="n">types</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">line</span>
+        <span class="n">C_cap</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">ci</span> <span class="o">*</span> <span class="n">lang_factor</span> <span class="o">/</span> <span class="mf">1e6</span>
+        <span class="n">C_op</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">co</span> <span class="o">*</span> <span class="n">operating_days</span> <span class="o">*</span> <span class="mi">24</span>  <span class="o">/</span> <span class="mf">1e6</span>
+        <span class="n">IDs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">IDs</span><span class="p">)</span>    
+
+<span class="k">def</span> <span class="nf">heat_utilities_table</span><span class="p">(</span><span class="n">units</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return a list of utility tables for each heat utility source.</span>
+<span class="sd">    </span>
+<span class="sd">    **Parameters**</span>
+<span class="sd">    </span>
+<span class="sd">        **units:** iterable[units]</span>
+<span class="sd">        </span>
+<span class="sd">    **Returns**</span>
+<span class="sd">    </span>
+<span class="sd">        **tables:** list[DataFrame]</span>
+<span class="sd">        </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Sort heat utilities by unit type, then by utility Type</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="p">(</span><span class="k">lambda</span> <span class="n">u</span><span class="p">:</span> <span class="nb">type</span><span class="p">(</span><span class="n">u</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">))</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">heat_utils</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">:</span>
+        <span class="n">hus</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">_heat_utilities</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">hus</span><span class="p">:</span> <span class="k">continue</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">hus</span><span class="p">:</span> <span class="n">source</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span>
+        <span class="n">heat_utils</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">hus</span><span class="p">)</span>
+
+    <span class="c1"># Organize heatutility by ID</span>
+    <span class="n">heat_utils_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">heat_utils</span><span class="p">:</span>
+        <span class="n">ID</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">ID</span>
+        <span class="k">if</span> <span class="n">ID</span> <span class="ow">in</span> <span class="n">heat_utils_dict</span><span class="p">:</span> <span class="n">heat_utils_dict</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> <span class="n">heat_utils_dict</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    
+    <span class="c1"># First table and set Type to compare with</span>
+    <span class="n">hu</span> <span class="o">=</span> <span class="n">heat_utils</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">Type</span> <span class="o">=</span> <span class="n">hu</span><span class="o">.</span><span class="n">ID</span>
+    
+    <span class="c1"># Make a list of tables, keeping all results with same Type in one table</span>
+    <span class="n">tables</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">Type</span><span class="p">,</span> <span class="n">heat_utils</span> <span class="ow">in</span> <span class="n">heat_utils_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">index</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">hu</span> <span class="ow">in</span> <span class="n">heat_utils</span><span class="p">:</span>
+            <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">source</span><span class="p">[</span><span class="n">hu</span><span class="p">]</span><span class="o">.</span><span class="n">line</span><span class="p">,</span> <span class="n">hu</span><span class="o">.</span><span class="n">duty</span><span class="p">,</span> <span class="n">hu</span><span class="o">.</span><span class="n">flow</span><span class="p">,</span> <span class="n">hu</span><span class="o">.</span><span class="n">cost</span><span class="p">))</span>
+            <span class="n">index</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">source</span><span class="p">[</span><span class="n">hu</span><span class="p">]</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span>
+                          <span class="n">columns</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Unit operation&#39;</span><span class="p">,</span>
+                                   <span class="s1">&#39;Duty (kJ/hr)&#39;</span><span class="p">,</span>
+                                   <span class="s1">&#39;Flow (kmol/hr)&#39;</span><span class="p">,</span>
+                                   <span class="s1">&#39;Cost (USD/hr)&#39;</span><span class="p">))</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">Type</span>
+        <span class="n">tables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tables</span>
+    
+
+<span class="k">def</span> <span class="nf">power_utilities_table</span><span class="p">(</span><span class="n">units</span><span class="p">):</span>
+    <span class="c1"># Sort power utilities by unit type</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="p">(</span><span class="k">lambda</span> <span class="n">u</span><span class="p">:</span> <span class="nb">type</span><span class="p">(</span><span class="n">u</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">))</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="p">[</span><span class="n">u</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span> <span class="k">if</span> <span class="n">u</span><span class="o">.</span><span class="n">_power_utility</span><span class="p">]</span>
+    <span class="n">power_utilities</span> <span class="o">=</span> <span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">_power_utility</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">]</span>
+    <span class="n">lenght</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">power_utilities</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">pu</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">lenght</span><span class="p">),</span> <span class="n">units</span><span class="p">,</span> <span class="n">power_utilities</span><span class="p">):</span>
+        <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">u</span><span class="o">.</span><span class="n">line</span><span class="p">,</span> <span class="n">pu</span><span class="o">.</span><span class="n">rate</span><span class="p">,</span> <span class="n">pu</span><span class="o">.</span><span class="n">cost</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">ID</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span> <span class="k">if</span> <span class="n">u</span><span class="o">.</span><span class="n">_power_utility</span><span class="p">],</span>
+                     <span class="n">columns</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Unit Operation&#39;</span><span class="p">,</span> <span class="s1">&#39;Rate (kW)&#39;</span><span class="p">,</span> <span class="s1">&#39;Cost (USD/hr)&#39;</span><span class="p">))</span>
+
+
+<span class="c1"># %% Streams</span>
+
+<span class="k">def</span> <span class="nf">stream_table</span><span class="p">(</span><span class="n">streams</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="s1">&#39;kg/min&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">props</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;DataFrame&#39;</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Return a stream table as a pandas DataFrame object.</span>
+
+<span class="sd">    **Parameters**:</span>
+
+<span class="sd">         **streams:** array_like[Stream]</span>
+<span class="sd">        </span>
+<span class="sd">         **Flow:** [str] Units for flow rate</span>
+
+<span class="sd">         **props:** [str] Additional stream properties and units as key-value pairs</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Get correct flow attributes</span>
+    <span class="n">flow_dim</span> <span class="o">=</span> <span class="n">_Q</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">flow</span><span class="p">)</span><span class="o">.</span><span class="n">dimensionality</span>
+    <span class="k">if</span> <span class="n">flow_dim</span> <span class="o">==</span> <span class="n">mol_flow_dim</span><span class="p">:</span>
+        <span class="n">flow_attr</span> <span class="o">=</span> <span class="s1">&#39;mol&#39;</span>
+    <span class="k">elif</span> <span class="n">flow_dim</span> <span class="o">==</span> <span class="n">mass_flow_dim</span><span class="p">:</span>
+        <span class="n">flow_attr</span> <span class="o">=</span> <span class="s1">&#39;mass&#39;</span>
+    <span class="k">elif</span> <span class="n">flow_dim</span> <span class="o">==</span> <span class="n">vol_flow_dim</span><span class="p">:</span>
+        <span class="n">flow_attr</span> <span class="o">=</span> <span class="s1">&#39;vol&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">DimensionError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Dimensions for flow units must be in molar, mass or volumetric flow rates, not &#39;</span><span class="si">{flow_dim}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+    
+    <span class="c1"># Prepare rows and columns</span>
+    <span class="n">ss</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">streams</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">_stream_key</span><span class="p">)</span>
+    <span class="n">species</span> <span class="o">=</span> <span class="n">ss</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_IDs</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">ss</span><span class="p">)</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">props</span><span class="p">)</span>
+    <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">m</span><span class="o">+</span><span class="n">p</span><span class="o">+</span><span class="mi">5</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+    <span class="n">IDs</span> <span class="o">=</span> <span class="n">n</span><span class="o">*</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+    <span class="n">sources</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">sinks</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">phases</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">prop_molar_data</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="mi">3</span><span class="o">+</span><span class="n">p</span><span class="o">+</span><span class="mi">1</span><span class="p">,:]</span>
+    <span class="n">flows</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="n">p</span><span class="o">+</span><span class="mi">3</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">array</span><span class="p">[</span><span class="n">p</span><span class="o">+</span><span class="mi">4</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">fracs</span> <span class="o">=</span> <span class="n">array</span><span class="p">[</span><span class="n">p</span><span class="o">+</span><span class="mi">5</span><span class="p">:</span><span class="n">m</span><span class="o">+</span><span class="n">p</span><span class="o">+</span><span class="mi">5</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">ss</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+        <span class="n">sources</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">source</span> <span class="ow">or</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
+        <span class="n">sinks</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">sink</span> <span class="ow">or</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
+        <span class="n">IDs</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">ID</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">phase</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="s1">&#39;l&#39;</span><span class="p">:</span>
+                <span class="n">phase</span> <span class="o">+=</span> <span class="s1">&#39;liquid|&#39;</span>
+            <span class="k">elif</span> <span class="n">i</span> <span class="o">==</span> <span class="s1">&#39;L&#39;</span><span class="p">:</span>
+                <span class="n">phase</span> <span class="o">+=</span> <span class="s1">&#39;LIQUID|&#39;</span>
+            <span class="k">elif</span> <span class="n">i</span> <span class="o">==</span> <span class="s1">&#39;g&#39;</span><span class="p">:</span>
+                <span class="n">phase</span> <span class="o">+=</span> <span class="s1">&#39;gas|&#39;</span>
+            <span class="k">elif</span> <span class="n">i</span> <span class="o">==</span> <span class="s1">&#39;s&#39;</span><span class="p">:</span>
+                <span class="n">phase</span> <span class="o">+=</span> <span class="s1">&#39;solid|&#39;</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;|&#39;</span><span class="p">)</span>
+        <span class="n">phases</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">phase</span>
+        <span class="n">flow_j</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">flow_attr</span><span class="p">)</span>
+        <span class="n">flows</span><span class="p">[</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">net_j</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">flow_j</span><span class="p">)</span>
+        <span class="n">fracs</span><span class="p">[:,</span><span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">flow_j</span><span class="o">/</span><span class="n">net_j</span> <span class="k">if</span> <span class="n">net_j</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">attr</span><span class="p">,</span> <span class="n">unit</span> <span class="ow">in</span> <span class="n">props</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">prop_molar_data</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+    
+    <span class="c1"># Set the right units</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="n">Stream</span><span class="o">.</span><span class="n">units</span>
+    <span class="n">flows</span> <span class="o">=</span> <span class="n">_Q</span><span class="p">(</span><span class="n">flows</span><span class="p">,</span> <span class="n">units</span><span class="p">[</span><span class="n">flow_attr</span><span class="p">]);</span> <span class="n">flows</span><span class="o">.</span><span class="n">ito</span><span class="p">(</span><span class="n">flow</span><span class="p">);</span> <span class="n">flows</span> <span class="o">=</span> <span class="n">flows</span><span class="o">.</span><span class="n">magnitude</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">prop_molar_keys</span> <span class="o">=</span> <span class="n">p</span><span class="o">*</span><span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">attr</span><span class="p">,</span> <span class="n">unit</span> <span class="ow">in</span> <span class="n">props</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">prop_molar_data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">_Q</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">units</span><span class="p">[</span><span class="n">attr</span><span class="p">]);</span> <span class="n">p</span><span class="o">.</span><span class="n">ito</span><span class="p">(</span><span class="n">unit</span><span class="p">);</span> <span class="n">p</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">magnitude</span>
+        <span class="n">prop_molar_keys</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;</span><span class="si">{attr}</span><span class="s1"> (</span><span class="si">{unit}</span><span class="s1">)&#39;</span>
+        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+    
+    <span class="c1"># Add spaces for readability</span>
+    <span class="n">species</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">species</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+        <span class="n">species</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;- &#39;</span> <span class="o">+</span> <span class="n">species</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    
+    <span class="c1"># Make data frame object</span>
+    <span class="n">index</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Source&#39;</span><span class="p">,</span> <span class="s1">&#39;Sink&#39;</span><span class="p">,</span> <span class="s1">&#39;Phase&#39;</span><span class="p">)</span>  <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">prop_molar_keys</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">f</span><span class="s1">&#39;flow (</span><span class="si">{flow}</span><span class="s1">)&#39;</span><span class="p">,</span> <span class="s1">&#39;Composition:&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">IDs</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">)</span>
+
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>

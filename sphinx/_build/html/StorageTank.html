@@ -16,8 +16,8 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Centrifuge_LLE" href="Centrifuge_LLE Example.html" />
-    <link rel="prev" title="Transesterification" href="Splitter.html" /> 
+    <link rel="next" title="Transesterification" href="Transesterification.html" />
+    <link rel="prev" title="Splitter" href="Splitter.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -29,10 +29,10 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="Centrifuge_LLE Example.html" title="Centrifuge_LLE"
+          <a href="Transesterification.html" title="Transesterification"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="Splitter.html" title="Transesterification"
+          <a href="Splitter.html" title="Splitter"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
       </ul>
@@ -41,10 +41,10 @@
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
   <p class="topless"><a href="Splitter.html"
-                        title="previous chapter">Transesterification</a></p>
+                        title="previous chapter">Splitter</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="Centrifuge_LLE Example.html"
-                        title="next chapter">Centrifuge_LLE</a></p>
+  <p class="topless"><a href="Transesterification.html"
+                        title="next chapter">Transesterification</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -72,11 +72,11 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-biosteam">
-<span id="storagetank"></span><h1>StorageTank<a class="headerlink" href="#module-biosteam" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-biosteam.units">
+<span id="storagetank"></span><h1>StorageTank<a class="headerlink" href="#module-biosteam.units" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
-<dt id="biosteam.StorageTank">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">StorageTank</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/tank.html#StorageTank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.StorageTank" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.StorageTank">
+<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">StorageTank</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_tank.html#StorageTank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.StorageTank" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a storage tank with volume based on residence time [1].</p>
 <blockquote>
 <div><div class="math notranslate nohighlight">
@@ -88,14 +88,14 @@ C_{fob}^{2007} &amp;= 250000 + 94.2 V (2*10^3 &lt; V &lt; 50*10^3 m^3) \\\end{sp
 </div></blockquote>
 <p>Thessalonika, Greece, 2008 (book in Greek).</p>
 <dl class="attribute">
-<dt id="biosteam.StorageTank.ID">
-<code class="descname">ID</code><a class="headerlink" href="#biosteam.StorageTank.ID" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.StorageTank.ID">
+<code class="descname">ID</code><a class="headerlink" href="#biosteam.units.StorageTank.ID" title="Permalink to this definition">¶</a></dt>
 <dd><p>Unique Identification (str). If set as ‘’, it will choose a default ID.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.StorageTank.diagram">
-<code class="descname">diagram</code><span class="sig-paren">(</span><em>radius=0</em>, <em>file=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.StorageTank.diagram" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.StorageTank.diagram">
+<code class="descname">diagram</code><span class="sig-paren">(</span><em>radius=0</em>, <em>file=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.StorageTank.diagram" title="Permalink to this definition">¶</a></dt>
 <dd><p>Display a <a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz</a> diagram of the unit and all neighboring units within given radius.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -112,32 +112,32 @@ C_{fob}^{2007} &amp;= 250000 + 94.2 V (2*10^3 &lt; V &lt; 50*10^3 m^3) \\\end{sp
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.StorageTank.reset">
-<code class="descname">reset</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.StorageTank.reset" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.StorageTank.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.StorageTank.reset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reset unit with new kwargs.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.StorageTank.results">
-<code class="descname">results</code><span class="sig-paren">(</span><em>with_units=True</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.StorageTank.results" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.StorageTank.results">
+<code class="descname">results</code><span class="sig-paren">(</span><em>with_units=True</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.StorageTank.results" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return key results from simulation as a DataFrame if <cite>with_units</cite> is True or as a Series otherwise.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.StorageTank.show">
-<code class="descname">show</code><span class="sig-paren">(</span><em>**show_units</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.StorageTank.show" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.StorageTank.show">
+<code class="descname">show</code><span class="sig-paren">(</span><em>**show_units</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.StorageTank.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prints information on unit.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.StorageTank.simulate">
-<code class="descname">simulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.StorageTank.simulate" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.StorageTank.simulate">
+<code class="descname">simulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.StorageTank.simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run rigourous simulation and determine all design requirements.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.StorageTank.tau">
-<code class="descname">tau</code><a class="headerlink" href="#biosteam.StorageTank.tau" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.StorageTank.tau">
+<code class="descname">tau</code><a class="headerlink" href="#biosteam.units.StorageTank.tau" title="Permalink to this definition">¶</a></dt>
 <dd><p>Residence time (hr).</p>
 </dd></dl>
 
@@ -161,10 +161,10 @@ C_{fob}^{2007} &amp;= 250000 + 94.2 V (2*10^3 &lt; V &lt; 50*10^3 m^3) \\\end{sp
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="Centrifuge_LLE Example.html" title="Centrifuge_LLE"
+          <a href="Transesterification.html" title="Transesterification"
              >next</a> |</li>
         <li class="right" >
-          <a href="Splitter.html" title="Transesterification"
+          <a href="Splitter.html" title="Splitter"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
       </ul>

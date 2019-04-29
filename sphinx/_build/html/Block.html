@@ -16,7 +16,7 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Sensitivity" href="Sensitivity.html" /> 
+    <link rel="prev" title="Grid" href="Grid.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -28,17 +28,17 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="Sensitivity.html" title="Sensitivity"
+          <a href="Grid.html" title="Grid"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="sim.html" accesskey="U">sim</a> &#187;</li> 
+          <li class="nav-item nav-item-1"><a href="evaluation.html" accesskey="U">evaluation</a> &#187;</li> 
       </ul>
     </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
-  <p class="topless"><a href="Sensitivity.html"
-                        title="previous chapter">Sensitivity</a></p>
+  <p class="topless"><a href="Grid.html"
+                        title="previous chapter">Grid</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -66,11 +66,11 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-biosteam">
-<span id="block"></span><h1>Block<a class="headerlink" href="#module-biosteam" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-biosteam.evaluation">
+<span id="block"></span><h1>Block<a class="headerlink" href="#module-biosteam.evaluation" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
-<dt id="biosteam.Block">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Block</code><span class="sig-paren">(</span><em>element</em>, <em>system=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/sim/block.html#Block"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Block" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.evaluation.Block">
+<em class="property">class </em><code class="descclassname">biosteam.evaluation.</code><code class="descname">Block</code><span class="sig-paren">(</span><em>element</em>, <em>system=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/evaluation/_block.html#Block"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Block" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Block object that can simulate the element and the system downstream. The block can also generate block functions.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -132,27 +132,21 @@
 <p class="last">The function signature matches the setter while the function name matches the getter.</p>
 </div>
 <dl class="attribute">
-<dt id="biosteam.Block.system">
-<code class="descname">system</code><a class="headerlink" href="#biosteam.Block.system" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.evaluation.Block.system">
+<code class="descname">system</code><a class="headerlink" href="#biosteam.evaluation.Block.system" title="Permalink to this definition">¶</a></dt>
 <dd><p>System that the block simulates.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.Block.element">
-<code class="descname">element</code><a class="headerlink" href="#biosteam.Block.element" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.evaluation.Block.element">
+<code class="descname">element</code><a class="headerlink" href="#biosteam.evaluation.Block.element" title="Permalink to this definition">¶</a></dt>
 <dd><p>Block element that gets checked for changes before simulation.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.Block.simulate">
-<code class="descname">simulate</code><a class="headerlink" href="#biosteam.Block.simulate" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.evaluation.Block.simulate">
+<code class="descname">simulate</code><a class="headerlink" href="#biosteam.evaluation.Block.simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Simulate block system if block element has changed. If block element has not changed, simulate only the element.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.Block.emptyblock">
-<code class="descname">emptyblock</code><em class="property"> = [Block]</em><a class="headerlink" href="#biosteam.Block.emptyblock" title="Permalink to this definition">¶</a></dt>
-<dd><p>A Block object without a Unit or a System object.</p>
 </dd></dl>
 
 </dd></dl>
@@ -175,10 +169,10 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="Sensitivity.html" title="Sensitivity"
+          <a href="Grid.html" title="Grid"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
-          <li class="nav-item nav-item-1"><a href="sim.html" >sim</a> &#187;</li> 
+          <li class="nav-item nav-item-1"><a href="evaluation.html" >evaluation</a> &#187;</li> 
       </ul>
     </div>
     <div class="footer" role="contentinfo">

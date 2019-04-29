@@ -1,7 +1,7 @@
 Compound
 ========
 
-.. module:: biosteam
+.. module:: biosteam.compounds
 
 .. autoclass:: Compound
    :members:

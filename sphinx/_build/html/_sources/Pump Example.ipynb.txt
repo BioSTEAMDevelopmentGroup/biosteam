@@ -90,7 +90,8 @@
     }
    ],
    "source": [
-    "from biosteam import Species, Stream, Pump\n",
+    "from biosteam import Species, Stream\n",
+    "from biosteam.units import Pump\n",
     "Stream.species = Species('Water', 'Ethanol')\n",
     "\n",
     "# Simulate pump\n",

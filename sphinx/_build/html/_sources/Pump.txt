@@ -1,7 +1,7 @@
 Pump
 ====
 
-.. module:: biosteam
+.. module:: biosteam.units
 
 .. autoclass:: Pump
    :members:

@@ -378,7 +378,7 @@
             <span class="k">if</span> <span class="n">unit_not_found</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{unit}</span><span class="s1"> not found in system&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">downstream_facilities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">facilities</span>
-        <span class="n">system</span> <span class="o">=</span> <span class="n">System</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;{type(unit).__name__}-</span><span class="si">{unit}</span><span class="s1"> and downstream&#39;</span><span class="p">,</span> <span class="n">network</span><span class="p">,</span>
+        <span class="n">system</span> <span class="o">=</span> <span class="n">System</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;{type(unit).__name__} </span><span class="si">{unit}</span><span class="s1"> and downstream&#39;</span><span class="p">,</span> <span class="n">network</span><span class="p">,</span>
                         <span class="n">facilities</span><span class="o">=</span><span class="n">downstream_facilities</span><span class="p">)</span>
         <span class="n">cached</span><span class="p">[</span><span class="n">unit</span><span class="p">]</span> <span class="o">=</span> <span class="n">system</span>
         <span class="k">return</span> <span class="n">system</span>
@@ -736,7 +736,6 @@
 
     <span class="k">def</span> <span class="nf">_error_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return information on convergence.&quot;&quot;&quot;</span>
-        <span class="n">CS</span> <span class="o">=</span> <span class="n">color_scheme</span>
         <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solver_error</span>
         <span class="n">recycle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recycle</span>
 
@@ -747,8 +746,8 @@
             <span class="n">error_info</span> <span class="o">+=</span> <span class="n">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> specification error: </span><span class="si">{spec:.3g}</span><span class="s1">&#39;</span>
 
         <span class="k">if</span> <span class="n">recycle</span><span class="p">:</span>
-            <span class="n">error_info</span> <span class="o">+=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> convergence error: Flow rate   </span><span class="si">{x[&#39;mol_error&#39;]:.2e}</span><span class="s2"> {CS.dim(&#39;kmol/hr&#39;)}&quot;</span>
-            <span class="n">error_info</span> <span class="o">+=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">                    Temperature </span><span class="si">{x[&#39;T_error&#39;]:.2e}</span><span class="s2"> {CS.dim(&#39;K&#39;)}&quot;</span>
+            <span class="n">error_info</span> <span class="o">+=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> convergence error: Flow rate   </span><span class="si">{x[&#39;mol_error&#39;]:.2e}</span><span class="s2"> kmol/hr&quot;</span>
+            <span class="n">error_info</span> <span class="o">+=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">                    Temperature </span><span class="si">{x[&#39;T_error&#39;]:.2e}</span><span class="s2"> K&quot;</span>
 
         <span class="k">if</span> <span class="n">spec</span> <span class="ow">or</span> <span class="n">recycle</span><span class="p">:</span>
             <span class="n">error_info</span> <span class="o">+=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> iterations: </span><span class="si">{x[&#39;iter&#39;]}</span><span class="s2">&quot;</span>

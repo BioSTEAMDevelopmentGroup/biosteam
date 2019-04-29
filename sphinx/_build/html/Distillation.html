@@ -72,11 +72,11 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-biosteam">
-<span id="distillation"></span><h1>Distillation<a class="headerlink" href="#module-biosteam" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="module-biosteam.units">
+<span id="distillation"></span><h1>Distillation<a class="headerlink" href="#module-biosteam.units" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
-<dt id="biosteam.Distillation">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Distillation</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>P=101325</em>, <em>LHK=None</em>, <em>y_top=None</em>, <em>x_bot=None</em>, <em>k=1.25</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/distillation.html#Distillation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Distillation" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Distillation">
+<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">Distillation</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>P=101325</em>, <em>LHK=None</em>, <em>y_top=None</em>, <em>x_bot=None</em>, <em>k=1.25</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_distillation.html#Distillation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Distillation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Distillation column that assumes all light and heavy non keys separate to the top and bottoms product respectively. McCabe-Thiele analysis is used to find both the number of stages and the reflux ratio given a ratio of actual reflux to minimum reflux [1]. This assumption is good for both binary distillation of highly polar compounds and ternary distillation assuming complete separation of light non-keys and heavy non-keys with large differences in boiling points. Preliminary analysis showed that the theoretical number of stages using this method on Methanol/Glycerol/Water systems is off by less than +-1 stage. Other methods, such as the Fenske-Underwood-Gilliland method, are more suitable for hydrocarbons. The Murphree efficiency is based on the modified O’Connell correlation [2]. The diameter is based on tray separation and flooding velocity [1].</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -106,44 +106,44 @@
 <blockquote>
 <div><a class="reference internal" href="Distillation Example.html"><span class="doc">Distillation</span></a></div></blockquote>
 <dl class="attribute">
-<dt id="biosteam.Distillation.is_divided">
-<code class="descname">is_divided</code><a class="headerlink" href="#biosteam.Distillation.is_divided" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Distillation.is_divided">
+<code class="descname">is_divided</code><a class="headerlink" href="#biosteam.units.Distillation.is_divided" title="Permalink to this definition">¶</a></dt>
 <dd><p>[bool] True if the stripper and rectifier are two separate columns.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.Distillation.plot_stages">
-<code class="descname">plot_stages</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/distillation.html#Distillation.plot_stages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Distillation.plot_stages" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Distillation.plot_stages">
+<code class="descname">plot_stages</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_distillation.html#Distillation.plot_stages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Distillation.plot_stages" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the McCabe Thiele Diagram.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.Distillation.A_dn">
-<code class="descname">A_dn</code><a class="headerlink" href="#biosteam.Distillation.A_dn" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Distillation.A_dn">
+<code class="descname">A_dn</code><a class="headerlink" href="#biosteam.units.Distillation.A_dn" title="Permalink to this definition">¶</a></dt>
 <dd><p>Enforced ratio of downcomer area to net (total) area. If None, estimate ratio based on Oliver’s estimation [1].</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.Distillation.A_ha">
-<code class="descname">A_ha</code><a class="headerlink" href="#biosteam.Distillation.A_ha" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Distillation.A_ha">
+<code class="descname">A_ha</code><a class="headerlink" href="#biosteam.units.Distillation.A_ha" title="Permalink to this definition">¶</a></dt>
 <dd><p>Ratio of open area, A_h, to active area, A_a.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.Distillation.F_F">
-<code class="descname">F_F</code><a class="headerlink" href="#biosteam.Distillation.F_F" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Distillation.F_F">
+<code class="descname">F_F</code><a class="headerlink" href="#biosteam.units.Distillation.F_F" title="Permalink to this definition">¶</a></dt>
 <dd><p>Foaming factor (0 &lt; F_F &lt; 1).</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.Distillation.ID">
-<code class="descname">ID</code><a class="headerlink" href="#biosteam.Distillation.ID" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Distillation.ID">
+<code class="descname">ID</code><a class="headerlink" href="#biosteam.units.Distillation.ID" title="Permalink to this definition">¶</a></dt>
 <dd><p>Unique Identification (str). If set as ‘’, it will choose a default ID.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.Distillation.diagram">
-<code class="descname">diagram</code><span class="sig-paren">(</span><em>radius=0</em>, <em>file=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.Distillation.diagram" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Distillation.diagram">
+<code class="descname">diagram</code><span class="sig-paren">(</span><em>radius=0</em>, <em>file=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.diagram" title="Permalink to this definition">¶</a></dt>
 <dd><p>Display a <a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz</a> diagram of the unit and all neighboring units within given radius.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -160,56 +160,56 @@
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.Distillation.f">
-<code class="descname">f</code><a class="headerlink" href="#biosteam.Distillation.f" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Distillation.f">
+<code class="descname">f</code><a class="headerlink" href="#biosteam.units.Distillation.f" title="Permalink to this definition">¶</a></dt>
 <dd><p>Ratio of actual velocity to maximum velocity allowable before flooding.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.Distillation.reset">
-<code class="descname">reset</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.Distillation.reset" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Distillation.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.reset" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reset unit with new kwargs.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.Distillation.results">
-<code class="descname">results</code><span class="sig-paren">(</span><em>with_units=True</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.Distillation.results" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Distillation.results">
+<code class="descname">results</code><span class="sig-paren">(</span><em>with_units=True</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.results" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return key results from simulation as a DataFrame if <cite>with_units</cite> is True or as a Series otherwise.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.Distillation.show">
-<code class="descname">show</code><span class="sig-paren">(</span><em>**show_units</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.Distillation.show" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Distillation.show">
+<code class="descname">show</code><span class="sig-paren">(</span><em>**show_units</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prints information on unit.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.Distillation.simulate">
-<code class="descname">simulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.Distillation.simulate" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Distillation.simulate">
+<code class="descname">simulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run rigourous simulation and determine all design requirements.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.Distillation.stage_efficiency">
-<code class="descname">stage_efficiency</code><a class="headerlink" href="#biosteam.Distillation.stage_efficiency" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Distillation.stage_efficiency">
+<code class="descname">stage_efficiency</code><a class="headerlink" href="#biosteam.units.Distillation.stage_efficiency" title="Permalink to this definition">¶</a></dt>
 <dd><p>Enforced user defined stage efficiency.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.Distillation.tray_material">
-<code class="descname">tray_material</code><a class="headerlink" href="#biosteam.Distillation.tray_material" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Distillation.tray_material">
+<code class="descname">tray_material</code><a class="headerlink" href="#biosteam.units.Distillation.tray_material" title="Permalink to this definition">¶</a></dt>
 <dd><p>Default ‘Carbon steel’</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.Distillation.tray_type">
-<code class="descname">tray_type</code><a class="headerlink" href="#biosteam.Distillation.tray_type" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Distillation.tray_type">
+<code class="descname">tray_type</code><a class="headerlink" href="#biosteam.units.Distillation.tray_type" title="Permalink to this definition">¶</a></dt>
 <dd><p>Default ‘Sieve’</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.Distillation.vessel_material">
-<code class="descname">vessel_material</code><a class="headerlink" href="#biosteam.Distillation.vessel_material" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Distillation.vessel_material">
+<code class="descname">vessel_material</code><a class="headerlink" href="#biosteam.units.Distillation.vessel_material" title="Permalink to this definition">¶</a></dt>
 <dd><p>Default ‘Carbon steel’</p>
 </dd></dl>
 

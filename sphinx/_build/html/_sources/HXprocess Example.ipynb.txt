@@ -117,7 +117,8 @@
     }
    ],
    "source": [
-    "from biosteam import Species, Stream, HXprocess\n",
+    "from biosteam import Species, Stream\n",
+    "from biosteam.units import HXprocess\n",
     "Stream.species = Species('Water', 'Ethanol')\n",
     "\n",
     "# Simulate counter-current heat exchanger\n",

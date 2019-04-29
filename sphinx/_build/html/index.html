@@ -40,9 +40,8 @@
 <li><a class="reference internal" href="#">BioSTEAM: The Open-Source Bioprocess Simulation and Techno-Economic Analysis Modules in Python</a><ul>
 <li><a class="reference internal" href="#overview">Overview</a></li>
 <li><a class="reference internal" href="#tutorial">Tutorial</a></li>
-<li><a class="reference internal" href="#base-classes">Base Classes</a></li>
-<li><a class="reference internal" href="#unit-operations">Unit Operations</a></li>
-<li><a class="reference internal" href="#unit-examples">Unit Examples</a></li>
+<li><a class="reference internal" href="#biosteam-api">BioSTEAM API</a></li>
+<li><a class="reference internal" href="#unit-operation-examples">Unit Operation Examples</a></li>
 <li><a class="reference internal" href="#advanced-simulation">Advanced Simulation</a></li>
 </ul>
 </li>
@@ -133,7 +132,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">Techno-economic analysis of a biorefinery</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html#Perform-cash-flow-analysis">Perform cash flow analysis</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html#Find-operating-cost,-price,-and-IRR">Find operating cost, price, and IRR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html#Find-production-cost,-price,-and-IRR">Find production cost, price, and IRR</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html#System-report">System report</a></li>
 </ul>
 </li>
@@ -147,13 +146,10 @@
 </ul>
 </div>
 </div>
-<div class="section" id="base-classes">
-<h2>Base Classes<a class="headerlink" href="#base-classes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="biosteam-api">
+<h2>BioSTEAM API<a class="headerlink" href="#biosteam-api" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="Compound.html">Compound</a></li>
-<li class="toctree-l1"><a class="reference internal" href="DissolvedCompound.html">DissolvedCompound</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Chemical.html">Chemical</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Species.html">Species</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Stream.html">Stream</a></li>
 <li class="toctree-l1"><a class="reference internal" href="MixedStream.html">MixedStream</a></li>
@@ -163,33 +159,13 @@
 <li class="toctree-l1"><a class="reference internal" href="System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="find.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units.html">units</a></li>
 </ul>
 </div>
 </div>
-<div class="section" id="unit-operations">
-<h2>Unit Operations<a class="headerlink" href="#unit-operations" title="Permalink to this headline">¶</a></h2>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="Centrifuge_LLE.html">Centrifuge_LLE</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Distillation.html">Distillation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Fermentation.html">Fermentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Flash.html">Flash</a></li>
-<li class="toctree-l1"><a class="reference internal" href="HXprocess.html">HXprocess</a></li>
-<li class="toctree-l1"><a class="reference internal" href="HXutility.html">HXutility</a></li>
-<li class="toctree-l1"><a class="reference internal" href="MassBalance.html">MassBalance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="MixTank.html">MixTank</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Mixer.html">Mixer</a></li>
-<li class="toctree-l1"><a class="reference internal" href="MolecularSieve.html">MolecularSieve</a></li>
-<li class="toctree-l1"><a class="reference internal" href="MultiEffectEvaporator.html">MultiEffectEvaporator</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Pump.html">Pump</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Splitter.html">Splitter</a></li>
-<li class="toctree-l1"><a class="reference internal" href="StorageTank.html">StorageTank</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Transesterification.html">Transesterification</a></li>
-</ul>
-</div>
-</div>
-<div class="section" id="unit-examples">
-<h2>Unit Examples<a class="headerlink" href="#unit-examples" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="unit-operation-examples">
+<h2>Unit Operation Examples<a class="headerlink" href="#unit-operation-examples" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="Centrifuge_LLE Example.html">Centrifuge_LLE</a></li>
@@ -209,8 +185,8 @@
 <h2>Advanced Simulation<a class="headerlink" href="#advanced-simulation" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="sim.html">sim</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="Sensitivity.html">Sensitivity</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluation.html">evaluation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Grid.html">Grid</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Block.html">Block</a></li>
 </ul>
 </li>

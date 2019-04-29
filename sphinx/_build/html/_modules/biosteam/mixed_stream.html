@@ -64,7 +64,7 @@
 <span class="kn">from</span> <span class="nn">.stream</span> <span class="k">import</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">nonzero_species</span><span class="p">,</span> <span class="n">MassFlow</span><span class="p">,</span> \
                             <span class="n">mol_flow_dim</span><span class="p">,</span> <span class="n">mass_flow_dim</span><span class="p">,</span> <span class="n">vol_flow_dim</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">fraction</span><span class="p">,</span> <span class="n">tuple_array</span><span class="p">,</span> <span class="n">material_array</span><span class="p">,</span> \
-                           <span class="n">PropertyFactory</span><span class="p">,</span> <span class="n">property_array</span><span class="p">,</span> <span class="n">CS</span>
+                           <span class="n">PropertyFactory</span><span class="p">,</span> <span class="n">property_array</span>
 <span class="kn">from</span> <span class="nn">.exceptions</span> <span class="k">import</span> <span class="n">EquilibriumError</span><span class="p">,</span> <span class="n">DimensionError</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">np</span><span class="p">,</span> <span class="n">Q_</span>
 
@@ -1244,10 +1244,8 @@
             <span class="c1"># Add header to flow rates</span>
             <span class="k">if</span> <span class="n">first_phase</span><span class="p">:</span>
                 <span class="n">spaces</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="p">(</span><span class="n">maxlen</span> <span class="o">-</span> <span class="mi">7</span><span class="p">)</span>
-                <span class="n">beginning</span> <span class="o">=</span> <span class="p">(</span><span class="n">new_line_spaces</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span>
-                             <span class="n">CS</span><span class="o">.</span><span class="n">dim</span><span class="p">(</span><span class="s1">&#39; species&#39;</span> <span class="o">+</span> 
-                             <span class="n">spaces</span> <span class="o">+</span> <span class="s1">&#39;  &#39;</span> <span class="o">+</span> <span class="n">flow_units</span><span class="p">)</span> <span class="o">+</span> 
-                             <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">beginning</span><span class="p">)</span>
+                <span class="n">beginning</span> <span class="o">=</span> <span class="p">(</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{new_line_spaces}</span><span class="s1">species</span><span class="si">{spaces}</span><span class="s1">  </span><span class="si">{flow_units}</span><span class="se">\n</span><span class="s1">&#39;</span>
+                             <span class="o">+</span> <span class="n">beginning</span><span class="p">)</span>
 
             <span class="c1"># Put it together</span>
             <span class="n">phases_flowrates_info</span> <span class="o">+=</span> <span class="n">beginning</span> <span class="o">+</span> <span class="n">flowrates</span> <span class="o">+</span> <span class="n">end</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span>
