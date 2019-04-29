@@ -26,7 +26,7 @@ setup(
     package_data=
         {'biosteam': ['equilibrium/*', 'inspect/*', 'price/*', 'report/*',
                       'my_units_defs.txt', 'utils/*', 'units/*', 'evaluation/*', 
-                      'compounds/', 'units/designtools/*'], },
+                      'compounds/*', 'units/designtools/*'], },
     platforms=["Windows", "Mac"],
     author_email='yoelcortes@gmail.com',
     url='https://github.com/yoelcortes/biosteam',
