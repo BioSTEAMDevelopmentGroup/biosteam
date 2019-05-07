@@ -155,7 +155,7 @@
 
 <span class="c1"># %% Flowsheet search      </span>
     
-<div class="viewcode-block" id="Flowsheet"><a class="viewcode-back" href="../../find.html#biosteam.Flowsheet">[docs]</a><span class="k">class</span> <span class="nc">Flowsheet</span><span class="p">:</span>
+<div class="viewcode-block" id="Flowsheet"><a class="viewcode-back" href="../../find.html#biosteam._flowsheet.Flowsheet">[docs]</a><span class="k">class</span> <span class="nc">Flowsheet</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Create a Flowsheet object which stores references to all stream, unit, and system objects.&quot;&quot;&quot;</span>
     <span class="c1">#: [dict] All flowsheets</span>
     <span class="n">flowsheet</span> <span class="o">=</span> <span class="p">{}</span>
@@ -175,7 +175,7 @@
         
         <span class="bp">self</span><span class="o">.</span><span class="n">flowsheet</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
     
-<div class="viewcode-block" id="Flowsheet.diagram"><a class="viewcode-back" href="../../find.html#biosteam.Flowsheet.diagram">[docs]</a>    <span class="k">def</span> <span class="nf">diagram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;surface&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="Flowsheet.diagram"><a class="viewcode-back" href="../../find.html#biosteam._flowsheet.Flowsheet.diagram">[docs]</a>    <span class="k">def</span> <span class="nf">diagram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;surface&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Display all units and attached streams.</span>
 <span class="sd">        </span>
 <span class="sd">        **kind:** Must be one of the following:</span>
@@ -290,7 +290,7 @@
         <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="s1">&gt;&#39;</span></div>
 
 
-<div class="viewcode-block" id="find"><a class="viewcode-back" href="../../find.html#biosteam.find">[docs]</a><span class="k">class</span> <span class="nc">find</span><span class="p">(</span><span class="n">Flowsheet</span><span class="p">):</span>
+<div class="viewcode-block" id="find"><a class="viewcode-back" href="../../find.html#biosteam._flowsheet.find">[docs]</a><span class="k">class</span> <span class="nc">find</span><span class="p">(</span><span class="n">Flowsheet</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a find object which can search through flowsheets.&quot;&quot;&quot;</span>
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">()</span>
     <span class="n">_upstream_connections</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
@@ -344,13 +344,13 @@
         <span class="n">species</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">upstream</span><span class="o">.</span><span class="n">_IDs</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">downstream</span><span class="o">.</span><span class="n">_IDs</span><span class="p">)</span>
     <span class="n">upindex</span> <span class="o">=</span> <span class="n">upstream</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="o">*</span><span class="n">species</span><span class="p">)</span>
     <span class="n">downindex</span> <span class="o">=</span> <span class="n">downstream</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="o">*</span><span class="n">species</span><span class="p">)</span>
-    <span class="k">def</span> <span class="nf">connect</span><span class="p">():</span>
+    <span class="k">def</span> <span class="nf">connect_stream</span><span class="p">():</span>
         <span class="c1"># Flow rate, T, P and phase</span>
         <span class="n">downstream</span><span class="o">.</span><span class="n">_molarray</span><span class="p">[</span><span class="n">downindex</span><span class="p">]</span> <span class="o">=</span> <span class="n">upstream</span><span class="o">.</span><span class="n">_molarray</span><span class="p">[</span><span class="n">upindex</span><span class="p">]</span>
         <span class="n">downstream</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">upstream</span><span class="o">.</span><span class="n">T</span>
         <span class="n">downstream</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">upstream</span><span class="o">.</span><span class="n">P</span>
         <span class="n">downstream</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="n">upstream</span><span class="o">.</span><span class="n">phase</span>
-    <span class="k">return</span> <span class="n">connect</span>
+    <span class="k">return</span> <span class="n">connect_stream</span>
 
 
         

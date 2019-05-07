@@ -13,7 +13,7 @@ from ._utils import material_array, property_array, PropertyFactory, \
                     tuple_array, fraction, Sink, Source
 from ._flowsheet import find
 from ._species import Species
-from .exceptions import SolverError, EquilibriumError, DimensionError
+from ._exceptions import SolverError, EquilibriumError, DimensionError
 from ._equilibrium import DORTMUND
 
 inf = np.inf
@@ -196,7 +196,7 @@ class Stream(metaclass=metaStream):
 
     **price:** [float] (USD/kg).
     
-    ****flow_pairs:** Compound-flow pairs,
+    ****flow_pairs:** Compound-flow pairs
 
 **Class Properties**
 
@@ -559,8 +559,7 @@ class Stream(metaclass=metaStream):
             empty_species = lenspecies == 0
             self._molarray = np.zeros(self._Nspecies, float)
             if flow_pairs and empty_flow and empty_species:
-                species = flow_pairs.keys()
-                self._molarray[self.indices(*species)] = (*flow_pairs.values(),)
+                self._molarray[self.indices(*flow_pairs.keys())] = (*flow_pairs.values(),)
             elif lenspecies == lenflow:
                 if flow_pairs:
                     self._molarray[self.indices(*species, *flow_pairs.keys())] = (*flow, *flow_pairs.values())
@@ -633,6 +632,17 @@ class Stream(metaclass=metaStream):
     # Backward pipping    
     __pow__ = __sub__
     __rpow__ = __rsub__
+    
+    @property
+    def link(self):
+        """When Stream object is set as a link, self will share data with that object."""
+        return None
+    
+    @link.setter
+    def link(self, stream):
+        if isinstance(self, Stream): PS.Stream.asproxy(self)
+        else: PS.MixedStream.asproxy(self)
+        self.link = stream
     
     @property
     def species(self):
@@ -1776,5 +1786,5 @@ class Stream(metaclass=metaStream):
         if self.ID: return f'<{type(self).__name__}: {self.ID}>'
         else: return f'<{type(self).__name__}>'
         
-        
 from . import _mixed_stream as MS
+from . import _proxy_stream as PS

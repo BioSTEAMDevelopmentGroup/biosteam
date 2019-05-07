@@ -7,7 +7,8 @@ Created on Thu Aug 23 21:43:13 2018
 import numpy as np
 from .. import Unit, Stream
 from scipy.optimize import brentq
-from . import Evaporator_PV, Evaporator_PQin, Pump, Mixer, HXutility
+from . import Pump, Mixer, HXutility
+from ._flash import Evaporator_PV, Evaporator_PQin
 from .designtools import vacuum_system
 import ht
 log = np.log
@@ -195,7 +196,8 @@ class MultiEffectEvaporator(Unit):
         # Find condenser requirements
         condenser = components['condenser']
         condenser._design()
-        Cost['Condenser'] = condenser._cost()['Heat exchanger']
+        condenser._cost()
+        Cost['Condenser'] = condenser._results['Cost']['Heat exchanger']
         
         # Find area and cost of evaporators
         As = [A]
@@ -215,16 +217,11 @@ class MultiEffectEvaporator(Unit):
         Cost['Evaporators'] = sum(evap_costs)
         
         # Calculate power
-        power, cost = vacuum_system(massflow=0, volflow=0,
+        power, cost = vacuum_system(self.CEPCI, massflow=0, volflow=0,
                                     P_suction=evap.outs[0].P, vol=vol,
                                     vacuum_system_preference='Liquid-ring pump')
         Cost['Vacuum liquid-ring pump'] = cost
         self._power_utility(power)
         return Design
-
-    def _cost(self):
-        return self._results['Cost']
-        
-        
         
         

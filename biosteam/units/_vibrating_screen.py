@@ -7,7 +7,9 @@ Created on Mon Mar  4 20:51:22 2019
 from .. import Unit
 from ._splitter import Splitter
 from numpy import ceil
+from .decorators import cost
 
+@cost('Area', 'Vibrating screens', N='N', CE=567, cost=1010, exp=0.91)
 class VibratingScreen(Unit):
     # Assume 3-deck vibrating screen
     _units = {'Area': 'ft^2'}
@@ -23,14 +25,9 @@ class VibratingScreen(Unit):
     #: Maximum area of screen (ft^2)
     max_area = 200
     
-    def _cost(self):
-        results = self._results
-        Design = results['Design']
-        
-        Cost = results['Cost']
+    def _design(self):
         Area = self.ins[0].massnet/(self.capacity*self.mesh_opening)
-        Design['N_screens'] = N_screens =  ceil(Area/self.max_area)
-        Area /= N_screens
-        Design['Area'] = Area
-        Cost['Vibrating screens'] = N_screens * self.CEPCI/567 * 1010 * Area **0.91
+        Design = self._results['Design'] 
+        Design['N'] = N =  ceil(Area/self.max_area)
+        Design['Area'] = Area/N
     

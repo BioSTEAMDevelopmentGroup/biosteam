@@ -55,6 +55,7 @@ F_Tcentrifugal = {'VSC3600':   1,
 # Pump types
 Types = ('CentrifugalSingle', 'CentrifugalDouble', 'Gear', 'MeteringPlunger', 'Default')
 
+# TODO: Fix selection of pump, working ranges, and F_T factors!
 class Pump(Unit):
     """Create a pump that sets the pressure of the 0th output stream.
 
@@ -74,6 +75,10 @@ class Pump(Unit):
     
         :doc:`Pump Example`
     
+    **References**
+    
+        .. [0] Seider, Warren D., et al. (2017). "Cost Accounting and Capital Cost Estimation". In Product and Process Design Principles: Synthesis, Analysis, and Evaluation (pp. 450-455). New York: Wiley.
+    
     """
     _units = {'Ideal power': 'hp',
               'Power': 'hp',
@@ -82,7 +87,7 @@ class Pump(Unit):
     _N_ins = 1
     _N_outs = 1
     _has_power_utility = True
-    _has_proxystream = True
+    _linkedstreams = True
     _kwargs = {'P': None}
     
     # Pump type
@@ -126,9 +131,7 @@ class Pump(Unit):
         
     def _run(self):
         P = self._kwargs['P']
-        for i, o in zip(self.ins, self.outs):
-            o.copylike(i)
-            if P: o.P = P
+        if P: self.outs[0].P = P
     
     def _design(self):
         Design = self._results['Design']
@@ -148,15 +151,13 @@ class Pump(Unit):
         # Get ideal power
         if abs(Po - Pi) < 1:    
             Po = self.P_startup
-        power_ideal = self._calc_PowerPressure(Pi, Po, Qi)*3.725e-7
-        Design['Ideal power'] = power_ideal # hp
-        
-        Design['Flow rate'] = q = Qi*4.403
+        Design['Ideal power'] = power_ideal = Qi*(Po - Pi)*3.725e-7 # hp
+        Design['Flow rate'] = q = Qi*4.403 # gpm
         if power_ideal <= max_hp:
             Design['Efficiency'] = e = self._calc_Efficiency(q, power_ideal)
             Design['Power'] = power =  self._nearest_PumpPower(power_ideal/e)
-            Design['N_pumps'] = 1
-            Design['Head'] = self._calc_Head(power, mass)
+            Design['N'] = 1
+            Design['Head'] = power/mass*897806 # (ft) note that: 897806 = (1/gravity * unit_conversion_factor)
         else:
             raise Exception('More than 1 pump required, but not yet implemented.')
         
@@ -195,7 +196,7 @@ class Pump(Unit):
                 elif 100 <= q <= 1500 and 650 <= h <= 3200:
                     F_T = F_Tdict['2+HSC3600']
             # Calculate cost
-            self._S = S = self._calc_SizeFactor(q, h)
+            S = q*h**0.5
             S_new = S if S > 400 else 400
             lnS = ln(S_new)
             Cb = exp(12.1656-1.1448*lnS+0.0862*lnS**2)
@@ -217,10 +218,6 @@ class Pump(Unit):
         lnp4 = lnp3*lnp
         Cost['Motor'] = exp(5.9332 + 0.16829*lnp - 0.110056*lnp2 + 0.071413*lnp3 - 0.0063788*lnp4)*I
         return Cost
-    
-    @staticmethod
-    def _calc_SizeFactor(q:'gal/min', h:'ft') -> 'S':
-        return q*h**0.5
     
     @classmethod
     def _default_type(cls, Pi, Po, Qi):
@@ -262,21 +259,6 @@ class Pump(Unit):
             if flow_min <  Qi < flow_max and pressure_min < Pi and pressure_max > Po:
                 pumps.append(key)
         return pumps
-
-    @staticmethod
-    def _calc_PowerPressure(Pi, Po, Qi):
-        """Return ideal power due to pressure change.
-        
-        **Parameters**
-        
-            Pi: [Stream] Input pressure
-            
-            Po: [Stream] Output pressure
-            
-            Qi: [Stream] Input flow rate
-        
-        """
-        return Qi*(Po - Pi)
     
     @staticmethod
     def _calc_PowerFlow(Qi, Qo, Dpipe, mass=None):
@@ -303,10 +285,6 @@ class Pump(Unit):
             K_term = 0
         
         return K_term
-    
-    @staticmethod
-    def _calc_Head(p:'hp', mass:'kg/hr') -> '(ft)':
-        return p/mass*897806 # 897806 = 1/g * unit_conversion_factor
     
     @staticmethod
     def _nearest_PumpPower(p:'hp'):

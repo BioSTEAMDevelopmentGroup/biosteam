@@ -1,7 +1,0 @@
-Sensitivity
-===========
-
-.. module:: biosteam
-
-.. autoclass:: Sensitivity
-   :members:

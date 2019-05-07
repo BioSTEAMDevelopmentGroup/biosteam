@@ -6,7 +6,7 @@ Created on Fri Feb 22 17:31:50 2019
 """
 import numpy as np
 from biosteam._utils import checkbounds
-from biosteam.exceptions import DesignError
+from biosteam._exceptions import DesignError
 
 __all__ = ('vacuum_system', '_calc_MotorEfficiency', '_calc_BreakEfficiency')
 
@@ -37,12 +37,14 @@ _air_density = 1.2041 # kg/m3 dry air
 
 # %% Calculate vacuum system requirements
 
-def vacuum_system(massflow:'kg/hr', volflow:'m3/hr',
+def vacuum_system(CEPCI, massflow:'kg/hr', volflow:'m3/hr',
                   P_suction:'Pa', vol:'m3',
                   vacuum_system_preference=None):
     """Return dictionary of results
     
     **Parameters**
+    
+        **CEPCI:** [float] Chemical Engineering Plant Cost Index    
     
         **massflow:** [float] Vapor mass flow rate entering vacuum system from vessel (not including inleakage) 
         
@@ -80,7 +82,7 @@ def vacuum_system(massflow:'kg/hr', volflow:'m3/hr',
     massflow_lbph = 2.205*massflow_kgph
     power = _power(massflow_kgph, P_suction)
     vacuum_sys, grade = _select_VacuumSystem(vacuum_systems, volflow_cfm, P_suction)
-    cost = _cost(vacuum_sys, grade, massflow_lbph, volflow_cfm, P_suction)
+    cost = CEPCI*_cost(vacuum_sys, grade, massflow_lbph, volflow_cfm, P_suction)/567
     return power, cost
 
 # %% Supporting functions

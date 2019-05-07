@@ -6,7 +6,7 @@ Created on Sat Oct 28 17:28:09 2017
 @author: Yoel Rene Cortes-Pena
 """
 
-__all__ = ['units', 'evaluation', 'exceptions', 'inspect', 'find', 'compounds', 'Species', 'Stream', 'MixedStream', 'HeatUtility', 'PowerUtility', 'Unit', 'System', 'TEA']
+__all__ = ['units', 'evaluation', 'inspect', 'find', 'compounds', 'Species', 'Stream', 'MixedStream', 'HeatUtility', 'PowerUtility', 'Unit', 'System', 'TEA']
 
 
 # %% Import base utils
@@ -44,7 +44,6 @@ from ._system import *
 from ._tea import *
 from ._flowsheet import *
 
-from . import exceptions
 from . import inspect
 from . import compounds
 from . import _species 

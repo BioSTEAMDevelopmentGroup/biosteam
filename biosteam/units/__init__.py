@@ -13,32 +13,33 @@ from .._graphics import Graphics
 from ._mixer import Mixer
 from ._splitter import Splitter, InvSplitter
 from ._pump import Pump
-from ._hx import HX, HXutility, HXprocess
+from ._hx import HXutility, HXprocess
 from ._flash import *
 from ._flash import Flash
 from ._multi_effect_evaporator import MultiEffectEvaporator
 from ._centrifuge_LLE import *
 from ._distillation import Dist, Distillation, Stripper
-from ._tank import Tank, StorageTank, MixTank
+from ._tank import StorageTank, MixTank
 from ._transesterification import Transesterification
 from ._fermentation import Fermentation
 from ._enzyme_treatment import EnzymeTreatment
 from ._clarifier import Clarifier
-from ._yeast_centrifuge import YeastCentrifuge
+from ._solids_centrifuge import SolidsCentrifuge
 from ._crushing_mill import CrushingMill
 from ._rvf import RVF
-from ._molecular_sieve import MolecularSieve, MolSieve
-from ._reactor import Reactor, BatchReactor
+from ._molecular_sieve import MolecularSieve
+from ._reactor import BatchReactor
 from ._balance import MassBalance, EnergyBalance
 from ._conveying_belt import ConveyingBelt
 from ._shredder import Shredder
 from ._magnetic_separator import MagneticSeparator
 from ._screw_feeder import ScrewFeeder
 from ._vibrating_screen import VibratingScreen
+from ._cooling_tower import CoolingTower
 
 # %% All units
 
-__all__ = ['Mixer', 'Splitter', 'InvSplitter', 'Tank', 'MixTank', 'StorageTank', 'HX', 'HXutility', 'HXprocess', 'Pump', 'Distillation', 'Stripper', 'Transesterification', 'Fermentation', 'Centrifuge_LLE', 'MultiEffectEvaporator', 'EnzymeTreatment', 'CrushingMill', 'RVF', 'MolecularSieve', 'MolSieve', 'YeastCentrifuge', 'Clarifier', 'Reactor', 'BatchReactor', 'MassBalance', 'EnergyBalance', 'ConveyingBelt', 'Shredder', 'MagneticSeparator', 'ScrewFeeder', 'VibratingScreen']
+__all__ = ['Mixer', 'Splitter', 'InvSplitter', 'MixTank', 'StorageTank', 'HXutility', 'HXprocess', 'Pump', 'Distillation', 'Stripper', 'Transesterification', 'Fermentation', 'Centrifuge_LLE', 'MultiEffectEvaporator', 'EnzymeTreatment', 'CrushingMill', 'RVF', 'MolecularSieve', 'SolidsCentrifuge', 'Clarifier', 'BatchReactor', 'MassBalance', 'EnergyBalance', 'ConveyingBelt', 'Shredder', 'MagneticSeparator', 'ScrewFeeder', 'VibratingScreen', 'CoolingTower']
 
 __all__.extend(_flash.__all__)
 
@@ -128,4 +129,4 @@ graphics.node['shape'] = 'note'
 graphics.node['fillcolor'] = '#F0F0F0'
 graphics.in_system = False
 
-del HXutility_node, graphics, edge_out, node
+del HXutility_node, graphics, edge_out, node, Dist, Graphics

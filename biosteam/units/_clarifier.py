@@ -6,54 +6,35 @@ Created on Thu Aug 23 22:18:16 2018
 """
 
 from .._unit import Unit
-from ..exceptions import DesignError
+from .._exceptions import DesignError
+from .decorators import cost, spec
 from . import Splitter
-import numpy as np
 
-def checkbounds(x, bounds):
+def _ok(x, bounds):
     lb, up = bounds
     return lb < x < up
+# Electricity: 16 hp / 200 ft diameter
 
+@spec('Clarifier', 'Material', lambda M: 1.4 if M=='Steel' else 1)
+@cost('Settling area', cost=2720, CE=567, exp=0.58, kW=0.00048355)
 class Clarifier(Unit):
-    _has_power_utility = True
     _kwargs = Splitter._kwargs
     _run = Splitter._run
-    
+    _units = {'Settling area': 'ft^2'}
     # Height of the clarifier tank from other designs, estimate (ft)
     height = 10
     
     # Setting the working bounds for different materials
     _bounds = {'Area steel' : (80, 8000), 'Area concrete': (8000, 125000)}
-    _units =  {'Settling area': 'ft^2'}
     
-    
-    def _cost(self):
-        results = self._results
-        Design = results['Design']
-        overflow = self.ins[0]
-        
+    def _design(self):
         # Heuristic settling area estimation
         # Settling area in ft^2 = overflow in gpm
-        SetArea = overflow.volnet *  4.4028
-        Design['Settling area'] = SetArea
-        power = self._calc_energy(SetArea)*0.7457 # in kW
-        self._power_utility(power) 
-        
+        Design = self._results['Design']
+        Design['Settling area'] = SetArea = self.outs[0].volnet *  4.4028
         # Checking to see which cost equation/material to use
         Steel_bounds, Concrete_bounds = self._bounds.values()
-        if checkbounds(SetArea, Steel_bounds):
-            Cost = 3810*SetArea**0.58
-            Design['Material'] = 'Steel'
-        elif checkbounds(SetArea, Concrete_bounds):
-            Cost = 2720*SetArea**0.58
-            Design['Material'] = 'Concrete'
-        else:
-            raise DesignError('Volumetric flow rate is out of working range')
-        results['Cost']['Clarifier'] = Cost*self.CEPCI/567
+        if _ok(SetArea, Steel_bounds): Design['Material'] = 'Steel'
+        elif _ok(SetArea, Concrete_bounds): Design['Material'] = 'Concrete'
+        else: raise DesignError('Volumetric flow rate is out of working range.')
         
-    def _calc_energy(self, SetArea):
-        # Finding diameter of the tank in ft
-        diameter = np.sqrt(SetArea*4/np.pi)
-        # Energy assuming quadratic relationship in hp
-        Energy = 16 * (diameter/200)**2
-        return Energy

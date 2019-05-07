@@ -68,7 +68,7 @@
                     <span class="n">tuple_array</span><span class="p">,</span> <span class="n">fraction</span><span class="p">,</span> <span class="n">Sink</span><span class="p">,</span> <span class="n">Source</span>
 <span class="kn">from</span> <span class="nn">._flowsheet</span> <span class="k">import</span> <span class="n">find</span>
 <span class="kn">from</span> <span class="nn">._species</span> <span class="k">import</span> <span class="n">Species</span>
-<span class="kn">from</span> <span class="nn">.exceptions</span> <span class="k">import</span> <span class="n">SolverError</span><span class="p">,</span> <span class="n">EquilibriumError</span><span class="p">,</span> <span class="n">DimensionError</span>
+<span class="kn">from</span> <span class="nn">._exceptions</span> <span class="k">import</span> <span class="n">SolverError</span><span class="p">,</span> <span class="n">EquilibriumError</span><span class="p">,</span> <span class="n">DimensionError</span>
 <span class="kn">from</span> <span class="nn">._equilibrium</span> <span class="k">import</span> <span class="n">DORTMUND</span>
 
 <span class="n">inf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
@@ -233,50 +233,51 @@
 <div class="viewcode-block" id="Stream"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream">[docs]</a><span class="k">class</span> <span class="nc">Stream</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">metaStream</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a Stream object that defines material flow rates along its thermodynamic state. Thermodynamic and transport properties of a stream are readily available. Ideal mixture is assumed for stream properties and excess thermodynamic energies are neglected as a simplifying assumption for low pressure processes.</span>
 
-<span class="sd">**Parameters**</span>
-
-<span class="sd">    **ID:** [str] A unique identification. If ID is an empty string (i.e. &#39;&#39; ), a default ID will be chosen. If ID is None, stream will not be registered in flowsheet.</span>
-
-<span class="sd">    **flow:** [tuple] All flow rates corresponding to `species`.</span>
-
-<span class="sd">    **species:** tuple[str] or [Species] Species corresponding to `flow`. If empty, assume same species as class.</span>
-
-<span class="sd">    **units:** [str] The units of the flow rates (only mass, molar, and volumetric flow rates are valid)</span>
-
-<span class="sd">    **phase:** [str] &#39;l&#39; for liquid, &#39;g&#39; for gas, or &#39;s&#39; for solid.</span>
-
-<span class="sd">    **T:** [float] Temperature (K).</span>
-
-<span class="sd">    **P:** [float] Pressure (Pa).</span>
-
-<span class="sd">    **price:** [float] (USD/kg).</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ID : str</span>
+<span class="sd">        A unique identification. If ID is an empty string (i.e. &#39;&#39; ), a default ID will be chosen. If ID is None, stream will not be registered in flowsheet.</span>
+<span class="sd">    flow : tuple</span>
+<span class="sd">        All flow rates corresponding to `species`.</span>
+<span class="sd">    species : tuple[str] or Specie</span>
+<span class="sd">        Species corresponding to `flow`. If empty, assume same species as class.</span>
+<span class="sd">    units : str</span>
+<span class="sd">        The units of the flow rates (only mass, molar, and volumetric flow rates are valid).</span>
+<span class="sd">    phase : str</span>
+<span class="sd">        &#39;l&#39; for liquid, &#39;g&#39; for gas, or &#39;s&#39; for solid.</span>
+<span class="sd">    T : float</span>
+<span class="sd">        Temperature (K).</span>
+<span class="sd">    P : float</span>
+<span class="sd">        Pressure (Pa).</span>
+<span class="sd">    price : float</span>
+<span class="sd">        Price (USD/kg).</span>
+<span class="sd">    **flow_pairs : flat</span>
+<span class="sd">        Compound-flow pairs.</span>
 <span class="sd">    </span>
-<span class="sd">    ****flow_pairs:** Compound-flow pairs,</span>
-
-<span class="sd">**Class Properties**</span>
-
+<span class="sd">    Class Properties</span>
+<span class="sd">    ----------------</span>
 <span class="sd">    **species** = Species(): [Species] Contains pure component thermodynamic properties for computing overall properties of Stream instances.</span>
-
-<span class="sd">**Examples**</span>
-
+<span class="sd">    </span>
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
 <span class="sd">    Before making a stream, set the species using a Species object:</span>
-
+<span class="sd">    </span>
 <span class="sd">    .. code-block:: python</span>
-
+<span class="sd">    </span>
 <span class="sd">       &gt;&gt;&gt; # Set Species object</span>
 <span class="sd">       &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;) </span>
-
+<span class="sd">    </span>
 <span class="sd">    Stream objects may be created a variety of ways:</span>
-
+<span class="sd">    </span>
 <span class="sd">    .. code-block:: python</span>
-
+<span class="sd">    </span>
 <span class="sd">       &gt;&gt;&gt; # Create a stream specifying compound and flow rate pairs:</span>
 <span class="sd">       &gt;&gt;&gt; s1 = Stream(ID=&#39;s1&#39;, Water=2)</span>
 <span class="sd">       &gt;&gt;&gt; s1.show()</span>
 <span class="sd">       Stream: s1</span>
 <span class="sd">        phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
 <span class="sd">        flow (kmol/hr): Water  2</span>
-
+<span class="sd">    </span>
 <span class="sd">       &gt;&gt;&gt; # Create a stream assuming same order as given in species:</span>
 <span class="sd">       &gt;&gt;&gt; s2 = Stream(ID=&#39;s2&#39;, flow=(1, 2))</span>
 <span class="sd">       &gt;&gt;&gt; s2.show()</span>
@@ -284,7 +285,7 @@
 <span class="sd">        phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
 <span class="sd">        flow (kmol/hr): Ethanol  1</span>
 <span class="sd">                        Water    2</span>
-
+<span class="sd">    </span>
 <span class="sd">       &gt;&gt;&gt; # Create a stream passing flow rate units, phase, temperature and pressure:</span>
 <span class="sd">       &gt;&gt;&gt; s3 = Stream(ID=&#39;s3&#39;, flow=(0.278, 0.556), units=&#39;mol/s&#39;, phase=&#39;g&#39;, T=400, P=101325)</span>
 <span class="sd">       &gt;&gt;&gt; s3.show()</span>
@@ -292,19 +293,19 @@
 <span class="sd">        phase: &#39;g&#39;, T: 400 K, P: 101325 Pa</span>
 <span class="sd">        flow (kmol/hr): Ethanol  1.</span>
 <span class="sd">                        Water    2.</span>
-
+<span class="sd">    </span>
 <span class="sd">       &gt;&gt;&gt; # The working units do not change</span>
 <span class="sd">       &gt;&gt;&gt; s3.mol </span>
 <span class="sd">       material_array([1., 2.])</span>
-
+<span class="sd">    </span>
 <span class="sd">    .. Warning:: Stream objects do not automatically calculate thermodynamic equilibrium. They simply assume the given phase, temperature and pressure are correct. To find equilibrium, use the VLE or LLE method.</span>
-
+<span class="sd">    </span>
 <span class="sd">    .. Note:: All following examples will use the Stream objects created here (s1, s2, and s3) starting from its initial values.</span>
-
+<span class="sd">    </span>
 <span class="sd">    Use the `show` method to print all specifications with desired units:</span>
-
+<span class="sd">    </span>
 <span class="sd">    .. code-block:: python</span>
-
+<span class="sd">    </span>
 <span class="sd">       &gt;&gt;&gt; # Temperature in degree Celsius</span>
 <span class="sd">       &gt;&gt;&gt; s2.show(T=&#39;degC&#39;)</span>
 <span class="sd">       Stream: s2 </span>
@@ -318,7 +319,7 @@
 <span class="sd">        phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
 <span class="sd">        flow (kg/hr): Ethanol  46.1</span>
 <span class="sd">                      Water    36</span>
-
+<span class="sd">    </span>
 <span class="sd">       &gt;&gt;&gt; # Flow in fractions</span>
 <span class="sd">       &gt;&gt;&gt; s2.show(fraction=True)</span>
 <span class="sd">       Stream: s2</span>
@@ -326,11 +327,11 @@
 <span class="sd">        flow: Ethanol  0.333</span>
 <span class="sd">              Water    0.667</span>
 <span class="sd">              net      3 kmol/hr</span>
-
+<span class="sd">    </span>
 <span class="sd">    Flow rates are stored internally as a material_array in the ‘mol’ attribute.</span>
-
+<span class="sd">    </span>
 <span class="sd">    .. code-block:: python</span>
-
+<span class="sd">    </span>
 <span class="sd">       &gt;&gt;&gt; # Set Water flow rate</span>
 <span class="sd">       &gt;&gt;&gt; s2.mol[1] = 18</span>
 <span class="sd">       &gt;&gt;&gt; s2.mol # kmol/hr</span>
@@ -346,13 +347,13 @@
 <span class="sd">       &gt;&gt;&gt; s2.mol</span>
 <span class="sd">       material_array([1, 2])</span>
 <span class="sd">    .. Note::</span>
-
+<span class="sd">    </span>
 <span class="sd">       material_array objects are numpy ndarrays which issue a RuntimeWarning when a negative or non-finite number is encountered.</span>
-
+<span class="sd">    </span>
 <span class="sd">    Mass and volumetric flow rates are also available as property_arrays of the molar flow rate. As such, they are always up to date with the molar flow rate and altering them also alters the molar flow rate:</span>
-
+<span class="sd">    </span>
 <span class="sd">    .. code-block:: python</span>
-
+<span class="sd">    </span>
 <span class="sd">       &gt;&gt;&gt; # Altering mass or volumetric flows alters the molar flow</span>
 <span class="sd">       &gt;&gt;&gt; s2.vol # m^3/hr</span>
 <span class="sd">       property_array([0.059, 0.036])</span>
@@ -363,13 +364,13 @@
 <span class="sd">       &gt;&gt;&gt; s2.mol[:] = [1, 2]</span>
 <span class="sd">       &gt;&gt;&gt; s2.vol</span>
 <span class="sd">       property_array([0.059, 0.036])</span>
-
+<span class="sd">    </span>
 <span class="sd">    .. Note::</span>
-
+<span class="sd">    </span>
 <span class="sd">       property_array objects are significantly slower than material_array objects. This is because flow rate data is internally stored as molar flow rates. Also, property_array objects are arrays of python objects, which add overhead over the C implementation of numpy. Whenever possible, use the material_array to manage flow rates. </span>
-
+<span class="sd">    </span>
 <span class="sd">    Some thermodynamic/material properties, including enthalpy and heat capacity, are dependent only on temperature:</span>
-
+<span class="sd">    </span>
 <span class="sd">    .. code-block:: python</span>
 <span class="sd">    </span>
 <span class="sd">       &gt;&gt;&gt; # Enthalpy (kJ/hr) and heat capacity (kJ/(kg-K))</span>
@@ -389,7 +390,7 @@
 <span class="sd">    .. Note:: Thermodynamic energies are relative to 25 degC and 1 atm.</span>
 <span class="sd">    </span>
 <span class="sd">    Some thermodynamic/material properties, including volume and density, are dependent on both temperature and pressure:</span>
-
+<span class="sd">    </span>
 <span class="sd">    .. code-block:: python</span>
 <span class="sd">    </span>
 <span class="sd">       &gt;&gt;&gt; # Volumetric flow rate (m^3/hr) and density (kg/m^3)</span>
@@ -411,11 +412,11 @@
 <span class="sd">       0.03663597700908213</span>
 <span class="sd">       &gt;&gt;&gt; s1.rho</span>
 <span class="sd">       983.4747955832584</span>
-
+<span class="sd">    </span>
 <span class="sd">    A dictionary of available stream properties is available in `Stream.units`. You may also find it useful to use the `help` method to search for a property:</span>
 <span class="sd">        </span>
 <span class="sd">    .. code-block:: python</span>
-
+<span class="sd">    </span>
 <span class="sd">       &gt;&gt;&gt; Stream.help(&#39;conductivity&#39;)</span>
 <span class="sd">       k: [float] Thermal conductivity as a function of T and P (W/m/K).</span>
 

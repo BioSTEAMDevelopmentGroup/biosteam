@@ -8,7 +8,7 @@ Created on Thu Aug 23 19:33:20 2018
 import numpy as np
 from .. import Unit, MixedStream, Stream
 from .._utils import approx2step
-from ..exceptions import biosteamError
+from .._exceptions import biosteamError
 from scipy.optimize import brentq
 from ._hx import HXutility
 import matplotlib.pyplot as plt
@@ -555,6 +555,7 @@ class Dist(Unit):
         
             Di: Inner diameter (ft)
             CE: Chemical Engineering Plant Cost Index
+        
         """
         return CE * 0.825397 * np.exp(0.1482*Di)
 
@@ -729,8 +730,7 @@ class Dist(Unit):
         ms1.P = boil_up.P
         ms1.vapor_mol = boil_up.mol
         ms1.liquid_mol = bottoms.mol
-        boiler._design()
-        boiler._cost()
+        boiler._summary()
         
     def _cost(self):
         results = self._results

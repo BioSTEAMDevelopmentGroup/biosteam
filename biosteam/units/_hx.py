@@ -5,11 +5,10 @@ Created on Thu Aug 23 14:38:34 2018
 @author: yoelr
 """
 from .. import Unit, Stream, MixedStream
-from ..exceptions import biosteamError
 from fluids import nearest_pipe
 import ht
 import numpy as np
-log = np.log
+ln = np.log
 exp = np.exp
 pi = np.pi
 
@@ -32,15 +31,15 @@ F_Mdict =  {'Carbon steel/carbon steel':       (0, 0),
 
 # Purchase price
 Cb_dict = {'Floating head':
-            lambda A, CE: exp(11.667 - 0.8709*log(A) + 0.09005 * log(A)**2)*CE/500,
+            lambda A, CE: exp(12.0310 - 0.8709*ln(A) + 0.09005 * ln(A)**2)*CE/567,
            'Fixed head':
-            lambda A, CE: exp(11.0545 - 0.9228*log(A) + 0.09861 * log(A)**2)*CE/500,
+            lambda A, CE: exp(11.4185 - 0.9228*ln(A) + 0.09861 * ln(A)**2)*CE/567,
            'U tube':
-            lambda A, CE: exp(11.147 - 0.9186*log(A) + 0.09790 * log(A)**2)*CE/500,
+            lambda A, CE: exp(11.5510 - 0.9186*ln(A) + 0.09790 * ln(A)**2)*CE/567,
            'Kettle vaporizer':
-            lambda A, CE: exp(11.967 - 0.8709*log(A) + 0.09005 * log(A)**2)*CE/500,
+            lambda A, CE: exp(12.3310 - 0.8709*ln(A) + 0.09005 * ln(A)**2)*CE/567,
            'Double pipe':
-            lambda A, CE: exp(7.1560 + 0.16*log(A))*CE/500}
+            lambda A, CE: exp( 7.2718 + 0.16*ln(A))*CE/567}
 
 
 class HX(Unit):
@@ -354,7 +353,7 @@ class HX(Unit):
         dTF1 = Thi-Tco
         dTF2 = Tho-Tci
         dummy = abs(dTF2/dTF1)
-        LMTD = (dTF2 - dTF1)/log(dummy) if dummy > 1.1 else dTF1
+        LMTD = (dTF2 - dTF1)/ln(dummy) if dummy > 1.1 else dTF1
         
         # Get correction factor
         ft = self._ft if self._ft else self._calc_ft(Tci, Thi, Tco, Tho, self._N_shells)
@@ -398,33 +397,27 @@ class HX(Unit):
         Design = self._results['Design']
         Cost = self._results['Cost']
         A = Design['Area']
-        #Dp_t = Design['Dp_t']
-        #Dp_s = Design['Dp_s']
         L = Design['Total tube length']
         P = Design['Operating pressure']
+        #Dp_t = Design['Dp_t']
+        #Dp_s = Design['Dp_s']
         
-        if A < 150:
-            # For double pipe
+        if A < 150: # Double pipe
             P = P/600
             F_p = 0.8510 + 0.1292*P + 0.0198*P**2
-            F_m = 2 # Assume outer pipe carbon steel, inner pipe stainless steel
-            A_old = A
-            if A_old < 2.1718:
-                A = 2.1718
+            # Assume outer pipe carbon steel, inner pipe stainless steel
+            F_m = 2 
+            A_min = 2.1718
+            if A < A_min:
+                F_l = A/A_min
+                A = A_min
+            else:    
+                F_l = 1
             self.Type = 'Double pipe'
-            F_l = A_old/A
-        else:
-            # For shell and tube
-            # Material factor 
+        else: # Shell and tube
             a, b = self._F_Mab
             F_m = a +  (A/100)**b
-            
-            # Length factor
-            if L < 20: # L < 20 ft
-                F_l = np.polyval(p2, L)
-            else:
-                F_l = 1
-            
+            F_l = 1 if L > 20 else np.polyval(p2, L)
             P = P/100
             F_p = 0.9803 + 0.018*P + 0.0017*P**2
         
@@ -433,7 +426,6 @@ class HX(Unit):
         
         # Free on board purchase prize 
         Cost['Heat exchanger'] = F_p * F_l * F_m * C_b
-        return Cost
 
 
 class HXutility(HX):

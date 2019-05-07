@@ -8,7 +8,7 @@ from copy import copy
 import IPython
 import numpy as np
 from scipy.optimize import newton
-from .exceptions import Stop, SolverError, _notify_error
+from ._exceptions import Stop, SolverError, _notify_error
 from ._flowsheet import find, make_digraph
 from ._stream import Stream
 from ._unit import Unit
@@ -177,7 +177,7 @@ class System:
         self.network = tuple(network)
         
         #: list[Unit] All unit operations with linked streams
-        self._linkunits = [u for u in units if u._has_proxystream]
+        self._linkunits = [u for u in units if u._linkedstreams]
         
         #: set[Unit] All units within the system
         self.units = units = set(units)

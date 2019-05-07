@@ -6,23 +6,14 @@ Created on Thu Aug 23 22:56:55 2018
 """
 import numpy as np
 from .. import Unit
-from . import Tank
+from ._tank import Tank
 
-
-class Reactor(Unit):
-    """Abstract class for reactors."""
-    
 
 # %% Reactor classes
     
-class BatchReactor(Reactor):
-    
+class BatchReactor(Unit):
+    line = 'Batch reactor'
     _N_heat_utilities = 1
-    
-    # Exponential scaling
-    C_0 = None #: Original Price
-    V_0 = None #: Original Volume
-    exp = None #: Scaling exponent
     
     @classmethod
     def _solve(cls, 
@@ -38,7 +29,7 @@ class BatchReactor(Reactor):
         t_B = tau + tau_0 + t_L
         V_i /= V_wf
         
-        return {'Reactor volume': V_i,
+        return {'Volume': V_i,
                 'Cycle time': t_B, 
                 'Loading time': t_L}
     

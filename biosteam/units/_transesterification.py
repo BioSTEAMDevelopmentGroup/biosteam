@@ -4,11 +4,13 @@ Created on Thu Aug 23 22:49:58 2018
 
 @author: yoelr
 """
-from ._reactor import Reactor
 import numpy as np
+from .. import Unit
+from .decorators import design, cost
 
-
-class Transesterification(Reactor):
+@cost('Volume', CE=525.4, cost=15000, exp=0.55, kW=1.5)
+@design('Volume', 'm^3', lambda self: self._tau*self._volnet_out/0.8)
+class Transesterification(Unit):
     """Create a transesterification reactor that converts 'Lipid' and 'Methanol' to 'Biodiesel' and 'Glycerol'. Finds the amount of catalyist 'NaOCH3' required and consumes it to 'NaOH' and 'Methanol'.
     
     **Parameters**
@@ -36,22 +38,16 @@ class Transesterification(Reactor):
         :doc:`Transesterification Example`
     
     """
-    _units = {'Volume': 'm^3'}
+    line = 'Reactor'
     _kwargs = {'efficiency': None,  # fraction of theoretical conversion
                'r': None,  # Methanol to lipid molar ratio
                'T': None,
-               'catalyst_molfrac': None}  # operating temperature (K)
-    
+               'catalyst_molfrac': None}  # operating temperature (K)    
     _bounds = {'Volume': (0.1, 20)}
-    
     _tau = 1
     _N_ins = 2
     _N_outs = 1
     _N_heat_utilities = 1
-    _has_power_utility = True
-
-    #: kW/m3
-    electricity_rate = 1.5
 
     def _run(self):
         feed, fresh_Methanol = self.ins
@@ -93,19 +89,9 @@ class Transesterification(Reactor):
         out.T = T
         out.P = feed.P
 
-    def _design(self):
+    def _end(self):
         self._heat_utilities[0](self._Hnet, self.outs[0].T)
-        Design = self._results['Design']
-        Design['Volume'] = self._tau * self._volnet_out / 0.8
-        return Design
         
-    def _cost(self):
-        results = self._results
-        Design = results['Design']
-        Cost = results['Cost']
-        Volume = Design['Volume']
-        Cost['Reactor'] = self.CEPCI/525.4 * 15000 * Volume ** 0.55
-        self._power_utility(Volume*self.electricity_rate)
     
         
         

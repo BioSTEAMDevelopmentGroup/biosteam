@@ -79,24 +79,28 @@
 <dt id="biosteam.Stream">
 <em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Stream</code><span class="sig-paren">(</span><em>ID=''</em>, <em>flow=()</em>, <em>species=()</em>, <em>units='kmol/hr'</em>, <em>phase='l'</em>, <em>T=298.15</em>, <em>P=101325</em>, <em>*</em>, <em>price=0</em>, <em>**flow_pairs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Stream object that defines material flow rates along its thermodynamic state. Thermodynamic and transport properties of a stream are readily available. Ideal mixture is assumed for stream properties and excess thermodynamic energies are neglected as a simplifying assumption for low pressure processes.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><p><strong>ID:</strong> [str] A unique identification. If ID is an empty string (i.e. ‘’ ), a default ID will be chosen. If ID is None, stream will not be registered in flowsheet.</p>
-<p><strong>flow:</strong> [tuple] All flow rates corresponding to <cite>species</cite>.</p>
-<p><strong>species:</strong> tuple[str] or [Species] Species corresponding to <cite>flow</cite>. If empty, assume same species as class.</p>
-<p><strong>units:</strong> [str] The units of the flow rates (only mass, molar, and volumetric flow rates are valid)</p>
-<p><strong>phase:</strong> [str] ‘l’ for liquid, ‘g’ for gas, or ‘s’ for solid.</p>
-<p><strong>T:</strong> [float] Temperature (K).</p>
-<p><strong>P:</strong> [float] Pressure (Pa).</p>
-<p><strong>price:</strong> [float] (USD/kg).</p>
-<p><strong>**flow_pairs:</strong> Compound-flow pairs,</p>
-</div></blockquote>
-<p><strong>Class Properties</strong></p>
-<blockquote>
-<div><strong>species</strong> = Species(): [Species] Contains pure component thermodynamic properties for computing overall properties of Stream instances.</div></blockquote>
-<p><strong>Examples</strong></p>
-<blockquote>
-<div><p>Before making a stream, set the species using a Species object:</p>
+<dl class="docutils">
+<dt>ID <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>A unique identification. If ID is an empty string (i.e. ‘’ ), a default ID will be chosen. If ID is None, stream will not be registered in flowsheet.</dd>
+<dt>flow <span class="classifier-delimiter">:</span> <span class="classifier">tuple</span></dt>
+<dd>All flow rates corresponding to <cite>species</cite>.</dd>
+<dt>species <span class="classifier-delimiter">:</span> <span class="classifier">tuple[str] or Specie</span></dt>
+<dd>Species corresponding to <cite>flow</cite>. If empty, assume same species as class.</dd>
+<dt>units <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>The units of the flow rates (only mass, molar, and volumetric flow rates are valid).</dd>
+<dt>phase <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>‘l’ for liquid, ‘g’ for gas, or ‘s’ for solid.</dd>
+<dt>T <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>Temperature (K).</dd>
+<dt>P <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>Pressure (Pa).</dd>
+<dt>price <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>Price (USD/kg).</dd>
+<dt><a href="#id1"><span class="problematic" id="id2">**</span></a>flow_pairs <span class="classifier-delimiter">:</span> <span class="classifier">flat</span></dt>
+<dd>Compound-flow pairs.</dd>
+</dl>
+<p><strong>species</strong> = Species(): [Species] Contains pure component thermodynamic properties for computing overall properties of Stream instances.</p>
+<p>Before making a stream, set the species using a Species object:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Set Species object</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span> 
 </pre></div>
@@ -247,7 +251,6 @@
 <span class="go">k: [float] Thermal conductivity as a function of T and P (W/m/K).</span>
 </pre></div>
 </div>
-</div></blockquote>
 <dl class="staticmethod">
 <dt id="biosteam.Stream.activity_coefficients">
 <em class="property">static </em><code class="descname">activity_coefficients</code><span class="sig-paren">(</span><em>species</em>, <em>xs</em>, <em>T</em>, <em>cached={}</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.Stream.activity_coefficients" title="Permalink to this definition">¶</a></dt>

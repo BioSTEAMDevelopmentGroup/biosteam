@@ -271,8 +271,8 @@
                 <span class="n">initial_args</span><span class="p">,</span>
                 <span class="n">thread</span><span class="p">)</span>
         
-<div class="viewcode-block" id="Grid.simulate"><a class="viewcode-back" href="../../../Grid.html#biosteam.evaluation.Grid.simulate">[docs]</a>    <span class="k">def</span> <span class="nf">simulate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Simulate Grid object over the argument space and save metric values to `table`.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Grid.evaluate"><a class="viewcode-back" href="../../../Grid.html#biosteam.evaluation.Grid.evaluate">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Evaluate Grid object over the argument space and save metric values to `table`.&quot;&quot;&quot;</span>
         <span class="c1"># Setup units before simulation</span>
         <span class="n">argspace</span><span class="p">,</span> <span class="n">funcs</span><span class="p">,</span> <span class="n">initial_args</span><span class="p">,</span> <span class="n">thread</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadtable</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">func</span><span class="p">,</span> <span class="n">arg</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">funcs</span><span class="p">,</span> <span class="n">initial_args</span><span class="p">):</span>

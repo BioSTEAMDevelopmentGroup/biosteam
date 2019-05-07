@@ -50,8 +50,8 @@ class RotaryVacuumFilter(Unit):
         self._power(Area, N_vessels)
         iArea = Area/N_vessels # individual vessel
         Design['Individual area'] = iArea
-        
-        Cost = np.exp(11.796-0.1905*np.log(iArea)+0.0554*(np.log(iArea))**2)
+        logArea = np.log(iArea)
+        Cost = np.exp(11.796-0.1905*logArea+0.0554*logArea**2)
         results['Cost']['Cost of vessels'] = N_vessels*Cost*self.CEPCI/567
     
     def _power(self, area, N_vessels) :
@@ -83,7 +83,8 @@ class RotaryVacuumFilter(Unit):
         # Assume same volume of air comes in as volume of liquid
         volflow = s_vacuumed.volnet
         massflow = volflow*1.2041 # multiply by density of air kg/m3 
-        work_vacuum, r['Cost']['Liquid-ring pump'] = vacuum_system(massflow,
+        work_vacuum, r['Cost']['Liquid-ring pump'] = vacuum_system(self.CEPCI,
+                                                                   massflow,
                                                                    volflow,
                                                                    P_suction, vol)
         power = work_rot/self.power_efficiency/1000 + work_vacuum # kW

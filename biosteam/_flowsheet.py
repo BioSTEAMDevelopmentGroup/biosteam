@@ -289,13 +289,13 @@ def flowsheet_connector(upstream, downstream, species=None):
         species = set(upstream._IDs).intersection(downstream._IDs)
     upindex = upstream.indices(*species)
     downindex = downstream.indices(*species)
-    def connect():
+    def connect_stream():
         # Flow rate, T, P and phase
         downstream._molarray[downindex] = upstream._molarray[upindex]
         downstream.T = upstream.T
         downstream.P = upstream.P
         downstream.phase = upstream.phase
-    return connect
+    return connect_stream
 
 
         

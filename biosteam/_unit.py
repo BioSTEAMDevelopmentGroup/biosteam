@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 from IPython import display
 from graphviz import Digraph
-from .exceptions import _notify_error, DesignWarning
+from ._exceptions import _notify_error, DesignWarning
 from ._flowsheet import find
 from ._graphics import Graphics, default_graphics
 from ._stream import Stream
@@ -19,7 +19,6 @@ from ._proxy_stream import ProxyStream
 from ._heat_utility import HeatUtility
 from ._utils import Ins, Outs, missing_stream
 from ._power_utility import PowerUtility
-from . import _Q
 from warnings import warn
 import biosteam
 
@@ -27,7 +26,7 @@ dir_path = os.path.dirname(os.path.realpath(__file__)) + '\\'
 
 
 __all__ = ('Unit',)
-
+_do_nothing = lambda self: None
 
 # %% Bounds checking
 
@@ -57,56 +56,33 @@ def _warnbounds(key, value, units, bounds, stacklevel, source):
             **source:** [str or object] Short description or object it describes.
         
         """
-        # Include bound limits for inclusive values
         lb, ub = bounds
-        try: within_bounds = (lb<=value).all() and (ub>=value).all()
-        # Handle exception when value or bounds is a Quantity object but the other is not
-        except ValueError as VE:
-            value_is_Q = isinstance(value, _Q)
-            bounds_is_Q = isinstance(bounds, _Q)
-            if value_is_Q and not bounds_is_Q:           
-                value.ito(units)
-                value = value.magnitude
-                is_Q = 'value'
-                not_Q = 'bounds'                        
-            elif bounds_is_Q and not value_is_Q:
-                bounds.ito(units)
-                bounds = bounds.magnitude
-                is_Q = 'bounds'
-                not_Q = 'value'
-            else: raise VE
-            # Warn to prevent bad usage of SmartBook
-            name = "'" + key + "'" if isinstance(key, str) else key
-            msg = f"For key, {name}, {is_Q} is a Quantity object, while {not_Q} is not."
-            warn(_warning(source, msg, DesignWarning),
-                 stacklevel=stacklevel)
-            # Try again recursively
-            return _warnbounds(key, value, units, bounds,
-                                    stacklevel+1, source)
-        
-        # Handle exception when bounds is not an array
-        except AttributeError as AE:
-            if not isinstance(bounds, np.ndarray):
-                # Warn to prevent bad usage of SmartBook
-                name = f"'{key}'" if isinstance(key, str) else key
-                msg = f"For key, {name}, bounds should be an array, not {type(bounds).__name__}."
-                warn(_warning(source, msg, DesignWarning),
-                     stacklevel=stacklevel)
-                # Try again recursively
-                return _warnbounds(key, value, units, np.asarray(bounds),
-                                        stacklevel+1, source)
-            else:
-                raise AE
-                
         # Warn when value is out of bounds
-        if not within_bounds:
-            units = ' ' + units
+        if not lb<=value and ub>=value:
+            units = ' ' + units if units else ''
             try:
                 msg = f"{key} ({value:.4g}{units}) is out of bounds ({lb:.4g} to {ub:.4g}{units})."
             except:  # Handle format errors
-                msg = f"{key} ({value:.4g}{units}) is out of bounds ({lb} to {ub} {units})."
-            
+                msg = f"{key} ({value:.4g}{units}) is out of bounds ({lb} to {ub}{units})."
             warn(_warning(source, msg, DesignWarning), stacklevel=stacklevel)
+            
+def _lb_warning(key, value, units, lb, stacklevel, source):
+    units = ' ' + units if units else ''
+    try:
+        msg = f"{key} ({value:.4g}{units}) is out of bounds (minimum {lb:.4g}{units})."
+    except:  # Handle format errors
+        msg = f"{key} ({value:.4g}{units}) is out of bounds (minimum {lb}{units})."
+    
+    warn(_warning(source, msg, DesignWarning), stacklevel=stacklevel)
+    
+def _ub_warning(key, value, units, ub, stacklevel, source):
+    units = ' ' + units if units else ''
+    try:
+        msg = f"{key} ({value:.4g}{units}) is out of bounds (maximum {ub:.4g}{units})."
+    except:  # Handle format errors
+        msg = f"{key} ({value:.4g}{units}) is out of bounds (maximum {ub}{units})."
+    
+    warn(_warning(source, msg, DesignWarning), stacklevel=stacklevel)
 
 def _checkbounds(self, key, value):
         """Issue a warning if value is out of bounds.
@@ -130,45 +106,7 @@ def _boundsignore(*args, **kwargs): pass
 _Unit_is_done = False
 
 class metaUnit(type):
-    """Unit metaclass for wrapping up methods with error notifiers, adding key word arguments, and keeping track for Unit lines and inheritance.
-
-    **Optional class definitions**
-
-        **_kwargs** = {}: [dict] Default keyword arguments
-
-        **_init():**
-            Initialize components.
-        
-        **_setup()**
-            Create cached data from kwargs. 
-
-        **_run()**
-            Run rigorous simulation.
-
-        **_design()**
-            Update results "Design" dictionary with design requirements.
-
-        **_cost()**
-            Update results "Cost" dictionary with itemized cost.
-
-    **Class Attributes** 
-
-        **CEPCI** = 567.5: [float] Chemical Engineering Plant Cost Index
-        
-        **_bounds** = {} [dict] Values should be tuples with lower and upper bounds.
-        
-        **_N_ins** = 1: [int] Expected number of input streams
-
-        **_N_outs** = 2: [int] Expected number of output streams
-
-        **_N_heat_utilities** = 0: [int] Number of heat utilities  
-
-        **_has_power_utility** = False: [bool] If True, a PowerUtility object is created for every instance.
-
-        line = [Defaults to the class name of the first child class]: [str] Name denoting the type of Unit class
-
-
-    """
+    """Unit metaclass for wrapping up methods with error notifiers, adding key word arguments, and keeping track for Unit lines and inheritance."""
     _enforce_bounds = True
     _CEPCI = 567.5 # Chemical engineering plant cost index (567.5 at 2017)
     def __new__(mcl, clsname, superclasses, new_definitions):
@@ -230,12 +168,6 @@ class metaUnit(type):
                 locs = {}
                 exec(str2exec, globs, locs)
                 cls.__init__ = locs['__init__']
-            
-            # Make sure bounds are arrays for boundscheck
-            bounds = cls._bounds
-            for key, value in bounds.items():
-                bounds[key] = np.asarray(value)
-        
         return cls
     
     @property
@@ -263,6 +195,7 @@ class metaUnit(type):
             return f'Unit.{cls.__name__}'
         else:
             return f'{cls.line}.{cls.__name__}'
+
 
 # %% Unit Operation
 
@@ -292,16 +225,25 @@ class Unit(metaclass=metaUnit):
             Initialize components.
         
         **_setup()**
-            Create cached data from _kwargs. 
+            Create cached data from kwargs. 
 
         **_run()**
-            Run rigorous simulation.
+            Run simulation and update output streams.
+
+        **_prep()**
+            Prepare for design (called before `design`).
 
         **_design()**
             Update results "Design" dictionary with design requirements.
 
         **_cost()**
-            Update results "Cost" dictionary with itemized cost.
+            Update results "Cost" dictionary with itemized purchse costs.
+            
+        **_end():**
+            Finalize additional purchase prices and utility costs.
+            
+        **_spec()**
+            Calculate specification cost factors and update purchase prices.
         
         **_units** = {}: [dict] Default units for results Operation and Design
         
@@ -317,9 +259,13 @@ class Unit(metaclass=metaUnit):
         
         **_has_cost** = True: [bool] Should be True if it has any associated cost
     
-        **_has_proxystream** = False: [bool] True if outs are proxy streams linked to ins
+        **_linkedstreams = True** = False: [bool] True if outs are proxy streams linked to ins
     
         **_graphics** = default_graphics: [biosteam Graphics] a Graphics object for diagram representation.
+        
+    .. Note::
+        
+       Class argument `_init` is called only once when a Unit object is initialized, while `_setup` is run in the `reset` method to update cached data. The `_run` method is called during recycle loop convergence. The rest of the methods are called in the given order for generating results.
 
     **ins**
         
@@ -353,7 +299,7 @@ class Unit(metaclass=metaUnit):
     _N_outs = 2  
     
     # [bool] True if outs are proxy streams linked to ins
-    _has_proxystream = False
+    _linkedstreams = False
     
     # [dict] Values should be tuples with lower and upper bounds for results dictionary.
     _bounds = {}
@@ -402,7 +348,7 @@ class Unit(metaclass=metaUnit):
         self._install()
 
     def reset(self, **kwargs):
-        """Reset unit with new kwargs."""
+        """Reset unit with new key word arguments."""
         self._kwargs.update(kwargs)
         self._setup()
 
@@ -421,7 +367,7 @@ class Unit(metaclass=metaUnit):
     
     def _init_outs(self, outs):
         """Initialize output streams."""
-        if self._has_proxystream:
+        if self._linkedstreams:
             if outs is None:
                 self._outs = Outs(self, (ProxyStream('*')
                                   for i in self._N_outs))
@@ -482,9 +428,8 @@ class Unit(metaclass=metaUnit):
     
     def _link_streams(self):
         """Setup ProxyStream objects if any."""
-        if self._has_proxystream: 
-            for i, o in zip(self._ins, self._outs):
-                if isinstance(o, ProxyStream): o.link = i
+        if self._linkedstreams: 
+            for i, o in zip(self._ins, self._outs): o.link = i
     
     # Forward pipping
     def __sub__(self, other):
@@ -527,17 +472,23 @@ class Unit(metaclass=metaUnit):
     __rpow__ = __rsub__
     
     # Abstract methods
-    def _init(self): pass
-    def _setup(self): pass
-    def _run(self): pass
-    def _design(self): pass
-    def _cost(self): pass
-
+    _init   = _do_nothing
+    _setup  = _do_nothing
+    _run    = _do_nothing
+    _prep   = _do_nothing
+    _design = _do_nothing
+    _cost   = _do_nothing
+    _end    = _do_nothing
+    _spec   = _do_nothing
+    
     # Summary
     def _summary(self):
-        """Run _design, and _cost methods and update purchase price and total utility costs."""
+        """Run design and cost methods and finalize purchase and utility cost."""
+        self._prep()
         self._design()
         self._cost()
+        self._end()
+        self._spec()
         self._totalcosts[:] = sum(self._purchase_costs), sum(i.cost for i in self._utils)
 
     def simulate(self):
@@ -559,7 +510,7 @@ class Unit(metaclass=metaUnit):
                 addkey(('Power', 'Rate'))
                 addkey(('Power', 'Cost'))
                 addval(('kW', i.rate))
-                addval(('kW', i.cost))
+                addval(('USD/hr', i.cost))
             if self._heat_utilities:
                 for i in self._heat_utilities:
                     addkey((i.ID, 'Duty'))
@@ -647,6 +598,14 @@ class Unit(metaclass=metaUnit):
             return series
 
     _checkbounds = _checkbounds
+    def _lb_warning(self, key, value, lb):
+        """Warn that value is below lower bound."""
+        _lb_warning(key, value, self._units.get(key), lb, 4, self)
+
+    def _lb_check(self, key, value):
+        """Warn that value if below lower bound."""
+        lb = self._bounds[key]
+        if value < lb: _lb_warning(key, value, self._units.get(key), 4, self)
 
     @property
     def CEPCI(self):
@@ -1009,3 +968,4 @@ class Unit(metaclass=metaUnit):
             return f'<{type(self).__name__}>'
 
 _Unit_is_done = True
+

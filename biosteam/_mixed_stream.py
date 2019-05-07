@@ -10,7 +10,7 @@ from ._stream import Stream, nonzero_species, MassFlow, \
                             mol_flow_dim, mass_flow_dim, vol_flow_dim
 from ._utils import fraction, tuple_array, material_array, \
                            PropertyFactory, property_array
-from .exceptions import EquilibriumError, DimensionError
+from ._exceptions import EquilibriumError, DimensionError
 from . import _Q
 import numpy as np
 

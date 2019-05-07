@@ -7,11 +7,19 @@ Created on Thu Aug 23 21:23:56 2018
 from .. import Unit, MixedStream
 from ._flash import RatioFlash, PartitionFlash
 from ._splitter import Splitter
-from copy import copy
+from .decorators import cost, design
 
 __all__ = ('Centrifuge_LLE', 'RatioCentrifuge_LLE',
            'SplitCentrifuge_LLE', 'PartitionCentrifuge_LLE')
 
+# electricity kW/(m3/hr) from USDA biosdiesel Super Pro model
+# Possibly 1.4  kW/(m3/hr)
+# https://www.sciencedirect.com/topics/engineering/disc-stack-centrifuge
+# Microalgal fatty acids—From harvesting until extraction H.M. Amaro, et. al.,
+# in Microalgae-Based Biofuels and Bioproducts, 2017
+
+@cost('Flow rate', CE=525.4, cost=28100, exp=0.574, kW=3.66)
+@design('Flow rate', 'm^3/hr', lambda self: self._volnet_out)
 class Centrifuge_LLE(Unit):
     r"""Create an equlibrium based centrifuge with the option of having liquid non-keys and LIQUID non-keys completly separate into their respective phases.
 
@@ -56,54 +64,26 @@ class Centrifuge_LLE(Unit):
                'LNK': (),
                'solvents': (),
                'solvent_split': ()}
-
     _bounds = {'Flow rate': (0.1, 100)}
-    _units = {'Flow rate': 'm^3/hr'}
-    electricity_rate = 3.66 #: kW/(m3/hr) from USDA biosdiesel Super Pro model
-    # Possibly 1.4  kW/(m3/hr)
-    # https://www.sciencedirect.com/topics/engineering/disc-stack-centrifuge
-    # Microalgal fatty acids—From harvesting until extraction H.M. Amaro, ... A. Catarina Guedes, in Microalgae-Based Biofuels and Bioproducts, 2017
-    _has_power_utility = True
 
     def _setup(self):
         liq, LIQ = self.outs
         liq.phase = 'l'
         LIQ.phase = 'l'
-        self._cached = cached = {}
-        cached['mixed stream'] =  MixedStream(None)
-        if self._kwargs['species_IDs'] is None:
-            self._kwargs['species_IDs'] = liq.species_IDs
+        self._mixedstream =  MixedStream(None)
 
     def _run(self):
         liq, LIQ = self.outs
         feed = self.ins[0]
-
-        kwargs = self._kwargs
-        LLE_kwargs = copy(kwargs)
-
-        ms = self._cached['mixed stream']
+        ms = self._mixedstream
         ms.empty()
         ms.liquid_mol = feed.mol
-        ms.LLE(T=feed.T,  **LLE_kwargs)
+        ms.LLE(T=feed.T,  **self._kwargs)
         liq.mol = ms.liquid_mol
         LIQ.mol = ms.LIQUID_mol
         liq.T = LIQ.T = ms.T
         liq.P = LIQ.P = ms.P
-
-    def _design(self):
-        Design = self._results['Design']
-        Design['Flow rate'] = self._volnet_out
-        return Design
-
-    def _cost(self):
-        r = self._results
-        Design = r['Design']
-        Cost = r['Cost']
-        Q = Design['Flow rate']
-        self._power_utility(self.electricity_rate*Q)
-        Cost['Centrifuge'] = 28100 * Q ** 0.574 * self.CEPCI/525.4
-        return Cost
-
+        
 class PartitionCentrifuge_LLE(Centrifuge_LLE):
     _N_heat_utilities = 0
     kwargs = PartitionFlash._kwargs

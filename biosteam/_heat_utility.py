@@ -4,7 +4,7 @@ Created on Sat Aug 18 14:25:34 2018
 
 @author: yoelr
 """
-from .exceptions import DimensionError, biosteamError
+from ._exceptions import DimensionError, biosteamError
 from ._species import Species
 from ._stream import Stream, mol_flow_dim, mass_flow_dim, vol_flow_dim
 import pandas as pd

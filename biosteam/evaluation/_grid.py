@@ -216,8 +216,8 @@ class Grid:
                 initial_args,
                 thread)
         
-    def simulate(self):
-        """Simulate Grid object over the argument space and save metric values to `table`."""
+    def evaluate(self):
+        """Evaluate Grid object over the argument space and save metric values to `table`."""
         # Setup units before simulation
         argspace, funcs, initial_args, thread = self._loadtable()
         for func, arg in zip(funcs, initial_args):

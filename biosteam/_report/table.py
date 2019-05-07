@@ -9,7 +9,8 @@ import pandas as pd
 from warnings import warn
 from .._stream import Stream, mol_flow_dim, mass_flow_dim, vol_flow_dim
 from .. import _Q
-from ..exceptions import DimensionError
+from .._exceptions import DimensionError
+from warnings import warn
 import os
 
 DataFrame = pd.DataFrame
@@ -72,9 +73,12 @@ def save_report(system, file='report.xlsx', **stream_properties):
     """
     writer = ExcelWriter(file)
     units = list(system._costunits)
-    system.diagram('thorough', file='diagram.png')
-    flowsheet = writer.book.add_worksheet('Flowsheet')
-    flowsheet.insert_image('A1', 'diagram.png')
+    try:
+        system.diagram('thorough', file='diagram.png')
+        flowsheet = writer.book.add_worksheet('Flowsheet')
+        flowsheet.insert_image('A1', 'diagram.png')
+    except:
+        warn(RuntimeWarning('Failed to generate diagram through graphviz. Please check graphviz installation.', stacklevel=2))
     
     if system._TEA:
         # Cost table

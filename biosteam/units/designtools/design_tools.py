@@ -164,8 +164,9 @@ def VesselWeightAndWallThickness(Pressure, Diameter, VesselLength, rho_M, Je=0.8
     S = 15000.0     # Vessel material stress value (assume carbon-steel)
     Ca = 1.0/8.0    # Corrosion Allowance in inches
     
-    P1 = abs(Pressure - 14.7) + 30.0
-    P2 = abs(Pressure - 14.7)*1.1
+    P_gauge = abs(Pressure - 14.7)
+    P1 = P_gauge + 30.0
+    P2 = 1.1 * P_gauge
     if P1 > P2:
         PT = P1
     else:

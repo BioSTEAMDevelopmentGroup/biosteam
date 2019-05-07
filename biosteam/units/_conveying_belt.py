@@ -5,32 +5,29 @@ Created on Mon Mar  4 11:10:49 2019
 @author: yoelr
 """
 from .. import Unit
+from .decorators import cost
 import numpy as np
 
+@cost('Flow rate', N='N', CE=567, cost=813, exp=0.38)
 class ConveyingBelt(Unit):
     length = 50 #: ft
     height = 30 #: ft
     _N_outs = 1
     _has_power_utility = True
-    _has_proxystream = True
-    _bounds = {'Volumetric flow': (120, 500)}
+    _linkedstreams = True
+    _bounds = {'Flow rate': (120, 500)}
+    _units = {'Flow rate': 'ft^3/hr'}
     
-    def _run(self):
-        self.outs[0].copylike(self.ins[0])
-    
-    def _cost(self):
+    def _design(self):
         feed = self.ins[0]
-        r = self._results
-        Design = r['Design']
-        volbounds = self._bounds['Volumetric flow']
+        Design = self._results['Design']
+        volbounds = self._bounds['Flow rate']
         volnet = feed.volnet*35.315 # ft3/hr
-        N_belts = volnet/volbounds[-1]
-        Design['N_belts'] = N_belts = np.ceil(N_belts)
-        volnet /= N_belts 
-        massnet = feed.massnet*0.0006124/N_belts #lb/s
-        power = N_belts * 0.00058*massnet**0.82*self.length + self.height*0.00182*massnet# hp
+        Design['N'] = N = np.ceil(volnet/volbounds[-1])
+        Design['Flow rate'] = volnet/N
+        massnet = feed.massnet*0.0006124/N #lb/s
+        power = N * 0.00058*massnet**0.82*self.length + self.height*0.00182*massnet# hp
         power *= 0.7457 # kW
         self._power_utility(power)
-        r['Cost']['Conveying belt and motor'] = N_belts * self.CEPCI/567 * 813*volnet**0.38
         
 

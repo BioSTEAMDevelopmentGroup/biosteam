@@ -92,13 +92,13 @@ class Species:
     
     @property
     def CAS(self):
-        return (s.CAS for s in self)
+        return tuple(s.CAS for s in self)
     
     @property
     def ID(self):
-        return iter(self.__dict__.keys())
+        return tuple(self.__dict__.keys())
 
-    def getprops(self, species_IDs, prop_ID, T=None, P=None, phase=None) -> list:
+    def getprops(self, species_IDs, prop_ID, T=None, P=None, phase=None):
         """Return list of the desired property, prop_ID, for each compound in species_ID."""
         if isinstance(species_IDs, str):
             species = (getattr(self, species_IDs),)
@@ -107,7 +107,7 @@ class Species:
         return self._getprops(species, prop_ID, T, P, phase)
 
     @staticmethod
-    def _getprops(species, prop_ID, T, P, phase) -> list:
+    def _getprops(species, prop_ID, T, P, phase):
         """Return list of the desired property, prop_ID, for given species."""
         props = []; sat = setattr; gat = getattr
         for s in species:
@@ -126,13 +126,13 @@ class Species:
     # Representation
     def _info(self):
         """Information on self"""
-        return 'Species: \n ' + str(list(self.ID)).replace("'", '')[1:-1]
+        return 'Species: \n ' + str(self.ID).replace("'", '')[1:-1]
 
     def show(self):
         """print information on self"""
         print(self._info())
 
     def __repr__(self):
-        return '<Species: ' + str(list(self.ID)).replace("'", '')[1:-1] + '>'
+        return '<Species: ' + str(self.ID).replace("'", '')[1:-1] + '>'
 
     

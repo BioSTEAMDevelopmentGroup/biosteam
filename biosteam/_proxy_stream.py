@@ -37,7 +37,7 @@ class ProxyStream(Stream):
     @classmethod
     def asproxy(cls, stream):
         """Cast the stream as a proxy object."""
-        cls._data[stream] = [stream._source, stream._sink, stream.ID]
+        cls._data[stream] = [stream._source, stream._sink, stream.ID, stream.price]
         stream.__class__ = cls
         return stream
     
@@ -49,44 +49,40 @@ class ProxyStream(Stream):
     @link.setter
     def link(self, stream):
         if not self._link is stream:
-            if hasattr(self, 'price'): stream.price = self.price
             self.__dict__ = stream.__dict__
             stream._link = stream
         elif stream and not isinstance(stream, Stream):
             raise TypeError(f"link must be a Stream object or None, not a '{type(stream).__name__}' object.")
+       
+    @property
+    def price(self):
+        return self._data[self][3]
+    @price.setter
+    def price(self, price): self._data[self][3] = price
         
     @property
     def _ID(self):
         return self._data[self][2]
-    
     @_ID.setter
     def _ID(self, ID):
         self._data[self][2] = ID
     
     @property
-    def _source(self):
-        return self._data[self][0]
-    
+    def _source(self): return self._data[self][0]
     @_source.setter
-    def _source(self, source):
-        self._data[self][0] = source
+    def _source(self, source): self._data[self][0] = source
     
     @property
-    def _sink(self):
-        return self._data[self][1]
-    
+    def _sink(self):return self._data[self][1]
     @_sink.setter
-    def _sink(self, sink):
-        self._data[self][1] = sink
+    def _sink(self, sink): self._data[self][1] = sink
         
     @property
     def P(self):
         if hasattr(self, '_P'): return self._P
         else: return self.__dict__['P']
-        
     @P.setter
-    def P(self, P):
-        self._P = P
+    def P(self, P): self._P = P
     
     def disable_phases(self, phase):
         super().disable_phases(phase)

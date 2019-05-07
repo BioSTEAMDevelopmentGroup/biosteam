@@ -59,7 +59,7 @@
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">.exceptions</span> <span class="k">import</span> <span class="n">DimensionError</span><span class="p">,</span> <span class="n">biosteamError</span>
+<span class="kn">from</span> <span class="nn">._exceptions</span> <span class="k">import</span> <span class="n">DimensionError</span><span class="p">,</span> <span class="n">biosteamError</span>
 <span class="kn">from</span> <span class="nn">._species</span> <span class="k">import</span> <span class="n">Species</span>
 <span class="kn">from</span> <span class="nn">._stream</span> <span class="k">import</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">mol_flow_dim</span><span class="p">,</span> <span class="n">mass_flow_dim</span><span class="p">,</span> <span class="n">vol_flow_dim</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
@@ -170,6 +170,12 @@
 <span class="sd">        </span>
 <span class="sd">        **efficiency:** [float] Fraction of heat transfered after accounting for heat loss.</span>
 <span class="sd">    </span>
+<span class="sd">    **Class Attributes**</span>
+<span class="sd">    </span>
+<span class="sd">        **cooling_agents:** [DataFrame] All cooling utilities available</span>
+<span class="sd">        </span>
+<span class="sd">        **heating_agents:** [DataFrame] All heating utilities available</span>
+<span class="sd">    </span>
 <span class="sd">    **Examples**</span>
 <span class="sd">    </span>
 <span class="sd">        Create a heat utility with a source:</span>
@@ -215,14 +221,14 @@
     <span class="c1">#: Units of measure for results dictionary</span>
     <span class="n">_units</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">duty</span><span class="o">=</span><span class="s1">&#39;kJ/hr&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="s1">&#39;USD/hr&#39;</span><span class="p">)</span>
 
-    <span class="c1">#: [DataFrame] All cooling utilities available</span>
+    <span class="c1"># All cooling utilities available</span>
     <span class="n">cooling_agents</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">_cooling_water</span><span class="p">,</span>
                                    <span class="n">_chilled_water</span><span class="p">,</span>
                                    <span class="n">_chilled_brine</span><span class="p">],</span>
                                   <span class="n">columns</span><span class="o">=</span><span class="n">_columns</span><span class="p">,</span>
                                   <span class="n">index</span><span class="o">=</span><span class="n">_cooling_index</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
 
-    <span class="c1">#: [DataFrame] All heating utilities available</span>
+    <span class="c1"># All heating utilities available</span>
     <span class="n">heating_agents</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">_low_pressure_steam</span><span class="p">,</span>
                                    <span class="n">_medium_pressure_steam</span><span class="p">,</span>
                                    <span class="n">_high_pressure_steam</span><span class="p">],</span>

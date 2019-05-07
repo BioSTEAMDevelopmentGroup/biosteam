@@ -23,7 +23,7 @@ ln = np.log
 #    raise DesignError(f"Volume is out of bounds for costing")
 #lambda V, CE: CE*13*V**0.62 # V (m3)
 __all__ = ('Flash', 'SplitFlash', 'PartitionFlash',
-           'RatioFlash', 'Evaporator_PQin', 'Evaporator_PV')
+           'RatioFlash')
 
 
 # %% Flash solutions
@@ -50,15 +50,15 @@ def analytical_flash_solution(zs, Ks):
     
 # Material density (lb∕ft^3)
 rho_Mdict = {'Carbon steel': 490,
-            'Low-alloy steel': None,
-            'Stainless steel 304': 499.4,
-            'Stainless steel 316': 499.4,
-            'Carpenter 20CB-3': None,
-            'Nickel-200': None,
-            'Monel-400': None,
-            'Inconel-600': None,
-            'Incoloy-825': None,
-            'Titanium': None}
+             'Low-alloy steel': None,
+             'Stainless steel 304': 499.4,
+             'Stainless steel 316': 499.4,
+             'Carpenter 20CB-3': None,
+             'Nickel-200': None,
+             'Monel-400': None,
+             'Inconel-600': None,
+             'Incoloy-825': None,
+             'Titanium': None}
 
 # Vessel Material
 F_Mdict = {'Carbon steel': 1.0,
@@ -238,17 +238,19 @@ class Flash(Unit):
         # C_v: Vessel cost
         # C_pl: Platforms and ladders cost
         if type_ == 'Vertical':
-            C_v = exp(7.0132 + 0.18255*ln(W) + 0.02297*ln(W)**2)
-            C_pl = 361.8*D**0.7396*L**0.70684
+            C_v = exp(7.1390 + 0.18255*ln(W) + 0.02297*ln(W)**2)
+            C_pl = 410*D**0.7396*L**0.70684
         elif type_ == 'Horizontal':
-            C_v = exp(8.9552 - 0.2330*ln(W) + 0.04333*ln(W)**2)
-            C_pl = 2005*D**0.20294
+            C_v = exp(5.6336 - 0.4599*ln(W) + 0.00582*ln(W)**2)
+            C_pl = 2275*D**0.20294
         else:
             ValueError(f"SepType ({type_}) must be either 'Vertical', 'Horizontal' or 'Default'.")
             
-        Cost['Vessel'] = CE/500*(C_v+C_pl)
+        Cost['Flash'] = CE/567*(C_v+C_pl)
         if self._has_hx:
-            Cost['Heat exchanger'] = self._heat_exchanger._cost()['Heat exchanger']
+            hx = self._heat_exchanger
+            hx._cost()
+            Cost.update(hx._results['Cost'])
         self._cost_vacuum()
 
     def _cost_vacuum(self):
@@ -281,7 +283,8 @@ class Flash(Unit):
             massflow = vapor.massnet
             volflow = vapor.volnet
         
-        power, cost = vacuum_system(massflow, volflow,
+        power, cost = vacuum_system(self.CEPCI, 
+                                    massflow, volflow,
                                     P, vol,
                                     self.vacuum_system_preference)
         C['Liquid-ring pump'] = cost
