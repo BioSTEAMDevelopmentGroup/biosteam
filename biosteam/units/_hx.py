@@ -588,42 +588,31 @@ class HXprocess(HX):
             self._species_index = tuple(getattr(_species, ID) for ID in species_IDs), feed.indices(*species_IDs)
     
     def _run(self):
-        hx = True # If false, a stream is empty and no heat exchanger occurs
-        for si, so in zip(self.ins, self.outs):
-            if si.molnet <= 0.001:
-                hx = False
+        no_heat_exchange = False
+        for si, so in zip(self._ins, self._outs):
             so.copylike(si)
-        if hx:
-            Type = self._kwargs['Type']
-            try:
-                getattr(self, '_run_' + Type)()
-            except AttributeError as AE:
-                if Type not in ('ss', 'ls', 'll'):
-                    raise ValueError(f"Type must be either 'ss', 'ls', or 'll', not {Type}")
-                else:
-                    raise AE
+            if not si.molnet: no_heat_exchange = True
+        if no_heat_exchange: return
+        Type = self._kwargs['Type']
+        try:
+            getattr(self, '_run_' + Type)()
+        except AttributeError as AE:
+            if Type not in ('ss', 'ls', 'll'):
+                raise ValueError(f"Type must be either 'ss', 'ls', or 'll', not {Type}")
+            else:
+                raise AE
     
     def _run_ss(self):
         dT = self.dT
         s1f, s2f = self.outs
         s1, s2 = self.ins
-        if all(s2.mol == 0):
-            s1f.T = s1.T
-            s2f.T = s2.T
-            return
         s1_hot = s1.T > s2.T  # s2 energy will increase
         if s1.C < s2.C:
-            if s1_hot:
-                s1f.T = s2.T + dT
-            else:
-                s1f.T = s2.T - dT
+            s1f.T = (s2.T + dT) if s1_hot else (s2.T - dT)
             duty = s1.H - s1f.H
             s2f.T += duty/s2.C
         else:
-            if s1_hot:
-                s2f.T = s1.T - dT
-            else:
-                s2f.T = s1.T + dT
+            s2f.T = (s1.T - dT) if s1_hot else (s1.T + dT)
             duty = s2.H - s2f.H
             s1f.T += duty/s1.C
         self._duty = duty

@@ -17,11 +17,11 @@ def set_feed_price(feedstock_price): Lipid_cane.price = feedstock_price
 grid.addparam(element=Lipid_cane,
               setter=set_feed_price,
               values=[0.030, 0.035, 0.040],
-              isolated=True)
+              kind='isolated')
 
 grid.addparam(Lipid_cane, lc.set_lipid_fraction, [0.02, 0.05, 0.10])
 
 U34 = bs.find('U34')
 def set_efficiency(fermentation_efficiency): U34.reset(efficiency=fermentation_efficiency)
-grid.addparam(U34, set_efficiency, [0.85, 0.90, 0.95])
+grid.addparam(U34, set_efficiency, [0.85, 0.90, 0.95], kind='coupled')
 grid.show()

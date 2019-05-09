@@ -6,19 +6,14 @@ Created on Thu Mar  7 23:17:38 2019
 """
 import numpy as np
 import pandas as pd
-from .. import Unit
 from ._block import Block
+from ._model import _get_element_name, _blockunit, Model
 
 __all__ = ('Grid',)
 
 DF = pd.DataFrame
 
 # %% Functions
-
-def _blockunit(blockfunc_args):
-    element = blockfunc_args[0]._block._element
-    if isinstance(element, Unit): return element
-    else: return element._sink
 
 def _fill_space(args, num_stack, argspace, thread, tuple_):
     for i, f, fargs in num_stack:
@@ -41,7 +36,7 @@ def _ordered_space(args, num_args, argspace, tuple_, space):
 
 # %% Grid of simulation blocks
 
-class Grid:
+class Grid(Model):
     """Create a Grid object that allows for optimized evaluation over an argument space.
     
     **Parameters**
@@ -67,22 +62,16 @@ class Grid:
                  '_system',
                  '_stack',
                  '_metric',
+                 '_params',
+                 '_orderf',
                  '_ID',
                  '_layout')
     
-    def __init__(self, system, metric, *, args=(), ID=None, layout='simple'):
-        if args:
-            metric_no_args = lambda: metric(*args)
-            metric_no_args.__name__ = metric.__name__
-            self._metric = metric_no_args
-        else: self._metric = metric
+    def __init__(self, ID, system, metric, *, args=(), layout='simple'):
+        super().__init__(ID, system, metric, args=args)
         self.layout = layout
-        self._system = system
-        self._ID = ID or self._metric.__name__
-        
         #: [(function, args)] Iterable of block fuctions and respective arguments.
         self._stack = []
-        
         #: [DataFrame] Table of the argument space with results in the final column.
         self._table = None
     
@@ -110,7 +99,7 @@ class Grid:
         elif self._table is None: self._loadtable()
         return self._table
     
-    def evalparam(self, element, setter, values, isolated=False):
+    def evalparam(self, element, setter, values, kind='isolated'):
         """Return metric at given parameter values.
         
         **Parameters**
@@ -121,14 +110,30 @@ class Grid:
             
             **values:** [iterable] Values for parameter.
             
-            **isolated** [bool] If True, account for downstream operations. If False, only account for element.
+            **kind:** {'isolated', 'design', 'cost'}
+                * 'coupled': parameter is coupled to the system.
+                * 'isolated': parameter does not affect the system.
+                * 'design': parameter only affects design and cost of the element.
+                * 'cost': parameter only affects cost of the element.
+            
+        .. Note::
+            
+            If kind is 'coupled', account for downstream operations. Otherwise, only account for given element. If kind is 'design' or 'cost', element must be a Unit object.
         
         """
-        system = None if isolated else self._system
-        blockfunc = Block(element, system)(self._metric, setter)
-        return [blockfunc(i) for i in values]
+        if kind is 'coupled':
+            blockf = Block(element, self._system)(self._metric, setter)
+        elif kind is 'isolated':
+            blockf = Block(element, None)(self._metric, setter)
+        elif kind is 'design':
+            blockf = Block(element, None)(self._metric, setter, element._summary)
+        elif kind is 'cost':
+            blockf = Block(element, None)(self._metric, setter, element._finalize)
+        else:
+            raise ValueError(f"kind must be either 'coupled', 'isolated', 'design', or 'cost' (not {kind}).")
+        return [blockf(i) for i in values]
     
-    def addparam(self, element, setter, values, isolated=False):
+    def addparam(self, element, setter, values, kind='isolated'):
         """Add parameter to vary in metric.
         
         **Parameters**
@@ -139,11 +144,34 @@ class Grid:
             
             **values:** [iterable] Values for parameter.
             
-            **isolated** [bool] If True, account for downstream operations. If False, only account for element.
+            **kind:** {'isolated', 'design', 'cost'}
+                * 'coupled': parameter is coupled to the system.
+                * 'isolated': parameter does not affect the system.
+                * 'design': parameter only affects design and cost of the element.
+                * 'cost': parameter only affects cost of the element.
+            
+        .. Note::
+            
+            If kind is 'coupled', account for downstream operations. Otherwise, only account for given element. If kind is 'design' or 'cost', element must be a Unit object.
         
         """
-        system = None if isolated else self._system
-        self._stack.append((Block(element, system)(self._metric, setter), values))
+        if kind is 'coupled':
+            blockf = Block(element, self._system)(setter)
+        elif kind is 'isolated':
+            blockf = Block(element, None)(setter)
+        elif kind is 'design':
+            blockf = Block(element, None)(setter, element._summary)
+        elif kind is 'cost':
+            blockf = Block(element, None)(setter, element._finalize)
+        else:
+            raise ValueError(f"kind must be either 'coupled', 'isolated', 'design', or 'cost' (not {kind}).")
+        self._stack.append((blockf, values))
+
+    @property
+    def _blockf(self):
+        return [i[0] for i in self._stack]
+    @_blockf.setter
+    def _blockf(self, value): pass
     
     def _loadtable(self):
         """Load argument space and return parameters for simulation.
@@ -158,13 +186,12 @@ class Grid:
         """
         system = self._system
         stack = self._stack
-        if not stack: raise RuntimeError(f'No metric parameters set for {repr(self)} object.')
         tuple_ = tuple
         # Order blocktests from last in network to first
         length = len(system._unitnetwork)
         index = system._unitnetwork.index
-        stack.sort(key=lambda x: index(_blockunit(x))
-                                 if x[0]._block._system else length,
+        stack.sort(key=lambda x: index(_blockunit(x[0]))
+                                 if x[0]._system else length,
                    reverse=True)
         
         initial_args = []
@@ -176,8 +203,8 @@ class Grid:
             for func, args in stack:
                 initial_args.append(args[0])
                 funcs.append(func)
-                element = func._block._element
-                element_names.append(element.line + '-' + element.ID.replace('_', ' '))
+                element = func._element
+                element_names.append(_get_element_name(element))
                 all_args.append(list_(args))
             num_stack = tuple_(zip(range(len(funcs)), funcs, all_args))
             args = initial_args
@@ -190,8 +217,9 @@ class Grid:
             for func, args in stack:
                 argspace.append(args)
                 funcs.append(func)
-                element = func._block._element
-                element_names.append(element.line + '-' + element.ID.replace('_', ' '))
+                element = func._element
+                e_name = _get_element_name(element)
+                element_names.append(e_name)
             argspace = list_(zip(*argspace))
             key = lambda x: x[i]
             index = list_(range(len(stack)))
@@ -204,7 +232,6 @@ class Grid:
                     for i in funcs]
         spacelen = len(argspace)
         spacerange = range(spacelen)
-        
         self._table = DF(argspace,
                          columns=pd.MultiIndex.from_arrays((element_names, paramIDs),
                                                            names=('Element', 'Parameter')),
@@ -223,6 +250,7 @@ class Grid:
         for func, arg in zip(funcs, initial_args):
             func._setter(arg)
         
+        metric = self._metric
         # Simulate system to initialize whole network
         try: self._system.simulate()
         except: pass
@@ -230,13 +258,15 @@ class Grid:
         add = values.append
         if thread:
             for func, arg in thread:
-                try: add(func(arg))
+                try: 
+                    func(arg)
+                    add(metric())
                 except: add(None)
         else:
             metric = self._metric
             add(metric())
             last_args = initial_args
-            simulate_funcs = [i._block._simulate for i in funcs]
+            simulate_funcs = [i._simulate for i in funcs]
             setter_funcs = [i._setter for i in funcs]
             index = tuple(range(len(last_args)))
             for args in argspace[1:]:
@@ -248,53 +278,12 @@ class Grid:
                 if simfunc_pos: simulate_funcs[simfunc_pos]()
                 add(metric())
                 last_args = args
-                
         self._table[self._ID] = values
         
-    def _repr(self):    
-        return f'{type(self).__name__}: {self._ID}'
-    
-    def __repr__(self):
-        return f'<{self._repr()}>'
-       
-    def _info(self):
-        if not self._stack:
-            return (f'{self._repr()}\n'
-                    +' element  parameters\n'
-                    +' None     None')
-        blocks = {}
-        for i, _ in self._stack:
-            e = i._block._element
-            p = i._param
-            blk = f'{type(e).__name__}-' + f'{e}'.replace('_', ' ')
-            if blk not in blocks: blocks[blk] = [p]
-            else: blocks[blk].append(p)
-        
-        lenghts_block = []
-        lines = []
-        for blk, params in blocks.items():
-            blklen = len(blk)
-            blklen_spaces = (blklen)*' '
-            newlines = []
-            newlines.append(f" {blk}${params[0].replace('_', ' ')}\n")
-            for p in params[1:]:
-                newlines.append(f" {blklen_spaces}${p.replace('_', ' ')}\n")
-            lines.extend(newlines)
-            lenghts_block.extend((blklen,)*len(newlines))
-        
-        maxlen_block = max(lenghts_block)
-        out = f'{self._repr()}\n'
-        maxlen_block = max(maxlen_block, 7)
-        out += ' element' + (maxlen_block - 7)*' ' + '  parameter\n'
-        for newline, len_ in zip(lines, lenghts_block):
-            newline = newline.replace('$', ' '*(maxlen_block-len_) + '  ')
-            out += newline
-        
-        return out.rstrip('\n ')
-    
-    def show(self):
-        """Return information on metric parameters."""
-        print(self._info())
+    __repr__ = Model.__repr__
+    _info = Model._info
+    _repr = Model._repr
+    show = Model.show
         
         
         

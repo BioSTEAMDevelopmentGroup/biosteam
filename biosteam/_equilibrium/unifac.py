@@ -923,9 +923,9 @@ def DORTMUND(species, xs, T, cached={}):
 #     return UNIFAC_Coeffictients(self, xs, T, UFSG, UFLLIP, UNIFAC_psi, loggammacs_UNIFAC)
 
 def loggammacs_UNIFAC(qs, rs, xs):
-    rsxs = sum(ri*xi for ri, xi in zip(rs, xs))
+    rsxs = sum([ri*xi for ri, xi in zip(rs, xs)])
     Vis = [ri/rsxs for ri in rs]
-    qsxs = sum(qi*xi for qi, xi in zip(qs, xs))
+    qsxs = sum([qi*xi for qi, xi in zip(qs, xs)])
     Fis = [qi/qsxs for qi in qs]
 
     loggammacs = [1. - Visi + log(Visi) - 5.*qsi*(1. - Visi/Fisi + log(Visi/Fisi))
@@ -972,20 +972,17 @@ def UNIFAC_Coeffictients(xs, T, subgroups, interactions,
     sum_ = sum
     xs_chemgroups = tuple(zip(xs, chemgroups))
     # Sum the denominator for calculating Xs
-    group_sum = sum_(count*x
-                     for x, g in xs_chemgroups for count in g.values())
+    group_sum = sum_([count*x for x, g in xs_chemgroups for count in g.values()])
 
     # Caclulate each numerator for calculating Xs
     group_count_xs = {}
     for group in gckeys:
-        tot_numerator = sum_(x*g[group]
-                             for x, g in xs_chemgroups if group in g)
+        tot_numerator = sum_([x*g[group] for x, g in xs_chemgroups if group in g])
         group_count_xs[group] = tot_numerator/group_sum
 
     loggammacs = loggammacs_function(qs, rs, xs)
 
-    Q_sum_term = sum_(subgroups[group].Q*group_count_xs[group]
-                      for group in gckeys)
+    Q_sum_term = sum_([subgroups[group].Q*group_count_xs[group] for group in gckeys])
     area_fractions = {group: subgroups[group].Q*group_count_xs[group]/Q_sum_term
                       for group in gckeys}
 
@@ -997,8 +994,8 @@ def UNIFAC_Coeffictients(xs, T, subgroups, interactions,
         sum1, sum2 = 0., 0.
         for m in gckeys:
             sum1 += area_fractions[m]*UNIFAC_psis[k][m]
-            sum3 = sum_(area_fractions[n]*UNIFAC_psis[m][n]
-                        for n in group_counts)
+            sum3 = sum_([area_fractions[n]*UNIFAC_psis[m][n]
+                        for n in group_counts])
             sum2 -= area_fractions[m]*UNIFAC_psis[m][k]/sum3
         loggamma_groups[k] = subgroups[k].Q*(1. - log(sum1) + sum2)
 
@@ -1009,8 +1006,8 @@ def UNIFAC_Coeffictients(xs, T, subgroups, interactions,
         chem_group_count_xs = {group: count/chem_group_sum
                                for group, count in groups.items()}
 
-        Q_sum_term = sum_(subgroups[group].Q*chem_group_count_xs[group]
-                          for group in gkeys)
+        Q_sum_term = sum_([subgroups[group].Q*chem_group_count_xs[group]
+                           for group in gkeys])
         chem_area_fractions = {group: subgroups[group].Q*chem_group_count_xs[group]/Q_sum_term
                                for group in gkeys}
         chem_loggamma_groups = {}
@@ -1018,14 +1015,14 @@ def UNIFAC_Coeffictients(xs, T, subgroups, interactions,
             sum1, sum2 = 0., 0.
             for m in groups:
                 sum1 += chem_area_fractions[m]*UNIFAC_psis[k][m]
-                sum3 = sum_(chem_area_fractions[n]
-                            * UNIFAC_psis[m][n] for n in groups)
+                sum3 = sum_([chem_area_fractions[n]
+                            * UNIFAC_psis[m][n] for n in groups])
                 sum2 -= chem_area_fractions[m]*UNIFAC_psis[m][k]/sum3
 
             chem_loggamma_groups[k] = subgroups[k].Q*(1. - log(sum1) + sum2)
 
-        tot = sum_(count*(loggamma_groups[group] - chem_loggamma_groups[group])
-                   for group, count in groups.items())
+        tot = sum_([count*(loggamma_groups[group] - chem_loggamma_groups[group])
+                   for group, count in groups.items()])
         loggammars.append(tot)
 
     return [exp(sum_(ij)) for ij in zip(loggammacs, loggammars)]

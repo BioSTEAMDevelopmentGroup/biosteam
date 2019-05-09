@@ -172,11 +172,11 @@ class MixedStream(Stream):
         flow_wt_units = _Q(flow, units)
         dim = flow_wt_units.dimensionality
         if dim == mol_flow_dim:
-            exec(f"self._molarray[p, index] {inplace}= flow_wt_units.to(self.units['mol']).magnitude", locals())
+            exec(f"self._molarray[p, index] {inplace}= flow_wt_units.to('kmol/hr').magnitude", locals())
         elif dim == mass_flow_dim:
-            exec(f"self._massarray[p, index] {inplace}= flow_wt_units.to(mass_units).magnitude", locals())
+            exec(f"self._massarray[p, index] {inplace}= flow_wt_units.to('kg/hr').magnitude", locals())
         elif dim == vol_flow_dim:
-            exec(f"self._volarray[p, index] {inplace}= flow_wt_units.to(vol_units).magnitude", locals())
+            exec(f"self._volarray[p, index] {inplace}= flow_wt_units.to('m3/hr').magnitude", locals())
         else:
             raise DimensionError(f"Dimensions for flow units must be in molar, mass or volumetric flow rates, not '{dim}'.")
 
@@ -718,7 +718,7 @@ class MixedStream(Stream):
             species = tuple(species)
         else:
             index = [sp_index(specie) for specie in species_IDs]
-            species = tuple(sp_dict[ID] for ID in species_IDs)
+            species = tuple([sp_dict[ID] for ID in species_IDs])
         if LNK:
             LNK_index = [sp_index(specie) for specie in LNK]
         else:
@@ -1016,7 +1016,7 @@ class MixedStream(Stream):
         min_ = np.zeros(Nspecies)
 
         # Set up activity coefficients
-        solvent_species = tuple(sp_dict[ID] for ID in solvents)
+        solvent_species = tuple([sp_dict[ID] for ID in solvents])
         activity_species = species + solvent_species
         act_coef = self.activity_coefficients
 

@@ -230,20 +230,20 @@ class Unit(metaclass=metaUnit):
         **_run()**
             Run simulation and update output streams.
 
-        **_prep()**
+        **_prepare()**
             Prepare for design (called before `design`).
 
         **_design()**
-            Update results "Design" dictionary with design requirements.
+            Add design requirements to results "Design" dictionary.
 
         **_cost()**
-            Update results "Cost" dictionary with itemized purchse costs.
-            
-        **_end():**
-            Finalize additional purchase prices and utility costs.
+            Add itemized purchse costs to results "Cost" dictionary.
             
         **_spec()**
             Calculate specification cost factors and update purchase prices.
+            
+        **_join():**
+            Join additional purchase prices and utility costs.
         
         **_units** = {}: [dict] Default units for results Operation and Design
         
@@ -472,24 +472,35 @@ class Unit(metaclass=metaUnit):
     __rpow__ = __rsub__
     
     # Abstract methods
-    _init   = _do_nothing
-    _setup  = _do_nothing
-    _run    = _do_nothing
-    _prep   = _do_nothing
-    _design = _do_nothing
-    _cost   = _do_nothing
-    _end    = _do_nothing
-    _spec   = _do_nothing
+    _init     = _do_nothing
+    _setup    = _do_nothing
+    _run      = _do_nothing
+    _prepare  = _do_nothing
+    _design   = _do_nothing
+    _finalize = _do_nothing
+    _cost     = _do_nothing
+    _join     = _do_nothing
+    _spec     = _do_nothing
     
     # Summary
     def _summary(self):
-        """Run design and cost methods and finalize purchase and utility cost."""
-        self._prep()
+        """Calculate all results from unit run."""
+        self._prepare()
         self._design()
+        self._finalize()
+
+    def _finalize(self):
+        """Run all cost methods and finalize purchase and utility cost."""
         self._cost()
-        self._end()
         self._spec()
+        self._join()
         self._totalcosts[:] = sum(self._purchase_costs), sum(i.cost for i in self._utils)
+
+    def _update_purchase_cost(self):
+        self._totalcosts[0] = sum(self._purchase_costs)
+    
+    def _update_utility_cost(self):
+        self._totalcosts[1] = sum(i.cost for i in self._utils)
 
     def simulate(self):
         """Run rigourous simulation and determine all design requirements."""

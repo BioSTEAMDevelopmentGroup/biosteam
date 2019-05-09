@@ -152,26 +152,26 @@ class Flowsheet:
         # display.display(display.Image(img))
     
     def _minimal_diagram(self):
-        from . import system, Stream
+        from . import _system, Stream
         streams = self.stream.values()
-        feeds = set(filter(system._isfeed, streams))
-        products = set(filter(system._isproduct, streams))
+        feeds = set(filter(_system._isfeed, streams))
+        products = set(filter(_system._isproduct, streams))
         product = Stream(None)
         product._ID = ''
         feed = Stream(None)
         feed._ID = ''
-        system._streamUnit('\n'.join([i.ID for i in feeds]),
+        _system._streamUnit('\n'.join([i.ID for i in feeds]),
                            feed)
-        system._streamUnit('\n'.join([i.ID for i in products]),
+        _system._streamUnit('\n'.join([i.ID for i in products]),
                            None, product)
-        unit = system._systemUnit(self.ID, product, feed)
+        unit = _system._systemUnit(self.ID, product, feed)
         unit.line = 'flowsheet'
         unit.diagram(1)
         
     def _surface_diagram(self):
-        from . import system, Stream
+        from . import _system, Stream
         units = set(self.unit.values())
-        StrUnit = system._streamUnit
+        StrUnit = _system._streamUnit
         refresh_units = set()
         for i in self.system.values():
             if i.recycle and not any(sub.recycle for sub in i.subsystems):
@@ -206,11 +206,11 @@ class Flowsheet:
                     outs.append(product)
                 else: outs += products
                 
-                subsystem_unit = system._systemUnit(i.ID, outs, ins)
+                subsystem_unit = _system._systemUnit(i.ID, outs, ins)
                 units.difference_update(i.units)
                 units.add(subsystem_unit)
         
-        sys = system.System(None, units)
+        sys = _system.System(None, units)
         sys._thorough_diagram()
         for i in refresh_units:
             i.ins = i._ins

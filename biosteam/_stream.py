@@ -670,7 +670,7 @@ class Stream(metaclass=metaStream):
         elif ID:
             ID = ID.replace(' ', '_')
             ID_words = ID.split('_')
-            if not all(word.isalnum() for word in ID_words):
+            if not all([word.isalnum() for word in ID_words]):
                 raise ValueError('ID cannot have any special characters')
             stream[ID] = self
             self._ID = ID
@@ -719,7 +719,7 @@ class Stream(metaclass=metaStream):
         except ValueError as VE:
             if not self._species:
                 raise RuntimeError(f'No species defined in stream.')
-            if all(isinstance(i, str) for i in species):
+            if all([isinstance(i, str) for i in species]):
                 if CAS:
                     stream_species = self._CAS
                     start = 'CAS numbers '
@@ -728,7 +728,7 @@ class Stream(metaclass=metaStream):
                     start = 'IDs '
             else:
                 raise TypeError(f'species must all be str objects')
-            not_included = tuple(i for i in species if i not in stream_species)
+            not_included = tuple([i for i in species if i not in stream_species])
             if not_included: raise ValueError(f'{start}{not_included} not defined in stream species')
             else: raise VE
                 
@@ -1562,17 +1562,17 @@ class Stream(metaclass=metaStream):
         """
         sum_ = sum
         # Set up problem
-        C = sum_(s.C for s in streams)
-        H_ = sum_(s.H for s in streams) + Q_in
+        C = sum_([s.C for s in streams])
+        H_ = sum_([s.H for s in streams]) + Q_in
         
         # Set initial temperature
         if not T_guess:
-            T_guess = sum_(s.T for s in streams)/len(streams)
+            T_guess = sum_([s.T for s in streams])/len(streams)
         for s in streams:
             s.T = T_guess
         
         # Find new T
-        H = sum_(s.H for s in streams)
+        H = sum_([s.H for s in streams])
         T = T_guess + (H_ - H)/C
         
         # Update
@@ -1585,7 +1585,7 @@ class Stream(metaclass=metaStream):
         it = 1
         while abs(T - T_guess) > 0.01:
             # Calculate
-            H_ = sum_(s.H for s in streams)
+            H_ = sum_([s.H for s in streams])
             T = T_guess + (H_- H)/C
             
             # Check iteration
@@ -1628,7 +1628,7 @@ class Stream(metaclass=metaStream):
         T_init = streams[0].T
         Ts = np.array([s.T for s in streams[1:]])
         energy_balance = any(T_init != Ts)
-        if energy_balance: H = sum(s.H for s in streams)
+        if energy_balance: H = sum([s.H for s in streams])
         else: s_sum.T = T_init
 
         # Copy starting values

@@ -48,8 +48,7 @@ def _evaluate(self, command=None):
         else:
             # If successful, continue evaluating
             if out is None:
-                if '.show(' not in command:
-                    print('\n')
+                if '.show(' not in command: print('\n')
             else:
                 print(out)
             command = input(">>> ")

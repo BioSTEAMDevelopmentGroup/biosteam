@@ -26,10 +26,6 @@ class Block:
         
         **system:** [System] If None, ignore downstream.
         
-        **getter:** [function] Getter for block function.
-        
-        **setter:** [function] Setter for block function.
-        
     **Examples**
 
          :doc:`Block Example`
@@ -68,29 +64,27 @@ class Block:
        The block would simulate Unit-P1 and downstream.
     
     
-    Calling a block object with a getter and a setter will return a block function equivalent to:
+    Calling a block object with a setter will return a block function equivalent to:
         
     .. code-block:: python
     
        >>> def blockfunc(args):
        ...     setter(args)
        ...     self.simulate() # self is the Block object
-       ...     return getter()  
        
     For example:
         
     .. code-block:: python
     
-       >>> # getter and setter functions are hypothetical
-       >>> def getter(): pass
+       >>> # setter functions is hypothetical
        >>> def setter(args): pass
-       >>> blockfunc = Block(P1, None)(getter, setter)
+       >>> blockfunc = Block(P1, None)(setter)
        >>> blockfunc
-       <function [Block P1] getter(args)>
+       <function [Block P1] setter(args)>
     
     .. Note::
         
-       The function signature matches the setter while the function name matches the getter.
+       The function name and signature matches the setter function.
     
     """
     
@@ -111,58 +105,42 @@ class Block:
         inst = isinstance
         if inst(element, Stream): unit = element.sink
         elif inst(element, Unit): unit = element
-        elif element is None: return self._emptyblock
-        else: raise ValueError(f"element must be either a Unit, Stream, or None object, not '{type(element).__name__}'.")
-        if system:
+        if system and element:
             subsys = system._downstream_system(unit)
             simulate = subsys.simulate
         else:
             subsys = system
-            if element is Unit: simulate = unit.simulate
-            else: simulate = do_nothing
+            simulate = unit.simulate if inst(element, Unit) else do_nothing
             
         self._system = subsys
         self._simulate = simulate
         self._element = element
         self._cachedblocks[system, element] = self
     
-    def _make_blockfunc(self, getter, setter, docfunc):
-        # Prevent downstream exceptions
-        getter_param = signature(getter).parameters
-        if getter_param:
-            for p in getter_param.values():
-                if '=' not in str(p):
-                    raise ValueError(f'{type(self).__name__} getter signature cannot have arguments.')
-        sig = signature(setter)
-        setter_params = tuple(sig.parameters.keys())
-        param = ', '.join(setter_params)
-        if len(setter_params) != 1: 
-            raise ValueError(f'{type(self).__name__} setter signature must have one and only one argument.')
+    def __call__(self, setter, simulate=None, param=None) -> function:
+        """Return a block function."""
+        if simulate is None: simulate = self._simulate
+        if not param: param, = signature(setter).parameters.keys()
         
         # Make blockfunc
-        name = getter.__name__
+        name = setter.__name__
         if name[0] == '<': name = 'Lambda'
-        str2exec =  (f'def {name}{sig}:    \n'
-                   + f'    setter({param}) \n'
-                   + f'    simulate()      \n'
-                   + f'    return getter()   ')
+        str2exec =  (f'def {name}({param}):\n'
+                   + f'    setter({param})\n'
+                   + f'    simulate()')
 
         globs = {'setter': setter,
-                 'simulate': self._simulate,
-                 'getter': getter}
+                 'simulate': simulate}
         locs = {}
         exec(str2exec, globs, locs)
         blockfunc = locs[name]
         blockfunc.__qualname__ = f'{self} {blockfunc.__qualname__}'
-        blockfunc.__doc__ = docfunc.__doc__
         blockfunc._param = param
-        blockfunc._block = self
+        blockfunc._simulate = simulate
+        blockfunc._element = self._element
+        blockfunc._system = self._system
         blockfunc._setter = setter
-        blockfunc._getter = getter
         return blockfunc
-    
-    def __call__(self, getter, setter) -> function:
-        return self._make_blockfunc(getter, setter, getter)
     
     @property
     def system(self):
@@ -184,6 +162,8 @@ class Block:
         
     def _repr(self):
         if self._element:
+            if isinstance(self._element, type):
+                return f"{type(self).__name__}: {self._element.__name__}"
             return f"{type(self).__name__}: {type(self._element).__name__}-{self._element}"
         else:
             return f"{type(self).__name__}"
@@ -199,10 +179,3 @@ class Block:
 
     def show(self):
         print(self._info())
-
-emptyblock = object.__new__(Block)
-emptyblock._system = None
-emptyblock._element = None
-emptyblock._simulate = do_nothing
-Block._emptyblock = emptyblock
-del emptyblock

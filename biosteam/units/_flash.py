@@ -22,8 +22,7 @@ ln = np.log
 #if not (0.1 < V < 70):
 #    raise DesignError(f"Volume is out of bounds for costing")
 #lambda V, CE: CE*13*V**0.62 # V (m3)
-__all__ = ('Flash', 'SplitFlash', 'PartitionFlash',
-           'RatioFlash')
+__all__ = ('Flash', 'SplitFlash', 'PartitionFlash', 'RatioFlash')
 
 
 # %% Flash solutions
@@ -49,28 +48,28 @@ def analytical_flash_solution(zs, Ks):
 # %% Data
     
 # Material density (lb∕ft^3)
-rho_Mdict = {'Carbon steel': 490,
-             'Low-alloy steel': None,
-             'Stainless steel 304': 499.4,
-             'Stainless steel 316': 499.4,
-             'Carpenter 20CB-3': None,
-             'Nickel-200': None,
-             'Monel-400': None,
-             'Inconel-600': None,
-             'Incoloy-825': None,
-             'Titanium': None}
+material_density = {'Carbon steel': 490,
+                    'Low-alloy steel': None,
+                    'Stainless steel 304': 499.4,
+                    'Stainless steel 316': 499.4,
+                    'Carpenter 20CB-3': None,
+                    'Nickel-200': None,
+                    'Monel-400': None,
+                    'Inconel-600': None,
+                    'Incoloy-825': None,
+                    'Titanium': None}
 
 # Vessel Material
-F_Mdict = {'Carbon steel': 1.0,
-           'Low-alloy steel': 1.2,
-           'Stainless steel 304': 1.7,
-           'Stainless steel 316': 2.1,
-           'Carpenter 20CB-3': 3.2,
-           'Nickel-200': 5.4,
-           'Monel-400': 3.6,
-           'Inconel-600': 3.9,
-           'Incoloy-825': 3.7,
-           'Titanium': 7.7}
+material_factor = {'Carbon steel': 1.0,
+                   'Low-alloy steel': 1.2,
+                   'Stainless steel 304': 1.7,
+                   'Stainless steel 316': 2.1,
+                   'Carpenter 20CB-3': 3.2,
+                   'Nickel-200': 5.4,
+                   'Monel-400': 3.6,
+                   'Inconel-600': 3.9,
+                   'Incoloy-825': 3.7,
+                   'Titanium': 7.7}
 
 
 # %% Flash
@@ -130,8 +129,8 @@ class Flash(Unit):
     _N_heat_utilities = 0
     
     # Column material factor
-    _F_Mstr = 'Carbon steel'
-    _F_M = 1 
+    _material = 'Carbon steel'
+    _F_material = 1 
     
     #: If a vacuum system is needed, it will choose one according to this preference.
     vacuum_system_preference = 'Liquid-ring pump'
@@ -164,16 +163,16 @@ class Flash(Unit):
                'Vertical vessel Length': (12, 40)}
 
     @property
-    def vessel_material(self):
-        return self._F_Mstr
-    @vessel_material.setter
-    def vessel_material(self, vessel_material):
-        try:
-            self._F_M = F_Mdict[vessel_material]
+    def material(self):
+        """Vessel construction material."""
+        return self._material
+    @material.setter
+    def material(self, material):
+        try: self._F_material = material_factor[material]
         except KeyError:
-            dummy = str(F_Mdict.keys())[11:-2]
+            dummy = str(material_factor.keys())[11:-2]
             raise ValueError(f"Vessel material must be one of the following: {dummy}")
-        self._F_Mstr = vessel_material  
+        self._material = material  
 
     def _init(self):
         vap, liq = self.outs
@@ -224,6 +223,7 @@ class Flash(Unit):
         else:
             raise ValueError( f"SepType must be either 'Horizontal' or 'Vertical', not '{self.SepType}'")
         if self._has_hx: self._heat_exchanger._design()
+        self._results['Design']['Material'] = self._material
         return out
 
     def _cost(self):
@@ -238,7 +238,7 @@ class Flash(Unit):
         # C_v: Vessel cost
         # C_pl: Platforms and ladders cost
         if type_ == 'Vertical':
-            C_v = exp(7.1390 + 0.18255*ln(W) + 0.02297*ln(W)**2)
+            C_v = self._F_material*exp(7.1390 + 0.18255*ln(W) + 0.02297*ln(W)**2)
             C_pl = 410*D**0.7396*L**0.70684
         elif type_ == 'Horizontal':
             C_v = exp(5.6336 - 0.4599*ln(W) + 0.00582*ln(W)**2)
@@ -410,7 +410,7 @@ class Flash(Unit):
             LD = Ht/D
 
         # Calculate Vessel weight and wall thickness
-        rho_M = rho_Mdict[self._F_Mstr]
+        rho_M = material_density[self._material]
         VW, VWT = VesselWeightAndWallThickness(P, D, Ht, rho_M)
 
         # Find maximum and normal liquid level
@@ -565,7 +565,7 @@ class Flash(Unit):
                 converged = True
 
         # Calculate vessel weight and wall thickness
-        rho_M = rho_Mdict[self._F_Mstr]
+        rho_M = material_density[self._material]
         VW, VWT = VesselWeightAndWallThickness(P, D, L, rho_M)
 
         # # To check minimum Hv value

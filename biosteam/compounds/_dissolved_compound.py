@@ -101,7 +101,8 @@ class DissolvedCompound(Compound):
         self.UNIFAC_groups = self.UNIFAC_Dortmund_groups = None
         self.Hfm = Hfm if Hfm else Hfm_d
         self.Hc = Hc if Hc else Hc_d
-    
+        self.phase_ref = 'l'
+        
     @property
     def Cplm(self):
         return self.Cpm

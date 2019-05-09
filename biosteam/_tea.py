@@ -84,7 +84,7 @@ class TEA:
                 'Property insurance': 0.005,
                 'Duration': 20,
                 'Supplies': 0.20,
-                'Mantainance': 0.01,
+                'Maintenance': 0.01,
                 'Administration': 0.005,
                 'Working capital': 0.05,
                 'Startup': 0,
@@ -125,7 +125,7 @@ class TEA:
             * **Property insurance:** Fee as a fraction of fixed capital investment.
             * **Duration:** Duration of venture (years).
             * **Supplies:** Yearly fee as a fraction of labor costs.
-            * **Mantainance:** Yearly fee as a fraction of fixed capital investment.
+            * **Maintenance:** Yearly fee as a fraction of fixed capital investment.
             * **Administration:** Yearly fee as a fraction of fixed capital investment.
             * **Working capital:** Fee as a fraction of fixed capital investment.
             * **Startup:** Cost of start up as a fraction of depreciable capital.
@@ -167,7 +167,7 @@ class TEA:
         #: All purchase and utility costs for units
         self._costs_data = costs
         
-        index = pd.MultiIndex.from_tuples((u.line, u.ID) for u in units)
+        index = pd.MultiIndex.from_tuples([(u.line, u.ID) for u in units])
         columns = ('Purchase cost (USD)',
                    'Utility cost (USD/hr)')
         
@@ -242,7 +242,7 @@ class TEA:
         DC_ *= o['Lang factor']
         FC_ = DC_ * (1 + o['Startup'] + o['Land'] + o['Royalties']) + o['Other fixed capital']
         fb = o['Fringe benefits'] + o['Supplies']
-        f =  (o['Mantainance']
+        f =  (o['Maintenance']
             + o['Administration']
             + o['Property tax']
             + o['Property insurance'])
@@ -339,7 +339,7 @@ class TEA:
         DC_ *= o['Lang factor']
         FC_ = DC_*(1 + o['Startup'] + o['Land'] + o['Royalties']) + o['Other fixed capital']
         fb = o['Fringe benefits'] + o['Supplies']
-        f =  (o['Mantainance']
+        f =  (o['Maintenance']
             + o['Administration']
             + o['Property tax']
             + o['Property insurance'])

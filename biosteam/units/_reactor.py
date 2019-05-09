@@ -4,9 +4,7 @@ Created on Thu Aug 23 22:56:55 2018
 
 @author: yoelr
 """
-import numpy as np
 from .. import Unit
-from ._tank import Tank
 
 
 # %% Reactor classes
