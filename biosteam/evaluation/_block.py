@@ -154,11 +154,8 @@ class Block:
     
     @property
     def simulate(self):
-        """Simulate block system if block element has changed. If block element has not changed, simulate only the element."""
+        """Simulate block."""
         return self._simulate
-    
-    #: A Block object without a Unit or a System object.
-    _emptyblock = None
         
     def _repr(self):
         if self._element:

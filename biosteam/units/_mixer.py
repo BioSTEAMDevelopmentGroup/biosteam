@@ -67,3 +67,4 @@ class Mixer(Unit, metaclass=metaFinal):
         Stream.sum(self.outs[0], self.ins)
         
     simulate = _run
+    summary = Unit._cost

@@ -104,6 +104,7 @@ class Splitter(Unit, metaclass=metaFinal):
         bot.mol = bot.mol - top.mol
     
     simulate = _run
+    summary = Unit._cost
 
 
 class InvSplitter(Unit, metaclass=metaFinal):
@@ -126,3 +127,4 @@ class InvSplitter(Unit, metaclass=metaFinal):
             out.T, out.P, out.phase = feed.T, feed.P, feed.phase 
             
     simulate = _run
+    summary = Unit._cost

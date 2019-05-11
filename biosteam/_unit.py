@@ -412,19 +412,15 @@ class Unit(metaclass=metaUnit):
     
     def _install(self):
         """Cache objects and/or replace methods for computational efficiency."""
-        if not self._has_cost:
-            self._summary = Unit._cost
-            self.simulate = self._run
-        else:
-            # Result dictionaries for all utilities
-            self._utils = utils = []
-            heat_utilities = self._heat_utilities
-            power_utility = self._power_utility
-            if heat_utilities: utils.extend(heat_utilities)
-            if power_utility: utils.append(power_utility)
-                
-            # Itemized purchase costs
-            self._purchase_costs = self._results['Cost'].values()
+        # Result dictionaries for all utilities
+        self._utils = utils = []
+        heat_utilities = self._heat_utilities
+        power_utility = self._power_utility
+        if heat_utilities: utils.extend(heat_utilities)
+        if power_utility: utils.append(power_utility)
+            
+        # Itemized purchase costs
+        self._purchase_costs = self._results['Cost'].values()
     
     def _link_streams(self):
         """Setup ProxyStream objects if any."""
@@ -494,7 +490,8 @@ class Unit(metaclass=metaUnit):
         self._cost()
         self._spec()
         self._join()
-        self._totalcosts[:] = sum(self._purchase_costs), sum(i.cost for i in self._utils)
+        self._update_utility_cost()
+        self._update_purchase_cost()
 
     def _update_purchase_cost(self):
         self._totalcosts[0] = sum(self._purchase_costs)
