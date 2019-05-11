@@ -139,8 +139,7 @@ class Grid(Model):
             length = len(self._system._unitnetwork)
             index = self._system._unitnetwork.index
             self._stack.sort(key=lambda x: index(blockunit(x[0]))
-                                     if x[0]._system else length,
-                             reverse=True)
+                                           if x[0]._system else length)
             self._blockf = [i[0] for i in self._stack]
     _loadmodel.__doc__ = Model._loadmodel.__doc__
     
@@ -203,9 +202,7 @@ class Grid(Model):
                 except: add(default)
                 finally: add(metric())
         else:
-            for args in argspace:
-                self(args, default)
-                add(metric())
+            for args in argspace: add(self(args, default))
         self._table[self._ID] = values
     
     def __call__(self, parameters, default=None):

@@ -93,24 +93,23 @@ class Model:
             length = len(system._unitnetwork)
             index = system._unitnetwork.index
             self._blockf.sort(key=lambda x: index(blockunit(x))
-                                            if x._system else length,
-                              reverse=True)
-            self._reload = False
+                                            if x._system else length)
     
     def __call__(self, parameters, default=None):
         self._loadmodel()
-        parameters = np.asarray(parameters)
-        try: same = self._params==parameters
-        except: same = np.zeros_like(parameters)
-        sim = True
-        for s, f, p in zip(same, self._blockf, parameters):
-            if s: continue
-            try:
-                f._setter(p)
-                if sim: f._simulate()
-                elif f._system: sim = False
-            except: return default
-        self._params = parameters
+        params = self._params
+        self._params = parameters = np.asarray(parameters)
+        if self._reload:
+            blockf = self._blockf
+            self._reload = False
+        else:
+            diff = params!=parameters
+            blockf = [i for i, j in zip(self._blockf, diff) if j]
+            parameters = [i for i, j in zip(parameters, diff) if j]
+        for f, p in zip(blockf, parameters): f._setter(p)
+        for f in blockf:
+            f._simulate()
+            if f._system: break
     
     def _repr(self):
         ID = re.sub(r"\B([A-Z])", r" \1", self._system.ID.replace('_', ' ')).capitalize()
