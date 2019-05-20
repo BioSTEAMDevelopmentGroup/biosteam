@@ -115,7 +115,7 @@ class HX(Unit):
             self._F_Mab = F_Mdict[material]
         except KeyError:
             dummy = str(F_Mdict.keys())[11:-2]
-            raise ValueError(f"Material must be one of the following: {dummy}")
+            raise ValueError(f"material must be one of the following: {dummy}")
         self._F_Mstr = material  
     
     @property
@@ -127,7 +127,7 @@ class HX(Unit):
             self._Cb_func = Cb_dict[Type]
         except KeyError:
             dummy = str(Cb_dict.keys())[11:-2]
-            raise ValueError(f"Heat exchange type must be one of the following: {dummy}")
+            raise ValueError(f"heat exchange type must be one of the following: {dummy}")
         self._Type = Type
         
     @staticmethod
@@ -373,7 +373,7 @@ class HX(Unit):
             s_tube, s_shell = self._shellntube_streams(ci, hi, co, ho, inside_heating)
             U = self._concentric_tubes(s_tube, s_shell, Re_i, Re_o, inside_heating)
         else:
-            raise ValueError("Overall heat transfer coefficient, 'U', should be one of the following: Overall heat transfer coefficent (kW/m^2/K), 'Tabulated', or 'Concentric tubes'.")
+            raise ValueError("overall heat transfer coefficient, 'U', should be one of the following: value (kW/m^2/K), 'Tabulated', or 'Concentric tubes'")
         Dp_s, Dp_t = self._Dp_table(ci, hi, co, ho, inside_heating)
         
         # TODO: Complete design of heat exchanger to find L
@@ -472,10 +472,10 @@ class HXutility(HX):
         V = kwargs['V']
         V_given = V is not None 
         if not (T or V_given):
-            raise ValueError("Must pass at least one of the following kwargs: 'T', 'V'")
+            raise ValueError("must pass at least one of the following kwargs: 'T', 'V'")
         if kwargs['rigorous']:
             if T and V_given:
-                raise ValueError("May only pass either temperature, 'T', or vapor fraction 'V', in a rigorous simulation.")
+                raise ValueError("may only pass either temperature, 'T', or vapor fraction 'V', in a rigorous simulation")
             if V_given:
                 s.VLE(V=V)
             else:
@@ -627,10 +627,11 @@ class HXprocess(HX):
         
         # Arguments for dew and bubble point
         species_IDs = kwargs['species_IDs']
+        _species = s1_out._species
         if species_IDs:
             species, index = self._species_index
         else:
-            species, index = s1_out._equilibrium_species()
+            species, index = _species._equilibrium_species(s1_out.mol)
             species = tuple(species)
             species_IDs = tuple(s.ID for s in species)
         z = s1_out.mol[index]/s1_out.molnet
@@ -685,21 +686,21 @@ class HXprocess(HX):
         
         for s in self.outs:
             s.enable_phases()
-        
+        _species = s1_out._species
+        compounds = _species._compounds
+        Hvaps = [c.Hvapm or 0 for c in compounds]
         if s1_in.T > s2_in.T and ('g' in s1_in.phase) and ('l' in s2_in.phase):
             # s2 boiling, s1 condensing
-            s1_out._isboiling = False
-            s2_out._isboiling = True
-            delH1 = s1_out._phaseprop_molar_flownet('Hvapm', 'g')
-            delH2 = s2_out._phaseprop_molar_flownet('Hvapm', 'l')                
+            boiling = s2_out
+            delH1 = (s1_out.vapor_mol*Hvaps).sum()
+            delH2 = (s2_out.liquid_mol*Hvaps).sum()
         elif s1_in.T < s2_in.T and ('l' in s1_in.phase) and ('g' in s2_in.phase):
             # s1 boiling, s2 condensing
-            s1_out._isboiling = True
-            s2_out._isboiling = False
-            delH1 = s1_out._phaseprop_molar_flownet('Hvapm', 'l')
-            delH2 = s2_out._phaseprop_molar_flownet('Hvapm', 'g')                
+            boiling = s1_out
+            delH1 = (s1_out.liquid_mol*Hvaps).sum()
+            delH2 = (s2_out.vapor_mol*Hvaps).sum()
         else:
-            raise ValueError(f"No latent heat streams available for heat exchange with Type='ll'.")
+            raise ValueError(f"no latent heat streams available for heat exchange with Type='ll'")
         
         # sc: Stream that completely changes phase
         # sp: Stream that partialy changes phase
@@ -717,13 +718,13 @@ class HXprocess(HX):
             species, index = self._species_index
             species_IDs = species_IDs_
         else:
-            species, index = sc_out._equilibrium_species()
+            species, index = _species._equilibrium_species(sc_out.mol)
             species = tuple(species)
             species_IDs = tuple(s.ID for s in species)
         z = sc_out.mol[index]/sc_out.molnet
         P = sc_out.P
         
-        if sc_out._isboiling:
+        if sc_out is boiling:
             sc_out.phase = 'g'
             sc_out.T = sc_out._dew_point(species, z, P)[0]
         else:
@@ -734,9 +735,8 @@ class HXprocess(HX):
         if species_IDs_:
             species_IDs = species_IDs_
         else:
-            species, _ = sp_out._equilibrium_species()
+            species, _ = _species._equilibrium_species(sp_out.mol)
             species_IDs = tuple(s.ID for s in species)
-        
         duty = (sc_in.H-sc_out.H)
         sp_out.VLE(species_IDs, LNK, HNK, Qin=duty)
         self._duty = abs(duty)

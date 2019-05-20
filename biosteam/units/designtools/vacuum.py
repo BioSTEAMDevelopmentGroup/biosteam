@@ -104,12 +104,12 @@ def _prefered_VacuumSystems(preference):
         defaults = _default_vacuum_systems.keys()
         if isinstance(preference, str):
             if preference not in defaults:
-                raise ValueError(f"Preference have at least one of the following: {defaults}.")
+                raise ValueError(f"preference have at least one of the following: {defaults}")
             preference = (preference,)
         else:
             for name in preference:
                 if name not in defaults:
-                    raise ValueError(f"Preference have at least one of the following: {defaults}.")
+                    raise ValueError(f"preference have at least one of the following: {defaults}")
         
         vacuum_systems = [_default_vacuum_systems[name] for name in preference]
     return vacuum_systems
@@ -130,14 +130,14 @@ def _select_VacuumSystem(vacuum_systems, volflow, P_suction):
             flowrange, minsuction = flowrange_minsuction
             if checkbounds(volflow, flowrange) and P_suction > minsuction:
                 return (vacuum_sys, grade)
-    raise DesignError('No vacuum system available at current flow  and suction pressure.')
+    raise DesignError('no vacuum system available at current flow and suction pressure')
 
 def _lazycalc_AirInleakage(V:'ft^3', P:'Pa') -> 'lb/hr':
     if P > 11999.013: k = 0.2
     elif P > 4132.993: k = 0.15
     elif P > 2799.77: k = 0.10
     elif P > 133.322: k = 0.051
-    else: raise ValueError('Cannot calculate air inleakage at pressures lower than 133.32 Pascal.')
+    else: raise ValueError('cannot calculate air inleakage at pressures lower than 133.32 Pascal')
     return k*V**0.667
 
 def _calc_AirInleakage(V:'ft^3', P:'torr') -> 'lb/hr':

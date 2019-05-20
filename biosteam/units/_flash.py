@@ -171,13 +171,12 @@ class Flash(Unit):
         try: self._F_material = material_factor[material]
         except KeyError:
             dummy = str(material_factor.keys())[11:-2]
-            raise ValueError(f"Vessel material must be one of the following: {dummy}")
+            raise ValueError(f"material must be one of the following: {dummy}")
         self._material = material  
 
     def _init(self):
         vap, liq = self.outs
-        vap.phase = 'g'
-        liq.phase = 'l'
+        vap._phase = 'g'
         self._heat_exchanger = he = HXutility(None, outs=None) 
         self._heat_utilities = he._heat_utilities
         he._ins = self._ins
@@ -197,13 +196,13 @@ class Flash(Unit):
         # Vapor Liquid Equilibrium
         ms = self._mixedstream
         ms.empty()
-        ms.liquid_mol = feed.mol
+        ms.liquid_mol[:] = feed.mol
         ms.T = feed.T
         ms.VLE(**self._kwargs)
 
         # Set Values
-        vap.mol = ms.vapor_mol
-        liq.mol = ms.liquid_mol
+        vap._mol[:] = ms.vapor_mol
+        liq._mol[:] = ms.liquid_mol
         vap.T = liq.T = ms.T
         vap.P = liq.P = ms.P
 
@@ -273,7 +272,7 @@ class Flash(Unit):
                 massflow = stream.vapor_massnet
                 volflow = stream.vapor_volnet
             else:
-                if stream.phase == 'g':
+                if stream._phase == 'g':
                     massflow = stream.massnet
                     volflow = stream.volnet
                 else:
@@ -619,13 +618,13 @@ class SplitFlash(Flash):
         split = self._kwargs['split']
         top, bot = self.outs
         net_mol = self._mol_in
-        top.mol = net_mol*split
-        bot.mol = net_mol - top.mol
+        top._mol[:] = net_mol*split
+        bot._mol[:] = net_mol - top._mol
 
     def _design(self):
         if self._has_hx:
             ms = MixedStream.sum(self._mixedstream, self.outs)
-            self._heat_exchanger.outs = ms
+            self._heat_exchanger.outs[0] = ms
         super()._design()
 
 class PartitionFlash(Flash):
@@ -643,18 +642,13 @@ class PartitionFlash(Flash):
     def _setup(self):
         top, bot = self.outs
         species_IDs, Ks, LNK, HNK, P, T = self._kwargs.values()
-        index = top._IDs.index
+        index = top._species._IDs.index
         if P < 101325 and not self._power_utility:
             self._power_utility = PowerUtility()
         self._args = ([index(i) for i in species_IDs],
                       [index(i) for i in LNK],
                       [index(i) for i in HNK],
                        np.asarray(Ks), P, T)
-        
-    def _set_phases(self):
-        top, bot = self.outs
-        top.phase = 'g'
-        bot.phase = 'l'
     
     def _run(self):
         feed = self.ins[0]
@@ -699,7 +693,7 @@ class RatioFlash(Flash):
         kwargs = self._kwargs
         (Kspecies, Ks, top_solvents, top_split,
          bot_solvents, bot_split) = kwargs.values()
-        sp_index = feed._IDs.index
+        sp_index = feed._species._IDs.index
         Kindex = [sp_index(s) for s in Kspecies]
         top_index = [sp_index(s) for s in top_solvents]
         bot_index = [sp_index(s) for s in bot_solvents]
@@ -733,18 +727,21 @@ class Evaporator_PQin(Unit):
 
         # Set-up streams for energy balance
         vapor.empty()
-        index = vapor._IDs.index(component)
+        species = vapor._species
+        index = species._IDs.index(component)
         vapor.mol[index] = 1
-        vapor.__dict__.update(phase='g', T=Tf, P=P)
+        vapor._phase = 'g'
+        vapor.T = vapor.T = Tf
+        liquid.P = vapor.P = P
 
         liquid.empty()
         liquid.mol[index] = 1
-        liquid.__dict__.update(phase='l', T=Tf, P=P)
 
         no_ph_ch = type(liquid)(species=vapor.species)
         cached['vapor_H'] = vapor.H
         cached['liquid_H'] = liquid.H
         cached['no_ph_ch'] = no_ph_ch
+        cached['index'] = species._IDs.index(component)
 
     def _run(self):
         feed = self.ins[0]
@@ -756,8 +753,8 @@ class Evaporator_PQin(Unit):
         vapor_H = cached['vapor_H']
         liquid_H = cached['liquid_H']
         no_ph_ch = cached['no_ph_ch']
-        no_ph_ch.mol = copy.copy(feed.mol)
-        index = no_ph_ch._IDs.index(component)
+        no_ph_ch._mol[:] = feed.mol
+        index = cached['index']
         no_ph_ch.mol[index] = 0
 
         no_ph_ch_H = no_ph_ch.H
@@ -778,7 +775,7 @@ class Evaporator_PQin(Unit):
 
         # Final vapor fraction
         v = newton(f, 0.5, tol=0.001)
-        liquid.mol = no_ph_ch.mol
+        liquid._mol[:] = no_ph_ch._mol
         if v < 0:
             v = 0
         elif v > 1:
@@ -798,17 +795,20 @@ class Evaporator_PV(Unit):
     def _setup(self):
         vapor, liquid = self.outs
         component, P = (self._kwargs[i] for i in ('component', 'P'))
+        self._index = vapor._species._IDs.index(component)
         Tf = getattr(vapor._species, component).Tsat(P)
-        vapor.__dict__.update(phase='g', T=Tf, P=P)
-        liquid.__dict__.update(phase='l', T=Tf, P=P)
+        vapor._phase = 'g'
+        liquid.T = vapor.T = Tf
+        liquid.P = vapor.P = P
+        liquid.phase = 'l'
 
     def _run(self):
         feed = self.ins[0]
         component, V = (self._kwargs[i] for i in ('component', 'V'))
         vapor, liquid = self.outs
-        index = vapor._IDs.index(component)
-        vapor.mol[index] = V*feed.mol[index]
-        liquid.mol = copy.copy(feed.mol)
-        liquid.mol[index] = (1-V)*feed.mol[index]
+        index = self._index
+        vapor._mol[index] = V*feed.mol[index]
+        liquid._mol[:] = feed.mol
+        liquid._mol[index] = (1-V)*feed.mol[index]
 
         

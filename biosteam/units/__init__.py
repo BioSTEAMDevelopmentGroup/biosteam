@@ -96,6 +96,7 @@ def HXutility_node(hx):
             name = 'Heating'
         else:
             graphics.node['fillcolor'] = '#cfecf0:#fad6d8'
+            name = 'Heat exchanger'
     except:
         graphics = hx._graphics
         name = 'Heat exchange'

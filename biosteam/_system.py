@@ -175,8 +175,9 @@ class System:
         #: tuple[Unit, function and/or System] A network that is run element by element until the recycle converges.
         self.network = tuple(network)
         
-        #: list[Unit] All unit operations with linked streams
-        self._linkunits = [u for u in units if u._linkedstreams]
+        # link all unit operations with linked streams
+        for u in units:
+            if u._linkedstreams: u._link_streams() 
         
         #: set[Unit] All units within the system
         self.units = units = set(units)
@@ -216,8 +217,15 @@ class System:
         
         #: [TEA] System object for Techno-Economic Analysis.
         self._TEA = None
-        self.ID = ID
         self.recycle = recycle
+        
+        if ID:
+            ID = ID.replace(' ', '_')
+            ID_words = ID.split('_')
+            if not all(word.isalnum() for word in ID_words):
+                raise ValueError('ID cannot have any special characters')
+            self._ID = ID
+            find.system[ID] = self
     
     save_report = save_report
     
@@ -225,19 +233,6 @@ class System:
     def ID(self):
         """Identification."""
         return self._ID
-
-    @ID.setter
-    def ID(self, ID):
-        ID_old = self._ID
-        system = find.system
-        if ID_old and ID_old in system: del system[ID_old]
-        if ID:
-            ID = ID.replace(' ', '_')
-            ID_words = ID.split('_')
-            if not all(word.isalnum() for word in ID_words):
-                raise ValueError('ID cannot have any special characters')
-            self._ID = ID
-            system[ID] = self
     
     @property
     def TEA(self):
@@ -256,7 +251,7 @@ class System:
         elif stream is None:
             self._converge_method = self._run
         else:
-            raise ValueError(f"Recycle stream must be a Stream instance or None, not {type(stream).__name__}.")
+            raise ValueError(f"recycle must be a Stream instance or None, not {type(stream).__name__}")
 
     @property
     def converge_method(self):
@@ -266,14 +261,14 @@ class System:
     @converge_method.setter
     def converge_method(self, method):
         if self.recycle is None:
-            raise ValueError("Cannot set converge method when no recyle is specified")
+            raise ValueError("cannot set converge method when no recyle is specified")
         method = method.lower().replace('-', '').replace(' ', '')
         if 'wegstein' in method:
             self._converge_method = self._Wegstein
         elif 'fixedpoint' in method:
             self._converge_method = self._fixed_point
         else:
-            raise ValueError(f"Only 'Wegstein' and 'fixed point' methods are valid, not '{method}'")
+            raise ValueError(f"only 'Wegstein' and 'fixed point' methods are valid, not '{method}'")
 
     
     def _downstream_network(self, unit):
@@ -307,6 +302,7 @@ class System:
 
     def _downstream_system(self, unit):
         """Return a system with a network composed of the `unit` and everything downstream (facilities included)."""
+        if unit is self.network[0]: return self
         cached = self._cached_downstream_systems
         system = cached.get((self, unit))
         if system: return system
@@ -322,8 +318,9 @@ class System:
             if unit_not_found: raise ValueError(f'{unit} not found in system')
         else:
             downstream_facilities = self.facilities
-        system = System(f'{type(unit).__name__} {unit} and downstream', network,
+        system = System(None, network,
                         facilities=downstream_facilities)
+        system._ID = f'{type(unit).__name__}-{unit} and downstream'
         cached[unit] = system
         return system
     
@@ -438,7 +435,7 @@ class System:
         elif kind == 'minimal':
             return self._minimal_diagram(file)
         else:
-            raise ValueError(f"kind must be either 'thorough', 'surface', or 'minimal'.")
+            raise ValueError(f"kind must be either 'thorough', 'surface', or 'minimal'")
             
 
     # Methods for running one iteration of a loop
@@ -472,7 +469,7 @@ class System:
             if solver_error['iter'] > maxiter:
                 solver_error['mol_error'] = mol_error
                 solver_error['T_error'] = T_error
-                raise SolverError(f'Could not converge'
+                raise SolverError(f'could not converge'
                                   + self._error_info())
 
         solver_error['mol_error'] = mol_error
@@ -487,7 +484,7 @@ class System:
         solver_error = self._solver_error
 
         # Prepare variables
-        len_ = recycle._Nspecies + 1
+        len_ = recycle._species._Nspecies + 1
         x0 = np.zeros(len_)
         gx0 = np.zeros(len_)
         x1 = np.zeros(len_)
@@ -522,7 +519,7 @@ class System:
             if solver_error['iter'] > maxiter:
                 solver_error['mol_error'] = mol_error
                 solver_error['T_error'] = T_error
-                raise SolverError(f'Could not converge'
+                raise SolverError(f'could not converge'
                                   + self._error_info())
 
             # Get relaxation factor and set next iteration
@@ -534,7 +531,7 @@ class System:
             s[s > 0.9] = 0.9
             w = ones/(ones-s)
             x1 = w*gx1 + (1-w)*x1
-            recycle.mol = x1[:-1]
+            recycle._mol[:] = x1[:-1]
             recycle.T = x1[-1]
         solver_error['mol_error'] = mol_error
         solver_error['T_error'] = T_error
@@ -612,7 +609,6 @@ class System:
 
     def simulate(self):
         """Converge the network and simulate all units."""
-        for u in self._linkunits: u._link_streams()
         self._reset_iter()
         self._converge()
         for u in self._network_costunits: u._summary()
@@ -664,6 +660,9 @@ class System:
             else:
                 print(f'\n        Finished debugging')
             self._debug_off()
+
+    def delete(self):
+        delattr(find.system, self._ID)
 
     # Representation
     def __str__(self):

@@ -10,7 +10,7 @@ __all__ = ('attach_heat_exchanger',)
 
 def attach_heat_exchanger(cls):    
     if cls._N_heat_utilities != 0:
-        raise ValueError("Number of heat utilities (_N_heat_utilities) must be 0 to attach heat exchanger.")
+        raise ValueError("number of heat utilities (_N_heat_utilities) must be 0 to attach heat exchanger")
     
     class NewUnit(cls):
         line = cls.line

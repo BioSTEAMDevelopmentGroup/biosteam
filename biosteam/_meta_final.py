@@ -13,6 +13,6 @@ class metaFinal(metaUnit):
         # Make this class a final class
         for b in bases:
             if isinstance(b, mcl):
-                raise TypeError(f"Cannot inherit from {b}. Instances of {mcl.__name__} cannot be inherited.")
+                raise TypeError(f"cannot inherit from {b}. Instances of {mcl.__name__} cannot be inherited")
 
         return super().__new__(mcl, name, bases, dct)

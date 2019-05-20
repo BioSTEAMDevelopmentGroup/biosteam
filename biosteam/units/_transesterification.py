@@ -49,21 +49,17 @@ class Transesterification(Unit):
     _N_outs = 1
     _N_heat_utilities = 1
 
+    def _setup(self):
+        self._index = self.outs[0].indices('Lipid', 'Methanol', 'Glycerol', 'Biodiesel', 'NaOH', 'NaOCH3')
+
     def _run(self):
         feed, fresh_Methanol = self.ins
         out = self.outs[0]
         eff, r, T, catalyst_molfrac = (self._kwargs[i] for i in (
             'efficiency', 'r', 'T', 'catalyst_molfrac'))
-        sp_index = feed._IDs.index
 
         # Reactant positions
-        lipid_pos = sp_index('Lipid')
-        Methanol_pos = sp_index('Methanol')
-        Glycerol_pos = sp_index('Glycerol')
-        biodiesel_pos = sp_index('Biodiesel')
-        NaOH_pos = sp_index('NaOH')
-        NaOCH3_pos = sp_index('NaOCH3')
-
+        lipid_pos, Methanol_pos, Glycerol_pos, biodiesel_pos, NaOH_pos, NaOCH3_pos = self._index
         lipid = feed.mol[lipid_pos]
 
         # Reaction conversions by mol (to add to the feed)
@@ -81,7 +77,7 @@ class Transesterification(Unit):
                                bd_ch, NaOCH3_ch, NaOH_ch))
 
         # Output stream
-        fresh_Methanol.mol[ [Methanol_pos, NaOCH3_pos] ] = (Methanol_in, NaOCH3_in)
+        fresh_Methanol.mol[[Methanol_pos, NaOCH3_pos]] = (Methanol_in, NaOCH3_in)
         index = [lipid_pos, Methanol_pos, Glycerol_pos,
                 biodiesel_pos, NaOCH3_pos, NaOH_pos]
         out.phase = 'l'

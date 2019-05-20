@@ -100,15 +100,15 @@ class Splitter(Unit, metaclass=metaFinal):
         if len(self.ins) > 1: Stream.sum(self.outs[0], self.ins)
         else: top.copylike(self.ins[0])
         bot.copylike(top)
-        top.mol = top.mol*split
-        bot.mol = bot.mol - top.mol
+        top._mol[:] = top._mol*split
+        bot._mol[:] = bot._mol-top._mol
     
     simulate = _run
     summary = Unit._cost
 
 
 class InvSplitter(Unit, metaclass=metaFinal):
-    """Create a splitter that sets input stream based on output streams. Must have only one input stream. The output streams are the same temperature, pressure and phase as the input.
+    """Create a splitter that sets the input stream based on output streams. Must have only one input stream. The output streams will become the same temperature, pressure and phase as the input.
     """
     line = 'Splitter'
     results = None
@@ -122,7 +122,7 @@ class InvSplitter(Unit, metaclass=metaFinal):
         
     def _run(self):
         feed = self.ins[0]
-        feed.mol = self._mol_out
+        feed._mol[:] = self._mol_out
         for out in self.outs:
             out.T, out.P, out.phase = feed.T, feed.P, feed.phase 
             

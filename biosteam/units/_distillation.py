@@ -143,10 +143,10 @@ class Dist(Unit):
                'k': 1.25}
     
     @property
-    def TS(self):
+    def tray_spacing(self):
         return self._TS
-    @TS.setter
-    def TS(self, TS):
+    @tray_spacing.setter
+    def tray_spacing(self, TS):
         """Tray spacing (225-600 mm)."""
         self._TS = TS
     
@@ -159,37 +159,37 @@ class Dist(Unit):
         self._stage_efficiency = stage_efficiency
     
     @property
-    def f(self):
+    def velocity_factor(self):
         """Ratio of actual velocity to maximum velocity allowable before flooding."""
         return self._f
-    @f.setter
-    def f(self, f):
+    @velocity_factor.setter
+    def velocity_factor(self, f):
         self._f = f
     
     @property
-    def F_F(self):
-        """Foaming factor (0 < F_F < 1)."""
+    def foaming_factor(self):
+        """Foaming factor (0 to 1)."""
         return self._F_F
-    @F_F.setter
-    def F_F(self, F_F):
-        if F_F > 1 or F_F < 0:
-            raise ValueError(f"Foaming factor, 'F_F', must be between 0 and 1, ({F_F} given).")
-        self._F_F = F_F
+    @foaming_factor.setter
+    def foaming_factor(self, foaming_factor):
+        if foaming_factor > 1 or foaming_factor < 0:
+            raise ValueError(f"foaming_factor must be between 0 and 1, ({foaming_factor} given).")
+        self._F_F = foaming_factor
     
     @property
-    def A_ha(self):
+    def open_area_factor(self):
         """Ratio of open area, A_h, to active area, A_a."""
         return self._A_ha
-    @A_ha.setter
-    def A_ha(self, A_ha):
+    @open_area_factor.setter
+    def open_area_factor(self, A_ha):
         self._A_ha = A_ha
     
     @property
-    def A_dn(self):
+    def downcomer_area_factor(self):
         """Enforced ratio of downcomer area to net (total) area. If None, estimate ratio based on Oliver's estimation [1]."""
         return self._A_dn
-    @A_dn.setter
-    def A_dn(self, A_dn):
+    @downcomer_area_factor.setter
+    def downcomer_area_factor(self, A_dn):
         self._A_dn = A_dn
     
     @property
@@ -202,7 +202,7 @@ class Dist(Unit):
             self._F_TT = F_TTdict[tray_type]
         except KeyError:
             dummy = str(F_TTdict.keys())[11:-2]
-            raise ValueError(f"Tray type must be one of the following: {dummy}")
+            raise ValueError(f"tray_type must be one of the following: {dummy}")
         self._F_TTstr = tray_type
         
     @property
@@ -215,7 +215,7 @@ class Dist(Unit):
             self._F_TM = F_TMdict[tray_material]
         except KeyError:
             dummy = str(F_TMdict.keys())[11:-2]
-            raise ValueError(f"Tray material must be one of the following: {dummy}")
+            raise ValueError(f"tray_material must be one of the following: {dummy}")
         self._F_TMstr = tray_material        
 
     @property
@@ -228,7 +228,7 @@ class Dist(Unit):
             self._F_M = F_Mdict[vessel_material]
         except KeyError:
             dummy = str(F_Mdict.keys())[11:-2]
-            raise ValueError(f"Vessel material must be one of the following: {dummy}")
+            raise ValueError(f"vessel_material must be one of the following: {dummy}")
         self._F_Mstr = vessel_material  
 
     def _setup(self):
@@ -239,15 +239,14 @@ class Dist(Unit):
         getattr_ = getattr
 
         # Set stream phase and pressure
-        vap.phase = 'g'
-        liq.phase = 'l'
+        vap._phase = 'g'
         vap.P = liq.P = kwargs['P']
         if not kwargs['LHK']:
-            raise ValueError("Must specify light and heavy key, 'LHK'.")
+            raise ValueError("must specify light and heavy key, 'LHK'")
 
         # Set light non-key and heavy non-key indices
         LK, HK = kwargs['LHK']
-        sp_index = vap._IDs.index
+        sp_index = species._IDs.index
         LK_index, HK_index = cached['LHK_index'] = [sp_index(LK), sp_index(HK)]
         self._LHK_species = tuple(getattr_(species, ID) for ID in kwargs['LHK'])
         
@@ -271,7 +270,7 @@ class Dist(Unit):
             elif Tb > Tb_heavy:
                 HNK_index.append(i)
             else:
-                raise ValueError(f"Intermediate volatile specie, '{species_list[i]}', between light and heavy key, ['{LK}', '{HK}'].")
+                raise ValueError(f"intermediate volatile specie, '{species_list[i]}', between light and heavy key, ['{LK}', '{HK}'].")
     
         self._update_composition_requirement(kwargs['y_top'], kwargs['x_bot'])
     
@@ -314,9 +313,9 @@ class Dist(Unit):
         # Unpack arguments
         vap, liq = self.outs
         cached = self._cached
-        
-        cached['vle_top'], cached['top_index'] = vle_top, top_index = vap._equilibrium_species()
-        cached['vle_bot'], cached['bot_index'] = vle_bot, bot_index = liq._equilibrium_species()
+        species = vap._species
+        cached['vle_top'], cached['top_index'] = vle_top, top_index = species._equilibrium_species(vap._mol)
+        cached['vle_bot'], cached['bot_index'] = vle_bot, bot_index = species._equilibrium_species(liq._mol)
 
         # Get top and bottom compositions
         vap_mol = vap.mol[top_index]
@@ -643,7 +642,7 @@ class Dist(Unit):
         elif A_ha >= 0.06:
             F_HA = 5*A_ha + 0.5
         else:
-            raise ValueError(f"Ratio of open to active area, 'A', must be between 0.06 and 1 ({A_ha} given).") 
+            raise ValueError(f"ratio of open to active area, 'A', must be between 0.06 and 1 ({A_ha} given)") 
         
         return C_sbf * F_HA * F_ST * ((rho_L-rho_V)/rho_V)**0.5
     
@@ -711,10 +710,10 @@ class Dist(Unit):
         s_in.T = distillate.T
         s_in.P = distillate.P
         ms1 = condenser.outs[0]
-        ms1.liquid_mol = condensate.mol
+        ms1.liquid_mol[:] = condensate.mol
         ms1.T = condensate.T
         ms1.P = condensate.P
-        ms1.vapor_mol = distillate.mol
+        ms1.vapor_mol[:] = distillate.mol
         condenser._design()
         condenser._cost()
         
@@ -728,8 +727,8 @@ class Dist(Unit):
         ms1 = boiler.outs[0]
         ms1.T = boil_up.T
         ms1.P = boil_up.P
-        ms1.vapor_mol = boil_up.mol
-        ms1.liquid_mol = bottoms.mol
+        ms1.vapor_mol[:] = boil_up.mol
+        ms1.liquid_mol[:] = bottoms.mol
         boiler._summary()
         
     def _cost(self):
@@ -791,7 +790,7 @@ class Distillation(Dist):
                                  outs=MixedStream(None))
         self._heat_utilities = self._condenser._heat_utilities + self._boiler._heat_utilities
         self._cached = {'condensate': Stream(None),
-                        'boil_up': Stream(None),
+                        'boil_up': Stream(None, phase='g'),
                         'vapor stream': Stream(None)}
     
     @property
@@ -831,7 +830,7 @@ class Distillation(Dist):
             condensate.setflow(condensate_molfrac, [i.ID for i in vle_top])
             condensate.T = vap.T
             condensate.P = vap.P
-            condensate.mol *= L_Rmol
+            condensate._mol[:] *= L_Rmol
             mu = 1000*condensate.mu # mPa*s
             K_light = y_stages[-1]/x_stages[-1] 
             K_heavy = (1-y_stages[-1])/(1-x_stages[-1])
@@ -868,7 +867,8 @@ class Distillation(Dist):
         y_top, x_bot = kwargs['y_top'], kwargs['x_bot']
 
         # Feed light key mol fraction
-        Nspecies = bottoms._Nspecies
+        species = bottoms._species
+        Nspecies = species._Nspecies
         liq_mol = np.zeros(Nspecies)
         vap_mol = np.zeros(Nspecies)
         for s in self.ins:
@@ -882,7 +882,7 @@ class Distillation(Dist):
                 liq_mol += s.liquid_mol
                 vap_mol += s.vapor_mol
             else:
-                raise biosteamError(f'Invalid phase encountered in stream {s.ID}')
+                raise biosteamError(f'invalid phase encountered in stream {s.ID}')
         cached['feed_liqmol'] = liq_mol
         cached['feed_vapmol'] = vap_mol
         LHK_mol = liq_mol[LHK_index] + vap_mol[LHK_index]
@@ -946,7 +946,7 @@ class Distillation(Dist):
         Rstages, Sstages = self._calc_Nstages()
         calc_Height = self._calc_Height
         is_divided = self.is_divided
-        TS = self.TS
+        TS = self._TS
         
         ### Get diameter of rectifying section based on top plate ###
         
@@ -957,18 +957,18 @@ class Distillation(Dist):
         V = L*(R+1)/R
         vapor_stream = cached['vapor stream']
         vapor_stream.copylike(distillate)
-        vapor_stream.mol *= R+1
+        vapor_stream._mol *= R+1
         V_vol = 0.0002778 * vapor_stream.volnet # m^3/s
         rho_V = distillate.rho
         F_LV = self._calc_FlowParameter(L, V, rho_V, rho_L)
         C_sbf = self._calc_MaxCapacityParameter(TS, F_LV)
-        F_F = self.F_F
-        A_ha = self.A_ha
+        F_F = self._F_F
+        A_ha = self._A_ha
         U_f = self._calc_MaxVaporVelocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha)
-        A_dn = self.A_dn
+        A_dn = self._A_dn
         if A_dn is None:
-           self.A_dn = A_dn = self._calc_DowncomerAreaRatio(F_LV)
-        f = self.f
+           self._A_dn = A_dn = self._calc_DowncomerAreaRatio(F_LV)
+        f = self._f
         R_diameter = self._calc_Diameter(V_vol, U_f, f, A_dn)
         
         ### Get diameter of stripping section based on feed plate ###
@@ -977,8 +977,8 @@ class Distillation(Dist):
         rho_L = bottoms.rho
         boil_up_flow = cached['boilup_molfrac'] * V_mol
         boil_up = cached['boil_up']
-        boil_up.T = bottoms.T; boil_up.P = bottoms.P; boil_up.phase = 'g'
-        lookup = boil_up._compounds.index
+        boil_up.T = bottoms.T; boil_up.P = bottoms.P
+        lookup = species._compounds.index
         index_ = [lookup(i) for i in cached['vle_bot']]
         boil_up.mol[index_] = boil_up_flow
         V = boil_up.massnet
@@ -988,13 +988,13 @@ class Distillation(Dist):
         F_LV = self._calc_FlowParameter(L, V, rho_V, rho_L)
         C_sbf = self._calc_MaxCapacityParameter(TS, F_LV)
         sigma = 1000 * bottoms.sigma # dyn/cm
-        F_F = self.F_F
-        A_ha = self.A_ha
+        F_F = self._F_F
+        A_ha = self._A_ha
         U_f = self._calc_MaxVaporVelocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha)
-        A_dn = self.A_dn
+        A_dn = self._A_dn
         if A_dn is None:
             self.A_dn = self._calc_DowncomerAreaRatio(F_LV)
-        f = self.f
+        f = self._f
         S_diameter = self._calc_Diameter(V_vol, U_f, f, A_dn)
         Po = kwargs['P']/101325*14.7
         rho_M = rho_Mdict[self._F_Mstr]
@@ -1177,10 +1177,7 @@ class Stripper(Dist):
         x_Rmin = x[0]
         m = (y_Rmin-x_bot)/(x_Rmin-x_bot)
         Bmin = 1/(m-1)
-        if Bmin <= 0:
-            B = 0.1*k
-        else:
-            B = Bmin*k
+        B = 0.1*k if Bmin <= 0 else Bmin*k
 
         # Stripping section: Inntersects liquid composition with slope given by (B+1)/B
         m = (B+1)/B
@@ -1202,7 +1199,7 @@ class Stripper(Dist):
         
         ### Get number of stages and height ###
         
-        TS = self.TS
+        TS = self._TS
         Design['Actual stages'] = Nstages = self._calc_Nstages()
         Design['Height'] = H = self._calc_Height(TS, Nstages-1)
         
@@ -1213,25 +1210,20 @@ class Stripper(Dist):
         rho_L = bottoms.rho
         boil_up_flow = cached['boilup_molfrac'] * V_mol
         boil_up = cached['boil_up']
-        boil_up.T = bottoms.T; boil_up.P = bottoms.P; boil_up.phase = 'g'
-        lookup = boil_up._compounds.index
+        boil_up.T = bottoms.T; boil_up.P = bottoms.P
+        lookup = bottoms._species._compounds.index
         index_ = [lookup(i) for i in cached['vle_bot']]
         boil_up.mol[index_] = boil_up_flow
         V = boil_up.massnet
         V_vol = 0.0002778 * boil_up.volnet # m^3/s
         rho_V = boil_up.rho
-        L = sum(bottoms._MW*bottoms.molfrac*L_mol) # To get liquid going down
+        L = sum(bottoms.MW*bottoms.molfrac*L_mol) # To get liquid going down
         F_LV = self._calc_FlowParameter(L, V, rho_V, rho_L)
         C_sbf = self._calc_MaxCapacityParameter(TS, F_LV)
         sigma = 1000 * bottoms.sigma # dyn/cm
-        F_F = self.F_F
-        A_ha = self.A_ha
-        U_f = self._calc_MaxVaporVelocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha)
-        A_dn = self.A_dn
-        if A_dn is None:
-            A_dn = self._calc_DowncomerAreaRatio(F_LV)
-        f = self.f
-        Design['Diameter'] = Di = self._calc_Diameter(V_vol, U_f, f, A_dn)
+        U_f = self._calc_MaxVaporVelocity(C_sbf, sigma, rho_L, rho_V, self._F_F, self._A_ha)
+        A_dn = self._A_dn or self._calc_DowncomerAreaRatio(F_LV)
+        Design['Diameter'] = Di = self._calc_Diameter(V_vol, U_f, self._f, A_dn)
         Po = kwargs['P']/101325*14.7
         Design['Wall thickness'] = tv = self._calc_WallThickness(Po, Di, H)
         rho_M = rho_Mdict[self._F_Mstr]

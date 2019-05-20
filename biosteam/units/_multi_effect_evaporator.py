@@ -81,7 +81,7 @@ class MultiEffectEvaporator(Unit):
             self._evap_data = evaporators[evap_type]
         except KeyError:
             dummy = str(evaporators.keys())[11:-2]
-            raise ValueError(f"Evaporator type must be one of the following: {dummy}")
+            raise ValueError(f"Type must be one of the following: {dummy}")
         self._Type = evap_type
 
     def _setup(self):
@@ -115,7 +115,7 @@ class MultiEffectEvaporator(Unit):
             ins = [evap0.outs[1], evap0.outs[0]]
             for i in range(1, n):
                 evap = evaporators[i]
-                evap.ins = ins
+                evap._ins[:] = ins
                 evap._run()
                 v_test += (1-v_test) * evap._V
                 # Put liquid first, then vapor side stream
@@ -138,7 +138,7 @@ class MultiEffectEvaporator(Unit):
         # Set-up components
         components = self.components
         evaporators = components['evaporators']
-        evaporators[0].ins = [Stream.like(i, None) for i in ins]
+        evaporators[0].ins[:] = [Stream.like(i, None) for i in ins]
         condenser = components['condenser']
         mixer = components['mixer']
         brentq(self._V_error, 0.0001, 0.9909, xtol=0.0001)
@@ -146,7 +146,7 @@ class MultiEffectEvaporator(Unit):
         # Condensing vapor from last effector
         
         outs_vap = evaporators[-1].outs[0]
-        condenser.ins = [outs_vap]
+        condenser.ins[:] = [outs_vap]
         condenser._run()
         outs_liq = [condenser.outs[0]]  # list containing all output liquids
 
@@ -157,7 +157,7 @@ class MultiEffectEvaporator(Unit):
             outs_liq.append(evap.outs[2])
 
         # Mix liquid streams
-        mixer.ins = outs_liq
+        mixer.ins[:] = outs_liq
         mixer._run()
         liq.copylike(mixer.outs[0])
 

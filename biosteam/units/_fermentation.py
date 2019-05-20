@@ -10,6 +10,7 @@ from ._hx import HXutility
 from .. import Stream
 from scipy.integrate import odeint
 from .decorators import cost
+from ._tank import MixTank
 
 @cost('Volume', 'Agitator', N='N', CE=521.9, cost=52500, S=3785, exp=0.6, kW=22.371)
 @cost('Volume', 'Reactors', N='N', CE=521.9, cost=844000, S=3785, exp=0.6)
@@ -72,7 +73,8 @@ class Fermentation(BatchReactor):
     _N_reactors = None
     
     #: Fraction of filled tank to total tank volume
-    V_wf = 0.8
+    working_volume_fraction = MixTank.working_volume_fraction
+    _V_wf = 0.8
     
     #: tuple of kinetic parameters for the kinetic model. Default constants are fitted for Oliveria's model (mu_m1, mu_m2, Ks1, Ks2, Pm1, Pm2, Xm, Y_PS, a)
     kinetic_constants = (0.31,  # mu_m1
@@ -96,9 +98,9 @@ class Fermentation(BatchReactor):
     
     def _setup(self):
         if not self._kwargs['tau']:
-            raise ValueError(f"Reaction time must be larger than 0, not '{self._kwargs['tau']}'")
+            raise ValueError(f"reaction time must be larger than 0, not '{self._kwargs['tau']}'")
         if not self._kwargs['N'] or self._kwargs['N'] <= 1:
-            raise ValueError(f"Number of reactors must be greater than 1, value {self._kwargs['N']} is infeasible")
+            raise ValueError(f"number of reactors must be greater than 1, value {self._kwargs['N']} is infeasible")
         out, CO2 = self.outs
         out.T = CO2.T = 32 + 273.15
         CO2.phase = 'g'
@@ -225,9 +227,9 @@ class Fermentation(BatchReactor):
         tau_0 = self.tau_0
         Design = self._results['Design']
         Design['N'] = N = self._kwargs['N']
-        Design.update(self._solve(v_0, tau, tau_0, N, self.V_wf))
+        Design.update(self._solve(v_0, tau, tau_0, N, self._V_wf))
         hx = self._cooler
-        hx.outs[0].mol = self.outs[0].mol/N 
+        hx.outs[0]._mol[:] = self.outs[0].mol/N 
         hu = hx._heat_utilities[0]
         hu(self._Hnet/N, self.outs[0].T)
         hx._design(hu.duty)

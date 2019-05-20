@@ -50,7 +50,7 @@ class Mixer(Unit, metaclass=metaFinal):
            [0] s4
                phase: 'l', T: 317.54 K, P: 101325 Pa
                flow (kmol/hr): Water    23
-               Ethanol  14
+                               Ethanol  14
            
     """
     results = None

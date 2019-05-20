@@ -52,5 +52,5 @@ class SolidsCentrifuge(Unit):
         if 2 < ts < 40:
             Cost['Centrifuge'] = self.CEPCI/567*68040*ts**0.50
         else:
-            raise DesignError(f'Solids loading ({ts}) is not within 2 and 40 tonns')
+            raise DesignError(f'solids loading ({ts}) must be within 2 and 40 tonns')
         return Cost

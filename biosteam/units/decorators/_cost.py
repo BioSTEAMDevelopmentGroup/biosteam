@@ -37,14 +37,14 @@ def cost(basis, name=None, *, cost, exp, CE, S=1, kW=0, N=1):
     def cost_decorator(cls):
         if kW: cls._has_power_utility = True
         try: units = cls._units[basis]
-        except KeyError: raise RuntimeError(f'Units of cost basis ({basis}) is not available in "{cls.__name__}._units" dictionary.')
+        except KeyError: raise RuntimeError(f'units of cost basis ({basis}) is not available in "{cls.__name__}._units" dictionary')
         data = [basis, units, S, N, CE, cost, exp, kW]
         if hasattr(cls, 'cost_options'):
-            if not name: raise ValueError("Must pass a 'name' for purchase cost item.")
-            if name in cls.cost_options: raise ValueError("name '{name_}' in not available, must pass a name not previously used.")
+            if not name: raise ValueError("must pass a 'name' for purchase cost item")
+            if name in cls.cost_options: raise ValueError("name '{name_}' in not available, must pass a name not previously used")
             cls.cost_options[name or cls.line] = data
         else:
-            if '_cost' in cls.__dict__: raise RuntimeError("Cannot decorate class as '_cost' method is already implemented.")
+            if '_cost' in cls.__dict__: raise RuntimeError("cannot decorate class as '_cost' method is already implemented")
             columns = pd.Index((name or cls.line,), name='Item')
             cls.cost_options = pd.DataFrame(data, _index, columns)
             cls._cost = _cost

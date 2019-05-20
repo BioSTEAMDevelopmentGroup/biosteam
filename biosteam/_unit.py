@@ -15,7 +15,6 @@ from ._exceptions import _notify_error, DesignWarning
 from ._flowsheet import find
 from ._graphics import Graphics, default_graphics
 from ._stream import Stream
-from ._proxy_stream import ProxyStream
 from ._heat_utility import HeatUtility
 from ._utils import Ins, Outs, missing_stream
 from ._power_utility import PowerUtility
@@ -100,6 +99,14 @@ def _checkbounds(self, key, value):
 
 def _boundsignore(*args, **kwargs): pass
 
+# %% Proxies
+
+def _proxy_run(self):
+    out = self._outs[0]
+    feed = self._ins[0]
+    out.T = feed.T
+    out.P = feed.P
+    out._phase = feed._phase
 
 # %% Unit metaclass
 
@@ -168,6 +175,8 @@ class metaUnit(type):
                 locs = {}
                 exec(str2exec, globs, locs)
                 cls.__init__ = locs['__init__']
+            if cls._linkedstreams and cls._run is Unit._run:
+                cls._run = _proxy_run
         return cls
     
     @property
@@ -357,9 +366,9 @@ class Unit(metaclass=metaUnit):
         if ins is None:
             self._ins = Ins(self, (missing_stream for i in range(self._N_ins)))
         elif isinstance(ins, Stream):
-            self._ins = Ins(self, ins)
+            self._ins = Ins(self, (ins,))
         elif isinstance(ins, str):
-            self._ins = Ins(self, Stream(ins))
+            self._ins = Ins(self, (Stream(ins),))
         elif not ins:
             self._ins = Ins(self, (Stream('') for i in range(self._N_ins)))
         else:
@@ -369,17 +378,16 @@ class Unit(metaclass=metaUnit):
         """Initialize output streams."""
         if self._linkedstreams:
             if outs is None:
-                self._outs = Outs(self, (ProxyStream('*')
-                                  for i in self._N_outs))
+                self._outs = Outs(self, (Stream.proxy('*') for i in self._N_outs))
             elif not outs:
-                self._outs = Outs(self, (ProxyStream('') for i in self._ins))
+                self._outs = Outs(self, (Stream.proxy('') for i in self._ins))
             elif isinstance(outs, Stream):
-                self._outs = Outs(self, ProxyStream.asproxy(outs))
+                self._outs = Outs(self, (outs,))
             elif isinstance(outs, str):
-                self._outs = Outs(self, ProxyStream(outs))
+                self._outs = Outs(self, (Stream.proxy(outs),))
             else:
-                self._outs = Outs(self, (ProxyStream.asproxy(o) if isinstance(o, Stream)
-                                         else ProxyStream(o)
+                self._outs = Outs(self, (o if isinstance(o, Stream)
+                                         else Stream.proxy(o)
                                          for o in outs))
         else:
             if outs is None:
@@ -387,17 +395,17 @@ class Unit(metaclass=metaUnit):
             elif not outs:
                 self._outs = Outs(self, (Stream('') for i in range(self._N_outs)))
             elif isinstance(outs, Stream):
-                self._outs = Outs(self, outs)
+                self._outs = Outs(self, (outs,))
             elif isinstance(outs, str):
-                self._outs = Outs(self, Stream(outs))
+                self._outs = Outs(self, (Stream(outs),))
             else:
                 self._outs = Outs(self, (i if isinstance(i, Stream) else Stream(i) for i in outs))        
     
     def _init_results(self):
         """Initialize results attribute."""
-        self._results = {'Design': {},
-                         'Cost': {}}
-        self._totalcosts = [0, 0] #: [list] Purchase price (USD) and utility cost (USD/hr)
+        self._results = {'Design': {}, 'Cost': {}}
+        #: [list] Purchase price (USD) and utility cost (USD/hr)
+        self._totalcosts = [0, 0]
     
     def _init_heat_utils(self):
         """Initialize heat utilities."""
@@ -417,32 +425,30 @@ class Unit(metaclass=metaUnit):
         heat_utilities = self._heat_utilities
         power_utility = self._power_utility
         if heat_utilities: utils.extend(heat_utilities)
-        if power_utility: utils.append(power_utility)
-            
+        if power_utility: utils.append(power_utility)            
         # Itemized purchase costs
         self._purchase_costs = self._results['Cost'].values()
     
     def _link_streams(self):
-        """Setup ProxyStream objects if any."""
-        if self._linkedstreams: 
-            for i, o in zip(self._ins, self._outs): o.link = i
+        """Setup ProxyStream object if any."""
+        if self._linkedstreams: self._outs[0].link = self._ins[0]
     
     # Forward pipping
     def __sub__(self, other):
         """Source streams."""
         if isinstance(other, Unit):
-            other.ins = self.outs
+            other._ins[:] = self._outs
             return other
         elif type(other) is int:
             return self.outs[other]
         elif isinstance(other, Stream):
-            self.outs = other
+            self._outs[:] = (other,)
             return self
         elif isinstance(other, (tuple, list, np.ndarray)):
             if isinstance(other[0], int):
                 return [self.outs[i] for i in other]
             else:
-                self.outs = other
+                self._outs[:] = other
                 return self
         else:
             return other.__rsub__(self)
@@ -450,18 +456,16 @@ class Unit(metaclass=metaUnit):
     def __rsub__(self, other):
         """Sink streams."""
         if type(other) is int:
-            return self.ins[other]
+            return self._ins[other]
         elif isinstance(other, Stream):
-            self.ins = other
+            self._ins[:] = (other,)
             return self
         elif isinstance(other, (tuple, list, np.ndarray)):
             if all(isinstance(i, int) for i in other):
-                return [self.ins[i] for i in other]
+                return [self._ins[i] for i in other]
             else:
-                self.ins = other
+                self._ins[:] = other
                 return self
-        else:
-            return other.__sub__(self)
 
     # Backwards pipping
     __pow__ = __sub__
@@ -621,7 +625,7 @@ class Unit(metaclass=metaUnit):
         return type(self).CEPCI
     @CEPCI.setter
     def CEPCI(self, CEPCI):
-        raise AttributeError('Cannot change class attribute through an instance.')
+        raise AttributeError('cannot change class attribute through an instance')
 
     @property
     def ID(self):
@@ -630,41 +634,30 @@ class Unit(metaclass=metaUnit):
 
     @ID.setter
     def ID(self, ID):
-        unit = find.unit
-        ID_old = self._ID
-        if ID_old and ID_old in unit: del unit[ID_old]
         if ID == '':
             # Select a default ID if requested
             letter, number = self._default_ID
             self._default_ID[1] += 1
             ID = letter + str(number)
             self._ID = ID
-            unit[ID] = self
-            return
-        elif ID:
+            find.unit[ID] = self
+        elif ID and ID != self._ID:
             ID = ID.replace(' ', '_')
             ID_words = ID.split('_')
             if not all(word.isalnum() for word in ID_words):
                 raise ValueError('ID cannot have any special characters')
-            unit[ID] = self
             self._ID = ID
+            find.unit[ID] = self
 
     # Input and output streams
     @property
     def ins(self):
         # list of input streams
-        return self._ins
-    @ins.setter
-    def ins(self, streams):
-        self._ins.__init__(self, streams)
-        
+        return self._ins    
     @property
     def outs(self):
         # list of output streams
         return self._outs
-    @outs.setter
-    def outs(self, streams):
-        self._outs.__init__(self, streams)
 
     @property
     def _upstream_neighbors(self):
@@ -802,12 +795,12 @@ class Unit(metaclass=metaUnit):
     @property
     def _mol_in(self):
         """Molar flows going in (kmol/hr)."""
-        return sum(s.mol for s in self.ins)
+        return sum(s.mol for s in self._ins)
 
     @property
     def _mol_out(self):
         """Molar flows going out (kmol/hr)."""
-        return sum(s.mol for s in self.outs)
+        return sum(s.mol for s in self._outs)
 
     @property
     def _molfrac_in(self):
@@ -822,18 +815,18 @@ class Unit(metaclass=metaUnit):
     @property
     def _molnet_in(self):
         """Net molar flow going in (kmol/hr)."""
-        return sum(s.molnet for s in self.ins)
+        return sum(s.molnet for s in self._ins)
 
     @property
     def _molnet_out(self):
         """Net molar flow going out (kmol/hr)."""
-        return sum(s.molnet for s in self.outs)
+        return sum(s.molnet for s in self._outs)
 
     # Mass flow rates
     @property
     def _mass_in(self):
         """Mass flows going in (kg/hr)."""
-        return sum(s.mass for s in self.ins)
+        return sum(s.mass for s in self._ins)
 
     @property
     def _mass_out(self):
@@ -853,7 +846,7 @@ class Unit(metaclass=metaUnit):
     @property
     def _massnet_in(self):
         """Net mass flow going in (kg/hr)."""
-        return sum(s.massnet for s in self.ins)
+        return sum(s.massnet for s in self._ins)
 
     @property
     def _massnet_out(self):
@@ -864,7 +857,7 @@ class Unit(metaclass=metaUnit):
     @property
     def _vol_in(self):
         """Volumetric flows going in (m3/hr)."""
-        return sum(s.vol for s in self.ins)
+        return sum(s.vol for s in self._ins)
 
     @property
     def _volnet_in(self):
@@ -895,18 +888,18 @@ class Unit(metaclass=metaUnit):
     @property
     def _H_in(self):
         """Enthalpy flow going in (kJ/hr)."""
-        return sum(s.H for s in self.ins)
+        return sum(s.H for s in self._ins)
 
     @property
     def _H_out(self):
         """Enthalpy flow going out (kJ/hr)."""
-        return sum(s.H for s in self.outs)
+        return sum(s.H for s in self._outs)
 
     @property
     def _Hf_in(self):
         """Enthalpy of formation flow going in (kJ/hr)."""
         _Hf_in = 0
-        for stream in self.ins:
+        for stream in self._ins:
             _Hf_in += stream.Hf
         return _Hf_in
 
@@ -932,7 +925,7 @@ class Unit(metaclass=metaUnit):
             info = f'{type(self).__name__}\n'
         info+= f'ins...\n'
         i = 0
-        for stream in self.ins:
+        for stream in self._ins:
             stream_info = stream._info(**show_units)
             if 'Missing Stream' in stream_info:
                 info += f'[{i}] {stream.ID}\n'
@@ -962,6 +955,20 @@ class Unit(metaclass=metaUnit):
     def show(self, **show_units):
         """Prints information on unit."""
         print(self._info(**show_units))
+    
+    def _delete(self):
+        for i in self._ins:
+            if i: 
+                if i._source: i._sink = None
+                else: object.__delattr__(find.stream, i._ID)
+        for i in self._outs:
+            if i:
+                if i._sink: i._source = None
+                else: object.__delattr__(find.stream, i._ID)
+        self._outs[:] = self._ins[:] = (missing_stream,)
+    
+    def delete(self):
+        delattr(find.unit, self._ID)
     
     def __str__(self):
         if self.ID:

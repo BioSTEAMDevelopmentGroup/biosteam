@@ -26,9 +26,6 @@ class Tank(Unit):
     def tau(self, tau):
         self._tau = tau
 
-    def _run(self):
-        self.outs[0].copylike(self.ins[0])
-
 class StorageTank(Tank):
     r"""Create a storage tank with volume based on residence time [1].
 
@@ -87,14 +84,14 @@ class MixTank(Tank):
     _V_wf = 0.8
     
     @property
-    def V_wf(self):
+    def working_volume_fraction(self):
         """Fraction of working volume."""
         return self._V_wf
 
-    @V_wf.setter
-    def V_wf(self, V_wf):
+    @working_volume_fraction.setter
+    def working_volume_fraction(self, V_wf):
         if not 0 < V_wf <= 1:
-            raise ValueError('Working volume fraction must be between 0 to 1.')
+            raise ValueError('working_volume_fraction must be between 0 to 1')
         self._V_wf = V_wf
     
     def _design(self):

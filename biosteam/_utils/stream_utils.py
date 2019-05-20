@@ -6,7 +6,6 @@ This module includes classes and functions relating Stream objects.
 
 @author: Yoel Cortes-Pena
 """
-
 __all__ = ('MissingStream', 'Ins', 'Outs',
            'Sink', 'Source', 'missing_stream', 'missing_method')
 
@@ -24,6 +23,9 @@ class MissingStream:
     
     def __new__(cls):
         return cls._missing_stream
+    
+    def __bool__(self):
+        return False
     
     def __getattr__(self, key):
         raise TypeError(f'{self.ID} object')
@@ -50,11 +52,7 @@ class Ins(list):
     __slots__ = ('sink',)
 
     def __init__(self, sink, streams=()):
-        if streams is self:
-            streams = tuple(self)
-        elif not hasattr(streams, '__iter__'):
-            streams = (streams,)
-        self.sink = sink #: Unit where inputs are attached
+        self.sink = sink #: Unit object where Ins object is attached
         self._clear_sink(sink)
         super().__init__(streams)
         self._fix_sink(sink)
@@ -119,11 +117,7 @@ class Outs(list):
     __slots__ = ('source',)
     
     def __init__(self, source, streams=()):
-        if streams is self:
-            streams = tuple(self)
-        elif not hasattr(streams, '__iter__'):
-            streams = (streams,)
-        self.source = source #: Unit where Outputs is attached
+        self.source = source #: Unit object where Outs object is attached
         self._clear_source(source)
         super().__init__(streams)
         self._fix_source(source)
@@ -152,9 +146,7 @@ class Outs(list):
             
     def __setitem__(self, index, stream):
         source = self.source
-        if stream is missing_stream:
-            pass
-        elif isinstance(index, int):
+        if isinstance(index, int):
             s_old = self[index]
             if s_old._source is source: s_old._source = None
             super().__setitem__(index, stream)
@@ -166,7 +158,6 @@ class Outs(list):
         else:
             raise TypeError(f'Only intergers and slices are valid indices for {type(self).__name__} objects')
         
-           
     def clear(self):
         self._clear_source(self.source)
         super().clear()

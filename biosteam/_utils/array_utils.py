@@ -7,17 +7,15 @@ This module includes classes and functions relating arrays.
 @author: Guest Group
 """
 import numpy as np
-from array_collections import array, tuple_array, material_array, \
+from array_collections import array, tuple_array, \
                               property_array, same_type
 from free_properties import PropertyFactory
 
-__all__ = ('array', 'tuple_array', 'material_array', 'property_array',
+__all__ = ('array', 'tuple_array', 'property_array',
            'PropertyFactory', 'same_type', 'reorder', 'fraction')
 
 ndarray = np.ndarray
 asarray = np.asarray
-
-material_array._units = 'kmol/hr'
 
 # %% Functions
 

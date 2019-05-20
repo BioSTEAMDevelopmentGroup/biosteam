@@ -182,19 +182,16 @@ class HeatUtility:
 
     def __init__(self, efficiency=None):
         self.ID = ''
-        self.duty = 0
-        self.flow = 0
-        self.cost = 0
+        self.cost = self.flow = self.duty = 0
         self.efficiency = efficiency
         self._args = self._agent = None
 
     def _init_streams(self, flow, species, T, P, phase):
         """Initialize utility streams."""
         self._fresh = Stream(None, flow, species, T=T, P=P, phase=phase)
-        self._used = object.__new__(Stream)
-        self._used.__dict__.update(self._fresh.__dict__)
+        self._used = Stream.proxy(None, self._fresh)
 
-    def __call__(self, duty:'kJ/hr', T_in:'K', T_out:'K'=None):
+    def __call__(self, duty, T_in, T_out=None):
         """Calculate utility requirements given the essential parameters.
         
         **Parameters**
@@ -241,7 +238,7 @@ class HeatUtility:
         elif Type == 'latent':
             self._update_flow_wt_phase_change(duty)
         else:
-            raise biosteamError(f"Invalid heat transfer agent '{self.ID}'.")
+            raise biosteamError(f"invalid heat transfer agent '{self.ID}'")
         
         # Update and return results
         self.flow = mol = self._fresh.molnet
@@ -249,7 +246,7 @@ class HeatUtility:
         self.cost = price_duty*duty + price_mol*mol
 
     @staticmethod
-    def _get_pinch(duty, T_in, T_out) -> '(T_pinch, T_op)':
+    def _get_pinch(duty, T_in, T_out):
         """Return pinch temperature and operating temperature."""
         if duty < 0:
             return (T_in, T_out) if T_in > T_out else (T_out, T_in)
@@ -291,7 +288,7 @@ class HeatUtility:
                     self._agent = agent
                     self.ID = ID
                 return agent
-        raise biosteamError(f'No cooling agent that can cool under {T_pinch} K')
+        raise biosteamError(f'no cooling agent that can cool under {T_pinch} K')
             
     def _select_heating_agent(self, T_pinch):
         """Select a heating agent that works at the pinch temperature and return relevant information.
@@ -327,7 +324,7 @@ class HeatUtility:
                     self._agent = agent
                     self.ID = ID
                 return agent
-        raise biosteamError(f'No heating agent that can heat over {T_pinch} K')
+        raise biosteamError(f'no heating agent that can heat over {T_pinch} K')
 
     # Main Calculations
     def _update_flow_wt_pinch_T(self, duty, T_pinch, T_limit, negduty):
@@ -346,7 +343,7 @@ class HeatUtility:
     @staticmethod
     def _update_utility_flow(fresh, utility, duty):
         """Changes flow rate of utility such that it can meet the duty requirement"""
-        utility._molarray *= duty/(fresh.H - utility.H)
+        utility._mol *= duty/(fresh.H - utility.H)
 
     @staticmethod
     def _T_exit(T_pinch, dT, T_limit, negduty):
@@ -388,7 +385,7 @@ class HeatUtility:
         elif flow_dim == vol_flow_dim:
             flowattr = 'volnet'
         else:
-            raise DimensionError(f"Dimensions for flow units must be in molar, mass or volumetric flow rates, not '{flow_dim}'.")
+            raise DimensionError(f"dimensions for flow units must be in molar, mass or volumetric flow rates, not '{flow_dim}'")
         
         # Change units and return info string
         if self.ID:

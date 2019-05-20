@@ -265,7 +265,7 @@ def Kvalue(P):
     elif P > 40.0 and P <= 5500.0:
         K = 0.43 - 0.023*log(P)
     else:
-        raise ValueError(f'Invalid Pressure {P} psia')
+        raise ValueError(f'invalid Pressure {P} psia')
     return K
 
 

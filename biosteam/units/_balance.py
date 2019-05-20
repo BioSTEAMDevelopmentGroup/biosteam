@@ -48,7 +48,7 @@ class MassBalance(Unit, metaclass=metaFinal):
         self._init_ins(ins)
         self._init_outs(outs)
         self._cached = {}
-        self._cached['spindex'] = Stream._IDs.index
+        self._cached['spindex'] = Stream._species._IDs.index
         self._kwargs = {'species': species,
                         'streams': streams,
                         'exact': exact,
@@ -89,7 +89,7 @@ class MassBalance(Unit, metaclass=metaFinal):
         # Make sure balance type is valid
         if balance not in ('flow', 'fraction'):
             raise ValueError(
-                "Balance type must be one of the following: 'flow', 'fraction'")
+                "balance type must be one of the following: 'flow', 'fraction'")
 
         # Cach correct solver and make sure linear system of equations is square to achieve exact solution
         if exact:
@@ -98,7 +98,7 @@ class MassBalance(Unit, metaclass=metaFinal):
             sID, s_index = len(species_IDs), len(self._kwargs['streams'])
             if sID != s_index:
                 raise ValueError(
-                    f"Length of species ({sID}) must be equal to the length of streams_index ({s_index}) when exact solution is needed.")
+                    f"length of species ({sID}) must be equal to the length of streams_index ({s_index}) when exact solution is needed")
         else:
             solver = np.linalg.lstsq
 
@@ -147,7 +147,7 @@ class MassBalance(Unit, metaclass=metaFinal):
 
             # Set flow rates for input streams
             for factor, s in zip(x, vary):
-                s.mol = s.mol * factor
+                s.mol[:] = s.mol * factor
 
         elif balance == 'fraction':
             # Perform the following calculation:

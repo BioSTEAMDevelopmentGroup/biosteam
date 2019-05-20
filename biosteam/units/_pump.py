@@ -112,7 +112,7 @@ class Pump(Unit):
     def Type(self, Type):
         if Type not in Types:
             Types_str = str(Types)[1:-1]
-            raise ValueError('Pump type must be one of the following: ' + Types_str)
+            raise ValueError('Type must be one of the following: ' + Types_str)
         self._Type = Type
     
     @property
@@ -126,12 +126,15 @@ class Pump(Unit):
             self._F_M = F_Mdict[material]
         except KeyError:
             dummy = str(F_Mdict.keys())[11:-2]
-            raise ValueError(f"Material must be one of the following: {dummy}")
+            raise ValueError(f"material must be one of the following: {dummy}")
         self._F_Mstr = material  
         
     def _run(self):
-        P = self._kwargs['P']
-        if P: self.outs[0].P = P
+        out = self._outs[0]
+        feed = self._ins[0]
+        out.P = self._kwargs['P'] or feed.P
+        out.T = feed.T
+        out._phase = feed._phase
     
     def _design(self):
         Design = self._results['Design']
@@ -159,7 +162,7 @@ class Pump(Unit):
             Design['N'] = 1
             Design['Head'] = power/mass*897806 # (ft) note that: 897806 = (1/gravity * unit_conversion_factor)
         else:
-            raise Exception('More than 1 pump required, but not yet implemented.')
+            raise Exception('more than 1 pump required, but not yet implemented')
         
         self._power_utility(power/1.341)
     
@@ -235,7 +238,7 @@ class Pump(Unit):
             pressure_min, pressure_max = pressure_range
             if flow_min <  Qi < flow_max and pressure_min < Pi and pressure_max > Po:
                 return 'Regenerative'
-        raise Exception(f'No valid pump option for pressure, {Pi} Pa, and flow rate, {Qi} m3/hr.')
+        raise Exception(f'no valid pump option for pressure, {Pi} Pa, and flow rate, {Qi} m3/hr')
     
     @staticmethod
     def _available_PumpTypes(Pi, Po, Qi):

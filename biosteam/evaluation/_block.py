@@ -7,18 +7,16 @@ Created on Wed Mar  6 15:22:37 2019
         
 from .. import Unit, Stream
 from inspect import signature
-from .._utils import function
+from ._parameter import Parameter
 
 __all__ = ('Block',)
 
 do_nothing = lambda: None
-    
 
 # %% Simulation blocks
 
 class Block:
-    """
-    Create a Block object that can simulate the element and the system downstream. The block can also generate block functions.
+    """Create a Block object that can simulate the element and the system downstream. The block can also generate Parameter object that can update the system state.
     
     **Parameters**
     
@@ -30,70 +28,13 @@ class Block:
 
          :doc:`Block Example`
     
-    Create a block object passing a Unit object, and simulate the block:
-        
-    .. code-block:: python
-    
-       >>> P1 = Unit('P1')
-       >>> block = Block(P1)
-       >>> block.show()
-       [Block: Unit-P1]
-       >>> block.simulate()
-    
-    .. Note::
-    
-       Because no system was passed, the block would simulate just the unit.
-       
-    Create a block object passing both a Unit object and a System object:
-        
-    .. code-block:: python
-    
-       >>> P0 = Unit('P0', outs=Stream())
-       >>> P1 = Unit('P1', ins=P0-0)
-       >>> P2 = Unit('P2', ins=P1-0)
-       >>> system = System('', network=(P0, P1, P2))
-       >>> block = Block(P1, system)
-       >>> block.show()
-       [Block: Unit-P1 and downstream]
-       >>> block.system.show()
-       System: Unit-P1 and downstream
-        network: (P1, P2)
-    
-    .. Note::
-    
-       The block would simulate Unit-P1 and downstream.
-    
-    
-    Calling a block object with a setter will return a block function equivalent to:
-        
-    .. code-block:: python
-    
-       >>> def blockfunc(args):
-       ...     setter(args)
-       ...     self.simulate() # self is the Block object
-       
-    For example:
-        
-    .. code-block:: python
-    
-       >>> # setter functions is hypothetical
-       >>> def setter(args): pass
-       >>> blockfunc = Block(P1, None)(setter)
-       >>> blockfunc
-       <function [Block P1] setter(args)>
-    
-    .. Note::
-        
-       The function name and signature matches the setter function.
-    
     """
     
-    _cachedblocks = {}
+    _blocks = {}
     __slots__ = ('_system', '_simulate', '_element')
     
     def __new__(cls, element, system=None):
-        cached = cls._cachedblocks
-        block = cached.get((system, element))
+        block = cls._blocks.get((system, element))
         if block:
             self = block
         else:
@@ -115,32 +56,13 @@ class Block:
         self._system = subsys
         self._simulate = simulate
         self._element = element
-        self._cachedblocks[system, element] = self
+        self._blocks[system, element] = self
     
-    def __call__(self, setter, simulate=None, param=None) -> function:
-        """Return a block function."""
+    def parameter(self, setter, simulate=None, name=None) -> Parameter:
+        """Return a Parameter object."""
         if simulate is None: simulate = self._simulate
-        if not param: param, = signature(setter).parameters.keys()
-        
-        # Make blockfunc
-        name = setter.__name__
-        if name[0] == '<': name = 'Lambda'
-        str2exec =  (f'def {name}({param}):\n'
-                   + f'    setter({param})\n'
-                   + f'    simulate()')
-
-        globs = {'setter': setter,
-                 'simulate': simulate}
-        locs = {}
-        exec(str2exec, globs, locs)
-        blockfunc = locs[name]
-        blockfunc.__qualname__ = f'{self} {blockfunc.__qualname__}'
-        blockfunc._param = param
-        blockfunc._simulate = simulate
-        blockfunc._element = self._element
-        blockfunc._system = self._system
-        blockfunc._setter = setter
-        return blockfunc
+        if not name: name, = signature(setter).parameters.keys()
+        return Parameter(name, setter, simulate, self._element, self._system)
     
     @property
     def system(self):

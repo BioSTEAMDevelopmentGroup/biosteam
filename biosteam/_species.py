@@ -5,9 +5,11 @@ Created on Sat Aug 18 13:42:33 2018
 @author: yoelr
 """
 from . import compounds as comps
+import numpy as np
 
 Chemical = comps.Chemical
 Compound = comps.Compound
+inf = np.inf
 __all__ = ('Species',)
 
 # TODO: Fix how Dortmund groups are selected in thermo.Chemical. Glycerol defaults to wrong value.
@@ -33,7 +35,7 @@ class Species:
         
     """
     units = Compound.units
-    _immutable = set()
+    _immutable = False
     
     @classmethod
     def tospecies(cls, compounds, copy=True):
@@ -63,12 +65,30 @@ class Species:
             try:
                 compound = cls(n)
             except:
-                raise Exception(f"Compound, '{n}', not defined in databank.")
+                raise Exception(f"Compound object, '{n}', not defined in data bank")
             attrset(n, compound)
 
+    def _read_only(self):
+        if self._immutable: return
+        tup = tuple
+        compounds = tup(self)
+        IDs = tup(i.ID for i in compounds)
+        CAS = tup(i.CAS for i in compounds)
+        Nspecies = len(IDs)
+        index = tup(range(Nspecies))
+        me = self.__dict__
+        me['_immutable'] = True
+        me['_num_compounds'] = tup(zip(index, compounds))
+        me['_num_IDs'] = tup(zip(index, IDs))
+        me['_compounds'] = compounds
+        me['_IDs'] = IDs
+        me['_CAS'] = CAS
+        me['_Nspecies'] = Nspecies
+        me['_MW'] = np.array([i.MW for i in compounds])
+        
     def __setattr__(self, ID, compound):
-        if self in self._immutable:
-            raise ValueError('Cannot alter species object attached to Stream objects.')
+        if self._immutable:
+            raise ValueError('cannot alter species object attached to Stream objects')
         if isinstance(compound, Compound):
             compound.ID = ID
             super().__setattr__(ID, compound)
@@ -79,41 +99,36 @@ class Species:
             for ID, compound in zip(new_IDs, new_species):
                 super().__setattr__(ID, compound)
         else:
-            raise TypeError('Can only set Compound objects as attributes')
+            raise TypeError('can only set Compound objects as attributes')
     
     def __delattr__(self, ID):
-        if self in self._immutable:
-            raise ValueError('Cannot alter species object attached to Stream objects.')
+        if self._immutable:
+            raise ValueError('cannot alter species object attached to Stream objects')
         else:
             super().__delattr__(ID)
     
     def __iter__(self):
+        if self._immutable: return iter(self._compounds)
         return iter(self.__dict__.values())
     
     @property
     def CAS(self):
+        if self._immutable: return self._CAS
         return tuple(s.CAS for s in self)
     
     @property
     def ID(self):
+        if self._immutable: return self._IDs
         return tuple(self.__dict__.keys())
 
-    def getprops(self, species_IDs, prop_ID, T=None, P=None, phase=None):
+    def getprops(self, species_IDs, prop_ID, T, P, phase):
         """Return list of the desired property, prop_ID, for each compound in species_ID."""
-        if isinstance(species_IDs, str):
-            species = (getattr(self, species_IDs),)
-        else:
-            species = (getattr(self, i) for i in species_IDs)
-        return self._getprops(species, prop_ID, T, P, phase)
-
-    @staticmethod
-    def _getprops(species, prop_ID, T, P, phase):
-        """Return list of the desired property, prop_ID, for given species."""
-        props = []; sat = setattr; gat = getattr
-        for s in species:
-            if T: sat(s, 'T', T)
-            if P: sat(s, 'P', P)
-            if phase: sat(s, 'phase', phase)
+        props = []; gat = getattr
+        for sID in species_IDs:
+            s = gat(self, sID)
+            s.T = T
+            s.P = P
+            s.phase = phase
             props.append(gat(s, prop_ID))
         return props
 
@@ -123,6 +138,88 @@ class Species:
         for ID in species_IDs: 
             sat(gat(self, ID), prop_ID, new_values)
 
+    ### Material Properties ###
+
+    # General methods for getting ideal mixture properties
+    def _props(self, ID, mol, T, P, phase):
+        """Return component property list."""
+        out = np.zeros(self._Nspecies)
+        getattr_ = getattr
+        ic = self._num_compounds.__iter__().__next__
+        for m in mol:
+            if m: 
+                i, c = ic()
+                c.P = P
+                c.T = T
+                c.phase = phase
+                prop = getattr_(c, ID)
+                out[i] = prop if prop else 0
+            else: ic()
+        return out
+
+    def _propflows(self, ID, mol, T, P, phase):
+        """Return array of component properties * kmol/hr."""
+        return self._props(ID, mol, T, P, phase) * mol
+
+    def _propflow(self, ID, mol, T, P, phase):
+        """Return flow of component properties."""
+        return (self._props(ID, mol, T, P, phase)*mol).sum()
+
+    def _prop(self, ID, mol, T, P, phase):
+        """Return molar weighted average property."""
+        return (self._props(ID, mol, T, P, phase)*mol).sum().sum()
+
+    def _mixedpropflows(self, ID, molarray, T, P):
+        """Return array of component properties * kmol/hr."""
+        pf = self._propflows
+        return (pf(ID, molarray[0], T, P, 's')
+              + pf(ID, molarray[1], T, P, 'l')
+              + pf(ID, molarray[2], T, P, 'l')
+              + pf(ID, molarray[3], T, P, 'g'))
+    
+    def _mixedpropflow(self, ID, molarray, T, P):
+        """Return flow of component properties."""
+        return self._mixedpropflows(ID, molarray, T, P).sum()
+    
+    def _mixedprop(self, ID, molarray, T, P):
+        """Return molar weighted average property."""
+        return self._mixedpropflows(ID, molarray, T, P).sum()/molarray.sum()  
+    
+    ### Equilibrium ###
+    
+    def _equilibrium_species(self, mol):
+        """Return species and indexes of species in equilibrium."""
+        species = []; index = []; ic = self._num_compounds.__iter__().__next__
+        for m in mol:
+            if m:
+                i, c = ic()
+                if c.UNIFAC_Dortmund_groups and c.Tb not in (inf, None):
+                    species.append(c); index.append(i)
+            else: ic()
+        return species, index
+
+    def _heavy_species(self, mol):
+        """Return species and indexes of heavy species not in equilibrium."""
+        species = []; index = []; ic = self._num_compounds.__iter__().__next__
+        for m in mol:
+            if m:
+                i, c = ic()
+                if c.Tb in (inf, None) or not c.UNIFAC_Dortmund_groups:
+                    species.append(c); index.append(i)
+            else: ic()
+        return species, index
+
+    def _light_species(self, mol):
+        """Return species and indexes of light species not in equilibrium."""
+        species = []; index = []; ic = self._num_compounds.__iter__().__next__
+        for m in mol:
+            if m:
+                i, c = ic()
+                if c.Tb is -inf:
+                    species.append(c); index.append(i)
+            else: ic()
+        return species, index
+    
     # Representation
     def _info(self):
         """Information on self"""

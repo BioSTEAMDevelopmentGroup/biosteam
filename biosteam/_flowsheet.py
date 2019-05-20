@@ -7,6 +7,7 @@ As BioSTEAM objects are created, they are automatically registered. The `find` o
 """
 from graphviz import Digraph
 from IPython import display
+from ._utils import Register
 
 __all__ = ('find', 'flowsheet_connector', 'Flowsheet')
 
@@ -103,20 +104,20 @@ def make_digraph(units, streams):
 class Flowsheet:
     """Create a Flowsheet object which stores references to all stream, unit, and system objects."""
     #: [dict] All flowsheets
-    flowsheet = {}
+    flowsheet = Register()
     
     def __init__(self, ID):
         #: [str] ID of flowsheet
         self.ID = ID
         
         #: [dict] Dictionary of systems
-        self.system = {}
+        self.system = Register()
         
         #: [dict] Dictionary of units
-        self.unit = {}
+        self.unit = Register()
         
         #: [dict] Dictionary of streams
-        self.stream = {}
+        self.stream = Register()
         
         self.flowsheet[ID] = self
     
@@ -139,7 +140,7 @@ class Flowsheet:
             raise ValueError(f"kind must be either 'thorough', 'surface', or 'minimal'.")
     
     def _thorough_diagram(self):
-        units = list(self.unit.values())
+        units = list(self.unit)
         units.reverse()
         streams = set()
         for u in units:
@@ -153,7 +154,7 @@ class Flowsheet:
     
     def _minimal_diagram(self):
         from . import _system, Stream
-        streams = self.stream.values()
+        streams = list(self.stream)
         feeds = set(filter(_system._isfeed, streams))
         products = set(filter(_system._isproduct, streams))
         product = Stream(None)
@@ -170,10 +171,10 @@ class Flowsheet:
         
     def _surface_diagram(self):
         from . import _system, Stream
-        units = set(self.unit.values())
+        units = set(self.unit)
         StrUnit = _system._streamUnit
         refresh_units = set()
-        for i in self.system.values():
+        for i in self.system:
             if i.recycle and not any(sub.recycle for sub in i.subsystems):
                 outs = []
                 ins = []
@@ -213,8 +214,8 @@ class Flowsheet:
         sys = _system.System(None, units)
         sys._thorough_diagram()
         for i in refresh_units:
-            i.ins = i._ins
-            i.outs = i._outs
+            i._ins[:] = i._ins
+            i._outs[:] = i._outs
     
     def __call__(self, item_ID) -> 'item':
         """Return requested biosteam item.
@@ -225,11 +226,19 @@ class Flowsheet:
     
         """
         item_ID = item_ID.replace(' ', '_')
-        obj = (self.stream.get(item_ID)
-               or self.unit.get(item_ID)
-               or self.system.get(item_ID))
-        if not obj: raise ValueError(f"No registered item '{item_ID}'")
+        obj = (self.stream._get(item_ID)
+               or self.unit._get(item_ID)
+               or self.system._get(item_ID))
+        if not obj: raise ValueError(f"no registered item '{item_ID}'")
         return obj
+    
+    def __delattr__(self, key):
+        attr = getattr(self, key)
+        object.__delattr__(self, key)
+        if hasattr(attr, '_delete'): attr._delete()
+    
+    def __str__(self):
+        return self.ID
     
     def __repr__(self):
         return f'<{type(self).__name__}: {self.ID}>'
@@ -250,11 +259,11 @@ class find(Flowsheet):
         if isinstance(flowsheet, Flowsheet):
             find.__dict__ = flowsheet.__dict__
         else:
-            raise TypeError('Main flowsheet must be a Flowsheet object')
+            raise TypeError('mainflowsheet must be a Flowsheet object')
         find._mainflowsheet = flowsheet
     
     def __new__(cls):
-        raise TypeError('Cannot create new Find object.')
+        raise TypeError('cannot create new find object.')
 
     def __repr__(self):
         return f'<{type(self).__name__}: mainflowsheet={self.ID}>'
@@ -291,7 +300,7 @@ def flowsheet_connector(upstream, downstream, species=None):
     downindex = downstream.indices(*species)
     def connect_stream():
         # Flow rate, T, P and phase
-        downstream._molarray[downindex] = upstream._molarray[upindex]
+        downstream._mol[downindex] = upstream._mol[upindex]
         downstream.T = upstream.T
         downstream.P = upstream.P
         downstream.phase = upstream.phase

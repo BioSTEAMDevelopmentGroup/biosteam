@@ -23,7 +23,7 @@ def spec(item, param, func):
         raise ValueError(f"param must be a string, not a '{type(param).__name__}' object.")
     N = len(signature(func).parameters)
     if N != 1:
-        raise ValueError(f"One and only one argument in 'func' signature is allowed ({N or 'no'} parameters given).")
+        raise ValueError(f"one and only one argument in 'func' signature is allowed ({N or 'no'} parameters given)")
     
     def costfactor_decorator(cls):
         if hasattr(cls, '_specdata'): data = cls._specdata

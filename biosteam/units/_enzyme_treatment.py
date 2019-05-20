@@ -22,7 +22,7 @@ class EnzymeTreatment(MixTank):
     def _run(self):
         feed = self.ins[0]
         out = self.outs[0]
-        out.mol = self._mol_in
+        out._mol[:] = self._mol_in
         out.phase = feed.phase
         out.P = feed.P
     

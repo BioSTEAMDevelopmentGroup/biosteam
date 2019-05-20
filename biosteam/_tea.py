@@ -328,10 +328,10 @@ class TEA:
         S_  = 0 # Sales USD/hr
         for s in feeds:
             price = s.price
-            if price: MC_ += price*(s._mol*s._MW).sum()
+            if price: MC_ += price*s.massnet
         for s in products:
             price = s.price
-            if price: S_ += price*(s._mol*s._MW).sum()
+            if price: S_ += price*s.massnet
         # Multiply by flow_factor for USD/yr
         UC_ *= flow_factor
         MC_ *= flow_factor
@@ -445,14 +445,15 @@ class TEA:
             self._calc_cashflow(cashflow_data,
                                 parameters[:-3],
                                 depreciation_data)
-            self._IRR_guess = IRR = newton(self._calc_NPV_and_update,
-                                           IRR_guess, args=args, tol=1e-5)
+            IRR = newton(self._calc_NPV_and_update,
+                         IRR_guess, args=args, tol=1e-5)
             self.options['IRR'] = IRR
             self._update_results(parameters, data_subset[-1, -1])
         else:
             self._IRR_guess = IRR = newton(self._calc_NPV, IRR_guess,
                                            args=(cashflow_data[-3], duration_array),
                                            tol=1e-5)
+        self._IRR_guess = IRR if (0 < IRR < 1) else 0.15
         return IRR
     
     def solve_price(self, stream, update=False):
@@ -486,7 +487,7 @@ class TEA:
         elif stream in system.products:
             adjust = CF_copy.__add__
         else:
-            raise ValueError(f"Stream '{stream.ID}' must be either a feed or a product of the system")
+            raise ValueError(f"stream must be either a feed or a product of the system")
         
         # Guess cost adjustment for solver
         guess = self._cost_guess
