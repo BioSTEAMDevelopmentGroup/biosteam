@@ -5,11 +5,11 @@ Created on Thu Aug 23 22:15:20 2018
 @author: yoelr
 """
 from .. import Unit
-from ._splitter import Splitter
+from .metaclasses import splitter
 from .designtools import vacuum_system
 import numpy as np
 
-class RotaryVacuumFilter(Unit):
+class RotaryVacuumFilter(Unit, metaclass=splitter):
     _has_power_utility = True
     
     #: Revolutions per second
@@ -20,21 +20,13 @@ class RotaryVacuumFilter(Unit):
     
     #: For crystals (lb/day-ft^2)
     filter_rate = 6000
-    _kwargs = {'split': None,
-               'P_suction': 100} # Pa
+    _kwargs = {'P_suction': 100} # Pa
     _bounds = {'Individual area': (10, 800)}
     _units = {'Area': 'ft^2',
               'Individual area': 'ft^2'}
     
     #: Efficiency of the vacuum pump
     power_efficiency = 0.9
-    
-    @staticmethod
-    def _calc_Area(flow:'kg/hr', filter_rate:'lb/day-ft^2') -> 'ft^2':
-        flow *= 52.91
-        return flow/filter_rate
-        
-    _run = Splitter._run
     
     def _design(self):
         flow = sum(stream.massnet for stream in self.outs)
@@ -89,7 +81,11 @@ class RotaryVacuumFilter(Unit):
                                                                    P_suction, vol)
         power = work_rot/self.power_efficiency/1000 + work_vacuum # kW
         self._power_utility(power)
-        
+    
+    @staticmethod
+    def _calc_Area(flow:'kg/hr', filter_rate:'lb/day-ft^2') -> 'ft^2':
+        return flow*52.91/filter_rate
+    
         
 RVF = RotaryVacuumFilter
 

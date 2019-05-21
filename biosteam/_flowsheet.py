@@ -7,7 +7,7 @@ As BioSTEAM objects are created, they are automatically registered. The `find` o
 """
 from graphviz import Digraph
 from IPython import display
-from ._utils import Register
+from ._utils import Register, search_register
 
 __all__ = ('find', 'flowsheet_connector', 'Flowsheet')
 
@@ -226,9 +226,9 @@ class Flowsheet:
     
         """
         item_ID = item_ID.replace(' ', '_')
-        obj = (self.stream._get(item_ID)
-               or self.unit._get(item_ID)
-               or self.system._get(item_ID))
+        obj = (search_register(self.stream, item_ID)
+               or search_register(self.unit, item_ID)
+               or search_register(self.system, item_ID))
         if not obj: raise ValueError(f"no registered item '{item_ID}'")
         return obj
     

@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 from IPython import display
 from graphviz import Digraph
-from ._exceptions import _notify_error, DesignWarning
+from ._exceptions import DesignWarning, _try_method
 from ._flowsheet import find
 from ._graphics import Graphics, default_graphics
 from ._stream import Stream
@@ -123,11 +123,6 @@ class metaUnit(type):
             # Abstract Unit class
             cls = type.__new__(mcl, clsname, superclasses, new_definitions)
         else:
-            # Add error notification wrapper to every new unit method
-            for method_name in ('_setup', '_run', '_operation', '_design', '_cost'):
-                if new_definitions.get(method_name):
-                    new_definitions[method_name] = _notify_error(new_definitions[method_name])
-    
             # Make new Unit class
             cls = type.__new__(mcl, clsname, superclasses, new_definitions)
             
@@ -251,8 +246,8 @@ class Unit(metaclass=metaUnit):
         **_spec()**
             Calculate specification cost factors and update purchase prices.
             
-        **_join():**
-            Join additional purchase prices and utility costs.
+        **_end():**
+            Finish setting purchase prices and utility costs.
         
         **_units** = {}: [dict] Default units for results Operation and Design
         
@@ -477,10 +472,9 @@ class Unit(metaclass=metaUnit):
     _run      = _do_nothing
     _prepare  = _do_nothing
     _design   = _do_nothing
-    _finalize = _do_nothing
     _cost     = _do_nothing
-    _join     = _do_nothing
     _spec     = _do_nothing
+    _end     = _do_nothing
     
     # Summary
     def _summary(self):
@@ -493,7 +487,7 @@ class Unit(metaclass=metaUnit):
         """Run all cost methods and finalize purchase and utility cost."""
         self._cost()
         self._spec()
-        self._join()
+        self._end()
         self._update_utility_cost()
         self._update_purchase_cost()
 
@@ -506,8 +500,8 @@ class Unit(metaclass=metaUnit):
     def simulate(self):
         """Run rigourous simulation and determine all design requirements."""
         self._link_streams()
-        self._run()
-        self._summary()
+        _try_method(self._run)
+        _try_method(self._summary)
 
     def results(self, with_units=True):
         """Return key results from simulation as a DataFrame if `with_units` is True or as a Series otherwise."""

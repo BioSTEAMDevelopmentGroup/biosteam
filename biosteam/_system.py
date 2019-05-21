@@ -8,7 +8,7 @@ from copy import copy
 import IPython
 import numpy as np
 from scipy.optimize import newton
-from ._exceptions import Stop, SolverError, _notify_error
+from ._exceptions import Stop, SolverError, _try_method
 from ._flowsheet import find, make_digraph
 from ._stream import Stream
 from ._unit import Unit
@@ -392,8 +392,8 @@ class System:
         System(None, units)._thorough_diagram(file)
         # Reconnect how it was
         for u in refresh_units:
-            u.ins = u._ins
-            u.outs = u._outs
+            u._ins[:] = u._ins
+            u._outs[:] = u._outs
       
     def _thorough_diagram(self, file=None):
         """Thoroughly display every unit within the network."""
@@ -442,8 +442,9 @@ class System:
     def _run(self):
         """Rigorous run each element of the system."""
         inst = isinstance
+        _try = _try_method
         for a in self.network:
-            if inst(a, Unit): a._run()
+            if inst(a, Unit): _try(a._run)
             elif inst(a, System): a._converge()
             else: a() # Assume it is a function
         self._solver_error['iter'] += 1
@@ -539,7 +540,6 @@ class System:
     # Default converge method
     _converge_method = _Wegstein
     
-    @_notify_error
     def _converge(self):
         """Converge the system recycle using an iterative solver (Wegstein by default)."""
         try:
@@ -605,13 +605,14 @@ class System:
                               'spec_error': 0,
                               'iter': 0}
         for stream in self.streams:
-            if stream.source[0]: stream.empty()
+            if stream._source[0]: stream.empty()
 
     def simulate(self):
         """Converge the network and simulate all units."""
         self._reset_iter()
         self._converge()
-        for u in self._network_costunits: u._summary()
+        _try = _try_method
+        for u in self._network_costunits: _try(u._summary)
         inst = isinstance
         for i in self.facilities:
             if inst(i, (Unit, System)): i.simulate()

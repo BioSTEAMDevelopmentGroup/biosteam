@@ -5,12 +5,12 @@ Created on Thu Aug 23 22:18:36 2018
 @author: yoelr
 """
 import numpy as np
-from ._splitter import Splitter
 from .. import Unit
-from .._exceptions import DesignError
+from .decorators import cost
+from .metaclasses import splitter
 
-
-class SolidsCentrifuge(Unit):
+@cost('Solids loading', cost=68040, CE=567, exp=0.50)
+class SolidsCentrifuge(Unit, metaclass=splitter):
     """Create a solids centrifuge that separates out solids according to user defined split. Assume a continuous scroll solid bowl. 
     
     **Parameters**
@@ -34,14 +34,11 @@ class SolidsCentrifuge(Unit):
         .. [0] Seider, Warren D., et al. (2017). "Cost Accounting and Capital Cost Estimation". In Product and Process Design Principles: Synthesis, Analysis, and Evaluation (pp. 481-485). New York: Wiley.
     
     """
+    _kwargs = {'solids': None}
+    _bounds ={'Solids loading': (2, 40)}
+    _units = {'Solids loading': 'tonn'}
     
-    _kwargs = {'split': None,
-               'solids': None}
-    
-    _run = Splitter._run
-    
-    def _cost(self):
-        Cost = self._results['Cost']
+    def _design(self):
         solids = self._kwargs['solids']
         index = self.outs[0].indices(*solids)
         mass_solids = 0
@@ -49,8 +46,6 @@ class SolidsCentrifuge(Unit):
             mass_solids += s.mass[index]
         ts = np.asarray(mass_solids).sum() # Total solids
         ts *= 0.0011023 # To short tons (2000 lbs/hr)
-        if 2 < ts < 40:
-            Cost['Centrifuge'] = self.CEPCI/567*68040*ts**0.50
-        else:
-            raise DesignError(f'solids loading ({ts}) must be within 2 and 40 tonns')
-        return Cost
+        self._results['Design']['Solids loading'] = ts
+        self._checkbounds('Solids loading', ts)
+    

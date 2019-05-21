@@ -5,12 +5,11 @@ Created on Thu Aug 23 21:23:56 2018
 @author: yoelr
 """
 from .. import Unit, MixedStream
-from ._flash import RatioFlash, PartitionFlash
-from ._splitter import Splitter
+from ._flash import RatioFlash
+from .metaclasses import splitter
 from .decorators import cost, design
 
-__all__ = ('Centrifuge_LLE', 'RatioCentrifuge_LLE',
-           'SplitCentrifuge_LLE', 'PartitionCentrifuge_LLE')
+__all__ = ('Centrifuge_LLE', 'RatioCentrifuge_LLE', 'SplitCentrifuge_LLE')
 
 # electricity kW/(m3/hr) from USDA biosdiesel Super Pro model
 # Possibly 1.4  kW/(m3/hr)
@@ -67,9 +66,6 @@ class Centrifuge_LLE(Unit):
     _bounds = {'Flow rate': (0.1, 100)}
 
     def _setup(self):
-        liq, LIQ = self.outs
-        liq.phase = 'l'
-        LIQ.phase = 'l'
         self._mixedstream =  MixedStream(None)
 
     def _run(self):
@@ -77,22 +73,22 @@ class Centrifuge_LLE(Unit):
         feed = self.ins[0]
         ms = self._mixedstream
         ms.empty()
-        ms.liquid_mol = feed.mol
+        ms.liquid_mol[:] = feed.mol
         ms.LLE(T=feed.T,  **self._kwargs)
-        liq.mol = ms.liquid_mol
-        LIQ.mol = ms.LIQUID_mol
+        liq._mol[:] = ms.liquid_mol
+        LIQ._mol[:] = ms.LIQUID_mol
         liq.T = LIQ.T = ms.T
         liq.P = LIQ.P = ms.P
         
-class PartitionCentrifuge_LLE(Centrifuge_LLE):
-    _N_heat_utilities = 0
-    kwargs = PartitionFlash._kwargs
-    _run = PartitionFlash._run 
-    _setup = PartitionFlash._setup
-    def _set_phases(self):
-        top, bot = self.outs
-        top.phase = 'l'
-        bot.phase = 'L'
+# class PartitionCentrifuge_LLE(Centrifuge_LLE):
+#     _N_heat_utilities = 0
+#     kwargs = PartitionFlash._kwargs
+#     _run = PartitionFlash._run 
+#     _setup = PartitionFlash._setup
+#     def _set_phases(self):
+#         top, bot = self.outs
+#         top.phase = 'l'
+#         bot.phase = 'L'
 
 class RatioCentrifuge_LLE(Centrifuge_LLE):
     _N_heat_utilities = 0
@@ -103,10 +99,10 @@ class RatioCentrifuge_LLE(Centrifuge_LLE):
                'top_split': [],  # list of splits for top_solvents
                'bot_solvents': [],  # list of species that correspond to bot_split
                'bot_split': []}  # list of splits for bot_solvents
-    def _setup(self): pass
+    _setup = Unit._setup
     _run = RatioFlash._run
     
-class SplitCentrifuge_LLE(Centrifuge_LLE):
-    _kwargs = Splitter._kwargs
-    _setup = Splitter._setup
-    _run = Splitter._run
+class SplitCentrifuge_LLE(Centrifuge_LLE, metaclass=splitter): pass
+    
+    
+    

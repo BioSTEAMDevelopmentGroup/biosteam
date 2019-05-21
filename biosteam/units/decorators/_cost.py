@@ -29,7 +29,7 @@ def _cost(self):
         S = Design[param]/value
         if check(N, str): N = Design[N]
         Cost[i] = N*self.CEPCI/CEPCI*cost*S**n
-        net_e += (N*e*S)
+        net_e += (e*N*S)
     if net_e: self._power_utility(net_e)
 
 def cost(basis, name=None, *, cost, exp, CE, S=1, kW=0, N=1):    

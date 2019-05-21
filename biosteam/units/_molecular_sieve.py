@@ -4,18 +4,18 @@ Created on Thu Aug 23 22:17:05 2018
 
 @author: yoelr
 """
-
-from ._splitter import Splitter
+from .metaclasses import splitter
 from .. import Unit
 from .decorators import cost, design
 
 __all__ = ('MolecularSieve',)
 
+
 @cost('Flow rate', 'Pressure filter drying (2)', N=2, cost=405000, CE=521.9, S=22687, exp=0.6, kW=522)
 @cost('Flow rate', 'Pressure filter pressing', cost=75200, CE=521.9, S=22687, exp=0.6, kW=112)
 @cost('Flow rate', 'Column', cost=2601000, CE=521.9, S=22687, exp=0.6)
 @design('Flow rate', 'kg/hr', lambda self: self._massnet_in)
-class MolecularSieve(Unit):
+class MolecularSieve(Unit, metaclass=splitter):
     """Create an ethanol/water molecular sieve for bioethanol plants. The molecular sieve is modeled as a component wise separator. Costing is based on scaling by the 6/10ths rule from an NREL TEA report [1].
     
     **Parameters**
@@ -28,9 +28,9 @@ class MolecularSieve(Unit):
         
     **outs**
     
-        [0] Split stream
+        [0] Split stream (gas)
         
-        [1] Remainder stream
+        [1] Remainder stream (liquid)
     
     **References**
     
@@ -41,9 +41,7 @@ class MolecularSieve(Unit):
         :doc:`MolecularSieve Example`
     
     """
-    _kwargs = Splitter._kwargs
-    _run = Splitter._run
-              
-        
+    def _init(self):
+        self._outs[0].phase = 'g'
 
 

@@ -8,7 +8,7 @@ Created on Thu Aug 23 22:18:16 2018
 from .._unit import Unit
 from .._exceptions import DesignError
 from .decorators import cost, spec
-from . import Splitter
+from .metaclasses import splitter
 
 def _ok(x, bounds):
     lb, up = bounds
@@ -17,9 +17,7 @@ def _ok(x, bounds):
 
 @spec('Clarifier', 'Material', lambda M: 1.4 if M=='Steel' else 1)
 @cost('Settling area', cost=2720, CE=567, exp=0.58, kW=0.00048355)
-class Clarifier(Unit):
-    _kwargs = Splitter._kwargs
-    _run = Splitter._run
+class Clarifier(Unit, metaclass=splitter):
     _units = {'Settling area': 'ft^2'}
     # Height of the clarifier tank from other designs, estimate (ft)
     height = 10

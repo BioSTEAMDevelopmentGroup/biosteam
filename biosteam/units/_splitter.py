@@ -82,26 +82,29 @@ class Splitter(Unit, metaclass=metaFinal):
                                Ethanol  0.1
     
     """
-    _kwargs = {'split': None}
     results = None
     _has_cost = False
     _N_outs = 2
 
-    def __init__(self, ID='', outs=(), ins=None, split=None):
+    def __init__(self, ID='', outs=(), ins=None, split=None, order=None):
         self.ID = ID
-        self._kwargs = {'split': split}
+        self._reorder = Stream._cls_species._reorder
+        self._kwargs = {'split': self._reorder(split, order) if order else split}
         self._init_ins(ins)
         self._init_outs(outs)
 
+    def _reset(self, split, order=None):
+        self._kwargs['split'] = self._reorder(split, order) if order else split
+
     def _run(self):
-        # Unpack
         split = self._kwargs['split']
-        top, bot = self.outs
-        if len(self.ins) > 1: Stream.sum(self.outs[0], self.ins)
-        else: top.copylike(self.ins[0])
+        top, bot = self._outs
+        ins = self._ins
+        if len(ins) > 1: Stream.sum(top, ins)
+        else: top.copylike(ins[0])
         bot.copylike(top)
-        top._mol[:] = top._mol*split
-        bot._mol[:] = bot._mol-top._mol
+        top._mol[:]*= split
+        bot._mol[:]-= top._mol
     
     simulate = _run
     summary = Unit._cost
@@ -123,8 +126,13 @@ class InvSplitter(Unit, metaclass=metaFinal):
     def _run(self):
         feed = self.ins[0]
         feed._mol[:] = self._mol_out
-        for out in self.outs:
-            out.T, out.P, out.phase = feed.T, feed.P, feed.phase 
+        T = feed.T
+        P = feed.P
+        phase = feed.phase
+        for out in self._outs:
+            out.T = T
+            out.P = P
+            out.phase = phase 
             
     simulate = _run
     summary = Unit._cost

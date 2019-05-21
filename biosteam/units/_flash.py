@@ -6,12 +6,12 @@ Created on Thu Aug 23 16:21:56 2018
 """
 from .. import Unit, MixedStream, PowerUtility
 from math import pi, ceil
-import copy
 import numpy as np
 from scipy.optimize import brentq, newton
 from thermo import activity
 from .designtools import vacuum_system, HNATable, FinalValue, \
                           VesselWeightAndWallThickness, Kvalue
+from .metaclasses import splitter
 from ._hx import HX, HXutility
 
 exp = np.exp
@@ -596,28 +596,29 @@ class Flash(Unit):
 
 # %% Special
 
-
-class SplitFlash(Flash):
+class SplitFlash(Flash, metaclass=splitter):
     line = 'Flash'
     
-    _kwargs = {'split': 1,  # component split fractions
+    _kwargs = {'split': None,  # component split fractions
+               'order': None, # component order
                'T': 298.15,  # operating temperature (K)
                'P': 101325,
                'Qin': None}  # operating pressure (Pa)
-    
+        
     def _setup(self):
         top, bot = self.outs
-        _, Tf, Pf, Qin = self._kwargs.values()
+        *_, Tf, Pf, Qin = self._kwargs.values()
         self._has_hx = Qin != 0
         if self._kwargs['P'] < 101325 and not self._power_utility:
             self._power_utility = PowerUtility()
+        top.phase = 'g'
         bot.T = top.T = Tf
         bot.P = top.P = Pf
 
     def _run(self):
         split = self._kwargs['split']
         top, bot = self.outs
-        net_mol = self._mol_in
+        net_mol = self._ins[0].mol
         top._mol[:] = net_mol*split
         bot._mol[:] = net_mol - top._mol
 

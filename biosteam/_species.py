@@ -36,6 +36,7 @@ class Species:
     """
     units = Compound.units
     _immutable = False
+    _compounds = _IDs = _CAS = _Nspecies = None
     
     @classmethod
     def tospecies(cls, compounds, copy=True):
@@ -47,21 +48,21 @@ class Species:
             if isinstance(c, Compound): setter(c.ID, c)
         return self
     
-    def __init__(self, *ID, cls=None):
+    def __init__(self, *IDs, cls=None):
         # Sphinx docs look ugly if a class is in the default argument
         if cls is None: cls = Chemical
         
         # Make sure ID is a tuple
-        if not ID:
-            return
-        elif isinstance(ID, str):
-            ID = (ID,)
-        elif not isinstance(ID[0], str):
-            ID = ID[0] # For backwards compatibility
+        if not IDs:
+            raise ValueError('IDs cannot be empty')
+        elif isinstance(IDs, str):
+            IDs = (IDs,)
+        elif not isinstance(IDs[0], str):
+            IDs = IDs[0] # For backwards compatibility
         
         # Set Compound object attributes
         attrset = super().__setattr__
-        for n in ID:
+        for n in IDs:
             try:
                 compound = cls(n)
             except:
@@ -92,7 +93,7 @@ class Species:
         if isinstance(compound, Compound):
             compound.ID = ID
             super().__setattr__(ID, compound)
-        elif ID == 'ID':
+        elif ID == 'IDs':
             new_IDs = compound
             new_species = [getattr(self, i) for i in new_IDs]
             self.__dict__.clear()
@@ -107,19 +108,27 @@ class Species:
         else:
             super().__delattr__(ID)
     
+    def __len__(self):
+        return self._Nspecies or len(self.__dict__)
+    
     def __iter__(self):
-        if self._immutable: return iter(self._compounds)
-        return iter(self.__dict__.values())
+        return iter(self._compounds or self.__dict__.values())
     
     @property
     def CAS(self):
-        if self._immutable: return self._CAS
-        return tuple(s.CAS for s in self)
+        return self._CAS or tuple(s.CAS for s in self)
     
     @property
-    def ID(self):
-        if self._immutable: return self._IDs
-        return tuple(self.__dict__.keys())
+    def IDs(self):
+        return self._IDs or tuple(self.__dict__.keys())
+
+    def _reorder(self, values, species_IDs):
+        """Return a reordered array with zeros in place of missing species IDs."""
+        IDs = self._IDs
+        index = IDs.index
+        array = np.zeros_like(IDs, dtype=float)
+        array[[index(i) for i in species_IDs]] = values
+        return array
 
     def getprops(self, species_IDs, prop_ID, T, P, phase):
         """Return list of the desired property, prop_ID, for each compound in species_ID."""
@@ -223,13 +232,13 @@ class Species:
     # Representation
     def _info(self):
         """Information on self"""
-        return 'Species: \n ' + str(self.ID).replace("'", '')[1:-1]
+        return 'Species: \n ' + str(self.IDs).replace("'", '')[1:-1]
 
     def show(self):
         """print information on self"""
         print(self._info())
 
     def __repr__(self):
-        return '<Species: ' + str(self.ID).replace("'", '')[1:-1] + '>'
+        return '<Species: ' + str(self.IDs).replace("'", '')[1:-1] + '>'
 
     
