@@ -229,14 +229,6 @@ class Species:
         return array
     
     # Representation
-    def _info(self):
-        """Information on self"""
-        return 'Species: \n ' + str(self.IDs).replace("'", '')[1:-1]
-
-    def show(self):
-        """print information on self"""
-        print(self._info())
-
     def __repr__(self):
         return '<Species: ' + str(self.IDs).replace("'", '')[1:-1] + '>'
 

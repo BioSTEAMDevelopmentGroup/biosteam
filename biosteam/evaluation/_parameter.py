@@ -17,6 +17,7 @@ class Parameter:
         self._system = system
     
     def update(self, value):
+        """Update parameter value"""
         self._setter(value)
         self._simulate()
     

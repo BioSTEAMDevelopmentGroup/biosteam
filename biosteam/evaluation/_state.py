@@ -153,7 +153,7 @@ class State:
             out += newline
         return out.rstrip('\n ')
     
-    def show(self):
+    def _ipython_display_(self):
         """Return information on metric parameters."""
         print(self._info())
 

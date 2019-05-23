@@ -13,10 +13,10 @@ __all__ = ('Model',)
 
 # %% Functions
 
-def paramindex(params):
-    return pd.MultiIndex.from_arrays(([elementname(f._element) for f in params], 
-                                      [f._name for f in params]),
-                                     names=('Element', 'Parameter'))
+paramindex = lambda params: pd.MultiIndex.from_arrays(
+                                ([elementname(f._element) for f in params], 
+                                 [f._name for f in params]),
+                                names=('Element', 'Parameter'))
 
     
 # %% Grid of simulation blocks
@@ -60,6 +60,7 @@ class Model(State):
     
     def load_samples(self, samples):
         """Load samples for evaluation"""
+        if not self._model: self._loadmodel()
         params = self._params
         paramlen = len(params)
         if not isinstance(samples, np.ndarray):

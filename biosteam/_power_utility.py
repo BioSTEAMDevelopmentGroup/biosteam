@@ -32,7 +32,7 @@ class PowerUtility:
         
            >>> pu = PowerUtility()
            >>> pu
-           <PowerUtility: None>
+           <PowerUtility: rate=0 kW, cost=0 USD/hr>
            
         Call object to calculate cost:
             
@@ -40,7 +40,7 @@ class PowerUtility:
         
            >>> pu(rate=500)
            >>> pu
-           <PowerUtility: 500 kW, 30 USD/hr>
+           <PowerUtility: rate=500 kW, cost=30 USD/hr>
            
         Results are accessible:
             
@@ -48,13 +48,6 @@ class PowerUtility:
         
            >>> pu.rate, pu.cost
            (500, 30.)
-           
-        See the object with different units:
-            
-        .. code-block:: python
-        
-           >>> pu.show(rate='BTU/s', cost='USD/yr')
-           PowerUtility: rate=474 BTU/s, cost=2.63e+05 USD/yr
     
     """
     _units = dict(rate='kW', cost='USD/hr')
@@ -80,32 +73,12 @@ class PowerUtility:
         self.rate = rate
         self.cost = self.price * rate
     
-    # Representation
-    def _info_units(self):
+    def __repr__(self):
         # Get units of measure
         units = self._units
         rate_units, cost_units = self.display_units
         rate = _Q(self.rate, units['rate']).to(rate_units).magnitude
         cost = _Q(self.cost, units['cost']).to(cost_units).magnitude
-        return rate, cost, rate_units, cost_units
-        
-    def _info(self):
-        if self.rate:
-            rate, cost, rate_units, cost_units = self._info_units()
-            return (f'{type(self).__name__}: \n'
-                   +f' rate: {rate:.3g} {rate_units}\n'
-                   +f' cost: {cost:.3g} {cost_units}')
-        else:
-            return (f'{type(self).__name__}: None')
-
-    def _ipython_display_(self):
-        print(self._info())
-
-    def __repr__(self):
-        if self.rate:
-            rate, cost, rate_units, cost_units = self._info_units()
-            return (f'<{type(self).__name__}: {self.rate:.3g} {rate_units}, {self.cost:.3g} {cost_units}>')
-        else:
-            return (f'<{type(self).__name__}: None>')
+        return (f'<{type(self).__name__}: {rate:.3g} {rate_units}, {cost:.3g} {cost_units}>')
         
         

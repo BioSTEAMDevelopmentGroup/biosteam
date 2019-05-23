@@ -13,7 +13,6 @@ __all__ = ('TEA',)
 
 _DataFrame = pd.DataFrame
 _array = np.array
-_asarray = np.asarray
 
 # TODO: Add 'SL', 'DB', 'DDB', 'SYD', 'ACRS' and 'MACRS' functions to generate depreciation data
 
@@ -69,7 +68,7 @@ class TEA:
     """
     __slots__ = ('_results', 'system', 'cashflow', '_cached',
                  '_options', '_IRR_guess', '_cost_guess',
-                 '_costs', '_costs_data')
+                 '_costs', '_cost_data')
     
     #: Default cash flow options
     _default = {'Lang factor': 4.37,
@@ -155,17 +154,17 @@ class TEA:
         self.cashflow = None
         
         #: Guess IRR for solve_IRR method
-        self._IRR_guess = None
+        self._IRR_guess = 0.15
         
         #: Guess stream cost for solve_price method
-        self._cost_guess = None
+        self._cost_guess = 0
         
         units = system._costunits
         units = sorted(units, key=lambda x: x.line)
         costs = [u._totalcosts for u in units]
         
         #: All purchase and utility costs for units
-        self._costs_data = costs
+        self._cost_data = costs
         
         index = pd.MultiIndex.from_tuples([(u.line, u.ID) for u in units])
         columns = ('Purchase cost (USD)',
@@ -179,7 +178,7 @@ class TEA:
     @property
     def costs(self):
         """[DataFrame] All purchase and utility costs for units."""
-        self._costs[:] = self._costs_data
+        self._costs[:] = self._cost_data
         return self._costs
 
     def results(self, with_units=True):
@@ -275,24 +274,26 @@ class TEA:
         # Keys for cached data
         o = self._options
         cached = self._cached
-        year_duration = (o['Year'], o['Duration'])
-        depreciation_schedule = (o['Depreciation'], o['Startup schedule'])
-        operating_days = o['Operating days']
         
         # Get and update cached data
+        operating_days = o['Operating days']
         flow_factor = cached.get(operating_days)
-        cashflow_info = cached.get(year_duration)
-        depreciation_data = cached.get(depreciation_schedule)
         if not flow_factor:
             cached[operating_days] = flow_factor = 24*operating_days
+        
+        year_duration = (o['Year'], o['Duration'])
+        cashflow_info = cached.get(year_duration)
         if not cashflow_info:
             year, duration = year_duration
             index = tuple(range(year, year + duration)) if year else None
             data = np.zeros((duration, 10))
             self.cashflow = _DataFrame(data, index, _cashflow_columns, dtype=float)
-            cashflow_data = _asarray(self.cashflow).transpose()
+            cashflow_data = data.transpose()
             duration_array = _array(range(duration))
             cached[year_duration] = cashflow_info = (cashflow_data, duration_array)
+        
+        depreciation_schedule = (o['Depreciation'], o['Startup schedule'])
+        depreciation_data = cached.get(depreciation_schedule)
         if not depreciation_data:
             depreciation, schedule = depreciation_schedule
             Depreciation = _MACRS[depreciation]
@@ -364,9 +365,9 @@ class TEA:
         # CF: Cash flow
         # DCF: Discounted cash flow
         # CPV: Cumulative present value
-        start, Depreciation, end, schedule = depreciation_data
         C_DC, D, C_FC, C_WC, C, S, NE, CF, DCF, CPV = cashflow_data
         DC_, FC_, WC_, S_, C_, tax = parameters
+        start, Depreciation, end, schedule = depreciation_data
         
         # Calculate
         D[:] = 0.0
@@ -433,11 +434,6 @@ class TEA:
         self._calc_cashflow(cashflow_data,
                             parameters[:-3],
                             depreciation_data)
-        
-        # Guess for solver
-        guess = self._IRR_guess
-        IRR_guess = guess if guess else self._options['IRR']
-        
         # Solve
         if update:
             data_subset = cashflow_data[-3:]
@@ -446,13 +442,13 @@ class TEA:
                                 parameters[:-3],
                                 depreciation_data)
             IRR = newton(self._calc_NPV_and_update,
-                         IRR_guess, args=args, tol=1e-5)
+                         self._IRR_guess, args=args, tol=1e-5)
             self.options['IRR'] = IRR
             self._update_results(parameters, data_subset[-1, -1])
         else:
-            self._IRR_guess = IRR = newton(self._calc_NPV, IRR_guess,
-                                           args=(cashflow_data[-3], duration_array),
-                                           tol=1e-5)
+            IRR = newton(self._calc_NPV, self._IRR_guess,
+                         args=(cashflow_data[-3], duration_array),
+                         tol=1e-5)
         self._IRR_guess = IRR if (0 < IRR < 1) else 0.15
         return IRR
     
@@ -489,10 +485,6 @@ class TEA:
         else:
             raise ValueError(f"stream must be either a feed or a product of the system")
         
-        # Guess cost adjustment for solver
-        guess = self._cost_guess
-        cost_guess = 0 if guess is None else guess
-        
         # Solve
         if update:
             calc_NPV = self._calc_NPV_and_update
@@ -500,7 +492,7 @@ class TEA:
             def break_even_point(cost):
                 CF[:] = adjust(cost)
                 return calc_NPV(IRR, data_subset, duration_array)
-            self._cost_guess = cost = newton(break_even_point, cost_guess)
+            self._cost_guess = cost = newton(break_even_point, self._cost_guess)
             stream.price += cost/cost_factor
             price = stream.price
             parameters = self._calc_parameters(flow_factor)
@@ -514,7 +506,7 @@ class TEA:
             def break_even_point(cost):
                 CF[:] = adjust(cost)
                 return calc_NPV(IRR, data_subset, duration_array)
-            self._cost_guess = cost = newton(break_even_point, cost_guess)
+            self._cost_guess = cost = newton(break_even_point, self._cost_guess)
             price = stream.price + cost/cost_factor
         
         return price
@@ -539,8 +531,8 @@ class TEA:
             out += f' PBP: None'
         return out
     
-    def show(self):
-        """Print information on TEA."""
+    def _ipython_display_(self):
+        """Print all specifications"""
         print(self._info())
         
         

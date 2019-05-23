@@ -59,15 +59,15 @@ class Ins(list):
     
     def pop(self, index):
         s = super().pop(index)
-        s.sink = None
+        s._sink = None
         return s
     
     def insert(self, index, object):
         s = super().insert(index)
-        s.sink = None
+        s._sink = None
     
     def remove(self, stream):
-        stream.sink = None
+        stream._sink = None
         super().remove(stream)
     
     def _clear_sink(self, sink):
@@ -124,15 +124,15 @@ class Outs(list):
             
     def pop(self, index):
         s = super().pop(index)
-        s.source = None
+        s._source = None
         return s
     
     def insert(self, index, object):
         s = super().insert(index)
-        s.source = None
+        s._source = None
     
     def remove(self, stream):
-        stream.source = None
+        stream._source = None
         super().remove(stream)    
     
     def _clear_source(self, source):

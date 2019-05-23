@@ -414,9 +414,9 @@ class HeatUtility:
                    +f' cost:{cost: .3g} {cost_units}')
             
 
-    def _ipython_display_(self, **show_units):
+    def _ipython_display_(self):
         """Print all specifications"""
-        print(self._info(**show_units))
+        print(self._info())
         
     def __repr__(self):
         if self.ID:
