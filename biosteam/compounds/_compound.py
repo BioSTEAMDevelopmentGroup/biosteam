@@ -7,6 +7,7 @@ Created on Sat Aug 18 13:26:29 2018
 from scipy import integrate
 from math import log
 from .. import _Q
+from .._utils import DisplayUnits
 
 __all__ = ('Compound',)
 
@@ -58,6 +59,9 @@ class Compound:
          **P_ref** = 101325: Reference pressure (Pa)
 
     """
+    #: [DisplayUnits] Units of measure for IPython display
+    display_units = DisplayUnits(T='K', P='Pa')
+    
     #: [dict] Units of measure for material properties (class attribute). 
     units = dict(MW='g/mol',
                  T='K',
@@ -70,7 +74,7 @@ class Compound:
                  Hf='J/mol',
                  Vm='m^3/mol',
                  Cpm='J/mol',
-                 Cp='J/g',
+                 Cp='J/g/K',
                  rho='kg/m^3',
                  rhom='mol/m^3',
                  nu='m^2/s',
@@ -280,15 +284,10 @@ class Compound:
         cls._integral_type = integral_type
 
     # Representation
-    def _info(self, **show_units):
+    def _info(self):
         """Return string with all specifications."""
         units = self.units
-        T_units = show_units.get('T')
-        P_units = show_units.get('P')
-        
-        # Default units
-        T_units = T_units or 'K'
-        P_units = P_units or 'Pa'
+        T_units, P_units = self.display_units
         
         # First line
         info = f"{type(self).__name__}: {self.ID}\n"
@@ -303,9 +302,9 @@ class Compound:
     def __str__(self):
         return self.ID
 
-    def show(self, **show_units):
+    def _ipython_display_(self):
         """print information on self"""
-        print(self._info(**show_units))
+        print(self._info())
 
     def __repr__(self):
         return f'<{type(self).__name__}: {self.ID}>'

@@ -10,9 +10,7 @@ from .._exceptions import DesignError
 from .decorators import cost, spec
 from .metaclasses import splitter
 
-def _ok(x, bounds):
-    lb, up = bounds
-    return lb < x < up
+_iswithin = lambda x, bounds: bounds[0] < x < bounds[1]
 # Electricity: 16 hp / 200 ft diameter
 
 @spec('Clarifier', 'Material', lambda M: 1.4 if M=='Steel' else 1)
@@ -32,7 +30,7 @@ class Clarifier(Unit, metaclass=splitter):
         Design['Settling area'] = SetArea = self.outs[0].volnet *  4.4028
         # Checking to see which cost equation/material to use
         Steel_bounds, Concrete_bounds = self._bounds.values()
-        if _ok(SetArea, Steel_bounds): Design['Material'] = 'Steel'
-        elif _ok(SetArea, Concrete_bounds): Design['Material'] = 'Concrete'
+        if _iswithin(SetArea, Steel_bounds): Design['Material'] = 'Steel'
+        elif _iswithin(SetArea, Concrete_bounds): Design['Material'] = 'Concrete'
         else: raise DesignError('Volumetric flow rate is out of working range.')
         

@@ -156,13 +156,11 @@ class metaUnit(type):
             kwargs = new_definitions.get('_kwargs')
             if kwargs and '__init__' not in new_definitions:
                 # Key word arguments to replace
-                inputs = ''
-                for key in kwargs.keys():
-                    inputs += ', ' + key + '=' + key
+                inputs = ', '.join([key + '=' + key for key in kwargs])
         
                 # Begin changing __init__ to have kwargs by making a string to execute
-                str2exec = f"def __init__(self, ID='', outs=(), ins=None{inputs}):\n"
-                str2exec+= f"     _(self, ID, outs, ins{inputs})"
+                str2exec = f"def __init__(self, ID='', outs=(), ins=None, {inputs}):\n"
+                str2exec+= f"     _(self, ID, outs, ins, {inputs})"
         
                 # Execute string and replace __init__
                 globs = {'_': Unit.__init__}
@@ -911,7 +909,7 @@ class Unit(metaclass=metaUnit):
         return self._H_out - self._H_in + self._Hf_out - self._Hf_in
     
     # Representation
-    def _info(self, **show_units):
+    def _info(self):
         """Information on unit."""
         if self.ID:
             info = f'{type(self).__name__}: {self.ID}\n'
@@ -920,7 +918,7 @@ class Unit(metaclass=metaUnit):
         info+= f'ins...\n'
         i = 0
         for stream in self._ins:
-            stream_info = stream._info(**show_units)
+            stream_info = stream._info()
             if 'Missing Stream' in stream_info:
                 info += f'[{i}] {stream.ID}\n'
                 i += 1
@@ -933,7 +931,7 @@ class Unit(metaclass=metaUnit):
         info += f'outs...\n'
         i = 0
         for stream in self._outs:
-            stream_info = stream._info(**show_units)
+            stream_info = stream._info()
             if 'Missing Stream' in stream_info:
                 info += f'[{i}] {stream.ID}\n'
                 i += 1
@@ -946,9 +944,10 @@ class Unit(metaclass=metaUnit):
         info = info.replace('\n ', '\n    ')
         return info[:-1]
 
-    def show(self, **show_units):
+    def _ipython_display_(self):
         """Prints information on unit."""
-        print(self._info(**show_units))
+        self.diagram()
+        print(self._info())
     
     def _delete(self):
         for i in self._ins:
@@ -977,4 +976,3 @@ class Unit(metaclass=metaUnit):
             return f'<{type(self).__name__}>'
 
 _Unit_is_done = True
-

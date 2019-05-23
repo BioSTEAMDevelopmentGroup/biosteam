@@ -17,10 +17,10 @@ from pint import UnitRegistry
 import os
 
 # Set pint Unit Registry
-ureg = UnitRegistry()
-ureg.default_format = '~P'
-ureg.load_definitions(os.path.dirname(os.path.realpath(__file__)) + '/my_units_defs.txt')
-_Q = ureg.Quantity
+_ureg = UnitRegistry()
+_ureg.default_format = '~P'
+_ureg.load_definitions(os.path.dirname(os.path.realpath(__file__)) + '/my_units_defs.txt')
+_Q = _ureg.Quantity
 _Q._repr_latex_ = _Q._repr_html_ = _Q.__str__ = _Q.__repr__ = lambda self: self.__format__('')
 
 # Set number of digits displayed
@@ -30,7 +30,7 @@ pd.options.display.float_format = '{:.3g}'.format
 pd.set_option('display.max_rows', 35)
 pd.set_option('display.max_columns', 10)
 pd.set_option('max_colwidth', 35)
-del np, pd, os, UnitRegistry, ureg
+del np, pd, os, UnitRegistry
 
 # %% Import biosteam classes
 

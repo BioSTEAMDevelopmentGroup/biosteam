@@ -5,6 +5,7 @@ Created on Sun Nov 11 11:20:42 2018
 @author: yoelr
 """
 from . import _Q
+from ._utils import DisplayUnits
 
 __all__ = ('PowerUtility',)
 
@@ -57,6 +58,10 @@ class PowerUtility:
     
     """
     _units = dict(rate='kW', cost='USD/hr')
+    
+    #: [DisplayUnits] Units of measure for IPython display
+    display_units = DisplayUnits(**_units)
+    
     __slots__ = ('rate', 'cost')
     price = 0.0782 #: USD/kWhr
     
@@ -76,28 +81,30 @@ class PowerUtility:
         self.cost = self.price * rate
     
     # Representation
-    def _info(self, **show_units):
+    def _info_units(self):
         # Get units of measure
-        su = show_units
         units = self._units
-        Rate = su.get('rate') or units['rate']
-        Cost = su.get('cost') or units['cost']
+        rate_units, cost_units = self.display_units
+        rate = _Q(self.rate, units['rate']).to(rate_units).magnitude
+        cost = _Q(self.cost, units['cost']).to(cost_units).magnitude
+        return rate, cost, rate_units, cost_units
+        
+    def _info(self):
         if self.rate:
-            rate = _Q(self.rate, units['rate']).to(Rate).magnitude
-            cost = _Q(self.cost, units['cost']).to(Cost).magnitude
-            return (f'{type(self).__name__}: rate={rate:.3g} {Rate}, cost={cost:.3g} {Cost}')
+            rate, cost, rate_units, cost_units = self._info_units()
+            return (f'{type(self).__name__}: \n'
+                   +f' rate: {rate:.3g} {rate_units}\n'
+                   +f' cost: {cost:.3g} {cost_units}')
         else:
             return (f'{type(self).__name__}: None')
 
-    def show(self, **show_units):
-        print(self._info(**show_units))
+    def _ipython_display_(self):
+        print(self._info())
 
     def __repr__(self):
-        units = self._units
         if self.rate:
-            Rate = units['rate']
-            Cost = units['cost']
-            return (f'<{type(self).__name__}: {self.rate:.3g} {Rate}, {self.cost:.3g} {Cost}>')
+            rate, cost, rate_units, cost_units = self._info_units()
+            return (f'<{type(self).__name__}: {self.rate:.3g} {rate_units}, {self.cost:.3g} {cost_units}>')
         else:
             return (f'<{type(self).__name__}: None>')
         

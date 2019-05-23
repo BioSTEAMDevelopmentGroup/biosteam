@@ -20,17 +20,17 @@ class MolecularSieve(Unit, metaclass=splitter):
     
     **Parameters**
     
-        **split:** *[array_like]* Component wise split in the 0th output stream
+        **split:** [array_like] Componentwise split to the 0th output stream
 
     **ins**
     
-        [:] Input streams
+        [0] Feed (gas)
         
     **outs**
     
         [0] Split stream (gas)
         
-        [1] Remainder stream (liquid)
+        [1] Remainder stream (gas)
     
     **References**
     
@@ -42,6 +42,6 @@ class MolecularSieve(Unit, metaclass=splitter):
     
     """
     def _init(self):
-        self._outs[0].phase = 'g'
+        self._outs[0]._phase = self._outs[1]._phase = 'g'
 
 

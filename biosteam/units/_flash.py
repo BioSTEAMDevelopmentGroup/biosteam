@@ -599,27 +599,27 @@ class Flash(Unit):
 class SplitFlash(Flash, metaclass=splitter):
     line = 'Flash'
     
-    _kwargs = {'split': None,  # component split fractions
-               'order': None, # component order
-               'T': 298.15,  # operating temperature (K)
+    _kwargs = {'T': 298.15,  # operating temperature (K)
                'P': 101325,
                'Qin': None}  # operating pressure (Pa)
         
     def _setup(self):
         top, bot = self.outs
-        *_, Tf, Pf, Qin = self._kwargs.values()
+        kwargs = self._kwargs
+        T = kwargs['T']
+        P = kwargs['P']
+        Qin = kwargs['Qin']
         self._has_hx = Qin != 0
-        if self._kwargs['P'] < 101325 and not self._power_utility:
+        if P < 101325 and not self._power_utility:
             self._power_utility = PowerUtility()
         top.phase = 'g'
-        bot.T = top.T = Tf
-        bot.P = top.P = Pf
+        bot.T = top.T = T
+        bot.P = top.P = P
 
     def _run(self):
-        split = self._kwargs['split']
         top, bot = self.outs
         net_mol = self._ins[0].mol
-        top._mol[:] = net_mol*split
+        top._mol[:] = net_mol * self._split
         bot._mol[:] = net_mol - top._mol
 
     def _design(self):

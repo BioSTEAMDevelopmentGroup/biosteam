@@ -103,20 +103,20 @@ def make_digraph(units, streams):
     
 class Flowsheet:
     """Create a Flowsheet object which stores references to all stream, unit, and system objects."""
-    #: [dict] All flowsheets
+    #: [dict] All flowsheets.
     flowsheet = Register()
     
     def __init__(self, ID):
-        #: [str] ID of flowsheet
+        #: [str] ID of flowsheet.
         self.ID = ID
         
-        #: [dict] Dictionary of systems
+        #: [Register] Contains all System objects as attributes.
         self.system = Register()
         
-        #: [dict] Dictionary of units
+        #: [Register] Contains all Unit objects as attributes.
         self.unit = Register()
         
-        #: [dict] Dictionary of streams
+        #: [Register] Contains all Stream objects as attributes.
         self.stream = Register()
         
         self.flowsheet[ID] = self
@@ -217,7 +217,7 @@ class Flowsheet:
             i._ins[:] = i._ins
             i._outs[:] = i._outs
     
-    def __call__(self, item_ID) -> 'item':
+    def __call__(self, item_ID):
         """Return requested biosteam item.
     
         **Parameters**

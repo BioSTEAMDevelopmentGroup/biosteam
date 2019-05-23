@@ -152,11 +152,9 @@ class MixedStream(Stream):
             vol = []
             mass = []
             for i, s in num_compounds:
-                mi = mol[i:i+1]
-                m = MassFlow(s.ID, (mi, MW[i]))
-                v = VolumetricFlow(s, (self, mi, phase.lower()))
-                mass.append(m)
-                vol.append(v)
+                mi = m[i:i+1]
+                mass.append(MassFlow(s.ID, (mi, MW[i])))
+                vol.append(VolumetricFlow(s, (self, mi, phase.lower())))
             massflows.append(mass)
             volflows.append(vol)
         self._mol = mol
@@ -1028,7 +1026,7 @@ class MixedStream(Stream):
         """Return string with all specifications."""
         units = self.units
         basic_info = self._info_header() + '\n'
-        T_units, P_units, flow_units, fraction = self._info_units(show_units)
+        T_units, P_units, flow_units, fraction = self.display_units
         phases = self.phase
         basic_info += self._info_phaseTP(phases, T_units, P_units)
         

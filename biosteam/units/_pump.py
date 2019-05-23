@@ -61,7 +61,7 @@ class Pump(Unit):
 
     **Parameters**
 
-        **P:** *[float]* Pressure of output stream (Pa). If None, cost pump as increase of pressure to P_startup.
+        **P:** [float] Pressure of output stream (Pa). If None, cost pump as increase of pressure to P_startup.
     
     **ins**
     

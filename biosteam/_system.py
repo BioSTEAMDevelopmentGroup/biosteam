@@ -339,9 +339,9 @@ class System:
         product._ID = ''
         feed = Stream(None)
         feed._ID = ''
-        _streamUnit('\n'.join([i.ID for i in self.feeds]),
+        _streamUnit('\n'.join([i.ID for i in ins]),
                     feed)
-        _streamUnit('\n'.join([i.ID for i in self.products]),
+        _streamUnit('\n'.join([i.ID for i in outs]),
                     None, product)
         unit = _systemUnit(self.ID, product, feed)
         unit.diagram(1, file)
@@ -674,8 +674,9 @@ class System:
         if self.ID: return f'<{type(self).__name__}: {self.ID}>'
         else: return f'<{type(self).__name__}>'
 
-    def show(self):
+    def _ipython_display_(self):
         """Print all specifications."""
+        self.diagram('minimal')
         print(self._info())
 
     def _error_info(self):

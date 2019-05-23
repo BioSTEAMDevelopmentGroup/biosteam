@@ -6,6 +6,8 @@ Created on Thu Aug 23 14:34:07 2018
 """
 from .. import Unit, Stream
 from .._meta_final import metaFinal
+from numpy import asarray
+from .metaclasses._splitter import split
 
 class Splitter(Unit, metaclass=metaFinal):
     """Create a splitter that separates mixed streams based on splits.
@@ -13,12 +15,14 @@ class Splitter(Unit, metaclass=metaFinal):
     **Parameters**
 
         **split:** Shoulds be one of the following:
-            * *[float]* The fraction of net feed in the 0th output stream
-            * *[array_like]* Component wise split of feed to 0th output stream
+            * [float] The fraction of net feed in the 0th output stream
+            * [array_like] Componentwise split of feed to 0th output stream
+            
+        **order:** Iterable[str] Species order of split
     
     **ins**
     
-        [:] Input streams
+        [0] Feed stream
         
     **outs**
     
@@ -28,14 +32,14 @@ class Splitter(Unit, metaclass=metaFinal):
     
     **Examples**
     
-        Create a Splitter object with an ID, any number of input streams, two output streams, and an overall split:
+        Create a Splitter object with an ID, a feed stream, two output streams, and an overall split:
             
         .. code-block:: python
         
-           >>> from biosteam import Species, Stream, Splitter
+           >>> from biosteam import Species, Stream, units
            >>> Stream.species = Species('Water', 'Ethanol')
            >>> feed = Stream('feed', Water=20, Ethanol=10, T=340)
-           >>> S1 = Splitter('S1', ins=feed, outs=('out1', 'out2'), split=0.1)
+           >>> S1 = units.Splitter('S1', ins=feed, outs=('top', 'bot'), split=0.1)
            >>> S1.simulate()
            >>> S1.show()
            Splitter: S1
@@ -45,24 +49,24 @@ class Splitter(Unit, metaclass=metaFinal):
                flow (kmol/hr): Water    20
                                Ethanol  10
            outs...
-           [0] out1
+           [0] top
                phase: 'l', T: 340 K, P: 101325 Pa
                flow (kmol/hr): Water    2
                                Ethanol  1
-           [1] out2
+           [1] bot
                phase: 'l', T: 340 K, P: 101325 Pa
                flow (kmol/hr): Water    18
                                Ethanol  9
           
-        Create a Splitter object, but this time with a component wise split:
+        Create a Splitter object, but this time with a componentwise split:
             
         .. code-block:: python
         
-           >>> from biosteam import Species, Stream, Splitter
+           >>> from biosteam import Species, Stream, units
            >>> Stream.species = Species('Water', 'Ethanol')
            >>> feed = Stream('feed', Water=20, Ethanol=10, T=340)
-           >>> S1 = Splitter('S1', ins=feed, outs=('out1', 'out2'),
-           ...               split=(0.1, 0.99))
+           >>> S1 = units.Splitter('S1', ins=feed, outs=('top', 'bot'),
+           ...                     split=(0.1, 0.99))
            >>> S1.simulate()
            >>> S1.show()
            Splitter: S1
@@ -72,11 +76,38 @@ class Splitter(Unit, metaclass=metaFinal):
                flow (kmol/hr): Water    20
                                Ethanol  10
            outs...
-           [0] out1
+           [0] top
                phase: 'l', T: 340 K, P: 101325 Pa
                flow (kmol/hr): Water    2
                                Ethanol  9.9
-           [1] out2
+           [1] bot
+               phase: 'l', T: 340 K, P: 101325 Pa
+               flow (kmol/hr): Water    18
+                               Ethanol  0.1
+                               
+        Create a Splitter object using componentwise split, but this time specify the order:
+            
+        .. code-block:: python
+        
+           >>> from biosteam import Species, Stream, units
+           >>> Stream.species = Species('Water', 'Ethanol')
+           >>> feed = Stream('feed', Water=20, Ethanol=10, T=340)
+           >>> S1 = units.Splitter('S1', ins=feed, outs=('top', 'bot'),
+           ...                     split=(0.99, 0.01), order=('Ethanol', 'Water'))
+           >>> S1.simulate()
+           >>> S1.show()
+           Splitter: S1
+           ins...
+           [0] feed
+               phase: 'l', T: 340 K, P: 101325 Pa
+               flow (kmol/hr): Water    20
+                               Ethanol  10
+           outs...
+           [0] top
+               phase: 'l', T: 340 K, P: 101325 Pa
+               flow (kmol/hr): Water    2
+                               Ethanol  9.9
+           [1] bot
                phase: 'l', T: 340 K, P: 101325 Pa
                flow (kmol/hr): Water    18
                                Ethanol  0.1
@@ -88,24 +119,22 @@ class Splitter(Unit, metaclass=metaFinal):
 
     def __init__(self, ID='', outs=(), ins=None, split=None, order=None):
         self.ID = ID
-        self._reorder = Stream._cls_species._reorder
-        self._kwargs = {'split': self._reorder(split, order) if order else split}
+        self._reorder_ = Stream._cls_species._reorder
+        self._split = self._reorder_(split, order) if order else asarray(split)
         self._init_ins(ins)
         self._init_outs(outs)
 
-    def _reset(self, split, order=None):
-        self._kwargs['split'] = self._reorder(split, order) if order else split
-
     def _run(self):
-        split = self._kwargs['split']
         top, bot = self._outs
-        ins = self._ins
-        if len(ins) > 1: Stream.sum(top, ins)
-        else: top.copylike(ins[0])
-        bot.copylike(top)
-        top._mol[:]*= split
-        bot._mol[:]-= top._mol
+        feed = self._ins[0]
+        net_mol = feed.mol
+        bot.T = top.T = feed.T
+        bot.P = top.P = feed.P
+        bot._phase = top._phase = feed._phase
+        top._mol[:] = net_mol * self._split
+        bot._mol[:] = net_mol - top._mol
     
+    split = split
     simulate = _run
     summary = Unit._cost
 

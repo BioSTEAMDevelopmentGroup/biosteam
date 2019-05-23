@@ -74,7 +74,10 @@ def _try_method(method):
     try: return method()
     except Exception as e:
         # If exception already include location, it is replaced
-        self = method.__self__
+        try:
+            self = method.__self__
+        except:
+            raise e
         location = f'@{type(self).__name__} {self}'
         msg = str(e).strip('\n').replace(location + ': ', '')
         

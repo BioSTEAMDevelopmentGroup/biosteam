@@ -15,6 +15,7 @@ __all__ = ('Species',)
 # TODO: Fix how Dortmund groups are selected in thermo.Chemical. Glycerol defaults to wrong value.
 
 # %% Managing ChEDL thermodynamic properties
+setattr_ = object.__setattr__
 
 class Species:
     """Create Species object that contains Compound objects as attributes.
@@ -43,16 +44,15 @@ class Species:
         """Return a Species object from an iterable of Compound objects."""
         if not copy and isinstance(compounds, Species): return compounds
         self = cls.__new__(cls)
-        setter = super(cls, self).__setattr__
         for c in compounds: 
-            if isinstance(c, Compound): setter(c.ID, c)
+            if isinstance(c, Compound): setattr_(self, c.ID, c)
         return self
     
     def __init__(self, *IDs, cls=None):
         # Sphinx docs look ugly if a class is in the default argument
         if cls is None: cls = Chemical
         
-        # Make sure ID is a tuple
+        # Make sure IDs is a tuple
         if not IDs:
             raise ValueError('IDs cannot be empty')
         elif isinstance(IDs, str):
@@ -61,13 +61,12 @@ class Species:
             IDs = IDs[0] # For backwards compatibility
         
         # Set Compound object attributes
-        attrset = super().__setattr__
         for n in IDs:
             try:
                 compound = cls(n)
             except:
                 raise Exception(f"Compound object, '{n}', not defined in data bank")
-            attrset(n, compound)
+            setattr_(self, n, compound)
 
     def _read_only(self):
         if self._immutable: return
@@ -90,15 +89,14 @@ class Species:
     def __setattr__(self, ID, compound):
         if self._immutable:
             raise ValueError('cannot alter species object attached to Stream objects')
-        if isinstance(compound, Compound):
+        elif isinstance(compound, Compound):
             compound.ID = ID
-            super().__setattr__(ID, compound)
+            setattr_(self, ID, compound)
         elif ID == 'IDs':
-            new_IDs = compound
-            new_species = [getattr(self, i) for i in new_IDs]
-            self.__dict__.clear()
-            for ID, compound in zip(new_IDs, new_species):
-                super().__setattr__(ID, compound)
+            setattr_(self, '__dict__', {i: getattr(self, i) for i in compound})
+        elif ID == 'CAS':
+            index = compound.index if hasattr(compound, 'index') else tuple(compound).index
+            setattr_(self, '__dict__', {i.ID: i for i in sorted(self, key=lambda x: index(x.CAS))})
         else:
             raise TypeError('can only set Compound objects as attributes')
     
@@ -122,14 +120,6 @@ class Species:
     def IDs(self):
         return self._IDs or tuple(self.__dict__.keys())
 
-    def _reorder(self, values, species_IDs):
-        """Return a reordered array with zeros in place of missing species IDs."""
-        IDs = self._IDs
-        index = IDs.index
-        array = np.zeros_like(IDs, dtype=float)
-        array[[index(i) for i in species_IDs]] = values
-        return array
-
     def getprops(self, species_IDs, prop_ID, T, P, phase):
         """Return list of the desired property, prop_ID, for each compound in species_ID."""
         props = []; gat = getattr
@@ -143,9 +133,9 @@ class Species:
 
     def setprops(self, species_IDs, prop_ID, new_values):
         """Set new values to specie property, prop_ID, for given species_IDs."""
-        sat = setattr; gat = getattr
+        getattr_ = getattr
         for ID in species_IDs: 
-            sat(gat(self, ID), prop_ID, new_values)
+            setattr_(getattr_(self, ID), prop_ID, new_values)
 
     ### Material Properties ###
 
@@ -228,6 +218,15 @@ class Species:
                     species.append(c); index.append(i)
             else: ic()
         return species, index
+    
+    # Other
+    def _reorder(self, values, species_IDs):
+        """Return a reordered array with zeros in place of missing species IDs."""
+        IDs = self._IDs
+        index = IDs.index
+        array = np.zeros_like(IDs, dtype=float)
+        array[[index(i) for i in species_IDs]] = values
+        return array
     
     # Representation
     def _info(self):

@@ -5,6 +5,7 @@ Created on Sat Aug 18 14:25:34 2018
 @author: yoelr
 """
 from ._exceptions import DimensionError, biosteamError
+from ._utils import DisplayUnits
 from ._species import Species
 from ._stream import Stream, mol_flow_dim, mass_flow_dim, vol_flow_dim
 import pandas as pd
@@ -165,6 +166,9 @@ class HeatUtility:
     
     #: Units of measure for results dictionary
     _units = dict(duty='kJ/hr', flow='kmol/hr', cost='USD/hr')
+    
+    #: [DisplayUnits] Units of measure for IPython display
+    display_units = DisplayUnits(**_units)
 
     # All cooling utilities available
     cooling_agents = pd.DataFrame([_cooling_water,
@@ -366,18 +370,16 @@ class HeatUtility:
             if T_limit and T_limit > T_exit: T_exit = T_limit
         return T_exit
 
-    # Representation
-    def _info(self, **show_units):
-        """Return string related to specifications"""
+    def _info_data(self):
         # Get units of measure
-        su = show_units
+        su = self.display_units
         units = self._units
-        Duty = su.get('duty') or units['duty']
-        Flow = su.get('flow') or units['flow']
-        Cost = su.get('cost') or units['cost']
+        duty_units = su.duty
+        flow_units = su.flow
+        cost_units = su.cost
         
         # Select flow dimensionality
-        flow_dim = _Q(0, Flow).dimensionality
+        flow_dim = _Q(0, flow_units).dimensionality
         if flow_dim == mol_flow_dim:
             flowattr = 'molnet'
         elif flow_dim == mass_flow_dim:
@@ -388,33 +390,37 @@ class HeatUtility:
             raise DimensionError(f"dimensions for flow units must be in molar, mass or volumetric flow rates, not '{flow_dim}'")
         
         # Change units and return info string
-        if self.ID:
-            u_in = self._fresh
-            flownet = getattr(u_in, flowattr)
-            flowunits = u_in.units[flowattr]
-            duty = _Q(self.duty, units['duty']).to(Duty).magnitude
-            flow = _Q(flownet, flowunits).to(Flow).magnitude
-            cost = _Q(self.cost, units['cost']).to(Cost).magnitude
-            return (f'{type(self).__name__}: {self.ID}\n'
-                   +f' duty:{duty: .3g} {Duty}\n'
-                   +f' flow:{flow: .3g} {Flow}\n'
-                   +f' cost:{cost: .3g} {Cost}')
-        else:
+        u_in = self._fresh
+        flownet = getattr(u_in, flowattr)
+        flowunits = u_in.units[flowattr]
+        duty = _Q(self.duty, units['duty']).to(duty_units).magnitude
+        flow = _Q(flownet, flowunits).to(flow_units).magnitude
+        cost = _Q(self.cost, units['cost']).to(cost_units).magnitude
+        return duty, flow, cost, duty_units, flow_units, cost_units
+
+    # Representation
+    def _info(self):
+        """Return string related to specifications"""
+        if not self.ID:
             return (f'{type(self).__name__}: None\n'
                    +f' duty: 0\n'
                    +f' flow: 0\n'
                    +f' cost: 0')
+        else:
+            duty, flow, cost, duty_units, flow_units, cost_units = self._info_data()
+            return (f'{type(self).__name__}: {self.ID}\n'
+                   +f' duty:{duty: .3g} {duty_units}\n'
+                   +f' flow:{flow: .3g} {flow_units}\n'
+                   +f' cost:{cost: .3g} {cost_units}')
+            
 
-    def show(self, **show_units):
+    def _ipython_display_(self, **show_units):
         """Print all specifications"""
         print(self._info(**show_units))
         
     def __repr__(self):
         if self.ID:
-            units = self._units
-            ud = units['duty']
-            uf = units['flow']
-            uc = units['cost']
-            return f'<{self.ID}: {self.duty:.3g} {ud}, {self.flow:.3g} {uf}, {self.cost:.3g} {uc}>'
+            duty, flow, cost, duty_units, flow_units, cost_units = self._info_data()
+            return f'<{self.ID}: {self.duty:.3g} {duty_units}, {self.flow:.3g} {flow_units}, {self.cost:.3g} {cost_units}>'
         else:
             return f'<{type(self).__name__}: None>'

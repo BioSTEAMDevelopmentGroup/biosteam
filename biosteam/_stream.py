@@ -8,7 +8,7 @@ Created on Sat Aug 18 14:05:10 2018
 from . import _Q
 import numpy as np
 from scipy.optimize import newton, least_squares
-from ._utils import property_array, PropertyFactory, \
+from ._utils import property_array, PropertyFactory, DisplayUnits, \
                     tuple_array, fraction, Sink, Source, missing_stream
 from ._flowsheet import find
 from ._species import Species
@@ -131,7 +131,7 @@ phase_index = dict(zip(phases, (0, 1, 2, 3)))
 
 def flow(fget):
     def fset(self, value):
-        if not fget(self) is value: raise AttributeError(f"can't set attribute")
+        if fget(self) is not value: raise AttributeError(f"can't set attribute")
     return property(fget, fset)
 
 
@@ -393,6 +393,10 @@ class Stream(metaclass=metaStream):
     #: [bool] If True, approximate energy balance. False otherwise.
     lazy_energy_balance = True
 
+    #: [DisplayUnits] Units of measure for IPython display
+    display_units = DisplayUnits(T='K', P='Pa',
+                                 flow=('kmol/hr', 'kg/hr', 'm3/hr'),
+                                 fraction=False)
     line = 'Stream'
 
     def __init__(self, ID='', flow=(), species=(), units='kmol/hr',
@@ -559,7 +563,7 @@ class Stream(metaclass=metaStream):
     def link(self, stream):
         if not stream: return
         try:
-            if not self._link is stream:
+            if self._link is not stream:
                 self._species = stream._species
                 self._mass = stream._mass
                 self._mol = stream._mol
@@ -1552,13 +1556,6 @@ class Stream(metaclass=metaStream):
             return f"{type(self).__name__}: {self.ID}{source}{sink}"
         else:
             return f"{type(self).__name__}{source}{sink}"
-
-    def _info_units(self, show_units):
-        """Return unit format selection."""
-        return (show_units.get('T', 'K'),
-                show_units.get('P', 'Pa'),
-                show_units.get('flow', 'kmol/hr'),
-                show_units.get('fraction', False))
         
     def _info_phaseTP(self, phases, T_units, P_units):
         T = _Q(self.T, self.units['T']).to(T_units).magnitude
@@ -1566,11 +1563,11 @@ class Stream(metaclass=metaStream):
         return f" phase: '{phases}', T: {T:.5g} {T_units}, P: {P:.6g} {P_units}\n"
 
     # Representation
-    def _info(self, **show_units):
+    def _info(self):
         """Return string with all specifications."""
         units = self.units
         basic_info = self._info_header() + '\n'
-        T_units, P_units, flow_units, fraction = self._info_units(show_units)
+        T_units, P_units, flow_units, fraction = self.display_units
         basic_info += self._info_phaseTP(self._phase, T_units, P_units)
         
         # Start of third line (flow rates)
@@ -1616,8 +1613,7 @@ class Stream(metaclass=metaStream):
             maxlen = max(lengths) + 1
             for i in range(len_-1):
                 spaces = ' ' * (maxlen - lengths[i])
-                flowrates += species[i] + spaces + \
-                    f' {flow[i]:.3g}\n' + new_line_spaces
+                flowrates += species[i] + spaces + f' {flow[i]:.3g}\n' + new_line_spaces
             spaces = ' ' * (maxlen - lengths[len_-1])
             flowrates += species[len_-1] + spaces + f' {flow[len_-1]:.3g}'
         
@@ -1627,9 +1623,9 @@ class Stream(metaclass=metaStream):
               + end.replace('*', new_line_spaces + 'net' + (maxlen-4)*' ' + '  ')
               + (f'\n link: {self._link}' if self._link else ''))
 
-    def show(self, **show_units):
+    def _ipython_display_(self):
         """Print all specifications."""
-        print(self._info(**show_units))
+        print(self._info())
 
     def _delete(self):
         source = self._source
@@ -1647,5 +1643,6 @@ class Stream(metaclass=metaStream):
     def __repr__(self):
         if self.ID: return f'<{type(self).__name__}: {self.ID}>'
         else: return f'<{type(self).__name__}>'
+        
         
 from . import _mixed_stream as MS

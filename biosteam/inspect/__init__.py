@@ -7,7 +7,7 @@ Created on Tue Mar 19 10:38:50 2019
 
 __all__ = []
 
-from .separation import *
-from . import separation
+from ._separation import *
+from . import _separation
 
-__all__.extend(separation.__all__)
+__all__.extend(_separation.__all__)

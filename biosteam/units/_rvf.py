@@ -5,7 +5,7 @@ Created on Thu Aug 23 22:15:20 2018
 @author: yoelr
 """
 from .. import Unit
-from .metaclasses import splitter
+from .metaclasses import splitter, run_split_with_mixing
 from .designtools import vacuum_system
 import numpy as np
 
@@ -27,6 +27,8 @@ class RotaryVacuumFilter(Unit, metaclass=splitter):
     
     #: Efficiency of the vacuum pump
     power_efficiency = 0.9
+    
+    run = run_split_with_mixing
     
     def _design(self):
         flow = sum(stream.massnet for stream in self.outs)
