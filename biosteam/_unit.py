@@ -606,11 +606,6 @@ class Unit(metaclass=metaUnit):
         """Warn that value is below lower bound."""
         _lb_warning(key, value, self._units.get(key), lb, 4, self)
 
-    def _lb_check(self, key, value):
-        """Warn that value if below lower bound."""
-        lb = self._bounds[key]
-        if value < lb: _lb_warning(key, value, self._units.get(key), 4, self)
-
     @property
     def CEPCI(self):
         """Chemical engineering plant cost index (CEPCI)."""
@@ -881,28 +876,22 @@ class Unit(metaclass=metaUnit):
     @property
     def _H_in(self):
         """Enthalpy flow going in (kJ/hr)."""
-        return sum(s.H for s in self._ins)
+        return sum([s.H for s in self._ins])
 
     @property
     def _H_out(self):
         """Enthalpy flow going out (kJ/hr)."""
-        return sum(s.H for s in self._outs)
+        return sum([s.H for s in self._outs])
 
     @property
     def _Hf_in(self):
         """Enthalpy of formation flow going in (kJ/hr)."""
-        _Hf_in = 0
-        for stream in self._ins:
-            _Hf_in += stream.Hf
-        return _Hf_in
+        return sum([s.Hf for s in self._ins])
 
     @property
     def _Hf_out(self):
         """Enthalpy of formation flow going out (kJ/hr)."""
-        _Hf_out = 0
-        for stream in self.outs:
-            _Hf_out += stream.Hf
-        return _Hf_out
+        return sum([s.Hf for s in self._outs])
 
     @property
     def _Hnet(self):
@@ -910,7 +899,7 @@ class Unit(metaclass=metaUnit):
         return self._H_out - self._H_in + self._Hf_out - self._Hf_in
     
     # Representation
-    def _info(self):
+    def _info(self, T, P, flow, fraction):
         """Information on unit."""
         if self.ID:
             info = f'{type(self).__name__}: {self.ID}\n'
@@ -923,7 +912,7 @@ class Unit(metaclass=metaUnit):
                 info += f'[{i}] {stream.ID}\n'
                 i += 1
                 continue
-            stream_info = stream._info()
+            stream_info = stream._info(T, P, flow, fraction)
             unit = stream._source
             index = stream_info.index('\n')
             source_info = f'  from  {type(unit).__name__}-{unit}\n' if unit else '\n'
@@ -936,7 +925,7 @@ class Unit(metaclass=metaUnit):
                 info += f'[{i}] {stream.ID}\n'
                 i += 1
                 continue
-            stream_info = stream._info()
+            stream_info = stream._info(T, P, flow, fraction)
             unit = stream._sink
             index = stream_info.index('\n')
             sink_info = f'  to  {type(unit).__name__}-{unit}\n' if unit else '\n'
@@ -945,9 +934,9 @@ class Unit(metaclass=metaUnit):
         info = info.replace('\n ', '\n    ')
         return info[:-1]
 
-    def show(self):
+    def show(self, T=None, P=None, flow=None, fraction=None):
         """Prints information on unit."""
-        print(self._info())
+        print(self._info(T, P, flow, fraction))
     
     def _ipython_display_(self):
         self.diagram()

@@ -37,7 +37,7 @@ def VolumetricFlow(self):
         c.T = stream.T
         c.P = stream.P
         c.phase = phase
-        return (c.Vm * mol[0] * 1000)
+        return (c.Vm * mol[0] * 1000.)
     else:
         return 0.
 
@@ -1022,11 +1022,12 @@ class MixedStream(Stream):
         LIQUID_mol[LNK_index] = LNK_mol
         LIQUID_mol[solvent_index] = Kmol - liquid_mol[solvent_index]
 
-    def _info(self, **show_units):
+    def _info(self, T, P, flow, fraction):
         """Return string with all specifications."""
         units = self.units
         basic_info = self._info_header() + '\n'
-        T_units, P_units, flow_units, fraction = self.display_units
+        T_units, P_units, flow_units, fraction = [(i if i is not None else j) for i, j in
+                                                  zip((T, P, flow, fraction), self.display_units)]
         phases = self.phase
         basic_info += self._info_phaseTP(phases, T_units, P_units)
         

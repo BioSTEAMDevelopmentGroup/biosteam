@@ -284,7 +284,7 @@ class Compound:
         cls._integral_type = integral_type
 
     # Representation
-    def _info(self):
+    def _info(self, T, P):
         """Return string with all specifications."""
         units = self.units
         T_units, P_units = self.display_units
@@ -293,8 +293,8 @@ class Compound:
         info = f"{type(self).__name__}: {self.ID}\n"
         
         # Second line (thermo)
-        T = _Q(self.T, units['T']).to(T_units).magnitude
-        P = _Q(self.P, units['P']).to(P_units).magnitude
+        T = _Q(self.T, units['T']).to(T or T_units).magnitude
+        P = _Q(self.P, units['P']).to(P or P_units).magnitude
         info += f" phase: '{self.phase}', T: {T:.5g} {T_units}, P: {P:.6g} {P_units}"
         
         return info
@@ -302,9 +302,9 @@ class Compound:
     def __str__(self):
         return self.ID
 
-    def _ipython_display_(self):
+    def _ipython_display_(self, T=None, P=None):
         """print information on self"""
-        print(self._info())
+        print(self._info(T, P))
 
     def __repr__(self):
         return f'<{type(self).__name__}: {self.ID}>'

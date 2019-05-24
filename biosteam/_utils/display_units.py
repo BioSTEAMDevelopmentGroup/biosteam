@@ -18,17 +18,17 @@ class DisplayUnits:
         setattr_(self, '_display_units', display_units)
         list_keys = []
         for k, v in display_units.items():
-            try:
+            try: # Assume units is one string
                 dims = getattr(_ureg, v).dimensionality
             except:
-                try: 
+                try: # Assume units are a list of possible units
                     dims = [getattr(_ureg, i).dimensionality for i in v]
                     list_keys.append(k)
-                except: 
+                except: # Assume the user uses value as an option, and ignores units
                     dims = v
             setattr_(self, k, dims)
         for k in list_keys:
-            display_units[k] = display_units[k][0]
+            display_units[k] = display_units[k][0] # Default units is first in list
     
     def __setattr__(self, name, unit):
         if name not in self.__dict__:

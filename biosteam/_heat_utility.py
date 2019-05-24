@@ -370,13 +370,13 @@ class HeatUtility:
             if T_limit and T_limit > T_exit: T_exit = T_limit
         return T_exit
 
-    def _info_data(self):
+    def _info_data(self, duty, flow, cost):
         # Get units of measure
         su = self.display_units
         units = self._units
-        duty_units = su.duty
-        flow_units = su.flow
-        cost_units = su.cost
+        duty_units = duty or su.duty
+        flow_units = flow or su.flow
+        cost_units = cost or su.cost
         
         # Select flow dimensionality
         flow_dim = _Q(0, flow_units).dimensionality
@@ -399,7 +399,7 @@ class HeatUtility:
         return duty, flow, cost, duty_units, flow_units, cost_units
 
     # Representation
-    def _info(self):
+    def _info(self, duty, flow, cost):
         """Return string related to specifications"""
         if not self.ID:
             return (f'{type(self).__name__}: None\n'
@@ -407,16 +407,16 @@ class HeatUtility:
                    +f' flow: 0\n'
                    +f' cost: 0')
         else:
-            duty, flow, cost, duty_units, flow_units, cost_units = self._info_data()
+            duty, flow, cost, duty_units, flow_units, cost_units = self._info_data(duty, flow, cost)
             return (f'{type(self).__name__}: {self.ID}\n'
                    +f' duty:{duty: .3g} {duty_units}\n'
                    +f' flow:{flow: .3g} {flow_units}\n'
                    +f' cost:{cost: .3g} {cost_units}')
             
 
-    def show(self):
+    def show(self, duty=None, flow=None, cost=None):
         """Print all specifications"""
-        print(self._info())
+        print(self._info(duty, flow, cost))
     _ipython_display_ = show
         
     def __repr__(self):

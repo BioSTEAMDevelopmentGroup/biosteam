@@ -252,7 +252,7 @@ class Stream(metaclass=metaStream):
               Water    0.667
               net      3 kmol/hr
 
-    Flow rates are stored internally as a array in the ‘mol’ attribute.
+    Flow rates are stored internally as an array in the ‘mol’ attribute.
 
     .. code-block:: python
 
@@ -260,15 +260,6 @@ class Stream(metaclass=metaStream):
        >>> s2.mol[1] = 18
        >>> s2.mol # kmol/hr
        array([1, 18])
-       
-       >>> # A negative flow issues a RuntimeWarning
-       >>> s2.mol[1] = -1
-       __main__:1: RuntimeWarning:
-       Encountered negative or non-finite value in 'array' object.
-       
-    .. Note::
-
-       array objects are numpy ndarrays which issue a RuntimeWarning when a negative or non-finite number is encountered.
 
     Mass and volumetric flow rates are also available as property_arrays of the molar flow rate. As such, they are always up to date with the molar flow rate and altering them also alters the molar flow rate:
 
@@ -1563,11 +1554,12 @@ class Stream(metaclass=metaStream):
         return f" phase: '{phases}', T: {T:.5g} {T_units}, P: {P:.6g} {P_units}\n"
 
     # Representation
-    def _info(self):
+    def _info(self, T, P, flow, fraction):
         """Return string with all specifications."""
         units = self.units
         basic_info = self._info_header() + '\n'
-        T_units, P_units, flow_units, fraction = self.display_units
+        T_units, P_units, flow_units, fraction = [(i if i is not None else j) for i, j in
+                                                  zip((T, P, flow, fraction), self.display_units)]
         basic_info += self._info_phaseTP(self._phase, T_units, P_units)
         
         # Start of third line (flow rates)
@@ -1623,9 +1615,9 @@ class Stream(metaclass=metaStream):
               + end.replace('*', new_line_spaces + 'net' + (maxlen-4)*' ' + '  ')
               + (f'\n link: {self._link}' if self._link else ''))
 
-    def _ipython_display_(self):
+    def _ipython_display_(self, T=None, P=None, flow=None, fraction=None):
         """Print all specifications."""
-        print(self._info())
+        print(self._info(T, P, flow, fraction))
     show = _ipython_display_
 
     def _delete(self):
