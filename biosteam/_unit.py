@@ -472,7 +472,7 @@ class Unit(metaclass=metaUnit):
     _design   = _do_nothing
     _cost     = _do_nothing
     _spec     = _do_nothing
-    _end     = _do_nothing
+    _end      = _do_nothing
     
     # Summary
     def _summary(self):
