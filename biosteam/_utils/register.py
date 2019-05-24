@@ -52,7 +52,7 @@ class Register:
     
     def __delattr__(self, key):
         dict_ = getattr_(self, '__dict__')
-        value = dict_[key]
+        value = dict_[key]()
         if hasattr(value, '_delete'): value._delete()
         del dict_[key]
     

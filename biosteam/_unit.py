@@ -338,7 +338,6 @@ class Unit(metaclass=metaUnit):
     ### Initialize ###
     
     def __init__(self, ID='', outs=(), ins=None, **kwargs):
-        self.ID = ID
         self._kwargs = kwargs
         self._init_ins(ins)
         self._init_outs(outs)
@@ -348,6 +347,7 @@ class Unit(metaclass=metaUnit):
         self._init()
         self._setup()
         self._install()
+        self.ID = ID
 
     def reset(self, **kwargs):
         """Reset unit with new key word arguments."""
@@ -758,7 +758,7 @@ class Unit(metaclass=metaUnit):
         # Make nodes and edges for input streams
         di = 0  # Destination position of stream
         for stream in self.ins:
-            if not stream.ID or stream.ID == 'Missing Stream': continue
+            if not stream: continue
             f.node(stream.ID)  
             edge_in = self._graphics.edge_in
             if di >= len(edge_in): di = 0
@@ -770,6 +770,7 @@ class Unit(metaclass=metaUnit):
         # Make nodes and edges for output streams
         oi = 0  # Origin position of stream
         for stream in self.outs:
+            if not stream: continue
             f.node(stream.ID) 
             edge_out = self._graphics.edge_out  
             if oi >= len(edge_out): oi = 0
@@ -918,11 +919,11 @@ class Unit(metaclass=metaUnit):
         info+= f'ins...\n'
         i = 0
         for stream in self._ins:
-            stream_info = stream._info()
-            if 'Missing Stream' in stream_info:
+            if not stream:
                 info += f'[{i}] {stream.ID}\n'
                 i += 1
                 continue
+            stream_info = stream._info()
             unit = stream._source
             index = stream_info.index('\n')
             source_info = f'  from  {type(unit).__name__}-{unit}\n' if unit else '\n'
@@ -931,11 +932,11 @@ class Unit(metaclass=metaUnit):
         info += f'outs...\n'
         i = 0
         for stream in self._outs:
-            stream_info = stream._info()
-            if 'Missing Stream' in stream_info:
+            if not stream:
                 info += f'[{i}] {stream.ID}\n'
                 i += 1
                 continue
+            stream_info = stream._info()
             unit = stream._sink
             index = stream_info.index('\n')
             sink_info = f'  to  {type(unit).__name__}-{unit}\n' if unit else '\n'
@@ -944,10 +945,13 @@ class Unit(metaclass=metaUnit):
         info = info.replace('\n ', '\n    ')
         return info[:-1]
 
-    def _ipython_display_(self):
+    def show(self):
         """Prints information on unit."""
-        self.diagram()
         print(self._info())
+    
+    def _ipython_display_(self):
+        self.diagram()
+        self.show()
     
     def _delete(self):
         for i in self._ins:

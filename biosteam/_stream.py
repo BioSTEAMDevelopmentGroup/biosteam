@@ -408,7 +408,6 @@ class Stream(metaclass=metaStream):
         else: 
             self._species = self._cls_species
         self._ID = self._link = self._sink = self._source = None
-        self.ID = ID
         self.phase = phase
         self.T = T  #: [float] Temperature (K)
         self.P = P  #: [float] Pressure (Pa)
@@ -449,6 +448,7 @@ class Stream(metaclass=metaStream):
                 self._vol[:] = q.to('m3/hr').magnitude
             else:
                 raise DimensionError(f"dimensions for flow units must be in molar, mass or volumetric flow rates, not '{dim}'")
+        self.ID = ID
 
 
     def setflow(self, flow=(), species=(), units='kmol/hr', inplace='', **flow_pairs):
@@ -556,7 +556,7 @@ class Stream(metaclass=metaStream):
     
     @property
     def link(self):
-        """When Stream object is set as a link, it will share data with that object."""
+        """When another Stream object is set as a link, it will share data with that object."""
         return self._link
     
     @link.setter
@@ -1626,11 +1626,12 @@ class Stream(metaclass=metaStream):
     def _ipython_display_(self):
         """Print all specifications."""
         print(self._info())
+    show = _ipython_display_
 
     def _delete(self):
-        source = self._source
+        source = self._source and self._source._outs
         if source: source[source.index(self)] = missing_stream
-        sink = self._sink
+        sink = self._sink and self._sink._ins
         if sink: sink[sink.index(self)] = missing_stream
 
     def delete(self):

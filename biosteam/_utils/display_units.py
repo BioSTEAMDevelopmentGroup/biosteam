@@ -33,6 +33,9 @@ class DisplayUnits:
     def __setattr__(self, name, unit):
         if name not in self.__dict__:
             raise AttributeError(f"can't set display units for '{name}'")
+        if not isinstance(unit, str) and isinstance(unit, type(self._display_units[name])):
+            self._display_units[name] = unit
+            return
         name_dim = getattr_(self, name)
         unit_dim = getattr(_ureg, unit).dimensionality
         if isinstance(name_dim, list):

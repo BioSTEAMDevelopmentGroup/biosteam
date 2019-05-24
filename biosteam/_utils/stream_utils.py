@@ -18,7 +18,7 @@ def missing_method(self, *args, **kwargs):
 
 class MissingStream:
     """Create a MissingStream object that acts as a dummy in Ins and Outs objects until replaced by an actual Stream object."""
-    ID = 'Missing Stream'
+    ID = 'Missing Stream object'
     __slots__ = ('_sink', '_source')
     
     def __new__(cls):
@@ -28,19 +28,13 @@ class MissingStream:
         return False
     
     def __getattr__(self, key):
-        raise TypeError(f'{self.ID} object')
-
-    def _info(self, **show_units):
-        return self.ID
+        raise TypeError(self.ID)
 
     def __repr__(self):
-        return f'<{type(self).__name__}>'
+        return f'<{self.ID}>'
 
     def __str__(self):
         return self.ID
-
-    def show(self, **show_units):
-        print(self._info(**show_units))
 
 MissingStream._missing_stream = missing_stream = object.__new__(MissingStream)
 
@@ -81,8 +75,7 @@ class Ins(list):
     
     def __setitem__(self, index, stream):
         sink = self.sink
-        if stream is missing_stream: pass
-        elif isinstance(index, int):
+        if isinstance(index, int):
             s_old = self[index]
             if s_old._sink is sink: s_old._sink = None
             stream._sink = sink

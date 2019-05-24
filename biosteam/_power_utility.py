@@ -32,7 +32,7 @@ class PowerUtility:
         
            >>> pu = PowerUtility()
            >>> pu
-           <PowerUtility: rate=0 kW, cost=0 USD/hr>
+           <PowerUtility: 0 kW, 0 USD/hr>
            
         Call object to calculate cost:
             
@@ -40,7 +40,7 @@ class PowerUtility:
         
            >>> pu(rate=500)
            >>> pu
-           <PowerUtility: rate=500 kW, cost=30 USD/hr>
+           <PowerUtility: 500 kW, 30 USD/hr>
            
         Results are accessible:
             

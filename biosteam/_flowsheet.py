@@ -46,8 +46,7 @@ def make_digraph(units, streams):
 
     connections = set()
     for s in streams:
-        if s.ID == 'Missing Stream':
-            continue  # Ignore stream
+        if not s: continue  # Ignore stream
         
         oU = s._source
         if oU:
@@ -231,11 +230,6 @@ class Flowsheet:
                or search_register(self.system, item_ID))
         if not obj: raise ValueError(f"no registered item '{item_ID}'")
         return obj
-    
-    def __delattr__(self, key):
-        attr = getattr(self, key)
-        object.__delattr__(self, key)
-        if hasattr(attr, '_delete'): attr._delete()
     
     def __str__(self):
         return self.ID

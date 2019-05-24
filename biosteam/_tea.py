@@ -531,10 +531,10 @@ class TEA:
             out += f' PBP: None'
         return out
     
-    def _ipython_display_(self):
-        """Print all specifications"""
+    def show(self):
+        """Prints information on unit."""
         print(self._info())
-        
+    _ipython_display_ = show
         
         
     

@@ -28,7 +28,7 @@ class RotaryVacuumFilter(Unit, metaclass=splitter):
     #: Efficiency of the vacuum pump
     power_efficiency = 0.9
     
-    run = run_split_with_mixing
+    _run = run_split_with_mixing
     
     def _design(self):
         flow = sum(stream.massnet for stream in self.outs)

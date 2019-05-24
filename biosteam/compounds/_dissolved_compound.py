@@ -10,6 +10,17 @@ import numpy as np
 __all__ = ('DissolvedCompound',)
 
 
+def select_value(obj, user_defined, attr, default):
+    if user_defined is not None: return user_defined
+    try:
+        obj_value = getattr(obj, attr)
+        if obj_value is None:
+            return default
+        else:
+            return obj_value
+    except:
+        return default
+    
 # %%
 
 class DissolvedCompound(Compound):
@@ -66,41 +77,22 @@ class DissolvedCompound(Compound):
         self.MW = MW
         self.Hvapm = 0
         
-        # Default values
-        Cp_d = 4.18
-        rho_d = 997
-        k_d = 0.5942
-        mu_d = 0.00091272
-        sigma_d = 0.072055
-        Hfm_d = 0
-        Hc_d = 0
-        
-        # Set object default values
-        if obj:
-            Cp_d = obj.Cp if obj.Cp else Cp_d
-            rho_d = obj.rho if obj.rho else rho_d
-            k_d = obj.k if obj.k else k_d
-            mu_d = obj.mu if obj.mu else mu_d
-            sigma_d = obj.sigma if obj.sigma else sigma_d
-            Hfm_d = obj.Hf if obj.Hf else Hfm_d
-            Hc_d = obj.Hc if obj.Hc else Hc_d
-        
-        # Set all values
-        self.CAS = CAS if CAS else ID
-        self.Cp = Cp if Cp else Cp_d
-        self.Cpm = self.Cp * MW
-        self.rho = rho if rho else rho_d
+        # Set property values (defaults to Water property values)
+        self.CAS = select_value(obj, CAS, 'CAS', ID)
+        self.Cp = select_value(obj, Cp, 'Cp', 4.18)
+        self.sigma = select_value(obj, sigma, 'mu', 0.072055)
+        self.rho = select_value(obj, rho, 'rho', 997)
+        self.mu = select_value(obj, mu, 'mu', 0.00091272)
+        self.k = select_value(obj, k, 'k', 0.5942)
+        self.Hfm = select_value(obj, Hfm, 'Hfm', 0)
+        self.Hc = select_value(obj, Hc, 'Hc', 0)
         self.rhom = self.rho/MW*1000
         self.Vm = 1/self.rhom
-        self.k = k if k else k_d
+        self.Cpm = self.Cp * MW
         self.alpha = self.k/self.rho/self.Cp
-        self.mu = mu if mu else mu_d
         self.nu = self.mu/self.rho
-        self.sigma = sigma if sigma else sigma_d
         self.Pr = self.nu/self.alpha
         self.UNIFAC_groups = self.UNIFAC_Dortmund_groups = None
-        self.Hfm = Hfm if Hfm else Hfm_d
-        self.Hc = Hc if Hc else Hc_d
         self.phase_ref = 'l'
         
     @property

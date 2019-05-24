@@ -14,6 +14,7 @@ from ._stream import Stream
 from ._unit import Unit
 from ._report import save_report
 from ._utils import color_scheme, missing_stream, strtuple, function
+from warnings import warn
 
 __all__ = ('System',)
 
@@ -177,7 +178,11 @@ class System:
         
         # link all unit operations with linked streams
         for u in units:
-            if u._linkedstreams: u._link_streams() 
+            try:
+                if u._linkedstreams: u._link_streams() 
+            except Exception as Error:
+                if missing_stream in (u._ins + u._outs):
+                    warn(f'missing stream object in {repr(u)}')
         
         #: set[Unit] All units within the system
         self.units = units = set(units)
@@ -674,10 +679,13 @@ class System:
         if self.ID: return f'<{type(self).__name__}: {self.ID}>'
         else: return f'<{type(self).__name__}>'
 
-    def _ipython_display_(self):
-        """Print all specifications."""
-        self.diagram('minimal')
+    def show(self):
+        """Prints information on unit."""
         print(self._info())
+    
+    def _ipython_display_(self):
+        self.diagram('minimal')
+        self.show()
 
     def _error_info(self):
         """Return information on convergence."""
