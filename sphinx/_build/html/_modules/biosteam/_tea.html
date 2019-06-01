@@ -68,7 +68,6 @@
 
 <span class="n">_DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
 <span class="n">_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span>
-<span class="n">_asarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span>
 
 <span class="c1"># TODO: Add &#39;SL&#39;, &#39;DB&#39;, &#39;DDB&#39;, &#39;SYD&#39;, &#39;ACRS&#39; and &#39;MACRS&#39; functions to generate depreciation data</span>
 
@@ -124,7 +123,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;_results&#39;</span><span class="p">,</span> <span class="s1">&#39;system&#39;</span><span class="p">,</span> <span class="s1">&#39;cashflow&#39;</span><span class="p">,</span> <span class="s1">&#39;_cached&#39;</span><span class="p">,</span>
                  <span class="s1">&#39;_options&#39;</span><span class="p">,</span> <span class="s1">&#39;_IRR_guess&#39;</span><span class="p">,</span> <span class="s1">&#39;_cost_guess&#39;</span><span class="p">,</span>
-                 <span class="s1">&#39;_costs&#39;</span><span class="p">,</span> <span class="s1">&#39;_costs_data&#39;</span><span class="p">)</span>
+                 <span class="s1">&#39;_costs&#39;</span><span class="p">,</span> <span class="s1">&#39;_cost_data&#39;</span><span class="p">)</span>
     
     <span class="c1">#: Default cash flow options</span>
     <span class="n">_default</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Lang factor&#39;</span><span class="p">:</span> <span class="mf">4.37</span><span class="p">,</span>
@@ -139,7 +138,7 @@
                 <span class="s1">&#39;Property insurance&#39;</span><span class="p">:</span> <span class="mf">0.005</span><span class="p">,</span>
                 <span class="s1">&#39;Duration&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
                 <span class="s1">&#39;Supplies&#39;</span><span class="p">:</span> <span class="mf">0.20</span><span class="p">,</span>
-                <span class="s1">&#39;Mantainance&#39;</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">,</span>
+                <span class="s1">&#39;Maintenance&#39;</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">,</span>
                 <span class="s1">&#39;Administration&#39;</span><span class="p">:</span> <span class="mf">0.005</span><span class="p">,</span>
                 <span class="s1">&#39;Working capital&#39;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>
                 <span class="s1">&#39;Startup&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
@@ -180,7 +179,7 @@
 <span class="sd">            * **Property insurance:** Fee as a fraction of fixed capital investment.</span>
 <span class="sd">            * **Duration:** Duration of venture (years).</span>
 <span class="sd">            * **Supplies:** Yearly fee as a fraction of labor costs.</span>
-<span class="sd">            * **Mantainance:** Yearly fee as a fraction of fixed capital investment.</span>
+<span class="sd">            * **Maintenance:** Yearly fee as a fraction of fixed capital investment.</span>
 <span class="sd">            * **Administration:** Yearly fee as a fraction of fixed capital investment.</span>
 <span class="sd">            * **Working capital:** Fee as a fraction of fixed capital investment.</span>
 <span class="sd">            * **Startup:** Cost of start up as a fraction of depreciable capital.</span>
@@ -210,19 +209,19 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">cashflow</span> <span class="o">=</span> <span class="kc">None</span>
         
         <span class="c1">#: Guess IRR for solve_IRR method</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_IRR_guess</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_IRR_guess</span> <span class="o">=</span> <span class="mf">0.15</span>
         
         <span class="c1">#: Guess stream cost for solve_price method</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_cost_guess</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cost_guess</span> <span class="o">=</span> <span class="mi">0</span>
         
         <span class="n">units</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">_costunits</span>
         <span class="n">units</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">line</span><span class="p">)</span>
         <span class="n">costs</span> <span class="o">=</span> <span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">_totalcosts</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">]</span>
         
         <span class="c1">#: All purchase and utility costs for units</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_costs_data</span> <span class="o">=</span> <span class="n">costs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cost_data</span> <span class="o">=</span> <span class="n">costs</span>
         
-        <span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">((</span><span class="n">u</span><span class="o">.</span><span class="n">line</span><span class="p">,</span> <span class="n">u</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">)</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">([(</span><span class="n">u</span><span class="o">.</span><span class="n">line</span><span class="p">,</span> <span class="n">u</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">])</span>
         <span class="n">columns</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Purchase cost (USD)&#39;</span><span class="p">,</span>
                    <span class="s1">&#39;Utility cost (USD/hr)&#39;</span><span class="p">)</span>
         
@@ -234,7 +233,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">costs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;[DataFrame] All purchase and utility costs for units.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_costs</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_costs_data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_costs</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cost_data</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_costs</span>
 
 <div class="viewcode-block" id="TEA.results"><a class="viewcode-back" href="../../TEA.html#biosteam.TEA.results">[docs]</a>    <span class="k">def</span> <span class="nf">results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_units</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
@@ -297,7 +296,7 @@
         <span class="n">DC_</span> <span class="o">*=</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Lang factor&#39;</span><span class="p">]</span>
         <span class="n">FC_</span> <span class="o">=</span> <span class="n">DC_</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Startup&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Land&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Royalties&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Other fixed capital&#39;</span><span class="p">]</span>
         <span class="n">fb</span> <span class="o">=</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Fringe benefits&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Supplies&#39;</span><span class="p">]</span>
-        <span class="n">f</span> <span class="o">=</span>  <span class="p">(</span><span class="n">o</span><span class="p">[</span><span class="s1">&#39;Mantainance&#39;</span><span class="p">]</span>
+        <span class="n">f</span> <span class="o">=</span>  <span class="p">(</span><span class="n">o</span><span class="p">[</span><span class="s1">&#39;Maintenance&#39;</span><span class="p">]</span>
             <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Administration&#39;</span><span class="p">]</span>
             <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Property tax&#39;</span><span class="p">]</span>
             <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Property insurance&#39;</span><span class="p">])</span>
@@ -306,8 +305,8 @@
         <span class="n">total_operating_cost</span> <span class="o">=</span> <span class="n">UC_</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">fb</span><span class="p">)</span><span class="o">*</span><span class="n">L_</span> <span class="o">+</span> <span class="n">MC_</span> <span class="o">+</span> <span class="n">f</span><span class="o">*</span><span class="n">FC_</span> <span class="o">+</span> <span class="n">d</span> <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Other recurring costs&#39;</span><span class="p">]</span>
         <span class="n">market_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">cost</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">products</span><span class="p">])</span>
         <span class="n">weights</span> <span class="o">=</span> <span class="n">market_values</span><span class="o">/</span><span class="n">market_values</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-        <span class="n">operating_cost</span> <span class="o">=</span> <span class="n">weights</span><span class="o">*</span><span class="n">total_operating_cost</span>
-        <span class="k">return</span> <span class="n">operating_cost</span></div>
+        <span class="n">production_cost</span> <span class="o">=</span> <span class="n">weights</span><span class="o">*</span><span class="n">total_operating_cost</span>
+        <span class="k">return</span> <span class="n">production_cost</span></div>
     
     <span class="k">def</span> <span class="nf">_get_cached_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return cached data.</span>
@@ -330,24 +329,26 @@
         <span class="c1"># Keys for cached data</span>
         <span class="n">o</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_options</span>
         <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span>
-        <span class="n">year_duration</span> <span class="o">=</span> <span class="p">(</span><span class="n">o</span><span class="p">[</span><span class="s1">&#39;Year&#39;</span><span class="p">],</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Duration&#39;</span><span class="p">])</span>
-        <span class="n">depreciation_schedule</span> <span class="o">=</span> <span class="p">(</span><span class="n">o</span><span class="p">[</span><span class="s1">&#39;Depreciation&#39;</span><span class="p">],</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Startup schedule&#39;</span><span class="p">])</span>
-        <span class="n">operating_days</span> <span class="o">=</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Operating days&#39;</span><span class="p">]</span>
         
         <span class="c1"># Get and update cached data</span>
+        <span class="n">operating_days</span> <span class="o">=</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Operating days&#39;</span><span class="p">]</span>
         <span class="n">flow_factor</span> <span class="o">=</span> <span class="n">cached</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">operating_days</span><span class="p">)</span>
-        <span class="n">cashflow_info</span> <span class="o">=</span> <span class="n">cached</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">year_duration</span><span class="p">)</span>
-        <span class="n">depreciation_data</span> <span class="o">=</span> <span class="n">cached</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">depreciation_schedule</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">flow_factor</span><span class="p">:</span>
             <span class="n">cached</span><span class="p">[</span><span class="n">operating_days</span><span class="p">]</span> <span class="o">=</span> <span class="n">flow_factor</span> <span class="o">=</span> <span class="mi">24</span><span class="o">*</span><span class="n">operating_days</span>
+        
+        <span class="n">year_duration</span> <span class="o">=</span> <span class="p">(</span><span class="n">o</span><span class="p">[</span><span class="s1">&#39;Year&#39;</span><span class="p">],</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Duration&#39;</span><span class="p">])</span>
+        <span class="n">cashflow_info</span> <span class="o">=</span> <span class="n">cached</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">year_duration</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">cashflow_info</span><span class="p">:</span>
             <span class="n">year</span><span class="p">,</span> <span class="n">duration</span> <span class="o">=</span> <span class="n">year_duration</span>
             <span class="n">index</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">year</span> <span class="o">+</span> <span class="n">duration</span><span class="p">))</span> <span class="k">if</span> <span class="n">year</span> <span class="k">else</span> <span class="kc">None</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">duration</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">cashflow</span> <span class="o">=</span> <span class="n">_DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">_cashflow_columns</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-            <span class="n">cashflow_data</span> <span class="o">=</span> <span class="n">_asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cashflow</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
+            <span class="n">cashflow_data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span>
             <span class="n">duration_array</span> <span class="o">=</span> <span class="n">_array</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">duration</span><span class="p">))</span>
             <span class="n">cached</span><span class="p">[</span><span class="n">year_duration</span><span class="p">]</span> <span class="o">=</span> <span class="n">cashflow_info</span> <span class="o">=</span> <span class="p">(</span><span class="n">cashflow_data</span><span class="p">,</span> <span class="n">duration_array</span><span class="p">)</span>
+        
+        <span class="n">depreciation_schedule</span> <span class="o">=</span> <span class="p">(</span><span class="n">o</span><span class="p">[</span><span class="s1">&#39;Depreciation&#39;</span><span class="p">],</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Startup schedule&#39;</span><span class="p">])</span>
+        <span class="n">depreciation_data</span> <span class="o">=</span> <span class="n">cached</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">depreciation_schedule</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">depreciation_data</span><span class="p">:</span>
             <span class="n">depreciation</span><span class="p">,</span> <span class="n">schedule</span> <span class="o">=</span> <span class="n">depreciation_schedule</span>
             <span class="n">Depreciation</span> <span class="o">=</span> <span class="n">_MACRS</span><span class="p">[</span><span class="n">depreciation</span><span class="p">]</span>
@@ -383,10 +384,10 @@
         <span class="n">S_</span>  <span class="o">=</span> <span class="mi">0</span> <span class="c1"># Sales USD/hr</span>
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">feeds</span><span class="p">:</span>
             <span class="n">price</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">price</span>
-            <span class="k">if</span> <span class="n">price</span><span class="p">:</span> <span class="n">MC_</span> <span class="o">+=</span> <span class="n">price</span><span class="o">*</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">_mol</span><span class="o">*</span><span class="n">s</span><span class="o">.</span><span class="n">_MW</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">price</span><span class="p">:</span> <span class="n">MC_</span> <span class="o">+=</span> <span class="n">price</span><span class="o">*</span><span class="n">s</span><span class="o">.</span><span class="n">massnet</span>
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">products</span><span class="p">:</span>
             <span class="n">price</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">price</span>
-            <span class="k">if</span> <span class="n">price</span><span class="p">:</span> <span class="n">S_</span> <span class="o">+=</span> <span class="n">price</span><span class="o">*</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">_mol</span><span class="o">*</span><span class="n">s</span><span class="o">.</span><span class="n">_MW</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">price</span><span class="p">:</span> <span class="n">S_</span> <span class="o">+=</span> <span class="n">price</span><span class="o">*</span><span class="n">s</span><span class="o">.</span><span class="n">massnet</span>
         <span class="c1"># Multiply by flow_factor for USD/yr</span>
         <span class="n">UC_</span> <span class="o">*=</span> <span class="n">flow_factor</span>
         <span class="n">MC_</span> <span class="o">*=</span> <span class="n">flow_factor</span>
@@ -394,7 +395,7 @@
         <span class="n">DC_</span> <span class="o">*=</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Lang factor&#39;</span><span class="p">]</span>
         <span class="n">FC_</span> <span class="o">=</span> <span class="n">DC_</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Startup&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Land&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Royalties&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Other fixed capital&#39;</span><span class="p">]</span>
         <span class="n">fb</span> <span class="o">=</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Fringe benefits&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Supplies&#39;</span><span class="p">]</span>
-        <span class="n">f</span> <span class="o">=</span>  <span class="p">(</span><span class="n">o</span><span class="p">[</span><span class="s1">&#39;Mantainance&#39;</span><span class="p">]</span>
+        <span class="n">f</span> <span class="o">=</span>  <span class="p">(</span><span class="n">o</span><span class="p">[</span><span class="s1">&#39;Maintenance&#39;</span><span class="p">]</span>
             <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Administration&#39;</span><span class="p">]</span>
             <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Property tax&#39;</span><span class="p">]</span>
             <span class="o">+</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Property insurance&#39;</span><span class="p">])</span>
@@ -419,9 +420,9 @@
         <span class="c1"># CF: Cash flow</span>
         <span class="c1"># DCF: Discounted cash flow</span>
         <span class="c1"># CPV: Cumulative present value</span>
-        <span class="n">start</span><span class="p">,</span> <span class="n">Depreciation</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">schedule</span> <span class="o">=</span> <span class="n">depreciation_data</span>
         <span class="n">C_DC</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">C_FC</span><span class="p">,</span> <span class="n">C_WC</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">NE</span><span class="p">,</span> <span class="n">CF</span><span class="p">,</span> <span class="n">DCF</span><span class="p">,</span> <span class="n">CPV</span> <span class="o">=</span> <span class="n">cashflow_data</span>
         <span class="n">DC_</span><span class="p">,</span> <span class="n">FC_</span><span class="p">,</span> <span class="n">WC_</span><span class="p">,</span> <span class="n">S_</span><span class="p">,</span> <span class="n">C_</span><span class="p">,</span> <span class="n">tax</span> <span class="o">=</span> <span class="n">parameters</span>
+        <span class="n">start</span><span class="p">,</span> <span class="n">Depreciation</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">schedule</span> <span class="o">=</span> <span class="n">depreciation_data</span>
         
         <span class="c1"># Calculate</span>
         <span class="n">D</span><span class="p">[:]</span> <span class="o">=</span> <span class="mf">0.0</span>
@@ -488,11 +489,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_calc_cashflow</span><span class="p">(</span><span class="n">cashflow_data</span><span class="p">,</span>
                             <span class="n">parameters</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">],</span>
                             <span class="n">depreciation_data</span><span class="p">)</span>
-        
-        <span class="c1"># Guess for solver</span>
-        <span class="n">guess</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_IRR_guess</span>
-        <span class="n">IRR_guess</span> <span class="o">=</span> <span class="n">guess</span> <span class="k">if</span> <span class="n">guess</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_options</span><span class="p">[</span><span class="s1">&#39;IRR&#39;</span><span class="p">]</span>
-        
         <span class="c1"># Solve</span>
         <span class="k">if</span> <span class="n">update</span><span class="p">:</span>
             <span class="n">data_subset</span> <span class="o">=</span> <span class="n">cashflow_data</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span>
@@ -500,14 +496,15 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_calc_cashflow</span><span class="p">(</span><span class="n">cashflow_data</span><span class="p">,</span>
                                 <span class="n">parameters</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">],</span>
                                 <span class="n">depreciation_data</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_IRR_guess</span> <span class="o">=</span> <span class="n">IRR</span> <span class="o">=</span> <span class="n">newton</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_calc_NPV_and_update</span><span class="p">,</span>
-                                           <span class="n">IRR_guess</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">)</span>
+            <span class="n">IRR</span> <span class="o">=</span> <span class="n">newton</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_calc_NPV_and_update</span><span class="p">,</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">_IRR_guess</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;IRR&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">IRR</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_update_results</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">data_subset</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_IRR_guess</span> <span class="o">=</span> <span class="n">IRR</span> <span class="o">=</span> <span class="n">newton</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_calc_NPV</span><span class="p">,</span> <span class="n">IRR_guess</span><span class="p">,</span>
-                                           <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">cashflow_data</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">],</span> <span class="n">duration_array</span><span class="p">),</span>
-                                           <span class="n">tol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">)</span>
+            <span class="n">IRR</span> <span class="o">=</span> <span class="n">newton</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_calc_NPV</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_IRR_guess</span><span class="p">,</span>
+                         <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">cashflow_data</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">],</span> <span class="n">duration_array</span><span class="p">),</span>
+                         <span class="n">tol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_IRR_guess</span> <span class="o">=</span> <span class="n">IRR</span> <span class="k">if</span> <span class="p">(</span><span class="mi">0</span> <span class="o">&lt;</span> <span class="n">IRR</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">)</span> <span class="k">else</span> <span class="mf">0.15</span>
         <span class="k">return</span> <span class="n">IRR</span></div>
     
 <div class="viewcode-block" id="TEA.solve_price"><a class="viewcode-back" href="../../TEA.html#biosteam.TEA.solve_price">[docs]</a>    <span class="k">def</span> <span class="nf">solve_price</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -541,11 +538,7 @@
         <span class="k">elif</span> <span class="n">stream</span> <span class="ow">in</span> <span class="n">system</span><span class="o">.</span><span class="n">products</span><span class="p">:</span>
             <span class="n">adjust</span> <span class="o">=</span> <span class="n">CF_copy</span><span class="o">.</span><span class="fm">__add__</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Stream &#39;</span><span class="si">{stream.ID}</span><span class="s2">&#39; must be either a feed or a product of the system&quot;</span><span class="p">)</span>
-        
-        <span class="c1"># Guess cost adjustment for solver</span>
-        <span class="n">guess</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cost_guess</span>
-        <span class="n">cost_guess</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">guess</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">guess</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;stream must be either a feed or a product of the system&quot;</span><span class="p">)</span>
         
         <span class="c1"># Solve</span>
         <span class="k">if</span> <span class="n">update</span><span class="p">:</span>
@@ -554,7 +547,7 @@
             <span class="k">def</span> <span class="nf">break_even_point</span><span class="p">(</span><span class="n">cost</span><span class="p">):</span>
                 <span class="n">CF</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">adjust</span><span class="p">(</span><span class="n">cost</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">calc_NPV</span><span class="p">(</span><span class="n">IRR</span><span class="p">,</span> <span class="n">data_subset</span><span class="p">,</span> <span class="n">duration_array</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_cost_guess</span> <span class="o">=</span> <span class="n">cost</span> <span class="o">=</span> <span class="n">newton</span><span class="p">(</span><span class="n">break_even_point</span><span class="p">,</span> <span class="n">cost_guess</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cost_guess</span> <span class="o">=</span> <span class="n">cost</span> <span class="o">=</span> <span class="n">newton</span><span class="p">(</span><span class="n">break_even_point</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cost_guess</span><span class="p">)</span>
             <span class="n">stream</span><span class="o">.</span><span class="n">price</span> <span class="o">+=</span> <span class="n">cost</span><span class="o">/</span><span class="n">cost_factor</span>
             <span class="n">price</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">price</span>
             <span class="n">parameters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_parameters</span><span class="p">(</span><span class="n">flow_factor</span><span class="p">)</span>
@@ -568,7 +561,7 @@
             <span class="k">def</span> <span class="nf">break_even_point</span><span class="p">(</span><span class="n">cost</span><span class="p">):</span>
                 <span class="n">CF</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">adjust</span><span class="p">(</span><span class="n">cost</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">calc_NPV</span><span class="p">(</span><span class="n">IRR</span><span class="p">,</span> <span class="n">data_subset</span><span class="p">,</span> <span class="n">duration_array</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_cost_guess</span> <span class="o">=</span> <span class="n">cost</span> <span class="o">=</span> <span class="n">newton</span><span class="p">(</span><span class="n">break_even_point</span><span class="p">,</span> <span class="n">cost_guess</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cost_guess</span> <span class="o">=</span> <span class="n">cost</span> <span class="o">=</span> <span class="n">newton</span><span class="p">(</span><span class="n">break_even_point</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cost_guess</span><span class="p">)</span>
             <span class="n">price</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">price</span> <span class="o">+</span> <span class="n">cost</span><span class="o">/</span><span class="n">cost_factor</span>
         
         <span class="k">return</span> <span class="n">price</span></div>
@@ -594,9 +587,9 @@
         <span class="k">return</span> <span class="n">out</span>
     
 <div class="viewcode-block" id="TEA.show"><a class="viewcode-back" href="../../TEA.html#biosteam.TEA.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Print information on TEA.&quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">())</span></div></div>
-        
+        <span class="sd">&quot;&quot;&quot;Prints information on unit.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">())</span></div>
+    <span class="n">_ipython_display_</span> <span class="o">=</span> <span class="n">show</span></div>
         
         
     

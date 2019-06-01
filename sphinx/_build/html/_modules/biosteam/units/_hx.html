@@ -63,7 +63,7 @@
 <span class="kn">from</span> <span class="nn">fluids</span> <span class="k">import</span> <span class="n">nearest_pipe</span>
 <span class="kn">import</span> <span class="nn">ht</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="n">log</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span>
+<span class="n">ln</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span>
 <span class="n">exp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span>
 <span class="n">pi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
 
@@ -86,15 +86,15 @@
 
 <span class="c1"># Purchase price</span>
 <span class="n">Cb_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Floating head&#39;</span><span class="p">:</span>
-            <span class="k">lambda</span> <span class="n">A</span><span class="p">,</span> <span class="n">CE</span><span class="p">:</span> <span class="n">exp</span><span class="p">(</span><span class="mf">11.667</span> <span class="o">-</span> <span class="mf">0.8709</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.09005</span> <span class="o">*</span> <span class="n">log</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">CE</span><span class="o">/</span><span class="mi">500</span><span class="p">,</span>
+            <span class="k">lambda</span> <span class="n">A</span><span class="p">,</span> <span class="n">CE</span><span class="p">:</span> <span class="n">exp</span><span class="p">(</span><span class="mf">12.0310</span> <span class="o">-</span> <span class="mf">0.8709</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.09005</span> <span class="o">*</span> <span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">CE</span><span class="o">/</span><span class="mi">567</span><span class="p">,</span>
            <span class="s1">&#39;Fixed head&#39;</span><span class="p">:</span>
-            <span class="k">lambda</span> <span class="n">A</span><span class="p">,</span> <span class="n">CE</span><span class="p">:</span> <span class="n">exp</span><span class="p">(</span><span class="mf">11.0545</span> <span class="o">-</span> <span class="mf">0.9228</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.09861</span> <span class="o">*</span> <span class="n">log</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">CE</span><span class="o">/</span><span class="mi">500</span><span class="p">,</span>
+            <span class="k">lambda</span> <span class="n">A</span><span class="p">,</span> <span class="n">CE</span><span class="p">:</span> <span class="n">exp</span><span class="p">(</span><span class="mf">11.4185</span> <span class="o">-</span> <span class="mf">0.9228</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.09861</span> <span class="o">*</span> <span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">CE</span><span class="o">/</span><span class="mi">567</span><span class="p">,</span>
            <span class="s1">&#39;U tube&#39;</span><span class="p">:</span>
-            <span class="k">lambda</span> <span class="n">A</span><span class="p">,</span> <span class="n">CE</span><span class="p">:</span> <span class="n">exp</span><span class="p">(</span><span class="mf">11.147</span> <span class="o">-</span> <span class="mf">0.9186</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.09790</span> <span class="o">*</span> <span class="n">log</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">CE</span><span class="o">/</span><span class="mi">500</span><span class="p">,</span>
+            <span class="k">lambda</span> <span class="n">A</span><span class="p">,</span> <span class="n">CE</span><span class="p">:</span> <span class="n">exp</span><span class="p">(</span><span class="mf">11.5510</span> <span class="o">-</span> <span class="mf">0.9186</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.09790</span> <span class="o">*</span> <span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">CE</span><span class="o">/</span><span class="mi">567</span><span class="p">,</span>
            <span class="s1">&#39;Kettle vaporizer&#39;</span><span class="p">:</span>
-            <span class="k">lambda</span> <span class="n">A</span><span class="p">,</span> <span class="n">CE</span><span class="p">:</span> <span class="n">exp</span><span class="p">(</span><span class="mf">11.967</span> <span class="o">-</span> <span class="mf">0.8709</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.09005</span> <span class="o">*</span> <span class="n">log</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">CE</span><span class="o">/</span><span class="mi">500</span><span class="p">,</span>
+            <span class="k">lambda</span> <span class="n">A</span><span class="p">,</span> <span class="n">CE</span><span class="p">:</span> <span class="n">exp</span><span class="p">(</span><span class="mf">12.3310</span> <span class="o">-</span> <span class="mf">0.8709</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.09005</span> <span class="o">*</span> <span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">CE</span><span class="o">/</span><span class="mi">567</span><span class="p">,</span>
            <span class="s1">&#39;Double pipe&#39;</span><span class="p">:</span>
-            <span class="k">lambda</span> <span class="n">A</span><span class="p">,</span> <span class="n">CE</span><span class="p">:</span> <span class="n">exp</span><span class="p">(</span><span class="mf">7.1560</span> <span class="o">+</span> <span class="mf">0.16</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="n">A</span><span class="p">))</span><span class="o">*</span><span class="n">CE</span><span class="o">/</span><span class="mi">500</span><span class="p">}</span>
+            <span class="k">lambda</span> <span class="n">A</span><span class="p">,</span> <span class="n">CE</span><span class="p">:</span> <span class="n">exp</span><span class="p">(</span> <span class="mf">7.2718</span> <span class="o">+</span> <span class="mf">0.16</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">))</span><span class="o">*</span><span class="n">CE</span><span class="o">/</span><span class="mi">567</span><span class="p">}</span>
 
 
 <span class="k">class</span> <span class="nc">HX</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
@@ -170,7 +170,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_F_Mab</span> <span class="o">=</span> <span class="n">F_Mdict</span><span class="p">[</span><span class="n">material</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="n">dummy</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">F_Mdict</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">11</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Material must be one of the following: </span><span class="si">{dummy}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;material must be one of the following: </span><span class="si">{dummy}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_F_Mstr</span> <span class="o">=</span> <span class="n">material</span>  
     
     <span class="nd">@property</span>
@@ -182,7 +182,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_Cb_func</span> <span class="o">=</span> <span class="n">Cb_dict</span><span class="p">[</span><span class="n">Type</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="n">dummy</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">Cb_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">11</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Heat exchange type must be one of the following: </span><span class="si">{dummy}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;heat exchange type must be one of the following: </span><span class="si">{dummy}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_Type</span> <span class="o">=</span> <span class="n">Type</span>
         
     <span class="nd">@staticmethod</span>
@@ -408,7 +408,7 @@
         <span class="n">dTF1</span> <span class="o">=</span> <span class="n">Thi</span><span class="o">-</span><span class="n">Tco</span>
         <span class="n">dTF2</span> <span class="o">=</span> <span class="n">Tho</span><span class="o">-</span><span class="n">Tci</span>
         <span class="n">dummy</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">dTF2</span><span class="o">/</span><span class="n">dTF1</span><span class="p">)</span>
-        <span class="n">LMTD</span> <span class="o">=</span> <span class="p">(</span><span class="n">dTF2</span> <span class="o">-</span> <span class="n">dTF1</span><span class="p">)</span><span class="o">/</span><span class="n">log</span><span class="p">(</span><span class="n">dummy</span><span class="p">)</span> <span class="k">if</span> <span class="n">dummy</span> <span class="o">&gt;</span> <span class="mf">1.1</span> <span class="k">else</span> <span class="n">dTF1</span>
+        <span class="n">LMTD</span> <span class="o">=</span> <span class="p">(</span><span class="n">dTF2</span> <span class="o">-</span> <span class="n">dTF1</span><span class="p">)</span><span class="o">/</span><span class="n">ln</span><span class="p">(</span><span class="n">dummy</span><span class="p">)</span> <span class="k">if</span> <span class="n">dummy</span> <span class="o">&gt;</span> <span class="mf">1.1</span> <span class="k">else</span> <span class="n">dTF1</span>
         
         <span class="c1"># Get correction factor</span>
         <span class="n">ft</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ft</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ft</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_ft</span><span class="p">(</span><span class="n">Tci</span><span class="p">,</span> <span class="n">Thi</span><span class="p">,</span> <span class="n">Tco</span><span class="p">,</span> <span class="n">Tho</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_N_shells</span><span class="p">)</span>
@@ -428,7 +428,7 @@
             <span class="n">s_tube</span><span class="p">,</span> <span class="n">s_shell</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shellntube_streams</span><span class="p">(</span><span class="n">ci</span><span class="p">,</span> <span class="n">hi</span><span class="p">,</span> <span class="n">co</span><span class="p">,</span> <span class="n">ho</span><span class="p">,</span> <span class="n">inside_heating</span><span class="p">)</span>
             <span class="n">U</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_concentric_tubes</span><span class="p">(</span><span class="n">s_tube</span><span class="p">,</span> <span class="n">s_shell</span><span class="p">,</span> <span class="n">Re_i</span><span class="p">,</span> <span class="n">Re_o</span><span class="p">,</span> <span class="n">inside_heating</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Overall heat transfer coefficient, &#39;U&#39;, should be one of the following: Overall heat transfer coefficent (kW/m^2/K), &#39;Tabulated&#39;, or &#39;Concentric tubes&#39;.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;overall heat transfer coefficient, &#39;U&#39;, should be one of the following: value (kW/m^2/K), &#39;Tabulated&#39;, or &#39;Concentric tubes&#39;&quot;</span><span class="p">)</span>
         <span class="n">Dp_s</span><span class="p">,</span> <span class="n">Dp_t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Dp_table</span><span class="p">(</span><span class="n">ci</span><span class="p">,</span> <span class="n">hi</span><span class="p">,</span> <span class="n">co</span><span class="p">,</span> <span class="n">ho</span><span class="p">,</span> <span class="n">inside_heating</span><span class="p">)</span>
         
         <span class="c1"># TODO: Complete design of heat exchanger to find L</span>
@@ -452,33 +452,27 @@
         <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
         <span class="n">Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
         <span class="n">A</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Area&#39;</span><span class="p">]</span>
-        <span class="c1">#Dp_t = Design[&#39;Dp_t&#39;]</span>
-        <span class="c1">#Dp_s = Design[&#39;Dp_s&#39;]</span>
         <span class="n">L</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Total tube length&#39;</span><span class="p">]</span>
         <span class="n">P</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Operating pressure&#39;</span><span class="p">]</span>
+        <span class="c1">#Dp_t = Design[&#39;Dp_t&#39;]</span>
+        <span class="c1">#Dp_s = Design[&#39;Dp_s&#39;]</span>
         
-        <span class="k">if</span> <span class="n">A</span> <span class="o">&lt;</span> <span class="mi">150</span><span class="p">:</span>
-            <span class="c1"># For double pipe</span>
+        <span class="k">if</span> <span class="n">A</span> <span class="o">&lt;</span> <span class="mi">150</span><span class="p">:</span> <span class="c1"># Double pipe</span>
             <span class="n">P</span> <span class="o">=</span> <span class="n">P</span><span class="o">/</span><span class="mi">600</span>
             <span class="n">F_p</span> <span class="o">=</span> <span class="mf">0.8510</span> <span class="o">+</span> <span class="mf">0.1292</span><span class="o">*</span><span class="n">P</span> <span class="o">+</span> <span class="mf">0.0198</span><span class="o">*</span><span class="n">P</span><span class="o">**</span><span class="mi">2</span>
-            <span class="n">F_m</span> <span class="o">=</span> <span class="mi">2</span> <span class="c1"># Assume outer pipe carbon steel, inner pipe stainless steel</span>
-            <span class="n">A_old</span> <span class="o">=</span> <span class="n">A</span>
-            <span class="k">if</span> <span class="n">A_old</span> <span class="o">&lt;</span> <span class="mf">2.1718</span><span class="p">:</span>
-                <span class="n">A</span> <span class="o">=</span> <span class="mf">2.1718</span>
+            <span class="c1"># Assume outer pipe carbon steel, inner pipe stainless steel</span>
+            <span class="n">F_m</span> <span class="o">=</span> <span class="mi">2</span> 
+            <span class="n">A_min</span> <span class="o">=</span> <span class="mf">2.1718</span>
+            <span class="k">if</span> <span class="n">A</span> <span class="o">&lt;</span> <span class="n">A_min</span><span class="p">:</span>
+                <span class="n">F_l</span> <span class="o">=</span> <span class="n">A</span><span class="o">/</span><span class="n">A_min</span>
+                <span class="n">A</span> <span class="o">=</span> <span class="n">A_min</span>
+            <span class="k">else</span><span class="p">:</span>    
+                <span class="n">F_l</span> <span class="o">=</span> <span class="mi">1</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">Type</span> <span class="o">=</span> <span class="s1">&#39;Double pipe&#39;</span>
-            <span class="n">F_l</span> <span class="o">=</span> <span class="n">A_old</span><span class="o">/</span><span class="n">A</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># For shell and tube</span>
-            <span class="c1"># Material factor </span>
+        <span class="k">else</span><span class="p">:</span> <span class="c1"># Shell and tube</span>
             <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_F_Mab</span>
             <span class="n">F_m</span> <span class="o">=</span> <span class="n">a</span> <span class="o">+</span>  <span class="p">(</span><span class="n">A</span><span class="o">/</span><span class="mi">100</span><span class="p">)</span><span class="o">**</span><span class="n">b</span>
-            
-            <span class="c1"># Length factor</span>
-            <span class="k">if</span> <span class="n">L</span> <span class="o">&lt;</span> <span class="mi">20</span><span class="p">:</span> <span class="c1"># L &lt; 20 ft</span>
-                <span class="n">F_l</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyval</span><span class="p">(</span><span class="n">p2</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">F_l</span> <span class="o">=</span> <span class="mi">1</span>
-            
+            <span class="n">F_l</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">L</span> <span class="o">&gt;</span> <span class="mi">20</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">polyval</span><span class="p">(</span><span class="n">p2</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span>
             <span class="n">P</span> <span class="o">=</span> <span class="n">P</span><span class="o">/</span><span class="mi">100</span>
             <span class="n">F_p</span> <span class="o">=</span> <span class="mf">0.9803</span> <span class="o">+</span> <span class="mf">0.018</span><span class="o">*</span><span class="n">P</span> <span class="o">+</span> <span class="mf">0.0017</span><span class="o">*</span><span class="n">P</span><span class="o">**</span><span class="mi">2</span>
         
@@ -487,7 +481,6 @@
         
         <span class="c1"># Free on board purchase prize </span>
         <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">F_p</span> <span class="o">*</span> <span class="n">F_l</span> <span class="o">*</span> <span class="n">F_m</span> <span class="o">*</span> <span class="n">C_b</span>
-        <span class="k">return</span> <span class="n">Cost</span>
 
 
 <div class="viewcode-block" id="HXutility"><a class="viewcode-back" href="../../../HXutility.html#biosteam.units.HXutility">[docs]</a><span class="k">class</span> <span class="nc">HXutility</span><span class="p">(</span><span class="n">HX</span><span class="p">):</span>
@@ -534,10 +527,10 @@
         <span class="n">V</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;V&#39;</span><span class="p">]</span>
         <span class="n">V_given</span> <span class="o">=</span> <span class="n">V</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> 
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">T</span> <span class="ow">or</span> <span class="n">V_given</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Must pass at least one of the following kwargs: &#39;T&#39;, &#39;V&#39;&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;must pass at least one of the following kwargs: &#39;T&#39;, &#39;V&#39;&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;rigorous&#39;</span><span class="p">]:</span>
             <span class="k">if</span> <span class="n">T</span> <span class="ow">and</span> <span class="n">V_given</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;May only pass either temperature, &#39;T&#39;, or vapor fraction &#39;V&#39;, in a rigorous simulation.&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;may only pass either temperature, &#39;T&#39;, or vapor fraction &#39;V&#39;, in a rigorous simulation&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">V_given</span><span class="p">:</span>
                 <span class="n">s</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">V</span><span class="o">=</span><span class="n">V</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -650,42 +643,31 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_species_index</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">_species</span><span class="p">,</span> <span class="n">ID</span><span class="p">)</span> <span class="k">for</span> <span class="n">ID</span> <span class="ow">in</span> <span class="n">species_IDs</span><span class="p">),</span> <span class="n">feed</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="o">*</span><span class="n">species_IDs</span><span class="p">)</span>
     
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">hx</span> <span class="o">=</span> <span class="kc">True</span> <span class="c1"># If false, a stream is empty and no heat exchanger occurs</span>
-        <span class="k">for</span> <span class="n">si</span><span class="p">,</span> <span class="n">so</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">si</span><span class="o">.</span><span class="n">molnet</span> <span class="o">&lt;=</span> <span class="mf">0.001</span><span class="p">:</span>
-                <span class="n">hx</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">no_heat_exchange</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">si</span><span class="p">,</span> <span class="n">so</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">):</span>
             <span class="n">so</span><span class="o">.</span><span class="n">copylike</span><span class="p">(</span><span class="n">si</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">hx</span><span class="p">:</span>
-            <span class="n">Type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="s1">&#39;Type&#39;</span><span class="p">]</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_run_&#39;</span> <span class="o">+</span> <span class="n">Type</span><span class="p">)()</span>
-            <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">AE</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">Type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;ss&#39;</span><span class="p">,</span> <span class="s1">&#39;ls&#39;</span><span class="p">,</span> <span class="s1">&#39;ll&#39;</span><span class="p">):</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Type must be either &#39;ss&#39;, &#39;ls&#39;, or &#39;ll&#39;, not </span><span class="si">{Type}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="n">AE</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">si</span><span class="o">.</span><span class="n">molnet</span><span class="p">:</span> <span class="n">no_heat_exchange</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">no_heat_exchange</span><span class="p">:</span> <span class="k">return</span>
+        <span class="n">Type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="s1">&#39;Type&#39;</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_run_&#39;</span> <span class="o">+</span> <span class="n">Type</span><span class="p">)()</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">AE</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">Type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;ss&#39;</span><span class="p">,</span> <span class="s1">&#39;ls&#39;</span><span class="p">,</span> <span class="s1">&#39;ll&#39;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Type must be either &#39;ss&#39;, &#39;ls&#39;, or &#39;ll&#39;, not </span><span class="si">{Type}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">AE</span>
     
     <span class="k">def</span> <span class="nf">_run_ss</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">dT</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dT</span>
         <span class="n">s1f</span><span class="p">,</span> <span class="n">s2f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">s1</span><span class="p">,</span> <span class="n">s2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span>
-        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">s2</span><span class="o">.</span><span class="n">mol</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
-            <span class="n">s1f</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">s1</span><span class="o">.</span><span class="n">T</span>
-            <span class="n">s2f</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">s2</span><span class="o">.</span><span class="n">T</span>
-            <span class="k">return</span>
         <span class="n">s1_hot</span> <span class="o">=</span> <span class="n">s1</span><span class="o">.</span><span class="n">T</span> <span class="o">&gt;</span> <span class="n">s2</span><span class="o">.</span><span class="n">T</span>  <span class="c1"># s2 energy will increase</span>
         <span class="k">if</span> <span class="n">s1</span><span class="o">.</span><span class="n">C</span> <span class="o">&lt;</span> <span class="n">s2</span><span class="o">.</span><span class="n">C</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">s1_hot</span><span class="p">:</span>
-                <span class="n">s1f</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">s2</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">dT</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">s1f</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">s2</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="n">dT</span>
+            <span class="n">s1f</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="p">(</span><span class="n">s2</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">dT</span><span class="p">)</span> <span class="k">if</span> <span class="n">s1_hot</span> <span class="k">else</span> <span class="p">(</span><span class="n">s2</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="n">dT</span><span class="p">)</span>
             <span class="n">duty</span> <span class="o">=</span> <span class="n">s1</span><span class="o">.</span><span class="n">H</span> <span class="o">-</span> <span class="n">s1f</span><span class="o">.</span><span class="n">H</span>
             <span class="n">s2f</span><span class="o">.</span><span class="n">T</span> <span class="o">+=</span> <span class="n">duty</span><span class="o">/</span><span class="n">s2</span><span class="o">.</span><span class="n">C</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">s1_hot</span><span class="p">:</span>
-                <span class="n">s2f</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">s1</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="n">dT</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">s2f</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">s1</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">dT</span>
+            <span class="n">s2f</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="p">(</span><span class="n">s1</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="n">dT</span><span class="p">)</span> <span class="k">if</span> <span class="n">s1_hot</span> <span class="k">else</span> <span class="p">(</span><span class="n">s1</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">dT</span><span class="p">)</span>
             <span class="n">duty</span> <span class="o">=</span> <span class="n">s2</span><span class="o">.</span><span class="n">H</span> <span class="o">-</span> <span class="n">s2f</span><span class="o">.</span><span class="n">H</span>
             <span class="n">s1f</span><span class="o">.</span><span class="n">T</span> <span class="o">+=</span> <span class="n">duty</span><span class="o">/</span><span class="n">s1</span><span class="o">.</span><span class="n">C</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_duty</span> <span class="o">=</span> <span class="n">duty</span>
@@ -700,10 +682,11 @@
         
         <span class="c1"># Arguments for dew and bubble point</span>
         <span class="n">species_IDs</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;species_IDs&#39;</span><span class="p">]</span>
+        <span class="n">_species</span> <span class="o">=</span> <span class="n">s1_out</span><span class="o">.</span><span class="n">_species</span>
         <span class="k">if</span> <span class="n">species_IDs</span><span class="p">:</span>
             <span class="n">species</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species_index</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">species</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="n">s1_out</span><span class="o">.</span><span class="n">_equilibrium_species</span><span class="p">()</span>
+            <span class="n">species</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="n">_species</span><span class="o">.</span><span class="n">_equilibrium_species</span><span class="p">(</span><span class="n">s1_out</span><span class="o">.</span><span class="n">mol</span><span class="p">)</span>
             <span class="n">species</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
             <span class="n">species_IDs</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">ID</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">species</span><span class="p">)</span>
         <span class="n">z</span> <span class="o">=</span> <span class="n">s1_out</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">/</span><span class="n">s1_out</span><span class="o">.</span><span class="n">molnet</span>
@@ -758,21 +741,21 @@
         
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">:</span>
             <span class="n">s</span><span class="o">.</span><span class="n">enable_phases</span><span class="p">()</span>
-        
+        <span class="n">_species</span> <span class="o">=</span> <span class="n">s1_out</span><span class="o">.</span><span class="n">_species</span>
+        <span class="n">compounds</span> <span class="o">=</span> <span class="n">_species</span><span class="o">.</span><span class="n">_compounds</span>
+        <span class="n">Hvaps</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">Hvapm</span> <span class="ow">or</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">compounds</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">s1_in</span><span class="o">.</span><span class="n">T</span> <span class="o">&gt;</span> <span class="n">s2_in</span><span class="o">.</span><span class="n">T</span> <span class="ow">and</span> <span class="p">(</span><span class="s1">&#39;g&#39;</span> <span class="ow">in</span> <span class="n">s1_in</span><span class="o">.</span><span class="n">phase</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s1">&#39;l&#39;</span> <span class="ow">in</span> <span class="n">s2_in</span><span class="o">.</span><span class="n">phase</span><span class="p">):</span>
             <span class="c1"># s2 boiling, s1 condensing</span>
-            <span class="n">s1_out</span><span class="o">.</span><span class="n">_isboiling</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="n">s2_out</span><span class="o">.</span><span class="n">_isboiling</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="n">delH1</span> <span class="o">=</span> <span class="n">s1_out</span><span class="o">.</span><span class="n">_phaseprop_molar_flownet</span><span class="p">(</span><span class="s1">&#39;Hvapm&#39;</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">)</span>
-            <span class="n">delH2</span> <span class="o">=</span> <span class="n">s2_out</span><span class="o">.</span><span class="n">_phaseprop_molar_flownet</span><span class="p">(</span><span class="s1">&#39;Hvapm&#39;</span><span class="p">,</span> <span class="s1">&#39;l&#39;</span><span class="p">)</span>                
+            <span class="n">boiling</span> <span class="o">=</span> <span class="n">s2_out</span>
+            <span class="n">delH1</span> <span class="o">=</span> <span class="p">(</span><span class="n">s1_out</span><span class="o">.</span><span class="n">vapor_mol</span><span class="o">*</span><span class="n">Hvaps</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="n">delH2</span> <span class="o">=</span> <span class="p">(</span><span class="n">s2_out</span><span class="o">.</span><span class="n">liquid_mol</span><span class="o">*</span><span class="n">Hvaps</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
         <span class="k">elif</span> <span class="n">s1_in</span><span class="o">.</span><span class="n">T</span> <span class="o">&lt;</span> <span class="n">s2_in</span><span class="o">.</span><span class="n">T</span> <span class="ow">and</span> <span class="p">(</span><span class="s1">&#39;l&#39;</span> <span class="ow">in</span> <span class="n">s1_in</span><span class="o">.</span><span class="n">phase</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="s1">&#39;g&#39;</span> <span class="ow">in</span> <span class="n">s2_in</span><span class="o">.</span><span class="n">phase</span><span class="p">):</span>
             <span class="c1"># s1 boiling, s2 condensing</span>
-            <span class="n">s1_out</span><span class="o">.</span><span class="n">_isboiling</span> <span class="o">=</span> <span class="kc">True</span>
-            <span class="n">s2_out</span><span class="o">.</span><span class="n">_isboiling</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="n">delH1</span> <span class="o">=</span> <span class="n">s1_out</span><span class="o">.</span><span class="n">_phaseprop_molar_flownet</span><span class="p">(</span><span class="s1">&#39;Hvapm&#39;</span><span class="p">,</span> <span class="s1">&#39;l&#39;</span><span class="p">)</span>
-            <span class="n">delH2</span> <span class="o">=</span> <span class="n">s2_out</span><span class="o">.</span><span class="n">_phaseprop_molar_flownet</span><span class="p">(</span><span class="s1">&#39;Hvapm&#39;</span><span class="p">,</span> <span class="s1">&#39;g&#39;</span><span class="p">)</span>                
+            <span class="n">boiling</span> <span class="o">=</span> <span class="n">s1_out</span>
+            <span class="n">delH1</span> <span class="o">=</span> <span class="p">(</span><span class="n">s1_out</span><span class="o">.</span><span class="n">liquid_mol</span><span class="o">*</span><span class="n">Hvaps</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="n">delH2</span> <span class="o">=</span> <span class="p">(</span><span class="n">s2_out</span><span class="o">.</span><span class="n">vapor_mol</span><span class="o">*</span><span class="n">Hvaps</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;No latent heat streams available for heat exchange with Type=&#39;ll&#39;.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;no latent heat streams available for heat exchange with Type=&#39;ll&#39;&quot;</span><span class="p">)</span>
         
         <span class="c1"># sc: Stream that completely changes phase</span>
         <span class="c1"># sp: Stream that partialy changes phase</span>
@@ -790,13 +773,13 @@
             <span class="n">species</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species_index</span>
             <span class="n">species_IDs</span> <span class="o">=</span> <span class="n">species_IDs_</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">species</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="n">sc_out</span><span class="o">.</span><span class="n">_equilibrium_species</span><span class="p">()</span>
+            <span class="n">species</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="n">_species</span><span class="o">.</span><span class="n">_equilibrium_species</span><span class="p">(</span><span class="n">sc_out</span><span class="o">.</span><span class="n">mol</span><span class="p">)</span>
             <span class="n">species</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
             <span class="n">species_IDs</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">ID</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">species</span><span class="p">)</span>
         <span class="n">z</span> <span class="o">=</span> <span class="n">sc_out</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">/</span><span class="n">sc_out</span><span class="o">.</span><span class="n">molnet</span>
         <span class="n">P</span> <span class="o">=</span> <span class="n">sc_out</span><span class="o">.</span><span class="n">P</span>
         
-        <span class="k">if</span> <span class="n">sc_out</span><span class="o">.</span><span class="n">_isboiling</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">sc_out</span> <span class="ow">is</span> <span class="n">boiling</span><span class="p">:</span>
             <span class="n">sc_out</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span>
             <span class="n">sc_out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">sc_out</span><span class="o">.</span><span class="n">_dew_point</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">P</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
@@ -807,9 +790,8 @@
         <span class="k">if</span> <span class="n">species_IDs_</span><span class="p">:</span>
             <span class="n">species_IDs</span> <span class="o">=</span> <span class="n">species_IDs_</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">species</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">sp_out</span><span class="o">.</span><span class="n">_equilibrium_species</span><span class="p">()</span>
+            <span class="n">species</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_species</span><span class="o">.</span><span class="n">_equilibrium_species</span><span class="p">(</span><span class="n">sp_out</span><span class="o">.</span><span class="n">mol</span><span class="p">)</span>
             <span class="n">species_IDs</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">ID</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">species</span><span class="p">)</span>
-        
         <span class="n">duty</span> <span class="o">=</span> <span class="p">(</span><span class="n">sc_in</span><span class="o">.</span><span class="n">H</span><span class="o">-</span><span class="n">sc_out</span><span class="o">.</span><span class="n">H</span><span class="p">)</span>
         <span class="n">sp_out</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">species_IDs</span><span class="p">,</span> <span class="n">LNK</span><span class="p">,</span> <span class="n">HNK</span><span class="p">,</span> <span class="n">Qin</span><span class="o">=</span><span class="n">duty</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_duty</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">duty</span><span class="p">)</span></div>

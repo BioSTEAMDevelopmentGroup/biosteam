@@ -71,66 +71,21 @@
 <dl class="class">
 <dt id="biosteam.evaluation.Block">
 <em class="property">class </em><code class="descclassname">biosteam.evaluation.</code><code class="descname">Block</code><span class="sig-paren">(</span><em>element</em>, <em>system=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/evaluation/_block.html#Block"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Block" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a Block object that can simulate the element and the system downstream. The block can also generate block functions.</p>
+<dd><p>Create a Block object that can simulate the element and the system downstream. The block can also generate Parameter object that can update the system state.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>element:</strong> [Unit or Stream] Element in the system.</p>
 <p><strong>system:</strong> [System] If None, ignore downstream.</p>
-<p><strong>getter:</strong> [function] Getter for block function.</p>
-<p><strong>setter:</strong> [function] Setter for block function.</p>
 </div></blockquote>
 <p><strong>Examples</strong></p>
 <blockquote>
-<div><span class="xref std std-doc">Block Example</span></div></blockquote>
-<p>Create a block object passing a Unit object, and simulate the block:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">P1</span> <span class="o">=</span> <span class="n">Unit</span><span class="p">(</span><span class="s1">&#39;P1&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">block</span> <span class="o">=</span> <span class="n">Block</span><span class="p">(</span><span class="n">P1</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">block</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-<span class="go">[Block: Unit-P1]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">block</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
-</pre></div>
-</div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Because no system was passed, the block would simulate just the unit.</p>
-</div>
-<p>Create a block object passing both a Unit object and a System object:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">P0</span> <span class="o">=</span> <span class="n">Unit</span><span class="p">(</span><span class="s1">&#39;P0&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="n">Stream</span><span class="p">())</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">P1</span> <span class="o">=</span> <span class="n">Unit</span><span class="p">(</span><span class="s1">&#39;P1&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">P0</span><span class="o">-</span><span class="mi">0</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">P2</span> <span class="o">=</span> <span class="n">Unit</span><span class="p">(</span><span class="s1">&#39;P2&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">P1</span><span class="o">-</span><span class="mi">0</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">system</span> <span class="o">=</span> <span class="n">System</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">network</span><span class="o">=</span><span class="p">(</span><span class="n">P0</span><span class="p">,</span> <span class="n">P1</span><span class="p">,</span> <span class="n">P2</span><span class="p">))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">block</span> <span class="o">=</span> <span class="n">Block</span><span class="p">(</span><span class="n">P1</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">block</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-<span class="go">[Block: Unit-P1 and downstream]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">block</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-<span class="go">System: Unit-P1 and downstream</span>
-<span class="go"> network: (P1, P2)</span>
-</pre></div>
-</div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">The block would simulate Unit-P1 and downstream.</p>
-</div>
-<p>Calling a block object with a getter and a setter will return a block function equivalent to:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">blockfunc</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="n">setter</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-<span class="gp">... </span>    <span class="bp">self</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span> <span class="c1"># self is the Block object</span>
-<span class="gp">... </span>    <span class="k">return</span> <span class="n">getter</span><span class="p">()</span>  
-</pre></div>
-</div>
-<p>For example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># getter and setter functions are hypothetical</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">getter</span><span class="p">():</span> <span class="k">pass</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">setter</span><span class="p">(</span><span class="n">args</span><span class="p">):</span> <span class="k">pass</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">blockfunc</span> <span class="o">=</span> <span class="n">Block</span><span class="p">(</span><span class="n">P1</span><span class="p">,</span> <span class="bp">None</span><span class="p">)(</span><span class="n">getter</span><span class="p">,</span> <span class="n">setter</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">blockfunc</span>
-<span class="go">&lt;function [Block P1] getter(args)&gt;</span>
-</pre></div>
-</div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">The function signature matches the setter while the function name matches the getter.</p>
-</div>
+<div><a class="reference internal" href="Block Example.html"><span class="doc">Block</span></a></div></blockquote>
+<dl class="method">
+<dt id="biosteam.evaluation.Block.parameter">
+<code class="descname">parameter</code><span class="sig-paren">(</span><em>setter</em>, <em>simulate=None</em>, <em>name=None</em><span class="sig-paren">)</span> &#x2192; biosteam.evaluation._parameter.Parameter<a class="reference internal" href="_modules/biosteam/evaluation/_block.html#Block.parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Block.parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a Parameter object.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="biosteam.evaluation.Block.system">
 <code class="descname">system</code><a class="headerlink" href="#biosteam.evaluation.Block.system" title="Permalink to this definition">¶</a></dt>
@@ -146,7 +101,7 @@
 <dl class="attribute">
 <dt id="biosteam.evaluation.Block.simulate">
 <code class="descname">simulate</code><a class="headerlink" href="#biosteam.evaluation.Block.simulate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Simulate block system if block element has changed. If block element has not changed, simulate only the element.</p>
+<dd><p>Simulate block.</p>
 </dd></dl>
 
 </dd></dl>

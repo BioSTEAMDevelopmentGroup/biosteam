@@ -1,754 +1,425 @@
-<svg height="724pt" viewBox="0.00 0.00 5420.24 723.50" width="5420pt" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g class="graph" id="graph0" transform="scale(1 1) rotate(0) translate(4 719.5)">
+<svg height="785pt" viewBox="0.00 0.00 5434.02 785.24" width="5434pt" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g class="graph" id="graph0" transform="scale(1 1) rotate(0) translate(4 781.24)">
 <title>%3</title>
-<polygon fill="white" points="-4,4 -4,-719.5 5416.24,-719.5 5416.24,4 -4,4" stroke="none"/>
-<!-- U10
-Tank&#45;&gt;U11
-Pump -->
-<g class="edge" id="edge51"><title>U10
-Tank:c-&gt;U11
-Pump:c</title>
-<path d="M1287.22,-154.5C1300.9,-154.5 1318.86,-154.5 1334.47,-154.5" fill="none" stroke="black"/>
-<polygon fill="black" points="1334.82,-158 1344.82,-154.5 1334.82,-151 1334.82,-158" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1316.02" y="-158.3">d12</text>
-</g>
-<!-- U55
-Tank&#45;&gt;U56
-Splitter -->
-<g class="edge" id="edge81"><title>U55
-Tank:c-&gt;U56
-Splitter:w</title>
-<path d="M4800.35,-219.5C4813.59,-219.5 4831.17,-219.5 4847.95,-219.5" fill="none" stroke="black"/>
-<polygon fill="black" points="4848.25,-223 4858.25,-219.5 4848.25,-216 4848.25,-223" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4829.25" y="-223.3">d65</text>
-</g>
-<!-- U88
-Tank&#45;&gt;Biodiesel -->
-<g class="edge" id="edge5"><title>U88
-Tank:c-&gt;Biodiesel:w</title>
-<path d="M3913.99,-400.5C3937.9,-400.5 3977.63,-400.5 4011.84,-400.5" fill="none" stroke="black"/>
-</g>
-<!-- U38
-Pump&#45;&gt;U39
-Heat exchanger -->
-<g class="edge" id="edge82"><title>U38
-Pump:c-&gt;U39
-Heat exchanger:c</title>
-<path d="M3916.72,-115.5C3932.92,-115.5 3955.08,-115.5 3976.47,-115.5" fill="none" stroke="black"/>
-<polygon fill="black" points="3976.55,-119 3986.55,-115.5 3976.55,-112 3976.55,-119" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3954.82" y="-119.3">d46</text>
-</g>
-<!-- U39
-Heat exchanger&#45;&gt;U40
-Stripper -->
-<g class="edge" id="edge86"><title>U39
-Heat exchanger:c-&gt;U40
-Stripper:c</title>
-<path d="M4104.96,-131.114C4136.35,-139.693 4174.73,-150.184 4203.99,-158.181" fill="none" stroke="black"/>
-<polygon fill="black" points="4203.36,-161.638 4213.93,-160.898 4205.2,-154.885 4203.36,-161.638" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4138.86" y="-147.3">d48</text>
-</g>
-<!-- U39
-Heat exchanger&#45;&gt;Stillage -->
-<g class="edge" id="edge88"><title>U39
-Heat exchanger:c-&gt;Stillage:w</title>
-<path d="M4100.54,-88.0287C4134.11,-73.0375 4179.04,-57.5 4221.06,-57.5" fill="none" stroke="black"/>
-</g>
-<!-- U0
-Conveying belt&#45;&gt;U1
-Magnetic separator -->
-<g class="edge" id="edge32"><title>U0
-Conveying belt:c-&gt;U1
-Magnetic separator:c</title>
-<path d="M234.119,-184.5C246.93,-184.5 260.971,-184.5 274.636,-184.5" fill="none" stroke="black"/>
-<polygon fill="black" points="274.986,-188 284.986,-184.5 274.986,-181 274.986,-188" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="259.5" y="-188.3">d0</text>
-</g>
-<!-- U11
-Pump&#45;&gt;U13
-Tank -->
-<g class="edge" id="edge53"><title>U11
-Pump:c-&gt;U13
-Tank:c</title>
-<path d="M1395.03,-159.603C1409.19,-162.614 1427.3,-166.463 1442.65,-169.726" fill="none" stroke="black"/>
-<polygon fill="black" points="1442.25,-173.219 1452.76,-171.875 1443.71,-166.372 1442.25,-173.219" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1424.02" y="-172.3">d13</text>
-</g>
-<!-- U21
-Tank&#45;&gt;U22
-Cooling -->
-<g class="edge" id="edge83"><title>U21
-Tank:c-&gt;U22
-Cooling:c</title>
-<path d="M1964.89,-251.478C1997.52,-265.063 2059.91,-291.03 2100.17,-307.791" fill="none" stroke="black"/>
-<polygon fill="black" points="2099.08,-311.126 2109.65,-311.737 2101.77,-304.663 2099.08,-311.126" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2040.61" y="-289.3">d25</text>
-</g>
-<!-- U21
-Tank&#45;&gt;U27
-Vibrating screen -->
-<g class="edge" id="edge84"><title>U21
-Tank:c-&gt;U27
-Vibrating screen:c</title>
-<path d="M1964.89,-242.5C1991.21,-242.5 2036.88,-242.5 2074.69,-242.5" fill="none" stroke="black"/>
-<polygon fill="black" points="2075.12,-246 2085.12,-242.5 2075.12,-239 2075.12,-246" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2040.61" y="-246.3">d26</text>
-</g>
-<!-- U1
-Magnetic separator&#45;&gt;U2
-Shredder -->
-<g class="edge" id="edge35"><title>U1
-Magnetic separator:c-&gt;U2
-Shredder:c</title>
-<path d="M408.362,-184.5C421.86,-184.5 435.902,-184.5 448.539,-184.5" fill="none" stroke="black"/>
-<polygon fill="black" points="448.781,-188 458.781,-184.5 448.781,-181 448.781,-188" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="433.5" y="-188.3">d1</text>
-</g>
-<!-- U22
-Cooling&#45;&gt;U23
-Tank -->
-<g class="edge" id="edge87"><title>U22
-Cooling:c-&gt;U23
-Tank:c</title>
-<path d="M2169.29,-331.732C2218.71,-345.581 2318.05,-373.42 2368.87,-387.664" fill="none" stroke="black"/>
-<polygon fill="black" points="2368.08,-391.077 2378.66,-390.406 2369.97,-384.337 2368.08,-391.077" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2265.21" y="-373.3">d27</text>
-</g>
-<!-- U12
-Tank&#45;&gt;U13
-Tank -->
-<g class="edge" id="edge56"><title>U12
-Tank:c-&gt;U13
-Tank:c</title>
-<path d="M1392.72,-201.792C1407.35,-197.269 1426.88,-191.23 1443.19,-186.188" fill="none" stroke="black"/>
-<polygon fill="black" points="1444.33,-189.497 1452.85,-183.199 1442.26,-182.809 1444.33,-189.497" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1424.02" y="-199.3">d14</text>
-</g>
-<!-- U86
-Splitter&#45;&gt;U59
-Reactor -->
-<g class="edge" id="edge33"><title>U86
-Splitter:c-&gt;U59
-Reactor:c</title>
-<path d="M4211.91,-657.27C4172.3,-675.519 4107.24,-700.5 4047.84,-700.5 3371.5,-700.5 3371.5,-700.5 3371.5,-700.5 3252.95,-700.5 3231.27,-508.637 3227.35,-431.272" fill="none" stroke="black"/>
-<polygon fill="black" points="3230.84,-430.984 3226.91,-421.147 3223.85,-431.291 3230.84,-430.984" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3725" y="-704.3">d69</text>
-</g>
-<!-- U86
-Splitter&#45;&gt;U62
-Reactor -->
-<g class="edge" id="edge34"><title>U86
-Splitter:c-&gt;U62
-Reactor:c</title>
-<path d="M4290.14,-599.745C4329.55,-560.659 4389.49,-501.228 4424.82,-466.185" fill="none" stroke="black"/>
-<polygon fill="black" points="4427.34,-468.621 4431.98,-459.094 4422.41,-463.65 4427.34,-468.621" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4358.25" y="-541.3">d74</text>
-</g>
-<!-- U56
-Splitter&#45;&gt;Water_4 -->
-<g class="edge" id="edge85"><title>U56
-Splitter:c-&gt;Water_4:w</title>
-<path d="M4977.27,-219.5C5012.03,-219.5 5064.39,-219.5 5109.94,-219.5" fill="none" stroke="black"/>
-</g>
-<!-- U56
-Splitter&#45;&gt;Water_5 -->
-<g class="edge" id="edge89"><title>U56
-Splitter:c-&gt;Water_5:w</title>
-<path d="M4977.21,-199.852C5011.27,-184.412 5062.65,-165.5 5109.94,-165.5" fill="none" stroke="black"/>
-</g>
-<!-- purification_recycle
-System&#45;&gt;U46
-Pump -->
-<g class="edge" id="edge13"><title>purification_recycle
-System:c-&gt;U46
-Pump:c</title>
-<path d="M4522.49,-201.967C4549.99,-202.571 4580.68,-203.246 4603.47,-203.747" fill="none" stroke="black"/>
-<polygon fill="black" points="4603.59,-207.25 4613.66,-203.971 4603.74,-200.252 4603.59,-207.25" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4551.25" y="-207.3">d54</text>
-</g>
-<!-- purification_recycle
-System&#45;&gt;U47
-Cooling -->
-<g class="edge" id="edge62"><title>purification_recycle
-System:c-&gt;U47
-Cooling:c</title>
-<path d="M4522.49,-178.499C4548.18,-170.03 4576.65,-160.644 4598.87,-153.319" fill="none" stroke="black"/>
-<polygon fill="black" points="4600.2,-156.564 4608.6,-150.109 4598.01,-149.916 4600.2,-156.564" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4551.25" y="-176.3">d56</text>
-</g>
-<!-- U54
-Pump&#45;&gt;U55
-Tank -->
-<g class="edge" id="edge98"><title>U54
-Pump:c-&gt;U55
-Tank:c</title>
-<path d="M2859.64,-222.018C2865.22,-225.795 2871.36,-229.251 2877.6,-231.5 2947.43,-256.681 2969.96,-243.5 3044.19,-243.5 3044.19,-243.5 3044.19,-243.5 4639.75,-243.5 4683.36,-243.5 4694.65,-241.81 4737.25,-232.5 4739.94,-231.913 4742.7,-231.214 4745.45,-230.448" fill="none" stroke="black"/>
-<polygon fill="black" points="4746.7,-233.727 4755.24,-227.466 4744.66,-227.03 4746.7,-233.727" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3725" y="-247.3">d64</text>
-</g>
-<!-- U59
-Reactor&#45;&gt;U60
+<polygon fill="white" points="-4,4 -4,-781.24 5430.02,-781.24 5430.02,4 -4,4" stroke="none"/>
+<!-- U63
+Reactor&#45;&gt;U64
 Liquids centrifuge -->
-<g class="edge" id="edge36"><title>U59
-Reactor:c-&gt;U60
+<g class="edge" id="edge87"><title>U63
+Reactor:c-&gt;U64
 Liquids centrifuge:c</title>
-<path d="M3256.2,-399.5C3269.99,-399.5 3287,-399.5 3303.68,-399.5" fill="none" stroke="black"/>
-<polygon fill="black" points="3303.99,-403 3313.99,-399.5 3303.99,-396 3303.99,-403" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3285" y="-403.3">d70</text>
-</g>
-<!-- U33
-Tank&#45;&gt;U34
-Reactor -->
-<g class="edge" id="edge93"><title>U33
-Tank:c-&gt;U34
-Reactor:c</title>
-<path d="M3128.22,-179.744C3144.37,-169.476 3166.85,-155.172 3186.03,-142.971" fill="none" stroke="black"/>
-<polygon fill="black" points="3188.02,-145.855 3194.58,-137.535 3184.26,-139.949 3188.02,-145.855" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3166" y="-164.3">d41</text>
-</g>
-<!-- clarification_recycle
-System&#45;&gt;U21
-Tank -->
-<g class="edge" id="edge70"><title>clarification_recycle
-System:c-&gt;U21
-Tank:c</title>
-<path d="M1815.08,-225.521C1847.14,-229.833 1884.01,-234.791 1909.59,-238.232" fill="none" stroke="black"/>
-<polygon fill="black" points="1909.43,-241.743 1919.81,-239.607 1910.37,-234.805 1909.43,-241.743" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1844.02" y="-234.3">d21</text>
-</g>
-<!-- clarification_recycle
-System&#45;&gt;U26
-Mixer -->
-<g class="edge" id="edge73"><title>clarification_recycle
-System:c-&gt;U26
-Mixer:c</title>
-<path d="M1815.08,-193.949C1842.59,-184.699 1873.63,-174.261 1898.05,-166.049" fill="none" stroke="black"/>
-<polygon fill="black" points="1899.38,-169.296 1907.74,-162.791 1897.15,-162.661 1899.38,-169.296" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1844.02" y="-192.3">d23</text>
-</g>
-<!-- U2
-Shredder&#45;&gt;U3
-Enzyme treatment -->
-<g class="edge" id="edge37"><title>U2
-Shredder:c-&gt;U3
-Enzyme treatment:c</title>
-<path d="M527.058,-174.418C539.359,-170.667 553.803,-166.262 568.053,-161.917" fill="none" stroke="black"/>
-<polygon fill="black" points="569.314,-165.191 577.858,-158.926 567.272,-158.496 569.314,-165.191" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="552.5" y="-172.3">d2</text>
-</g>
-<!-- U40
-Stripper&#45;&gt;purification_recycle
-System -->
-<g class="edge" id="edge92"><title>U40
-Stripper:n-&gt;purification_recycle
-System:c</title>
-<path d="M4250.06,-214.5C4250.06,-227.709 4319.11,-220.79 4376.8,-212.705" fill="none" stroke="black"/>
-<polygon fill="black" points="4377.65,-216.119 4387.05,-211.24 4376.66,-209.19 4377.65,-216.119" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4358.25" y="-220.3">d49</text>
-</g>
-<!-- U40
-Stripper&#45;&gt;U41
-Pump -->
-<g class="edge" id="edge94"><title>U40
-Stripper:s-&gt;U41
-Pump:c</title>
-<path d="M4250.06,-126.5C4250.06,-122.308 4361.34,-116.664 4419.4,-114.005" fill="none" stroke="black"/>
-<polygon fill="black" points="4419.75,-117.493 4429.58,-113.544 4419.44,-110.5 4419.75,-117.493" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4358.25" y="-121.3">d50</text>
-</g>
-<!-- X1
-Mixer&#45;&gt;BT
-Boiler turbogenerator -->
-<g class="edge" id="edge101"><title>X1
-Mixer:e-&gt;BT
-Boiler turbogenerator:c</title>
-<path d="M2208.21,-76.5C2246.18,-76.5 2288.36,-75.71 2323.51,-74.8322" fill="none" stroke="black"/>
-<polygon fill="black" points="2323.79,-78.3261 2333.7,-74.5703 2323.61,-71.3284 2323.79,-78.3261" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2265.21" y="-80.3">Combustibles</text>
-</g>
-<!-- U46
-Pump&#45;&gt;U55
-Tank -->
-<g class="edge" id="edge57"><title>U46
-Pump:c-&gt;U55
-Tank:c</title>
-<path d="M4663.93,-207.147C4686.51,-209.62 4720.36,-213.326 4745.09,-216.034" fill="none" stroke="black"/>
-<polygon fill="black" points="4744.75,-219.517 4755.07,-217.126 4745.51,-212.559 4744.75,-219.517" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4726.25" y="-219.3">d57</text>
-</g>
-<!-- U27
-Vibrating screen&#45;&gt;U28
-Splitter -->
-<g class="edge" id="edge20"><title>U27
-Vibrating screen:c-&gt;U28
-Splitter:w</title>
-<path d="M2167.15,-220.868C2199.36,-197.389 2255.76,-162.705 2312.07,-158.852" fill="none" stroke="black"/>
-<polygon fill="black" points="2312.33,-162.345 2322.21,-158.5 2312.09,-155.349 2312.33,-162.345" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2265.21" y="-187.3">d33</text>
-</g>
-<!-- U27
-Vibrating screen&#45;&gt;Fiber_fines -->
-<g class="edge" id="edge95"><title>U27
-Vibrating screen:c-&gt;Fiber_fines:w</title>
-<path d="M2192.48,-243.245C2237.15,-243.813 2302.98,-244.5 2360.4,-244.5" fill="none" stroke="black"/>
-</g>
-<!-- BT
-Boiler turbogenerator&#45;&gt;Emission -->
-<g class="edge" id="edge52"><title>BT
-Boiler turbogenerator:c-&gt;Emission:w</title>
-<path d="M2449.24,-50.8714C2483.59,-36.9714 2531.78,-21.5 2576.1,-21.5" fill="none" stroke="black"/>
-</g>
-<!-- BT
-Boiler turbogenerator&#45;&gt;Steam -->
-<g class="edge" id="edge58"><title>BT
-Boiler turbogenerator:c-&gt;Steam:w</title>
-<path d="M2469.28,-74.1317C2503.6,-74.8353 2546.08,-75.5 2584.1,-75.5" fill="none" stroke="black"/>
-</g>
-<!-- U26
-Mixer&#45;&gt;X1
-Mixer -->
-<g class="edge" id="edge79"><title>U26
-Mixer:e-&gt;X1
-Mixer:c</title>
-<path d="M2011.61,-151.5C2042.98,-151.5 2073.36,-134.187 2096.46,-116.197" fill="none" stroke="black"/>
-<polygon fill="black" points="2098.75,-118.847 2104.32,-109.833 2094.35,-113.407 2098.75,-118.847" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2040.61" y="-153.3">d31</text>
-</g>
-<!-- U14
-Pump&#45;&gt;clarification_recycle
-System -->
-<g class="edge" id="edge59"><title>U14
-Pump:c-&gt;clarification_recycle
-System:c</title>
-<path d="M1613.63,-182.662C1628.66,-186.504 1648.92,-191.682 1669.07,-196.831" fill="none" stroke="black"/>
-<polygon fill="black" points="1668.37,-200.265 1678.92,-199.351 1670.1,-193.483 1668.37,-200.265" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1650.02" y="-198.3">d16</text>
-</g>
-<!-- U3
-Enzyme treatment&#45;&gt;crushing_mill_recycle
-System -->
-<g class="edge" id="edge38"><title>U3
-Enzyme treatment:c-&gt;crushing_mill_recycle
-System:c</title>
-<path d="M694.448,-127.776C707.364,-124.691 721.313,-121.359 735.012,-118.086" fill="none" stroke="black"/>
-<polygon fill="black" points="736.012,-121.446 744.925,-115.718 734.386,-114.637 736.012,-121.446" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="719.5" y="-127.3">d3</text>
-</g>
-<!-- U23
-Tank&#45;&gt;U24
-Liquids centrifuge -->
-<g class="edge" id="edge90"><title>U23
-Tank:c-&gt;U24
-Liquids centrifuge:c</title>
-<path d="M2424.24,-396.815C2451.99,-397.216 2501.18,-397.927 2541.99,-398.516" fill="none" stroke="black"/>
-<polygon fill="black" points="2542.12,-402.018 2552.17,-398.663 2542.22,-395.019 2542.12,-402.018" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2509.6" y="-402.3">d28</text>
-</g>
-<!-- U30
-Pump&#45;&gt;U31
-Mixer -->
-<g class="edge" id="edge96"><title>U30
-Pump:c-&gt;U31
-Mixer:c</title>
-<path d="M2791.64,-152.24C2819.93,-146.052 2867.46,-135.657 2902.29,-128.038" fill="none" stroke="black"/>
-<polygon fill="black" points="2903.19,-131.425 2912.21,-125.869 2901.69,-124.587 2903.19,-131.425" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2834.6" y="-152.3">d38</text>
-</g>
-<!-- Water_3
-HCl1
-HCl2
-NaOH
-&#45;&gt;glycerol_recycle_sys
-System -->
-<g class="edge" id="edge91"><title>Water_3
-HCl1
-HCl2
-NaOH
-:c-&gt;glycerol_recycle_sys
-System:c</title>
-<path d="M3575.36,-345.324C3594.92,-352.586 3620.9,-362.229 3645.66,-371.421" fill="none" stroke="black"/>
-<polygon fill="black" points="3644.49,-374.717 3655.08,-374.916 3646.92,-368.154 3644.49,-374.717" stroke="black"/>
-</g>
-<!-- U13
-Tank&#45;&gt;U14
-Pump -->
-<g class="edge" id="edge60"><title>U13
-Tank:c-&gt;U14
-Pump:c</title>
-<path d="M1498.19,-176.5C1513.8,-176.5 1535.18,-176.5 1553.12,-176.5" fill="none" stroke="black"/>
-<polygon fill="black" points="1553.21,-180 1563.21,-176.5 1553.21,-173 1553.21,-180" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1527.02" y="-180.3">d15</text>
-</g>
-<!-- U60
-Liquids centrifuge&#45;&gt;U61
-Pump -->
-<g class="edge" id="edge41"><title>U60
-Liquids centrifuge:c-&gt;U61
-Pump:c</title>
-<path d="M3431.32,-399.844C3456.61,-399.995 3485.41,-400.166 3507.22,-400.296" fill="none" stroke="black"/>
-<polygon fill="black" points="3507.3,-403.796 3517.33,-400.356 3507.35,-396.797 3507.3,-403.796" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3460" y="-404.3">d72</text>
-</g>
-<!-- U60
-Liquids centrifuge&#45;&gt;U62
-Reactor -->
-<g class="edge" id="edge40"><title>U60
-Liquids centrifuge:c-&gt;U62
-Reactor:c</title>
-<path d="M3388.34,-377.901C3414.7,-342.374 3473.35,-275.5 3541.5,-275.5 3541.5,-275.5 3541.5,-275.5 3829,-275.5 3973.19,-275.5 4013.2,-258.671 4152.86,-294.5 4252.89,-320.163 4359.77,-379.596 4415.27,-413.205" fill="none" stroke="black"/>
-<polygon fill="black" points="4413.69,-416.344 4424.05,-418.568 4417.34,-410.369 4413.69,-416.344" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3891.41" y="-279.3">d71</text>
-</g>
-<!-- glycerol_recycle_sys
-System&#45;&gt;U88
-Tank -->
-<g class="edge" id="edge39"><title>glycerol_recycle_sys
-System:c-&gt;U88
-Tank:c</title>
-<path d="M3796.2,-400.5C3817.99,-400.5 3840.92,-400.5 3858.71,-400.5" fill="none" stroke="black"/>
-<polygon fill="black" points="3858.8,-404 3868.8,-400.5 3858.8,-397 3858.8,-404" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3828" y="-404.3">d86</text>
-</g>
-<!-- glycerol_recycle_sys
-System&#45;&gt;U80
-Cooling -->
-<g class="edge" id="edge54"><title>glycerol_recycle_sys
-System:c-&gt;U80
-Cooling:c</title>
-<path d="M3791.93,-426.162C3812.43,-434.144 3834.34,-442.673 3852.28,-449.655" fill="none" stroke="black"/>
-<polygon fill="black" points="3851.21,-452.995 3861.8,-453.361 3853.75,-446.472 3851.21,-452.995" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3828" y="-449.3">d97</text>
-</g>
-<!-- glycerol_recycle_sys
-System&#45;&gt;U87
-Tank -->
-<g class="edge" id="edge102"><title>glycerol_recycle_sys
-System:c-&gt;U87
-Tank:c</title>
-<path d="M3796.2,-377.443C3818.19,-370.22 3841.35,-362.613 3859.21,-356.749" fill="none" stroke="black"/>
-<polygon fill="black" points="3860.39,-360.044 3868.8,-353.599 3858.21,-353.394 3860.39,-360.044" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3828" y="-374.3">d96</text>
-</g>
-<!-- glycerol_recycle_sys
-System&#45;&gt;Waste -->
-<g class="edge" id="edge6"><title>glycerol_recycle_sys
-System:c-&gt;Waste:w</title>
-<path d="M3738.91,-426.095C3759.77,-463.449 3804.68,-528.5 3864.41,-528.5" fill="none" stroke="black"/>
-</g>
-<!-- U80
-Cooling&#45;&gt;U85
-Tank -->
-<g class="edge" id="edge61"><title>U80
-Cooling:c-&gt;U85
-Tank:c</title>
-<path d="M3913.74,-487.164C3940.99,-516.115 3988.21,-566.274 4018.19,-598.128" fill="none" stroke="black"/>
-<polygon fill="black" points="4016.02,-600.925 4025.42,-605.807 4021.11,-596.127 4016.02,-600.925" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3954.82" y="-549.3">d99</text>
-</g>
-<!-- U52
-Mixer&#45;&gt;U53
-Tank -->
-<g class="edge" id="edge80"><title>U52
-Mixer:e-&gt;U53
-Tank:c</title>
-<path d="M5213.24,-79.5C5229.01,-79.5 5246.54,-79.5 5261.12,-79.5" fill="none" stroke="black"/>
-<polygon fill="black" points="5261.14,-83.0001 5271.14,-79.5 5261.14,-76.0001 5261.14,-83.0001" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="5242.24" y="-83.3">d63</text>
-</g>
-<!-- U81
-Tank&#45;&gt;U82
-Pump -->
-<g class="edge" id="edge9"><title>U81
-Tank:c-&gt;U82
-Pump:c</title>
-<path d="M3747.84,-603.031C3775.46,-603.703 3823.35,-604.869 3855.94,-605.661" fill="none" stroke="black"/>
-<polygon fill="black" points="3856.27,-609.17 3866.35,-605.915 3856.44,-602.172 3856.27,-609.17" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3828" y="-608.3">d100</text>
-</g>
-<!-- CT
-Cooling tower&#45;&gt;CT
-Cooling tower -->
-<g class="edge" id="edge55"><title>CT
-Cooling tower:c-&gt;CT
-Cooling tower:c</title>
-<path d="M35.6733,-260.065C36.1567,-266.239 40.2656,-271 48,-271 50.9004,-271 53.2909,-270.331 55.1717,-269.168" fill="none" stroke="black"/>
-<polygon fill="black" points="58.4445,-270.491 60.3267,-260.065 52.3533,-267.042 58.4445,-270.491" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="48" y="-274.8">Cooling_water</text>
-</g>
-<!-- U24
-Liquids centrifuge&#45;&gt;U25
-Flash -->
-<g class="edge" id="edge97"><title>U24
-Liquids centrifuge:c-&gt;U25
-Flash:c</title>
-<path d="M2669.69,-399.5C2691.03,-399.5 2714.47,-399.5 2732.84,-399.5" fill="none" stroke="black"/>
-<polygon fill="black" points="2733.01,-403 2743.01,-399.5 2733.01,-396 2733.01,-403" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2712.6" y="-403.3">d29</text>
-</g>
-<!-- U24
-Liquids centrifuge&#45;&gt;S188 -->
-<g class="edge" id="edge99"><title>U24
-Liquids centrifuge:c-&gt;S188:w</title>
-<path d="M2644.37,-421.153C2669.9,-436.176 2707.05,-453.5 2742.6,-453.5" fill="none" stroke="black"/>
-</g>
-<!-- U83
-Tank&#45;&gt;U84
-Pump -->
-<g class="edge" id="edge14"><title>U83
-Tank:c-&gt;U84
-Pump:c</title>
-<path d="M3747.84,-657.031C3775.46,-657.703 3823.35,-658.869 3855.94,-659.661" fill="none" stroke="black"/>
-<polygon fill="black" points="3856.27,-663.17 3866.35,-659.915 3856.44,-656.172 3856.27,-663.17" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3828" y="-662.3">d102</text>
-</g>
-<!-- U47
-Cooling&#45;&gt;U48
-Tank -->
-<g class="edge" id="edge63"><title>U47
-Cooling:c-&gt;U48
-Tank:c</title>
-<path d="M4670.16,-139.39C4692.34,-138.581 4722.34,-137.486 4744.87,-136.664" fill="none" stroke="black"/>
-<polygon fill="black" points="4745.08,-140.158 4754.94,-136.296 4744.82,-133.163 4745.08,-140.158" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4726.25" y="-142.3">d58</text>
-</g>
-<!-- U41
-Pump&#45;&gt;U39
-Heat exchanger -->
-<g class="edge" id="edge7"><title>U41
-Pump:c-&gt;U39
-Heat exchanger:c</title>
-<path d="M4429.43,-110.981C4404.34,-109.496 4364.08,-107.339 4329.25,-106.5 4258.88,-104.805 4241.21,-103.93 4170.86,-106.5 4153.42,-107.137 4134.61,-108.281 4117.08,-109.544" fill="none" stroke="black"/>
-<polygon fill="black" points="4116.64,-106.067 4106.92,-110.299 4117.15,-113.048 4116.64,-106.067" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4250.06" y="-110.3">d47</text>
-</g>
-<!-- U25
-Flash&#45;&gt;U57
-Tank -->
-<g class="edge" id="edge1"><title>U25
-Flash:c-&gt;U57
-Tank:c</title>
-<path d="M2790.18,-399.5C2821.52,-399.5 2878.34,-399.5 2914,-399.5" fill="none" stroke="black"/>
-<polygon fill="black" points="2914.33,-403 2924.33,-399.5 2914.33,-396 2914.33,-403" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2834.6" y="-403.3">d66</text>
-</g>
-<!-- U25
-Flash&#45;&gt;S198 -->
-<g class="edge" id="edge100"><title>U25
-Flash:c-&gt;S198:w</title>
-<path d="M2790.16,-412.71C2819.64,-428.697 2873.37,-453.5 2922.9,-453.5" fill="none" stroke="black"/>
-</g>
-<!-- U82
-Pump&#45;&gt;U85
-Tank -->
-<g class="edge" id="edge12"><title>U82
-Pump:c-&gt;U85
-Tank:c</title>
-<path d="M3916.72,-609.828C3943.06,-613.433 3985.19,-619.199 4014.12,-623.158" fill="none" stroke="black"/>
-<polygon fill="black" points="4013.74,-626.639 4024.12,-624.528 4014.69,-619.704 4013.74,-626.639" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3954.82" y="-620.3">d101</text>
-</g>
-<!-- U37
-Mixer&#45;&gt;U38
-Pump -->
-<g class="edge" id="edge71"><title>U37
-Mixer:e-&gt;U38
-Pump:c</title>
-<path d="M3795,-115.5C3815.22,-115.5 3837.84,-115.5 3855.99,-115.5" fill="none" stroke="black"/>
-<polygon fill="black" points="3856.1,-119 3866.1,-115.5 3856.1,-112 3856.1,-119" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3828" y="-119.3">d45</text>
-</g>
-<!-- U31
-Mixer&#45;&gt;U32
-Cooling -->
-<g class="edge" id="edge64"><title>U31
-Mixer:e-&gt;U32
-Cooling:c</title>
-<path d="M3016.19,-118.5C3031.63,-118.5 3048.58,-118.5 3063.48,-118.5" fill="none" stroke="black"/>
-<polygon fill="black" points="3063.91,-122 3073.91,-118.5 3063.91,-115 3063.91,-122" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3045.19" y="-122.3">d39</text>
-</g>
-<!-- U7
-Conveying belt&#45;&gt;X1
-Mixer -->
-<g class="edge" id="edge43"><title>U7
-Conveying belt:c-&gt;X1
-Mixer:c</title>
-<path d="M1106.22,-78.5703C1136.74,-77.5474 1176.64,-76.5 1212.02,-76.5 1212.02,-76.5 1212.02,-76.5 1943.32,-76.5 1995.11,-76.5 2054.65,-76.5 2094.09,-76.5" fill="none" stroke="black"/>
-<polygon fill="black" points="2094.16,-80.0001 2104.16,-76.5 2094.16,-73.0001 2094.16,-80.0001" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1475.52" y="-80.3">d9</text>
-</g>
-<!-- U61
-Pump&#45;&gt;glycerol_recycle_sys
-System -->
-<g class="edge" id="edge44"><title>U61
-Pump:c-&gt;glycerol_recycle_sys
-System:c</title>
-<path d="M3567.85,-400.5C3587.47,-400.5 3616.24,-400.5 3643.76,-400.5" fill="none" stroke="black"/>
-<polygon fill="black" points="3643.82,-404 3653.82,-400.5 3643.82,-397 3643.82,-404" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3625" y="-404.3">d73</text>
-</g>
-<!-- U32
-Cooling&#45;&gt;U34
-Reactor -->
-<g class="edge" id="edge65"><title>U32
-Cooling:c-&gt;U34
-Reactor:c</title>
-<path d="M3137.27,-118.5C3151.68,-118.5 3169.05,-118.5 3184.49,-118.5" fill="none" stroke="black"/>
-<polygon fill="black" points="3184.8,-122 3194.8,-118.5 3184.8,-115 3184.8,-122" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3166" y="-122.3">d40</text>
-</g>
-<!-- U62
-Reactor&#45;&gt;U63
-Liquids centrifuge -->
-<g class="edge" id="edge45"><title>U62
-Reactor:c-&gt;U63
-Liquids centrifuge:c</title>
-<path d="M4485.4,-437.5C4508.28,-437.5 4540.86,-437.5 4570.02,-437.5" fill="none" stroke="black"/>
-<polygon fill="black" points="4570.17,-441 4580.17,-437.5 4570.17,-434 4570.17,-441" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4551.25" y="-441.3">d75</text>
-</g>
-<!-- U48
-Tank&#45;&gt;U49
-Pump -->
-<g class="edge" id="edge66"><title>U48
-Tank:c-&gt;U49
-Pump:c</title>
-<path d="M4800.35,-135.226C4826.53,-134.894 4870.99,-134.33 4901.94,-133.938" fill="none" stroke="black"/>
-<polygon fill="black" points="4902.32,-137.433 4912.27,-133.807 4902.23,-130.434 4902.32,-137.433" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4829.25" y="-139.3">d59</text>
-</g>
-<!-- U57
-Tank&#45;&gt;U58
-Pump -->
-<g class="edge" id="edge19"><title>U57
-Tank:c-&gt;U58
-Pump:c</title>
-<path d="M2969.68,-399.5C2995.71,-399.5 3039.57,-399.5 3070.2,-399.5" fill="none" stroke="black"/>
-<polygon fill="black" points="3070.42,-403 3080.42,-399.5 3070.42,-396 3070.42,-403" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3045.19" y="-403.3">d67</text>
+<path d="M2164.69,-529.204C2200.34,-548.578 2262.16,-581.1 2317.21,-604.74 2320.83,-606.296 2324.57,-607.839 2328.36,-609.354" fill="none" stroke="black"/>
+<polygon fill="black" points="2327.27,-612.684 2337.86,-613.054 2329.81,-606.162 2327.27,-612.684" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2260.21" y="-600.54">d76</text>
 </g>
 <!-- U50
 Tank&#45;&gt;U51
 Pump -->
-<g class="edge" id="edge72"><title>U50
+<g class="edge" id="edge11"><title>U50
 Tank:c-&gt;U51
 Pump:c</title>
-<path d="M4800.35,-78.6369C4826.53,-78.803 4870.99,-79.0849 4901.94,-79.2812" fill="none" stroke="black"/>
-<polygon fill="black" points="4902.25,-82.7831 4912.27,-79.3467 4902.3,-75.7833 4902.25,-82.7831" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4829.25" y="-83.3">d61</text>
+<path d="M4835.86,-168.74C4860.51,-168.74 4901.22,-168.74 4930.27,-168.74" fill="none" stroke="black"/>
+<polygon fill="black" points="4930.39,-172.24 4940.39,-168.74 4930.39,-165.24 4930.39,-172.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4911.62" y="-172.54">d61</text>
 </g>
-<!-- U34
-Reactor&#45;&gt;U35
-Tank -->
-<g class="edge" id="edge67"><title>U34
-Reactor:c-&gt;U35
-Tank:c</title>
-<path d="M3256.2,-107.032C3280.77,-97.5407 3315.58,-84.1 3340.51,-74.4718" fill="none" stroke="black"/>
-<polygon fill="black" points="3341.8,-77.725 3349.87,-70.8573 3339.28,-71.1951 3341.8,-77.725" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3285" y="-103.3">d42</text>
+<!-- U1
+Magnetic separator&#45;&gt;U2
+Shredder -->
+<g class="edge" id="edge8"><title>U1
+Magnetic separator:c-&gt;U2
+Shredder:c</title>
+<path d="M408.362,-155.74C421.86,-155.74 435.902,-155.74 448.539,-155.74" fill="none" stroke="black"/>
+<polygon fill="black" points="448.781,-159.24 458.781,-155.74 448.781,-152.24 448.781,-159.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="433.5" y="-159.54">d1</text>
 </g>
-<!-- U34
-Reactor&#45;&gt;CO2 -->
-<g class="edge" id="edge68"><title>U34
-Reactor:c-&gt;CO2:w</title>
-<path d="M3256.33,-118.5C3281.24,-118.5 3317.69,-118.5 3349.5,-118.5" fill="none" stroke="black"/>
+<!-- HCl1
+HCl2
+NaOH
+Water_3
+&#45;&gt;glycerol_recycle_sys
+System -->
+<g class="edge" id="edge99"><title>HCl1
+HCl2
+NaOH
+Water_3
+:c-&gt;glycerol_recycle_sys
+System:c</title>
+<path d="M2428.95,-576.068C2454.46,-584.42 2491.53,-596.557 2525.09,-607.544" fill="none" stroke="black"/>
+<polygon fill="black" points="2524.31,-610.974 2534.91,-610.759 2526.49,-604.321 2524.31,-610.974" stroke="black"/>
 </g>
-<!-- U49
-Pump&#45;&gt;U52
+<!-- U28
+Splitter&#45;&gt;U29
+Multi&#45;effect evaporator -->
+<g class="edge" id="edge64"><title>U28
+Splitter:c-&gt;U29
+Multi-effect evaporator:c</title>
+<path d="M2436.15,-137.11C2453.65,-133.36 2474.61,-129.073 2493.6,-125.74 2503.21,-124.054 2513.3,-122.417 2523.33,-120.875" fill="none" stroke="black"/>
+<polygon fill="black" points="2523.95,-124.321 2533.32,-119.366 2522.91,-117.4 2523.95,-124.321" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2504.6" y="-129.54">d35</text>
+</g>
+<!-- U28
+Splitter&#45;&gt;U31
 Mixer -->
-<g class="edge" id="edge69"><title>U49
-Pump:c-&gt;U52
+<g class="edge" id="edge58"><title>U28
+Splitter:c-&gt;U31
 Mixer:c</title>
-<path d="M4962.71,-127.093C4996.33,-118.215 5057.65,-102.022 5099.33,-91.0154" fill="none" stroke="black"/>
-<polygon fill="black" points="5100.44,-94.3429 5109.21,-88.4057 5098.65,-87.5749 5100.44,-94.3429" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="5045.64" y="-110.3">d60</text>
-</g>
-<!-- U84
-Pump&#45;&gt;U85
-Tank -->
-<g class="edge" id="edge16"><title>U84
-Pump:c-&gt;U85
-Tank:c</title>
-<path d="M3916.72,-655.271C3943.06,-649.606 3985.19,-640.545 4014.12,-634.323" fill="none" stroke="black"/>
-<polygon fill="black" points="4015.08,-637.696 4024.12,-632.171 4013.61,-630.852 4015.08,-637.696" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3954.82" y="-653.3">d103</text>
-</g>
-<!-- crushing_mill_recycle
-System&#45;&gt;U7
-Conveying belt -->
-<g class="edge" id="edge42"><title>crushing_mill_recycle
-System:c-&gt;U7
-Conveying belt:c</title>
-<path d="M891.258,-92.9771C924.3,-90.4516 962.988,-87.4945 994.406,-85.0932" fill="none" stroke="black"/>
-<polygon fill="black" points="995.059,-88.5535 1004.76,-84.3015 994.526,-81.5739 995.059,-88.5535" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="916.5" y="-95.3">d6</text>
-</g>
-<!-- crushing_mill_recycle
-System&#45;&gt;U8
-Tank -->
-<g class="edge" id="edge49"><title>crushing_mill_recycle
-System:c-&gt;U8
-Tank:c</title>
-<path d="M891.25,-109.5C905.548,-111.677 919.845,-113.854 931.903,-115.689" fill="none" stroke="black"/>
-<polygon fill="black" points="931.454,-119.161 941.867,-117.206 932.508,-112.241 931.454,-119.161" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="916.5" y="-118.3">d7</text>
-</g>
-<!-- U63
-Liquids centrifuge&#45;&gt;glycerol_recycle_sys
-System -->
-<g class="edge" id="edge47"><title>U63
-Liquids centrifuge:c-&gt;glycerol_recycle_sys
-System:c</title>
-<path d="M4622.18,-459.259C4593.71,-496.267 4529.33,-567.5 4455.75,-567.5 3890.41,-567.5 3890.41,-567.5 3890.41,-567.5 3816.99,-567.5 3765.38,-484.507 3741.32,-435.534" fill="none" stroke="black"/>
-<polygon fill="black" points="3744.34,-433.744 3736.88,-426.228 3738.03,-436.76 3744.34,-433.744" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4138.86" y="-571.3">d76</text>
-</g>
-<!-- U63
-Liquids centrifuge&#45;&gt;glycerol_recycle_sys
-System -->
-<g class="edge" id="edge48"><title>U63
-Liquids centrifuge:c-&gt;glycerol_recycle_sys
-System:c</title>
-<path d="M4622.18,-415.741C4593.71,-378.733 4529.33,-307.5 4455.75,-307.5 3890.41,-307.5 3890.41,-307.5 3890.41,-307.5 3839.77,-307.5 3790.41,-341.336 3759.2,-368.189" fill="none" stroke="black"/>
-<polygon fill="black" points="3756.85,-365.598 3751.67,-374.841 3761.48,-370.845 3756.85,-365.598" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4138.86" y="-311.3">d77</text>
-</g>
-<!-- U35
-Tank&#45;&gt;U36
-Yeast centrifuge -->
-<g class="edge" id="edge74"><title>U35
-Tank:c-&gt;U36
-Yeast centrifuge:c</title>
-<path d="M3395.12,-62.3713C3416.21,-62.2458 3449.31,-62.0488 3478.71,-61.8738" fill="none" stroke="black"/>
-<polygon fill="black" points="3478.95,-65.3725 3488.93,-61.813 3478.91,-58.3726 3478.95,-65.3725" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3460" y="-66.3">d43</text>
+<path d="M2436.5,-145.532C2537.97,-144.99 2809.27,-143.543 2915.85,-142.974" fill="none" stroke="black"/>
+<polygon fill="black" points="2915.95,-146.474 2925.94,-142.92 2915.92,-139.474 2915.95,-146.474" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2710.6" y="-148.54">d34</text>
 </g>
 <!-- U53
 Tank&#45;&gt;Ethanol -->
-<g class="edge" id="edge22"><title>U53
+<g class="edge" id="edge48"><title>U53
 Tank:c-&gt;Ethanol:w</title>
-<path d="M5316.41,-79.5C5327.43,-79.5 5341.05,-79.5 5353.24,-79.5" fill="none" stroke="black"/>
+<path d="M5320.11,-197.74C5333.6,-197.74 5351.32,-197.74 5367.02,-197.74" fill="none" stroke="black"/>
 </g>
-<!-- Polymer
-Water_1
-&#45;&gt;clarification_recycle
+<!-- U62
+Pump&#45;&gt;glycerol_recycle_sys
 System -->
-<g class="edge" id="edge77"><title>Polymer
-Water_1
-:c-&gt;clarification_recycle
+<g class="edge" id="edge86"><title>U62
+Pump:c-&gt;glycerol_recycle_sys
 System:c</title>
-<path d="M1621.19,-227.667C1634.95,-226.436 1651.73,-224.935 1668.46,-223.438" fill="none" stroke="black"/>
-<polygon fill="black" points="1669.2,-226.886 1678.85,-222.509 1668.58,-219.914 1669.2,-226.886" stroke="black"/>
+<path d="M3665.3,-572.115C3632.97,-586.31 3573.42,-608.74 3519.9,-608.74 2773.01,-608.74 2773.01,-608.74 2773.01,-608.74 2744.98,-608.74 2714.59,-612.271 2687.57,-616.679" fill="none" stroke="black"/>
+<polygon fill="black" points="2686.66,-613.283 2677.39,-618.406 2687.83,-620.184 2686.66,-613.283" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3173.2" y="-612.54">d74</text>
+</g>
+<!-- U7
+Conveying belt&#45;&gt;X1
+Mixer -->
+<g class="edge" id="edge26"><title>U7
+Conveying belt:c-&gt;X1
+Mixer:c</title>
+<path d="M1101.22,-49.8104C1131.74,-48.7875 1171.64,-47.7401 1207.02,-47.7401 1207.02,-47.7401 1207.02,-47.7401 1938.32,-47.7401 1990.13,-47.7401 2049.67,-49.8917 2089.1,-51.618" fill="none" stroke="black"/>
+<polygon fill="black" points="2089.03,-55.118 2099.17,-52.0688 2089.34,-48.125 2089.03,-55.118" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1470.52" y="-51.5401">d9</text>
+</g>
+<!-- U2
+Shredder&#45;&gt;U3
+Tank -->
+<g class="edge" id="edge12"><title>U2
+Shredder:c-&gt;U3
+Tank:c</title>
+<path d="M527.174,-145.441C549.659,-138.46 579.185,-129.293 601.252,-122.442" fill="none" stroke="black"/>
+<polygon fill="black" points="602.302,-125.781 610.814,-119.473 600.226,-119.095 602.302,-125.781" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="552.5" y="-143.54">d2</text>
+</g>
+<!-- U84
+Tank&#45;&gt;U85
+Pump -->
+<g class="edge" id="edge42"><title>U84
+Tank:c-&gt;U85
+Pump:c</title>
+<path d="M2628.79,-393.74C2656.77,-393.74 2705.75,-393.74 2738.77,-393.74" fill="none" stroke="black"/>
+<polygon fill="black" points="2738.89,-397.24 2748.89,-393.74 2738.89,-390.24 2738.89,-397.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2710.6" y="-397.54">d103</text>
+</g>
+<!-- U83
+Pump&#45;&gt;U86
+Tank -->
+<g class="edge" id="edge36"><title>U83
+Pump:c-&gt;U86
+Tank:c</title>
+<path d="M2799.15,-447.348C2832.17,-446.812 2891.47,-445.848 2928.03,-445.255" fill="none" stroke="black"/>
+<polygon fill="black" points="2928.2,-448.752 2938.14,-445.09 2928.08,-441.753 2928.2,-448.752" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2848.41" y="-451.54">d102</text>
+</g>
+<!-- U41
+Pump&#45;&gt;U39
+Heat exchanger -->
+<g class="edge" id="edge1"><title>U41
+Pump:c-&gt;U39
+Heat exchanger:c</title>
+<path d="M4458.42,-119.809C4444.32,-124.49 4427.17,-132.317 4416.03,-144.74 4399.42,-163.261 4411.44,-176.786 4398.03,-197.74 4384.82,-218.395 4380.8,-226.647 4358.03,-235.74 4318.61,-251.481 4271.33,-244.718 4233.92,-234.026" fill="none" stroke="black"/>
+<polygon fill="black" points="4234.72,-230.613 4224.14,-231.079 4232.7,-237.316 4234.72,-230.613" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4322.03" y="-249.54">d47</text>
 </g>
 <!-- U51
 Pump&#45;&gt;U52
 Mixer -->
-<g class="edge" id="edge75"><title>U51
+<g class="edge" id="edge14"><title>U51
 Pump:c-&gt;U52
 Mixer:c</title>
-<path d="M4962.71,-79.5C4996.26,-79.5 5057.39,-79.5 5099.07,-79.5" fill="none" stroke="black"/>
-<polygon fill="black" points="5099.22,-83.0001 5109.21,-79.5 5099.21,-76.0001 5099.22,-83.0001" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="5045.64" y="-83.3">d62</text>
+<path d="M4990.95,-173.145C5015.31,-177.553 5053.31,-184.432 5082.93,-189.796" fill="none" stroke="black"/>
+<polygon fill="black" points="5082.57,-193.286 5093.03,-191.623 5083.81,-186.397 5082.57,-193.286" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="5019.62" y="-184.54">d62</text>
+</g>
+<!-- U3
+Tank&#45;&gt;crushing_mill_recycle
+System -->
+<g class="edge" id="edge15"><title>U3
+Tank:c-&gt;crushing_mill_recycle
+System:c</title>
+<path d="M656.265,-107.467C674.816,-102.973 702.702,-96.218 729.774,-89.6597" fill="none" stroke="black"/>
+<polygon fill="black" points="730.797,-93.0131 739.692,-87.257 729.149,-86.2099 730.797,-93.0131" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="714.5" y="-99.5401">d3</text>
+</g>
+<!-- U58
+Tank&#45;&gt;U59
+Pump -->
+<g class="edge" id="edge52"><title>U58
+Tank:c-&gt;U59
+Pump:c</title>
+<path d="M2983.44,-342.979C3020.03,-345.065 3094.18,-349.292 3137.87,-351.783" fill="none" stroke="black"/>
+<polygon fill="black" points="3137.83,-355.286 3148.01,-352.361 3138.23,-348.298 3137.83,-355.286" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3062" y="-352.54">d68</text>
+</g>
+<!-- U52
+Mixer&#45;&gt;U53
+Tank -->
+<g class="edge" id="edge19"><title>U52
+Mixer:e-&gt;U53
+Tank:c</title>
+<path d="M5197.82,-197.74C5220.23,-197.74 5245.5,-197.74 5264.86,-197.74" fill="none" stroke="black"/>
+<polygon fill="black" points="5264.95,-201.24 5274.95,-197.74 5264.95,-194.24 5264.95,-201.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="5236.02" y="-201.54">d63</text>
+</g>
+<!-- U82
+Tank&#45;&gt;U83
+Pump -->
+<g class="edge" id="edge29"><title>U82
+Tank:c-&gt;U83
+Pump:c</title>
+<path d="M2628.79,-447.74C2656.77,-447.74 2705.75,-447.74 2738.77,-447.74" fill="none" stroke="black"/>
+<polygon fill="black" points="2738.89,-451.24 2748.89,-447.74 2738.89,-444.24 2738.89,-451.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2710.6" y="-451.54">d101</text>
+</g>
+<!-- U85
+Pump&#45;&gt;U86
+Tank -->
+<g class="edge" id="edge46"><title>U85
+Pump:c-&gt;U86
+Tank:c</title>
+<path d="M2799.15,-400.407C2832.31,-409.564 2891.98,-426.039 2928.5,-436.122" fill="none" stroke="black"/>
+<polygon fill="black" points="2927.57,-439.497 2938.14,-438.784 2929.43,-432.749 2927.57,-439.497" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2848.41" y="-425.54">d104</text>
+</g>
+<!-- U55
+Mixer&#45;&gt;U56
+Tank -->
+<g class="edge" id="edge23"><title>U55
+Mixer:e-&gt;U56
+Tank:c</title>
+<path d="M4882.62,-75.7401C4899.12,-75.7401 4917.48,-75.7401 4932.64,-75.7401" fill="none" stroke="black"/>
+<polygon fill="black" points="4933.04,-79.2402 4943.04,-75.7401 4933.04,-72.2402 4933.04,-79.2402" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4911.62" y="-79.5401">d65</text>
+</g>
+<!-- crushing_mill_recycle
+System&#45;&gt;U7
+Conveying belt -->
+<g class="edge" id="edge22"><title>crushing_mill_recycle
+System:c-&gt;U7
+Conveying belt:c</title>
+<path d="M886.258,-64.2172C919.3,-61.6917 957.988,-58.7347 989.406,-56.3333" fill="none" stroke="black"/>
+<polygon fill="black" points="990.059,-59.7937 999.763,-55.5416 989.526,-52.814 990.059,-59.7937" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="911.5" y="-66.5401">d6</text>
+</g>
+<!-- crushing_mill_recycle
+System&#45;&gt;U8
+Tank -->
+<g class="edge" id="edge41"><title>crushing_mill_recycle
+System:c-&gt;U8
+Tank:c</title>
+<path d="M886.25,-80.7401C900.548,-82.9169 914.845,-85.0937 926.903,-86.9295" fill="none" stroke="black"/>
+<polygon fill="black" points="926.454,-90.4014 936.867,-88.4465 927.508,-83.4811 926.454,-90.4014" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="911.5" y="-89.5401">d7</text>
+</g>
+<!-- U0
+Conveying belt&#45;&gt;U1
+Magnetic separator -->
+<g class="edge" id="edge2"><title>U0
+Conveying belt:c-&gt;U1
+Magnetic separator:c</title>
+<path d="M234.119,-155.74C246.93,-155.74 260.971,-155.74 274.636,-155.74" fill="none" stroke="black"/>
+<polygon fill="black" points="274.986,-159.24 284.986,-155.74 274.986,-152.24 274.986,-159.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="259.5" y="-159.54">d0</text>
+</g>
+<!-- U56
+Tank&#45;&gt;U57
+Splitter -->
+<g class="edge" id="edge27"><title>U56
+Tank:c-&gt;U57
+Splitter:w</title>
+<path d="M4988.21,-75.7401C5002.03,-75.7401 5020.64,-75.7401 5038.34,-75.7401" fill="none" stroke="black"/>
+<polygon fill="black" points="5038.62,-79.2402 5048.62,-75.7401 5038.62,-72.2402 5038.62,-79.2402" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="5019.62" y="-79.5401">d66</text>
+</g>
+<!-- U33
+Tank&#45;&gt;U34
+Batch reactor -->
+<g class="edge" id="edge44"><title>U33
+Tank:c-&gt;U34
+Batch reactor:c</title>
+<path d="M3196.06,-219.775C3221.67,-218.644 3265.07,-216.728 3300.12,-215.181" fill="none" stroke="black"/>
+<polygon fill="black" points="3300.39,-218.672 3310.22,-214.735 3300.08,-211.679 3300.39,-218.672" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3281.4" y="-220.54">d41</text>
+</g>
+<!-- U22
+Cooling&#45;&gt;U23
+Tank -->
+<g class="edge" id="edge96"><title>U22
+Cooling:c-&gt;U23
+Tank:c</title>
+<path d="M2165.3,-315.873C2215.04,-312.818 2313.35,-306.78 2363.84,-303.679" fill="none" stroke="black"/>
+<polygon fill="black" points="2364.09,-307.17 2373.86,-303.064 2363.66,-300.183 2364.09,-307.17" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2260.21" y="-316.54">d27</text>
+</g>
+<!-- U13
+Tank&#45;&gt;U14
+Pump -->
+<g class="edge" id="edge83"><title>U13
+Tank:c-&gt;U14
+Pump:c</title>
+<path d="M1493.19,-183.74C1508.8,-183.74 1530.18,-183.74 1548.12,-183.74" fill="none" stroke="black"/>
+<polygon fill="black" points="1548.21,-187.24 1558.21,-183.74 1548.21,-180.24 1548.21,-187.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1522.02" y="-187.54">d15</text>
+</g>
+<!-- U54
+Pump&#45;&gt;U55
+Mixer -->
+<g class="edge" id="edge55"><title>U54
+Pump:c-&gt;U55
+Mixer:c</title>
+<path d="M2873.53,-70.7401C2912.81,-70.7401 2993.05,-70.7401 3061,-70.7401 3061,-70.7401 3061,-70.7401 4648.53,-70.7401 4689.22,-70.7401 4735.57,-72.3007 4768.56,-73.6782" fill="none" stroke="black"/>
+<polygon fill="black" points="4768.63,-77.1845 4778.77,-74.1168 4768.93,-70.191 4768.63,-77.1845" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3872.69" y="-74.5401">d64</text>
+</g>
+<!-- U30
+Pump&#45;&gt;U31
+Mixer -->
+<g class="edge" id="edge51"><title>U30
+Pump:c-&gt;U31
+Mixer:c</title>
+<path d="M2799.31,-113.461C2819.25,-116.569 2848.2,-121.208 2873.41,-125.74 2887.3,-128.237 2902.42,-131.147 2916.05,-133.847" fill="none" stroke="black"/>
+<polygon fill="black" points="2915.66,-137.337 2926.15,-135.86 2917.03,-130.472 2915.66,-137.337" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2848.41" y="-129.54">d38</text>
+</g>
+<!-- U38
+Pump&#45;&gt;U39
+Heat exchanger -->
+<g class="edge" id="edge40"><title>U38
+Pump:c-&gt;U39
+Heat exchanger:c</title>
+<path d="M4050.23,-208.74C4063.53,-208.74 4080.76,-208.74 4097.88,-208.74" fill="none" stroke="black"/>
+<polygon fill="black" points="4097.92,-212.24 4107.92,-208.74 4097.92,-205.24 4097.92,-212.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4078.99" y="-212.54">d46</text>
+</g>
+<!-- U46
+Pump&#45;&gt;U55
+Mixer -->
+<g class="edge" id="edge54"><title>U46
+Pump:c-&gt;U55
+Mixer:c</title>
+<path d="M4672.7,-104.723C4697.89,-99.4956 4737.89,-91.1918 4768.63,-84.8098" fill="none" stroke="black"/>
+<polygon fill="black" points="4769.59,-88.1858 4778.67,-82.7263 4768.17,-81.3319 4769.59,-88.1858" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4715.03" y="-102.54">d57</text>
+</g>
+<!-- U27
+Vibrating screen&#45;&gt;U28
+Splitter -->
+<g class="edge" id="edge45"><title>U27
+Vibrating screen:c-&gt;U28
+Splitter:w</title>
+<path d="M2181.01,-178.087C2214.67,-164.121 2262.09,-148.165 2307.05,-145.99" fill="none" stroke="black"/>
+<polygon fill="black" points="2307.3,-149.485 2317.21,-145.74 2307.12,-142.488 2307.3,-149.485" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2260.21" y="-167.54">d33</text>
+</g>
+<!-- U27
+Vibrating screen&#45;&gt;Fiber_fines -->
+<g class="edge" id="edge100"><title>U27
+Vibrating screen:c-&gt;Fiber_fines:w</title>
+<path d="M2187.62,-211.747C2232.09,-220.827 2297.57,-231.74 2355.4,-231.74" fill="none" stroke="black"/>
+</g>
+<!-- U29
+Multi&#45;effect evaporator&#45;&gt;U54
+Pump -->
+<g class="edge" id="edge74"><title>U29
+Multi-effect evaporator:c-&gt;U54
+Pump:c</title>
+<path d="M2678.63,-94.3374C2699.22,-90.2169 2721.74,-86.0059 2742.6,-82.7401 2766.02,-79.0722 2792.55,-76.0457 2813.06,-73.9496" fill="none" stroke="black"/>
+<polygon fill="black" points="2813.59,-77.4147 2823.19,-72.9398 2812.89,-70.4493 2813.59,-77.4147" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2710.6" y="-94.5401">d37</text>
+</g>
+<!-- U29
+Multi&#45;effect evaporator&#45;&gt;U30
+Pump -->
+<g class="edge" id="edge69"><title>U29
+Multi-effect evaporator:c-&gt;U30
+Pump:c</title>
+<path d="M2678.9,-109.74C2699.64,-109.74 2721.33,-109.74 2738.65,-109.74" fill="none" stroke="black"/>
+<polygon fill="black" points="2738.83,-113.24 2748.83,-109.74 2738.83,-106.24 2738.83,-113.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2710.6" y="-113.54">d36</text>
+</g>
+<!-- U37
+Mixer&#45;&gt;U38
+Pump -->
+<g class="edge" id="edge34"><title>U37
+Mixer:e-&gt;U38
+Pump:c</title>
+<path d="M3941.99,-208.74C3957.68,-208.74 3975.07,-208.74 3989.78,-208.74" fill="none" stroke="black"/>
+<polygon fill="black" points="3989.95,-212.24 3999.95,-208.74 3989.95,-205.24 3989.95,-212.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3970.99" y="-212.54">d45</text>
+</g>
+<!-- U88
+Tank&#45;&gt;Crude_glycerol -->
+<g class="edge" id="edge18"><title>U88
+Tank:c-&gt;Crude_glycerol:w</title>
+<path d="M2796.61,-755.74C2822.87,-755.74 2868.54,-755.74 2907.71,-755.74" fill="none" stroke="black"/>
+</g>
+<!-- U59
+Pump&#45;&gt;U60
+Reactor -->
+<g class="edge" id="edge57"><title>U59
+Pump:c-&gt;U60
+Reactor:c</title>
+<path d="M3198.23,-361.499C3213.91,-366.844 3234.69,-374.456 3252.4,-382.74 3274.47,-393.07 3298.13,-406.448 3317.2,-417.853" fill="none" stroke="black"/>
+<polygon fill="black" points="3315.53,-420.928 3325.9,-423.103 3319.15,-414.936 3315.53,-420.928" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3281.4" y="-408.54">d69</text>
+</g>
+<!-- U10
+Tank&#45;&gt;U11
+Pump -->
+<g class="edge" id="edge62"><title>U10
+Tank:c-&gt;U11
+Pump:c</title>
+<path d="M1282.22,-133.74C1295.9,-133.74 1313.86,-133.74 1329.47,-133.74" fill="none" stroke="black"/>
+<polygon fill="black" points="1329.82,-137.24 1339.82,-133.74 1329.82,-130.24 1329.82,-137.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1311.02" y="-137.54">d12</text>
+</g>
+<!-- U34
+Batch reactor&#45;&gt;U35
+Tank -->
+<g class="edge" id="edge10"><title>U34
+Batch reactor:c-&gt;U35
+Tank:c</title>
+<path d="M3402.53,-227.363C3429.3,-236.037 3462.57,-246.816 3486.49,-254.566" fill="none" stroke="black"/>
+<polygon fill="black" points="3485.53,-257.934 3496.13,-257.687 3487.69,-251.275 3485.53,-257.934" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3431.4" y="-244.54">d42</text>
+</g>
+<!-- U34
+Batch reactor&#45;&gt;CO2 -->
+<g class="edge" id="edge13"><title>U34
+Batch reactor:c-&gt;CO2:w</title>
+<path d="M3402.62,-211.758C3429.68,-211.252 3464.75,-210.74 3495.9,-210.74" fill="none" stroke="black"/>
+</g>
+<!-- U11
+Pump&#45;&gt;U13
+Tank -->
+<g class="edge" id="edge68"><title>U11
+Pump:c-&gt;U13
+Tank:c</title>
+<path d="M1390.03,-145.337C1404.47,-152.313 1423,-161.266 1438.54,-168.772" fill="none" stroke="black"/>
+<polygon fill="black" points="1437.23,-172.03 1447.76,-173.228 1440.28,-165.727 1437.23,-172.03" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1419.02" y="-168.54">d13</text>
+</g>
+<!-- U49
+Pump&#45;&gt;U52
+Mixer -->
+<g class="edge" id="edge7"><title>U49
+Pump:c-&gt;U52
+Mixer:c</title>
+<path d="M4990.95,-218.943C5015.31,-215.143 5053.31,-209.213 5082.93,-204.589" fill="none" stroke="black"/>
+<polygon fill="black" points="5083.69,-208.014 5093.03,-203.014 5082.61,-201.097 5083.69,-208.014" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="5019.62" y="-220.54">d60</text>
 </g>
 <!-- U8
 Tank&#45;&gt;U9
@@ -756,1253 +427,1595 @@ Heating -->
 <g class="edge" id="edge50"><title>U8
 Tank:c-&gt;U9
 Heating:c</title>
-<path d="M987.01,-120.844C1017.79,-121.337 1074.91,-122.251 1113.45,-122.867" fill="none" stroke="black"/>
-<polygon fill="black" points="1113.73,-126.372 1123.78,-123.032 1113.84,-119.373 1113.73,-126.372" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1055.5" y="-127.3">d10</text>
+<path d="M982.01,-92.0843C1012.79,-92.5766 1069.91,-93.4906 1108.45,-94.1071" fill="none" stroke="black"/>
+<polygon fill="black" points="1108.73,-97.612 1118.78,-94.2725 1108.84,-90.6129 1108.73,-97.612" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1050.5" y="-98.5401">d10</text>
 </g>
-<!-- U87
-Tank&#45;&gt;Crude_glycerol -->
-<g class="edge" id="edge4"><title>U87
-Tank:c-&gt;Crude_glycerol:w</title>
-<path d="M3914.17,-346.5C3934.71,-346.5 3966.37,-346.5 3993.84,-346.5" fill="none" stroke="black"/>
-</g>
-<!-- U58
-Pump&#45;&gt;U59
-Reactor -->
-<g class="edge" id="edge24"><title>U58
-Pump:c-&gt;U59
-Reactor:c</title>
-<path d="M3130.74,-399.5C3146.29,-399.5 3166.86,-399.5 3184.78,-399.5" fill="none" stroke="black"/>
-<polygon fill="black" points="3184.96,-403 3194.96,-399.5 3184.96,-396 3184.96,-403" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3166" y="-403.3">d68</text>
-</g>
-<!-- U36
-Yeast centrifuge&#45;&gt;U37
-Mixer -->
-<g class="edge" id="edge76"><title>U36
-Yeast centrifuge:c-&gt;U37
-Mixer:c</title>
-<path d="M3596.2,-77.2642C3623.02,-85.2891 3655.23,-94.9257 3680.61,-102.517" fill="none" stroke="black"/>
-<polygon fill="black" points="3679.74,-105.91 3690.32,-105.423 3681.74,-99.2038 3679.74,-105.91" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3625" y="-92.3">d44</text>
-</g>
-<!-- U36
-Yeast centrifuge&#45;&gt;Recycle_yeast -->
-<g class="edge" id="edge78"><title>U36
-Yeast centrifuge:c-&gt;Recycle_yeast:w</title>
-<path d="M3596.22,-42.608C3619.98,-35.6798 3648.57,-29.5 3675,-29.5" fill="none" stroke="black"/>
-</g>
-<!-- U28
-Splitter&#45;&gt;U31
-Mixer -->
-<g class="edge" id="edge25"><title>U28
-Splitter:c-&gt;U31
-Mixer:c</title>
-<path d="M2441.18,-149.054C2468.29,-142.883 2505.43,-135.291 2538.6,-131.5 2670.08,-116.472 2826.87,-116.465 2901.79,-117.551" fill="none" stroke="black"/>
-<polygon fill="black" points="2902.18,-121.057 2912.23,-117.717 2902.29,-114.058 2902.18,-121.057" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2712.6" y="-124.3">d34</text>
-</g>
-<!-- U28
-Splitter&#45;&gt;U29
-Multi&#45;effect evaporator -->
-<g class="edge" id="edge26"><title>U28
-Splitter:c-&gt;U29
-Multi-effect evaporator:c</title>
-<path d="M2441.47,-158.5C2465.96,-158.5 2498.46,-158.5 2528.39,-158.5" fill="none" stroke="black"/>
-<polygon fill="black" points="2528.42,-162 2538.42,-158.5 2528.42,-155 2528.42,-162" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2509.6" y="-162.3">d35</text>
+<!-- U12
+Tank&#45;&gt;U13
+Tank -->
+<g class="edge" id="edge73"><title>U12
+Tank:c-&gt;U13
+Tank:c</title>
+<path d="M1387.72,-186.902C1402.21,-186.342 1421.51,-185.596 1437.72,-184.969" fill="none" stroke="black"/>
+<polygon fill="black" points="1438,-188.461 1447.85,-184.578 1437.72,-181.466 1438,-188.461" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1419.02" y="-190.54">d14</text>
 </g>
 <!-- U9
 Heating&#45;&gt;U10
 Tank -->
-<g class="edge" id="edge46"><title>U9
+<g class="edge" id="edge56"><title>U9
 Heating:c-&gt;U10
 Tank:c</title>
-<path d="M1182.95,-131.483C1198,-135.78 1216.6,-141.094 1232.14,-145.533" fill="none" stroke="black"/>
-<polygon fill="black" points="1231.26,-148.923 1241.84,-148.305 1233.18,-142.192 1231.26,-148.923" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1213.02" y="-147.3">d11</text>
+<path d="M1177.39,-104.581C1192.53,-110.024 1211.41,-116.808 1227.15,-122.464" fill="none" stroke="black"/>
+<polygon fill="black" points="1226.37,-125.903 1236.96,-125.991 1228.73,-119.315 1226.37,-125.903" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1208.02" y="-123.54">d11</text>
 </g>
-<!-- U85
-Tank&#45;&gt;U86
-Splitter -->
-<g class="edge" id="edge28"><title>U85
-Tank:c-&gt;U86
-Splitter:w</title>
-<path d="M4069.56,-630.623C4091.8,-633.57 4127.69,-637.645 4160.72,-638.383" fill="none" stroke="black"/>
-<polygon fill="black" points="4160.82,-641.884 4170.86,-638.5 4160.9,-634.885 4160.82,-641.884" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4138.86" y="-641.3">d104</text>
+<!-- U87
+Splitter&#45;&gt;U63
+Reactor -->
+<g class="edge" id="edge72"><title>U87
+Splitter:c-&gt;U63
+Reactor:c</title>
+<path d="M3127.22,-457.101C3085,-470.137 3019.82,-486.74 2961.71,-486.74 2395.4,-486.74 2395.4,-486.74 2395.4,-486.74 2316.74,-486.74 2225.38,-498.624 2174.44,-506.323" fill="none" stroke="black"/>
+<polygon fill="black" points="2173.86,-502.872 2164.5,-507.85 2174.92,-509.79 2173.86,-502.872" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2710.6" y="-490.54">d75</text>
 </g>
-<!-- U29
-Multi&#45;effect evaporator&#45;&gt;U54
-Pump -->
-<g class="edge" id="edge31"><title>U29
-Multi-effect evaporator:c-&gt;U54
-Pump:c</title>
-<path d="M2683.64,-173.069C2702.48,-176.85 2722.8,-180.876 2741.6,-184.5 2760.62,-188.166 2781.88,-192.106 2799.17,-195.268" fill="none" stroke="black"/>
-<polygon fill="black" points="2798.9,-198.777 2809.37,-197.128 2800.16,-191.89 2798.9,-198.777" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2712.6" y="-185.3">d37</text>
+<!-- U87
+Splitter&#45;&gt;U60
+Reactor -->
+<g class="edge" id="edge67"><title>U87
+Splitter:c-&gt;U60
+Reactor:c</title>
+<path d="M3213.07,-441.74C3243.3,-441.74 3285.09,-441.74 3315.56,-441.74" fill="none" stroke="black"/>
+<polygon fill="black" points="3315.83,-445.24 3325.83,-441.74 3315.83,-438.24 3315.83,-445.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3281.4" y="-445.54">d70</text>
 </g>
-<!-- U29
-Multi&#45;effect evaporator&#45;&gt;U30
-Pump -->
-<g class="edge" id="edge29"><title>U29
-Multi-effect evaporator:c-&gt;U30
-Pump:c</title>
-<path d="M2683.91,-158.032C2700.44,-157.924 2717.29,-157.815 2731.36,-157.723" fill="none" stroke="black"/>
-<polygon fill="black" points="2731.54,-161.222 2741.52,-157.657 2731.5,-154.222 2731.54,-161.222" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2712.6" y="-162.3">d36</text>
-</g>
-<!-- Methanol&#45;&gt;U81
-Tank -->
-<g class="edge" id="edge2"><title>Methanol:e-&gt;U81
-Tank:c</title>
-<path d="M3577.5,-602.5C3621.76,-602.5 3673.53,-602.5 3702.16,-602.5" fill="none" stroke="black"/>
-</g>
-<!-- Catalyst&#45;&gt;U83
-Tank -->
-<g class="edge" id="edge3"><title>Catalyst:e-&gt;U83
-Tank:c</title>
-<path d="M3574.5,-656.5C3620.06,-656.5 3673.41,-656.5 3702.47,-656.5" fill="none" stroke="black"/>
-</g>
-<!-- Lipid_cane&#45;&gt;U0
-Conveying belt -->
-<g class="edge" id="edge8"><title>Lipid_cane:e-&gt;U0
-Conveying belt:c</title>
-<path d="M89,-184.5C103.122,-184.5 118.445,-184.5 132.52,-184.5" fill="none" stroke="black"/>
-</g>
-<!-- Enzyme&#45;&gt;U3
-Enzyme treatment -->
-<g class="edge" id="edge10"><title>Enzyme:e-&gt;U3
-Enzyme treatment:c</title>
-<path d="M525,-130.5C542.177,-130.5 560.789,-131.844 577.732,-133.593" fill="none" stroke="black"/>
-</g>
-<!-- Imbibition_water&#45;&gt;crushing_mill_recycle
+<!-- Water_1
+Polymer
+&#45;&gt;clarification_recycle
 System -->
-<g class="edge" id="edge11"><title>Imbibition_water:e-&gt;crushing_mill_recycle
+<g class="edge" id="edge97"><title>Water_1
+Polymer
+:c-&gt;clarification_recycle
 System:c</title>
-<path d="M693,-87.5C709.858,-87.5 727.954,-88.5212 744.97,-89.9413" fill="none" stroke="black"/>
+<path d="M1616.19,-140.061C1630.08,-144.586 1647.04,-150.115 1663.94,-155.62" fill="none" stroke="black"/>
+<polygon fill="black" points="1663.26,-159.08 1673.85,-158.85 1665.43,-152.424 1663.26,-159.08" stroke="black"/>
+</g>
+<!-- U61
+Liquids centrifuge&#45;&gt;U63
+Reactor -->
+<g class="edge" id="edge84"><title>U61
+Liquids centrifuge:c-&gt;U63
+Reactor:c</title>
+<path d="M3460.33,-512.74C3429.75,-512.74 3391.53,-512.74 3357.4,-512.74 2395.4,-512.74 2395.4,-512.74 2395.4,-512.74 2317.29,-512.74 2226.01,-512.74 2174.88,-512.74" fill="none" stroke="black"/>
+<polygon fill="black" points="2174.6,-509.24 2164.6,-512.74 2174.6,-516.24 2174.6,-509.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2848.41" y="-516.54">d72</text>
+</g>
+<!-- U61
+Liquids centrifuge&#45;&gt;U62
+Pump -->
+<g class="edge" id="edge85"><title>U61
+Liquids centrifuge:c-&gt;U62
+Pump:c</title>
+<path d="M3577.75,-529.125C3603.7,-536.473 3633.4,-544.883 3655.64,-551.182" fill="none" stroke="black"/>
+<polygon fill="black" points="3654.72,-554.558 3665.3,-553.915 3656.63,-547.823 3654.72,-554.558" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3606.4" y="-543.54">d73</text>
+</g>
+<!-- U26
+Mixer&#45;&gt;X1
+Mixer -->
+<g class="edge" id="edge93"><title>U26
+Mixer:e-&gt;X1
+Mixer:c</title>
+<path d="M2006.61,-118.74C2037.14,-118.74 2067.68,-103.54 2091.08,-87.8403" fill="none" stroke="black"/>
+<polygon fill="black" points="2093.16,-90.6531 2099.36,-82.061 2089.16,-84.9121 2093.16,-90.6531" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2035.61" y="-121.54">d31</text>
+</g>
+<!-- U60
+Reactor&#45;&gt;U61
+Liquids centrifuge -->
+<g class="edge" id="edge78"><title>U60
+Reactor:c-&gt;U61
+Liquids centrifuge:c</title>
+<path d="M3387.21,-454.928C3407.55,-463.925 3435.15,-476.137 3459.75,-487.019" fill="none" stroke="black"/>
+<polygon fill="black" points="3458.45,-490.27 3469.01,-491.115 3461.28,-483.869 3458.45,-490.27" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3431.4" y="-483.54">d71</text>
+</g>
+<!-- U21
+Tank&#45;&gt;U22
+Cooling -->
+<g class="edge" id="edge94"><title>U21
+Tank:c-&gt;U22
+Cooling:c</title>
+<path d="M1960.04,-218.223C1985.07,-233.657 2027.51,-259.539 2064.61,-280.74 2075.03,-286.691 2086.45,-292.973 2096.92,-298.638" fill="none" stroke="black"/>
+<polygon fill="black" points="2095.37,-301.775 2105.83,-303.433 2098.69,-295.612 2095.37,-301.775" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2035.61" y="-272.54">d25</text>
+</g>
+<!-- U21
+Tank&#45;&gt;U27
+Vibrating screen -->
+<g class="edge" id="edge95"><title>U21
+Tank:c-&gt;U27
+Vibrating screen:c</title>
+<path d="M1959.89,-204.186C1986.21,-203.51 2031.88,-202.336 2069.69,-201.365" fill="none" stroke="black"/>
+<polygon fill="black" points="2070.22,-204.852 2080.12,-201.096 2070.04,-197.855 2070.22,-204.852" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2035.61" y="-206.54">d26</text>
+</g>
+<!-- U47
+Cooling&#45;&gt;U48
+Tank -->
+<g class="edge" id="edge81"><title>U47
+Cooling:c-&gt;U48
+Tank:c</title>
+<path d="M4678.96,-227.183C4707.8,-226.655 4750.96,-225.864 4780.31,-225.327" fill="none" stroke="black"/>
+<polygon fill="black" points="4780.51,-228.824 4790.45,-225.141 4780.38,-221.825 4780.51,-228.824" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4715.03" y="-230.54">d58</text>
+</g>
+<!-- U14
+Pump&#45;&gt;clarification_recycle
+System -->
+<g class="edge" id="edge79"><title>U14
+Pump:c-&gt;clarification_recycle
+System:c</title>
+<path d="M1608.63,-183.278C1623.59,-182.991 1643.74,-182.605 1663.79,-182.221" fill="none" stroke="black"/>
+<polygon fill="black" points="1663.99,-185.717 1673.92,-182.026 1663.86,-178.719 1663.99,-185.717" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1645.02" y="-187.54">d16</text>
+</g>
+<!-- U23
+Tank&#45;&gt;U24
+Liquids centrifuge -->
+<g class="edge" id="edge101"><title>U23
+Tank:c-&gt;U24
+Liquids centrifuge:c</title>
+<path d="M2419.24,-301.74C2446.99,-301.74 2496.18,-301.74 2536.99,-301.74" fill="none" stroke="black"/>
+<polygon fill="black" points="2537.17,-305.24 2547.17,-301.74 2537.17,-298.24 2537.17,-305.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2504.6" y="-305.54">d28</text>
+</g>
+<!-- X1
+Mixer&#45;&gt;BT
+Boiler turbogenerator -->
+<g class="edge" id="edge70"><title>X1
+Mixer:e-&gt;BT
+Boiler turbogenerator:c</title>
+<path d="M2203.21,-53.7401C2241.17,-53.7401 2283.35,-53.7401 2318.5,-53.7401" fill="none" stroke="black"/>
+<polygon fill="black" points="2318.69,-57.2402 2328.69,-53.7401 2318.69,-50.2402 2318.69,-57.2402" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2260.21" y="-57.5401">Combustibles</text>
+</g>
+<!-- U48
+Tank&#45;&gt;U49
+Pump -->
+<g class="edge" id="edge6"><title>U48
+Tank:c-&gt;U49
+Pump:c</title>
+<path d="M4835.86,-224.454C4860.51,-224.126 4901.22,-223.584 4930.27,-223.197" fill="none" stroke="black"/>
+<polygon fill="black" points="4930.44,-226.695 4940.39,-223.063 4930.35,-219.696 4930.44,-226.695" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4911.62" y="-227.54">d59</text>
+</g>
+<!-- BT
+Boiler turbogenerator&#45;&gt;Emission -->
+<g class="edge" id="edge76"><title>BT
+Boiler turbogenerator:c-&gt;Emission:w</title>
+<path d="M2464.21,-53.7401C2496.5,-53.7401 2535.82,-53.7401 2571.1,-53.7401" fill="none" stroke="black"/>
+</g>
+<!-- CT
+Cooling tower&#45;&gt;CT
+Cooling tower -->
+<g class="edge" id="edge82"><title>CT
+Cooling tower:c-&gt;CT
+Cooling tower:c</title>
+<path d="M35.6733,-231.305C36.1567,-237.479 40.2656,-242.24 48,-242.24 50.9004,-242.24 53.2909,-241.571 55.1717,-240.408" fill="none" stroke="black"/>
+<polygon fill="black" points="58.4445,-241.732 60.3267,-231.305 52.3533,-238.282 58.4445,-241.732" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="48" y="-246.04">Cooling_water</text>
+</g>
+<!-- U89
+Tank&#45;&gt;Biodiesel -->
+<g class="edge" id="edge20"><title>U89
+Tank:c-&gt;Biodiesel:w</title>
+<path d="M2796.72,-647.74C2826,-647.74 2879.79,-647.74 2925.71,-647.74" fill="none" stroke="black"/>
+</g>
+<!-- U39
+Heat exchanger&#45;&gt;U40
+Stripper -->
+<g class="edge" id="edge47"><title>U39
+Heat exchanger:c-&gt;U40
+Stripper:c</title>
+<path d="M4222.18,-182.159C4239.95,-173.274 4259.56,-163.471 4276.6,-154.955" fill="none" stroke="black"/>
+<polygon fill="black" points="4278.39,-157.972 4285.77,-150.37 4275.26,-151.711 4278.39,-157.972" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4257.03" y="-172.54">d48</text>
+</g>
+<!-- U39
+Heat exchanger&#45;&gt;Stillage -->
+<g class="edge" id="edge53"><title>U39
+Heat exchanger:c-&gt;Stillage:w</title>
+<path d="M4228.31,-208.74C4248.81,-208.74 4271.93,-208.74 4293.03,-208.74" fill="none" stroke="black"/>
+</g>
+<!-- U57
+Splitter&#45;&gt;Water_4 -->
+<g class="edge" id="edge33"><title>U57
+Splitter:c-&gt;Water_4:w</title>
+<path d="M5167.75,-87.6613C5194.77,-94.8942 5231.75,-102.74 5265.02,-102.74" fill="none" stroke="black"/>
+</g>
+<!-- U57
+Splitter&#45;&gt;Water_5 -->
+<g class="edge" id="edge38"><title>U57
+Splitter:c-&gt;Water_5:w</title>
+<path d="M5167.75,-63.8189C5194.77,-56.586 5231.75,-48.7401 5265.02,-48.7401" fill="none" stroke="black"/>
+</g>
+<!-- U24
+Liquids centrifuge&#45;&gt;U25
+Flash -->
+<g class="edge" id="edge4"><title>U24
+Liquids centrifuge:c-&gt;U25
+Flash:c</title>
+<path d="M2664.66,-296.189C2689.8,-293.765 2718.38,-291.008 2739.88,-288.935" fill="none" stroke="black"/>
+<polygon fill="black" points="2740.49,-292.392 2750.11,-287.948 2739.82,-285.424 2740.49,-292.392" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2710.6" y="-297.54">d29</text>
+</g>
+<!-- U24
+Liquids centrifuge&#45;&gt;S188 -->
+<g class="edge" id="edge9"><title>U24
+Liquids centrifuge:c-&gt;S188:w</title>
+<path d="M2661.51,-323.294C2687.81,-331.87 2720.1,-339.74 2750.01,-339.74" fill="none" stroke="black"/>
+</g>
+<!-- glycerol_recycle_sys
+System&#45;&gt;U88
+Tank -->
+<g class="edge" id="edge35"><title>glycerol_recycle_sys
+System:c-&gt;U88
+Tank:c</title>
+<path d="M2639.02,-659.535C2655.92,-672.986 2677.16,-689.549 2696.6,-703.74 2711.62,-714.71 2728.71,-726.409 2742.91,-735.927" fill="none" stroke="black"/>
+<polygon fill="black" points="2741.07,-738.908 2751.33,-741.545 2744.96,-733.085 2741.07,-738.908" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2710.6" y="-727.54">d97</text>
+</g>
+<!-- glycerol_recycle_sys
+System&#45;&gt;U89
+Tank -->
+<g class="edge" id="edge98"><title>glycerol_recycle_sys
+System:c-&gt;U89
+Tank:c</title>
+<path d="M2677.46,-639.677C2699.75,-641.559 2723.29,-643.545 2741.43,-645.075" fill="none" stroke="black"/>
+<polygon fill="black" points="2741.17,-648.566 2751.43,-645.92 2741.76,-641.591 2741.17,-648.566" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2710.6" y="-647.54">d87</text>
+</g>
+<!-- glycerol_recycle_sys
+System&#45;&gt;U81
+Cooling -->
+<g class="edge" id="edge92"><title>glycerol_recycle_sys
+System:c-&gt;U81
+Cooling:c</title>
+<path d="M2650.95,-608.234C2665.25,-600.462 2681.36,-592.259 2696.6,-585.74 2708.43,-580.679 2721.65,-576.021 2733.72,-572.133" fill="none" stroke="black"/>
+<polygon fill="black" points="2735.04,-575.387 2743.53,-569.055 2732.95,-568.707 2735.04,-575.387" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2710.6" y="-589.54">d98</text>
+</g>
+<!-- glycerol_recycle_sys
+System&#45;&gt;Waste -->
+<g class="edge" id="edge25"><title>glycerol_recycle_sys
+System:c-&gt;Waste:w</title>
+<path d="M2638.63,-659.254C2665.7,-678.55 2706.63,-701.74 2747.01,-701.74" fill="none" stroke="black"/>
+</g>
+<!-- U25
+Flash&#45;&gt;U58
+Tank -->
+<g class="edge" id="edge65"><title>U25
+Flash:c-&gt;U58
+Tank:c</title>
+<path d="M2797.65,-292.607C2830.41,-302.538 2891.13,-320.949 2928.23,-332.196" fill="none" stroke="black"/>
+<polygon fill="black" points="2927.44,-335.613 2938.02,-335.165 2929.47,-328.914 2927.44,-335.613" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2848.41" y="-319.54">d67</text>
+</g>
+<!-- U25
+Flash&#45;&gt;S198 -->
+<g class="edge" id="edge16"><title>U25
+Flash:c-&gt;S198:w</title>
+<path d="M2797.77,-285.74C2829.07,-285.74 2887.16,-285.74 2936.71,-285.74" fill="none" stroke="black"/>
+</g>
+<!-- U64
+Liquids centrifuge&#45;&gt;glycerol_recycle_sys
+System -->
+<g class="edge" id="edge89"><title>U64
+Liquids centrifuge:c-&gt;glycerol_recycle_sys
+System:c</title>
+<path d="M2454.98,-633.017C2476.52,-633.121 2501.41,-633.241 2524.64,-633.353" fill="none" stroke="black"/>
+<polygon fill="black" points="2524.81,-636.854 2534.83,-633.402 2524.85,-629.854 2524.81,-636.854" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2504.6" y="-637.54">d77</text>
+</g>
+<!-- U64
+Liquids centrifuge&#45;&gt;glycerol_recycle_sys
+System -->
+<g class="edge" id="edge90"><title>U64
+Liquids centrifuge:c-&gt;glycerol_recycle_sys
+System:c</title>
+<path d="M2455.01,-619.619C2474.24,-616.661 2495.81,-614.877 2515.6,-616.74 2518.65,-617.027 2521.75,-617.368 2524.88,-617.754" fill="none" stroke="black"/>
+<polygon fill="black" points="2524.54,-621.24 2534.92,-619.122 2525.49,-614.304 2524.54,-621.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2504.6" y="-620.54">d78</text>
+</g>
+<!-- U81
+Cooling&#45;&gt;U86
+Tank -->
+<g class="edge" id="edge3"><title>U81
+Cooling:c-&gt;U86
+Tank:c</title>
+<path d="M2804.95,-555.174C2825.29,-550.494 2852.23,-542.481 2873.41,-529.74 2897.48,-515.265 2919.92,-492.761 2935.88,-474.543" fill="none" stroke="black"/>
+<polygon fill="black" points="2938.9,-476.394 2942.74,-466.519 2933.58,-471.845 2938.9,-476.394" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2848.41" y="-554.54">d100</text>
+</g>
+<!-- U36
+Solids centrifuge&#45;&gt;U37
+Mixer -->
+<g class="edge" id="edge24"><title>U36
+Solids centrifuge:c-&gt;U37
+Mixer:c</title>
+<path d="M3745.49,-247.938C3771.93,-239.727 3803.32,-229.977 3828.18,-222.255" fill="none" stroke="black"/>
+<polygon fill="black" points="3829.54,-225.497 3838.05,-219.188 3827.47,-218.812 3829.54,-225.497" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3774.4" y="-246.54">d44</text>
+</g>
+<!-- U36
+Solids centrifuge&#45;&gt;Recycle_yeast -->
+<g class="edge" id="edge30"><title>U36
+Solids centrifuge:c-&gt;Recycle_yeast:w</title>
+<path d="M3745.7,-282.883C3769.11,-289.201 3796.97,-294.74 3822.69,-294.74" fill="none" stroke="black"/>
+</g>
+<!-- U40
+Stripper&#45;&gt;U41
+Pump -->
+<g class="edge" id="edge61"><title>U40
+Stripper:s-&gt;U41
+Pump:c</title>
+<path d="M4322.03,-88.7401C4322.03,-76.0306 4401.62,-93.618 4448.71,-105.135" fill="none" stroke="black"/>
+<polygon fill="black" points="4447.96,-108.555 4458.5,-107.558 4449.64,-101.759 4447.96,-108.555" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4387.03" y="-97.5401">d50</text>
+</g>
+<!-- U40
+Stripper&#45;&gt;purification_recycle
+System -->
+<g class="edge" id="edge59"><title>U40
+Stripper:n-&gt;purification_recycle
+System:c</title>
+<path d="M4322.03,-176.74C4322.03,-181.326 4364.47,-180.93 4405.71,-179.465" fill="none" stroke="black"/>
+<polygon fill="black" points="4406,-182.956 4415.86,-179.082 4405.73,-175.961 4406,-182.956" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4387.03" y="-184.54">d49</text>
+</g>
+<!-- U86
+Tank&#45;&gt;U87
+Splitter -->
+<g class="edge" id="edge63"><title>U86
+Tank:c-&gt;U87
+Splitter:w</title>
+<path d="M2983.24,-443.952C3007.17,-443.139 3047.27,-441.964 3083.81,-441.768" fill="none" stroke="black"/>
+<polygon fill="black" points="3084.01,-445.268 3094,-441.74 3083.99,-438.268 3084.01,-445.268" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3062" y="-446.54">d105</text>
+</g>
+<!-- U31
+Mixer&#45;&gt;U32
+Cooling -->
+<g class="edge" id="edge102"><title>U31
+Mixer:e-&gt;U32
+Cooling:c</title>
+<path d="M3030,-142.74C3064.41,-142.74 3103.35,-145.98 3131.77,-148.943" fill="none" stroke="black"/>
+<polygon fill="black" points="3131.42,-152.426 3141.74,-150.016 3132.17,-145.466 3131.42,-152.426" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3062" y="-148.54">d39</text>
+</g>
+<!-- U32
+Cooling&#45;&gt;U34
+Batch reactor -->
+<g class="edge" id="edge5"><title>U32
+Cooling:c-&gt;U34
+Batch reactor:c</title>
+<path d="M3203.31,-163.219C3229.42,-171.721 3268.43,-184.424 3300.41,-194.835" fill="none" stroke="black"/>
+<polygon fill="black" points="3299.49,-198.217 3310.08,-197.985 3301.66,-191.561 3299.49,-198.217" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3281.4" y="-196.54">d40</text>
+</g>
+<!-- U35
+Tank&#45;&gt;U36
+Solids centrifuge -->
+<g class="edge" id="edge21"><title>U35
+Tank:c-&gt;U36
+Solids centrifuge:c</title>
+<path d="M3541.71,-264.74C3562.74,-264.74 3595.63,-264.74 3625.04,-264.74" fill="none" stroke="black"/>
+<polygon fill="black" points="3625.27,-268.24 3635.27,-264.74 3625.27,-261.24 3625.27,-268.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3606.4" y="-268.54">d43</text>
+</g>
+<!-- clarification_recycle
+System&#45;&gt;U26
+Mixer -->
+<g class="edge" id="edge91"><title>clarification_recycle
+System:c-&gt;U26
+Mixer:c</title>
+<path d="M1810.08,-159.23C1837.59,-150.407 1868.63,-140.45 1893.05,-132.618" fill="none" stroke="black"/>
+<polygon fill="black" points="1894.29,-135.897 1902.74,-129.51 1892.15,-129.232 1894.29,-135.897" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1839.02" y="-157.54">d23</text>
+</g>
+<!-- clarification_recycle
+System&#45;&gt;U21
+Tank -->
+<g class="edge" id="edge88"><title>clarification_recycle
+System:c-&gt;U21
+Tank:c</title>
+<path d="M1810.08,-189.067C1842.14,-193.047 1879.01,-197.624 1904.59,-200.8" fill="none" stroke="black"/>
+<polygon fill="black" points="1904.46,-204.311 1914.81,-202.07 1905.32,-197.364 1904.46,-204.311" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1839.02" y="-197.54">d21</text>
+</g>
+<!-- purification_recycle
+System&#45;&gt;U46
+Pump -->
+<g class="edge" id="edge17"><title>purification_recycle
+System:c-&gt;U46
+Pump:c</title>
+<path d="M4547.16,-150.223C4569.61,-141.079 4594.04,-131.127 4613.06,-123.378" fill="none" stroke="black"/>
+<polygon fill="black" points="4614.53,-126.557 4622.47,-119.543 4611.89,-120.075 4614.53,-126.557" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4580.03" y="-145.54">d54</text>
+</g>
+<!-- purification_recycle
+System&#45;&gt;U47
+Cooling -->
+<g class="edge" id="edge75"><title>purification_recycle
+System:c-&gt;U47
+Cooling:c</title>
+<path d="M4551.36,-197.191C4570.59,-203.365 4590.93,-209.892 4607.84,-215.321" fill="none" stroke="black"/>
+<polygon fill="black" points="4606.78,-218.656 4617.37,-218.38 4608.92,-211.991 4606.78,-218.656" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4580.03" y="-213.54">d56</text>
 </g>
 <!-- S134&#45;&gt;U37
 Mixer -->
-<g class="edge" id="edge15"><title>S134:e-&gt;U37
+<g class="edge" id="edge28"><title>S134:e-&gt;U37
 Mixer:c</title>
-<path d="M3566.5,-115.5C3609.16,-115.5 3658.32,-115.5 3690.21,-115.5" fill="none" stroke="black"/>
+<path d="M3714.4,-208.74C3757,-208.74 3806.09,-208.74 3837.94,-208.74" fill="none" stroke="black"/>
 </g>
 <!-- Denaturant&#45;&gt;U50
 Tank -->
-<g class="edge" id="edge17"><title>Denaturant:e-&gt;U50
+<g class="edge" id="edge31"><title>Denaturant:e-&gt;U50
 Tank:c</title>
-<path d="M4678.75,-76.5C4704.96,-76.5 4735.1,-77.2238 4754.96,-77.8005" fill="none" stroke="black"/>
+<path d="M4686.03,-163.74C4722.68,-163.74 4765.26,-165.868 4790.44,-167.347" fill="none" stroke="black"/>
+</g>
+<!-- Lipid_cane&#45;&gt;U0
+Conveying belt -->
+<g class="edge" id="edge32"><title>Lipid_cane:e-&gt;U0
+Conveying belt:c</title>
+<path d="M89,-155.74C103.122,-155.74 118.445,-155.74 132.52,-155.74" fill="none" stroke="black"/>
+</g>
+<!-- Enzyme&#45;&gt;U3
+Tank -->
+<g class="edge" id="edge37"><title>Enzyme:e-&gt;U3
+Tank:c</title>
+<path d="M525,-101.74C554.829,-101.74 589.074,-105.983 610.742,-109.199" fill="none" stroke="black"/>
 </g>
 <!-- Yeast&#45;&gt;U33
 Tank -->
-<g class="edge" id="edge18"><title>Yeast:e-&gt;U33
+<g class="edge" id="edge39"><title>Yeast:e-&gt;U33
 Tank:c</title>
-<path d="M2971.9,-204.5C3011.2,-204.5 3056.82,-199.649 3083.04,-196.39" fill="none" stroke="black"/>
+<path d="M2985.71,-228.74C3045.5,-228.74 3115.97,-224.585 3150.68,-222.264" fill="none" stroke="black"/>
+</g>
+<!-- Imbibition_water&#45;&gt;crushing_mill_recycle
+System -->
+<g class="edge" id="edge43"><title>Imbibition_water:e-&gt;crushing_mill_recycle
+System:c</title>
+<path d="M689,-58.7401C705.508,-58.7401 723.214,-59.7353 739.902,-61.127" fill="none" stroke="black"/>
 </g>
 <!-- H3PO4&#45;&gt;U10
 Tank -->
-<g class="edge" id="edge21"><title>H3PO4:e-&gt;U10
+<g class="edge" id="edge49"><title>H3PO4:e-&gt;U10
 Tank:c</title>
-<path d="M1184.02,-186.5C1204.7,-186.5 1226.36,-177.066 1241.84,-168.443" fill="none" stroke="black"/>
+<path d="M1179.02,-157.74C1199.21,-157.74 1221.09,-150.562 1236.78,-144.058" fill="none" stroke="black"/>
 </g>
 <!-- Lime&#45;&gt;U12
 Tank -->
-<g class="edge" id="edge23"><title>Lime:e-&gt;U12
+<g class="edge" id="edge60"><title>Lime:e-&gt;U12
 Tank:c</title>
-<path d="M1287.02,-208.5C1307.52,-208.5 1330.9,-208.5 1347.44,-208.5" fill="none" stroke="black"/>
+<path d="M1282.02,-187.74C1302.52,-187.74 1325.9,-187.74 1342.44,-187.74" fill="none" stroke="black"/>
+</g>
+<!-- Methanol&#45;&gt;U82
+Tank -->
+<g class="edge" id="edge66"><title>Methanol:e-&gt;U82
+Tank:c</title>
+<path d="M2431.4,-447.74C2486.14,-447.74 2550.57,-447.74 2583.44,-447.74" fill="none" stroke="black"/>
+</g>
+<!-- Catalyst&#45;&gt;U84
+Tank -->
+<g class="edge" id="edge71"><title>Catalyst:e-&gt;U84
+Tank:c</title>
+<path d="M2428.4,-393.74C2484.23,-393.74 2549.99,-393.74 2583.34,-393.74" fill="none" stroke="black"/>
 </g>
 <!-- Water_2&#45;&gt;U23
 Tank -->
-<g class="edge" id="edge27"><title>Water_2:e-&gt;U23
+<g class="edge" id="edge77"><title>Water_2:e-&gt;U23
 Tank:c</title>
-<path d="M2172.91,-396.5C2248.54,-396.5 2338.32,-396.5 2378.76,-396.5" fill="none" stroke="black"/>
+<path d="M2167.91,-253.74C2245.01,-253.74 2333.7,-280.46 2373.76,-294.028" fill="none" stroke="black"/>
 </g>
 <!-- S254&#45;&gt;U26
 Mixer -->
-<g class="edge" id="edge30"><title>S254:e-&gt;U26
+<g class="edge" id="edge80"><title>S254:e-&gt;U26
 Mixer:c</title>
-<path d="M1771.02,-151.5C1818.47,-151.5 1873.36,-151.5 1907.71,-151.5" fill="none" stroke="black"/>
+<path d="M1766.02,-118.74C1813.47,-118.74 1868.36,-118.74 1902.71,-118.74" fill="none" stroke="black"/>
 </g>
-<!-- U10
-Tank -->
-<g class="node" id="node1"><title>U10
-Tank</title>
+<!-- U63
+Reactor -->
+<g class="node" id="node1"><title>U63
+Reactor</title>
 <defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_0" x1="1242.02" x2="1287.02" y1="-154.5" y2="-154.5">
+<linearGradient gradientUnits="userSpaceOnUse" id="l_0" x1="2103.41" x2="2164.41" y1="-512.74" y2="-512.74">
 <stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
 <stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
 </linearGradient>
 </defs>
-<polygon fill="url(#l_0)" points="1287.02,-176 1242.02,-176 1242.02,-133 1287.02,-133 1287.02,-176" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1264.52" y="-158.3">U10</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1264.52" y="-143.3">Tank</text>
+<polygon fill="url(#l_0)" points="2164.41,-534.24 2103.41,-534.24 2103.41,-491.24 2164.41,-491.24 2164.41,-534.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2133.91" y="-516.54">U63</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2133.91" y="-501.54">Reactor</text>
+</g>
+<!-- U50
+Tank -->
+<g class="node" id="node2"><title>U50
+Tank</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_1" x1="4790.83" x2="4835.83" y1="-168.74" y2="-168.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_1)" points="4835.83,-190.24 4790.83,-190.24 4790.83,-147.24 4835.83,-147.24 4835.83,-190.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4813.33" y="-172.54">U50</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4813.33" y="-157.54">Tank</text>
+</g>
+<!-- U1
+Magnetic separator -->
+<g class="node" id="node3"><title>U1
+Magnetic separator</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_2" x1="285" x2="408" y1="-155.74" y2="-155.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_2)" points="408,-177.24 285,-177.24 285,-134.24 408,-134.24 408,-177.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="346.5" y="-159.54">U1</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="346.5" y="-144.54">Magnetic separator</text>
+</g>
+<!-- HCl1
+HCl2
+NaOH
+Water_3
+ -->
+<g class="node" id="node4"><title>HCl1
+HCl2
+NaOH
+Water_3
+</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_3" x1="2363.9" x2="2428.9" y1="-565.74" y2="-565.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#79dae8;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_3)" points="2428.9,-599.74 2363.9,-599.74 2363.9,-531.74 2428.9,-531.74 2428.9,-599.74" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2396.4" y="-584.54">HCl1</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2396.4" y="-569.54">HCl2</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2396.4" y="-554.54">NaOH</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2396.4" y="-539.54">Water_3</text>
+</g>
+<!-- U28
+Splitter -->
+<g class="node" id="node5"><title>U28
+Splitter</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_4" x1="2317.01" x2="2436.1" y1="-145.74" y2="-145.74">
+<stop offset="0" style="stop-color:#bfbfbf;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:white;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_4)" points="2317.01,-145.74 2436.1,-91.7588 2436.1,-199.721 2317.01,-145.74" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2396.4" y="-149.54">U28</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2396.4" y="-134.54">Splitter</text>
+</g>
+<!-- U53
+Tank -->
+<g class="node" id="node6"><title>U53
+Tank</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_5" x1="5275.02" x2="5320.02" y1="-197.74" y2="-197.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_5)" points="5320.02,-219.24 5275.02,-219.24 5275.02,-176.24 5320.02,-176.24 5320.02,-219.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="5297.52" y="-201.54">U53</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="5297.52" y="-186.54">Tank</text>
+</g>
+<!-- U62
+Pump -->
+<g class="node" id="node7"><title>U62
+Pump</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_6" x1="3665.4" x2="3715.4" y1="-560.74" y2="-560.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_6)" points="3715.4,-582.24 3665.4,-582.24 3665.4,-539.24 3715.4,-539.24 3715.4,-582.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3690.4" y="-564.54">U62</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3690.4" y="-549.54">Pump</text>
+</g>
+<!-- U7
+Conveying belt -->
+<g class="node" id="node8"><title>U7
+Conveying belt</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_7" x1="1000" x2="1101" y1="-51.7401" y2="-51.7401">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_7)" points="1101,-73.2401 1000,-73.2401 1000,-30.2401 1101,-30.2401 1101,-73.2401" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1050.5" y="-55.5401">U7</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1050.5" y="-40.5401">Conveying belt</text>
+</g>
+<!-- U2
+Shredder -->
+<g class="node" id="node9"><title>U2
+Shredder</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_8" x1="459" x2="527" y1="-155.74" y2="-155.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_8)" points="527,-177.24 459,-177.24 459,-134.24 527,-134.24 527,-177.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="493" y="-159.54">U2</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="493" y="-144.54">Shredder</text>
+</g>
+<!-- U84
+Tank -->
+<g class="node" id="node10"><title>U84
+Tank</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_9" x1="2583.6" x2="2628.6" y1="-393.74" y2="-393.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_9)" points="2628.6,-415.24 2583.6,-415.24 2583.6,-372.24 2628.6,-372.24 2628.6,-415.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2606.1" y="-397.54">U84</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2606.1" y="-382.54">Tank</text>
+</g>
+<!-- U83
+Pump -->
+<g class="node" id="node11"><title>U83
+Pump</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_10" x1="2749.01" x2="2799.01" y1="-447.74" y2="-447.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_10)" points="2799.01,-469.24 2749.01,-469.24 2749.01,-426.24 2799.01,-426.24 2799.01,-469.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2774.01" y="-451.54">U83</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2774.01" y="-436.54">Pump</text>
+</g>
+<!-- U41
+Pump -->
+<g class="node" id="node12"><title>U41
+Pump</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_11" x1="4458.53" x2="4508.53" y1="-113.74" y2="-113.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_11)" points="4508.53,-135.24 4458.53,-135.24 4458.53,-92.2401 4508.53,-92.2401 4508.53,-135.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4483.53" y="-117.54">U41</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4483.53" y="-102.54">Pump</text>
+</g>
+<!-- U51
+Pump -->
+<g class="node" id="node13"><title>U51
+Pump</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_12" x1="4940.62" x2="4990.62" y1="-168.74" y2="-168.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_12)" points="4990.62,-190.24 4940.62,-190.24 4940.62,-147.24 4990.62,-147.24 4990.62,-190.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4965.62" y="-172.54">U51</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4965.62" y="-157.54">Pump</text>
+</g>
+<!-- U3
+Tank -->
+<g class="node" id="node14"><title>U3
+Tank</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_13" x1="611" x2="656" y1="-112.74" y2="-112.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_13)" points="656,-134.24 611,-134.24 611,-91.2401 656,-91.2401 656,-134.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="633.5" y="-116.54">U3</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="633.5" y="-101.54">Tank</text>
+</g>
+<!-- U58
+Tank -->
+<g class="node" id="node15"><title>U58
+Tank</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_14" x1="2938.21" x2="2983.21" y1="-341.74" y2="-341.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_14)" points="2983.21,-363.24 2938.21,-363.24 2938.21,-320.24 2983.21,-320.24 2983.21,-363.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2960.71" y="-345.54">U58</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2960.71" y="-330.54">Tank</text>
+</g>
+<!-- U52
+Mixer -->
+<g class="node" id="node16"><title>U52
+Mixer</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_15" x1="5093.27" x2="5196.91" y1="-197.74" y2="-197.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_15)" points="5196.91,-197.74 5093.27,-251.721 5093.27,-143.759 5196.91,-197.74" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="5127.82" y="-201.54">U52</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="5127.82" y="-186.54">Mixer</text>
+</g>
+<!-- U82
+Tank -->
+<g class="node" id="node17"><title>U82
+Tank</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_16" x1="2583.6" x2="2628.6" y1="-447.74" y2="-447.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_16)" points="2628.6,-469.24 2583.6,-469.24 2583.6,-426.24 2628.6,-426.24 2628.6,-469.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2606.1" y="-451.54">U82</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2606.1" y="-436.54">Tank</text>
+</g>
+<!-- U85
+Pump -->
+<g class="node" id="node18"><title>U85
+Pump</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_17" x1="2749.01" x2="2799.01" y1="-393.74" y2="-393.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_17)" points="2799.01,-415.24 2749.01,-415.24 2749.01,-372.24 2799.01,-372.24 2799.01,-415.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2774.01" y="-397.54">U85</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2774.01" y="-382.54">Pump</text>
 </g>
 <!-- U55
-Tank -->
-<g class="node" id="node2"><title>U55
-Tank</title>
+Mixer -->
+<g class="node" id="node19"><title>U55
+Mixer</title>
 <defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_1" x1="4755.25" x2="4800.25" y1="-219.5" y2="-219.5">
+<linearGradient gradientUnits="userSpaceOnUse" id="l_18" x1="4778.78" x2="4882.42" y1="-75.7401" y2="-75.7401">
 <stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
 <stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
 </linearGradient>
 </defs>
-<polygon fill="url(#l_1)" points="4800.25,-241 4755.25,-241 4755.25,-198 4800.25,-198 4800.25,-241" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4777.75" y="-223.3">U55</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4777.75" y="-208.3">Tank</text>
+<polygon fill="url(#l_18)" points="4882.42,-75.7401 4778.78,-129.721 4778.78,-21.7588 4882.42,-75.7401" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4813.33" y="-79.5401">U55</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4813.33" y="-64.5401">Mixer</text>
 </g>
-<!-- U88
-Tank -->
-<g class="node" id="node3"><title>U88
-Tank</title>
+<!-- crushing_mill_recycle
+System -->
+<g class="node" id="node20"><title>crushing_mill_recycle
+System</title>
 <defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_2" x1="3868.91" x2="3913.91" y1="-400.5" y2="-400.5">
+<linearGradient gradientUnits="userSpaceOnUse" id="l_19" x1="744" x2="882" y1="-69.7401" y2="-69.7401">
 <stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
 <stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
 </linearGradient>
 </defs>
-<polygon fill="url(#l_2)" points="3913.91,-422 3868.91,-422 3868.91,-379 3913.91,-379 3913.91,-422" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3891.41" y="-404.3">U88</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3891.41" y="-389.3">Tank</text>
+<polygon fill="url(#l_19)" points="882,-91.2401 744,-91.2401 744,-48.2401 882,-48.2401 882,-91.2401" stroke="black"/>
+<polygon fill="none" points="886,-95.2401 740,-95.2401 740,-44.2401 886,-44.2401 886,-95.2401" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="813" y="-73.5401">crushing_mill_recycle</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="813" y="-58.5401">System</text>
+</g>
+<!-- U0
+Conveying belt -->
+<g class="node" id="node21"><title>U0
+Conveying belt</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_20" x1="133" x2="234" y1="-155.74" y2="-155.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_20)" points="234,-177.24 133,-177.24 133,-134.24 234,-134.24 234,-177.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="183.5" y="-159.54">U0</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="183.5" y="-144.54">Conveying belt</text>
+</g>
+<!-- U56
+Tank -->
+<g class="node" id="node22"><title>U56
+Tank</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_21" x1="4943.12" x2="4988.12" y1="-75.7401" y2="-75.7401">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_21)" points="4988.12,-97.2401 4943.12,-97.2401 4943.12,-54.2401 4988.12,-54.2401 4988.12,-97.2401" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4965.62" y="-79.5401">U56</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4965.62" y="-64.5401">Tank</text>
+</g>
+<!-- U33
+Tank -->
+<g class="node" id="node23"><title>U33
+Tank</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_22" x1="3150.7" x2="3195.7" y1="-220.74" y2="-220.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_22)" points="3195.7,-242.24 3150.7,-242.24 3150.7,-199.24 3195.7,-199.24 3195.7,-242.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3173.2" y="-224.54">U33</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3173.2" y="-209.54">Tank</text>
+</g>
+<!-- U22
+Cooling -->
+<g class="node" id="node24"><title>U22
+Cooling</title>
+<ellipse cx="2133.91" cy="-317.74" fill="#cfecf0" rx="31.313" ry="31.313" stroke="none"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2133.91" y="-321.54">U22</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2133.91" y="-306.54">Cooling</text>
+</g>
+<!-- U13
+Tank -->
+<g class="node" id="node25"><title>U13
+Tank</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_23" x1="1448.02" x2="1493.02" y1="-183.74" y2="-183.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_23)" points="1493.02,-205.24 1448.02,-205.24 1448.02,-162.24 1493.02,-162.24 1493.02,-205.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1470.52" y="-187.54">U13</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1470.52" y="-172.54">Tank</text>
+</g>
+<!-- U54
+Pump -->
+<g class="node" id="node26"><title>U54
+Pump</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_24" x1="2823.41" x2="2873.41" y1="-70.7401" y2="-70.7401">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_24)" points="2873.41,-92.2401 2823.41,-92.2401 2823.41,-49.2401 2873.41,-49.2401 2873.41,-92.2401" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2848.41" y="-74.5401">U54</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2848.41" y="-59.5401">Pump</text>
+</g>
+<!-- U30
+Pump -->
+<g class="node" id="node27"><title>U30
+Pump</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_25" x1="2749.01" x2="2799.01" y1="-109.74" y2="-109.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_25)" points="2799.01,-131.24 2749.01,-131.24 2749.01,-88.2401 2799.01,-88.2401 2799.01,-131.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2774.01" y="-113.54">U30</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2774.01" y="-98.5401">Pump</text>
 </g>
 <!-- U38
 Pump -->
-<g class="node" id="node4"><title>U38
+<g class="node" id="node28"><title>U38
 Pump</title>
 <defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_3" x1="3866.41" x2="3916.41" y1="-115.5" y2="-115.5">
+<linearGradient gradientUnits="userSpaceOnUse" id="l_26" x1="3999.99" x2="4049.99" y1="-208.74" y2="-208.74">
 <stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
 <stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
 </linearGradient>
 </defs>
-<polygon fill="url(#l_3)" points="3916.41,-137 3866.41,-137 3866.41,-94 3916.41,-94 3916.41,-137" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3891.41" y="-119.3">U38</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3891.41" y="-104.3">Pump</text>
+<polygon fill="url(#l_26)" points="4049.99,-230.24 3999.99,-230.24 3999.99,-187.24 4049.99,-187.24 4049.99,-230.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4024.99" y="-212.54">U38</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4024.99" y="-197.54">Pump</text>
+</g>
+<!-- U46
+Pump -->
+<g class="node" id="node29"><title>U46
+Pump</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_27" x1="4622.53" x2="4672.53" y1="-109.74" y2="-109.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_27)" points="4672.53,-131.24 4622.53,-131.24 4622.53,-88.2401 4672.53,-88.2401 4672.53,-131.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4647.53" y="-113.54">U46</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4647.53" y="-98.5401">Pump</text>
+</g>
+<!-- U27
+Vibrating screen -->
+<g class="node" id="node30"><title>U27
+Vibrating screen</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_28" x1="2080.41" x2="2187.41" y1="-199.74" y2="-199.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_28)" points="2187.41,-221.24 2080.41,-221.24 2080.41,-178.24 2187.41,-178.24 2187.41,-221.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2133.91" y="-203.54">U27</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2133.91" y="-188.54">Vibrating screen</text>
+</g>
+<!-- U29
+Multi&#45;effect evaporator -->
+<g class="node" id="node31"><title>U29
+Multi-effect evaporator</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_29" x1="2533.6" x2="2678.6" y1="-109.74" y2="-109.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_29)" points="2678.6,-131.24 2533.6,-131.24 2533.6,-88.2401 2678.6,-88.2401 2678.6,-131.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2606.1" y="-113.54">U29</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2606.1" y="-98.5401">Multi-effect evaporator</text>
+</g>
+<!-- U37
+Mixer -->
+<g class="node" id="node32"><title>U37
+Mixer</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_30" x1="3838.15" x2="3941.79" y1="-208.74" y2="-208.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_30)" points="3941.79,-208.74 3838.15,-262.721 3838.15,-154.759 3941.79,-208.74" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3872.69" y="-212.54">U37</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3872.69" y="-197.54">Mixer</text>
+</g>
+<!-- U88
+Tank -->
+<g class="node" id="node33"><title>U88
+Tank</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_31" x1="2751.51" x2="2796.51" y1="-755.74" y2="-755.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_31)" points="2796.51,-777.24 2751.51,-777.24 2751.51,-734.24 2796.51,-734.24 2796.51,-777.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2774.01" y="-759.54">U88</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2774.01" y="-744.54">Tank</text>
+</g>
+<!-- U59
+Pump -->
+<g class="node" id="node34"><title>U59
+Pump</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_32" x1="3148.2" x2="3198.2" y1="-353.74" y2="-353.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_32)" points="3198.2,-375.24 3148.2,-375.24 3148.2,-332.24 3198.2,-332.24 3198.2,-375.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3173.2" y="-357.54">U59</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3173.2" y="-342.54">Pump</text>
+</g>
+<!-- U10
+Tank -->
+<g class="node" id="node35"><title>U10
+Tank</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_33" x1="1237.02" x2="1282.02" y1="-133.74" y2="-133.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_33)" points="1282.02,-155.24 1237.02,-155.24 1237.02,-112.24 1282.02,-112.24 1282.02,-155.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1259.52" y="-137.54">U10</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1259.52" y="-122.54">Tank</text>
+</g>
+<!-- U34
+Batch reactor -->
+<g class="node" id="node36"><title>U34
+Batch reactor</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_34" x1="3310.4" x2="3402.4" y1="-212.74" y2="-212.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_34)" points="3402.4,-234.24 3310.4,-234.24 3310.4,-191.24 3402.4,-191.24 3402.4,-234.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3356.4" y="-216.54">U34</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3356.4" y="-201.54">Batch reactor</text>
+</g>
+<!-- U11
+Pump -->
+<g class="node" id="node37"><title>U11
+Pump</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_35" x1="1340.02" x2="1390.02" y1="-133.74" y2="-133.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_35)" points="1390.02,-155.24 1340.02,-155.24 1340.02,-112.24 1390.02,-112.24 1390.02,-155.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1365.02" y="-137.54">U11</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1365.02" y="-122.54">Pump</text>
+</g>
+<!-- U49
+Pump -->
+<g class="node" id="node38"><title>U49
+Pump</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_36" x1="4940.62" x2="4990.62" y1="-222.74" y2="-222.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_36)" points="4990.62,-244.24 4940.62,-244.24 4940.62,-201.24 4990.62,-201.24 4990.62,-244.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4965.62" y="-226.54">U49</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4965.62" y="-211.54">Pump</text>
+</g>
+<!-- U8
+Tank -->
+<g class="node" id="node39"><title>U8
+Tank</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_37" x1="937" x2="982" y1="-91.7401" y2="-91.7401">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_37)" points="982,-113.24 937,-113.24 937,-70.2401 982,-70.2401 982,-113.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="959.5" y="-95.5401">U8</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="959.5" y="-80.5401">Tank</text>
+</g>
+<!-- U12
+Tank -->
+<g class="node" id="node40"><title>U12
+Tank</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_38" x1="1342.52" x2="1387.52" y1="-187.74" y2="-187.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_38)" points="1387.52,-209.24 1342.52,-209.24 1342.52,-166.24 1387.52,-166.24 1387.52,-209.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1365.02" y="-191.54">U12</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1365.02" y="-176.54">Tank</text>
+</g>
+<!-- U9
+Heating -->
+<g class="node" id="node41"><title>U9
+Heating</title>
+<ellipse cx="1149.01" cy="-94.7401" fill="#fad6d8" rx="30.0211" ry="30.0211" stroke="none"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1149.01" y="-98.5401">U9</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1149.01" y="-83.5401">Heating</text>
+</g>
+<!-- U87
+Splitter -->
+<g class="node" id="node42"><title>U87
+Splitter</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_39" x1="3093.81" x2="3212.9" y1="-441.74" y2="-441.74">
+<stop offset="0" style="stop-color:#bfbfbf;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:white;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_39)" points="3093.81,-441.74 3212.9,-387.759 3212.9,-495.721 3093.81,-441.74" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3173.2" y="-445.54">U87</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3173.2" y="-430.54">Splitter</text>
+</g>
+<!-- Water_1
+Polymer
+ -->
+<g class="node" id="node43"><title>Water_1
+Polymer
+</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_40" x1="1551.02" x2="1616.02" y1="-129.74" y2="-129.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#79dae8;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_40)" points="1616.02,-151.24 1551.02,-151.24 1551.02,-108.24 1616.02,-108.24 1616.02,-151.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1583.52" y="-133.54">Water_1</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1583.52" y="-118.54">Polymer</text>
+</g>
+<!-- U61
+Liquids centrifuge -->
+<g class="node" id="node44"><title>U61
+Liquids centrifuge</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_41" x1="3460.4" x2="3577.4" y1="-512.74" y2="-512.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_41)" points="3577.4,-534.24 3460.4,-534.24 3460.4,-491.24 3577.4,-491.24 3577.4,-534.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3518.9" y="-516.54">U61</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3518.9" y="-501.54">Liquids centrifuge</text>
+</g>
+<!-- U26
+Mixer -->
+<g class="node" id="node45"><title>U26
+Mixer</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_42" x1="1902.77" x2="2006.41" y1="-118.74" y2="-118.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_42)" points="2006.41,-118.74 1902.77,-172.721 1902.77,-64.7588 2006.41,-118.74" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1937.32" y="-122.54">U26</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1937.32" y="-107.54">Mixer</text>
+</g>
+<!-- U60
+Reactor -->
+<g class="node" id="node46"><title>U60
+Reactor</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_43" x1="3325.9" x2="3386.9" y1="-441.74" y2="-441.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_43)" points="3386.9,-463.24 3325.9,-463.24 3325.9,-420.24 3386.9,-420.24 3386.9,-463.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3356.4" y="-445.54">U60</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3356.4" y="-430.54">Reactor</text>
+</g>
+<!-- U21
+Tank -->
+<g class="node" id="node47"><title>U21
+Tank</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_44" x1="1914.82" x2="1959.82" y1="-204.74" y2="-204.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_44)" points="1959.82,-226.24 1914.82,-226.24 1914.82,-183.24 1959.82,-183.24 1959.82,-226.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1937.32" y="-208.54">U21</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1937.32" y="-193.54">Tank</text>
+</g>
+<!-- U47
+Cooling -->
+<g class="node" id="node48"><title>U47
+Cooling</title>
+<ellipse cx="4647.53" cy="-227.74" fill="#cfecf0" rx="31.313" ry="31.313" stroke="none"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4647.53" y="-231.54">U47</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4647.53" y="-216.54">Cooling</text>
+</g>
+<!-- U14
+Pump -->
+<g class="node" id="node49"><title>U14
+Pump</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_45" x1="1558.52" x2="1608.52" y1="-183.74" y2="-183.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_45)" points="1608.52,-205.24 1558.52,-205.24 1558.52,-162.24 1608.52,-162.24 1608.52,-205.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1583.52" y="-187.54">U14</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1583.52" y="-172.54">Pump</text>
+</g>
+<!-- U23
+Tank -->
+<g class="node" id="node50"><title>U23
+Tank</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_46" x1="2373.9" x2="2418.9" y1="-301.74" y2="-301.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_46)" points="2418.9,-323.24 2373.9,-323.24 2373.9,-280.24 2418.9,-280.24 2418.9,-323.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2396.4" y="-305.54">U23</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2396.4" y="-290.54">Tank</text>
+</g>
+<!-- X1
+Mixer -->
+<g class="node" id="node51"><title>X1
+Mixer</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_47" x1="2099.36" x2="2203" y1="-53.7401" y2="-53.7401">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_47)" points="2203,-53.7401 2099.36,-107.721 2099.36,0.241193 2203,-53.7401" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2133.91" y="-57.5401">X1</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2133.91" y="-42.5401">Mixer</text>
+</g>
+<!-- U48
+Tank -->
+<g class="node" id="node52"><title>U48
+Tank</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_48" x1="4790.83" x2="4835.83" y1="-224.74" y2="-224.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_48)" points="4835.83,-246.24 4790.83,-246.24 4790.83,-203.24 4835.83,-203.24 4835.83,-246.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4813.33" y="-228.54">U48</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4813.33" y="-213.54">Tank</text>
+</g>
+<!-- BT
+Boiler turbogenerator -->
+<g class="node" id="node53"><title>BT
+Boiler turbogenerator</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_49" x1="2328.9" x2="2463.9" y1="-53.7401" y2="-53.7401">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_49)" points="2463.9,-75.2401 2328.9,-75.2401 2328.9,-32.2401 2463.9,-32.2401 2463.9,-75.2401" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2396.4" y="-57.5401">BT</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2396.4" y="-42.5401">Boiler turbogenerator</text>
+</g>
+<!-- CT
+Cooling tower -->
+<g class="node" id="node54"><title>CT
+Cooling tower</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_50" x1="0" x2="96" y1="-209.74" y2="-209.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_50)" points="96,-231.24 0,-231.24 0,-188.24 96,-188.24 96,-231.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="48" y="-213.54">CT</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="48" y="-198.54">Cooling tower</text>
+</g>
+<!-- U89
+Tank -->
+<g class="node" id="node55"><title>U89
+Tank</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_51" x1="2751.51" x2="2796.51" y1="-647.74" y2="-647.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_51)" points="2796.51,-669.24 2751.51,-669.24 2751.51,-626.24 2796.51,-626.24 2796.51,-669.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2774.01" y="-651.54">U89</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2774.01" y="-636.54">Tank</text>
 </g>
 <!-- U39
 Heat exchanger -->
-<g class="node" id="node5"><title>U39
+<g class="node" id="node56"><title>U39
 Heat exchanger</title>
 <defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_4" x1="4046.84" x2="4046.84" y1="-55.4578" y2="-175.542">
+<linearGradient gradientUnits="userSpaceOnUse" id="l_52" x1="4168.01" x2="4168.01" y1="-148.698" y2="-268.782">
 <stop offset="0" style="stop-color:#cfecf0;stop-opacity:1.;"/>
 <stop offset="1" style="stop-color:#fad6d8;stop-opacity:1.;"/>
 </linearGradient>
 </defs>
-<ellipse cx="4046.84" cy="-115.5" fill="url(#l_4)" rx="60.0422" ry="60.0422" stroke="none"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4046.84" y="-119.3">U39</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4046.84" y="-104.3">Heat exchanger</text>
+<ellipse cx="4168.01" cy="-208.74" fill="url(#l_52)" rx="60.0422" ry="60.0422" stroke="none"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4168.01" y="-212.54">U39</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4168.01" y="-197.54">Heat exchanger</text>
 </g>
-<!-- U0
-Conveying belt -->
-<g class="node" id="node6"><title>U0
-Conveying belt</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_5" x1="133" x2="234" y1="-184.5" y2="-184.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_5)" points="234,-206 133,-206 133,-163 234,-163 234,-206" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="183.5" y="-188.3">U0</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="183.5" y="-173.3">Conveying belt</text>
-</g>
-<!-- U11
-Pump -->
-<g class="node" id="node7"><title>U11
-Pump</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_6" x1="1345.02" x2="1395.02" y1="-154.5" y2="-154.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_6)" points="1395.02,-176 1345.02,-176 1345.02,-133 1395.02,-133 1395.02,-176" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1370.02" y="-158.3">U11</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1370.02" y="-143.3">Pump</text>
-</g>
-<!-- U21
-Tank -->
-<g class="node" id="node8"><title>U21
-Tank</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_7" x1="1919.82" x2="1964.82" y1="-242.5" y2="-242.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_7)" points="1964.82,-264 1919.82,-264 1919.82,-221 1964.82,-221 1964.82,-264" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1942.32" y="-246.3">U21</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1942.32" y="-231.3">Tank</text>
-</g>
-<!-- U1
-Magnetic separator -->
-<g class="node" id="node9"><title>U1
-Magnetic separator</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_8" x1="285" x2="408" y1="-184.5" y2="-184.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_8)" points="408,-206 285,-206 285,-163 408,-163 408,-206" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="346.5" y="-188.3">U1</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="346.5" y="-173.3">Magnetic separator</text>
-</g>
-<!-- U22
-Cooling -->
-<g class="node" id="node10"><title>U22
-Cooling</title>
-<ellipse cx="2138.91" cy="-323.5" fill="#cfecf0" rx="31.313" ry="31.313" stroke="none"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2138.91" y="-327.3">U22</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2138.91" y="-312.3">Cooling</text>
-</g>
-<!-- U12
-Tank -->
-<g class="node" id="node11"><title>U12
-Tank</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_9" x1="1347.52" x2="1392.52" y1="-208.5" y2="-208.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_9)" points="1392.52,-230 1347.52,-230 1347.52,-187 1392.52,-187 1392.52,-230" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1370.02" y="-212.3">U12</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1370.02" y="-197.3">Tank</text>
-</g>
-<!-- U86
+<!-- U57
 Splitter -->
-<g class="node" id="node12"><title>U86
+<g class="node" id="node57"><title>U57
 Splitter</title>
 <defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_10" x1="4170.66" x2="4289.75" y1="-638.5" y2="-638.5">
+<linearGradient gradientUnits="userSpaceOnUse" id="l_53" x1="5048.43" x2="5167.52" y1="-75.7401" y2="-75.7401">
 <stop offset="0" style="stop-color:#bfbfbf;stop-opacity:1.;"/>
 <stop offset="1" style="stop-color:white;stop-opacity:1.;"/>
 </linearGradient>
 </defs>
-<polygon fill="url(#l_10)" points="4170.66,-638.5 4289.75,-584.519 4289.75,-692.481 4170.66,-638.5" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4250.06" y="-642.3">U86</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4250.06" y="-627.3">Splitter</text>
-</g>
-<!-- U56
-Splitter -->
-<g class="node" id="node13"><title>U56
-Splitter</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_11" x1="4858.05" x2="4977.14" y1="-219.5" y2="-219.5">
-<stop offset="0" style="stop-color:#bfbfbf;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:white;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_11)" points="4858.05,-219.5 4977.14,-165.519 4977.14,-273.481 4858.05,-219.5" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4937.45" y="-223.3">U56</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4937.45" y="-208.3">Splitter</text>
-</g>
-<!-- purification_recycle
-System -->
-<g class="node" id="node14"><title>purification_recycle
-System</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_12" x1="4391.25" x2="4518.25" y1="-200.5" y2="-200.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_12)" points="4518.25,-222 4391.25,-222 4391.25,-179 4518.25,-179 4518.25,-222" stroke="black"/>
-<polygon fill="none" points="4522.25,-226 4387.25,-226 4387.25,-175 4522.25,-175 4522.25,-226" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4454.75" y="-204.3">purification_recycle</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4454.75" y="-189.3">System</text>
-</g>
-<!-- U54
-Pump -->
-<g class="node" id="node15"><title>U54
-Pump</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_13" x1="2809.6" x2="2859.6" y1="-201.5" y2="-201.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_13)" points="2859.6,-223 2809.6,-223 2809.6,-180 2859.6,-180 2859.6,-223" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2834.6" y="-205.3">U54</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2834.6" y="-190.3">Pump</text>
-</g>
-<!-- U59
-Reactor -->
-<g class="node" id="node16"><title>U59
-Reactor</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_14" x1="3195" x2="3256" y1="-399.5" y2="-399.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_14)" points="3256,-421 3195,-421 3195,-378 3256,-378 3256,-421" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3225.5" y="-403.3">U59</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3225.5" y="-388.3">Reactor</text>
-</g>
-<!-- U33
-Tank -->
-<g class="node" id="node17"><title>U33
-Tank</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_15" x1="3083.1" x2="3128.1" y1="-193.5" y2="-193.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_15)" points="3128.1,-215 3083.1,-215 3083.1,-172 3128.1,-172 3128.1,-215" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3105.6" y="-197.3">U33</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3105.6" y="-182.3">Tank</text>
-</g>
-<!-- clarification_recycle
-System -->
-<g class="node" id="node18"><title>clarification_recycle
-System</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_16" x1="1683.02" x2="1811.02" y1="-216.5" y2="-216.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_16)" points="1811.02,-238 1683.02,-238 1683.02,-195 1811.02,-195 1811.02,-238" stroke="black"/>
-<polygon fill="none" points="1815.02,-242 1679.02,-242 1679.02,-191 1815.02,-191 1815.02,-242" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1747.02" y="-220.3">clarification_recycle</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1747.02" y="-205.3">System</text>
-</g>
-<!-- U2
-Shredder -->
-<g class="node" id="node19"><title>U2
-Shredder</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_17" x1="459" x2="527" y1="-184.5" y2="-184.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_17)" points="527,-206 459,-206 459,-163 527,-163 527,-206" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="493" y="-188.3">U2</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="493" y="-173.3">Shredder</text>
-</g>
-<!-- U40
-Stripper -->
-<g class="node" id="node20"><title>U40
-Stripper</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_18" x1="4214.06" x2="4286.06" y1="-170.5" y2="-170.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_18)" points="4286.06,-213.5 4214.06,-213.5 4214.06,-127.5 4286.06,-127.5 4286.06,-213.5" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4250.06" y="-174.3">U40</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4250.06" y="-159.3">Stripper</text>
-</g>
-<!-- X1
-Mixer -->
-<g class="node" id="node21"><title>X1
-Mixer</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_19" x1="2104.36" x2="2208" y1="-76.5" y2="-76.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_19)" points="2208,-76.5 2104.36,-130.481 2104.36,-22.5187 2208,-76.5" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2138.91" y="-80.3">X1</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2138.91" y="-65.3">Mixer</text>
-</g>
-<!-- U46
-Pump -->
-<g class="node" id="node22"><title>U46
-Pump</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_20" x1="4613.75" x2="4663.75" y1="-204.5" y2="-204.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_20)" points="4663.75,-226 4613.75,-226 4613.75,-183 4663.75,-183 4663.75,-226" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4638.75" y="-208.3">U46</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4638.75" y="-193.3">Pump</text>
-</g>
-<!-- U27
-Vibrating screen -->
-<g class="node" id="node23"><title>U27
-Vibrating screen</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_21" x1="2085.41" x2="2192.41" y1="-242.5" y2="-242.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_21)" points="2192.41,-264 2085.41,-264 2085.41,-221 2192.41,-221 2192.41,-264" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2138.91" y="-246.3">U27</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2138.91" y="-231.3">Vibrating screen</text>
-</g>
-<!-- BT
-Boiler turbogenerator -->
-<g class="node" id="node24"><title>BT
-Boiler turbogenerator</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_22" x1="2333.9" x2="2468.9" y1="-72.5" y2="-72.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_22)" points="2468.9,-94 2333.9,-94 2333.9,-51 2468.9,-51 2468.9,-94" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2401.4" y="-76.3">BT</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2401.4" y="-61.3">Boiler turbogenerator</text>
-</g>
-<!-- U26
-Mixer -->
-<g class="node" id="node25"><title>U26
-Mixer</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_23" x1="1907.77" x2="2011.41" y1="-151.5" y2="-151.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_23)" points="2011.41,-151.5 1907.77,-205.481 1907.77,-97.5187 2011.41,-151.5" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1942.32" y="-155.3">U26</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1942.32" y="-140.3">Mixer</text>
-</g>
-<!-- U14
-Pump -->
-<g class="node" id="node26"><title>U14
-Pump</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_24" x1="1563.52" x2="1613.52" y1="-176.5" y2="-176.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_24)" points="1613.52,-198 1563.52,-198 1563.52,-155 1613.52,-155 1613.52,-198" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1588.52" y="-180.3">U14</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1588.52" y="-165.3">Pump</text>
-</g>
-<!-- U3
-Enzyme treatment -->
-<g class="node" id="node27"><title>U3
-Enzyme treatment</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_25" x1="578" x2="694" y1="-141.5" y2="-141.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_25)" points="694,-163 578,-163 578,-120 694,-120 694,-163" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="636" y="-145.3">U3</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="636" y="-130.3">Enzyme treatment</text>
-</g>
-<!-- U23
-Tank -->
-<g class="node" id="node28"><title>U23
-Tank</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_26" x1="2378.9" x2="2423.9" y1="-396.5" y2="-396.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_26)" points="2423.9,-418 2378.9,-418 2378.9,-375 2423.9,-375 2423.9,-418" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2401.4" y="-400.3">U23</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2401.4" y="-385.3">Tank</text>
-</g>
-<!-- U30
-Pump -->
-<g class="node" id="node29"><title>U30
-Pump</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_27" x1="2741.6" x2="2791.6" y1="-157.5" y2="-157.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_27)" points="2791.6,-179 2741.6,-179 2741.6,-136 2791.6,-136 2791.6,-179" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2766.6" y="-161.3">U30</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2766.6" y="-146.3">Pump</text>
-</g>
-<!-- Water_3
-HCl1
-HCl2
-NaOH
- -->
-<g class="node" id="node30"><title>Water_3
-HCl1
-HCl2
-NaOH
-</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_28" x1="3510" x2="3575" y1="-333.5" y2="-333.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#79dae8;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_28)" points="3575,-367.5 3510,-367.5 3510,-299.5 3575,-299.5 3575,-367.5" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3542.5" y="-352.3">Water_3</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3542.5" y="-337.3">HCl1</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3542.5" y="-322.3">HCl2</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3542.5" y="-307.3">NaOH</text>
-</g>
-<!-- U13
-Tank -->
-<g class="node" id="node31"><title>U13
-Tank</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_29" x1="1453.02" x2="1498.02" y1="-176.5" y2="-176.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_29)" points="1498.02,-198 1453.02,-198 1453.02,-155 1498.02,-155 1498.02,-198" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1475.52" y="-180.3">U13</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1475.52" y="-165.3">Tank</text>
-</g>
-<!-- U60
-Liquids centrifuge -->
-<g class="node" id="node32"><title>U60
-Liquids centrifuge</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_30" x1="3314" x2="3431" y1="-399.5" y2="-399.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_30)" points="3431,-421 3314,-421 3314,-378 3431,-378 3431,-421" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3372.5" y="-403.3">U60</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3372.5" y="-388.3">Liquids centrifuge</text>
-</g>
-<!-- glycerol_recycle_sys
-System -->
-<g class="node" id="node33"><title>glycerol_recycle_sys
-System</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_31" x1="3658" x2="3792" y1="-400.5" y2="-400.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_31)" points="3792,-422 3658,-422 3658,-379 3792,-379 3792,-422" stroke="black"/>
-<polygon fill="none" points="3796,-426 3654,-426 3654,-375 3796,-375 3796,-426" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3725" y="-404.3">glycerol_recycle_sys</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3725" y="-389.3">System</text>
-</g>
-<!-- U80
-Cooling -->
-<g class="node" id="node34"><title>U80
-Cooling</title>
-<ellipse cx="3891.41" cy="-464.5" fill="#cfecf0" rx="31.313" ry="31.313" stroke="none"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3891.41" y="-468.3">U80</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3891.41" y="-453.3">Cooling</text>
-</g>
-<!-- U52
-Mixer -->
-<g class="node" id="node35"><title>U52
-Mixer</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_32" x1="5109.39" x2="5213.03" y1="-79.5" y2="-79.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_32)" points="5213.03,-79.5 5109.39,-133.481 5109.39,-25.5187 5213.03,-79.5" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="5143.94" y="-83.3">U52</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="5143.94" y="-68.3">Mixer</text>
-</g>
-<!-- U81
-Tank -->
-<g class="node" id="node36"><title>U81
-Tank</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_33" x1="3702.5" x2="3747.5" y1="-602.5" y2="-602.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_33)" points="3747.5,-624 3702.5,-624 3702.5,-581 3747.5,-581 3747.5,-624" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3725" y="-606.3">U81</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3725" y="-591.3">Tank</text>
-</g>
-<!-- CT
-Cooling tower -->
-<g class="node" id="node37"><title>CT
-Cooling tower</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_34" x1="0" x2="96" y1="-238.5" y2="-238.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_34)" points="96,-260 0,-260 0,-217 96,-217 96,-260" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="48" y="-242.3">CT</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="48" y="-227.3">Cooling tower</text>
+<polygon fill="url(#l_53)" points="5048.43,-75.7401 5167.52,-21.7588 5167.52,-129.721 5048.43,-75.7401" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="5127.82" y="-79.5401">U57</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="5127.82" y="-64.5401">Splitter</text>
 </g>
 <!-- U24
 Liquids centrifuge -->
-<g class="node" id="node38"><title>U24
+<g class="node" id="node58"><title>U24
 Liquids centrifuge</title>
 <defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_35" x1="2552.6" x2="2669.6" y1="-399.5" y2="-399.5">
+<linearGradient gradientUnits="userSpaceOnUse" id="l_54" x1="2547.6" x2="2664.6" y1="-301.74" y2="-301.74">
 <stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
 <stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
 </linearGradient>
 </defs>
-<polygon fill="url(#l_35)" points="2669.6,-421 2552.6,-421 2552.6,-378 2669.6,-378 2669.6,-421" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2611.1" y="-403.3">U24</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2611.1" y="-388.3">Liquids centrifuge</text>
+<polygon fill="url(#l_54)" points="2664.6,-323.24 2547.6,-323.24 2547.6,-280.24 2664.6,-280.24 2664.6,-323.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2606.1" y="-305.54">U24</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2606.1" y="-290.54">Liquids centrifuge</text>
 </g>
-<!-- U83
-Tank -->
-<g class="node" id="node39"><title>U83
-Tank</title>
+<!-- glycerol_recycle_sys
+System -->
+<g class="node" id="node59"><title>glycerol_recycle_sys
+System</title>
 <defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_36" x1="3702.5" x2="3747.5" y1="-656.5" y2="-656.5">
+<linearGradient gradientUnits="userSpaceOnUse" id="l_55" x1="2539.1" x2="2673.1" y1="-633.74" y2="-633.74">
 <stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
 <stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
 </linearGradient>
 </defs>
-<polygon fill="url(#l_36)" points="3747.5,-678 3702.5,-678 3702.5,-635 3747.5,-635 3747.5,-678" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3725" y="-660.3">U83</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3725" y="-645.3">Tank</text>
-</g>
-<!-- U47
-Cooling -->
-<g class="node" id="node40"><title>U47
-Cooling</title>
-<ellipse cx="4638.75" cy="-140.5" fill="#cfecf0" rx="31.313" ry="31.313" stroke="none"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4638.75" y="-144.3">U47</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4638.75" y="-129.3">Cooling</text>
-</g>
-<!-- U41
-Pump -->
-<g class="node" id="node41"><title>U41
-Pump</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_37" x1="4429.75" x2="4479.75" y1="-112.5" y2="-112.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_37)" points="4479.75,-134 4429.75,-134 4429.75,-91 4479.75,-91 4479.75,-134" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4454.75" y="-116.3">U41</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4454.75" y="-101.3">Pump</text>
+<polygon fill="url(#l_55)" points="2673.1,-655.24 2539.1,-655.24 2539.1,-612.24 2673.1,-612.24 2673.1,-655.24" stroke="black"/>
+<polygon fill="none" points="2677.1,-659.24 2535.1,-659.24 2535.1,-608.24 2677.1,-608.24 2677.1,-659.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2606.1" y="-637.54">glycerol_recycle_sys</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2606.1" y="-622.54">System</text>
 </g>
 <!-- U25
 Flash -->
-<g class="node" id="node42"><title>U25
+<g class="node" id="node60"><title>U25
 Flash</title>
 <defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_38" x1="2743.1" x2="2790.1" y1="-399.5" y2="-399.5">
+<linearGradient gradientUnits="userSpaceOnUse" id="l_56" x1="2750.51" x2="2797.51" y1="-285.74" y2="-285.74">
 <stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
 <stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
 </linearGradient>
 </defs>
-<polygon fill="url(#l_38)" points="2790.1,-421 2743.1,-421 2743.1,-378 2790.1,-378 2790.1,-421" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2766.6" y="-403.3">U25</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2766.6" y="-388.3">Flash</text>
+<polygon fill="url(#l_56)" points="2797.51,-307.24 2750.51,-307.24 2750.51,-264.24 2797.51,-264.24 2797.51,-307.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2774.01" y="-289.54">U25</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2774.01" y="-274.54">Flash</text>
 </g>
-<!-- U82
-Pump -->
-<g class="node" id="node43"><title>U82
-Pump</title>
+<!-- U64
+Liquids centrifuge -->
+<g class="node" id="node61"><title>U64
+Liquids centrifuge</title>
 <defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_39" x1="3866.41" x2="3916.41" y1="-606.5" y2="-606.5">
+<linearGradient gradientUnits="userSpaceOnUse" id="l_57" x1="2337.9" x2="2454.9" y1="-632.74" y2="-632.74">
 <stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
 <stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
 </linearGradient>
 </defs>
-<polygon fill="url(#l_39)" points="3916.41,-628 3866.41,-628 3866.41,-585 3916.41,-585 3916.41,-628" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3891.41" y="-610.3">U82</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3891.41" y="-595.3">Pump</text>
+<polygon fill="url(#l_57)" points="2454.9,-654.24 2337.9,-654.24 2337.9,-611.24 2454.9,-611.24 2454.9,-654.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2396.4" y="-636.54">U64</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2396.4" y="-621.54">Liquids centrifuge</text>
 </g>
-<!-- U37
-Mixer -->
-<g class="node" id="node44"><title>U37
-Mixer</title>
+<!-- U81
+Cooling -->
+<g class="node" id="node62"><title>U81
+Cooling</title>
+<ellipse cx="2774.01" cy="-560.74" fill="#cfecf0" rx="31.313" ry="31.313" stroke="none"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2774.01" y="-564.54">U81</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2774.01" y="-549.54">Cooling</text>
+</g>
+<!-- U36
+Solids centrifuge -->
+<g class="node" id="node63"><title>U36
+Solids centrifuge</title>
 <defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_40" x1="3690.46" x2="3794.1" y1="-115.5" y2="-115.5">
+<linearGradient gradientUnits="userSpaceOnUse" id="l_58" x1="3635.4" x2="3745.4" y1="-264.74" y2="-264.74">
 <stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
 <stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
 </linearGradient>
 </defs>
-<polygon fill="url(#l_40)" points="3794.1,-115.5 3690.46,-169.481 3690.46,-61.5187 3794.1,-115.5" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3725" y="-119.3">U37</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3725" y="-104.3">Mixer</text>
+<polygon fill="url(#l_58)" points="3745.4,-286.24 3635.4,-286.24 3635.4,-243.24 3745.4,-243.24 3745.4,-286.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3690.4" y="-268.54">U36</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3690.4" y="-253.54">Solids centrifuge</text>
+</g>
+<!-- U40
+Stripper -->
+<g class="node" id="node64"><title>U40
+Stripper</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_59" x1="4286.03" x2="4358.03" y1="-132.74" y2="-132.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_59)" points="4358.03,-175.74 4286.03,-175.74 4286.03,-89.7401 4358.03,-89.7401 4358.03,-175.74" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4322.03" y="-136.54">U40</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4322.03" y="-121.54">Stripper</text>
+</g>
+<!-- U86
+Tank -->
+<g class="node" id="node65"><title>U86
+Tank</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_60" x1="2938.21" x2="2983.21" y1="-444.74" y2="-444.74">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_60)" points="2983.21,-466.24 2938.21,-466.24 2938.21,-423.24 2983.21,-423.24 2983.21,-466.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2960.71" y="-448.54">U86</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2960.71" y="-433.54">Tank</text>
 </g>
 <!-- U31
 Mixer -->
-<g class="node" id="node45"><title>U31
+<g class="node" id="node66"><title>U31
 Mixer</title>
 <defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_41" x1="2912.35" x2="3015.99" y1="-118.5" y2="-118.5">
+<linearGradient gradientUnits="userSpaceOnUse" id="l_61" x1="2926.16" x2="3029.8" y1="-142.74" y2="-142.74">
 <stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
 <stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
 </linearGradient>
 </defs>
-<polygon fill="url(#l_41)" points="3015.99,-118.5 2912.35,-172.481 2912.35,-64.5187 3015.99,-118.5" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2946.9" y="-122.3">U31</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2946.9" y="-107.3">Mixer</text>
-</g>
-<!-- U7
-Conveying belt -->
-<g class="node" id="node46"><title>U7
-Conveying belt</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_42" x1="1005" x2="1106" y1="-80.5" y2="-80.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_42)" points="1106,-102 1005,-102 1005,-59 1106,-59 1106,-102" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1055.5" y="-84.3">U7</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1055.5" y="-69.3">Conveying belt</text>
-</g>
-<!-- U61
-Pump -->
-<g class="node" id="node47"><title>U61
-Pump</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_43" x1="3517.5" x2="3567.5" y1="-400.5" y2="-400.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_43)" points="3567.5,-422 3517.5,-422 3517.5,-379 3567.5,-379 3567.5,-422" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3542.5" y="-404.3">U61</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3542.5" y="-389.3">Pump</text>
+<polygon fill="url(#l_61)" points="3029.8,-142.74 2926.16,-196.721 2926.16,-88.7588 3029.8,-142.74" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2960.71" y="-146.54">U31</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2960.71" y="-131.54">Mixer</text>
 </g>
 <!-- U32
 Cooling -->
-<g class="node" id="node48"><title>U32
+<g class="node" id="node67"><title>U32
 Cooling</title>
-<ellipse cx="3105.6" cy="-118.5" fill="#cfecf0" rx="31.313" ry="31.313" stroke="none"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3105.6" y="-122.3">U32</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3105.6" y="-107.3">Cooling</text>
-</g>
-<!-- U62
-Reactor -->
-<g class="node" id="node49"><title>U62
-Reactor</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_44" x1="4424.25" x2="4485.25" y1="-437.5" y2="-437.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_44)" points="4485.25,-459 4424.25,-459 4424.25,-416 4485.25,-416 4485.25,-459" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4454.75" y="-441.3">U62</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4454.75" y="-426.3">Reactor</text>
-</g>
-<!-- U48
-Tank -->
-<g class="node" id="node50"><title>U48
-Tank</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_45" x1="4755.25" x2="4800.25" y1="-135.5" y2="-135.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_45)" points="4800.25,-157 4755.25,-157 4755.25,-114 4800.25,-114 4800.25,-157" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4777.75" y="-139.3">U48</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4777.75" y="-124.3">Tank</text>
-</g>
-<!-- U57
-Tank -->
-<g class="node" id="node51"><title>U57
-Tank</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_46" x1="2924.4" x2="2969.4" y1="-399.5" y2="-399.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_46)" points="2969.4,-421 2924.4,-421 2924.4,-378 2969.4,-378 2969.4,-421" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2946.9" y="-403.3">U57</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2946.9" y="-388.3">Tank</text>
-</g>
-<!-- U50
-Tank -->
-<g class="node" id="node52"><title>U50
-Tank</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_47" x1="4755.25" x2="4800.25" y1="-78.5" y2="-78.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_47)" points="4800.25,-100 4755.25,-100 4755.25,-57 4800.25,-57 4800.25,-100" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4777.75" y="-82.3">U50</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4777.75" y="-67.3">Tank</text>
-</g>
-<!-- U34
-Reactor -->
-<g class="node" id="node53"><title>U34
-Reactor</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_48" x1="3195" x2="3256" y1="-118.5" y2="-118.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_48)" points="3256,-140 3195,-140 3195,-97 3256,-97 3256,-140" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3225.5" y="-122.3">U34</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3225.5" y="-107.3">Reactor</text>
-</g>
-<!-- U49
-Pump -->
-<g class="node" id="node54"><title>U49
-Pump</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_49" x1="4912.45" x2="4962.45" y1="-133.5" y2="-133.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_49)" points="4962.45,-155 4912.45,-155 4912.45,-112 4962.45,-112 4962.45,-155" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4937.45" y="-137.3">U49</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4937.45" y="-122.3">Pump</text>
-</g>
-<!-- U84
-Pump -->
-<g class="node" id="node55"><title>U84
-Pump</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_50" x1="3866.41" x2="3916.41" y1="-660.5" y2="-660.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_50)" points="3916.41,-682 3866.41,-682 3866.41,-639 3916.41,-639 3916.41,-682" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3891.41" y="-664.3">U84</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3891.41" y="-649.3">Pump</text>
-</g>
-<!-- crushing_mill_recycle
-System -->
-<g class="node" id="node56"><title>crushing_mill_recycle
-System</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_51" x1="749" x2="887" y1="-98.5" y2="-98.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_51)" points="887,-120 749,-120 749,-77 887,-77 887,-120" stroke="black"/>
-<polygon fill="none" points="891,-124 745,-124 745,-73 891,-73 891,-124" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="818" y="-102.3">crushing_mill_recycle</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="818" y="-87.3">System</text>
-</g>
-<!-- U63
-Liquids centrifuge -->
-<g class="node" id="node57"><title>U63
-Liquids centrifuge</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_52" x1="4580.25" x2="4697.25" y1="-437.5" y2="-437.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_52)" points="4697.25,-459 4580.25,-459 4580.25,-416 4697.25,-416 4697.25,-459" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4638.75" y="-441.3">U63</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4638.75" y="-426.3">Liquids centrifuge</text>
+<ellipse cx="3173.2" cy="-153.74" fill="#cfecf0" rx="31.313" ry="31.313" stroke="none"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3173.2" y="-157.54">U32</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3173.2" y="-142.54">Cooling</text>
 </g>
 <!-- U35
 Tank -->
-<g class="node" id="node58"><title>U35
+<g class="node" id="node68"><title>U35
 Tank</title>
 <defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_53" x1="3350" x2="3395" y1="-62.5" y2="-62.5">
+<linearGradient gradientUnits="userSpaceOnUse" id="l_62" x1="3496.4" x2="3541.4" y1="-264.74" y2="-264.74">
 <stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
 <stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
 </linearGradient>
 </defs>
-<polygon fill="url(#l_53)" points="3395,-84 3350,-84 3350,-41 3395,-41 3395,-84" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3372.5" y="-66.3">U35</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3372.5" y="-51.3">Tank</text>
+<polygon fill="url(#l_62)" points="3541.4,-286.24 3496.4,-286.24 3496.4,-243.24 3541.4,-243.24 3541.4,-286.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3518.9" y="-268.54">U35</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3518.9" y="-253.54">Tank</text>
 </g>
-<!-- U53
-Tank -->
-<g class="node" id="node59"><title>U53
-Tank</title>
+<!-- clarification_recycle
+System -->
+<g class="node" id="node69"><title>clarification_recycle
+System</title>
 <defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_54" x1="5271.24" x2="5316.24" y1="-79.5" y2="-79.5">
+<linearGradient gradientUnits="userSpaceOnUse" id="l_63" x1="1678.02" x2="1806.02" y1="-180.74" y2="-180.74">
 <stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
 <stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
 </linearGradient>
 </defs>
-<polygon fill="url(#l_54)" points="5316.24,-101 5271.24,-101 5271.24,-58 5316.24,-58 5316.24,-101" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="5293.74" y="-83.3">U53</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="5293.74" y="-68.3">Tank</text>
+<polygon fill="url(#l_63)" points="1806.02,-202.24 1678.02,-202.24 1678.02,-159.24 1806.02,-159.24 1806.02,-202.24" stroke="black"/>
+<polygon fill="none" points="1810.02,-206.24 1674.02,-206.24 1674.02,-155.24 1810.02,-155.24 1810.02,-206.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1742.02" y="-184.54">clarification_recycle</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1742.02" y="-169.54">System</text>
 </g>
-<!-- Polymer
-Water_1
- -->
-<g class="node" id="node60"><title>Polymer
-Water_1
-</title>
+<!-- purification_recycle
+System -->
+<g class="node" id="node70"><title>purification_recycle
+System</title>
 <defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_55" x1="1556.02" x2="1621.02" y1="-230.5" y2="-230.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#79dae8;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_55)" points="1621.02,-252 1556.02,-252 1556.02,-209 1621.02,-209 1621.02,-252" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1588.52" y="-234.3">Polymer</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1588.52" y="-219.3">Water_1</text>
-</g>
-<!-- U51
-Pump -->
-<g class="node" id="node61"><title>U51
-Pump</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_56" x1="4912.45" x2="4962.45" y1="-79.5" y2="-79.5">
+<linearGradient gradientUnits="userSpaceOnUse" id="l_64" x1="4420.03" x2="4547.03" y1="-175.74" y2="-175.74">
 <stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
 <stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
 </linearGradient>
 </defs>
-<polygon fill="url(#l_56)" points="4962.45,-101 4912.45,-101 4912.45,-58 4962.45,-58 4962.45,-101" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4937.45" y="-83.3">U51</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4937.45" y="-68.3">Pump</text>
+<polygon fill="url(#l_64)" points="4547.03,-197.24 4420.03,-197.24 4420.03,-154.24 4547.03,-154.24 4547.03,-197.24" stroke="black"/>
+<polygon fill="none" points="4551.03,-201.24 4416.03,-201.24 4416.03,-150.24 4551.03,-150.24 4551.03,-201.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4483.53" y="-179.54">purification_recycle</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4483.53" y="-164.54">System</text>
 </g>
-<!-- U8
-Tank -->
-<g class="node" id="node62"><title>U8
-Tank</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_57" x1="942" x2="987" y1="-120.5" y2="-120.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_57)" points="987,-142 942,-142 942,-99 987,-99 987,-142" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="964.5" y="-124.3">U8</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="964.5" y="-109.3">Tank</text>
+<!-- S188 -->
+<g class="node" id="node71"><title>S188</title>
+<polygon fill="#79dae8" points="2778.51,-355.24 2751.51,-355.24 2751.51,-324.24 2778.51,-324.24 2778.51,-318.24 2796.51,-339.74 2778.51,-361.24 2778.51,-355.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2774.01" y="-336.04">S188</text>
 </g>
-<!-- U87
-Tank -->
-<g class="node" id="node63"><title>U87
-Tank</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_58" x1="3868.91" x2="3913.91" y1="-346.5" y2="-346.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_58)" points="3913.91,-368 3868.91,-368 3868.91,-325 3913.91,-325 3913.91,-368" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3891.41" y="-350.3">U87</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3891.41" y="-335.3">Tank</text>
+<!-- CO2 -->
+<g class="node" id="node72"><title>CO2</title>
+<polygon fill="#79dae8" points="3522.9,-226.24 3496.9,-226.24 3496.9,-195.24 3522.9,-195.24 3522.9,-189.24 3540.9,-210.74 3522.9,-232.24 3522.9,-226.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3518.9" y="-207.04">CO2</text>
 </g>
-<!-- U58
-Pump -->
-<g class="node" id="node64"><title>U58
-Pump</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_59" x1="3080.6" x2="3130.6" y1="-399.5" y2="-399.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_59)" points="3130.6,-421 3080.6,-421 3080.6,-378 3130.6,-378 3130.6,-421" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3105.6" y="-403.3">U58</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3105.6" y="-388.3">Pump</text>
-</g>
-<!-- U36
-Yeast centrifuge -->
-<g class="node" id="node65"><title>U36
-Yeast centrifuge</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_60" x1="3489" x2="3596" y1="-61.5" y2="-61.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_60)" points="3596,-83 3489,-83 3489,-40 3596,-40 3596,-83" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3542.5" y="-65.3">U36</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3542.5" y="-50.3">Yeast centrifuge</text>
-</g>
-<!-- U28
-Splitter -->
-<g class="node" id="node66"><title>U28
-Splitter</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_61" x1="2322.01" x2="2441.1" y1="-158.5" y2="-158.5">
-<stop offset="0" style="stop-color:#bfbfbf;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:white;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_61)" points="2322.01,-158.5 2441.1,-104.519 2441.1,-212.481 2322.01,-158.5" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2401.4" y="-162.3">U28</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2401.4" y="-147.3">Splitter</text>
-</g>
-<!-- U9
-Heating -->
-<g class="node" id="node67"><title>U9
-Heating</title>
-<ellipse cx="1154.01" cy="-123.5" fill="#fad6d8" rx="30.0211" ry="30.0211" stroke="none"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1154.01" y="-127.3">U9</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1154.01" y="-112.3">Heating</text>
-</g>
-<!-- U85
-Tank -->
-<g class="node" id="node68"><title>U85
-Tank</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_62" x1="4024.34" x2="4069.34" y1="-627.5" y2="-627.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_62)" points="4069.34,-649 4024.34,-649 4024.34,-606 4069.34,-606 4069.34,-649" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4046.84" y="-631.3">U85</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4046.84" y="-616.3">Tank</text>
-</g>
-<!-- U29
-Multi&#45;effect evaporator -->
-<g class="node" id="node69"><title>U29
-Multi-effect evaporator</title>
-<defs>
-<linearGradient gradientUnits="userSpaceOnUse" id="l_63" x1="2538.6" x2="2683.6" y1="-158.5" y2="-158.5">
-<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
-<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
-</linearGradient>
-</defs>
-<polygon fill="url(#l_63)" points="2683.6,-180 2538.6,-180 2538.6,-137 2683.6,-137 2683.6,-180" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2611.1" y="-162.3">U29</text>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2611.1" y="-147.3">Multi-effect evaporator</text>
-</g>
-<!-- Methanol -->
-<g class="node" id="node70"><title>Methanol</title>
-<polygon fill="#79dae8" points="3558.5,-618 3508.5,-618 3508.5,-587 3558.5,-587 3558.5,-581 3576.5,-602.5 3558.5,-624 3558.5,-618" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3542.5" y="-598.8">Methanol</text>
-</g>
-<!-- Catalyst -->
-<g class="node" id="node71"><title>Catalyst</title>
-<polygon fill="#79dae8" points="3555.5,-672 3511.5,-672 3511.5,-641 3555.5,-641 3555.5,-635 3573.5,-656.5 3555.5,-678 3555.5,-672" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3542.5" y="-652.8">Catalyst</text>
+<!-- S198 -->
+<g class="node" id="node73"><title>S198</title>
+<polygon fill="#79dae8" points="2965.21,-301.24 2938.21,-301.24 2938.21,-270.24 2965.21,-270.24 2965.21,-264.24 2983.21,-285.74 2965.21,-307.24 2965.21,-301.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2960.71" y="-282.04">S198</text>
 </g>
 <!-- Crude_glycerol -->
-<g class="node" id="node72"><title>Crude_glycerol</title>
-<polygon fill="#79dae8" points="4080.34,-362 3995.34,-362 3995.34,-331 4080.34,-331 4080.34,-325 4098.34,-346.5 4080.34,-368 4080.34,-362" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4046.84" y="-342.8">Crude_glycerol</text>
+<g class="node" id="node74"><title>Crude_glycerol</title>
+<polygon fill="#79dae8" points="2994.21,-771.24 2909.21,-771.24 2909.21,-740.24 2994.21,-740.24 2994.21,-734.24 3012.21,-755.74 2994.21,-777.24 2994.21,-771.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2960.71" y="-752.04">Crude_glycerol</text>
 </g>
 <!-- Biodiesel -->
-<g class="node" id="node73"><title>Biodiesel</title>
-<polygon fill="#79dae8" points="4062.84,-416 4012.84,-416 4012.84,-385 4062.84,-385 4062.84,-379 4080.84,-400.5 4062.84,-422 4062.84,-416" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4046.84" y="-396.8">Biodiesel</text>
+<g class="node" id="node75"><title>Biodiesel</title>
+<polygon fill="#79dae8" points="2976.71,-663.24 2926.71,-663.24 2926.71,-632.24 2976.71,-632.24 2976.71,-626.24 2994.71,-647.74 2976.71,-669.24 2976.71,-663.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2960.71" y="-644.04">Biodiesel</text>
 </g>
 <!-- Waste -->
-<g class="node" id="node74"><title>Waste</title>
-<polygon fill="#79dae8" points="3899.41,-544 3865.41,-544 3865.41,-513 3899.41,-513 3899.41,-507 3917.41,-528.5 3899.41,-550 3899.41,-544" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3891.41" y="-524.8">Waste</text>
-</g>
-<!-- Lipid_cane -->
-<g class="node" id="node75"><title>Lipid_cane</title>
-<polygon fill="#79dae8" points="69.5,-200 8.5,-200 8.5,-169 69.5,-169 69.5,-163 87.5,-184.5 69.5,-206 69.5,-200" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="48" y="-180.8">Lipid_cane</text>
-</g>
-<!-- Enzyme -->
-<g class="node" id="node76"><title>Enzyme</title>
-<polygon fill="#79dae8" points="505.5,-146 462.5,-146 462.5,-115 505.5,-115 505.5,-109 523.5,-130.5 505.5,-152 505.5,-146" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="493" y="-126.8">Enzyme</text>
-</g>
-<!-- Imbibition_water -->
-<g class="node" id="node77"><title>Imbibition_water</title>
-<polygon fill="#79dae8" points="673.5,-103 580.5,-103 580.5,-72 673.5,-72 673.5,-66 691.5,-87.5 673.5,-109 673.5,-103" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="636" y="-83.8">Imbibition_water</text>
+<g class="node" id="node76"><title>Waste</title>
+<polygon fill="#79dae8" points="2782.01,-717.24 2748.01,-717.24 2748.01,-686.24 2782.01,-686.24 2782.01,-680.24 2800.01,-701.74 2782.01,-723.24 2782.01,-717.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2774.01" y="-698.04">Waste</text>
 </g>
 <!-- S134 -->
-<g class="node" id="node78"><title>S134</title>
-<polygon fill="#79dae8" points="3547,-131 3520,-131 3520,-100 3547,-100 3547,-94 3565,-115.5 3547,-137 3547,-131" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3542.5" y="-111.8">S134</text>
+<g class="node" id="node77"><title>S134</title>
+<polygon fill="#79dae8" points="3694.9,-224.24 3667.9,-224.24 3667.9,-193.24 3694.9,-193.24 3694.9,-187.24 3712.9,-208.74 3694.9,-230.24 3694.9,-224.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3690.4" y="-205.04">S134</text>
+</g>
+<!-- Recycle_yeast -->
+<g class="node" id="node78"><title>Recycle_yeast</title>
+<polygon fill="#79dae8" points="3903.69,-310.24 3823.69,-310.24 3823.69,-279.24 3903.69,-279.24 3903.69,-273.24 3921.69,-294.74 3903.69,-316.24 3903.69,-310.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3872.69" y="-291.04">Recycle_yeast</text>
 </g>
 <!-- Denaturant -->
 <g class="node" id="node79"><title>Denaturant</title>
-<polygon fill="#79dae8" points="4659.25,-92 4600.25,-92 4600.25,-61 4659.25,-61 4659.25,-55 4677.25,-76.5 4659.25,-98 4659.25,-92" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4638.75" y="-72.8">Denaturant</text>
+<polygon fill="#79dae8" points="4668.03,-179.24 4609.03,-179.24 4609.03,-148.24 4668.03,-148.24 4668.03,-142.24 4686.03,-163.74 4668.03,-185.24 4668.03,-179.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4647.53" y="-160.04">Denaturant</text>
 </g>
-<!-- Yeast -->
-<g class="node" id="node80"><title>Yeast</title>
-<polygon fill="#79dae8" points="2952.9,-220 2922.9,-220 2922.9,-189 2952.9,-189 2952.9,-183 2970.9,-204.5 2952.9,-226 2952.9,-220" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2946.9" y="-200.8">Yeast</text>
-</g>
-<!-- H3PO4 -->
-<g class="node" id="node81"><title>H3PO4</title>
-<polygon fill="#79dae8" points="1165.51,-202 1124.51,-202 1124.51,-171 1165.51,-171 1165.51,-165 1183.51,-186.5 1165.51,-208 1165.51,-202" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1154.01" y="-182.8">H3PO4</text>
-</g>
-<!-- Ethanol -->
-<g class="node" id="node82"><title>Ethanol</title>
-<polygon fill="#79dae8" points="5394.24,-95 5353.24,-95 5353.24,-64 5394.24,-64 5394.24,-58 5412.24,-79.5 5394.24,-101 5394.24,-95" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="5382.74" y="-75.8">Ethanol</text>
-</g>
-<!-- Lime -->
-<g class="node" id="node83"><title>Lime</title>
-<polygon fill="#79dae8" points="1268.52,-224 1242.52,-224 1242.52,-193 1268.52,-193 1268.52,-187 1286.52,-208.5 1268.52,-230 1268.52,-224" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1264.52" y="-204.8">Lime</text>
-</g>
-<!-- Water_2 -->
-<g class="node" id="node84"><title>Water_2</title>
-<polygon fill="#79dae8" points="2153.41,-412 2106.41,-412 2106.41,-381 2153.41,-381 2153.41,-375 2171.41,-396.5 2153.41,-418 2153.41,-412" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2138.91" y="-392.8">Water_2</text>
-</g>
-<!-- S254 -->
-<g class="node" id="node85"><title>S254</title>
-<polygon fill="#79dae8" points="1751.52,-167 1724.52,-167 1724.52,-136 1751.52,-136 1751.52,-130 1769.52,-151.5 1751.52,-173 1751.52,-167" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1747.02" y="-147.8">S254</text>
-</g>
-<!-- Emission -->
-<g class="node" id="node86"><title>Emission</title>
-<polygon fill="#79dae8" points="2627.1,-37 2577.1,-37 2577.1,-6 2627.1,-6 2627.1,-0 2645.1,-21.5 2627.1,-43 2627.1,-37" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2611.1" y="-17.8">Emission</text>
-</g>
-<!-- Steam -->
-<g class="node" id="node87"><title>Steam</title>
-<polygon fill="#79dae8" points="2618.6,-91 2585.6,-91 2585.6,-60 2618.6,-60 2618.6,-54 2636.6,-75.5 2618.6,-97 2618.6,-91" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2611.1" y="-71.8">Steam</text>
-</g>
-<!-- CO2 -->
-<g class="node" id="node88"><title>CO2</title>
-<polygon fill="#79dae8" points="3376.5,-134 3350.5,-134 3350.5,-103 3376.5,-103 3376.5,-97 3394.5,-118.5 3376.5,-140 3376.5,-134" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3372.5" y="-114.8">CO2</text>
-</g>
-<!-- Recycle_yeast -->
-<g class="node" id="node89"><title>Recycle_yeast</title>
-<polygon fill="#79dae8" points="3756,-45 3676,-45 3676,-14 3756,-14 3756,-8 3774,-29.5 3756,-51 3756,-45" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="3725" y="-25.8">Recycle_yeast</text>
+<!-- Lipid_cane -->
+<g class="node" id="node80"><title>Lipid_cane</title>
+<polygon fill="#79dae8" points="69.5,-171.24 8.5,-171.24 8.5,-140.24 69.5,-140.24 69.5,-134.24 87.5,-155.74 69.5,-177.24 69.5,-171.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="48" y="-152.04">Lipid_cane</text>
 </g>
 <!-- Water_4 -->
-<g class="node" id="node90"><title>Water_4</title>
-<polygon fill="#79dae8" points="5158.44,-235 5111.44,-235 5111.44,-204 5158.44,-204 5158.44,-198 5176.44,-219.5 5158.44,-241 5158.44,-235" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="5143.94" y="-215.8">Water_4</text>
+<g class="node" id="node81"><title>Water_4</title>
+<polygon fill="#79dae8" points="5312.02,-118.24 5265.02,-118.24 5265.02,-87.2401 5312.02,-87.2401 5312.02,-81.2401 5330.02,-102.74 5312.02,-124.24 5312.02,-118.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="5297.52" y="-99.0401">Water_4</text>
 </g>
-<!-- Stillage -->
-<g class="node" id="node91"><title>Stillage</title>
-<polygon fill="#79dae8" points="4260.06,-73 4222.06,-73 4222.06,-42 4260.06,-42 4260.06,-36 4278.06,-57.5 4260.06,-79 4260.06,-73" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4250.06" y="-53.8">Stillage</text>
+<!-- Enzyme -->
+<g class="node" id="node82"><title>Enzyme</title>
+<polygon fill="#79dae8" points="505.5,-117.24 462.5,-117.24 462.5,-86.2401 505.5,-86.2401 505.5,-80.2401 523.5,-101.74 505.5,-123.24 505.5,-117.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="493" y="-98.0401">Enzyme</text>
 </g>
 <!-- Water_5 -->
-<g class="node" id="node92"><title>Water_5</title>
-<polygon fill="#79dae8" points="5158.44,-181 5111.44,-181 5111.44,-150 5158.44,-150 5158.44,-144 5176.44,-165.5 5158.44,-187 5158.44,-181" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="5143.94" y="-161.8">Water_5</text>
+<g class="node" id="node83"><title>Water_5</title>
+<polygon fill="#79dae8" points="5312.02,-64.2401 5265.02,-64.2401 5265.02,-33.2401 5312.02,-33.2401 5312.02,-27.2401 5330.02,-48.7401 5312.02,-70.2401 5312.02,-64.2401" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="5297.52" y="-45.0401">Water_5</text>
+</g>
+<!-- Yeast -->
+<g class="node" id="node84"><title>Yeast</title>
+<polygon fill="#79dae8" points="2966.71,-244.24 2936.71,-244.24 2936.71,-213.24 2966.71,-213.24 2966.71,-207.24 2984.71,-228.74 2966.71,-250.24 2966.71,-244.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2960.71" y="-225.04">Yeast</text>
+</g>
+<!-- Imbibition_water -->
+<g class="node" id="node85"><title>Imbibition_water</title>
+<polygon fill="#79dae8" points="671,-74.2401 578,-74.2401 578,-43.2401 671,-43.2401 671,-37.2401 689,-58.7401 671,-80.2401 671,-74.2401" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="633.5" y="-55.0401">Imbibition_water</text>
+</g>
+<!-- Ethanol -->
+<g class="node" id="node86"><title>Ethanol</title>
+<polygon fill="#79dae8" points="5408.02,-213.24 5367.02,-213.24 5367.02,-182.24 5408.02,-182.24 5408.02,-176.24 5426.02,-197.74 5408.02,-219.24 5408.02,-213.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="5396.52" y="-194.04">Ethanol</text>
+</g>
+<!-- H3PO4 -->
+<g class="node" id="node87"><title>H3PO4</title>
+<polygon fill="#79dae8" points="1160.51,-173.24 1119.51,-173.24 1119.51,-142.24 1160.51,-142.24 1160.51,-136.24 1178.51,-157.74 1160.51,-179.24 1160.51,-173.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1149.01" y="-154.04">H3PO4</text>
+</g>
+<!-- Stillage -->
+<g class="node" id="node88"><title>Stillage</title>
+<polygon fill="#79dae8" points="4332.03,-224.24 4294.03,-224.24 4294.03,-193.24 4332.03,-193.24 4332.03,-187.24 4350.03,-208.74 4332.03,-230.24 4332.03,-224.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="4322.03" y="-205.04">Stillage</text>
+</g>
+<!-- Lime -->
+<g class="node" id="node89"><title>Lime</title>
+<polygon fill="#79dae8" points="1263.52,-203.24 1237.52,-203.24 1237.52,-172.24 1263.52,-172.24 1263.52,-166.24 1281.52,-187.74 1263.52,-209.24 1263.52,-203.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1259.52" y="-184.04">Lime</text>
+</g>
+<!-- Methanol -->
+<g class="node" id="node90"><title>Methanol</title>
+<polygon fill="#79dae8" points="2412.4,-463.24 2362.4,-463.24 2362.4,-432.24 2412.4,-432.24 2412.4,-426.24 2430.4,-447.74 2412.4,-469.24 2412.4,-463.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2396.4" y="-444.04">Methanol</text>
+</g>
+<!-- Catalyst -->
+<g class="node" id="node91"><title>Catalyst</title>
+<polygon fill="#79dae8" points="2409.4,-409.24 2365.4,-409.24 2365.4,-378.24 2409.4,-378.24 2409.4,-372.24 2427.4,-393.74 2409.4,-415.24 2409.4,-409.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2396.4" y="-390.04">Catalyst</text>
+</g>
+<!-- Emission -->
+<g class="node" id="node92"><title>Emission</title>
+<polygon fill="#79dae8" points="2622.1,-69.2401 2572.1,-69.2401 2572.1,-38.2401 2622.1,-38.2401 2622.1,-32.2401 2640.1,-53.7401 2622.1,-75.2401 2622.1,-69.2401" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2606.1" y="-50.0401">Emission</text>
+</g>
+<!-- Water_2 -->
+<g class="node" id="node93"><title>Water_2</title>
+<polygon fill="#79dae8" points="2148.41,-269.24 2101.41,-269.24 2101.41,-238.24 2148.41,-238.24 2148.41,-232.24 2166.41,-253.74 2148.41,-275.24 2148.41,-269.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2133.91" y="-250.04">Water_2</text>
+</g>
+<!-- S254 -->
+<g class="node" id="node94"><title>S254</title>
+<polygon fill="#79dae8" points="1746.52,-134.24 1719.52,-134.24 1719.52,-103.24 1746.52,-103.24 1746.52,-97.2401 1764.52,-118.74 1746.52,-140.24 1746.52,-134.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="1742.02" y="-115.04">S254</text>
 </g>
 <!-- Fiber_fines -->
-<g class="node" id="node93"><title>Fiber_fines</title>
-<polygon fill="#79dae8" points="2423.4,-260 2361.4,-260 2361.4,-229 2423.4,-229 2423.4,-223 2441.4,-244.5 2423.4,-266 2423.4,-260" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2401.4" y="-240.8">Fiber_fines</text>
-</g>
-<!-- S188 -->
-<g class="node" id="node94"><title>S188</title>
-<polygon fill="#79dae8" points="2771.1,-469 2744.1,-469 2744.1,-438 2771.1,-438 2771.1,-432 2789.1,-453.5 2771.1,-475 2771.1,-469" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2766.6" y="-449.8">S188</text>
-</g>
-<!-- S198 -->
-<g class="node" id="node95"><title>S198</title>
-<polygon fill="#79dae8" points="2951.4,-469 2924.4,-469 2924.4,-438 2951.4,-438 2951.4,-432 2969.4,-453.5 2951.4,-475 2951.4,-469" stroke="black"/>
-<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2946.9" y="-449.8">S198</text>
+<g class="node" id="node95"><title>Fiber_fines</title>
+<polygon fill="#79dae8" points="2418.4,-247.24 2356.4,-247.24 2356.4,-216.24 2418.4,-216.24 2418.4,-210.24 2436.4,-231.74 2418.4,-253.24 2418.4,-247.24" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="2396.4" y="-228.04">Fiber_fines</text>
 </g>
 </g>
 </svg>

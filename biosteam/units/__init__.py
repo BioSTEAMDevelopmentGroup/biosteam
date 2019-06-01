@@ -5,7 +5,6 @@ Created on Sun Apr 15 20:39:46 2018
 
 @author: Yoel Rene Cortes-Pena
 """
-from . import designtools
 from . import _flash
 from . import _centrifuge_LLE
 
@@ -35,13 +34,13 @@ from ._shredder import Shredder
 from ._magnetic_separator import MagneticSeparator
 from ._screw_feeder import ScrewFeeder
 from ._vibrating_screen import VibratingScreen
-from ._cooling_tower import CoolingTower
 
 # %% All units
 
-__all__ = ['Mixer', 'Splitter', 'InvSplitter', 'MixTank', 'StorageTank', 'HXutility', 'HXprocess', 'Pump', 'Distillation', 'Stripper', 'Transesterification', 'Fermentation', 'Centrifuge_LLE', 'MultiEffectEvaporator', 'EnzymeTreatment', 'CrushingMill', 'RVF', 'MolecularSieve', 'SolidsCentrifuge', 'Clarifier', 'BatchReactor', 'MassBalance', 'EnergyBalance', 'ConveyingBelt', 'Shredder', 'MagneticSeparator', 'ScrewFeeder', 'VibratingScreen', 'CoolingTower']
+__all__ = ['Mixer', 'Splitter', 'InvSplitter', 'MixTank', 'StorageTank', 'HXutility', 'HXprocess', 'Pump', 'Distillation', 'Stripper', 'Transesterification', 'Fermentation', 'Centrifuge_LLE', 'MultiEffectEvaporator', 'EnzymeTreatment', 'CrushingMill', 'RVF', 'MolecularSieve', 'SolidsCentrifuge', 'Clarifier', 'BatchReactor', 'MassBalance', 'EnergyBalance', 'ConveyingBelt', 'Shredder', 'MagneticSeparator', 'ScrewFeeder', 'VibratingScreen']
 
 __all__.extend(_flash.__all__)
+__all__.extend(_centrifuge_LLE.__all__)
 
 # %% Enhance Graphics
 

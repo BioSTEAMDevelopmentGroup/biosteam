@@ -13,8 +13,8 @@ __all__ = ('State',)
 
 # %% functions
 
-def blockunit(blockf):
-    element = blockf._element
+def param_unit(param):
+    element = param.element
     if isinstance(element, Unit): return element
     elif isinstance(element, Stream): return element._sink
 
@@ -39,10 +39,10 @@ def modelfunction(params):
             sim = None
             for p, x, same in zip_(params, sample, cached==sample):
                 if same: continue
-                p._setter(x)
+                p.setter(x)
                 if sim: continue
-                if p._system: sim = p._simulate 
-                else: p._simulate()
+                if p.system: sim = p.simulate 
+                else: p.simulate()
             if sim: sim()
             cached = sample
         except Exception as Error:
@@ -115,8 +115,8 @@ class State:
     def _loadmodel(self):
         length = len( self._system._unitnetwork)
         index =  self._system._unitnetwork.index
-        self._params.sort(key=lambda x: index(blockunit(x))
-                                        if x._system else length)
+        self._params.sort(key=lambda x: index(param_unit(x))
+                                        if x.system else length)
         self._model = modelfunction(self._params)
     
     def __call__(self, sample):
@@ -139,9 +139,9 @@ class State:
         lenghts_block = []
         lastblk = None
         for i in self._params:
-            blk = elementname(i._element)
+            blk = elementname(i.element)
             element = len(blk)*' ' if blk==lastblk else blk
-            lines.append(f"  {element}${i._name}\n")
+            lines.append(f"  {element}${i.name}\n")
             lastblk = blk
             lenghts_block.append(len(blk))
         maxlen_block = max(lenghts_block)

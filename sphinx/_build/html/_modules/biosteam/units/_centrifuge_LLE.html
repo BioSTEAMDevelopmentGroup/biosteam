@@ -60,14 +60,21 @@
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">MixedStream</span>
-<span class="kn">from</span> <span class="nn">._flash</span> <span class="k">import</span> <span class="n">RatioFlash</span><span class="p">,</span> <span class="n">PartitionFlash</span>
-<span class="kn">from</span> <span class="nn">._splitter</span> <span class="k">import</span> <span class="n">Splitter</span>
-<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">copy</span>
+<span class="kn">from</span> <span class="nn">._flash</span> <span class="k">import</span> <span class="n">RatioFlash</span>
+<span class="kn">from</span> <span class="nn">.metaclasses</span> <span class="k">import</span> <span class="n">splitter</span>
+<span class="kn">from</span> <span class="nn">.decorators</span> <span class="k">import</span> <span class="n">cost</span><span class="p">,</span> <span class="n">design</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Centrifuge_LLE&#39;</span><span class="p">,</span> <span class="s1">&#39;RatioCentrifuge_LLE&#39;</span><span class="p">,</span>
-           <span class="s1">&#39;SplitCentrifuge_LLE&#39;</span><span class="p">,</span> <span class="s1">&#39;PartitionCentrifuge_LLE&#39;</span><span class="p">)</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Centrifuge_LLE&#39;</span><span class="p">,</span> <span class="s1">&#39;RatioCentrifuge_LLE&#39;</span><span class="p">,</span> <span class="s1">&#39;SplitCentrifuge_LLE&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Centrifuge_LLE"><a class="viewcode-back" href="../../../Centrifuge_LLE.html#biosteam.units.Centrifuge_LLE">[docs]</a><span class="k">class</span> <span class="nc">Centrifuge_LLE</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
+<span class="c1"># electricity kW/(m3/hr) from USDA biosdiesel Super Pro model</span>
+<span class="c1"># Possibly 1.4  kW/(m3/hr)</span>
+<span class="c1"># https://www.sciencedirect.com/topics/engineering/disc-stack-centrifuge</span>
+<span class="c1"># Microalgal fatty acids—From harvesting until extraction H.M. Amaro, et. al.,</span>
+<span class="c1"># in Microalgae-Based Biofuels and Bioproducts, 2017</span>
+
+<div class="viewcode-block" id="Centrifuge_LLE"><a class="viewcode-back" href="../../../Centrifuge_LLE.html#biosteam.units.Centrifuge_LLE">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">525.4</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mi">28100</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="mf">0.574</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mf">3.66</span><span class="p">)</span>
+<span class="nd">@design</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;m^3/hr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_volnet_out</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">Centrifuge_LLE</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Create an equlibrium based centrifuge with the option of having liquid non-keys and LIQUID non-keys completly separate into their respective phases.</span>
 
 <span class="sd">    Equation for f.o.b cost:</span>
@@ -111,63 +118,32 @@
                <span class="s1">&#39;LNK&#39;</span><span class="p">:</span> <span class="p">(),</span>
                <span class="s1">&#39;solvents&#39;</span><span class="p">:</span> <span class="p">(),</span>
                <span class="s1">&#39;solvent_split&#39;</span><span class="p">:</span> <span class="p">()}</span>
-
     <span class="n">_bounds</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mi">100</span><span class="p">)}</span>
-    <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">:</span> <span class="s1">&#39;m^3/hr&#39;</span><span class="p">}</span>
-    <span class="n">electricity_rate</span> <span class="o">=</span> <span class="mf">3.66</span> <span class="c1">#: kW/(m3/hr) from USDA biosdiesel Super Pro model</span>
-    <span class="c1"># Possibly 1.4  kW/(m3/hr)</span>
-    <span class="c1"># https://www.sciencedirect.com/topics/engineering/disc-stack-centrifuge</span>
-    <span class="c1"># Microalgal fatty acids—From harvesting until extraction H.M. Amaro, ... A. Catarina Guedes, in Microalgae-Based Biofuels and Bioproducts, 2017</span>
-    <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">liq</span><span class="p">,</span> <span class="n">LIQ</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">liq</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
-        <span class="n">LIQ</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span> <span class="o">=</span> <span class="n">cached</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;mixed stream&#39;</span><span class="p">]</span> <span class="o">=</span>  <span class="n">MixedStream</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="s1">&#39;species_IDs&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="s1">&#39;species_IDs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">species_IDs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mixedstream</span> <span class="o">=</span>  <span class="n">MixedStream</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">liq</span><span class="p">,</span> <span class="n">LIQ</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-
-        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span>
-        <span class="n">LLE_kwargs</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
-
-        <span class="n">ms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span><span class="p">[</span><span class="s1">&#39;mixed stream&#39;</span><span class="p">]</span>
+        <span class="n">ms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mixedstream</span>
         <span class="n">ms</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
-        <span class="n">ms</span><span class="o">.</span><span class="n">liquid_mol</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span>
-        <span class="n">ms</span><span class="o">.</span><span class="n">LLE</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="n">feed</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>  <span class="o">**</span><span class="n">LLE_kwargs</span><span class="p">)</span>
-        <span class="n">liq</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">liquid_mol</span>
-        <span class="n">LIQ</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">LIQUID_mol</span>
+        <span class="n">ms</span><span class="o">.</span><span class="n">liquid_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span>
+        <span class="n">ms</span><span class="o">.</span><span class="n">LLE</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="n">feed</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>  <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">)</span>
+        <span class="n">liq</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">liquid_mol</span>
+        <span class="n">LIQ</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">LIQUID_mol</span>
         <span class="n">liq</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">LIQ</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">T</span>
-        <span class="n">liq</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">LIQ</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">P</span>
-
-    <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
-        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_volnet_out</span>
-        <span class="k">return</span> <span class="n">Design</span>
-
-    <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span>
-        <span class="n">Design</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
-        <span class="n">Cost</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
-        <span class="n">Q</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">electricity_rate</span><span class="o">*</span><span class="n">Q</span><span class="p">)</span>
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Centrifuge&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">28100</span> <span class="o">*</span> <span class="n">Q</span> <span class="o">**</span> <span class="mf">0.574</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">CEPCI</span><span class="o">/</span><span class="mf">525.4</span>
-        <span class="k">return</span> <span class="n">Cost</span></div>
-
-<span class="k">class</span> <span class="nc">PartitionCentrifuge_LLE</span><span class="p">(</span><span class="n">Centrifuge_LLE</span><span class="p">):</span>
-    <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">kwargs</span> <span class="o">=</span> <span class="n">PartitionFlash</span><span class="o">.</span><span class="n">_kwargs</span>
-    <span class="n">_run</span> <span class="o">=</span> <span class="n">PartitionFlash</span><span class="o">.</span><span class="n">_run</span> 
-    <span class="n">_setup</span> <span class="o">=</span> <span class="n">PartitionFlash</span><span class="o">.</span><span class="n">_setup</span>
-    <span class="k">def</span> <span class="nf">_set_phases</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">top</span><span class="p">,</span> <span class="n">bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">top</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
-        <span class="n">bot</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;L&#39;</span>
+        <span class="n">liq</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">LIQ</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">P</span></div>
+        
+<span class="c1"># class PartitionCentrifuge_LLE(Centrifuge_LLE):</span>
+<span class="c1">#     _N_heat_utilities = 0</span>
+<span class="c1">#     kwargs = PartitionFlash._kwargs</span>
+<span class="c1">#     _run = PartitionFlash._run </span>
+<span class="c1">#     _setup = PartitionFlash._setup</span>
+<span class="c1">#     def _set_phases(self):</span>
+<span class="c1">#         top, bot = self.outs</span>
+<span class="c1">#         top.phase = &#39;l&#39;</span>
+<span class="c1">#         bot.phase = &#39;L&#39;</span>
 
 <span class="k">class</span> <span class="nc">RatioCentrifuge_LLE</span><span class="p">(</span><span class="n">Centrifuge_LLE</span><span class="p">):</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">0</span>
@@ -178,13 +154,13 @@
                <span class="s1">&#39;top_split&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of splits for top_solvents</span>
                <span class="s1">&#39;bot_solvents&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of species that correspond to bot_split</span>
                <span class="s1">&#39;bot_split&#39;</span><span class="p">:</span> <span class="p">[]}</span>  <span class="c1"># list of splits for bot_solvents</span>
-    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span>
+    <span class="n">_setup</span> <span class="o">=</span> <span class="n">Unit</span><span class="o">.</span><span class="n">_setup</span>
     <span class="n">_run</span> <span class="o">=</span> <span class="n">RatioFlash</span><span class="o">.</span><span class="n">_run</span>
     
-<span class="k">class</span> <span class="nc">SplitCentrifuge_LLE</span><span class="p">(</span><span class="n">Centrifuge_LLE</span><span class="p">):</span>
-    <span class="n">_kwargs</span> <span class="o">=</span> <span class="n">Splitter</span><span class="o">.</span><span class="n">_kwargs</span>
-    <span class="n">_setup</span> <span class="o">=</span> <span class="n">Splitter</span><span class="o">.</span><span class="n">_setup</span>
-    <span class="n">_run</span> <span class="o">=</span> <span class="n">Splitter</span><span class="o">.</span><span class="n">_run</span>
+<span class="k">class</span> <span class="nc">SplitCentrifuge_LLE</span><span class="p">(</span><span class="n">Centrifuge_LLE</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">splitter</span><span class="p">):</span> <span class="k">pass</span>
+    
+    
+    
 </pre></div>
 
           </div>

@@ -1,0 +1,753 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Model &#8212; BioSTEAM 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Model</a><ul>
+<li><a class="reference internal" href="#Evaluate-a-metric-around-multiple-parameters-of-a-biorefinery-system">Evaluate a metric around multiple parameters of a biorefinery system</a><ul>
+<li><a class="reference internal" href="#Create-a-model-object">Create a model object</a></li>
+<li><a class="reference internal" href="#Add-multiple-parameters">Add multiple parameters</a></li>
+<li><a class="reference internal" href="#Evaluate-IRR-vs-multiple-parameters">Evaluate IRR vs multiple parameters</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/Model Example.ipynb.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput,
+div.nbinput div.prompt,
+div.nbinput div.input_area,
+div.nbinput div[class*=highlight],
+div.nbinput div[class*=highlight] pre,
+div.nboutput,
+div.nbinput div.prompt,
+div.nbinput div.output_area,
+div.nboutput div[class*=highlight],
+div.nboutput div[class*=highlight] pre {
+    background: none;
+    border: none;
+    padding: 0 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+/* avoid gaps between output lines */
+div.nboutput div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput,
+div.nboutput {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput,
+    div.nboutput {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput div.prompt pre {
+    color: #303F9F;
+}
+
+/* output prompt */
+div.nboutput div.prompt pre {
+    color: #D84315;
+}
+
+/* all prompts */
+div.nbinput div.prompt,
+div.nboutput div.prompt {
+    min-width: 9ex;
+    padding-top: 0.4em;
+    padding-right: 0.4em;
+    text-align: right;
+    flex: 0;
+}
+@media (max-width: 540px) {
+    div.nbinput div.prompt,
+    div.nboutput div.prompt {
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput div.prompt.empty {
+        padding: 0;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput div.prompt pre,
+div.nboutput div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput div.input_area,
+div.nboutput div.output_area {
+    padding: 0.4em;
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput div.input_area,
+    div.nboutput div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput div.input_area {
+    border: 1px solid #cfcfcf;
+    border-radius: 2px;
+    background: #f7f7f7;
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.pngmath center alignment in output cells */
+div.nboutput div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+</style>
+<div class="section" id="Model">
+<h1>Model<a class="headerlink" href="#Model" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="Evaluate-a-metric-around-multiple-parameters-of-a-biorefinery-system">
+<h2>Evaluate a metric around multiple parameters of a biorefinery system<a class="headerlink" href="#Evaluate-a-metric-around-multiple-parameters-of-a-biorefinery-system" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="Create-a-model-object">
+<h3>Create a model object<a class="headerlink" href="#Create-a-model-object" title="Permalink to this headline">¶</a></h3>
+<p>A Model object is used to evaluate a metric that depends on System
+object given</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Make sure you &quot;pip install lipidcane&quot; before trying this example</span>
+<span class="kn">import</span> <span class="nn">lipidcane</span> <span class="k">as</span> <span class="nn">lc</span>
+<span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bs</span>
+<span class="n">solve_IRR</span> <span class="o">=</span> <span class="n">lc</span><span class="o">.</span><span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">solve_IRR</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">evaluation</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="n">system</span><span class="o">=</span><span class="n">lc</span><span class="o">.</span><span class="n">lipidcane_sys</span><span class="p">,</span>
+                            <span class="n">metric</span><span class="o">=</span><span class="n">solve_IRR</span><span class="p">,</span>
+                            <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;IRR&#39;</span><span class="p">)</span>
+<span class="n">model</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[2]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>&lt;Model: IRR&gt;
+</pre></div>
+</div>
+</div>
+<p>The Model object begins with no paramters:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">model</span><span class="o">.</span><span class="n">show</span><span class="p">()</span> <span class="c1"># Use the show method to view parameters</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Model: IRR
+ Element:  Parameters:
+  None      None
+</pre></div></div>
+</div>
+<p>Calling the model with an empty sample will return the metric value:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">model</span><span class="p">([])</span> <span class="c1"># Returns IRR</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[10]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>0.19979554624528809
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Add-multiple-parameters">
+<h3>Add multiple parameters<a class="headerlink" href="#Add-multiple-parameters" title="Permalink to this headline">¶</a></h3>
+<p>An isolated par Add feedstock price as a “isolated” parameter:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">Lipid_cane</span> <span class="o">=</span> <span class="n">lc</span><span class="o">.</span><span class="n">Lipid_cane</span> <span class="c1"># The feedstock stream</span>
+<span class="nd">@model</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">element</span><span class="o">=</span><span class="n">Lipid_cane</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;isolated&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">set_feed_price</span><span class="p">(</span><span class="n">feedstock_price</span><span class="p">):</span>
+    <span class="n">Lipid_cane</span><span class="o">.</span><span class="n">price</span> <span class="o">=</span> <span class="n">feedstock_price</span>
+<span class="n">model</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Model: IRR
+ Element:           Parameter:
+  Stream-Lipid cane  Feedstock price
+</pre></div></div>
+</div>
+<p>Note that the signature of the <code class="docutils literal notranslate"><span class="pre">setter</span></code> is used to name the parameter
+by default.</p>
+<p>Add lipid fraction as a parameter:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">grid</span><span class="o">.</span><span class="n">addparam</span><span class="p">(</span><span class="n">Lipid_cane</span><span class="p">,</span> <span class="n">lc</span><span class="o">.</span><span class="n">set_lipid_fraction</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.02</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.10</span><span class="p">])</span>
+<span class="n">grid</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Grid: IRR
+ element            parameter
+ Stream-Lipid cane  feedstock price
+                    lipid fraction
+</pre></div></div>
+</div>
+<p>Add fermentation efficiency as a parameter:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">U34</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;U34&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">set_efficiency</span><span class="p">(</span><span class="n">fermentation_efficiency</span><span class="p">):</span> <span class="n">U34</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">efficiency</span><span class="o">=</span><span class="n">fermentation_efficiency</span><span class="p">)</span>
+<span class="n">grid</span><span class="o">.</span><span class="n">addparam</span><span class="p">(</span><span class="n">U34</span><span class="p">,</span> <span class="n">set_efficiency</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.85</span><span class="p">,</span> <span class="mf">0.90</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">])</span>
+<span class="n">grid</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Grid: IRR
+ element            parameter
+ Stream-Lipid cane  feedstock price
+                    lipid fraction
+ Fermentation-U34   fermentation efficiency
+</pre></div></div>
+</div>
+</div>
+<div class="section" id="Evaluate-IRR-vs-multiple-parameters">
+<h3>Evaluate IRR vs multiple parameters<a class="headerlink" href="#Evaluate-IRR-vs-multiple-parameters" title="Permalink to this headline">¶</a></h3>
+<p>Evaluate at give parameter values:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">grid</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+<span class="n">grid</span><span class="o">.</span><span class="n">table</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[6]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead tr th {
+        text-align: left;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr>
+      <th>Element</th>
+      <th>Stream-Lipid cane</th>
+      <th>Reactor-U34</th>
+      <th>Stream-Lipid cane</th>
+      <th>IRR</th>
+    </tr>
+    <tr>
+      <th>Parameter</th>
+      <th>Feedstock price</th>
+      <th>Fermentation efficiency</th>
+      <th>Lipid fraction</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0.03</td>
+      <td>0.85</td>
+      <td>0.02</td>
+      <td>0.0981</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>0.035</td>
+      <td>0.9</td>
+      <td>0.05</td>
+      <td>0.129</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>0.04</td>
+      <td>0.95</td>
+      <td>0.1</td>
+      <td>0.169</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>Note that isolated parameters are on the left most columns, while that
+System parameters are ordered from downstream to upstream (e.g.
+&lt;Fermentation: U34&gt; is downstream from &lt;Stream: Lipid cane&gt;).</p>
+<p>Evaluate at the cartesian product of parameter values:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">grid</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="s1">&#39;cartesian&#39;</span>
+<span class="n">grid</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+<span class="n">grid</span><span class="o">.</span><span class="n">table</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[7]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead tr th {
+        text-align: left;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr>
+      <th>Element</th>
+      <th>Stream-Lipid cane</th>
+      <th>Reactor-U34</th>
+      <th>Stream-Lipid cane</th>
+      <th>IRR</th>
+    </tr>
+    <tr>
+      <th>Parameter</th>
+      <th>Feedstock price</th>
+      <th>Fermentation efficiency</th>
+      <th>Lipid fraction</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0.03</td>
+      <td>0.85</td>
+      <td>0.02</td>
+      <td>0.0981</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>0.035</td>
+      <td>0.85</td>
+      <td>0.02</td>
+      <td>0.0568</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>0.04</td>
+      <td>0.85</td>
+      <td>0.02</td>
+      <td>0.00514</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>0.04</td>
+      <td>0.9</td>
+      <td>0.02</td>
+      <td>0.0312</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>0.035</td>
+      <td>0.9</td>
+      <td>0.02</td>
+      <td>0.0768</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>0.03</td>
+      <td>0.9</td>
+      <td>0.02</td>
+      <td>0.115</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>0.03</td>
+      <td>0.95</td>
+      <td>0.02</td>
+      <td>0.131</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>0.035</td>
+      <td>0.95</td>
+      <td>0.02</td>
+      <td>0.0951</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>0.04</td>
+      <td>0.95</td>
+      <td>0.02</td>
+      <td>0.0536</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>0.04</td>
+      <td>0.95</td>
+      <td>0.05</td>
+      <td>0.108</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>0.035</td>
+      <td>0.95</td>
+      <td>0.05</td>
+      <td>0.142</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>0.03</td>
+      <td>0.95</td>
+      <td>0.05</td>
+      <td>0.173</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>0.03</td>
+      <td>0.9</td>
+      <td>0.05</td>
+      <td>0.161</td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td>0.035</td>
+      <td>0.9</td>
+      <td>0.05</td>
+      <td>0.129</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>0.04</td>
+      <td>0.9</td>
+      <td>0.05</td>
+      <td>0.0929</td>
+    </tr>
+    <tr>
+      <th>15</th>
+      <td>0.04</td>
+      <td>0.85</td>
+      <td>0.05</td>
+      <td>0.0775</td>
+    </tr>
+    <tr>
+      <th>16</th>
+      <td>0.035</td>
+      <td>0.85</td>
+      <td>0.05</td>
+      <td>0.115</td>
+    </tr>
+    <tr>
+      <th>17</th>
+      <td>0.03</td>
+      <td>0.85</td>
+      <td>0.05</td>
+      <td>0.149</td>
+    </tr>
+    <tr>
+      <th>18</th>
+      <td>0.03</td>
+      <td>0.85</td>
+      <td>0.1</td>
+      <td>0.211</td>
+    </tr>
+    <tr>
+      <th>19</th>
+      <td>0.035</td>
+      <td>0.85</td>
+      <td>0.1</td>
+      <td>0.183</td>
+    </tr>
+    <tr>
+      <th>20</th>
+      <td>0.04</td>
+      <td>0.85</td>
+      <td>0.1</td>
+      <td>0.153</td>
+    </tr>
+    <tr>
+      <th>21</th>
+      <td>0.04</td>
+      <td>0.9</td>
+      <td>0.1</td>
+      <td>0.161</td>
+    </tr>
+    <tr>
+      <th>22</th>
+      <td>0.035</td>
+      <td>0.9</td>
+      <td>0.1</td>
+      <td>0.191</td>
+    </tr>
+    <tr>
+      <th>23</th>
+      <td>0.03</td>
+      <td>0.9</td>
+      <td>0.1</td>
+      <td>0.219</td>
+    </tr>
+    <tr>
+      <th>24</th>
+      <td>0.03</td>
+      <td>0.95</td>
+      <td>0.1</td>
+      <td>0.226</td>
+    </tr>
+    <tr>
+      <th>25</th>
+      <td>0.035</td>
+      <td>0.95</td>
+      <td>0.1</td>
+      <td>0.198</td>
+    </tr>
+    <tr>
+      <th>26</th>
+      <td>0.04</td>
+      <td>0.95</td>
+      <td>0.1</td>
+      <td>0.169</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>The arguments are ordered to reduce computation time and convergence
+efficiency. A disturbance in upstream parameters takes longer to
+converge than a disturbance in downstream parameters. Note that upstream
+parameters (e.g. Lipid fraction) change minimally compared to downstream
+parameters (e.g. Fermentation efficiency).</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>

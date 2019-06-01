@@ -9,7 +9,7 @@ import IPython
 import numpy as np
 from scipy.optimize import newton
 from ._exceptions import Stop, SolverError, _try_method
-from ._flowsheet import find, make_digraph
+from ._flowsheet import find, make_digraph, save_digraph
 from ._stream import Stream
 from ._unit import Unit
 from ._report import save_report
@@ -34,8 +34,8 @@ def _evaluate(self, command=None):
         # Build locals dictionary for evaluating command
         lcs = {} 
         for attr in ('stream', 'unit', 'system'):
-            dct = getattr(find, attr)
-            lcs.update(dct)
+            dct = getattr(find, attr).__dict__
+            lcs.update({i:j() for i, j in dct.items()})
         lcs['find'] = find
         try:
             out = eval(command, {}, lcs)            
@@ -67,7 +67,6 @@ def _method_debug(self, func):
     wrapper._original = func
     return wrapper
 
-
 def _notify_run_wrapper(self, func):
     """Decorate a System run method to notify you after each loop"""
     def wrapper(*args, **kwargs):
@@ -88,8 +87,7 @@ class _systemUnit(Unit):
     """Dummy unit for displaying a system."""
     line = 'System'
     ID = None
-    @property
-    def _ID(self): return self.ID
+    _ID = property(lambda self: self.ID)
 
 _sysgraphics = _systemUnit._graphics
 _sysgraphics.edge_in = _sysgraphics.edge_in * 10
@@ -101,9 +99,9 @@ class _streamUnit(Unit):
     ID = None
     _ID = _systemUnit._ID
     
-_strgraphics = _streamUnit._graphics
-_strgraphics.node['fillcolor'] = 'white:#79dae8'
-
+_stream_graphics = _streamUnit._graphics
+_stream_graphics.node['fillcolor'] = 'white:#79dae8'
+del _stream_graphics, _sysgraphics
 
 # %% Other
 
@@ -127,20 +125,12 @@ class System:
          **facilities:** tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the network simulation.
 
     """
-    ### Instance attributes ###
-    _ID = None
-    
-    _recycle = None  # Tear stream
-
     ### Class attributes ###
     
     #: [dict] Dictionary of convergence options regarding maximum number of iterations and molar flow rate and temperature tolerances
     options = {'Maximum iteration': 100,
                'Molar tolerance (kmol/hr)': 0.10,
                'Temperature tolerance (K)': 0.10}
-    
-    # [float] Error of the spec objective function
-    _spec_error = None
 
     # [dict] Cached downstream systems by (system, unit, with_facilities) keys
     _cached_downstream_systems = {} 
@@ -251,12 +241,11 @@ class System:
 
     @recycle.setter
     def recycle(self, stream):
-        if isinstance(stream, Stream):
-            self._recycle = stream
-        elif stream is None:
+        if stream is None:
             self._converge_method = self._run
-        else:
+        elif not isinstance(stream, Stream):
             raise ValueError(f"recycle must be a Stream instance or None, not {type(stream).__name__}")
+        self._recycle = stream
 
     @property
     def converge_method(self):
@@ -308,11 +297,12 @@ class System:
     def _downstream_system(self, unit):
         """Return a system with a network composed of the `unit` and everything downstream (facilities included)."""
         if unit is self.network[0]: return self
-        cached = self._cached_downstream_systems
-        system = cached.get((self, unit))
+        system = self._cached_downstream_systems.get((self, unit))
         if system: return system
         network = self._downstream_network(unit)
-        if not network:
+        if network:
+            downstream_facilities = self.facilities            
+        else:
             unit_not_found = True
             inst = isinstance
             for pos, i in enumerate(self.facilities):
@@ -321,15 +311,13 @@ class System:
                     unit_not_found = False
                     break
             if unit_not_found: raise ValueError(f'{unit} not found in system')
-        else:
-            downstream_facilities = self.facilities
         system = System(None, network,
                         facilities=downstream_facilities)
         system._ID = f'{type(unit).__name__}-{unit} and downstream'
-        cached[unit] = system
+        self._cached_downstream_systems[unit] = system
         return system
     
-    def _minimal_diagram(self, file):
+    def _minimal_diagram(self, file, format='svg'):
         """Minimally display the network as a box."""
         outs = []
         ins = []
@@ -349,9 +337,9 @@ class System:
         _streamUnit('\n'.join([i.ID for i in outs]),
                     None, product)
         unit = _systemUnit(self.ID, product, feed)
-        unit.diagram(1, file)
+        unit.diagram(1, file, format)
 
-    def _surface_diagram(self, file):
+    def _surface_diagram(self, file, format='svg'):
         """Display only surface elements listed in the network."""
         # Get surface items to make nodes and edges
         units = set()  
@@ -394,31 +382,19 @@ class System:
                 subsystem_unit = _systemUnit(i.ID, outs, ins)
                 units.add(subsystem_unit)
                 
-        System(None, units)._thorough_diagram(file)
+        System(None, units)._thorough_diagram(file, format)
         # Reconnect how it was
         for u in refresh_units:
             u._ins[:] = u._ins
             u._outs[:] = u._outs
       
-    def _thorough_diagram(self, file=None):
+    def _thorough_diagram(self, file=None, format='svg'):
         """Thoroughly display every unit within the network."""
         # Create a digraph and set direction left to right
         f = make_digraph(self.units, self.streams)
-        if not file:
-            x = IPython.display.SVG(f.pipe(format='svg'))
-            IPython.display.display(x)
-        else:
-            if '.' not in file:
-                file += '.svg'
-                format_ = 'svg'
-            else:
-                format_ = file[file.find('.')+1:]
-            img = f.pipe(format=format_)
-            f = open(file, 'wb')
-            f.write(img)
-            f.close()
+        save_digraph(f, file, format)
         
-    def diagram(self, kind='surface', file=None):
+    def diagram(self, kind='surface', file=None, format='svg'):
         """Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of the system.
         
         **Parameters**
@@ -429,16 +405,16 @@ class System:
                 * **'minimal':** Minimally display the network as a box
         
             **file:** Must be one of the following:
-                * [str] File name to save diagram. If format not included, saves file as svg.
+                * [str] File name to save diagram.
                 * [None] Display diagram in console.
         
         """
         if kind == 'thorough':
-            return self._thorough_diagram(file)
+            return self._thorough_diagram(file, format)
         elif kind == 'surface':
-            return self._surface_diagram(file)
+            return self._surface_diagram(file, format)
         elif kind == 'minimal':
-            return self._minimal_diagram(file)
+            return self._minimal_diagram(file, format)
         else:
             raise ValueError(f"kind must be either 'thorough', 'surface', or 'minimal'")
             
@@ -525,7 +501,7 @@ class System:
             if solver_error['iter'] > maxiter:
                 solver_error['mol_error'] = mol_error
                 solver_error['T_error'] = T_error
-                raise SolverError(f'could not converge'
+                raise SolverError(f'{self} could not converge'
                                   + self._error_info())
 
             # Get relaxation factor and set next iteration
@@ -610,7 +586,7 @@ class System:
                               'spec_error': 0,
                               'iter': 0}
         for stream in self.streams:
-            if stream._source[0]: stream.empty()
+            if stream._source: stream.empty()
 
     def simulate(self):
         """Converge the network and simulate all units."""
@@ -667,9 +643,6 @@ class System:
                 print(f'\n        Finished debugging')
             self._debug_off()
 
-    def delete(self):
-        delattr(find.system, self._ID)
-
     # Representation
     def __str__(self):
         if self.ID: return self.ID
@@ -684,7 +657,8 @@ class System:
         print(self._info())
     
     def _ipython_display_(self):
-        self.diagram('minimal')
+        try: self.diagram('minimal')
+        except: pass
         self.show()
 
     def _error_info(self):

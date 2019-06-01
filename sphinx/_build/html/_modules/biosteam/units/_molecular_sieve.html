@@ -59,28 +59,33 @@
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
-
-<span class="kn">from</span> <span class="nn">._splitter</span> <span class="k">import</span> <span class="n">Splitter</span>
+<span class="kn">from</span> <span class="nn">.metaclasses</span> <span class="k">import</span> <span class="n">splitter</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Unit</span>
+<span class="kn">from</span> <span class="nn">.decorators</span> <span class="k">import</span> <span class="n">cost</span><span class="p">,</span> <span class="n">design</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;MolecularSieve&#39;</span><span class="p">,</span> <span class="s1">&#39;MolSieve&#39;</span><span class="p">]</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;MolecularSieve&#39;</span><span class="p">,)</span>
 
-<div class="viewcode-block" id="MolecularSieve"><a class="viewcode-back" href="../../../MolecularSieve.html#biosteam.units.MolecularSieve">[docs]</a><span class="k">class</span> <span class="nc">MolecularSieve</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
+
+<div class="viewcode-block" id="MolecularSieve"><a class="viewcode-back" href="../../../MolecularSieve.html#biosteam.units.MolecularSieve">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;Pressure filter drying (2)&#39;</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mi">405000</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">521.9</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mi">22687</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mi">522</span><span class="p">)</span>
+<span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;Pressure filter pressing&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mi">75200</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">521.9</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mi">22687</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mi">112</span><span class="p">)</span>
+<span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;Column&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mi">2601000</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">521.9</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mi">22687</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span>
+<span class="nd">@design</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;kg/hr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_massnet_in</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">MolecularSieve</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">splitter</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create an ethanol/water molecular sieve for bioethanol plants. The molecular sieve is modeled as a component wise separator. Costing is based on scaling by the 6/10ths rule from an NREL TEA report [1].</span>
 <span class="sd">    </span>
 <span class="sd">    **Parameters**</span>
 <span class="sd">    </span>
-<span class="sd">        **split:** *[array_like]* Component wise split in the 0th output stream</span>
+<span class="sd">        **split:** [array_like] Componentwise split to the 0th output stream</span>
 
 <span class="sd">    **ins**</span>
 <span class="sd">    </span>
-<span class="sd">        [:] Input streams</span>
+<span class="sd">        [0] Feed (gas)</span>
 <span class="sd">        </span>
 <span class="sd">    **outs**</span>
 <span class="sd">    </span>
-<span class="sd">        [0] Split stream</span>
+<span class="sd">        [0] Split stream (gas)</span>
 <span class="sd">        </span>
-<span class="sd">        [1] Remainder stream</span>
+<span class="sd">        [1] Remainder stream (gas)</span>
 <span class="sd">    </span>
 <span class="sd">    **References**</span>
 <span class="sd">    </span>
@@ -91,53 +96,8 @@
 <span class="sd">        :doc:`MolecularSieve Example`</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">_kwargs</span> <span class="o">=</span> <span class="n">Splitter</span><span class="o">.</span><span class="n">_kwargs</span>
-    <span class="n">_run</span> <span class="o">=</span> <span class="n">Splitter</span><span class="o">.</span><span class="n">_run</span>
-    <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">True</span>
-    
-    <span class="c1">#: Original Price (USD)</span>
-    <span class="n">C_0</span> <span class="o">=</span> <span class="mi">2601000</span>
-    
-    <span class="c1">#: Original flow rate (kg/hr)</span>
-    <span class="n">V_0</span> <span class="o">=</span> <span class="mi">22687</span> 
-    
-    <span class="c1">#: Scaling exponent</span>
-    <span class="n">exp</span> <span class="o">=</span> <span class="mf">0.60</span> 
-    
-    <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span>
-        <span class="n">Cost</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
-        <span class="n">CEPCI_old</span> <span class="o">=</span> <span class="mf">521.9</span> <span class="c1"># Original CEPCI (2009)</span>
-        <span class="n">CEPCI_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CEPCI</span>
-        <span class="n">F_CEPCI</span> <span class="o">=</span> <span class="n">CEPCI_new</span><span class="o">/</span><span class="n">CEPCI_old</span>
-        
-        <span class="c1"># Cost molecular sieve vessels with packing</span>
-        <span class="n">Cp_old</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">C_0</span> <span class="c1"># Original purchase price (USD)</span>
-        <span class="n">flow_old</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">V_0</span> <span class="c1"># Original flow rate (kg/hr)</span>
-        <span class="n">flow_new</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_massnet_in</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">exp</span> <span class="c1"># Scaling exponent</span>
-        <span class="n">S</span> <span class="o">=</span> <span class="n">flow_new</span><span class="o">/</span><span class="n">flow_old</span> <span class="c1"># Size ratio</span>
-        <span class="n">Cp_new</span> <span class="o">=</span> <span class="n">F_CEPCI</span> <span class="o">*</span> <span class="n">Cp_old</span> <span class="o">*</span> <span class="n">S</span><span class="o">**</span><span class="n">x</span>
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Molecular Sieve Cost&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Cp_new</span>
-        
-        <span class="c1"># Cost pressure filter (pressing compressor)</span>
-        <span class="n">Cp_old</span> <span class="o">=</span> <span class="mi">75200</span>
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Pressure Filter Pressing&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">F_CEPCI</span> <span class="o">*</span> <span class="n">Cp_old</span> <span class="o">*</span> <span class="n">S</span><span class="o">**</span><span class="n">x</span>
-        <span class="n">power0</span> <span class="o">=</span> <span class="mi">112</span><span class="o">*</span><span class="n">S</span> <span class="c1"># kW</span>
-        
-        <span class="c1"># Cost pressure filter (drying compressor)</span>
-        <span class="n">N</span> <span class="o">=</span> <span class="mi">2</span>
-        <span class="n">Cp_old</span> <span class="o">=</span> <span class="mi">405000</span>
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Pressure Filter Drying (2)&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span> <span class="o">*</span> <span class="n">F_CEPCI</span> <span class="o">*</span> <span class="n">Cp_old</span> <span class="o">*</span> <span class="n">S</span><span class="o">**</span><span class="n">x</span>
-        <span class="n">power1</span> <span class="o">=</span> <span class="n">N</span><span class="o">*</span><span class="mi">522</span><span class="o">*</span><span class="n">S</span> <span class="c1"># kW</span>
-        
-        <span class="c1"># Find power utility</span>
-        <span class="n">total_power</span> <span class="o">=</span> <span class="n">power0</span> <span class="o">+</span> <span class="n">power1</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span><span class="p">(</span><span class="n">total_power</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Cost</span></div>
-        
-<span class="n">MolSieve</span> <span class="o">=</span> <span class="n">MolecularSieve</span>        
-        
+    <span class="k">def</span> <span class="nf">_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span></div>
 
 
 </pre></div>

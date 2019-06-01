@@ -250,8 +250,8 @@ class TEA:
         total_operating_cost = UC_ + (1+fb)*L_ + MC_ + f*FC_ + d + o['Other recurring costs']
         market_values = np.array([i.cost for i in products])
         weights = market_values/market_values.sum()
-        operating_cost = weights*total_operating_cost
-        return operating_cost
+        production_cost = weights*total_operating_cost
+        return production_cost
     
     def _get_cached_data(self):
         """Return cached data.

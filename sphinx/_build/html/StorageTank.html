@@ -79,15 +79,12 @@
 <dt id="biosteam.units.StorageTank">
 <em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">StorageTank</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_tank.html#StorageTank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.StorageTank" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a storage tank with volume based on residence time [1].</p>
-<blockquote>
-<div><div class="math notranslate nohighlight">
-\[\begin{split}V &amp;= \tau Q \\
-C_{fob}^{2007} &amp;= 250000 + 94.2 V (2*10^3 &lt; V &lt; 50*10^3 m^3) \\\end{split}\]</div>
+<div class="math notranslate nohighlight">
+\[\begin{split}V &amp;= \\tau Q \\\\
+C_{fob}^{2007} &amp;= 250000 + 94.2 V (2*10^3 &lt; V &lt; 50*10^3 m^3) \\\\\end{split}\]</div>
 <p><strong>References</strong></p>
 <blockquote>
-<div>[1] I.K. Kookos, Preliminary Chemical Process Synthesis and Design, Tziolas Publishing,</div></blockquote>
-</div></blockquote>
-<p>Thessalonika, Greece, 2008 (book in Greek).</p>
+<div>[1] Apostolakou, A. A., Kookos, I. K., Marazioti, C., &amp; Angelopoulos, K. C. (2009). Techno-economic analysis of a biodiesel production process from vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031. <a class="reference external" href="https://doi.org/10.1016/j.fuproc.2009.04.017">https://doi.org/10.1016/j.fuproc.2009.04.017</a></div></blockquote>
 <dl class="attribute">
 <dt id="biosteam.units.StorageTank.ID">
 <code class="descname">ID</code><a class="headerlink" href="#biosteam.units.StorageTank.ID" title="Permalink to this definition">¶</a></dt>
@@ -96,7 +93,7 @@ C_{fob}^{2007} &amp;= 250000 + 94.2 V (2*10^3 &lt; V &lt; 50*10^3 m^3) \\\end{sp
 
 <dl class="method">
 <dt id="biosteam.units.StorageTank.diagram">
-<code class="descname">diagram</code><span class="sig-paren">(</span><em>radius=0</em>, <em>file=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.StorageTank.diagram" title="Permalink to this definition">¶</a></dt>
+<code class="descname">diagram</code><span class="sig-paren">(</span><em>radius=0</em>, <em>file=None</em>, <em>format='svg'</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.StorageTank.diagram" title="Permalink to this definition">¶</a></dt>
 <dd><p>Display a <a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz</a> diagram of the unit and all neighboring units within given radius.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -104,18 +101,19 @@ C_{fob}^{2007} &amp;= 250000 + 94.2 V (2*10^3 &lt; V &lt; 50*10^3 m^3) \\\end{sp
 <dl class="docutils">
 <dt><strong>file:</strong> Must be one of the following:</dt>
 <dd><ul class="first last simple">
-<li>[str] File name to save diagram. If format not included, saves file as svg.</li>
+<li>[str] File name to save diagram.</li>
 <li>[None] Display diagram in console.</li>
 </ul>
 </dd>
 </dl>
+<p><strong>format:</strong> Format of file.</p>
 </div></blockquote>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.units.StorageTank.reset">
 <code class="descname">reset</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.StorageTank.reset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reset unit with new kwargs.</p>
+<dd><p>Reset unit with new key word arguments.</p>
 </dd></dl>
 
 <dl class="method">
@@ -126,7 +124,7 @@ C_{fob}^{2007} &amp;= 250000 + 94.2 V (2*10^3 &lt; V &lt; 50*10^3 m^3) \\\end{sp
 
 <dl class="method">
 <dt id="biosteam.units.StorageTank.show">
-<code class="descname">show</code><span class="sig-paren">(</span><em>**show_units</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.StorageTank.show" title="Permalink to this definition">¶</a></dt>
+<code class="descname">show</code><span class="sig-paren">(</span><em>T=None</em>, <em>P=None</em>, <em>flow=None</em>, <em>fraction=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.StorageTank.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prints information on unit.</p>
 </dd></dl>
 

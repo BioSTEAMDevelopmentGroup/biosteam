@@ -85,7 +85,7 @@ class MixedStream(Stream):
         # Get species and set species information
         if species is None: self._species = self._cls_species
         elif isinstance(species, Species):
-            self._species = self._species
+            self._species = species
             species._read_only()
         else:
             raise TypeError(f"species must be a Species object, not '{type(species).__name__}'")
@@ -902,8 +902,8 @@ class MixedStream(Stream):
         ### Set Up ###
 
         # Get molar flow rates
-        liquid_mol = self._liquid_mol
-        LIQUID_mol = self._LIQUID_mol
+        liquid_mol = self.liquid_mol
+        LIQUID_mol = self.LIQUID_mol
         all_mol = liquid_mol + LIQUID_mol
 
         # Set up indices for both equilibrium and non-equilibrium species

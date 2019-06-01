@@ -94,13 +94,19 @@
 <dt><strong>_init():</strong></dt>
 <dd>Initialize components.</dd>
 <dt><strong>_setup()</strong></dt>
-<dd>Create cached data from _kwargs.</dd>
+<dd>Create cached data from kwargs.</dd>
 <dt><strong>_run()</strong></dt>
-<dd>Run rigorous simulation.</dd>
+<dd>Run simulation and update output streams.</dd>
+<dt><strong>_prepare()</strong></dt>
+<dd>Prepare for design (called before <cite>design</cite>).</dd>
 <dt><strong>_design()</strong></dt>
-<dd>Update results “Design” dictionary with design requirements.</dd>
+<dd>Add design requirements to results “Design” dictionary.</dd>
 <dt><strong>_cost()</strong></dt>
-<dd>Update results “Cost” dictionary with itemized cost.</dd>
+<dd>Add itemized purchse costs to results “Cost” dictionary.</dd>
+<dt><strong>_spec()</strong></dt>
+<dd>Calculate specification cost factors and update purchase prices.</dd>
+<dt><strong>_end():</strong></dt>
+<dd>Finish setting purchase prices and utility costs.</dd>
 </dl>
 <p><strong>_units</strong> = {}: [dict] Default units for results Operation and Design</p>
 <p><strong>_bounds</strong> = {} [dict] Values should be tuples with lower and upper bounds.</p>
@@ -109,9 +115,13 @@
 <p><strong>_N_heat_utilities</strong> = 0: [int] Number of heat utilities</p>
 <p><strong>_has_power_utility</strong> = False: [bool] If True, a PowerUtility object is created for every instance.</p>
 <p><strong>_has_cost</strong> = True: [bool] Should be True if it has any associated cost</p>
-<p><strong>_has_proxystream</strong> = False: [bool] True if outs are proxy streams linked to ins</p>
+<p><strong>_linkedstreams = True</strong> = False: [bool] True if outs are proxy streams linked to ins</p>
 <p><strong>_graphics</strong> = default_graphics: [biosteam Graphics] a Graphics object for diagram representation.</p>
 </div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Class argument <cite>_init</cite> is called only once when a Unit object is initialized, while <cite>_setup</cite> is run in the <cite>reset</cite> method to update cached data. The <cite>_run</cite> method is called during recycle loop convergence. The rest of the methods are called in the given order for generating results.</p>
+</div>
 <p><strong>ins</strong></p>
 <blockquote>
 <div>list of input streams</div></blockquote>
@@ -133,7 +143,7 @@
 <dl class="method">
 <dt id="biosteam.Unit.reset">
 <code class="descname">reset</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.reset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reset unit with new kwargs.</p>
+<dd><p>Reset unit with new key word arguments.</p>
 </dd></dl>
 
 <dl class="method">
@@ -156,7 +166,7 @@
 
 <dl class="method">
 <dt id="biosteam.Unit.diagram">
-<code class="descname">diagram</code><span class="sig-paren">(</span><em>radius=0</em>, <em>file=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit.diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.diagram" title="Permalink to this definition">¶</a></dt>
+<code class="descname">diagram</code><span class="sig-paren">(</span><em>radius=0</em>, <em>file=None</em>, <em>format='svg'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit.diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.diagram" title="Permalink to this definition">¶</a></dt>
 <dd><p>Display a <a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz</a> diagram of the unit and all neighboring units within given radius.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -164,17 +174,18 @@
 <dl class="docutils">
 <dt><strong>file:</strong> Must be one of the following:</dt>
 <dd><ul class="first last simple">
-<li>[str] File name to save diagram. If format not included, saves file as svg.</li>
+<li>[str] File name to save diagram.</li>
 <li>[None] Display diagram in console.</li>
 </ul>
 </dd>
 </dl>
+<p><strong>format:</strong> Format of file.</p>
 </div></blockquote>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.Unit.show">
-<code class="descname">show</code><span class="sig-paren">(</span><em>**show_units</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.show" title="Permalink to this definition">¶</a></dt>
+<code class="descname">show</code><span class="sig-paren">(</span><em>T=None</em>, <em>P=None</em>, <em>flow=None</em>, <em>fraction=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prints information on unit.</p>
 </dd></dl>
 

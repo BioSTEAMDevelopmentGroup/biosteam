@@ -66,15 +66,13 @@
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">from</span> <span class="nn">IPython</span> <span class="k">import</span> <span class="n">display</span>
 <span class="kn">from</span> <span class="nn">graphviz</span> <span class="k">import</span> <span class="n">Digraph</span>
-<span class="kn">from</span> <span class="nn">._exceptions</span> <span class="k">import</span> <span class="n">_notify_error</span><span class="p">,</span> <span class="n">DesignWarning</span>
-<span class="kn">from</span> <span class="nn">._flowsheet</span> <span class="k">import</span> <span class="n">find</span>
+<span class="kn">from</span> <span class="nn">._exceptions</span> <span class="k">import</span> <span class="n">DesignWarning</span><span class="p">,</span> <span class="n">_try_method</span>
+<span class="kn">from</span> <span class="nn">._flowsheet</span> <span class="k">import</span> <span class="n">find</span><span class="p">,</span> <span class="n">save_digraph</span>
 <span class="kn">from</span> <span class="nn">._graphics</span> <span class="k">import</span> <span class="n">Graphics</span><span class="p">,</span> <span class="n">default_graphics</span>
 <span class="kn">from</span> <span class="nn">._stream</span> <span class="k">import</span> <span class="n">Stream</span>
-<span class="kn">from</span> <span class="nn">._proxy_stream</span> <span class="k">import</span> <span class="n">ProxyStream</span>
 <span class="kn">from</span> <span class="nn">._heat_utility</span> <span class="k">import</span> <span class="n">HeatUtility</span>
 <span class="kn">from</span> <span class="nn">._utils</span> <span class="k">import</span> <span class="n">Ins</span><span class="p">,</span> <span class="n">Outs</span><span class="p">,</span> <span class="n">missing_stream</span>
 <span class="kn">from</span> <span class="nn">._power_utility</span> <span class="k">import</span> <span class="n">PowerUtility</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_Q</span>
 <span class="kn">from</span> <span class="nn">warnings</span> <span class="k">import</span> <span class="n">warn</span>
 <span class="kn">import</span> <span class="nn">biosteam</span>
 
@@ -82,7 +80,7 @@
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Unit&#39;</span><span class="p">,)</span>
-
+<span class="n">_do_nothing</span> <span class="o">=</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="kc">None</span>
 
 <span class="c1"># %% Bounds checking</span>
 
@@ -112,56 +110,33 @@
 <span class="sd">            **source:** [str or object] Short description or object it describes.</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Include bound limits for inclusive values</span>
         <span class="n">lb</span><span class="p">,</span> <span class="n">ub</span> <span class="o">=</span> <span class="n">bounds</span>
-        <span class="k">try</span><span class="p">:</span> <span class="n">within_bounds</span> <span class="o">=</span> <span class="p">(</span><span class="n">lb</span><span class="o">&lt;=</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="ow">and</span> <span class="p">(</span><span class="n">ub</span><span class="o">&gt;=</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
-        <span class="c1"># Handle exception when value or bounds is a Quantity object but the other is not</span>
-        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">VE</span><span class="p">:</span>
-            <span class="n">value_is_Q</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">_Q</span><span class="p">)</span>
-            <span class="n">bounds_is_Q</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">_Q</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">value_is_Q</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">bounds_is_Q</span><span class="p">:</span>           
-                <span class="n">value</span><span class="o">.</span><span class="n">ito</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
-                <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">magnitude</span>
-                <span class="n">is_Q</span> <span class="o">=</span> <span class="s1">&#39;value&#39;</span>
-                <span class="n">not_Q</span> <span class="o">=</span> <span class="s1">&#39;bounds&#39;</span>                        
-            <span class="k">elif</span> <span class="n">bounds_is_Q</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">value_is_Q</span><span class="p">:</span>
-                <span class="n">bounds</span><span class="o">.</span><span class="n">ito</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
-                <span class="n">bounds</span> <span class="o">=</span> <span class="n">bounds</span><span class="o">.</span><span class="n">magnitude</span>
-                <span class="n">is_Q</span> <span class="o">=</span> <span class="s1">&#39;bounds&#39;</span>
-                <span class="n">not_Q</span> <span class="o">=</span> <span class="s1">&#39;value&#39;</span>
-            <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="n">VE</span>
-            <span class="c1"># Warn to prevent bad usage of SmartBook</span>
-            <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;&#39;&quot;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s2">&quot;&#39;&quot;</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">key</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;For key, </span><span class="si">{name}</span><span class="s2">, </span><span class="si">{is_Q}</span><span class="s2"> is a Quantity object, while </span><span class="si">{not_Q}</span><span class="s2"> is not.&quot;</span>
-            <span class="n">warn</span><span class="p">(</span><span class="n">_warning</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">DesignWarning</span><span class="p">),</span>
-                 <span class="n">stacklevel</span><span class="o">=</span><span class="n">stacklevel</span><span class="p">)</span>
-            <span class="c1"># Try again recursively</span>
-            <span class="k">return</span> <span class="n">_warnbounds</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span>
-                                    <span class="n">stacklevel</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">source</span><span class="p">)</span>
-        
-        <span class="c1"># Handle exception when bounds is not an array</span>
-        <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">AE</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bounds</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-                <span class="c1"># Warn to prevent bad usage of SmartBook</span>
-                <span class="n">name</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;&#39;</span><span class="si">{key}</span><span class="s2">&#39;&quot;</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">key</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;For key, </span><span class="si">{name}</span><span class="s2">, bounds should be an array, not {type(bounds).__name__}.&quot;</span>
-                <span class="n">warn</span><span class="p">(</span><span class="n">_warning</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">DesignWarning</span><span class="p">),</span>
-                     <span class="n">stacklevel</span><span class="o">=</span><span class="n">stacklevel</span><span class="p">)</span>
-                <span class="c1"># Try again recursively</span>
-                <span class="k">return</span> <span class="n">_warnbounds</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">bounds</span><span class="p">),</span>
-                                        <span class="n">stacklevel</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">source</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">AE</span>
-                
         <span class="c1"># Warn when value is out of bounds</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">within_bounds</span><span class="p">:</span>
-            <span class="n">units</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">units</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">lb</span><span class="o">&lt;=</span><span class="n">value</span> <span class="ow">and</span> <span class="n">ub</span><span class="o">&gt;=</span><span class="n">value</span><span class="p">:</span>
+            <span class="n">units</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">units</span> <span class="k">if</span> <span class="n">units</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">msg</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (</span><span class="si">{lb:.4g}</span><span class="s2"> to </span><span class="si">{ub:.4g}{units}</span><span class="s2">).&quot;</span>
             <span class="k">except</span><span class="p">:</span>  <span class="c1"># Handle format errors</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (</span><span class="si">{lb}</span><span class="s2"> to </span><span class="si">{ub}</span><span class="s2"> </span><span class="si">{units}</span><span class="s2">).&quot;</span>
-            
+                <span class="n">msg</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (</span><span class="si">{lb}</span><span class="s2"> to </span><span class="si">{ub}{units}</span><span class="s2">).&quot;</span>
             <span class="n">warn</span><span class="p">(</span><span class="n">_warning</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">DesignWarning</span><span class="p">),</span> <span class="n">stacklevel</span><span class="o">=</span><span class="n">stacklevel</span><span class="p">)</span>
+            
+<span class="k">def</span> <span class="nf">_lb_warning</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">lb</span><span class="p">,</span> <span class="n">stacklevel</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">units</span> <span class="k">if</span> <span class="n">units</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (minimum </span><span class="si">{lb:.4g}{units}</span><span class="s2">).&quot;</span>
+    <span class="k">except</span><span class="p">:</span>  <span class="c1"># Handle format errors</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (minimum </span><span class="si">{lb}{units}</span><span class="s2">).&quot;</span>
+    
+    <span class="n">warn</span><span class="p">(</span><span class="n">_warning</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">DesignWarning</span><span class="p">),</span> <span class="n">stacklevel</span><span class="o">=</span><span class="n">stacklevel</span><span class="p">)</span>
+    
+<span class="k">def</span> <span class="nf">_ub_warning</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">ub</span><span class="p">,</span> <span class="n">stacklevel</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">units</span> <span class="k">if</span> <span class="n">units</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (maximum </span><span class="si">{ub:.4g}{units}</span><span class="s2">).&quot;</span>
+    <span class="k">except</span><span class="p">:</span>  <span class="c1"># Handle format errors</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (maximum </span><span class="si">{ub}{units}</span><span class="s2">).&quot;</span>
+    
+    <span class="n">warn</span><span class="p">(</span><span class="n">_warning</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">DesignWarning</span><span class="p">),</span> <span class="n">stacklevel</span><span class="o">=</span><span class="n">stacklevel</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">_checkbounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Issue a warning if value is out of bounds.</span>
@@ -179,51 +154,21 @@
 
 <span class="k">def</span> <span class="nf">_boundsignore</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span> <span class="k">pass</span>
 
+<span class="c1"># %% Proxies</span>
+
+<span class="k">def</span> <span class="nf">_proxy_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">P</span>
+    <span class="n">out</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">_phase</span>
 
 <span class="c1"># %% Unit metaclass</span>
 
 <span class="n">_Unit_is_done</span> <span class="o">=</span> <span class="kc">False</span>
 
 <span class="k">class</span> <span class="nc">metaUnit</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Unit metaclass for wrapping up methods with error notifiers, adding key word arguments, and keeping track for Unit lines and inheritance.</span>
-
-<span class="sd">    **Optional class definitions**</span>
-
-<span class="sd">        **_kwargs** = {}: [dict] Default keyword arguments</span>
-
-<span class="sd">        **_init():**</span>
-<span class="sd">            Initialize components.</span>
-<span class="sd">        </span>
-<span class="sd">        **_setup()**</span>
-<span class="sd">            Create cached data from kwargs. </span>
-
-<span class="sd">        **_run()**</span>
-<span class="sd">            Run rigorous simulation.</span>
-
-<span class="sd">        **_design()**</span>
-<span class="sd">            Update results &quot;Design&quot; dictionary with design requirements.</span>
-
-<span class="sd">        **_cost()**</span>
-<span class="sd">            Update results &quot;Cost&quot; dictionary with itemized cost.</span>
-
-<span class="sd">    **Class Attributes** </span>
-
-<span class="sd">        **CEPCI** = 567.5: [float] Chemical Engineering Plant Cost Index</span>
-<span class="sd">        </span>
-<span class="sd">        **_bounds** = {} [dict] Values should be tuples with lower and upper bounds.</span>
-<span class="sd">        </span>
-<span class="sd">        **_N_ins** = 1: [int] Expected number of input streams</span>
-
-<span class="sd">        **_N_outs** = 2: [int] Expected number of output streams</span>
-
-<span class="sd">        **_N_heat_utilities** = 0: [int] Number of heat utilities  </span>
-
-<span class="sd">        **_has_power_utility** = False: [bool] If True, a PowerUtility object is created for every instance.</span>
-
-<span class="sd">        line = [Defaults to the class name of the first child class]: [str] Name denoting the type of Unit class</span>
-
-
-<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Unit metaclass for wrapping up methods with error notifiers, adding key word arguments, and keeping track for Unit lines and inheritance.&quot;&quot;&quot;</span>
     <span class="n">_enforce_bounds</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">_CEPCI</span> <span class="o">=</span> <span class="mf">567.5</span> <span class="c1"># Chemical engineering plant cost index (567.5 at 2017)</span>
     <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">clsname</span><span class="p">,</span> <span class="n">superclasses</span><span class="p">,</span> <span class="n">new_definitions</span><span class="p">):</span>
@@ -233,11 +178,6 @@
             <span class="c1"># Abstract Unit class</span>
             <span class="bp">cls</span> <span class="o">=</span> <span class="nb">type</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">clsname</span><span class="p">,</span> <span class="n">superclasses</span><span class="p">,</span> <span class="n">new_definitions</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># Add error notification wrapper to every new unit method</span>
-            <span class="k">for</span> <span class="n">method_name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;_setup&#39;</span><span class="p">,</span> <span class="s1">&#39;_run&#39;</span><span class="p">,</span> <span class="s1">&#39;_operation&#39;</span><span class="p">,</span> <span class="s1">&#39;_design&#39;</span><span class="p">,</span> <span class="s1">&#39;_cost&#39;</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">new_definitions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">method_name</span><span class="p">):</span>
-                    <span class="n">new_definitions</span><span class="p">[</span><span class="n">method_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">_notify_error</span><span class="p">(</span><span class="n">new_definitions</span><span class="p">[</span><span class="n">method_name</span><span class="p">])</span>
-    
             <span class="c1"># Make new Unit class</span>
             <span class="bp">cls</span> <span class="o">=</span> <span class="nb">type</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">clsname</span><span class="p">,</span> <span class="n">superclasses</span><span class="p">,</span> <span class="n">new_definitions</span><span class="p">)</span>
             
@@ -271,13 +211,11 @@
             <span class="n">kwargs</span> <span class="o">=</span> <span class="n">new_definitions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_kwargs&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s1">&#39;__init__&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">new_definitions</span><span class="p">:</span>
                 <span class="c1"># Key word arguments to replace</span>
-                <span class="n">inputs</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                    <span class="n">inputs</span> <span class="o">+=</span> <span class="s1">&#39;, &#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;=&#39;</span> <span class="o">+</span> <span class="n">key</span>
+                <span class="n">inputs</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;=&#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">])</span>
         
                 <span class="c1"># Begin changing __init__ to have kwargs by making a string to execute</span>
-                <span class="n">str2exec</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;def __init__(self, ID=&#39;&#39;, outs=(), ins=None</span><span class="si">{inputs}</span><span class="s2">):</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="n">str2exec</span><span class="o">+=</span> <span class="n">f</span><span class="s2">&quot;     _(self, ID, outs, ins</span><span class="si">{inputs}</span><span class="s2">)&quot;</span>
+                <span class="n">str2exec</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;def __init__(self, ID=&#39;&#39;, outs=(), ins=None, </span><span class="si">{inputs}</span><span class="s2">):</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">str2exec</span><span class="o">+=</span> <span class="n">f</span><span class="s2">&quot;     _(self, ID, outs, ins, </span><span class="si">{inputs}</span><span class="s2">)&quot;</span>
         
                 <span class="c1"># Execute string and replace __init__</span>
                 <span class="n">globs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;_&#39;</span><span class="p">:</span> <span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">}</span>
@@ -285,12 +223,8 @@
                 <span class="n">locs</span> <span class="o">=</span> <span class="p">{}</span>
                 <span class="n">exec</span><span class="p">(</span><span class="n">str2exec</span><span class="p">,</span> <span class="n">globs</span><span class="p">,</span> <span class="n">locs</span><span class="p">)</span>
                 <span class="bp">cls</span><span class="o">.</span><span class="fm">__init__</span> <span class="o">=</span> <span class="n">locs</span><span class="p">[</span><span class="s1">&#39;__init__&#39;</span><span class="p">]</span>
-            
-            <span class="c1"># Make sure bounds are arrays for boundscheck</span>
-            <span class="n">bounds</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_bounds</span>
-            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">bounds</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="n">bounds</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
-        
+            <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_linkedstreams</span> <span class="ow">and</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_run</span> <span class="ow">is</span> <span class="n">Unit</span><span class="o">.</span><span class="n">_run</span><span class="p">:</span>
+                <span class="bp">cls</span><span class="o">.</span><span class="n">_run</span> <span class="o">=</span> <span class="n">_proxy_run</span>
         <span class="k">return</span> <span class="bp">cls</span>
     
     <span class="nd">@property</span>
@@ -318,6 +252,7 @@
             <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;Unit.</span><span class="si">{cls.__name__}</span><span class="s1">&#39;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;</span><span class="si">{cls.line}</span><span class="s1">.</span><span class="si">{cls.__name__}</span><span class="s1">&#39;</span>
+
 
 <span class="c1"># %% Unit Operation</span>
 
@@ -347,16 +282,25 @@
 <span class="sd">            Initialize components.</span>
 <span class="sd">        </span>
 <span class="sd">        **_setup()**</span>
-<span class="sd">            Create cached data from _kwargs. </span>
+<span class="sd">            Create cached data from kwargs. </span>
 
 <span class="sd">        **_run()**</span>
-<span class="sd">            Run rigorous simulation.</span>
+<span class="sd">            Run simulation and update output streams.</span>
+
+<span class="sd">        **_prepare()**</span>
+<span class="sd">            Prepare for design (called before `design`).</span>
 
 <span class="sd">        **_design()**</span>
-<span class="sd">            Update results &quot;Design&quot; dictionary with design requirements.</span>
+<span class="sd">            Add design requirements to results &quot;Design&quot; dictionary.</span>
 
 <span class="sd">        **_cost()**</span>
-<span class="sd">            Update results &quot;Cost&quot; dictionary with itemized cost.</span>
+<span class="sd">            Add itemized purchse costs to results &quot;Cost&quot; dictionary.</span>
+<span class="sd">            </span>
+<span class="sd">        **_spec()**</span>
+<span class="sd">            Calculate specification cost factors and update purchase prices.</span>
+<span class="sd">            </span>
+<span class="sd">        **_end():**</span>
+<span class="sd">            Finish setting purchase prices and utility costs.</span>
 <span class="sd">        </span>
 <span class="sd">        **_units** = {}: [dict] Default units for results Operation and Design</span>
 <span class="sd">        </span>
@@ -372,9 +316,13 @@
 <span class="sd">        </span>
 <span class="sd">        **_has_cost** = True: [bool] Should be True if it has any associated cost</span>
 <span class="sd">    </span>
-<span class="sd">        **_has_proxystream** = False: [bool] True if outs are proxy streams linked to ins</span>
+<span class="sd">        **_linkedstreams = True** = False: [bool] True if outs are proxy streams linked to ins</span>
 <span class="sd">    </span>
 <span class="sd">        **_graphics** = default_graphics: [biosteam Graphics] a Graphics object for diagram representation.</span>
+<span class="sd">        </span>
+<span class="sd">    .. Note::</span>
+<span class="sd">        </span>
+<span class="sd">       Class argument `_init` is called only once when a Unit object is initialized, while `_setup` is run in the `reset` method to update cached data. The `_run` method is called during recycle loop convergence. The rest of the methods are called in the given order for generating results.</span>
 
 <span class="sd">    **ins**</span>
 <span class="sd">        </span>
@@ -408,7 +356,7 @@
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">2</span>  
     
     <span class="c1"># [bool] True if outs are proxy streams linked to ins</span>
-    <span class="n">_has_proxystream</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">_linkedstreams</span> <span class="o">=</span> <span class="kc">False</span>
     
     <span class="c1"># [dict] Values should be tuples with lower and upper bounds for results dictionary.</span>
     <span class="n">_bounds</span> <span class="o">=</span> <span class="p">{}</span>
@@ -445,7 +393,6 @@
     <span class="c1">### Initialize ###</span>
     
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_ins</span><span class="p">(</span><span class="n">ins</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_outs</span><span class="p">(</span><span class="n">outs</span><span class="p">)</span>
@@ -455,9 +402,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_init</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_setup</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_install</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span>
 
 <div class="viewcode-block" id="Unit.reset"><a class="viewcode-back" href="../../Unit.html#biosteam.units.Unit.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Reset unit with new kwargs.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Reset unit with new key word arguments.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_setup</span><span class="p">()</span></div>
 
@@ -466,9 +414,9 @@
         <span class="k">if</span> <span class="n">ins</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="n">Ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">missing_stream</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_N_ins</span><span class="p">)))</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ins</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="n">Ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ins</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="n">Ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">ins</span><span class="p">,))</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ins</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="n">Ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Stream</span><span class="p">(</span><span class="n">ins</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="n">Ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">Stream</span><span class="p">(</span><span class="n">ins</span><span class="p">),))</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="n">ins</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="n">Ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_N_ins</span><span class="p">)))</span>
         <span class="k">else</span><span class="p">:</span>
@@ -476,19 +424,18 @@
     
     <span class="k">def</span> <span class="nf">_init_outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize output streams.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_proxystream</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_linkedstreams</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">outs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">ProxyStream</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">)</span>
-                                  <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_N_outs</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">Stream</span><span class="o">.</span><span class="n">proxy</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_N_outs</span><span class="p">))</span>
             <span class="k">elif</span> <span class="ow">not</span> <span class="n">outs</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">ProxyStream</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">Stream</span><span class="o">.</span><span class="n">proxy</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">))</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outs</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ProxyStream</span><span class="o">.</span><span class="n">asproxy</span><span class="p">(</span><span class="n">outs</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">outs</span><span class="p">,))</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outs</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ProxyStream</span><span class="p">(</span><span class="n">outs</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">Stream</span><span class="o">.</span><span class="n">proxy</span><span class="p">(</span><span class="n">outs</span><span class="p">),))</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">ProxyStream</span><span class="o">.</span><span class="n">asproxy</span><span class="p">(</span><span class="n">o</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">Stream</span><span class="p">)</span>
-                                         <span class="k">else</span> <span class="n">ProxyStream</span><span class="p">(</span><span class="n">o</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">o</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">Stream</span><span class="p">)</span>
+                                         <span class="k">else</span> <span class="n">Stream</span><span class="o">.</span><span class="n">proxy</span><span class="p">(</span><span class="n">o</span><span class="p">)</span>
                                          <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">outs</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">outs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -496,17 +443,17 @@
             <span class="k">elif</span> <span class="ow">not</span> <span class="n">outs</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_N_outs</span><span class="p">)))</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outs</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outs</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">outs</span><span class="p">,))</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outs</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Stream</span><span class="p">(</span><span class="n">outs</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">Stream</span><span class="p">(</span><span class="n">outs</span><span class="p">),))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">Stream</span><span class="p">)</span> <span class="k">else</span> <span class="n">Stream</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">outs</span><span class="p">))</span>        
     
     <span class="k">def</span> <span class="nf">_init_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize results attribute.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_results</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Design&#39;</span><span class="p">:</span> <span class="p">{},</span>
-                         <span class="s1">&#39;Cost&#39;</span><span class="p">:</span> <span class="p">{}}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_totalcosts</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="c1">#: [list] Purchase price (USD) and utility cost (USD/hr)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_results</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Design&#39;</span><span class="p">:</span> <span class="p">{},</span> <span class="s1">&#39;Cost&#39;</span><span class="p">:</span> <span class="p">{}}</span>
+        <span class="c1">#: [list] Purchase price (USD) and utility cost (USD/hr)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_totalcosts</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
     
     <span class="k">def</span> <span class="nf">_init_heat_utils</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize heat utilities.&quot;&quot;&quot;</span>
@@ -521,42 +468,35 @@
     
     <span class="k">def</span> <span class="nf">_install</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Cache objects and/or replace methods for computational efficiency.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_cost</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span> <span class="o">=</span> <span class="n">Unit</span><span class="o">.</span><span class="n">_cost</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">simulate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># Result dictionaries for all utilities</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_utils</span> <span class="o">=</span> <span class="n">utils</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">heat_utilities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span>
-            <span class="n">power_utility</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span>
-            <span class="k">if</span> <span class="n">heat_utilities</span><span class="p">:</span> <span class="n">utils</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">heat_utilities</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">power_utility</span><span class="p">:</span> <span class="n">utils</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">power_utility</span><span class="p">)</span>
-                
-            <span class="c1"># Itemized purchase costs</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_purchase_costs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+        <span class="c1"># Result dictionaries for all utilities</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_utils</span> <span class="o">=</span> <span class="n">utils</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">heat_utilities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span>
+        <span class="n">power_utility</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span>
+        <span class="k">if</span> <span class="n">heat_utilities</span><span class="p">:</span> <span class="n">utils</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">heat_utilities</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">power_utility</span><span class="p">:</span> <span class="n">utils</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">power_utility</span><span class="p">)</span>            
+        <span class="c1"># Itemized purchase costs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_purchase_costs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
     
     <span class="k">def</span> <span class="nf">_link_streams</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Setup ProxyStream objects if any.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_proxystream</span><span class="p">:</span> 
-            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">o</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">):</span>
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">ProxyStream</span><span class="p">):</span> <span class="n">o</span><span class="o">.</span><span class="n">link</span> <span class="o">=</span> <span class="n">i</span>
+        <span class="sd">&quot;&quot;&quot;Setup ProxyStream object if any.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_linkedstreams</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">link</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     
     <span class="c1"># Forward pipping</span>
     <span class="k">def</span> <span class="nf">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Source streams.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Unit</span><span class="p">):</span>
-            <span class="n">other</span><span class="o">.</span><span class="n">ins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+            <span class="n">other</span><span class="o">.</span><span class="n">_ins</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span>
             <span class="k">return</span> <span class="n">other</span>
         <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="n">other</span><span class="p">]</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">outs</span> <span class="o">=</span> <span class="n">other</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">(</span><span class="n">other</span><span class="p">,)</span>
             <span class="k">return</span> <span class="bp">self</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">int</span><span class="p">):</span>
                 <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">other</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">outs</span> <span class="o">=</span> <span class="n">other</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">other</span>
                 <span class="k">return</span> <span class="bp">self</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">other</span><span class="o">.</span><span class="fm">__rsub__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -564,42 +504,57 @@
     <span class="k">def</span> <span class="nf">__rsub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Sink streams.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="n">other</span><span class="p">]</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[</span><span class="n">other</span><span class="p">]</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">ins</span> <span class="o">=</span> <span class="n">other</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">(</span><span class="n">other</span><span class="p">,)</span>
             <span class="k">return</span> <span class="bp">self</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)):</span>
             <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">other</span><span class="p">):</span>
-                <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">other</span><span class="p">]</span>
+                <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">other</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">ins</span> <span class="o">=</span> <span class="n">other</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">other</span>
                 <span class="k">return</span> <span class="bp">self</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">other</span><span class="o">.</span><span class="fm">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
     <span class="c1"># Backwards pipping</span>
     <span class="fm">__pow__</span> <span class="o">=</span> <span class="fm">__sub__</span>
     <span class="fm">__rpow__</span> <span class="o">=</span> <span class="fm">__rsub__</span>
     
     <span class="c1"># Abstract methods</span>
-    <span class="k">def</span> <span class="nf">_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span>
-    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span>
-    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span>
-    <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span>
-    <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span>
-
+    <span class="n">_init</span>     <span class="o">=</span> <span class="n">_do_nothing</span>
+    <span class="n">_setup</span>    <span class="o">=</span> <span class="n">_do_nothing</span>
+    <span class="n">_run</span>      <span class="o">=</span> <span class="n">_do_nothing</span>
+    <span class="n">_prepare</span>  <span class="o">=</span> <span class="n">_do_nothing</span>
+    <span class="n">_design</span>   <span class="o">=</span> <span class="n">_do_nothing</span>
+    <span class="n">_cost</span>     <span class="o">=</span> <span class="n">_do_nothing</span>
+    <span class="n">_spec</span>     <span class="o">=</span> <span class="n">_do_nothing</span>
+    <span class="n">_end</span>      <span class="o">=</span> <span class="n">_do_nothing</span>
+    
     <span class="c1"># Summary</span>
     <span class="k">def</span> <span class="nf">_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Run _design, and _cost methods and update purchase price and total utility costs.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Calculate all results from unit run.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_prepare</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_finalize</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Run all cost methods and finalize purchase and utility cost.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_totalcosts</span><span class="p">[:]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_purchase_costs</span><span class="p">),</span> <span class="nb">sum</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">cost</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_utils</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_spec</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_end</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_utility_cost</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_purchase_cost</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_update_purchase_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_totalcosts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_purchase_costs</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">_update_utility_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_totalcosts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">cost</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_utils</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Unit.simulate"><a class="viewcode-back" href="../../Unit.html#biosteam.units.Unit.simulate">[docs]</a>    <span class="k">def</span> <span class="nf">simulate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Run rigourous simulation and determine all design requirements.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_link_streams</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">()</span></div>
+        <span class="n">_try_method</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">)</span>
+        <span class="n">_try_method</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Unit.results"><a class="viewcode-back" href="../../Unit.html#biosteam.units.Unit.results">[docs]</a>    <span class="k">def</span> <span class="nf">results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_units</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return key results from simulation as a DataFrame if `with_units` is True or as a Series otherwise.&quot;&quot;&quot;</span>
@@ -614,14 +569,14 @@
                 <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Power&#39;</span><span class="p">,</span> <span class="s1">&#39;Rate&#39;</span><span class="p">))</span>
                 <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Power&#39;</span><span class="p">,</span> <span class="s1">&#39;Cost&#39;</span><span class="p">))</span>
                 <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;kW&#39;</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">rate</span><span class="p">))</span>
-                <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;kW&#39;</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">cost</span><span class="p">))</span>
+                <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;USD/hr&#39;</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">cost</span><span class="p">))</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">:</span>
                     <span class="n">addkey</span><span class="p">((</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="s1">&#39;Duty&#39;</span><span class="p">))</span>
                     <span class="n">addkey</span><span class="p">((</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="s1">&#39;Flow&#39;</span><span class="p">))</span>
                     <span class="n">addkey</span><span class="p">((</span><span class="n">i</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="s1">&#39;Cost&#39;</span><span class="p">))</span>
                     <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;kJ/hr&#39;</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">duty</span><span class="p">))</span>
-                    <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">flow</span><span class="p">))</span>
+                    <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">flow</span><span class="p">))</span>
                     <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;USD/hr&#39;</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">cost</span><span class="p">))</span>
             <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units</span>
             <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -702,6 +657,9 @@
             <span class="k">return</span> <span class="n">series</span></div>
 
     <span class="n">_checkbounds</span> <span class="o">=</span> <span class="n">_checkbounds</span>
+    <span class="k">def</span> <span class="nf">_lb_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">lb</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Warn that value is below lower bound.&quot;&quot;&quot;</span>
+        <span class="n">_lb_warning</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">lb</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">CEPCI</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -709,7 +667,7 @@
         <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">CEPCI</span>
     <span class="nd">@CEPCI</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">CEPCI</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">CEPCI</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;Cannot change class attribute through an instance.&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;cannot change class attribute through an instance&#39;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ID</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -718,41 +676,30 @@
 
     <span class="nd">@ID</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">ID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
-        <span class="n">unit</span> <span class="o">=</span> <span class="n">find</span><span class="o">.</span><span class="n">unit</span>
-        <span class="n">ID_old</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span>
-        <span class="k">if</span> <span class="n">ID_old</span> <span class="ow">and</span> <span class="n">ID_old</span> <span class="ow">in</span> <span class="n">unit</span><span class="p">:</span> <span class="k">del</span> <span class="n">unit</span><span class="p">[</span><span class="n">ID_old</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">ID</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
             <span class="c1"># Select a default ID if requested</span>
             <span class="n">letter</span><span class="p">,</span> <span class="n">number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_ID</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_default_ID</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="n">ID</span> <span class="o">=</span> <span class="n">letter</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="n">ID</span>
-            <span class="n">unit</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
-            <span class="k">return</span>
-        <span class="k">elif</span> <span class="n">ID</span><span class="p">:</span>
+            <span class="n">find</span><span class="o">.</span><span class="n">unit</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
+        <span class="k">elif</span> <span class="n">ID</span> <span class="ow">and</span> <span class="n">ID</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span><span class="p">:</span>
             <span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
             <span class="n">ID_words</span> <span class="o">=</span> <span class="n">ID</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">word</span><span class="o">.</span><span class="n">isalnum</span><span class="p">()</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">ID_words</span><span class="p">):</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;ID cannot have any special characters&#39;</span><span class="p">)</span>
-            <span class="n">unit</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="n">ID</span>
+            <span class="n">find</span><span class="o">.</span><span class="n">unit</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
 
     <span class="c1"># Input and output streams</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ins</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># list of input streams</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span>
-    <span class="nd">@ins</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">streams</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">streams</span><span class="p">)</span>
-        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span>    
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">outs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># list of output streams</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span>
-    <span class="nd">@outs</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">streams</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">streams</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_upstream_neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -817,7 +764,7 @@
         
         <span class="k">return</span> <span class="n">neighborhood</span>
 
-<div class="viewcode-block" id="Unit.diagram"><a class="viewcode-back" href="../../Unit.html#biosteam.units.Unit.diagram">[docs]</a>    <span class="k">def</span> <span class="nf">diagram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Unit.diagram"><a class="viewcode-back" href="../../Unit.html#biosteam.units.Unit.diagram">[docs]</a>    <span class="k">def</span> <span class="nf">diagram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;svg&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Display a `Graphviz &lt;https://pypi.org/project/graphviz/&gt;`__ diagram of the unit and all neighboring units within given radius.</span>
 <span class="sd">        </span>
 <span class="sd">        **Parameters**</span>
@@ -825,15 +772,17 @@
 <span class="sd">            **radius:** [int] Maxium number streams between neighbors.</span>
 <span class="sd">        </span>
 <span class="sd">            **file:** Must be one of the following:</span>
-<span class="sd">                * [str] File name to save diagram. If format not included, saves file as svg.</span>
+<span class="sd">                * [str] File name to save diagram.</span>
 <span class="sd">                * [None] Display diagram in console.</span>
+<span class="sd">        </span>
+<span class="sd">            **format:** Format of file.</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">radius</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">neighborhood</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_neighborhood</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span>
             <span class="n">neighborhood</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
             <span class="n">sys</span> <span class="o">=</span> <span class="n">biosteam</span><span class="o">.</span><span class="n">System</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">neighborhood</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">sys</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">sys</span><span class="o">.</span><span class="n">diagram</span><span class="p">(</span><span class="s1">&#39;thorough&#39;</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="nb">format</span><span class="p">)</span>
         
         <span class="n">graphics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_graphics</span>
 
@@ -861,7 +810,7 @@
         <span class="c1"># Make nodes and edges for input streams</span>
         <span class="n">di</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Destination position of stream</span>
         <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">stream</span><span class="o">.</span><span class="n">ID</span> <span class="ow">or</span> <span class="n">stream</span><span class="o">.</span><span class="n">ID</span> <span class="o">==</span> <span class="s1">&#39;Missing Stream&#39;</span><span class="p">:</span> <span class="k">continue</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">stream</span><span class="p">:</span> <span class="k">continue</span>
             <span class="n">f</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>  
             <span class="n">edge_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_graphics</span><span class="o">.</span><span class="n">edge_in</span>
             <span class="k">if</span> <span class="n">di</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">edge_in</span><span class="p">):</span> <span class="n">di</span> <span class="o">=</span> <span class="mi">0</span>
@@ -873,6 +822,7 @@
         <span class="c1"># Make nodes and edges for output streams</span>
         <span class="n">oi</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Origin position of stream</span>
         <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">stream</span><span class="p">:</span> <span class="k">continue</span>
             <span class="n">f</span><span class="o">.</span><span class="n">node</span><span class="p">(</span><span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span> 
             <span class="n">edge_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_graphics</span><span class="o">.</span><span class="n">edge_out</span>  
             <span class="k">if</span> <span class="n">oi</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">edge_out</span><span class="p">):</span> <span class="n">oi</span> <span class="o">=</span> <span class="mi">0</span>
@@ -880,9 +830,7 @@
                    <span class="n">headport</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">edge_out</span><span class="p">[</span><span class="n">oi</span><span class="p">])</span>
             <span class="n">f</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>
             <span class="n">oi</span> <span class="o">+=</span> <span class="mi">1</span>
-
-        <span class="c1"># Display digraph on console</span>
-        <span class="n">display</span><span class="o">.</span><span class="n">display</span><span class="p">(</span><span class="n">display</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">)))</span></div>
+        <span class="n">save_digraph</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="nb">format</span><span class="p">)</span></div>
     
     <span class="c1">### Net input and output flows ###</span>
     
@@ -890,12 +838,12 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_mol_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Molar flows going in (kmol/hr).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">mol</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">mol</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_mol_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Molar flows going out (kmol/hr).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">mol</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">mol</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_molfrac_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -910,18 +858,18 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_molnet_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Net molar flow going in (kmol/hr).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">molnet</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">molnet</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_molnet_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Net molar flow going out (kmol/hr).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">molnet</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">molnet</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">)</span>
 
     <span class="c1"># Mass flow rates</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_mass_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Mass flows going in (kg/hr).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">mass</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">mass</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_mass_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -941,7 +889,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_massnet_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Net mass flow going in (kg/hr).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">massnet</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">massnet</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_massnet_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -952,7 +900,7 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_vol_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Volumetric flows going in (m3/hr).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">vol</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">vol</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_volnet_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -983,28 +931,22 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_H_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Enthalpy flow going in (kJ/hr).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">H</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">H</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">])</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_H_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Enthalpy flow going out (kJ/hr).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">H</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">H</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">])</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_Hf_in</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Enthalpy of formation flow going in (kJ/hr).&quot;&quot;&quot;</span>
-        <span class="n">_Hf_in</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">:</span>
-            <span class="n">_Hf_in</span> <span class="o">+=</span> <span class="n">stream</span><span class="o">.</span><span class="n">Hf</span>
-        <span class="k">return</span> <span class="n">_Hf_in</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">Hf</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">])</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_Hf_out</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Enthalpy of formation flow going out (kJ/hr).&quot;&quot;&quot;</span>
-        <span class="n">_Hf_out</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">:</span>
-            <span class="n">_Hf_out</span> <span class="o">+=</span> <span class="n">stream</span><span class="o">.</span><span class="n">Hf</span>
-        <span class="k">return</span> <span class="n">_Hf_out</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">Hf</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">])</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_Hnet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1012,7 +954,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_H_out</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_H_in</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Hf_out</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Hf_in</span>
     
     <span class="c1"># Representation</span>
-    <span class="k">def</span> <span class="nf">_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">show_units</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">fraction</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Information on unit.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">:</span>
             <span class="n">info</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="se">\n</span><span class="s1">&#39;</span>
@@ -1020,12 +962,12 @@
             <span class="n">info</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;{type(self).__name__}</span><span class="se">\n</span><span class="s1">&#39;</span>
         <span class="n">info</span><span class="o">+=</span> <span class="n">f</span><span class="s1">&#39;ins...</span><span class="se">\n</span><span class="s1">&#39;</span>
         <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">:</span>
-            <span class="n">stream_info</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="o">**</span><span class="n">show_units</span><span class="p">)</span>
-            <span class="k">if</span> <span class="s1">&#39;Missing Stream&#39;</span> <span class="ow">in</span> <span class="n">stream_info</span><span class="p">:</span>
-                <span class="n">info</span> <span class="o">+=</span> <span class="n">f</span><span class="s1">&#39;[</span><span class="si">{i}</span><span class="s1">] </span><span class="si">{stream.ID}</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">stream</span><span class="p">:</span>
+                <span class="n">info</span> <span class="o">+=</span> <span class="n">f</span><span class="s1">&#39;[</span><span class="si">{i}</span><span class="s1">] missing stream</span><span class="se">\n</span><span class="s1">&#39;</span>
                 <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">continue</span>
+            <span class="n">stream_info</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">fraction</span><span class="p">)</span>
             <span class="n">unit</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_source</span>
             <span class="n">index</span> <span class="o">=</span> <span class="n">stream_info</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
             <span class="n">source_info</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;  from  {type(unit).__name__}-</span><span class="si">{unit}</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="n">unit</span> <span class="k">else</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
@@ -1034,11 +976,11 @@
         <span class="n">info</span> <span class="o">+=</span> <span class="n">f</span><span class="s1">&#39;outs...</span><span class="se">\n</span><span class="s1">&#39;</span>
         <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">stream</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">:</span>
-            <span class="n">stream_info</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="o">**</span><span class="n">show_units</span><span class="p">)</span>
-            <span class="k">if</span> <span class="s1">&#39;Missing Stream&#39;</span> <span class="ow">in</span> <span class="n">stream_info</span><span class="p">:</span>
-                <span class="n">info</span> <span class="o">+=</span> <span class="n">f</span><span class="s1">&#39;[</span><span class="si">{i}</span><span class="s1">] </span><span class="si">{stream.ID}</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">stream</span><span class="p">:</span>
+                <span class="n">info</span> <span class="o">+=</span> <span class="n">f</span><span class="s1">&#39;[</span><span class="si">{i}</span><span class="s1">] missing stream</span><span class="se">\n</span><span class="s1">&#39;</span>
                 <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">continue</span>
+            <span class="n">stream_info</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">fraction</span><span class="p">)</span>
             <span class="n">unit</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_sink</span>
             <span class="n">index</span> <span class="o">=</span> <span class="n">stream_info</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
             <span class="n">sink_info</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;  to  {type(unit).__name__}-</span><span class="si">{unit}</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="k">if</span> <span class="n">unit</span> <span class="k">else</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
@@ -1047,9 +989,25 @@
         <span class="n">info</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> &#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">    &#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">info</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
-<div class="viewcode-block" id="Unit.show"><a class="viewcode-back" href="../../Unit.html#biosteam.units.Unit.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">show_units</span><span class="p">):</span>
+<div class="viewcode-block" id="Unit.show"><a class="viewcode-back" href="../../Unit.html#biosteam.units.Unit.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Prints information on unit.&quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="o">**</span><span class="n">show_units</span><span class="p">))</span></div>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">fraction</span><span class="p">))</span></div>
+    
+    <span class="k">def</span> <span class="nf">_ipython_display_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">_delete</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">i</span><span class="p">:</span> 
+                <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">_source</span><span class="p">:</span> <span class="n">i</span><span class="o">.</span><span class="n">_sink</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">else</span><span class="p">:</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__delattr__</span><span class="p">(</span><span class="n">find</span><span class="o">.</span><span class="n">stream</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">_ID</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">i</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">_sink</span><span class="p">:</span> <span class="n">i</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">else</span><span class="p">:</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__delattr__</span><span class="p">(</span><span class="n">find</span><span class="o">.</span><span class="n">stream</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">_ID</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">(</span><span class="n">missing_stream</span><span class="p">,)</span>
     
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">:</span>

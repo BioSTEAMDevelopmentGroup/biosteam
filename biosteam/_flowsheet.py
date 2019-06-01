@@ -97,13 +97,27 @@ def make_digraph(units, streams):
             f.edge(UD[oU], UD[dU], label=s.ID)
     return f
 
+def save_digraph(digraph, file, format):
+    if not file:
+        # if format is 'svg':
+        #     x = display.SVG(digraph.pipe(format=format))
+        # else:
+        x = display.Image(digraph.pipe(format='png'))
+        display.display(x)
+    else:
+        if '.' not in file:
+            file += '.' + format
+        img = digraph.pipe(format=format)
+        f = open(file, 'wb')
+        f.write(img)
+        f.close()
 
 # %% Flowsheet search      
     
 class Flowsheet:
     """Create a Flowsheet object which stores references to all stream, unit, and system objects."""
     #: [dict] All flowsheets.
-    flowsheet = Register()
+    flowsheet = {}
     
     def __init__(self, ID):
         #: [str] ID of flowsheet.
@@ -138,7 +152,7 @@ class Flowsheet:
         else:
             raise ValueError(f"kind must be either 'thorough', 'surface', or 'minimal'.")
     
-    def _thorough_diagram(self):
+    def _thorough_diagram(self, file=None, format='svg'):
         units = list(self.unit)
         units.reverse()
         streams = set()
@@ -146,10 +160,8 @@ class Flowsheet:
             streams.update(u._ins)
             streams.update(u._outs)
         streams.difference_update(self._upstream_connections)
-        x = display.SVG(make_digraph(units, streams).pipe(format='svg'))
-        display.display(x)
-        # img = make_digraph(units).pipe('png')
-        # display.display(display.Image(img))
+        f = make_digraph(units, streams)
+        save_digraph(f, file, format)
     
     def _minimal_diagram(self):
         from . import _system, Stream
@@ -168,7 +180,7 @@ class Flowsheet:
         unit.line = 'flowsheet'
         unit.diagram(1)
         
-    def _surface_diagram(self):
+    def _surface_diagram(self, file=None, format='svg'):
         from . import _system, Stream
         units = set(self.unit)
         StrUnit = _system._streamUnit
@@ -211,7 +223,7 @@ class Flowsheet:
                 units.add(subsystem_unit)
         
         sys = _system.System(None, units)
-        sys._thorough_diagram()
+        sys._thorough_diagram(file, format)
         for i in refresh_units:
             i._ins[:] = i._ins
             i._outs[:] = i._outs

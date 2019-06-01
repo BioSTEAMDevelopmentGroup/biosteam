@@ -54,7 +54,7 @@ class Species:
         
         # Make sure IDs is a tuple
         if not IDs:
-            raise ValueError('IDs cannot be empty')
+            return
         elif isinstance(IDs, str):
             IDs = (IDs,)
         elif not isinstance(IDs[0], str):

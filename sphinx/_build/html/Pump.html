@@ -84,7 +84,7 @@
 <div><p><strong>ID:</strong> [str] Unique identification. If set as ‘’, a default ID will be chosen.</p>
 <p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
 <p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
-<p><strong>P:</strong> <em>[float]</em> Pressure of output stream (Pa). If None, cost pump as increase of pressure to P_startup.</p>
+<p><strong>P:</strong> [float] Pressure of output stream (Pa). If None, cost pump as increase of pressure to P_startup.</p>
 </div></blockquote>
 <p><strong>ins</strong></p>
 <blockquote>
@@ -95,6 +95,15 @@
 <p><strong>Examples</strong></p>
 <blockquote>
 <div><a class="reference internal" href="Pump Example.html"><span class="doc">Pump</span></a></div></blockquote>
+<p><strong>References</strong></p>
+<blockquote>
+<div><table class="docutils footnote" frame="void" id="id1" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[0]</td><td>Seider, Warren D., et al. (2017). “Cost Accounting and Capital Cost Estimation”. In Product and Process Design Principles: Synthesis, Analysis, and Evaluation (pp. 450-455). New York: Wiley.</td></tr>
+</tbody>
+</table>
+</div></blockquote>
 <dl class="attribute">
 <dt id="biosteam.units.Pump.P_startup">
 <code class="descname">P_startup</code><em class="property"> = 405300</em><a class="headerlink" href="#biosteam.units.Pump.P_startup" title="Permalink to this definition">¶</a></dt>

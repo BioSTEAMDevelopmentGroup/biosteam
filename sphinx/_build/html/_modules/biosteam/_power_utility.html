@@ -60,6 +60,7 @@
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_Q</span>
+<span class="kn">from</span> <span class="nn">._utils</span> <span class="k">import</span> <span class="n">DisplayUnits</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;PowerUtility&#39;</span><span class="p">,)</span>
 
@@ -86,7 +87,7 @@
 <span class="sd">        </span>
 <span class="sd">           &gt;&gt;&gt; pu = PowerUtility()</span>
 <span class="sd">           &gt;&gt;&gt; pu</span>
-<span class="sd">           &lt;PowerUtility: None&gt;</span>
+<span class="sd">           &lt;PowerUtility: 0 kW, 0 USD/hr&gt;</span>
 <span class="sd">           </span>
 <span class="sd">        Call object to calculate cost:</span>
 <span class="sd">            </span>
@@ -102,16 +103,13 @@
 <span class="sd">        </span>
 <span class="sd">           &gt;&gt;&gt; pu.rate, pu.cost</span>
 <span class="sd">           (500, 30.)</span>
-<span class="sd">           </span>
-<span class="sd">        See the object with different units:</span>
-<span class="sd">            </span>
-<span class="sd">        .. code-block:: python</span>
-<span class="sd">        </span>
-<span class="sd">           &gt;&gt;&gt; pu.show(rate=&#39;BTU/s&#39;, cost=&#39;USD/yr&#39;)</span>
-<span class="sd">           PowerUtility: rate=474 BTU/s, cost=2.63e+05 USD/yr</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_units</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="s1">&#39;kW&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="s1">&#39;USD/hr&#39;</span><span class="p">)</span>
+    
+    <span class="c1">#: [DisplayUnits] Units of measure for IPython display</span>
+    <span class="n">display_units</span> <span class="o">=</span> <span class="n">DisplayUnits</span><span class="p">(</span><span class="o">**</span><span class="n">_units</span><span class="p">)</span>
+    
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;rate&#39;</span><span class="p">,</span> <span class="s1">&#39;cost&#39;</span><span class="p">)</span>
     <span class="n">price</span> <span class="o">=</span> <span class="mf">0.0782</span> <span class="c1">#: USD/kWhr</span>
     
@@ -130,31 +128,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">rate</span> <span class="o">=</span> <span class="n">rate</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">price</span> <span class="o">*</span> <span class="n">rate</span>
     
-    <span class="c1"># Representation</span>
-    <span class="k">def</span> <span class="nf">_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">show_units</span><span class="p">):</span>
-        <span class="c1"># Get units of measure</span>
-        <span class="n">su</span> <span class="o">=</span> <span class="n">show_units</span>
-        <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units</span>
-        <span class="n">Rate</span> <span class="o">=</span> <span class="n">su</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;rate&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">units</span><span class="p">[</span><span class="s1">&#39;rate&#39;</span><span class="p">]</span>
-        <span class="n">Cost</span> <span class="o">=</span> <span class="n">su</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cost&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">units</span><span class="p">[</span><span class="s1">&#39;cost&#39;</span><span class="p">]</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rate</span><span class="p">:</span>
-            <span class="n">rate</span> <span class="o">=</span> <span class="n">_Q</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rate</span><span class="p">,</span> <span class="n">units</span><span class="p">[</span><span class="s1">&#39;rate&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">Rate</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
-            <span class="n">cost</span> <span class="o">=</span> <span class="n">_Q</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="p">,</span> <span class="n">units</span><span class="p">[</span><span class="s1">&#39;cost&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">Cost</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
-            <span class="k">return</span> <span class="p">(</span><span class="n">f</span><span class="s1">&#39;{type(self).__name__}: rate=</span><span class="si">{rate:.3g}</span><span class="s1"> </span><span class="si">{Rate}</span><span class="s1">, cost=</span><span class="si">{cost:.3g}</span><span class="s1"> </span><span class="si">{Cost}</span><span class="s1">&#39;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">(</span><span class="n">f</span><span class="s1">&#39;{type(self).__name__}: None&#39;</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">show_units</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="o">**</span><span class="n">show_units</span><span class="p">))</span>
-
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Get units of measure</span>
         <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rate</span><span class="p">:</span>
-            <span class="n">Rate</span> <span class="o">=</span> <span class="n">units</span><span class="p">[</span><span class="s1">&#39;rate&#39;</span><span class="p">]</span>
-            <span class="n">Cost</span> <span class="o">=</span> <span class="n">units</span><span class="p">[</span><span class="s1">&#39;cost&#39;</span><span class="p">]</span>
-            <span class="k">return</span> <span class="p">(</span><span class="n">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{self.rate:.3g}</span><span class="s1"> </span><span class="si">{Rate}</span><span class="s1">, </span><span class="si">{self.cost:.3g}</span><span class="s1"> </span><span class="si">{Cost}</span><span class="s1">&gt;&#39;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">(</span><span class="n">f</span><span class="s1">&#39;&lt;{type(self).__name__}: None&gt;&#39;</span><span class="p">)</span></div>
+        <span class="n">rate_units</span><span class="p">,</span> <span class="n">cost_units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">display_units</span>
+        <span class="n">rate</span> <span class="o">=</span> <span class="n">_Q</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rate</span><span class="p">,</span> <span class="n">units</span><span class="p">[</span><span class="s1">&#39;rate&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">rate_units</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
+        <span class="n">cost</span> <span class="o">=</span> <span class="n">_Q</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="p">,</span> <span class="n">units</span><span class="p">[</span><span class="s1">&#39;cost&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">cost_units</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{rate:.3g}</span><span class="s1"> </span><span class="si">{rate_units}</span><span class="s1">, </span><span class="si">{cost:.3g}</span><span class="s1"> </span><span class="si">{cost_units}</span><span class="s1">&gt;&#39;</span><span class="p">)</span></div>
         
         
 </pre></div>

@@ -13,7 +13,7 @@ setattr_ = object.__setattr__
 getattr_ = object.__getattribute__
 
 class DisplayUnits:
-    
+    """Create a DisplayUnits object where default units for representation are stored."""
     def __init__(self, **display_units):
         setattr_(self, '_display_units', display_units)
         list_keys = []

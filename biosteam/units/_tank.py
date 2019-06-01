@@ -39,6 +39,8 @@ class StorageTank(Tank):
         [1] Apostolakou, A. A., Kookos, I. K., Marazioti, C., & Angelopoulos, K. C. (2009). Techno-economic analysis of a biodiesel production process from vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031. https://doi.org/10.1016/j.fuproc.2009.04.017
 
     """
+    line = 'Storage tank'
+    
     #: [float] residence time (hr)
     _tau = 4*7*24
 
@@ -74,6 +76,7 @@ class MixTank(Tank):
          [1] I.K. Kookos, Preliminary Chemical Process Synthesis and Design, Tziolas Publishing, Thessalonika, Greece, 2008 (book in Greek).
 
     """
+    line = 'Mix tank'
     _tau = 1
     _N_ins = 2
     _linkedstreams = False

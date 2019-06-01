@@ -74,7 +74,7 @@ def save_report(system, file='report.xlsx', **stream_properties):
     writer = ExcelWriter(file)
     units = list(system._costunits)
     try:
-        system.diagram('thorough', file='diagram.png')
+        system.diagram('thorough', file='diagram', format='png')
         flowsheet = writer.book.add_worksheet('Flowsheet')
         flowsheet.insert_image('A1', 'diagram.png')
     except:
@@ -295,7 +295,7 @@ def stream_table(streams, flow='kg/min', **props) -> 'DataFrame':
     
     # Prepare rows and columns
     ss = sorted(streams, key=_stream_key)
-    species = ss[0]._IDs
+    species = ss[0]._species._IDs
     n = len(ss)
     m = len(species)
     p = len(props)

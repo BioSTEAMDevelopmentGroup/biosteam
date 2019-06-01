@@ -38,7 +38,6 @@ class Transesterification(Unit):
         :doc:`Transesterification Example`
     
     """
-    line = 'Reactor'
     _kwargs = {'efficiency': None,  # fraction of theoretical conversion
                'r': None,  # Methanol to lipid molar ratio
                'T': None,

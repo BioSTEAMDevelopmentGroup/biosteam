@@ -79,19 +79,19 @@
 <dt id="biosteam.HeatUtility">
 <em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">HeatUtility</code><span class="sig-paren">(</span><em>efficiency=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_heat_utility.html#HeatUtility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.HeatUtility" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create an HeatUtility object that can choose a utility stream and calculate utility requirements. It can calculate required flow rate, temperature, or phase change of utility. Calculations assume counter current flow rate.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><strong>efficiency:</strong> [float] Fraction of heat transfered after accounting for heat loss.</div></blockquote>
-<p><strong>Class Attributes</strong></p>
-<blockquote>
-<div><p><strong>cooling_agents:</strong> [DataFrame] All cooling utilities available</p>
-<p><strong>heating_agents:</strong> [DataFrame] All heating utilities available</p>
-</div></blockquote>
-<p><strong>Examples</strong></p>
-<blockquote>
-<div><p>Create a heat utility with a source:</p>
+<dl class="docutils">
+<dt>efficiency <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>Fraction of heat transfered after accounting for heat loss.</dd>
+</dl>
+<dl class="docutils">
+<dt>cooling_agents <span class="classifier-delimiter">:</span> <span class="classifier">DataFrame</span></dt>
+<dd>All cooling utilities available</dd>
+<dt>heating_agents <span class="classifier-delimiter">:</span> <span class="classifier">DataFrame</span></dt>
+<dd>All heating utilities available</dd>
+</dl>
+<p>Create a heat utility with a source:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hu</span> <span class="o">=</span> <span class="n">HeatUtility</span><span class="p">(</span><span class="s1">&#39;Flash&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">hu</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">hu</span>
 <span class="go">HeatUtility: None</span>
 <span class="go"> duty: 0</span>
 <span class="go"> flow: 0</span>
@@ -101,11 +101,9 @@
 <p>Calculate utility requirement by calling it with a duty (kJ/hr) and temperature (K):</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hu</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">350</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">hu</span>
-<span class="go">&lt;Low pressure steam: 1.11e+03 kJ/hr, 0.0284 kmol/hr, 0.00674 USD/hr&gt;</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">hu</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 <span class="go">HeatUtility: Low pressure steam</span>
 <span class="go"> duty: 1.11e+03 kJ/hr</span>
-<span class="go"> flow: 0.0284 kmol/hr</span>
+<span class="go"> flow: 0.0284 kmol/hr,</span>
 <span class="go"> cost: 0.00674 USD/hr</span>
 </pre></div>
 </div>
@@ -117,16 +115,21 @@
 <span class="go"> 0.006741981361808377)</span>
 </pre></div>
 </div>
-</div></blockquote>
 <dl class="attribute">
 <dt id="biosteam.HeatUtility.dT">
 <code class="descname">dT</code><em class="property"> = 5</em><a class="headerlink" href="#biosteam.HeatUtility.dT" title="Permalink to this definition">¶</a></dt>
 <dd><p>[float] Pinch temperature difference</p>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="biosteam.HeatUtility.display_units">
+<code class="descname">display_units</code><em class="property"> = DisplayUnits(duty='kJ/hr', flow='kmol/hr', cost='USD/hr')</em><a class="headerlink" href="#biosteam.HeatUtility.display_units" title="Permalink to this definition">¶</a></dt>
+<dd><p>[DisplayUnits] Units of measure for IPython display</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="biosteam.HeatUtility.__call__">
-<code class="descname">__call__</code><span class="sig-paren">(</span><em>duty: kJ/hr</em>, <em>T_in: K</em>, <em>T_out: K = None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_heat_utility.html#HeatUtility.__call__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.HeatUtility.__call__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__call__</code><span class="sig-paren">(</span><em>duty</em>, <em>T_in</em>, <em>T_out=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_heat_utility.html#HeatUtility.__call__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.HeatUtility.__call__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate utility requirements given the essential parameters.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -138,7 +141,7 @@
 
 <dl class="method">
 <dt id="biosteam.HeatUtility.show">
-<code class="descname">show</code><span class="sig-paren">(</span><em>**show_units</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_heat_utility.html#HeatUtility.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.HeatUtility.show" title="Permalink to this definition">¶</a></dt>
+<code class="descname">show</code><span class="sig-paren">(</span><em>duty=None</em>, <em>flow=None</em>, <em>cost=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_heat_utility.html#HeatUtility.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.HeatUtility.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print all specifications</p>
 </dd></dl>
 

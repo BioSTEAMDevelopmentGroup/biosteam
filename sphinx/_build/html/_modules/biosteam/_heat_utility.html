@@ -60,6 +60,7 @@
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">._exceptions</span> <span class="k">import</span> <span class="n">DimensionError</span><span class="p">,</span> <span class="n">biosteamError</span>
+<span class="kn">from</span> <span class="nn">._utils</span> <span class="k">import</span> <span class="n">DisplayUnits</span>
 <span class="kn">from</span> <span class="nn">._species</span> <span class="k">import</span> <span class="n">Species</span>
 <span class="kn">from</span> <span class="nn">._stream</span> <span class="k">import</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">mol_flow_dim</span><span class="p">,</span> <span class="n">mass_flow_dim</span><span class="p">,</span> <span class="n">vol_flow_dim</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
@@ -78,42 +79,42 @@
 
 <span class="c1"># %% Data for cooling utilities </span>
 
-<span class="n">_columns</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Type&#39;</span><span class="p">,</span> <span class="s1">&#39;Species&#39;</span><span class="p">,</span> <span class="s1">&#39;Molar fraction&#39;</span><span class="p">,</span> <span class="s1">&#39;Temperature (K)&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;Pressure (Pa)&#39;</span><span class="p">,</span> <span class="s1">&#39;Phase&#39;</span><span class="p">,</span> <span class="s1">&#39;Temperature limit (K)&#39;</span><span class="p">,</span>
+<span class="n">_columns</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Species&#39;</span><span class="p">,</span> <span class="s1">&#39;Molar fraction&#39;</span><span class="p">,</span> <span class="s1">&#39;Temperature (K)&#39;</span><span class="p">,</span> <span class="s1">&#39;Pressure (Pa)&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;Phase&#39;</span><span class="p">,</span> <span class="s1">&#39;Latent heat (kJ/kmol)&#39;</span><span class="p">,</span> <span class="s1">&#39;Temperature limit (K)&#39;</span><span class="p">,</span>
             <span class="s1">&#39;Price (USD/kJ)&#39;</span><span class="p">,</span> <span class="s1">&#39;Price (USD/kmol)&#39;</span><span class="p">,</span> <span class="s1">&#39;Heat transfer efficiency&#39;</span><span class="p">)</span>
 
 <span class="n">_cooling_index</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Cooling water&#39;</span><span class="p">,</span>
                   <span class="s1">&#39;Chilled water&#39;</span><span class="p">,</span>
                   <span class="s1">&#39;Chilled Brine&#39;</span><span class="p">)</span>
 
-<span class="n">_cooling_water</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;sensible&#39;</span><span class="p">,</span>      <span class="c1"># Type [str]: {&#39;sensible&#39;, &#39;latent&#39;}</span>
-                  <span class="n">_Water</span><span class="p">,</span>          <span class="c1"># species [Species]</span>
+<span class="n">_cooling_water</span> <span class="o">=</span> <span class="p">(</span><span class="n">_Water</span><span class="p">,</span>          <span class="c1"># species [Species]</span>
                   <span class="p">(</span><span class="mi">1</span><span class="p">,),</span>            <span class="c1"># flow: [tuple]</span>
                   <span class="mf">305.372</span><span class="p">,</span>         <span class="c1"># T (K)</span>
                   <span class="mi">101325</span><span class="p">,</span>          <span class="c1"># P (Pa)</span>
                   <span class="s1">&#39;liq&#39;</span><span class="p">,</span>           <span class="c1"># phase: {&#39;g&#39;, &#39;l&#39;}</span>
+                  <span class="kc">None</span><span class="p">,</span>            <span class="c1"># latent heat (kJ/kmol)</span>
                   <span class="mf">324.817</span><span class="p">,</span>         <span class="c1"># T limit (K)</span>
                   <span class="mi">0</span><span class="p">,</span>               <span class="c1"># price (USD/kJ)</span>
                   <span class="mf">4.8785e-4</span><span class="p">,</span>       <span class="c1"># price (USD/kmol)</span>
                   <span class="mi">1</span><span class="p">)</span>               <span class="c1"># heat transfer efficiency</span>
 
-<span class="n">_chilled_water</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;sensible&#39;</span><span class="p">,</span>
-                  <span class="n">_Water</span><span class="p">,</span>
+<span class="n">_chilled_water</span> <span class="o">=</span> <span class="p">(</span><span class="n">_Water</span><span class="p">,</span>
                   <span class="p">(</span><span class="mi">1</span><span class="p">,),</span>
                   <span class="mf">280.372</span><span class="p">,</span>
                   <span class="mi">101325</span><span class="p">,</span>
                   <span class="s1">&#39;liq&#39;</span><span class="p">,</span>
+                  <span class="kc">None</span><span class="p">,</span>
                   <span class="mf">300.372</span><span class="p">,</span>
                   <span class="o">-</span><span class="mf">5e-6</span><span class="p">,</span>
                   <span class="mi">0</span><span class="p">,</span>
                   <span class="mi">1</span><span class="p">)</span>
 
-<span class="n">_chilled_brine</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;sensible&#39;</span><span class="p">,</span>
-                  <span class="n">_Water</span><span class="p">,</span>
+<span class="n">_chilled_brine</span> <span class="o">=</span> <span class="p">(</span><span class="n">_Water</span><span class="p">,</span>
                   <span class="p">(</span><span class="mi">1</span><span class="p">,),</span>
                   <span class="mf">255.372</span><span class="p">,</span>
                   <span class="mi">101325</span><span class="p">,</span>
                   <span class="s1">&#39;liq&#39;</span><span class="p">,</span>
+                  <span class="kc">None</span><span class="p">,</span>
                   <span class="mf">275.372</span><span class="p">,</span>
                   <span class="o">-</span><span class="mf">8.145e-6</span><span class="p">,</span>
                   <span class="mi">0</span><span class="p">,</span>
@@ -126,38 +127,38 @@
                   <span class="s1">&#39;Medium pressure steam&#39;</span><span class="p">,</span>
                   <span class="s1">&#39;High pressure steam&#39;</span><span class="p">)</span>
 
-<span class="n">_low_pressure_steam</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;latent&#39;</span><span class="p">,</span>
-                       <span class="n">_Water</span><span class="p">,</span>
+<span class="n">_low_pressure_steam</span> <span class="o">=</span> <span class="p">(</span><span class="n">_Water</span><span class="p">,</span>
                        <span class="p">(</span><span class="mi">1</span><span class="p">,),</span>
                        <span class="mf">411.494</span><span class="p">,</span>
                        <span class="mf">344738.0</span><span class="p">,</span>
                        <span class="s1">&#39;gas&#39;</span><span class="p">,</span>
+                       <span class="mf">3.89e+04</span><span class="p">,</span>
                        <span class="kc">None</span><span class="p">,</span>
                        <span class="mi">0</span><span class="p">,</span>
                        <span class="mf">0.2378</span><span class="p">,</span>
-                       <span class="mf">0.90</span><span class="p">)</span>
+                       <span class="mf">0.95</span><span class="p">)</span>
 
-<span class="n">_medium_pressure_steam</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;latent&#39;</span><span class="p">,</span>
-                          <span class="n">_Water</span><span class="p">,</span>
+<span class="n">_medium_pressure_steam</span> <span class="o">=</span> <span class="p">(</span><span class="n">_Water</span><span class="p">,</span>
                           <span class="p">(</span><span class="mi">1</span><span class="p">,),</span>
                           <span class="mf">454.484</span><span class="p">,</span>
                           <span class="mf">1034214.0</span><span class="p">,</span>
                           <span class="s1">&#39;gas&#39;</span><span class="p">,</span>
+                          <span class="mf">3.63e+04</span><span class="p">,</span>
                           <span class="kc">None</span><span class="p">,</span>
                           <span class="mi">0</span><span class="p">,</span>
                           <span class="mf">0.2756</span><span class="p">,</span>
-                          <span class="mf">0.80</span><span class="p">)</span>
+                          <span class="mf">0.90</span><span class="p">)</span>
 
-<span class="n">_high_pressure_steam</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;latent&#39;</span><span class="p">,</span>
-                        <span class="n">_Water</span><span class="p">,</span>
+<span class="n">_high_pressure_steam</span> <span class="o">=</span> <span class="p">(</span><span class="n">_Water</span><span class="p">,</span>
                         <span class="p">(</span><span class="mi">1</span><span class="p">,),</span>
                         <span class="mf">508.858</span><span class="p">,</span>
                         <span class="mf">3102642.0</span><span class="p">,</span>
                         <span class="s1">&#39;gas&#39;</span><span class="p">,</span>
+                        <span class="mf">3.21e+04</span><span class="p">,</span>
                         <span class="kc">None</span><span class="p">,</span>
                         <span class="mi">0</span><span class="p">,</span>
                         <span class="mf">0.3171</span><span class="p">,</span>
-                        <span class="mf">0.70</span><span class="p">)</span>
+                        <span class="mf">0.85</span><span class="p">)</span>
 
 
 <span class="c1"># %% Utility classes</span>
@@ -166,60 +167,63 @@
 <div class="viewcode-block" id="HeatUtility"><a class="viewcode-back" href="../../HeatUtility.html#biosteam.HeatUtility">[docs]</a><span class="k">class</span> <span class="nc">HeatUtility</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Create an HeatUtility object that can choose a utility stream and calculate utility requirements. It can calculate required flow rate, temperature, or phase change of utility. Calculations assume counter current flow rate.</span>
 <span class="sd">    </span>
-<span class="sd">    **Parameters**</span>
-<span class="sd">        </span>
-<span class="sd">        **efficiency:** [float] Fraction of heat transfered after accounting for heat loss.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    efficiency : float</span>
+<span class="sd">        Fraction of heat transfered after accounting for heat loss.</span>
 <span class="sd">    </span>
-<span class="sd">    **Class Attributes**</span>
+<span class="sd">    Class Attributes</span>
+<span class="sd">    ----------------</span>
+<span class="sd">    cooling_agents : DataFrame</span>
+<span class="sd">        All cooling utilities available</span>
+<span class="sd">    heating_agents : DataFrame</span>
+<span class="sd">        All heating utilities available</span>
 <span class="sd">    </span>
-<span class="sd">        **cooling_agents:** [DataFrame] All cooling utilities available</span>
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Create a heat utility with a source:</span>
 <span class="sd">        </span>
-<span class="sd">        **heating_agents:** [DataFrame] All heating utilities available</span>
+<span class="sd">    .. code-block:: python</span>
 <span class="sd">    </span>
-<span class="sd">    **Examples**</span>
+<span class="sd">       &gt;&gt;&gt; hu = HeatUtility(&#39;Flash&#39;)</span>
+<span class="sd">       &gt;&gt;&gt; hu</span>
+<span class="sd">       HeatUtility: None</span>
+<span class="sd">        duty: 0</span>
+<span class="sd">        flow: 0</span>
+<span class="sd">        cost: 0</span>
 <span class="sd">    </span>
-<span class="sd">        Create a heat utility with a source:</span>
-<span class="sd">            </span>
-<span class="sd">        .. code-block:: python</span>
+<span class="sd">    Calculate utility requirement by calling it with a duty (kJ/hr) and temperature (K):</span>
 <span class="sd">        </span>
-<span class="sd">           &gt;&gt;&gt; hu = HeatUtility(&#39;Flash&#39;)</span>
-<span class="sd">           &gt;&gt;&gt; hu.show()</span>
-<span class="sd">           HeatUtility: None</span>
-<span class="sd">            duty: 0</span>
-<span class="sd">            flow: 0</span>
-<span class="sd">            cost: 0</span>
+<span class="sd">    .. code-block:: python</span>
+<span class="sd">    </span>
+<span class="sd">       &gt;&gt;&gt; hu(1000, 300, 350)</span>
+<span class="sd">       &gt;&gt;&gt; hu</span>
+<span class="sd">       HeatUtility: Low pressure steam</span>
+<span class="sd">        duty: 1.11e+03 kJ/hr</span>
+<span class="sd">        flow: 0.0284 kmol/hr,</span>
+<span class="sd">        cost: 0.00674 USD/hr</span>
+<span class="sd">   </span>
+<span class="sd">    All results are accessible:</span>
 <span class="sd">        </span>
-<span class="sd">        Calculate utility requirement by calling it with a duty (kJ/hr) and temperature (K):</span>
-<span class="sd">            </span>
-<span class="sd">        .. code-block:: python</span>
-<span class="sd">        </span>
-<span class="sd">           &gt;&gt;&gt; hu(1000, 300, 350)</span>
-<span class="sd">           &gt;&gt;&gt; hu</span>
-<span class="sd">           &lt;Low pressure steam: 1.11e+03 kJ/hr, 0.0284 kmol/hr, 0.00674 USD/hr&gt;</span>
-<span class="sd">           &gt;&gt;&gt; hu.show()</span>
-<span class="sd">           HeatUtility: Low pressure steam</span>
-<span class="sd">            duty: 1.11e+03 kJ/hr</span>
-<span class="sd">            flow: 0.0284 kmol/hr</span>
-<span class="sd">            cost: 0.00674 USD/hr</span>
-<span class="sd">       </span>
-<span class="sd">        All results are accessible:</span>
-<span class="sd">            </span>
-<span class="sd">        .. code-block:: python</span>
-<span class="sd">        </span>
-<span class="sd">           &gt;&gt;&gt; hu.ID, hu.duty, hu.flow, hu.cost</span>
-<span class="sd">           (&#39;Low pressure steam&#39;,</span>
-<span class="sd">            1111.111111111111,</span>
-<span class="sd">            0.028351477551759364,</span>
-<span class="sd">            0.006741981361808377)</span>
+<span class="sd">    .. code-block:: python</span>
+<span class="sd">    </span>
+<span class="sd">       &gt;&gt;&gt; hu.ID, hu.duty, hu.flow, hu.cost</span>
+<span class="sd">       (&#39;Low pressure steam&#39;,</span>
+<span class="sd">        1111.111111111111,</span>
+<span class="sd">        0.028351477551759364,</span>
+<span class="sd">        0.006741981361808377)</span>
 <span class="sd">           </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;_fresh&#39;</span><span class="p">,</span> <span class="s1">&#39;_used&#39;</span><span class="p">,</span> <span class="s1">&#39;ID&#39;</span><span class="p">,</span> <span class="s1">&#39;duty&#39;</span><span class="p">,</span>
                  <span class="s1">&#39;flow&#39;</span><span class="p">,</span> <span class="s1">&#39;cost&#39;</span><span class="p">,</span> <span class="s1">&#39;efficiency&#39;</span><span class="p">,</span>
-                 <span class="s1">&#39;_args&#39;</span><span class="p">,</span> <span class="s1">&#39;_agent&#39;</span><span class="p">)</span>
+                 <span class="s1">&#39;_args&#39;</span><span class="p">)</span>
     <span class="n">dT</span> <span class="o">=</span> <span class="mi">5</span>  <span class="c1">#: [float] Pinch temperature difference</span>
     
     <span class="c1">#: Units of measure for results dictionary</span>
     <span class="n">_units</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">duty</span><span class="o">=</span><span class="s1">&#39;kJ/hr&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="s1">&#39;USD/hr&#39;</span><span class="p">)</span>
+    
+    <span class="c1">#: [DisplayUnits] Units of measure for IPython display</span>
+    <span class="n">display_units</span> <span class="o">=</span> <span class="n">DisplayUnits</span><span class="p">(</span><span class="o">**</span><span class="n">_units</span><span class="p">)</span>
 
     <span class="c1"># All cooling utilities available</span>
     <span class="n">cooling_agents</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">([</span><span class="n">_cooling_water</span><span class="p">,</span>
@@ -237,19 +241,16 @@
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">efficiency</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">duty</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">flow</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">cost</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">duty</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">efficiency</span> <span class="o">=</span> <span class="n">efficiency</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_agent</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_args</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">_init_streams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">phase</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize utility streams.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_fresh</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">P</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="n">phase</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_used</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">Stream</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_used</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fresh</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_used</span> <span class="o">=</span> <span class="n">Stream</span><span class="o">.</span><span class="n">proxy</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fresh</span><span class="p">)</span>
 
-<div class="viewcode-block" id="HeatUtility.__call__"><a class="viewcode-back" href="../../HeatUtility.html#biosteam.HeatUtility.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">duty</span><span class="p">:</span><span class="s1">&#39;kJ/hr&#39;</span><span class="p">,</span> <span class="n">T_in</span><span class="p">:</span><span class="s1">&#39;K&#39;</span><span class="p">,</span> <span class="n">T_out</span><span class="p">:</span><span class="s1">&#39;K&#39;</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="HeatUtility.__call__"><a class="viewcode-back" href="../../HeatUtility.html#biosteam.HeatUtility.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">duty</span><span class="p">,</span> <span class="n">T_in</span><span class="p">,</span> <span class="n">T_out</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Calculate utility requirements given the essential parameters.</span>
 <span class="sd">        </span>
 <span class="sd">        **Parameters**</span>
@@ -278,25 +279,28 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_args</span> <span class="o">=</span> <span class="n">args</span>
             <span class="c1"># Select heat transfer agent</span>
             <span class="k">if</span> <span class="n">negduty</span><span class="p">:</span>
-                <span class="p">(</span><span class="n">Type</span><span class="p">,</span> <span class="n">price_duty</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">latent_heat</span><span class="p">,</span> <span class="n">price_duty</span><span class="p">,</span>
                  <span class="n">price_mol</span><span class="p">,</span> <span class="n">T_limit</span><span class="p">,</span>
                  <span class="n">efficiency</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_cooling_agent</span><span class="p">(</span><span class="n">T_op</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="p">(</span><span class="n">Type</span><span class="p">,</span> <span class="n">price_duty</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">latent_heat</span><span class="p">,</span> <span class="n">price_duty</span><span class="p">,</span>
                 <span class="n">price_mol</span><span class="p">,</span> <span class="n">T_limit</span><span class="p">,</span>
                 <span class="n">efficiency</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_select_heating_agent</span><span class="p">(</span><span class="n">T_op</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="p">(</span><span class="n">Type</span><span class="p">,</span> <span class="n">price_duty</span><span class="p">,</span> <span class="n">price_mol</span><span class="p">,</span> <span class="n">T_limit</span><span class="p">,</span> <span class="n">efficiency</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_agent</span>
+            <span class="k">if</span> <span class="n">negduty</span><span class="p">:</span>
+                <span class="p">(</span><span class="o">*</span><span class="n">_</span><span class="p">,</span> <span class="n">latent_heat</span><span class="p">,</span> <span class="n">T_limit</span><span class="p">,</span>
+                 <span class="n">price_duty</span><span class="p">,</span> <span class="n">price_mol</span><span class="p">,</span> <span class="n">efficiency</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cooling_agents</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="p">(</span><span class="o">*</span><span class="n">_</span><span class="p">,</span> <span class="n">latent_heat</span><span class="p">,</span> <span class="n">T_limit</span><span class="p">,</span>
+                 <span class="n">price_duty</span><span class="p">,</span> <span class="n">price_mol</span><span class="p">,</span> <span class="n">efficiency</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">heating_agents</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">]</span>
         
         <span class="c1"># Calculate utility flow rate requirement</span>
         <span class="n">efficiency</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">efficiency</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">efficiency</span> <span class="k">else</span> <span class="n">efficiency</span>
         <span class="n">duty</span> <span class="o">=</span> <span class="n">duty</span><span class="o">/</span><span class="n">efficiency</span>
-        <span class="k">if</span> <span class="n">Type</span> <span class="o">==</span> <span class="s1">&#39;sensible&#39;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_update_flow_wt_pinch_T</span><span class="p">(</span><span class="n">duty</span><span class="p">,</span> <span class="n">T_pinch</span><span class="p">,</span> <span class="n">T_limit</span><span class="p">,</span> <span class="n">negduty</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">Type</span> <span class="o">==</span> <span class="s1">&#39;latent&#39;</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_update_flow_wt_phase_change</span><span class="p">(</span><span class="n">duty</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">latent_heat</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update_flow_wt_phase_change</span><span class="p">(</span><span class="n">duty</span><span class="p">,</span> <span class="n">latent_heat</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">biosteamError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Invalid heat transfer agent &#39;</span><span class="si">{self.ID}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update_flow_wt_pinch_T</span><span class="p">(</span><span class="n">duty</span><span class="p">,</span> <span class="n">T_pinch</span><span class="p">,</span> <span class="n">T_limit</span><span class="p">,</span> <span class="n">negduty</span><span class="p">)</span>
         
         <span class="c1"># Update and return results</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">flow</span> <span class="o">=</span> <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fresh</span><span class="o">.</span><span class="n">molnet</span>
@@ -304,7 +308,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">cost</span> <span class="o">=</span> <span class="n">price_duty</span><span class="o">*</span><span class="n">duty</span> <span class="o">+</span> <span class="n">price_mol</span><span class="o">*</span><span class="n">mol</span></div>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_get_pinch</span><span class="p">(</span><span class="n">duty</span><span class="p">,</span> <span class="n">T_in</span><span class="p">,</span> <span class="n">T_out</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;(T_pinch, T_op)&#39;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_get_pinch</span><span class="p">(</span><span class="n">duty</span><span class="p">,</span> <span class="n">T_in</span><span class="p">,</span> <span class="n">T_out</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return pinch temperature and operating temperature.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">duty</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">(</span><span class="n">T_in</span><span class="p">,</span> <span class="n">T_out</span><span class="p">)</span> <span class="k">if</span> <span class="n">T_in</span> <span class="o">&gt;</span> <span class="n">T_out</span> <span class="k">else</span> <span class="p">(</span><span class="n">T_out</span><span class="p">,</span> <span class="n">T_in</span><span class="p">)</span>
@@ -321,7 +325,7 @@
 <span class="sd">        </span>
 <span class="sd">        **Returns**</span>
 <span class="sd">        </span>
-<span class="sd">            **Type:** [str] {&#39;latent&#39;, &#39;sensible&#39;}</span>
+<span class="sd">            **latent_heat:** [float] (kJ/kmol)</span>
 <span class="sd">            </span>
 <span class="sd">            **price_duty:** [float] (USD/kJ)</span>
 <span class="sd">            </span>
@@ -336,17 +340,15 @@
         <span class="n">T_max</span> <span class="o">=</span> <span class="n">T_pinch</span> <span class="o">-</span> <span class="n">dt</span>
         <span class="n">cooling_agents</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cooling_agents</span>
         <span class="k">for</span> <span class="n">ID</span> <span class="ow">in</span> <span class="n">cooling_agents</span><span class="p">:</span>
-            <span class="p">(</span><span class="n">Type</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span>
-             <span class="n">phase</span><span class="p">,</span> <span class="n">T_limit</span><span class="p">,</span> <span class="n">price_duty</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span>
+             <span class="n">latent_heat</span><span class="p">,</span> <span class="n">T_limit</span><span class="p">,</span> <span class="n">price_duty</span><span class="p">,</span>
              <span class="n">price_mol</span><span class="p">,</span> <span class="n">efficiency</span><span class="p">)</span> <span class="o">=</span> <span class="n">cooling_agents</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">T_max</span> <span class="o">&gt;</span> <span class="n">T</span><span class="p">:</span>
-                <span class="n">agent</span> <span class="o">=</span> <span class="p">(</span><span class="n">Type</span><span class="p">,</span> <span class="n">price_duty</span><span class="p">,</span> <span class="n">price_mol</span><span class="p">,</span> <span class="n">T_limit</span><span class="p">,</span> <span class="n">efficiency</span><span class="p">)</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">!=</span> <span class="n">ID</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_init_streams</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">phase</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_agent</span> <span class="o">=</span> <span class="n">agent</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span>
-                <span class="k">return</span> <span class="n">agent</span>
-        <span class="k">raise</span> <span class="n">biosteamError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;No cooling agent that can cool under </span><span class="si">{T_pinch}</span><span class="s1"> K&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="p">(</span><span class="n">latent_heat</span><span class="p">,</span> <span class="n">price_duty</span><span class="p">,</span> <span class="n">price_mol</span><span class="p">,</span> <span class="n">T_limit</span><span class="p">,</span> <span class="n">efficiency</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">biosteamError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;no cooling agent that can cool under </span><span class="si">{T_pinch}</span><span class="s1"> K&#39;</span><span class="p">)</span>
             
     <span class="k">def</span> <span class="nf">_select_heating_agent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T_pinch</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Select a heating agent that works at the pinch temperature and return relevant information.</span>
@@ -357,7 +359,7 @@
 <span class="sd">        </span>
 <span class="sd">        **Returns**</span>
 <span class="sd">        </span>
-<span class="sd">            **Type:** [str] {&#39;latent&#39;, &#39;sensible&#39;}</span>
+<span class="sd">            **latent_heat:** [float] (kJ/kmol)</span>
 <span class="sd">            </span>
 <span class="sd">            **price_duty:** [float] (USD/kJ)</span>
 <span class="sd">            </span>
@@ -372,17 +374,15 @@
         <span class="n">T_min</span> <span class="o">=</span> <span class="n">T_pinch</span> <span class="o">+</span> <span class="n">dt</span>
         <span class="n">heating_agents</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">heating_agents</span>
         <span class="k">for</span> <span class="n">ID</span> <span class="ow">in</span> <span class="n">heating_agents</span><span class="p">:</span>
-            <span class="p">(</span><span class="n">Type</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span>
-             <span class="n">phase</span><span class="p">,</span> <span class="n">T_limit</span><span class="p">,</span> <span class="n">price_duty</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span>
+             <span class="n">latent_heat</span><span class="p">,</span> <span class="n">T_limit</span><span class="p">,</span> <span class="n">price_duty</span><span class="p">,</span>
              <span class="n">price_mol</span><span class="p">,</span> <span class="n">efficiency</span><span class="p">)</span> <span class="o">=</span>  <span class="n">heating_agents</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span>
             <span class="k">if</span> <span class="n">T_min</span> <span class="o">&lt;</span> <span class="n">T</span><span class="p">:</span>
-                <span class="n">agent</span> <span class="o">=</span> <span class="p">(</span><span class="n">Type</span><span class="p">,</span> <span class="n">price_duty</span><span class="p">,</span> <span class="n">price_mol</span><span class="p">,</span> <span class="n">T_limit</span><span class="p">,</span> <span class="n">efficiency</span><span class="p">)</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">!=</span> <span class="n">ID</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_init_streams</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">phase</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_agent</span> <span class="o">=</span> <span class="n">agent</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span>
-                <span class="k">return</span> <span class="n">agent</span>
-        <span class="k">raise</span> <span class="n">biosteamError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;No heating agent that can heat over </span><span class="si">{T_pinch}</span><span class="s1"> K&#39;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="p">(</span><span class="n">latent_heat</span><span class="p">,</span> <span class="n">price_duty</span><span class="p">,</span> <span class="n">price_mol</span><span class="p">,</span> <span class="n">T_limit</span><span class="p">,</span> <span class="n">efficiency</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">biosteamError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;no heating agent that can heat over </span><span class="si">{T_pinch}</span><span class="s1"> K&#39;</span><span class="p">)</span>
 
     <span class="c1"># Main Calculations</span>
     <span class="k">def</span> <span class="nf">_update_flow_wt_pinch_T</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">duty</span><span class="p">,</span> <span class="n">T_pinch</span><span class="p">,</span> <span class="n">T_limit</span><span class="p">,</span> <span class="n">negduty</span><span class="p">):</span>
@@ -390,18 +390,18 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_used</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_T_exit</span><span class="p">(</span><span class="n">T_pinch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dT</span><span class="p">,</span> <span class="n">T_limit</span><span class="p">,</span> <span class="n">negduty</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_utility_flow</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_fresh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_used</span><span class="p">,</span> <span class="n">duty</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_update_flow_wt_phase_change</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">duty</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_update_flow_wt_phase_change</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">duty</span><span class="p">,</span> <span class="n">latent_heat</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Change phase of utility, calculate and set minimum net flowrate of the utility to satisfy duty and update.&quot;&quot;&quot;</span>
         <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fresh</span>
         <span class="n">u</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_used</span>
-        <span class="n">u</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">phase</span><span class="o">==</span><span class="s1">&#39;l&#39;</span> <span class="k">else</span> <span class="s1">&#39;l&#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_update_utility_flow</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">duty</span><span class="p">)</span>
+        <span class="n">u</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">_phase</span><span class="o">==</span><span class="s1">&#39;l&#39;</span> <span class="k">else</span> <span class="s1">&#39;l&#39;</span>
+        <span class="n">u</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">duty</span><span class="o">/</span><span class="n">latent_heat</span>
 
     <span class="c1"># Subcalculations</span>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_update_utility_flow</span><span class="p">(</span><span class="n">fresh</span><span class="p">,</span> <span class="n">utility</span><span class="p">,</span> <span class="n">duty</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Changes flow rate of utility such that it can meet the duty requirement&quot;&quot;&quot;</span>
-        <span class="n">utility</span><span class="o">.</span><span class="n">_molarray</span> <span class="o">*=</span> <span class="n">duty</span><span class="o">/</span><span class="p">(</span><span class="n">fresh</span><span class="o">.</span><span class="n">H</span> <span class="o">-</span> <span class="n">utility</span><span class="o">.</span><span class="n">H</span><span class="p">)</span>
+        <span class="n">utility</span><span class="o">.</span><span class="n">_mol</span> <span class="o">*=</span> <span class="n">duty</span><span class="o">/</span><span class="p">(</span><span class="n">fresh</span><span class="o">.</span><span class="n">H</span> <span class="o">-</span> <span class="n">utility</span><span class="o">.</span><span class="n">H</span><span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_T_exit</span><span class="p">(</span><span class="n">T_pinch</span><span class="p">,</span> <span class="n">dT</span><span class="p">,</span> <span class="n">T_limit</span><span class="p">,</span> <span class="n">negduty</span><span class="p">):</span>
@@ -424,18 +424,16 @@
             <span class="k">if</span> <span class="n">T_limit</span> <span class="ow">and</span> <span class="n">T_limit</span> <span class="o">&gt;</span> <span class="n">T_exit</span><span class="p">:</span> <span class="n">T_exit</span> <span class="o">=</span> <span class="n">T_limit</span>
         <span class="k">return</span> <span class="n">T_exit</span>
 
-    <span class="c1"># Representation</span>
-    <span class="k">def</span> <span class="nf">_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">show_units</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return string related to specifications&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_info_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">duty</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">cost</span><span class="p">):</span>
         <span class="c1"># Get units of measure</span>
-        <span class="n">su</span> <span class="o">=</span> <span class="n">show_units</span>
+        <span class="n">su</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">display_units</span>
         <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units</span>
-        <span class="n">Duty</span> <span class="o">=</span> <span class="n">su</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;duty&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">units</span><span class="p">[</span><span class="s1">&#39;duty&#39;</span><span class="p">]</span>
-        <span class="n">Flow</span> <span class="o">=</span> <span class="n">su</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;flow&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">units</span><span class="p">[</span><span class="s1">&#39;flow&#39;</span><span class="p">]</span>
-        <span class="n">Cost</span> <span class="o">=</span> <span class="n">su</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cost&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">units</span><span class="p">[</span><span class="s1">&#39;cost&#39;</span><span class="p">]</span>
+        <span class="n">duty_units</span> <span class="o">=</span> <span class="n">duty</span> <span class="ow">or</span> <span class="n">su</span><span class="o">.</span><span class="n">duty</span>
+        <span class="n">flow_units</span> <span class="o">=</span> <span class="n">flow</span> <span class="ow">or</span> <span class="n">su</span><span class="o">.</span><span class="n">flow</span>
+        <span class="n">cost_units</span> <span class="o">=</span> <span class="n">cost</span> <span class="ow">or</span> <span class="n">su</span><span class="o">.</span><span class="n">cost</span>
         
         <span class="c1"># Select flow dimensionality</span>
-        <span class="n">flow_dim</span> <span class="o">=</span> <span class="n">_Q</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">Flow</span><span class="p">)</span><span class="o">.</span><span class="n">dimensionality</span>
+        <span class="n">flow_dim</span> <span class="o">=</span> <span class="n">_Q</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">flow_units</span><span class="p">)</span><span class="o">.</span><span class="n">dimensionality</span>
         <span class="k">if</span> <span class="n">flow_dim</span> <span class="o">==</span> <span class="n">mol_flow_dim</span><span class="p">:</span>
             <span class="n">flowattr</span> <span class="o">=</span> <span class="s1">&#39;molnet&#39;</span>
         <span class="k">elif</span> <span class="n">flow_dim</span> <span class="o">==</span> <span class="n">mass_flow_dim</span><span class="p">:</span>
@@ -443,39 +441,51 @@
         <span class="k">elif</span> <span class="n">flow_dim</span> <span class="o">==</span> <span class="n">vol_flow_dim</span><span class="p">:</span>
             <span class="n">flowattr</span> <span class="o">=</span> <span class="s1">&#39;volnet&#39;</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">DimensionError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Dimensions for flow units must be in molar, mass or volumetric flow rates, not &#39;</span><span class="si">{flow_dim}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">DimensionError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;dimensions for flow units must be in molar, mass or volumetric flow rates, not &#39;</span><span class="si">{flow_dim}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
         
         <span class="c1"># Change units and return info string</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
             <span class="n">u_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fresh</span>
             <span class="n">flownet</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">u_in</span><span class="p">,</span> <span class="n">flowattr</span><span class="p">)</span>
             <span class="n">flowunits</span> <span class="o">=</span> <span class="n">u_in</span><span class="o">.</span><span class="n">units</span><span class="p">[</span><span class="n">flowattr</span><span class="p">]</span>
-            <span class="n">duty</span> <span class="o">=</span> <span class="n">_Q</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">duty</span><span class="p">,</span> <span class="n">units</span><span class="p">[</span><span class="s1">&#39;duty&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">Duty</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
-            <span class="n">flow</span> <span class="o">=</span> <span class="n">_Q</span><span class="p">(</span><span class="n">flownet</span><span class="p">,</span> <span class="n">flowunits</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">Flow</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
-            <span class="n">cost</span> <span class="o">=</span> <span class="n">_Q</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="p">,</span> <span class="n">units</span><span class="p">[</span><span class="s1">&#39;cost&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">Cost</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
-            <span class="k">return</span> <span class="p">(</span><span class="n">f</span><span class="s1">&#39;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="se">\n</span><span class="s1">&#39;</span>
-                   <span class="o">+</span><span class="n">f</span><span class="s1">&#39; duty:</span><span class="si">{duty: .3g}</span><span class="s1"> </span><span class="si">{Duty}</span><span class="se">\n</span><span class="s1">&#39;</span>
-                   <span class="o">+</span><span class="n">f</span><span class="s1">&#39; flow:</span><span class="si">{flow: .3g}</span><span class="s1"> </span><span class="si">{Flow}</span><span class="se">\n</span><span class="s1">&#39;</span>
-                   <span class="o">+</span><span class="n">f</span><span class="s1">&#39; cost:</span><span class="si">{cost: .3g}</span><span class="s1"> </span><span class="si">{Cost}</span><span class="s1">&#39;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">(</span><span class="n">f</span><span class="s1">&#39;{type(self).__name__}: None</span><span class="se">\n</span><span class="s1">&#39;</span>
-                   <span class="o">+</span><span class="n">f</span><span class="s1">&#39; duty: 0</span><span class="se">\n</span><span class="s1">&#39;</span>
-                   <span class="o">+</span><span class="n">f</span><span class="s1">&#39; flow: 0</span><span class="se">\n</span><span class="s1">&#39;</span>
-                   <span class="o">+</span><span class="n">f</span><span class="s1">&#39; cost: 0&#39;</span><span class="p">)</span>
-
-<div class="viewcode-block" id="HeatUtility.show"><a class="viewcode-back" href="../../HeatUtility.html#biosteam.HeatUtility.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">show_units</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Print all specifications&quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="o">**</span><span class="n">show_units</span><span class="p">))</span></div>
+            <span class="n">flow</span> <span class="o">=</span> <span class="n">_Q</span><span class="p">(</span><span class="n">flownet</span><span class="p">,</span> <span class="n">flowunits</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">flow_units</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">flow</span> <span class="o">=</span> <span class="n">_Q</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="p">,</span> <span class="s1">&#39;kmol/hr&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">flow_units</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
+        
+        <span class="n">duty</span> <span class="o">=</span> <span class="n">_Q</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">duty</span><span class="p">,</span> <span class="n">units</span><span class="p">[</span><span class="s1">&#39;duty&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">duty_units</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
+        <span class="n">cost</span> <span class="o">=</span> <span class="n">_Q</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cost</span><span class="p">,</span> <span class="n">units</span><span class="p">[</span><span class="s1">&#39;cost&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">cost_units</span><span class="p">)</span><span class="o">.</span><span class="n">magnitude</span>
+        <span class="k">return</span> <span class="n">duty</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="n">duty_units</span><span class="p">,</span> <span class="n">flow_units</span><span class="p">,</span> <span class="n">cost_units</span>
         
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">:</span>
-            <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units</span>
-            <span class="n">ud</span> <span class="o">=</span> <span class="n">units</span><span class="p">[</span><span class="s1">&#39;duty&#39;</span><span class="p">]</span>
-            <span class="n">uf</span> <span class="o">=</span> <span class="n">units</span><span class="p">[</span><span class="s1">&#39;flow&#39;</span><span class="p">]</span>
-            <span class="n">uc</span> <span class="o">=</span> <span class="n">units</span><span class="p">[</span><span class="s1">&#39;cost&#39;</span><span class="p">]</span>
-            <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;&lt;</span><span class="si">{self.ID}</span><span class="s1">: </span><span class="si">{self.duty:.3g}</span><span class="s1"> </span><span class="si">{ud}</span><span class="s1">, </span><span class="si">{self.flow:.3g}</span><span class="s1"> </span><span class="si">{uf}</span><span class="s1">, </span><span class="si">{self.cost:.3g}</span><span class="s1"> </span><span class="si">{uc}</span><span class="s1">&gt;&#39;</span>
+            <span class="n">duty</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="n">duty_units</span><span class="p">,</span> <span class="n">flow_units</span><span class="p">,</span> <span class="n">cost_units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_info_data</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;&lt;</span><span class="si">{self.ID}</span><span class="s1">: </span><span class="si">{self.duty:.3g}</span><span class="s1"> </span><span class="si">{duty_units}</span><span class="s1">, </span><span class="si">{self.flow:.3g}</span><span class="s1"> </span><span class="si">{flow_units}</span><span class="s1">, </span><span class="si">{self.cost:.3g}</span><span class="s1"> </span><span class="si">{cost_units}</span><span class="s1">&gt;&#39;</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;&lt;{type(self).__name__}: None&gt;&#39;</span></div>
+            <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;&lt;{type(self).__name__}: None&gt;&#39;</span>
+        
+    <span class="c1"># Representation</span>
+    <span class="k">def</span> <span class="nf">_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">duty</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">cost</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return string related to specifications&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">f</span><span class="s1">&#39;{type(self).__name__}: None</span><span class="se">\n</span><span class="s1">&#39;</span>
+                    <span class="o">+</span><span class="n">f</span><span class="s1">&#39; duty: 0</span><span class="se">\n</span><span class="s1">&#39;</span>
+                    <span class="o">+</span><span class="n">f</span><span class="s1">&#39; flow: 0</span><span class="se">\n</span><span class="s1">&#39;</span>
+                    <span class="o">+</span><span class="n">f</span><span class="s1">&#39; cost: 0&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">duty</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="n">duty_units</span><span class="p">,</span> <span class="n">flow_units</span><span class="p">,</span> <span class="n">cost_units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_info_data</span><span class="p">(</span><span class="n">duty</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">cost</span><span class="p">)</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">f</span><span class="s1">&#39;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="se">\n</span><span class="s1">&#39;</span>
+                    <span class="o">+</span><span class="n">f</span><span class="s1">&#39; duty:</span><span class="si">{duty: .3g}</span><span class="s1"> </span><span class="si">{duty_units}</span><span class="se">\n</span><span class="s1">&#39;</span>
+                    <span class="o">+</span><span class="n">f</span><span class="s1">&#39; flow:</span><span class="si">{flow: .3g}</span><span class="s1"> </span><span class="si">{flow_units}</span><span class="se">\n</span><span class="s1">&#39;</span>
+                    <span class="o">+</span><span class="n">f</span><span class="s1">&#39; cost:</span><span class="si">{cost: .3g}</span><span class="s1"> </span><span class="si">{cost_units}</span><span class="s1">&#39;</span><span class="p">)</span>
+            
+
+<div class="viewcode-block" id="HeatUtility.show"><a class="viewcode-back" href="../../HeatUtility.html#biosteam.HeatUtility.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">duty</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Print all specifications&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="n">duty</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">cost</span><span class="p">))</span></div>
+    <span class="n">_ipython_display_</span> <span class="o">=</span> <span class="n">show</span></div>
+
+
+<span class="k">del</span> <span class="n">_Water</span><span class="p">,</span> <span class="n">_columns</span><span class="p">,</span> <span class="n">_cooling_index</span><span class="p">,</span> <span class="n">_cooling_water</span><span class="p">,</span> <span class="n">_chilled_water</span><span class="p">,</span> <span class="n">_chilled_brine</span><span class="p">,</span> <span class="n">_heating_index</span><span class="p">,</span> <span class="n">_low_pressure_steam</span><span class="p">,</span> <span class="n">_medium_pressure_steam</span><span class="p">,</span> <span class="n">_high_pressure_steam</span>
 </pre></div>
 
           </div>

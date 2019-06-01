@@ -288,13 +288,15 @@ class Compound:
         """Return string with all specifications."""
         units = self.units
         T_units, P_units = self.display_units
+        T_units = T or T_units
+        P_units = P or P_units
         
         # First line
         info = f"{type(self).__name__}: {self.ID}\n"
         
         # Second line (thermo)
-        T = _Q(self.T, units['T']).to(T or T_units).magnitude
-        P = _Q(self.P, units['P']).to(P or P_units).magnitude
+        T = _Q(self.T, units['T']).to(T_units).magnitude
+        P = _Q(self.P, units['P']).to(P_units).magnitude
         info += f" phase: '{self.phase}', T: {T:.5g} {T_units}, P: {P:.6g} {P_units}"
         
         return info
@@ -302,9 +304,10 @@ class Compound:
     def __str__(self):
         return self.ID
 
-    def _ipython_display_(self, T=None, P=None):
+    def show(self, T=None, P=None):
         """print information on self"""
         print(self._info(T, P))
+    _ipython_display_ = show
 
     def __repr__(self):
         return f'<{type(self).__name__}: {self.ID}>'

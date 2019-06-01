@@ -119,24 +119,6 @@
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.units.Distillation.A_dn">
-<code class="descname">A_dn</code><a class="headerlink" href="#biosteam.units.Distillation.A_dn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Enforced ratio of downcomer area to net (total) area. If None, estimate ratio based on Oliver’s estimation [1].</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.Distillation.A_ha">
-<code class="descname">A_ha</code><a class="headerlink" href="#biosteam.units.Distillation.A_ha" title="Permalink to this definition">¶</a></dt>
-<dd><p>Ratio of open area, A_h, to active area, A_a.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.Distillation.F_F">
-<code class="descname">F_F</code><a class="headerlink" href="#biosteam.units.Distillation.F_F" title="Permalink to this definition">¶</a></dt>
-<dd><p>Foaming factor (0 &lt; F_F &lt; 1).</p>
-</dd></dl>
-
-<dl class="attribute">
 <dt id="biosteam.units.Distillation.ID">
 <code class="descname">ID</code><a class="headerlink" href="#biosteam.units.Distillation.ID" title="Permalink to this definition">¶</a></dt>
 <dd><p>Unique Identification (str). If set as ‘’, it will choose a default ID.</p>
@@ -144,7 +126,7 @@
 
 <dl class="method">
 <dt id="biosteam.units.Distillation.diagram">
-<code class="descname">diagram</code><span class="sig-paren">(</span><em>radius=0</em>, <em>file=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.diagram" title="Permalink to this definition">¶</a></dt>
+<code class="descname">diagram</code><span class="sig-paren">(</span><em>radius=0</em>, <em>file=None</em>, <em>format='svg'</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.diagram" title="Permalink to this definition">¶</a></dt>
 <dd><p>Display a <a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz</a> diagram of the unit and all neighboring units within given radius.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -152,24 +134,37 @@
 <dl class="docutils">
 <dt><strong>file:</strong> Must be one of the following:</dt>
 <dd><ul class="first last simple">
-<li>[str] File name to save diagram. If format not included, saves file as svg.</li>
+<li>[str] File name to save diagram.</li>
 <li>[None] Display diagram in console.</li>
 </ul>
 </dd>
 </dl>
+<p><strong>format:</strong> Format of file.</p>
 </div></blockquote>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.units.Distillation.f">
-<code class="descname">f</code><a class="headerlink" href="#biosteam.units.Distillation.f" title="Permalink to this definition">¶</a></dt>
-<dd><p>Ratio of actual velocity to maximum velocity allowable before flooding.</p>
+<dt id="biosteam.units.Distillation.downcomer_area_factor">
+<code class="descname">downcomer_area_factor</code><a class="headerlink" href="#biosteam.units.Distillation.downcomer_area_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enforced ratio of downcomer area to net (total) area. If None, estimate ratio based on Oliver’s estimation [1].</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Distillation.foaming_factor">
+<code class="descname">foaming_factor</code><a class="headerlink" href="#biosteam.units.Distillation.foaming_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Foaming factor (0 to 1).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Distillation.open_area_factor">
+<code class="descname">open_area_factor</code><a class="headerlink" href="#biosteam.units.Distillation.open_area_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ratio of open area, A_h, to active area, A_a.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.units.Distillation.reset">
 <code class="descname">reset</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.reset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reset unit with new kwargs.</p>
+<dd><p>Reset unit with new key word arguments.</p>
 </dd></dl>
 
 <dl class="method">
@@ -180,7 +175,7 @@
 
 <dl class="method">
 <dt id="biosteam.units.Distillation.show">
-<code class="descname">show</code><span class="sig-paren">(</span><em>**show_units</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.show" title="Permalink to this definition">¶</a></dt>
+<code class="descname">show</code><span class="sig-paren">(</span><em>T=None</em>, <em>P=None</em>, <em>flow=None</em>, <em>fraction=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prints information on unit.</p>
 </dd></dl>
 
@@ -206,6 +201,12 @@
 <dt id="biosteam.units.Distillation.tray_type">
 <code class="descname">tray_type</code><a class="headerlink" href="#biosteam.units.Distillation.tray_type" title="Permalink to this definition">¶</a></dt>
 <dd><p>Default ‘Sieve’</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Distillation.velocity_factor">
+<code class="descname">velocity_factor</code><a class="headerlink" href="#biosteam.units.Distillation.velocity_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ratio of actual velocity to maximum velocity allowable before flooding.</p>
 </dd></dl>
 
 <dl class="attribute">

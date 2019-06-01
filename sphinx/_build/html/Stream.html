@@ -79,28 +79,24 @@
 <dt id="biosteam.Stream">
 <em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Stream</code><span class="sig-paren">(</span><em>ID=''</em>, <em>flow=()</em>, <em>species=()</em>, <em>units='kmol/hr'</em>, <em>phase='l'</em>, <em>T=298.15</em>, <em>P=101325</em>, <em>*</em>, <em>price=0</em>, <em>**flow_pairs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Stream object that defines material flow rates along its thermodynamic state. Thermodynamic and transport properties of a stream are readily available. Ideal mixture is assumed for stream properties and excess thermodynamic energies are neglected as a simplifying assumption for low pressure processes.</p>
-<dl class="docutils">
-<dt>ID <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>A unique identification. If ID is an empty string (i.e. ‘’ ), a default ID will be chosen. If ID is None, stream will not be registered in flowsheet.</dd>
-<dt>flow <span class="classifier-delimiter">:</span> <span class="classifier">tuple</span></dt>
-<dd>All flow rates corresponding to <cite>species</cite>.</dd>
-<dt>species <span class="classifier-delimiter">:</span> <span class="classifier">tuple[str] or Specie</span></dt>
-<dd>Species corresponding to <cite>flow</cite>. If empty, assume same species as class.</dd>
-<dt>units <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>The units of the flow rates (only mass, molar, and volumetric flow rates are valid).</dd>
-<dt>phase <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd>‘l’ for liquid, ‘g’ for gas, or ‘s’ for solid.</dd>
-<dt>T <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Temperature (K).</dd>
-<dt>P <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Pressure (Pa).</dd>
-<dt>price <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Price (USD/kg).</dd>
-<dt><a href="#id1"><span class="problematic" id="id2">**</span></a>flow_pairs <span class="classifier-delimiter">:</span> <span class="classifier">flat</span></dt>
-<dd>Compound-flow pairs.</dd>
-</dl>
-<p><strong>species</strong> = Species(): [Species] Contains pure component thermodynamic properties for computing overall properties of Stream instances.</p>
-<p>Before making a stream, set the species using a Species object:</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><p><strong>ID:</strong> [str] A unique identification. If ID is an empty string (i.e. ‘’ ), a default ID will be chosen. If ID is None, stream will not be registered in flowsheet.</p>
+<p><strong>flow:</strong> [tuple] All flow rates corresponding to <cite>species</cite>.</p>
+<p><strong>species:</strong> tuple[str] or [Species] Species corresponding to <cite>flow</cite>. If empty, assume same species as class.</p>
+<p><strong>units:</strong> [str] The units of the flow rates (only mass, molar, and volumetric flow rates are valid)</p>
+<p><strong>phase:</strong> [str] ‘l’ for liquid, ‘g’ for gas, or ‘s’ for solid.</p>
+<p><strong>T:</strong> [float] Temperature (K).</p>
+<p><strong>P:</strong> [float] Pressure (Pa).</p>
+<p><strong>price:</strong> [float] (USD/kg).</p>
+<p><strong>**flow_pairs:</strong> Compound-flow pairs</p>
+</div></blockquote>
+<p><strong>Class Properties</strong></p>
+<blockquote>
+<div><strong>species</strong> = Species(): [Species] Contains pure component thermodynamic properties for computing overall properties of Stream instances.</div></blockquote>
+<p><strong>Examples</strong></p>
+<blockquote>
+<div><p>Before making a stream, set the species using a Species object:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Set Species object</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span> 
 </pre></div>
@@ -131,7 +127,7 @@
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># The working units do not change</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s3</span><span class="o">.</span><span class="n">mol</span> 
-<span class="go">material_array([1., 2.])</span>
+<span class="go">array([1., 2.])</span>
 </pre></div>
 </div>
 <div class="admonition warning">
@@ -166,26 +162,12 @@
 <span class="go">       net      3 kmol/hr</span>
 </pre></div>
 </div>
-<p>Flow rates are stored internally as a material_array in the ‘mol’ attribute.</p>
+<p>Flow rates are stored internally as an array in the ‘mol’ attribute.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Set Water flow rate</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">18</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">mol</span> <span class="c1"># kmol/hr</span>
-<span class="go">material_array([1, 18])</span>
-
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># A negative flow issues a RuntimeWarning</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
-<span class="go">__main__:1: RuntimeWarning:</span>
-<span class="go">Encountered negative or non-finite value in &#39;material_array&#39; object.</span>
-
-<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Setting the property sets its values in place</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">mol</span>
-<span class="go">material_array([1, 2])</span>
+<span class="go">array([1, 18])</span>
 </pre></div>
-</div>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">material_array objects are numpy ndarrays which issue a RuntimeWarning when a negative or non-finite number is encountered.</p>
 </div>
 <p>Mass and volumetric flow rates are also available as property_arrays of the molar flow rate. As such, they are always up to date with the molar flow rate and altering them also alters the molar flow rate:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Altering mass or volumetric flows alters the molar flow</span>
@@ -193,7 +175,7 @@
 <span class="go">property_array([0.059, 0.036])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">vol</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">mol</span>
-<span class="go">material_array([17.06 , 55.343])</span>
+<span class="go">array([17.06 , 55.343])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Values are always up to date with the molar flow</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">vol</span>
@@ -202,7 +184,7 @@
 </div>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">property_array objects are significantly slower than material_array objects. This is because flow rate data is internally stored as molar flow rates. Also, property_array objects are arrays of python objects, which add overhead over the C implementation of numpy. Whenever possible, use the material_array to manage flow rates.</p>
+<p class="last">property_array objects are significantly slower than array objects. This is because flow rate data is internally stored as molar flow rates. Also, property_array objects are arrays of python objects, which add overhead over the C implementation of numpy. Whenever possible, use the array to manage flow rates.</p>
 </div>
 <p>Some thermodynamic/material properties, including enthalpy and heat capacity, are dependent only on temperature:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Enthalpy (kJ/hr) and heat capacity (kJ/(kg-K))</span>
@@ -251,6 +233,7 @@
 <span class="go">k: [float] Thermal conductivity as a function of T and P (W/m/K).</span>
 </pre></div>
 </div>
+</div></blockquote>
 <dl class="staticmethod">
 <dt id="biosteam.Stream.activity_coefficients">
 <em class="property">static </em><code class="descname">activity_coefficients</code><span class="sig-paren">(</span><em>species</em>, <em>xs</em>, <em>T</em>, <em>cached={}</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.Stream.activity_coefficients" title="Permalink to this definition">¶</a></dt>
@@ -271,26 +254,26 @@
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.Stream.phase">
-<code class="descname">phase</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.Stream.phase" title="Permalink to this definition">¶</a></dt>
-<dd><p>[str] ‘l’ for liquid, ‘g’ for gas, or ‘s’ for solid.</p>
+<dt id="biosteam.Stream.display_units">
+<code class="descname">display_units</code><em class="property"> = DisplayUnits(T='K', P='Pa', flow='kmol/hr', fraction=False)</em><a class="headerlink" href="#biosteam.Stream.display_units" title="Permalink to this definition">¶</a></dt>
+<dd><p>[DisplayUnits] Units of measure for IPython display</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="biosteam.Stream.T">
-<code class="descname">T</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.Stream.T" title="Permalink to this definition">¶</a></dt>
+<code class="descname">T</code><a class="headerlink" href="#biosteam.Stream.T" title="Permalink to this definition">¶</a></dt>
 <dd><p>[float] Temperature (K)</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="biosteam.Stream.P">
-<code class="descname">P</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.Stream.P" title="Permalink to this definition">¶</a></dt>
+<code class="descname">P</code><a class="headerlink" href="#biosteam.Stream.P" title="Permalink to this definition">¶</a></dt>
 <dd><p>[float] Pressure (Pa)</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="biosteam.Stream.price">
-<code class="descname">price</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.Stream.price" title="Permalink to this definition">¶</a></dt>
+<code class="descname">price</code><a class="headerlink" href="#biosteam.Stream.price" title="Permalink to this definition">¶</a></dt>
 <dd><p>Price of stream (USD/kg)</p>
 </dd></dl>
 
@@ -304,6 +287,24 @@
 <dt id="biosteam.Stream.getflow">
 <code class="descname">getflow</code><span class="sig-paren">(</span><em>*species</em>, <em>units='kmol/hr'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.getflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.getflow" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get flow rates of species in given units.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.phase">
+<code class="descname">phase</code><a class="headerlink" href="#biosteam.Stream.phase" title="Permalink to this definition">¶</a></dt>
+<dd><p>[str] ‘l’ for liquid, ‘g’ for gas, or ‘s’ for solid.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="biosteam.Stream.proxy">
+<em class="property">classmethod </em><code class="descname">proxy</code><span class="sig-paren">(</span><em>ID</em>, <em>link=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.proxy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.proxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a Stream object that serves as a proxy for the <cite>link</cite> stream.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.link">
+<code class="descname">link</code><a class="headerlink" href="#biosteam.Stream.link" title="Permalink to this definition">¶</a></dt>
+<dd><p>When another Stream object is set as a link, it will share data with that object.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -355,10 +356,10 @@
 <code class="descname">mol</code><a class="headerlink" href="#biosteam.Stream.mol" title="Permalink to this definition">¶</a></dt>
 <dd><p>Array of molar flow rates (kmol/hr):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">mol</span>
-<span class="go">material_array([0, 2])</span>
+<span class="go">array([0, 2])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">mol</span>
-<span class="go">material_array([1, 2])</span>
+<span class="go">array([1, 2])</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -737,7 +738,7 @@
 <dd><p>Set flow rates to zero</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">mol</span>
-<span class="go">material_array([0, 0])</span>
+<span class="go">array([0, 0])</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -877,7 +878,7 @@
 <dl class="method">
 <dt id="biosteam.Stream.VLE">
 <code class="descname">VLE</code><span class="sig-paren">(</span><em>species_IDs=None</em>, <em>LNK=None</em>, <em>HNK=None</em>, <em>P=None</em>, <em>Qin=None</em>, <em>T=None</em>, <em>V=None</em>, <em>x=None</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.VLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.VLE" title="Permalink to this definition">¶</a></dt>
-<dd><p>Partition flow rates into vapor and liquid phases by equilibrium. Pressure defaults to current pressure.</p>
+<dd><p>Perform vapor-liquid equilibrium. Pressure defaults to current pressure.</p>
 <p><strong>Optional parameters</strong></p>
 <blockquote>
 <div><p><strong>P:</strong> [float] Operating pressure (Pa)</p>
@@ -901,7 +902,7 @@
 <dl class="method">
 <dt id="biosteam.Stream.LLE">
 <code class="descname">LLE</code><span class="sig-paren">(</span><em>species_IDs=None</em>, <em>split=None</em>, <em>lNK=()</em>, <em>LNK=()</em>, <em>solvents=()</em>, <em>solvent_split=()</em>, <em>P=None</em>, <em>T=None</em>, <em>Qin=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.LLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.LLE" title="Permalink to this definition">¶</a></dt>
-<dd><p>Partition flow rates into liquid and LIQUID phases by equilibrium.</p>
+<dd><p>Perform LIQUID-liquid equilibrium.</p>
 <p><strong>Optional Parameters</strong></p>
 <blockquote>
 <div><p><strong>species_IDs:</strong> <em>tuple[str]</em> IDs of equilibrium species</p>
@@ -918,7 +919,7 @@
 
 <dl class="method">
 <dt id="biosteam.Stream.show">
-<code class="descname">show</code><span class="sig-paren">(</span><em>**show_units</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.show" title="Permalink to this definition">¶</a></dt>
+<code class="descname">show</code><span class="sig-paren">(</span><em>T=None</em>, <em>P=None</em>, <em>flow=None</em>, <em>fraction=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.Stream.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print all specifications.</p>
 </dd></dl>
 

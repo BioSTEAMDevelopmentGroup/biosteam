@@ -105,7 +105,7 @@
 <span class="sd">           [0] s4</span>
 <span class="sd">               phase: &#39;l&#39;, T: 317.54 K, P: 101325 Pa</span>
 <span class="sd">               flow (kmol/hr): Water    23</span>
-<span class="sd">               Ethanol  14</span>
+<span class="sd">                               Ethanol  14</span>
 <span class="sd">           </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">results</span> <span class="o">=</span> <span class="kc">None</span>
@@ -121,7 +121,8 @@
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">Stream</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">)</span>
         
-    <span class="n">simulate</span> <span class="o">=</span> <span class="n">_run</span></div>
+    <span class="n">simulate</span> <span class="o">=</span> <span class="n">_run</span>
+    <span class="n">summary</span> <span class="o">=</span> <span class="n">Unit</span><span class="o">.</span><span class="n">_cost</span></div>
 </pre></div>
 
           </div>

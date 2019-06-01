@@ -315,7 +315,7 @@ rates for different phases:</p>
 <div class="highlight"><pre>
 MixedStream: ms1
  phase: &#39;lg&#39;, T: 77.85 degC, P: 101325 Pa
-        <span class="ansi-white-fg"> species  kg/hr</span>
+         species  kg/hr
  liquid: Ethanol  46.1
 
  vapor:  Ethanol  92.1
@@ -342,7 +342,7 @@ vapor_mol arrays:</p>
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>material_array([0., 0.])
+<span></span>array([0., 0.])
 </pre></div>
 </div>
 </div>
@@ -362,7 +362,7 @@ vapor_mol arrays:</p>
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>material_array([0., 1.])
+<span></span>array([0., 1.])
 </pre></div>
 </div>
 </div>
@@ -382,7 +382,7 @@ vapor_mol arrays:</p>
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>material_array([0., 0.])
+<span></span>array([0., 0.])
 </pre></div>
 </div>
 </div>
@@ -402,7 +402,7 @@ vapor_mol arrays:</p>
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>material_array([0., 2.])
+<span></span>array([0., 2.])
 </pre></div>
 </div>
 </div>
@@ -413,9 +413,9 @@ vapor_mol arrays:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">ms1</span><span class="o">.</span><span class="n">liquid_mol</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+<span></span><span class="n">ms1</span><span class="o">.</span><span class="n">liquid_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
 <span class="n">ms1</span><span class="o">.</span><span class="n">vapor_mol</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
-<span class="n">ms1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">ms1</span>
 </pre></div>
 </div>
 </div>
@@ -426,7 +426,7 @@ vapor_mol arrays:</p>
 <div class="highlight"><pre>
 MixedStream: ms1
  phase: &#39;lg&#39;, T: 351 K, P: 101325 Pa
-        <span class="ansi-white-fg"> species  kmol/hr</span>
+         species  kmol/hr
  liquid: Water    2
          Ethanol  1
 
@@ -496,7 +496,7 @@ objects</p>
 <div class="highlight"><pre>
 MixedStream: ms1
  phase: &#39;lg&#39;, T: 351 K, P: 101325 Pa
-        <span class="ansi-white-fg"> species  kmol/hr</span>
+         species  kmol/hr
  liquid: Water    2
          Ethanol  1
 
@@ -523,7 +523,7 @@ MixedStream: ms1
 <div class="highlight"><pre>
 MixedStream: ms1
  phase: &#39;lg&#39;, T: 351 K, P: 101325 Pa
-        <span class="ansi-white-fg"> species  kmol/hr</span>
+         species  kmol/hr
  liquid: Water    5.39
          Ethanol  3.19
 
@@ -571,7 +571,7 @@ MixedStream: ms1
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>148.20532
+<span></span>array(148.20532, dtype=object)
 </pre></div>
 </div>
 </div>
@@ -591,7 +591,7 @@ MixedStream: ms1
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>0.0
+<span></span>array(0.0, dtype=object)
 </pre></div>
 </div>
 </div>
@@ -829,7 +829,7 @@ MixedStream: ms1
 <span class="n">ms2</span><span class="o">.</span><span class="n">setflow</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
 <span class="n">ms2</span><span class="o">.</span><span class="n">setflow</span><span class="p">(</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
 <span class="n">ms2</span><span class="o">.</span><span class="n">VLE</span><span class="p">()</span>
-<span class="n">ms2</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">ms2</span>
 </pre></div>
 </div>
 </div>
@@ -840,7 +840,7 @@ MixedStream: ms1
 <div class="highlight"><pre>
 MixedStream: ms2
  phase: &#39;lg&#39;, T: 354.96 K, P: 101325 Pa
-        <span class="ansi-white-fg"> species  kmol/hr</span>
+         species  kmol/hr
  liquid: Water    1.78
          Ethanol  0.945
 
@@ -856,7 +856,7 @@ MixedStream: ms2
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">ms2</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="mi">355</span><span class="p">)</span>
-<span class="n">ms2</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">ms2</span>
 </pre></div>
 </div>
 </div>
@@ -867,7 +867,7 @@ MixedStream: ms2
 <div class="highlight"><pre>
 MixedStream: ms2
  phase: &#39;lg&#39;, T: 355 K, P: 101325 Pa
-        <span class="ansi-white-fg"> species  kmol/hr</span>
+         species  kmol/hr
  liquid: Water    1.76
          Ethanol  0.918
 
@@ -883,7 +883,7 @@ MixedStream: ms2
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">ms2</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">V</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
-<span class="n">ms2</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">ms2</span>
 </pre></div>
 </div>
 </div>
@@ -894,7 +894,7 @@ MixedStream: ms2
 <div class="highlight"><pre>
 MixedStream: ms2
  phase: &#39;lg&#39;, T: 354.76 K, P: 101325 Pa
-        <span class="ansi-white-fg"> species  kmol/hr</span>
+         species  kmol/hr
  liquid: Water    1.9
          Ethanol  1.1
 
@@ -925,7 +925,7 @@ C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeW
 <span></span><span class="c1"># Make stream with hydrophobic species</span>
 <span class="n">ms3</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">MixedStream</span><span class="p">(</span><span class="s1">&#39;ms3&#39;</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">bs</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Octane&#39;</span><span class="p">))</span>
 <span class="n">ms3</span><span class="o">.</span><span class="n">setflow</span><span class="p">(</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-<span class="n">ms3</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">ms3</span>
 </pre></div>
 </div>
 </div>
@@ -936,7 +936,7 @@ C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeW
 <div class="highlight"><pre>
 MixedStream: ms3
  phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
-        <span class="ansi-white-fg"> species  kmol/hr</span>
+         species  kmol/hr
  liquid: Water    2
          Octane   2
 </pre></div></div>
@@ -950,7 +950,7 @@ MixedStream: ms3
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1"># Must set liquid-LIQUID guess splits</span>
 <span class="n">ms3</span><span class="o">.</span><span class="n">LLE</span><span class="p">()</span>
-<span class="n">ms3</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">ms3</span>
 </pre></div>
 </div>
 </div>
@@ -961,7 +961,7 @@ MixedStream: ms3
 <div class="highlight"><pre>
 MixedStream: ms3
  phase: &#39;lL&#39;, T: 298.15 K, P: 101325 Pa
-        <span class="ansi-white-fg"> species  kmol/hr</span>
+         species  kmol/hr
  liquid: Water    1.98
          Octane   2.49e-05
 
@@ -979,7 +979,7 @@ MixedStream: ms3
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1"># Must set liquid-LIQUID guess splits</span>
 <span class="n">ms3</span><span class="o">.</span><span class="n">LLE</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="mi">340</span><span class="p">)</span>
-<span class="n">ms3</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">ms3</span>
 </pre></div>
 </div>
 </div>
@@ -990,7 +990,7 @@ MixedStream: ms3
 <div class="highlight"><pre>
 MixedStream: ms3
  phase: &#39;lL&#39;, T: 340 K, P: 101325 Pa
-        <span class="ansi-white-fg"> species  kmol/hr</span>
+         species  kmol/hr
  liquid: Water    1.94
          Octane   5.37e-05
 

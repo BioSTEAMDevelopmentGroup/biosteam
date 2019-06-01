@@ -9,10 +9,9 @@ import re
 import os
 import numpy as np
 import pandas as pd
-from IPython import display
 from graphviz import Digraph
 from ._exceptions import DesignWarning, _try_method
-from ._flowsheet import find
+from ._flowsheet import find, save_digraph
 from ._graphics import Graphics, default_graphics
 from ._stream import Stream
 from ._heat_utility import HeatUtility
@@ -26,6 +25,21 @@ dir_path = os.path.dirname(os.path.realpath(__file__)) + '\\'
 
 __all__ = ('Unit',)
 _do_nothing = lambda self: None
+
+# %% Unit neighbors
+
+def _add_upstream_neighbors(unit, set):
+    """Add upsteam neighboring units to set."""
+    for s in unit._ins:
+        u_source = s.source
+        if u_source: set.add(u_source)
+
+def _add_downstream_neighbors(unit, set):
+    """Add downstream neighboring units to set."""
+    for s in unit._outs:
+        u_sink = s.sink
+        if u_sink: set.add(u_sink)
+
 
 # %% Bounds checking
 
@@ -397,8 +411,8 @@ class Unit(metaclass=metaUnit):
     def _init_results(self):
         """Initialize results attribute."""
         self._results = {'Design': {}, 'Cost': {}}
-        #: [list] Purchase price (USD) and utility cost (USD/hr)
-        self._totalcosts = [0, 0]
+        #: [array] Purchase price (USD) and utility cost (USD/hr)
+        self._totalcosts = np.array([0, 0], float)
     
     def _init_heat_utils(self):
         """Initialize heat utilities."""
@@ -423,7 +437,7 @@ class Unit(metaclass=metaUnit):
         self._purchase_costs = self._results['Cost'].values()
     
     def _link_streams(self):
-        """Setup ProxyStream object if any."""
+        """Link product to feed."""
         if self._linkedstreams: self._outs[0].link = self._ins[0]
     
     # Forward pipping
@@ -493,7 +507,7 @@ class Unit(metaclass=metaUnit):
         self._totalcosts[0] = sum(self._purchase_costs)
     
     def _update_utility_cost(self):
-        self._totalcosts[1] = sum(i.cost for i in self._utils)
+        self._totalcosts[1] = sum([i.cost for i in self._utils])
 
     def simulate(self):
         """Run rigourous simulation and determine all design requirements."""
@@ -521,7 +535,7 @@ class Unit(metaclass=metaUnit):
                     addkey((i.ID, 'Flow'))
                     addkey((i.ID, 'Cost'))
                     addval(('kJ/hr', i.duty))
-                    addval(('kg/hr', i.flow))
+                    addval(('kmol/hr', i.flow))
                     addval(('USD/hr', i.cost))
             units = self._units
             results = self._results.copy()
@@ -647,28 +661,12 @@ class Unit(metaclass=metaUnit):
         return self._outs
 
     @property
-    def _upstream_neighbors(self):
-        """Return set of upsteam neighboring units."""
-        neighbors = set()
-        for s in self._ins:
-            u_source = s.source
-            if u_source: neighbors.add(u_source)
-        return neighbors
-
-    @property
-    def _downstream_neighbors(self):
-        """Return set of downstream neighboring units."""
-        neighbors = set()
-        for s in self._outs:
-            u_sink = s.sink
-            if u_sink: neighbors.add(u_sink)
-        return neighbors
-
-    @property
     def _downstream_units(self):
-        """Return all units downstreasm."""
+        """Return set of all units downstreasm."""
         downstream_units = set()
-        outer_periphery = self._downstream_neighbors
+        outer_periphery = set()
+        _add_downstream = _add_downstream_neighbors
+        _add_downstream(self, outer_periphery)
         inner_periphery = None
         old_length = -1
         new_length = 0
@@ -678,9 +676,8 @@ class Unit(metaclass=metaUnit):
             downstream_units.update(inner_periphery)
             outer_periphery = set()
             for unit in inner_periphery:
-                outer_periphery.update(unit._downstream_neighbors)
+                _add_downstream(unit, outer_periphery)
             new_length = len(downstream_units)
-            
         return downstream_units
 
     def _neighborhood(self, radius=1):
@@ -692,24 +689,23 @@ class Unit(metaclass=metaUnit):
         
         """
         radius -= 1
-        if radius < 0: return set()
-        upstream_neighbors = self._upstream_neighbors
-        downstream_neighbors = self._downstream_neighbors
-        neighborhood = upstream_neighbors.union(downstream_neighbors)
+        neighborhood = set()
+        if radius < 0: return neighborhood
+        _add_upstream_neighbors(self, neighborhood)
+        _add_downstream_neighbors(self, neighborhood)
         direct_neighborhood = neighborhood
-        
         for i in range(radius):
             neighbors = set()
             for neighbor in direct_neighborhood:
-                neighbors.update(neighbor._upstream_neighbors)
-                neighbors.update(neighbor._downstream_neighbors)
+                _add_upstream_neighbors(neighbor, neighbors)
+                _add_downstream_neighbors(neighbor, neighbors)
             if neighbors == direct_neighborhood: break
             direct_neighborhood = neighbors
             neighborhood.update(direct_neighborhood)
         
         return neighborhood
 
-    def diagram(self, radius=0, file=None):
+    def diagram(self, radius=0, file=None, format='svg'):
         """Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of the unit and all neighboring units within given radius.
         
         **Parameters**
@@ -717,15 +713,17 @@ class Unit(metaclass=metaUnit):
             **radius:** [int] Maxium number streams between neighbors.
         
             **file:** Must be one of the following:
-                * [str] File name to save diagram. If format not included, saves file as svg.
+                * [str] File name to save diagram.
                 * [None] Display diagram in console.
+        
+            **format:** Format of file.
         
         """
         if radius > 0:
             neighborhood = self._neighborhood(radius)
             neighborhood.add(self)
             sys = biosteam.System('', neighborhood)
-            return sys.diagram()
+            return sys.diagram('thorough', file, format)
         
         graphics = self._graphics
 
@@ -773,9 +771,7 @@ class Unit(metaclass=metaUnit):
                    headport='w', **edge_out[oi])
             f.edge(name, stream.ID)
             oi += 1
-
-        # Display digraph on console
-        display.display(display.Image(f.pipe(format='png')))
+        save_digraph(f, file, format)
     
     ### Net input and output flows ###
     
@@ -860,7 +856,7 @@ class Unit(metaclass=metaUnit):
     @property
     def _vol_out(self):
         """Volumetric flows going out (m3/hr)."""
-        return sum(s.vol for s in self.outs)
+        return sum([s.vol for s in self.outs])
 
     @property
     def _volnet_out(self):
@@ -909,7 +905,7 @@ class Unit(metaclass=metaUnit):
         i = 0
         for stream in self._ins:
             if not stream:
-                info += f'[{i}] {stream.ID}\n'
+                info += f'[{i}] missing stream\n'
                 i += 1
                 continue
             stream_info = stream._info(T, P, flow, fraction)
@@ -922,7 +918,7 @@ class Unit(metaclass=metaUnit):
         i = 0
         for stream in self._outs:
             if not stream:
-                info += f'[{i}] {stream.ID}\n'
+                info += f'[{i}] missing stream\n'
                 i += 1
                 continue
             stream_info = stream._info(T, P, flow, fraction)
@@ -939,7 +935,8 @@ class Unit(metaclass=metaUnit):
         print(self._info(T, P, flow, fraction))
     
     def _ipython_display_(self):
-        self.diagram()
+        try: self.diagram()
+        except: pass
         self.show()
     
     def _delete(self):
@@ -952,9 +949,6 @@ class Unit(metaclass=metaUnit):
                 if i._sink: i._source = None
                 else: object.__delattr__(find.stream, i._ID)
         self._outs[:] = self._ins[:] = (missing_stream,)
-    
-    def delete(self):
-        delattr(find.unit, self._ID)
     
     def __str__(self):
         if self.ID:

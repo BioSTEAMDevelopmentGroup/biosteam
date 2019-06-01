@@ -1,0 +1,647 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Model"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Evaluate a metric around multiple parameters of a biorefinery system"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### Create a model object"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "A Model object is used to evaluate a metric that depends on System object given "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "<Model: IRR>"
+      ]
+     },
+     "execution_count": 2,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "# Make sure you \"pip install lipidcane\" before trying this example\n",
+    "import lipidcane as lc\n",
+    "import biosteam as bs\n",
+    "solve_IRR = lc.lipidcane_tea.solve_IRR\n",
+    "model = bs.evaluation.Model(system=lc.lipidcane_sys,\n",
+    "                            metric=solve_IRR,\n",
+    "                            ID='IRR')\n",
+    "model"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The Model object begins with no paramters: "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 9,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Model: IRR\n",
+      " Element:  Parameters:\n",
+      "  None      None\n"
+     ]
+    }
+   ],
+   "source": [
+    "model.show() # Use the show method to view parameters"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Calling the model with an empty sample will return the metric value:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 10,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "0.19979554624528809"
+      ]
+     },
+     "execution_count": 10,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "model([]) # Returns IRR"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### Add multiple parameters"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "An isolated par\n",
+    "Add feedstock price as a \"isolated\" parameter:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "metadata": {
+    "scrolled": true
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Model: IRR\n",
+      " Element:           Parameter:\n",
+      "  Stream-Lipid cane  Feedstock price\n"
+     ]
+    }
+   ],
+   "source": [
+    "Lipid_cane = lc.Lipid_cane # The feedstock stream\n",
+    "@model.parameter(element=Lipid_cane, kind='isolated')\n",
+    "def set_feed_price(feedstock_price):\n",
+    "    Lipid_cane.price = feedstock_price\n",
+    "model.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Note that the signature of the `setter` is used to name the parameter by default."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Add lipid fraction as a parameter:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Grid: IRR\n",
+      "\u001b[3m element            parameter\n",
+      "\u001b[0m Stream-Lipid cane  feedstock price\n",
+      "                    lipid fraction\n"
+     ]
+    }
+   ],
+   "source": [
+    "grid.addparam(Lipid_cane, lc.set_lipid_fraction, [0.02, 0.05, 0.10])\n",
+    "grid.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Add fermentation efficiency as a parameter:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Grid: IRR\n",
+      "\u001b[3m element            parameter\n",
+      "\u001b[0m Stream-Lipid cane  feedstock price\n",
+      "                    lipid fraction\n",
+      " Fermentation-U34   fermentation efficiency\n"
+     ]
+    }
+   ],
+   "source": [
+    "U34 = bs.find('U34')\n",
+    "def set_efficiency(fermentation_efficiency): U34.reset(efficiency=fermentation_efficiency)\n",
+    "grid.addparam(U34, set_efficiency, [0.85, 0.90, 0.95])\n",
+    "grid.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#### Evaluate IRR vs multiple parameters"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Evaluate at give parameter values:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead tr th {\n",
+       "        text-align: left;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr>\n",
+       "      <th>Element</th>\n",
+       "      <th>Stream-Lipid cane</th>\n",
+       "      <th>Reactor-U34</th>\n",
+       "      <th>Stream-Lipid cane</th>\n",
+       "      <th>IRR</th>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>Parameter</th>\n",
+       "      <th>Feedstock price</th>\n",
+       "      <th>Fermentation efficiency</th>\n",
+       "      <th>Lipid fraction</th>\n",
+       "      <th></th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>0.03</td>\n",
+       "      <td>0.85</td>\n",
+       "      <td>0.02</td>\n",
+       "      <td>0.0981</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>0.035</td>\n",
+       "      <td>0.9</td>\n",
+       "      <td>0.05</td>\n",
+       "      <td>0.129</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>0.04</td>\n",
+       "      <td>0.95</td>\n",
+       "      <td>0.1</td>\n",
+       "      <td>0.169</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "Element   Stream-Lipid cane             Reactor-U34 Stream-Lipid cane    IRR\n",
+       "Parameter   Feedstock price Fermentation efficiency    Lipid fraction       \n",
+       "0                      0.03                    0.85              0.02 0.0981\n",
+       "1                     0.035                     0.9              0.05  0.129\n",
+       "2                      0.04                    0.95               0.1  0.169"
+      ]
+     },
+     "execution_count": 6,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "grid.simulate()\n",
+    "grid.table"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Note that isolated parameters are on the left most columns, while that System parameters are ordered from downstream to upstream (e.g. <Fermentation: U34> is downstream from <Stream: Lipid cane>)."
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Evaluate at the cartesian product of parameter values:"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead tr th {\n",
+       "        text-align: left;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr>\n",
+       "      <th>Element</th>\n",
+       "      <th>Stream-Lipid cane</th>\n",
+       "      <th>Reactor-U34</th>\n",
+       "      <th>Stream-Lipid cane</th>\n",
+       "      <th>IRR</th>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>Parameter</th>\n",
+       "      <th>Feedstock price</th>\n",
+       "      <th>Fermentation efficiency</th>\n",
+       "      <th>Lipid fraction</th>\n",
+       "      <th></th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>0.03</td>\n",
+       "      <td>0.85</td>\n",
+       "      <td>0.02</td>\n",
+       "      <td>0.0981</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>0.035</td>\n",
+       "      <td>0.85</td>\n",
+       "      <td>0.02</td>\n",
+       "      <td>0.0568</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>0.04</td>\n",
+       "      <td>0.85</td>\n",
+       "      <td>0.02</td>\n",
+       "      <td>0.00514</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>0.04</td>\n",
+       "      <td>0.9</td>\n",
+       "      <td>0.02</td>\n",
+       "      <td>0.0312</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>0.035</td>\n",
+       "      <td>0.9</td>\n",
+       "      <td>0.02</td>\n",
+       "      <td>0.0768</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>5</th>\n",
+       "      <td>0.03</td>\n",
+       "      <td>0.9</td>\n",
+       "      <td>0.02</td>\n",
+       "      <td>0.115</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>6</th>\n",
+       "      <td>0.03</td>\n",
+       "      <td>0.95</td>\n",
+       "      <td>0.02</td>\n",
+       "      <td>0.131</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>7</th>\n",
+       "      <td>0.035</td>\n",
+       "      <td>0.95</td>\n",
+       "      <td>0.02</td>\n",
+       "      <td>0.0951</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>8</th>\n",
+       "      <td>0.04</td>\n",
+       "      <td>0.95</td>\n",
+       "      <td>0.02</td>\n",
+       "      <td>0.0536</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>9</th>\n",
+       "      <td>0.04</td>\n",
+       "      <td>0.95</td>\n",
+       "      <td>0.05</td>\n",
+       "      <td>0.108</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>10</th>\n",
+       "      <td>0.035</td>\n",
+       "      <td>0.95</td>\n",
+       "      <td>0.05</td>\n",
+       "      <td>0.142</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>11</th>\n",
+       "      <td>0.03</td>\n",
+       "      <td>0.95</td>\n",
+       "      <td>0.05</td>\n",
+       "      <td>0.173</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>12</th>\n",
+       "      <td>0.03</td>\n",
+       "      <td>0.9</td>\n",
+       "      <td>0.05</td>\n",
+       "      <td>0.161</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>13</th>\n",
+       "      <td>0.035</td>\n",
+       "      <td>0.9</td>\n",
+       "      <td>0.05</td>\n",
+       "      <td>0.129</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>14</th>\n",
+       "      <td>0.04</td>\n",
+       "      <td>0.9</td>\n",
+       "      <td>0.05</td>\n",
+       "      <td>0.0929</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>15</th>\n",
+       "      <td>0.04</td>\n",
+       "      <td>0.85</td>\n",
+       "      <td>0.05</td>\n",
+       "      <td>0.0775</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>16</th>\n",
+       "      <td>0.035</td>\n",
+       "      <td>0.85</td>\n",
+       "      <td>0.05</td>\n",
+       "      <td>0.115</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>17</th>\n",
+       "      <td>0.03</td>\n",
+       "      <td>0.85</td>\n",
+       "      <td>0.05</td>\n",
+       "      <td>0.149</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>18</th>\n",
+       "      <td>0.03</td>\n",
+       "      <td>0.85</td>\n",
+       "      <td>0.1</td>\n",
+       "      <td>0.211</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>19</th>\n",
+       "      <td>0.035</td>\n",
+       "      <td>0.85</td>\n",
+       "      <td>0.1</td>\n",
+       "      <td>0.183</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>20</th>\n",
+       "      <td>0.04</td>\n",
+       "      <td>0.85</td>\n",
+       "      <td>0.1</td>\n",
+       "      <td>0.153</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>21</th>\n",
+       "      <td>0.04</td>\n",
+       "      <td>0.9</td>\n",
+       "      <td>0.1</td>\n",
+       "      <td>0.161</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>22</th>\n",
+       "      <td>0.035</td>\n",
+       "      <td>0.9</td>\n",
+       "      <td>0.1</td>\n",
+       "      <td>0.191</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>23</th>\n",
+       "      <td>0.03</td>\n",
+       "      <td>0.9</td>\n",
+       "      <td>0.1</td>\n",
+       "      <td>0.219</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>24</th>\n",
+       "      <td>0.03</td>\n",
+       "      <td>0.95</td>\n",
+       "      <td>0.1</td>\n",
+       "      <td>0.226</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>25</th>\n",
+       "      <td>0.035</td>\n",
+       "      <td>0.95</td>\n",
+       "      <td>0.1</td>\n",
+       "      <td>0.198</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>26</th>\n",
+       "      <td>0.04</td>\n",
+       "      <td>0.95</td>\n",
+       "      <td>0.1</td>\n",
+       "      <td>0.169</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "Element   Stream-Lipid cane             Reactor-U34 Stream-Lipid cane     IRR\n",
+       "Parameter   Feedstock price Fermentation efficiency    Lipid fraction        \n",
+       "0                      0.03                    0.85              0.02  0.0981\n",
+       "1                     0.035                    0.85              0.02  0.0568\n",
+       "2                      0.04                    0.85              0.02 0.00514\n",
+       "3                      0.04                     0.9              0.02  0.0312\n",
+       "4                     0.035                     0.9              0.02  0.0768\n",
+       "5                      0.03                     0.9              0.02   0.115\n",
+       "6                      0.03                    0.95              0.02   0.131\n",
+       "7                     0.035                    0.95              0.02  0.0951\n",
+       "8                      0.04                    0.95              0.02  0.0536\n",
+       "9                      0.04                    0.95              0.05   0.108\n",
+       "10                    0.035                    0.95              0.05   0.142\n",
+       "11                     0.03                    0.95              0.05   0.173\n",
+       "12                     0.03                     0.9              0.05   0.161\n",
+       "13                    0.035                     0.9              0.05   0.129\n",
+       "14                     0.04                     0.9              0.05  0.0929\n",
+       "15                     0.04                    0.85              0.05  0.0775\n",
+       "16                    0.035                    0.85              0.05   0.115\n",
+       "17                     0.03                    0.85              0.05   0.149\n",
+       "18                     0.03                    0.85               0.1   0.211\n",
+       "19                    0.035                    0.85               0.1   0.183\n",
+       "20                     0.04                    0.85               0.1   0.153\n",
+       "21                     0.04                     0.9               0.1   0.161\n",
+       "22                    0.035                     0.9               0.1   0.191\n",
+       "23                     0.03                     0.9               0.1   0.219\n",
+       "24                     0.03                    0.95               0.1   0.226\n",
+       "25                    0.035                    0.95               0.1   0.198\n",
+       "26                     0.04                    0.95               0.1   0.169"
+      ]
+     },
+     "execution_count": 7,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "grid.layout = 'cartesian'\n",
+    "grid.simulate()\n",
+    "grid.table"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The arguments are ordered to reduce computation time and convergence efficiency. A disturbance in upstream parameters takes longer to converge than a disturbance in downstream parameters. Note that upstream parameters (e.g. Lipid fraction) change minimally compared to downstream parameters (e.g. Fermentation efficiency)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.6.5"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}

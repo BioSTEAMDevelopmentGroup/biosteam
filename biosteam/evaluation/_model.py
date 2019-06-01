@@ -14,8 +14,8 @@ __all__ = ('Model',)
 # %% Functions
 
 paramindex = lambda params: pd.MultiIndex.from_arrays(
-                                ([elementname(f._element) for f in params], 
-                                 [f._name for f in params]),
+                                ([elementname(f.element) for f in params], 
+                                 [f.name for f in params]),
                                 names=('Element', 'Parameter'))
 
     

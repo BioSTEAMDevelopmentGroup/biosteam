@@ -15,7 +15,7 @@ Overview
 
    **Figure 1.** A simplified UML class diagram depicts the core classes of BioSTEAM. Only main attributes and methods are included. In aggregation relationships, the labels represent where the aggregates are stored.
 
-:doc:`Compound`: Base class for objects with pure component thermodynamic and transport properties.
+:doc:`Compound`: Abstract class for objects with pure component thermodynamic and transport properties.
 
 :doc:`Chemical`: A thermo.Chemical object from the Chemical Engineering Design Library (ChEDL) with minor extensions for compatibility.
 

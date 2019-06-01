@@ -77,7 +77,7 @@
 <span id="splitter"></span><h1>Splitter<a class="headerlink" href="#module-biosteam.units" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.units.Splitter">
-<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">Splitter</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>split=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_splitter.html#Splitter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Splitter" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">Splitter</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>split=None</em>, <em>order=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_splitter.html#Splitter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Splitter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a splitter that separates mixed streams based on splits.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -87,15 +87,16 @@
 <dl class="docutils">
 <dt><strong>split:</strong> Shoulds be one of the following:</dt>
 <dd><ul class="first last simple">
-<li><em>[float]</em> The fraction of net feed in the 0th output stream</li>
-<li><em>[array_like]</em> Component wise split of feed to 0th output stream</li>
+<li>[float] The fraction of net feed in the 0th output stream</li>
+<li>[array_like] Componentwise split of feed to 0th output stream</li>
 </ul>
 </dd>
 </dl>
+<p><strong>order:</strong> Iterable[str] Species order of split</p>
 </div></blockquote>
 <p><strong>ins</strong></p>
 <blockquote>
-<div>[:] Input streams</div></blockquote>
+<div>[0] Feed stream</div></blockquote>
 <p><strong>outs</strong></p>
 <blockquote>
 <div><p>[0] Split stream</p>
@@ -103,11 +104,11 @@
 </div></blockquote>
 <p><strong>Examples</strong></p>
 <blockquote>
-<div><p>Create a Splitter object with an ID, any number of input streams, two output streams, and an overall split:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">Species</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">Splitter</span>
+<div><p>Create a Splitter object with an ID, a feed stream, two output streams, and an overall split:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">Species</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">units</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">feed</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">340</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">S1</span> <span class="o">=</span> <span class="n">Splitter</span><span class="p">(</span><span class="s1">&#39;S1&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">feed</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;out1&#39;</span><span class="p">,</span> <span class="s1">&#39;out2&#39;</span><span class="p">),</span> <span class="n">split</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">S1</span> <span class="o">=</span> <span class="n">units</span><span class="o">.</span><span class="n">Splitter</span><span class="p">(</span><span class="s1">&#39;S1&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">feed</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;top&#39;</span><span class="p">,</span> <span class="s1">&#39;bot&#39;</span><span class="p">),</span> <span class="n">split</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">S1</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">S1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 <span class="go">Splitter: S1</span>
@@ -117,22 +118,22 @@
 <span class="go">    flow (kmol/hr): Water    20</span>
 <span class="go">                    Ethanol  10</span>
 <span class="go">outs...</span>
-<span class="go">[0] out1</span>
+<span class="go">[0] top</span>
 <span class="go">    phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
 <span class="go">    flow (kmol/hr): Water    2</span>
 <span class="go">                    Ethanol  1</span>
-<span class="go">[1] out2</span>
+<span class="go">[1] bot</span>
 <span class="go">    phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
 <span class="go">    flow (kmol/hr): Water    18</span>
 <span class="go">                    Ethanol  9</span>
 </pre></div>
 </div>
-<p>Create a Splitter object, but this time with a component wise split:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">Species</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">Splitter</span>
+<p>Create a Splitter object, but this time with a componentwise split:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">Species</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">units</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">feed</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">340</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">S1</span> <span class="o">=</span> <span class="n">Splitter</span><span class="p">(</span><span class="s1">&#39;S1&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">feed</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;out1&#39;</span><span class="p">,</span> <span class="s1">&#39;out2&#39;</span><span class="p">),</span>
-<span class="gp">... </span>              <span class="n">split</span><span class="o">=</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">S1</span> <span class="o">=</span> <span class="n">units</span><span class="o">.</span><span class="n">Splitter</span><span class="p">(</span><span class="s1">&#39;S1&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">feed</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;top&#39;</span><span class="p">,</span> <span class="s1">&#39;bot&#39;</span><span class="p">),</span>
+<span class="gp">... </span>                    <span class="n">split</span><span class="o">=</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">S1</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">S1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 <span class="go">Splitter: S1</span>
@@ -142,17 +143,48 @@
 <span class="go">    flow (kmol/hr): Water    20</span>
 <span class="go">                    Ethanol  10</span>
 <span class="go">outs...</span>
-<span class="go">[0] out1</span>
+<span class="go">[0] top</span>
 <span class="go">    phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
 <span class="go">    flow (kmol/hr): Water    2</span>
 <span class="go">                    Ethanol  9.9</span>
-<span class="go">[1] out2</span>
+<span class="go">[1] bot</span>
+<span class="go">    phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
+<span class="go">    flow (kmol/hr): Water    18</span>
+<span class="go">                    Ethanol  0.1</span>
+</pre></div>
+</div>
+<p>Create a Splitter object using componentwise split, but this time specify the order:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="kn">import</span> <span class="n">Species</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">units</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">feed</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">340</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">S1</span> <span class="o">=</span> <span class="n">units</span><span class="o">.</span><span class="n">Splitter</span><span class="p">(</span><span class="s1">&#39;S1&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">feed</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;top&#39;</span><span class="p">,</span> <span class="s1">&#39;bot&#39;</span><span class="p">),</span>
+<span class="gp">... </span>                    <span class="n">split</span><span class="o">=</span><span class="p">(</span><span class="mf">0.99</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">S1</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">S1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="go">Splitter: S1</span>
+<span class="go">ins...</span>
+<span class="go">[0] feed</span>
+<span class="go">    phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
+<span class="go">    flow (kmol/hr): Water    20</span>
+<span class="go">                    Ethanol  10</span>
+<span class="go">outs...</span>
+<span class="go">[0] top</span>
+<span class="go">    phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
+<span class="go">    flow (kmol/hr): Water    2</span>
+<span class="go">                    Ethanol  9.9</span>
+<span class="go">[1] bot</span>
 <span class="go">    phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
 <span class="go">    flow (kmol/hr): Water    18</span>
 <span class="go">                    Ethanol  0.1</span>
 </pre></div>
 </div>
 </div></blockquote>
+<dl class="attribute">
+<dt id="biosteam.units.Splitter.split">
+<code class="descname">split</code><a class="headerlink" href="#biosteam.units.Splitter.split" title="Permalink to this definition">¶</a></dt>
+<dd><p>[array] Componentwise split of feed to 0th output stream.</p>
+</dd></dl>
+
 </dd></dl>
 
 </div>

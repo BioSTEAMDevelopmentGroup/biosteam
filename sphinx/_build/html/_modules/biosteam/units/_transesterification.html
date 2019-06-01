@@ -61,8 +61,11 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Unit</span>
+<span class="kn">from</span> <span class="nn">.decorators</span> <span class="k">import</span> <span class="n">design</span><span class="p">,</span> <span class="n">cost</span>
 
-<div class="viewcode-block" id="Transesterification"><a class="viewcode-back" href="../../../Transesterification.html#biosteam.units.Transesterification">[docs]</a><span class="k">class</span> <span class="nc">Transesterification</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
+<div class="viewcode-block" id="Transesterification"><a class="viewcode-back" href="../../../Transesterification.html#biosteam.units.Transesterification">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Volume&#39;</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">525.4</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mi">15000</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="mf">0.55</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+<span class="nd">@design</span><span class="p">(</span><span class="s1">&#39;Volume&#39;</span><span class="p">,</span> <span class="s1">&#39;m^3&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tau</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_volnet_out</span><span class="o">/</span><span class="mf">0.8</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">Transesterification</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a transesterification reactor that converts &#39;Lipid&#39; and &#39;Methanol&#39; to &#39;Biodiesel&#39; and &#39;Glycerol&#39;. Finds the amount of catalyist &#39;NaOCH3&#39; required and consumes it to &#39;NaOH&#39; and &#39;Methanol&#39;.</span>
 <span class="sd">    </span>
 <span class="sd">    **Parameters**</span>
@@ -90,39 +93,27 @@
 <span class="sd">        :doc:`Transesterification Example`</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Reactor&#39;</span>
-    <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Volume&#39;</span><span class="p">:</span> <span class="s1">&#39;m^3&#39;</span><span class="p">}</span>
     <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;efficiency&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># fraction of theoretical conversion</span>
                <span class="s1">&#39;r&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Methanol to lipid molar ratio</span>
                <span class="s1">&#39;T&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-               <span class="s1">&#39;catalyst_molfrac&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>  <span class="c1"># operating temperature (K)</span>
-    
+               <span class="s1">&#39;catalyst_molfrac&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>  <span class="c1"># operating temperature (K)    </span>
     <span class="n">_bounds</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Volume&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mi">20</span><span class="p">)}</span>
-    
     <span class="n">_tau</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">True</span>
 
-    <span class="c1">#: kW/m3</span>
-    <span class="n">electricity_rate</span> <span class="o">=</span> <span class="mf">1.5</span>
+    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="s1">&#39;Lipid&#39;</span><span class="p">,</span> <span class="s1">&#39;Methanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Glycerol&#39;</span><span class="p">,</span> <span class="s1">&#39;Biodiesel&#39;</span><span class="p">,</span> <span class="s1">&#39;NaOH&#39;</span><span class="p">,</span> <span class="s1">&#39;NaOCH3&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">feed</span><span class="p">,</span> <span class="n">fresh_Methanol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span>
         <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">eff</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">catalyst_molfrac</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span>
             <span class="s1">&#39;efficiency&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">,</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="s1">&#39;catalyst_molfrac&#39;</span><span class="p">))</span>
-        <span class="n">sp_index</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">_IDs</span><span class="o">.</span><span class="n">index</span>
 
         <span class="c1"># Reactant positions</span>
-        <span class="n">lipid_pos</span> <span class="o">=</span> <span class="n">sp_index</span><span class="p">(</span><span class="s1">&#39;Lipid&#39;</span><span class="p">)</span>
-        <span class="n">Methanol_pos</span> <span class="o">=</span> <span class="n">sp_index</span><span class="p">(</span><span class="s1">&#39;Methanol&#39;</span><span class="p">)</span>
-        <span class="n">Glycerol_pos</span> <span class="o">=</span> <span class="n">sp_index</span><span class="p">(</span><span class="s1">&#39;Glycerol&#39;</span><span class="p">)</span>
-        <span class="n">biodiesel_pos</span> <span class="o">=</span> <span class="n">sp_index</span><span class="p">(</span><span class="s1">&#39;Biodiesel&#39;</span><span class="p">)</span>
-        <span class="n">NaOH_pos</span> <span class="o">=</span> <span class="n">sp_index</span><span class="p">(</span><span class="s1">&#39;NaOH&#39;</span><span class="p">)</span>
-        <span class="n">NaOCH3_pos</span> <span class="o">=</span> <span class="n">sp_index</span><span class="p">(</span><span class="s1">&#39;NaOCH3&#39;</span><span class="p">)</span>
-
+        <span class="n">lipid_pos</span><span class="p">,</span> <span class="n">Methanol_pos</span><span class="p">,</span> <span class="n">Glycerol_pos</span><span class="p">,</span> <span class="n">biodiesel_pos</span><span class="p">,</span> <span class="n">NaOH_pos</span><span class="p">,</span> <span class="n">NaOCH3_pos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index</span>
         <span class="n">lipid</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">lipid_pos</span><span class="p">]</span>
 
         <span class="c1"># Reaction conversions by mol (to add to the feed)</span>
@@ -140,7 +131,7 @@
                                <span class="n">bd_ch</span><span class="p">,</span> <span class="n">NaOCH3_ch</span><span class="p">,</span> <span class="n">NaOH_ch</span><span class="p">))</span>
 
         <span class="c1"># Output stream</span>
-        <span class="n">fresh_Methanol</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span> <span class="p">[</span><span class="n">Methanol_pos</span><span class="p">,</span> <span class="n">NaOCH3_pos</span><span class="p">]</span> <span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">Methanol_in</span><span class="p">,</span> <span class="n">NaOCH3_in</span><span class="p">)</span>
+        <span class="n">fresh_Methanol</span><span class="o">.</span><span class="n">mol</span><span class="p">[[</span><span class="n">Methanol_pos</span><span class="p">,</span> <span class="n">NaOCH3_pos</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span><span class="n">Methanol_in</span><span class="p">,</span> <span class="n">NaOCH3_in</span><span class="p">)</span>
         <span class="n">index</span> <span class="o">=</span> <span class="p">[</span><span class="n">lipid_pos</span><span class="p">,</span> <span class="n">Methanol_pos</span><span class="p">,</span> <span class="n">Glycerol_pos</span><span class="p">,</span>
                 <span class="n">biodiesel_pos</span><span class="p">,</span> <span class="n">NaOCH3_pos</span><span class="p">,</span> <span class="n">NaOH_pos</span><span class="p">]</span>
         <span class="n">out</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
@@ -148,19 +139,9 @@
         <span class="n">out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span>
         <span class="n">out</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">P</span>
 
-    <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">_Hnet</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
-        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Volume&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tau</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_volnet_out</span> <span class="o">/</span> <span class="mf">0.8</span>
-        <span class="k">return</span> <span class="n">Design</span>
+    <span class="k">def</span> <span class="nf">_end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">_Hnet</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span></div>
         
-    <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span>
-        <span class="n">Design</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
-        <span class="n">Cost</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
-        <span class="n">Volume</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Volume&#39;</span><span class="p">]</span>
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Reactor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CEPCI</span><span class="o">/</span><span class="mf">525.4</span> <span class="o">*</span> <span class="mi">15000</span> <span class="o">*</span> <span class="n">Volume</span> <span class="o">**</span> <span class="mf">0.55</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span><span class="p">(</span><span class="n">Volume</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">electricity_rate</span><span class="p">)</span></div>
     
         
         

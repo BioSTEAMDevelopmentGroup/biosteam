@@ -5,27 +5,26 @@ Created on Tue May 14 14:20:53 2019
 @author: yoelr
 """
 __all__ = ('Parameter',)
+from ._name import elementname
 
 class Parameter:
-    __slots__ = ('_name', '_setter', '_simulate', '_element', '_system')
+    __slots__ = ('name', 'setter', 'simulate', 'element', 'system')
     
     def __init__(self, name, setter, simulate, element, system):
-        self._name = name.replace('_', ' ').capitalize()
-        self._setter = setter
-        self._simulate = simulate
-        self._element = element
-        self._system = system
-    
-    def update(self, value):
-        """Update parameter value"""
-        self._setter(value)
-        self._simulate()
+        self.name = name.replace('_', ' ').capitalize()
+        self.setter = setter
+        self.simulate = simulate
+        self.element = element
+        self.system = system
     
     @property
-    def name(self):
-        return self._name
+    def element_name(self):
+        return elementname(self.element)
     
     def __repr__(self):
-        return f'<{type(self).__name__}: {self._name}>'
+        if self.element:
+            return f'<{type(self).__name__}: [{self.element_name}] {self.name}>'
+        else:
+            return f'<{type(self).__name__}: {self.name}>'
     
                

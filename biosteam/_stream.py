@@ -413,7 +413,7 @@ class Stream(metaclass=metaStream):
         try:
             self._setflows(flow, species, flow_pairs)
         except Exception as Error:
-            if not self._species: raise RuntimeError(f'must specify Stream.species')
+            if not self._species: raise RuntimeError(f'must specify Stream.species first')
             else: raise Error
         mol = self._mol
         MW = self._species._MW
@@ -542,6 +542,7 @@ class Stream(metaclass=metaStream):
         self = object.__new__(cls)
         self._link = self._source = self._sink = self._ID = None
         self.ID = ID
+        self.price = 0
         if link: self.link = link
         return self
     
@@ -1625,9 +1626,6 @@ class Stream(metaclass=metaStream):
         if source: source[source.index(self)] = missing_stream
         sink = self._sink and self._sink._ins
         if sink: sink[sink.index(self)] = missing_stream
-
-    def delete(self):
-        delattr(find.stream, self._ID)
 
     def __str__(self):
         if self.ID: return self.ID

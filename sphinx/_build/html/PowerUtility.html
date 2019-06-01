@@ -95,7 +95,7 @@
 <div><p>Create a PowerUtility object:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pu</span> <span class="o">=</span> <span class="n">PowerUtility</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pu</span>
-<span class="go">&lt;PowerUtility: None&gt;</span>
+<span class="go">&lt;PowerUtility: 0 kW, 0 USD/hr&gt;</span>
 </pre></div>
 </div>
 <p>Call object to calculate cost:</p>
@@ -109,12 +109,13 @@
 <span class="go">(500, 30.)</span>
 </pre></div>
 </div>
-<p>See the object with different units:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pu</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">rate</span><span class="o">=</span><span class="s1">&#39;BTU/s&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="s1">&#39;USD/yr&#39;</span><span class="p">)</span>
-<span class="go">PowerUtility: rate=474 BTU/s, cost=2.63e+05 USD/yr</span>
-</pre></div>
-</div>
 </div></blockquote>
+<dl class="attribute">
+<dt id="biosteam.PowerUtility.display_units">
+<code class="descname">display_units</code><em class="property"> = DisplayUnits(rate='kW', cost='USD/hr')</em><a class="headerlink" href="#biosteam.PowerUtility.display_units" title="Permalink to this definition">¶</a></dt>
+<dd><p>[DisplayUnits] Units of measure for IPython display</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="biosteam.PowerUtility.price">
 <code class="descname">price</code><em class="property"> = 0.0782</em><a class="headerlink" href="#biosteam.PowerUtility.price" title="Permalink to this definition">¶</a></dt>

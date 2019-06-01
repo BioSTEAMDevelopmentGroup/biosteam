@@ -69,8 +69,15 @@ class DissolvedCompound(Compound):
     phase_ref = 'l'
     
     def __init__(self, ID, CAS='', obj=None, MW=1, T=298.15, P=101325,
-                 Cp=None, rho=None, k=None, mu=None,
-                 sigma=None, Pr=None, Hfm=None, Hc=None):
+                 Cp=None, rho=None, k=None, mu=None, sigma=None,
+                 Pr=None, Hfm=None, Hc=None, obj_state = None,):
+        if obj:
+            obj.T = T
+            obj.P = P
+            obj.phase = 'l'
+            if obj_state:
+                for i, j in obj_state.items():
+                    setattr(obj, i, j)
         self.ID = ID
         self.T = T
         self.P = P

@@ -77,7 +77,7 @@
 <p>A Species object represents a ChEDL property package based on ideal mixture.</p>
 <span class="target" id="module-biosteam"></span><dl class="class">
 <dt id="biosteam.Species">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Species</code><span class="sig-paren">(</span><em>*ID</em>, <em>cls=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_species.html#Species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Species</code><span class="sig-paren">(</span><em>*IDs</em>, <em>cls=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_species.html#Species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create Species object that contains Compound objects as attributes.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -104,7 +104,7 @@
 
 <dl class="method">
 <dt id="biosteam.Species.getprops">
-<code class="descname">getprops</code><span class="sig-paren">(</span><em>species_IDs</em>, <em>prop_ID</em>, <em>T=None</em>, <em>P=None</em>, <em>phase=None</em><span class="sig-paren">)</span> &#x2192; list<a class="reference internal" href="_modules/biosteam/_species.html#Species.getprops"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species.getprops" title="Permalink to this definition">¶</a></dt>
+<code class="descname">getprops</code><span class="sig-paren">(</span><em>species_IDs</em>, <em>prop_ID</em>, <em>T</em>, <em>P</em>, <em>phase</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_species.html#Species.getprops"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species.getprops" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return list of the desired property, prop_ID, for each compound in species_ID.</p>
 </dd></dl>
 
@@ -112,12 +112,6 @@
 <dt id="biosteam.Species.setprops">
 <code class="descname">setprops</code><span class="sig-paren">(</span><em>species_IDs</em>, <em>prop_ID</em>, <em>new_values</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_species.html#Species.setprops"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species.setprops" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set new values to specie property, prop_ID, for given species_IDs.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.Species.show">
-<code class="descname">show</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_species.html#Species.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species.show" title="Permalink to this definition">¶</a></dt>
-<dd><p>print information on self</p>
 </dd></dl>
 
 </dd></dl>

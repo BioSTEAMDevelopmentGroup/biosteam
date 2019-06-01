@@ -24,42 +24,42 @@ _Water = Species('Water')
 
 # %% Data for cooling utilities 
 
-_columns = ('Type', 'Species', 'Molar fraction', 'Temperature (K)',
-            'Pressure (Pa)', 'Phase', 'Temperature limit (K)',
+_columns = ('Species', 'Molar fraction', 'Temperature (K)', 'Pressure (Pa)',
+            'Phase', 'Latent heat (kJ/kmol)', 'Temperature limit (K)',
             'Price (USD/kJ)', 'Price (USD/kmol)', 'Heat transfer efficiency')
 
 _cooling_index = ('Cooling water',
                   'Chilled water',
                   'Chilled Brine')
 
-_cooling_water = ('sensible',      # Type [str]: {'sensible', 'latent'}
-                  _Water,          # species [Species]
+_cooling_water = (_Water,          # species [Species]
                   (1,),            # flow: [tuple]
                   305.372,         # T (K)
                   101325,          # P (Pa)
                   'liq',           # phase: {'g', 'l'}
+                  None,            # latent heat (kJ/kmol)
                   324.817,         # T limit (K)
                   0,               # price (USD/kJ)
                   4.8785e-4,       # price (USD/kmol)
                   1)               # heat transfer efficiency
 
-_chilled_water = ('sensible',
-                  _Water,
+_chilled_water = (_Water,
                   (1,),
                   280.372,
                   101325,
                   'liq',
+                  None,
                   300.372,
                   -5e-6,
                   0,
                   1)
 
-_chilled_brine = ('sensible',
-                  _Water,
+_chilled_brine = (_Water,
                   (1,),
                   255.372,
                   101325,
                   'liq',
+                  None,
                   275.372,
                   -8.145e-6,
                   0,
@@ -72,38 +72,38 @@ _heating_index = ('Low pressure steam',
                   'Medium pressure steam',
                   'High pressure steam')
 
-_low_pressure_steam = ('latent',
-                       _Water,
+_low_pressure_steam = (_Water,
                        (1,),
                        411.494,
                        344738.0,
                        'gas',
+                       3.89e+04,
                        None,
                        0,
                        0.2378,
-                       0.90)
+                       0.95)
 
-_medium_pressure_steam = ('latent',
-                          _Water,
+_medium_pressure_steam = (_Water,
                           (1,),
                           454.484,
                           1034214.0,
                           'gas',
+                          3.63e+04,
                           None,
                           0,
                           0.2756,
-                          0.80)
+                          0.90)
 
-_high_pressure_steam = ('latent',
-                        _Water,
+_high_pressure_steam = (_Water,
                         (1,),
                         508.858,
                         3102642.0,
                         'gas',
+                        3.21e+04,
                         None,
                         0,
                         0.3171,
-                        0.70)
+                        0.85)
 
 
 # %% Utility classes
@@ -113,11 +113,11 @@ class HeatUtility:
     """Create an HeatUtility object that can choose a utility stream and calculate utility requirements. It can calculate required flow rate, temperature, or phase change of utility. Calculations assume counter current flow rate.
     
     **Parameters**
-        
+    
         **efficiency:** [float] Fraction of heat transfered after accounting for heat loss.
     
     **Class Attributes**
-    
+
         **cooling_agents:** [DataFrame] All cooling utilities available
         
         **heating_agents:** [DataFrame] All heating utilities available
@@ -129,7 +129,7 @@ class HeatUtility:
         .. code-block:: python
         
            >>> hu = HeatUtility('Flash')
-           >>> hu.show()
+           >>> hu
            HeatUtility: None
             duty: 0
             flow: 0
@@ -141,11 +141,9 @@ class HeatUtility:
         
            >>> hu(1000, 300, 350)
            >>> hu
-           <Low pressure steam: 1.11e+03 kJ/hr, 0.0284 kmol/hr, 0.00674 USD/hr>
-           >>> hu.show()
            HeatUtility: Low pressure steam
             duty: 1.11e+03 kJ/hr
-            flow: 0.0284 kmol/hr
+            flow: 0.0284 kmol/hr,
             cost: 0.00674 USD/hr
        
         All results are accessible:
@@ -161,7 +159,7 @@ class HeatUtility:
     """
     __slots__ = ('_fresh', '_used', 'ID', 'duty',
                  'flow', 'cost', 'efficiency',
-                 '_args', '_agent')
+                 '_args')
     dT = 5  #: [float] Pinch temperature difference
     
     #: Units of measure for results dictionary
@@ -188,7 +186,11 @@ class HeatUtility:
         self.ID = ''
         self.cost = self.flow = self.duty = 0
         self.efficiency = efficiency
-        self._args = self._agent = None
+        
+        #: tuple[bool, float] Cached arguments:
+        #:     * [0]: [bool] True if duty is negative 
+        #:     * [1]: [float] Temperature of operation
+        self._args = None
 
     def _init_streams(self, flow, species, T, P, phase):
         """Initialize utility streams."""
@@ -224,25 +226,28 @@ class HeatUtility:
             self._args = args
             # Select heat transfer agent
             if negduty:
-                (Type, price_duty,
+                (latent_heat, price_duty,
                  price_mol, T_limit,
                  efficiency) = self._select_cooling_agent(T_op)
             else:
-                (Type, price_duty,
+                (latent_heat, price_duty,
                 price_mol, T_limit,
                 efficiency) = self._select_heating_agent(T_op)
         else:
-            (Type, price_duty, price_mol, T_limit, efficiency) = self._agent
+            if negduty:
+                (*_, latent_heat, T_limit,
+                 price_duty, price_mol, efficiency) = self.cooling_agents[self.ID]
+            else:
+                (*_, latent_heat, T_limit,
+                 price_duty, price_mol, efficiency) = self.heating_agents[self.ID]
         
         # Calculate utility flow rate requirement
         efficiency = self.efficiency if self.efficiency else efficiency
         duty = duty/efficiency
-        if Type == 'sensible':
-            self._update_flow_wt_pinch_T(duty, T_pinch, T_limit, negduty)
-        elif Type == 'latent':
-            self._update_flow_wt_phase_change(duty)
+        if latent_heat:
+            self._update_flow_wt_phase_change(duty, latent_heat)
         else:
-            raise biosteamError(f"invalid heat transfer agent '{self.ID}'")
+            self._update_flow_wt_pinch_T(duty, T_pinch, T_limit, negduty)
         
         # Update and return results
         self.flow = mol = self._fresh.molnet
@@ -267,7 +272,7 @@ class HeatUtility:
         
         **Returns**
         
-            **Type:** [str] {'latent', 'sensible'}
+            **latent_heat:** [float] (kJ/kmol)
             
             **price_duty:** [float] (USD/kJ)
             
@@ -282,16 +287,14 @@ class HeatUtility:
         T_max = T_pinch - dt
         cooling_agents = self.cooling_agents
         for ID in cooling_agents:
-            (Type, species, flow, T, P,
-             phase, T_limit, price_duty,
+            (species, flow, T, P, phase,
+             latent_heat, T_limit, price_duty,
              price_mol, efficiency) = cooling_agents[ID]
             if T_max > T:
-                agent = (Type, price_duty, price_mol, T_limit, efficiency)
                 if self.ID != ID:
                     self._init_streams(flow, species, T, P, phase[0])
-                    self._agent = agent
                     self.ID = ID
-                return agent
+                return (latent_heat, price_duty, price_mol, T_limit, efficiency)
         raise biosteamError(f'no cooling agent that can cool under {T_pinch} K')
             
     def _select_heating_agent(self, T_pinch):
@@ -303,7 +306,7 @@ class HeatUtility:
         
         **Returns**
         
-            **Type:** [str] {'latent', 'sensible'}
+            **latent_heat:** [float] (kJ/kmol)
             
             **price_duty:** [float] (USD/kJ)
             
@@ -318,16 +321,14 @@ class HeatUtility:
         T_min = T_pinch + dt
         heating_agents = self.heating_agents
         for ID in heating_agents:
-            (Type, species, flow, T, P,
-             phase, T_limit, price_duty,
+            (species, flow, T, P, phase,
+             latent_heat, T_limit, price_duty,
              price_mol, efficiency) =  heating_agents[ID]
             if T_min < T:
-                agent = (Type, price_duty, price_mol, T_limit, efficiency)
                 if self.ID != ID:
                     self._init_streams(flow, species, T, P, phase[0])
-                    self._agent = agent
                     self.ID = ID
-                return agent
+                return (latent_heat, price_duty, price_mol, T_limit, efficiency)
         raise biosteamError(f'no heating agent that can heat over {T_pinch} K')
 
     # Main Calculations
@@ -336,12 +337,12 @@ class HeatUtility:
         self._used.T = self._T_exit(T_pinch, self.dT, T_limit, negduty)
         self._update_utility_flow(self._fresh, self._used, duty)
 
-    def _update_flow_wt_phase_change(self, duty):
+    def _update_flow_wt_phase_change(self, duty, latent_heat):
         """Change phase of utility, calculate and set minimum net flowrate of the utility to satisfy duty and update."""
         f = self._fresh
         u = self._used
-        u.phase = 'g' if f.phase=='l' else 'l'
-        self._update_utility_flow(f, u, duty)
+        u._phase = 'g' if f._phase=='l' else 'l'
+        u._mol[:] = duty/latent_heat
 
     # Subcalculations
     @staticmethod
@@ -390,38 +391,48 @@ class HeatUtility:
             raise DimensionError(f"dimensions for flow units must be in molar, mass or volumetric flow rates, not '{flow_dim}'")
         
         # Change units and return info string
-        u_in = self._fresh
-        flownet = getattr(u_in, flowattr)
-        flowunits = u_in.units[flowattr]
+        try:
+            u_in = self._fresh
+            flownet = getattr(u_in, flowattr)
+            flowunits = u_in.units[flowattr]
+            flow = _Q(flownet, flowunits).to(flow_units).magnitude
+        except:
+            flow = _Q(self.flow, 'kmol/hr').to(flow_units).magnitude
+        
         duty = _Q(self.duty, units['duty']).to(duty_units).magnitude
-        flow = _Q(flownet, flowunits).to(flow_units).magnitude
         cost = _Q(self.cost, units['cost']).to(cost_units).magnitude
         return duty, flow, cost, duty_units, flow_units, cost_units
-
+        
+    def __repr__(self):
+        if self.ID:
+            duty, flow, cost, duty_units, flow_units, cost_units = self._info_data(None, None, None)
+            return f'<{self.ID}: {self.duty:.3g} {duty_units}, {self.flow:.3g} {flow_units}, {self.cost:.3g} {cost_units}>'
+        else:
+            return f'<{type(self).__name__}: None>'
+        
     # Representation
     def _info(self, duty, flow, cost):
         """Return string related to specifications"""
         if not self.ID:
             return (f'{type(self).__name__}: None\n'
-                   +f' duty: 0\n'
-                   +f' flow: 0\n'
-                   +f' cost: 0')
+                    +f' duty: 0\n'
+                    +f' flow: 0\n'
+                    +f' cost: 0')
         else:
-            duty, flow, cost, duty_units, flow_units, cost_units = self._info_data(duty, flow, cost)
+            (duty, flow, cost, duty_units,
+             flow_units, cost_units) = self._info_data(duty, flow, cost)
             return (f'{type(self).__name__}: {self.ID}\n'
-                   +f' duty:{duty: .3g} {duty_units}\n'
-                   +f' flow:{flow: .3g} {flow_units}\n'
-                   +f' cost:{cost: .3g} {cost_units}')
+                    +f' duty:{duty: .3g} {duty_units}\n'
+                    +f' flow:{flow: .3g} {flow_units}\n'
+                    +f' cost:{cost: .3g} {cost_units}')
             
 
     def show(self, duty=None, flow=None, cost=None):
         """Print all specifications"""
         print(self._info(duty, flow, cost))
     _ipython_display_ = show
-        
-    def __repr__(self):
-        if self.ID:
-            duty, flow, cost, duty_units, flow_units, cost_units = self._info_data()
-            return f'<{self.ID}: {self.duty:.3g} {duty_units}, {self.flow:.3g} {flow_units}, {self.cost:.3g} {cost_units}>'
-        else:
-            return f'<{type(self).__name__}: None>'
+
+
+del _Water, _columns, _cooling_index, _cooling_water, _chilled_water, \
+    _chilled_brine, _heating_index, _low_pressure_steam, \
+    _medium_pressure_steam, _high_pressure_steam

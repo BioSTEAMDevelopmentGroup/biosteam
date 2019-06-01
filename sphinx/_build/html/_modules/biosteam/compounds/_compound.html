@@ -62,6 +62,7 @@
 <span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">integrate</span>
 <span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">log</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">_Q</span>
+<span class="kn">from</span> <span class="nn">.._utils</span> <span class="k">import</span> <span class="n">DisplayUnits</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Compound&#39;</span><span class="p">,)</span>
 
@@ -113,6 +114,9 @@
 <span class="sd">         **P_ref** = 101325: Reference pressure (Pa)</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1">#: [DisplayUnits] Units of measure for IPython display</span>
+    <span class="n">display_units</span> <span class="o">=</span> <span class="n">DisplayUnits</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="s1">&#39;K&#39;</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="s1">&#39;Pa&#39;</span><span class="p">)</span>
+    
     <span class="c1">#: [dict] Units of measure for material properties (class attribute). </span>
     <span class="n">units</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">MW</span><span class="o">=</span><span class="s1">&#39;g/mol&#39;</span><span class="p">,</span>
                  <span class="n">T</span><span class="o">=</span><span class="s1">&#39;K&#39;</span><span class="p">,</span>
@@ -125,7 +129,7 @@
                  <span class="n">Hf</span><span class="o">=</span><span class="s1">&#39;J/mol&#39;</span><span class="p">,</span>
                  <span class="n">Vm</span><span class="o">=</span><span class="s1">&#39;m^3/mol&#39;</span><span class="p">,</span>
                  <span class="n">Cpm</span><span class="o">=</span><span class="s1">&#39;J/mol&#39;</span><span class="p">,</span>
-                 <span class="n">Cp</span><span class="o">=</span><span class="s1">&#39;J/g&#39;</span><span class="p">,</span>
+                 <span class="n">Cp</span><span class="o">=</span><span class="s1">&#39;J/g/K&#39;</span><span class="p">,</span>
                  <span class="n">rho</span><span class="o">=</span><span class="s1">&#39;kg/m^3&#39;</span><span class="p">,</span>
                  <span class="n">rhom</span><span class="o">=</span><span class="s1">&#39;mol/m^3&#39;</span><span class="p">,</span>
                  <span class="n">nu</span><span class="o">=</span><span class="s1">&#39;m^2/s&#39;</span><span class="p">,</span>
@@ -335,15 +339,12 @@
         <span class="bp">cls</span><span class="o">.</span><span class="n">_integral_type</span> <span class="o">=</span> <span class="n">integral_type</span></div>
 
     <span class="c1"># Representation</span>
-    <span class="k">def</span> <span class="nf">_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">show_units</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return string with all specifications.&quot;&quot;&quot;</span>
         <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span>
-        <span class="n">T_units</span> <span class="o">=</span> <span class="n">show_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">)</span>
-        <span class="n">P_units</span> <span class="o">=</span> <span class="n">show_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;P&#39;</span><span class="p">)</span>
-        
-        <span class="c1"># Default units</span>
-        <span class="n">T_units</span> <span class="o">=</span> <span class="n">T_units</span> <span class="ow">or</span> <span class="s1">&#39;K&#39;</span>
-        <span class="n">P_units</span> <span class="o">=</span> <span class="n">P_units</span> <span class="ow">or</span> <span class="s1">&#39;Pa&#39;</span>
+        <span class="n">T_units</span><span class="p">,</span> <span class="n">P_units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">display_units</span>
+        <span class="n">T_units</span> <span class="o">=</span> <span class="n">T</span> <span class="ow">or</span> <span class="n">T_units</span>
+        <span class="n">P_units</span> <span class="o">=</span> <span class="n">P</span> <span class="ow">or</span> <span class="n">P_units</span>
         
         <span class="c1"># First line</span>
         <span class="n">info</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="se">\n</span><span class="s2">&quot;</span>
@@ -358,9 +359,10 @@
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span>
 
-<div class="viewcode-block" id="Compound.show"><a class="viewcode-back" href="../../../Compound.html#biosteam.compounds.Compound.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">show_units</span><span class="p">):</span>
+<div class="viewcode-block" id="Compound.show"><a class="viewcode-back" href="../../../Compound.html#biosteam.compounds.Compound.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;print information on self&quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="o">**</span><span class="n">show_units</span><span class="p">))</span></div>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">))</span></div>
+    <span class="n">_ipython_display_</span> <span class="o">=</span> <span class="n">show</span>
 
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;&lt;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="s1">&gt;&#39;</span></div>

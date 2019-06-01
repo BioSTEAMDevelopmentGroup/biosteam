@@ -65,6 +65,7 @@ class Fermentation(BatchReactor):
                'N': None}  # Theoretical efficiency
     _N_heat_utilities = 0
     _has_power_utility = True
+    line = 'Fermentation'    
     
     #: Cleaning and unloading time (hr)
     tau_0 = 12 

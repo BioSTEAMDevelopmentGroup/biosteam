@@ -273,14 +273,13 @@ class from the Chemical Engineering Design Library.</p>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[1]:
-</pre></div>
+<div class="prompt empty docutils container">
 </div>
-<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>&lt;Chemical: Water&gt;
-</pre></div>
-</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Chemical: Water
+ phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
+</pre></div></div>
 </div>
 <p>Chemical objects have a temperature <code class="docutils literal notranslate"><span class="pre">T</span></code>, pressure <code class="docutils literal notranslate"><span class="pre">P</span></code>, and
 <code class="docutils literal notranslate"><span class="pre">phase</span></code>:</p>
@@ -304,30 +303,10 @@ class from the Chemical Engineering Design Library.</p>
 </pre></div>
 </div>
 </div>
-<p>All biosteam objects have a <code class="docutils literal notranslate"><span class="pre">show</span></code> method:</p>
+<p>You can view in different units with <code class="docutils literal notranslate"><span class="pre">show</span></code>:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [3]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">Water</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Chemical: Water
- phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
-</pre></div></div>
-</div>
-<p>You can change the units for <code class="docutils literal notranslate"><span class="pre">show</span></code>:</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -347,7 +326,7 @@ Chemical: Water
 <p>Chemical objects contain thermodynamic properties:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [5]:
+<span></span>In [4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -357,7 +336,7 @@ Chemical: Water
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[5]:
+<span></span>Out[4]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -369,7 +348,7 @@ Chemical: Water
 phase:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [6]:
+<span></span>In [5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -380,7 +359,7 @@ phase:</p>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[6]:
+<span></span>Out[5]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -400,7 +379,7 @@ documentation to learn more.</p>
 object with IDs:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [7]:
+<span></span>In [6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -411,7 +390,7 @@ object with IDs:</p>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[7]:
+<span></span>Out[6]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -422,7 +401,7 @@ object with IDs:</p>
 <p>The Chemical objects are stored as attributes:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [8]:
+<span></span>In [7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -432,7 +411,7 @@ object with IDs:</p>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[8]:
+<span></span>Out[7]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -443,7 +422,7 @@ object with IDs:</p>
 <p>Set chemical attributes:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [9]:
+<span></span>In [8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -454,7 +433,7 @@ object with IDs:</p>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[9]:
+<span></span>Out[8]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -470,7 +449,7 @@ object with IDs:</p>
 objects:</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [10]:
+<span></span>In [9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -482,12 +461,12 @@ objects:</p>
 pressure and phase:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [11]:
+<span></span>In [10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">feed</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">Methanol</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">Glycerol</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
-<span class="n">feed</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">feed</span>
 </pre></div>
 </div>
 </div>
@@ -506,12 +485,12 @@ Stream: feed
 <p>Alternatively, flow rates can be given as an iterable:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [12]:
+<span></span>In [11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">feed</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">T</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
-<span class="n">feed</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">feed</span>
 </pre></div>
 </div>
 </div>
@@ -527,10 +506,10 @@ Stream: feed
                  Water     3
 </pre></div></div>
 </div>
-<p>The units can be changed for <code class="docutils literal notranslate"><span class="pre">show</span></code>:</p>
+<p>View with different units using the <code class="docutils literal notranslate"><span class="pre">show</span></code> method:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [13]:
+<span></span>In [12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -553,7 +532,7 @@ Stream: feed
 <p>Flow rates can be conviniently get and set:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [14]:
+<span></span>In [13]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -564,7 +543,7 @@ Stream: feed
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[14]:
+<span></span>Out[13]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -575,7 +554,7 @@ Stream: feed
 <p>Stream objects contain T, P, and phase dependent properties:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [15]:
+<span></span>In [14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -585,7 +564,7 @@ Stream: feed
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[15]:
+<span></span>Out[14]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -595,7 +574,7 @@ Stream: feed
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [16]:
+<span></span>In [15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -606,7 +585,7 @@ Stream: feed
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[16]:
+<span></span>Out[15]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -617,13 +596,13 @@ Stream: feed
 <p>Vapor liquid equilibrium is just a line away:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [17]:
+<span></span>In [16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">feed</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="mi">350</span>
 <span class="n">feed</span><span class="o">.</span><span class="n">VLE</span><span class="p">()</span>
-<span class="n">feed</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">feed</span>
 </pre></div>
 </div>
 </div>
@@ -642,12 +621,12 @@ MixedStream: feed
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [18]:
+<span></span>In [17]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">feed</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">V</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span> <span class="c1"># Set molar vapor fraction</span>
-<span class="n">feed</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">feed</span>
 </pre></div>
 </div>
 </div>
@@ -682,7 +661,7 @@ C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeW
 object. Mixed streams contain multiple phases:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [19]:
+<span></span>In [18]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -692,7 +671,7 @@ object. Mixed streams contain multiple phases:</p>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[19]:
+<span></span>Out[18]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -711,27 +690,15 @@ Unit</a>
 can be flexible. But in summary, a
 <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/Unit.html">Unit</a> object is
 initialized with an ID, and unit specific arguments:</p>
-<div class="nbinput nblast docutils container">
+<div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [20]:
+<span></span>In [19]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1"># Specify vapor fraction and isobaric conditions</span>
 <span class="n">F1</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">Flash</span><span class="p">(</span><span class="s1">&#39;F1&#39;</span><span class="p">,</span> <span class="n">V</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<p>By default, missing streams are given to inputs, <code class="docutils literal notranslate"><span class="pre">ins</span></code>, and empty
-streams to outputs, <code class="docutils literal notranslate"><span class="pre">outs</span></code>:</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [21]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">F1</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span> <span class="c1"># View diagram of unit</span>
-<span class="n">F1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span> <span class="c1"># Show streams</span>
+<span class="n">F1</span>
 </pre></div>
 </div>
 </div>
@@ -739,7 +706,7 @@ streams to outputs, <code class="docutils literal notranslate"><span class="pre"
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/Getting_started_48_0.png" src="_images/Getting_started_48_0.png" />
+<img alt="_images/Getting_started_44_0.png" src="_images/Getting_started_44_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -749,7 +716,7 @@ streams to outputs, <code class="docutils literal notranslate"><span class="pre"
 <div class="highlight"><pre>
 Flash: F1
 ins...
-[0] Missing Stream
+[0] missing stream
 outs...
 [0] d1
     phase: &#39;g&#39;, T: 298.15 K, P: 101325 Pa
@@ -759,9 +726,11 @@ outs...
     flow: 0
 </pre></div></div>
 </div>
+<p>Note that, by default, Missing Stream objects are given to inputs,
+<code class="docutils literal notranslate"><span class="pre">ins</span></code>, and empty streams to outputs, <code class="docutils literal notranslate"><span class="pre">outs</span></code>:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [22]:
+<span></span>In [20]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -771,7 +740,7 @@ outs...
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[22]:
+<span></span>Out[20]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -781,7 +750,7 @@ outs...
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [23]:
+<span></span>In [21]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -791,7 +760,7 @@ outs...
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[23]:
+<span></span>Out[21]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -802,13 +771,20 @@ outs...
 <p>You can connect streams by setting the <code class="docutils literal notranslate"><span class="pre">ins</span></code> and <code class="docutils literal notranslate"><span class="pre">outs</span></code>:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [24]:
+<span></span>In [22]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">F1</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mi">220</span><span class="p">,</span> <span class="n">Glycerol</span><span class="o">=</span><span class="mi">180</span><span class="p">)</span>
-<span class="n">F1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">F1</span>
 </pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Getting_started_49_0.png" src="_images/Getting_started_49_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -834,7 +810,7 @@ outs...
 <p>To simulate the flash, use the <code class="docutils literal notranslate"><span class="pre">simulate</span></code> method:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [25]:
+<span></span>In [23]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -870,7 +846,7 @@ outs...
 </div>
 <div class="stderr output_area docutils container">
 <div class="highlight"><pre>
-C:\Users\yoelr\OneDrive\Code\biosteam\biosteam\units\flash.py:221: DesignWarning: @Flash F1: Vertical vessel weight (3772 lb) is out of bounds (4200 to 1e+06 lb).
+C:\Users\yoelr\OneDrive\Code\biosteam\biosteam\units\_flash.py:219: DesignWarning: @Flash F1: Vertical vessel weight (3772 lb) is out of bounds (4200 to 1e+06 lb).
   out = self._vertical()
 </pre></div></div>
 </div>
@@ -878,7 +854,7 @@ C:\Users\yoelr\OneDrive\Code\biosteam\biosteam\units\flash.py:221: DesignWarning
 may be inaccurate. These bounds are stored in the class:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [26]:
+<span></span>In [24]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -888,21 +864,21 @@ may be inaccurate. These bounds are stored in the class:</p>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[26]:
+<span></span>Out[24]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>{&#39;Vertical vessel weight&#39;: array([   4200., 1000000.]),
- &#39;Horizontal vessel weight&#39;: array([  1000., 920000.]),
- &#39;Diameter&#39;: array([ 3, 21]),
- &#39;Vertical vessel Length&#39;: array([12, 40])}
+<span></span>{&#39;Vertical vessel weight&#39;: (4200, 1000000.0),
+ &#39;Horizontal vessel weight&#39;: (1000.0, 920000.0),
+ &#39;Diameter&#39;: (3, 21),
+ &#39;Vertical vessel Length&#39;: (12, 40)}
 </pre></div>
 </div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">results</span></code> method returns simulation results:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [27]:
+<span></span>In [25]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -912,7 +888,7 @@ may be inaccurate. These bounds are stored in the class:</p>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[27]:
+<span></span>Out[25]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -957,7 +933,7 @@ may be inaccurate. These bounds are stored in the class:</p>
       <td>139</td>
     </tr>
     <tr>
-      <th rowspan="5" valign="top">Design</th>
+      <th rowspan="6" valign="top">Design</th>
       <th>SepType</th>
       <td></td>
       <td>Vertical</td>
@@ -983,21 +959,26 @@ may be inaccurate. These bounds are stored in the class:</p>
       <td>0.312</td>
     </tr>
     <tr>
+      <th>Material</th>
+      <td></td>
+      <td>Carbon steel</td>
+    </tr>
+    <tr>
       <th rowspan="2" valign="top">Cost</th>
-      <th>Vessel</th>
+      <th>Flash</th>
       <td>USD</td>
       <td>3.68e+04</td>
     </tr>
     <tr>
       <th>Heat exchanger</th>
       <td>USD</td>
-      <td>1.97e+04</td>
+      <td>2.5e+04</td>
     </tr>
     <tr>
       <th>Purchase cost</th>
       <th></th>
       <td>USD</td>
-      <td>5.65e+04</td>
+      <td>6.18e+04</td>
     </tr>
     <tr>
       <th>Utility cost</th>
@@ -1011,7 +992,7 @@ may be inaccurate. These bounds are stored in the class:</p>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [28]:
+<span></span>In [26]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1021,22 +1002,23 @@ may be inaccurate. These bounds are stored in the class:</p>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[28]:
+<span></span>Out[26]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Medium pressure steam  Duty              1.88e+07
-                       Flow                   504
-                       Cost                   139
-Design                 SepType           Vertical
-                       Length                18.5
-                       Diameter               4.5
-                       Weight            3.77e+03
-                       Wall thickness       0.312
-Cost                   Vessel            3.68e+04
-                       Heat exchanger    1.97e+04
-Purchase cost                            5.65e+04
-Utility cost                                  139
+<span></span>Medium pressure steam  Duty                  1.88e+07
+                       Flow                       504
+                       Cost                       139
+Design                 SepType               Vertical
+                       Length                    18.5
+                       Diameter                   4.5
+                       Weight                3.77e+03
+                       Wall thickness           0.312
+                       Material          Carbon steel
+Cost                   Flash                 3.68e+04
+                       Heat exchanger         2.5e+04
+Purchase cost                                6.18e+04
+Utility cost                                      139
 Name: F1, dtype: object
 </pre></div>
 </div>
@@ -1049,7 +1031,7 @@ utilities. These should be set before simulating a system.</strong></p>
 <p>Change price of streams:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [29]:
+<span></span>In [27]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1059,7 +1041,7 @@ utilities. These should be set before simulating a system.</strong></p>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[29]:
+<span></span>Out[27]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -1069,7 +1051,7 @@ utilities. These should be set before simulating a system.</strong></p>
 </div>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [30]:
+<span></span>In [28]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1082,7 +1064,7 @@ utilities. These should be set before simulating a system.</strong></p>
 options:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [31]:
+<span></span>In [29]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1092,7 +1074,7 @@ options:</p>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[31]:
+<span></span>Out[29]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -1102,7 +1084,7 @@ options:</p>
 </div>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [32]:
+<span></span>In [30]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1115,7 +1097,7 @@ options:</p>
 options:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [33]:
+<span></span>In [31]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1125,7 +1107,7 @@ options:</p>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[33]:
+<span></span>Out[31]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -1161,9 +1143,9 @@ options:</p>
     </tr>
     <tr>
       <th>Species</th>
-      <td>&lt;Species: Water&gt;</td>
-      <td>&lt;Species: Water&gt;</td>
-      <td>&lt;Species: Water&gt;</td>
+      <td>(Water)</td>
+      <td>(Water)</td>
+      <td>(Water)</td>
     </tr>
     <tr>
       <th>Molar fraction</th>
@@ -1219,7 +1201,7 @@ options:</p>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [34]:
+<span></span>In [32]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1229,7 +1211,7 @@ options:</p>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[34]:
+<span></span>Out[32]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -1265,9 +1247,9 @@ options:</p>
     </tr>
     <tr>
       <th>Species</th>
-      <td>&lt;Species: Water&gt;</td>
-      <td>&lt;Species: Water&gt;</td>
-      <td>&lt;Species: Water&gt;</td>
+      <td>(Water)</td>
+      <td>(Water)</td>
+      <td>(Water)</td>
     </tr>
     <tr>
       <th>Molar fraction</th>
@@ -1323,7 +1305,7 @@ options:</p>
 </div>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [35]:
+<span></span>In [33]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1343,7 +1325,7 @@ and a
 object:</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [36]:
+<span></span>In [34]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1358,7 +1340,7 @@ flowsheets</a>
 with <code class="docutils literal notranslate"><span class="pre">find</span></code>:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [37]:
+<span></span>In [35]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1370,14 +1352,14 @@ with <code class="docutils literal notranslate"><span class="pre">find</span></c
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/Getting_started_77_0.png" src="_images/Getting_started_77_0.png" />
+<img alt="_images/Getting_started_74_0.png" src="_images/Getting_started_74_0.png" />
 </div>
 </div>
 <p>Connect streams and make a recycle loop using <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/Using%20-pipe-%20notation.html">-pipe-
 notation</a>:</p>
-<div class="nbinput docutils container">
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [38]:
+<span></span>In [36]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1389,17 +1371,7 @@ notation</a>:</p>
 <span class="n">F1</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">S1</span>             <span class="c1"># S1.ins[:] = [F1.outs[1]]</span>
 
 <span class="c1"># All together</span>
-<span class="p">[</span><span class="n">S1</span><span class="o">-</span><span class="mi">0</span><span class="p">,</span> <span class="n">feed</span><span class="p">]</span><span class="o">-</span><span class="n">M1</span><span class="o">-</span><span class="n">F1</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">S1</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[38]:
-</pre></div>
-</div>
-<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>&lt;Splitter: S1&gt;
+<span class="p">[</span><span class="n">S1</span><span class="o">-</span><span class="mi">0</span><span class="p">,</span> <span class="n">feed</span><span class="p">]</span><span class="o">-</span><span class="n">M1</span><span class="o">-</span><span class="n">F1</span><span class="o">-</span><span class="mi">1</span><span class="o">-</span><span class="n">S1</span><span class="p">;</span>
 </pre></div>
 </div>
 </div>
@@ -1409,13 +1381,20 @@ object by specifying an ID, a <code class="docutils literal notranslate"><span c
 units:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [39]:
+<span></span>In [37]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">sys1</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">System</span><span class="p">(</span><span class="s1">&#39;sys1&#39;</span><span class="p">,</span> <span class="n">network</span><span class="o">=</span><span class="p">(</span><span class="n">M1</span><span class="p">,</span> <span class="n">F1</span><span class="p">,</span> <span class="n">S1</span><span class="p">),</span> <span class="n">recycle</span><span class="o">=</span><span class="n">S1</span><span class="o">-</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># recycle=S1.outs[0]</span>
-<span class="n">sys1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">sys1</span>
 </pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Getting_started_78_0.png" src="_images/Getting_started_78_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1434,7 +1413,7 @@ System: sys1
 <p>View the System object as a Graphviz diagram:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [40]:
+<span></span>In [38]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1446,13 +1425,13 @@ System: sys1
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/Getting_started_83_0.png" src="_images/Getting_started_83_0.png" />
+<img alt="_images/Getting_started_80_0.png" src="_images/Getting_started_80_0.png" />
 </div>
 </div>
 <p>Simulate the System object:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [41]:
+<span></span>In [39]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1460,19 +1439,6 @@ System: sys1
 <span class="n">sys1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="stderr output_area docutils container">
-<div class="highlight"><pre>
-C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 1.8499520137993386e-08 reached
-  warnings.warn(msg, RuntimeWarning)
-C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 3.0562853226001607e-07 reached
-  warnings.warn(msg, RuntimeWarning)
-C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 7.95389780705591e-07 reached
-  warnings.warn(msg, RuntimeWarning)
-</pre></div></div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
@@ -1492,6 +1458,12 @@ System: sys1
 </div>
 <div class="stderr output_area docutils container">
 <div class="highlight"><pre>
+C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 1.8499520137993386e-08 reached
+  warnings.warn(msg, RuntimeWarning)
+C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 3.0562853226001607e-07 reached
+  warnings.warn(msg, RuntimeWarning)
+C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 7.95389780705591e-07 reached
+  warnings.warn(msg, RuntimeWarning)
 C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 3.8928249068703735e-08 reached
   warnings.warn(msg, RuntimeWarning)
 C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of -1.9522678940120386e-07 reached
@@ -1500,7 +1472,7 @@ C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeW
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [42]:
+<span></span>In [40]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1532,7 +1504,7 @@ outs...
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [43]:
+<span></span>In [41]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1542,7 +1514,7 @@ outs...
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[43]:
+<span></span>Out[41]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -1587,7 +1559,7 @@ outs...
       <td>110</td>
     </tr>
     <tr>
-      <th rowspan="5" valign="top">Design</th>
+      <th rowspan="6" valign="top">Design</th>
       <th>SepType</th>
       <td></td>
       <td>Vertical</td>
@@ -1613,21 +1585,26 @@ outs...
       <td>0.375</td>
     </tr>
     <tr>
+      <th>Material</th>
+      <td></td>
+      <td>Carbon steel</td>
+    </tr>
+    <tr>
       <th rowspan="2" valign="top">Cost</th>
-      <th>Vessel</th>
+      <th>Flash</th>
       <td>USD</td>
       <td>4.78e+04</td>
     </tr>
     <tr>
       <th>Heat exchanger</th>
       <td>USD</td>
-      <td>2.39e+04</td>
+      <td>3.03e+04</td>
     </tr>
     <tr>
       <th>Purchase cost</th>
       <th></th>
       <td>USD</td>
-      <td>7.17e+04</td>
+      <td>7.81e+04</td>
     </tr>
     <tr>
       <th>Utility cost</th>
@@ -1642,7 +1619,7 @@ outs...
 <p>Save a system report:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [44]:
+<span></span>In [42]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>

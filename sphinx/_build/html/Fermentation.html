@@ -77,8 +77,8 @@
 <span id="fermentation"></span><h1>Fermentation<a class="headerlink" href="#module-biosteam.units" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.units.Fermentation">
-<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">Fermentation</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>tau=None</em>, <em>efficiency=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_fermentation.html#Fermentation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Fermentation" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a Fermentation object which models large-scale batch fermentation for the production of 1st generation ethanol using yeast [1, 2, 3, 4]. Only sucrose and glucose are taken into account. Conversion is based on reaction time, <em>tau</em>. Cleaning and unloading time, <em>tau_0</em>, fraction of working volume, <em>V_wf</em>, and number of reactors, N_reactors, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3].</p>
+<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">Fermentation</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>tau=None</em>, <em>efficiency=None</em>, <em>N=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_fermentation.html#Fermentation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Fermentation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a Fermentation object which models large-scale batch fermentation for the production of 1st generation ethanol using yeast [1, 2, 3, 4]. Only sucrose and glucose are taken into account. Conversion is based on reaction time, <cite>tau</cite>. Cleaning and unloading time, <cite>tau_0</cite>, fraction of working volume, <cite>V_wf</cite>, and number of reactors, <cite>N_reactors</cite>, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3].</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>ID:</strong> [str] Unique identification. If set as ‘’, a default ID will be chosen.</p>
@@ -86,6 +86,7 @@
 <p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
 <p><strong>tau:</strong> Reaction time.</p>
 <p><strong>efficiency:</strong> User enforced efficiency.</p>
+<p><strong>N:</strong> Number of batch reactors</p>
 </div></blockquote>
 <p><strong>ins</strong></p>
 <blockquote>
@@ -117,57 +118,15 @@
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.units.Fermentation.V_wf">
-<code class="descname">V_wf</code><em class="property"> = 0.8</em><a class="headerlink" href="#biosteam.units.Fermentation.V_wf" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.units.Fermentation.working_volume_fraction">
+<code class="descname">working_volume_fraction</code><a class="headerlink" href="#biosteam.units.Fermentation.working_volume_fraction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fraction of filled tank to total tank volume</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.Fermentation.CEPCI_0">
-<code class="descname">CEPCI_0</code><em class="property"> = 521.9</em><a class="headerlink" href="#biosteam.units.Fermentation.CEPCI_0" title="Permalink to this definition">¶</a></dt>
-<dd><p>Base CEPCI</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.Fermentation.C_0">
-<code class="descname">C_0</code><em class="property"> = 844000</em><a class="headerlink" href="#biosteam.units.Fermentation.C_0" title="Permalink to this definition">¶</a></dt>
-<dd><p>Base price (USD)</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.Fermentation.V_0">
-<code class="descname">V_0</code><em class="property"> = 3785</em><a class="headerlink" href="#biosteam.units.Fermentation.V_0" title="Permalink to this definition">¶</a></dt>
-<dd><p>Base volume (m3)</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.Fermentation.exp">
-<code class="descname">exp</code><em class="property"> = 0.6</em><a class="headerlink" href="#biosteam.units.Fermentation.exp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Scaling exponent for costing</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.Fermentation.C_A">
-<code class="descname">C_A</code><em class="property"> = 52500</em><a class="headerlink" href="#biosteam.units.Fermentation.C_A" title="Permalink to this definition">¶</a></dt>
-<dd><p>Base agitator price (USD)</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.Fermentation.A_p">
-<code class="descname">A_p</code><em class="property"> = 22.371</em><a class="headerlink" href="#biosteam.units.Fermentation.A_p" title="Permalink to this definition">¶</a></dt>
-<dd><p>Base agitator power (kW)</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="biosteam.units.Fermentation.kinetic_constants">
 <code class="descname">kinetic_constants</code><em class="property"> = (0.31, 1.01, 1.88, 2.81, 82.8, 108.2, 113.4, 0.45, 0.18)</em><a class="headerlink" href="#biosteam.units.Fermentation.kinetic_constants" title="Permalink to this definition">¶</a></dt>
 <dd><p>tuple of kinetic parameters for the kinetic model. Default constants are fitted for Oliveria’s model (mu_m1, mu_m2, Ks1, Ks2, Pm1, Pm2, Xm, Y_PS, a)</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="biosteam.units.Fermentation.N_reactors">
-<code class="descname">N_reactors</code><a class="headerlink" href="#biosteam.units.Fermentation.N_reactors" title="Permalink to this definition">¶</a></dt>
-<dd><p>Enforced Number of batch reactors.</p>
 </dd></dl>
 
 <dl class="staticmethod">

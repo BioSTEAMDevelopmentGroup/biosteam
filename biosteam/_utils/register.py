@@ -58,7 +58,7 @@ class Register:
     
     def __repr__(self):
         if self in _must_reload: _reload(self)
-        if self: return f'Register:\n ' + ',\n '.join([repr(i) for i in self])
+        if self: return f'Register:\n ' + '\n '.join([repr(i) for i in self])
         else: return f'Register: (Empty)'
     
 

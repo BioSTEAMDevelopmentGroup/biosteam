@@ -440,8 +440,8 @@ class Dist(Unit):
         return (self._F_M*C_V + C_PL)*self.CEPCI/500
     
     @staticmethod
-    def _calc_EmptyTowerCost(W:'lb')->'C_V (USD)':
-        """Return the cost of an empty tower vessel assuming a CE of 500.
+    def _calc_EmptyTowerCost(W):
+        """Return C_V the cost (USD) of an empty tower vessel assuming a CE of 500.
         
         **Parameters**
         
@@ -451,8 +451,8 @@ class Dist(Unit):
         return np.exp(7.2756 + 0.18255*np.log(W) + 0.02297*np.log(W)**2)
     
     @staticmethod
-    def _calc_PlaformLadderCost(Di:'ft', L:'ft')-> 'C_PL (USD)':
-        """Return the cost of platforms and ladders assuming a CE of 500.
+    def _calc_PlaformLadderCost(Di, L):
+        """Return C_PL, the cost (USD) of platforms and ladders assuming a CE of 500.
         
         **Parameters**
         
@@ -463,8 +463,8 @@ class Dist(Unit):
         return 300.9*Di**0.63316*L**0.80161
     
     @staticmethod
-    def _calc_Weight(Di:'ft', L:'ft', tv:'in', rho_M:'lb/in3') -> 'W (lb)':
-        """Return the weight of the tower assuming 2:1 elliptical head.
+    def _calc_Weight(Di, L, tv, rho_M):
+        """Return W, the weight (lb) of the tower assuming 2:1 elliptical head.
         
         **Parameters**
         
@@ -479,8 +479,8 @@ class Dist(Unit):
         return np.pi*(Di+tv)*(L+0.8*Di)*tv*rho_M
     
     @staticmethod
-    def _calc_WallThickness(Po:'psi', Di:'ft', L:'ft', S:'psi'=15000, E=None, M:'elasticity (psi)'=29.5) -> 'tv (in)':
-        """Return the wall thinkness designed to withstand the internal pressure and the wind/earthquake load at the bottom.
+    def _calc_WallThickness(Po, Di, L, S=15000, E=None, M=29.5):
+        """Return tv, the wall thinkness (in) designed to withstand the internal pressure and the wind/earthquake load at the bottom.
         
         **Parameters**
         
@@ -489,6 +489,7 @@ class Dist(Unit):
             L: Height (ft)
             S: Maximum stress (psi)
             E: Fractional weld efficiency
+            M: Elasticity (psi)
             
         """
         # TODO: Incorporate temperature for choosing S and M
@@ -547,8 +548,8 @@ class Dist(Unit):
         return tv
     
     @staticmethod
-    def _calc_TrayBaseCost(Di:'ft', CE) -> 'C_BT':
-        """Return base cost of a tray.
+    def _calc_TrayBaseCost(Di, CE):
+        """Return C_BT, the base cost of a tray (USD).
         
         **Parameters**
         
@@ -559,8 +560,8 @@ class Dist(Unit):
         return CE * 0.825397 * np.exp(0.1482*Di)
 
     @staticmethod
-    def _calc_NTrayFactor(N_T) -> 'F_NT':
-        """Return cost factor for number of trays.
+    def _calc_NTrayFactor(N_T):
+        """Return F_NT, the cost factor for number of trays.
         
         **Parameters**
         
@@ -574,8 +575,8 @@ class Dist(Unit):
         return F_NT
 
     @staticmethod
-    def _calc_MurphreeEfficiency(mu: 'mPa*s', alpha, L, V) -> 'E_mv':
-        """Return the sectional murphree efficiency.
+    def _calc_MurphreeEfficiency(mu, alpha, L, V):
+        """Return E_mv, the sectional murphree efficiency.
         
         **Parameters**
             
@@ -594,8 +595,8 @@ class Dist(Unit):
         else: return 1
     
     @staticmethod
-    def _calc_FlowParameter(L, V, rho_V, rho_L) -> 'F_LV':
-        """Return the flow parameter.
+    def _calc_FlowParameter(L, V, rho_V, rho_L):
+        """Return F_LV, the flow parameter.
         
         **Parameters**
         
@@ -608,8 +609,8 @@ class Dist(Unit):
         return L/V*(rho_V/rho_L)**0.5
     
     @staticmethod
-    def _calc_MaxCapacityParameter(TS: 'mm', F_LV) -> ' C_sbf':
-        """Return the maximum capacity parameter before flooding (m/s).
+    def _calc_MaxCapacityParameter(TS, F_LV):
+        """Return C_sbf, the maximum capacity parameter before flooding (m/s).
         
         **Parameters**
         
@@ -620,9 +621,9 @@ class Dist(Unit):
         return 0.0105 + 8.127e-4*TS**0.755*np.exp(-1.463*F_LV**0.842)
     
     @staticmethod
-    def _calc_MaxVaporVelocity(C_sbf: 'm/s', sigma: 'dyn/cm',
-                               rho_L, rho_V, F_F, A_ha) -> 'U_f':
-        """Return the maximum allowable vapor velocity through the net area of flow before flooding (m/s).
+    def _calc_MaxVaporVelocity(C_sbf, sigma,
+                               rho_L, rho_V, F_F, A_ha):
+        """Return U_f, the maximum allowable vapor velocity through the net area of flow before flooding (m/s).
         
         **Parameters**
         
@@ -648,7 +649,7 @@ class Dist(Unit):
     
     @staticmethod
     def _calc_DowncomerAreaRatio(F_LV) -> 'A_dn':
-        """Ratio of downcomer area to net (total) area.
+        """Return A_dn, the ratio of downcomer area to net (total) area.
         
         **Parameters**
         
@@ -664,8 +665,8 @@ class Dist(Unit):
         return A_dn
     
     @staticmethod
-    def _calc_Diameter(V_vol: 'm3/s', U_f: 'm/s', f, A_dn) -> 'D_T (ft)':
-        """Return column diameter.
+    def _calc_Diameter(V_vol, U_f, f, A_dn):
+        """Return D_T, the column diameter (ft).
         
         **Parameters**
         
@@ -683,8 +684,8 @@ class Dist(Unit):
         return Di
     
     @staticmethod
-    def _calc_Height(TS: 'mm', Nstages: int, top=True, bot=True) -> 'H (ft)':
-        """Return the height of the column (ft).
+    def _calc_Height(TS, Nstages: int, top=True, bot=True):
+        """Return H, the height of the column (ft).
         
         **Parameters**
         
@@ -729,7 +730,12 @@ class Dist(Unit):
         ms1.P = boil_up.P
         ms1.vapor_mol[:] = boil_up.mol
         ms1.liquid_mol[:] = bottoms.mol
-        boiler._summary()
+        if hasattr(self, '_condenser'):
+            boiler._design(self._H_out - self._H_in - self._condenser._duty)
+            boiler._cost()
+        else:
+            boiler._design()
+            boiler._cost()
         
     def _cost(self):
         results = self._results

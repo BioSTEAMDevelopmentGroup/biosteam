@@ -9,7 +9,7 @@ from numpy import ceil
 from .decorators import cost
 from .metaclasses import splitter
 
-@cost('Area', 'Vibrating screens', N='N', CE=567, cost=1010, exp=0.91)
+@cost('Area', N='N', CE=567, cost=1010, exp=0.91)
 class VibratingScreen(Unit, metaclass=splitter):
     # Assume 3-deck vibrating screen
     _units = {'Area': 'ft^2'}

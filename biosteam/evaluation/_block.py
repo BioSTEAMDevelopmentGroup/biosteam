@@ -52,7 +52,6 @@ class Block:
         else:
             subsys = system
             simulate = unit.simulate if inst(element, Unit) else do_nothing
-            
         self._system = subsys
         self._simulate = simulate
         self._element = element
@@ -71,7 +70,7 @@ class Block:
     
     @property
     def element(self):
-        """Block element that gets checked for changes before simulation."""
+        """Starting element of the system (if any)."""
         return self._element
     
     @property
@@ -79,22 +78,17 @@ class Block:
         """Simulate block."""
         return self._simulate
         
-    def _repr(self):
-        if self._element:
-            if isinstance(self._element, type):
-                return f"{type(self).__name__}: {self._element.__name__}"
-            return f"{type(self).__name__}: {type(self._element).__name__}-{self._element}"
-        else:
-            return f"{type(self).__name__}"
-    
     def __repr__(self):
-        return f'[{self._repr()}]'
-    
-    def _info(self):
         if self._system:
-            return f'[{type(self).__name__}: {self._system}]'
+            return f'<{type(self).__name__}: {self._system}>'
+        elif self._element:
+            if isinstance(self._element, type):
+                return f"<{type(self).__name__}: {self._element.__name__}>"
+            return f"<{type(self).__name__}: {type(self._element).__name__}-{self._element}>"
         else:
-            return repr(self)
-
-    def show(self):
-        print(self._info())
+            return f"<{type(self).__name__}>"
+    
+    
+    
+    
+    
