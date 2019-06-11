@@ -11,6 +11,7 @@ __all__ = ('Graphics',)
 
 # %%
 
+_node_function = lambda unit: None
 _edge_in = [{'headport': 'c'} for i in range(3)]
 _edge_out = [{'tailport': 'c'} for i in range(2)]
 _node = {'shape': 'box',
@@ -28,16 +29,27 @@ _node = {'shape': 'box',
     
 class Graphics:
     """Create a Graphics object that contains specifications for Graphviz node and edge styles"""
-    in_system = True #: [bool] True for Unit object to appear within a system diagram
-    def __init__(self, edge_in=_edge_in,
-                 edge_out=_edge_out,
-                 node=_node,
-                 node_function=lambda unit: None,
-                 name=None):
-        self.edge_in = copy.deepcopy(edge_in)
-        self.edge_out = copy.deepcopy(edge_out)
-        self.node = copy.deepcopy(node)
-        self.node_function = node_function
-        self.name = None
+    def __init__(self, edge_in=None,
+                 edge_out=None,
+                 node=None,
+                 node_function=None,
+                 in_system=True):
+        # [dict] Input stream edge settings
+        self.edge_in = edge_in or copy.deepcopy(_edge_in)
+        
+        # [dict] Output stream edge settings
+        self.edge_out = edge_out or copy.deepcopy(_edge_out)
+        
+        #: [dict] Node settings
+        self.node = node or copy.copy(_node)
+        
+        #: [function] Is called to update node settings
+        self.node_function = node_function or _node_function
+        
+        #: [bool] True for Unit object to appear within a system diagram
+        self.in_system = in_system
+
+    def __repr__(self):
+        return 'f<{type(self).__name__}>'
 
 default_graphics = Graphics()

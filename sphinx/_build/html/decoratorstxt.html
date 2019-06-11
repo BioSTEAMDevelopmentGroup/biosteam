@@ -1,0 +1,118 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>decorators &#8212; BioSTEAM 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/decoratorstxt.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-biosteam.units.decorators">
+<span id="decorators"></span><h1>decorators<a class="headerlink" href="#module-biosteam.units.decorators" title="Permalink to this headline">¶</a></h1>
+<p>Created on Wed May  1 19:05:53 2019</p>
+<p>&#64;author: yoelr</p>
+<dl class="function">
+<dt id="biosteam.units.decorators.cost">
+<code class="descclassname">biosteam.units.decorators.</code><code class="descname">cost</code><span class="sig-paren">(</span><em>basis</em>, <em>name=None</em>, <em>*</em>, <em>cost</em>, <em>exp</em>, <em>CE</em>, <em>S=1</em>, <em>kW=0</em>, <em>N=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/decorators/_cost.html#cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.decorators.cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add item purchase cost based on exponential scale up:</p>
+<p><span class="math notranslate nohighlight">\(C_{f.o.b.} = (N)(CE)(cost)(\frac{basis}{S})^{exp}\)</span></p>
+<p><span class="math notranslate nohighlight">\(Electricity\ rate = (N)(kW)(\frac{basis}{S})\)</span></p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><p><strong>basis:</strong> Name of Design item used for scaling.</p>
+<p><strong>name:</strong> Name of item.</p>
+<p><strong>cost:</strong> Cost of item.</p>
+<p><strong>exp:</strong> Exponential factor.</p>
+<p><strong>CE:</strong> Chemical engineering plant cost index.</p>
+<p><strong>S:</strong> Size.</p>
+<p><strong>kW:</strong> Electricity rate.</p>
+<p><strong>N:</strong> Number of items or name of Design item that represents N.</p>
+</div></blockquote>
+<p><strong>Examples</strong></p>
+<blockquote>
+<div><span class="xref std std-doc">Unit decorators/cost decorator</span></div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.decorators.design">
+<code class="descclassname">biosteam.units.decorators.</code><code class="descname">design</code><span class="sig-paren">(</span><em>name</em>, <em>units</em>, <em>func</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/decorators/_design.html#design"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.decorators.design" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add design item.</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>

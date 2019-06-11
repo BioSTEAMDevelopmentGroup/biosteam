@@ -50,6 +50,8 @@ BioSTEAM objects serve as basic building blocks to design and simulate a biorefi
    Using -pipe- notation
    Techno-economic analysis of a biorefinery
    Inheriting from Unit
+   Unit decorators
+   Advanced simulation
 
 BioSTEAM API
 ------------
@@ -65,9 +67,10 @@ BioSTEAM API
    HeatUtility
    System
    TEA
-   find
+   Flowsheet
    compounds
    units
+   inspect
 
 Unit Operation Examples
 -----------------------
@@ -84,7 +87,6 @@ Unit Operation Examples
    MassBalance Example
    MolecularSieve Example
    Pump Example
-   Transesterification Example
    
 Advanced Simulation
 -------------------

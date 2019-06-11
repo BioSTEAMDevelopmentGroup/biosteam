@@ -270,7 +270,7 @@ registered. The main flowsheet defaults to the ‘Default’ flowsheet:</p>
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>&lt;find: mainflowsheet=Default&gt;
+<span></span>&lt;MainFlowsheet: Default&gt;
 </pre></div>
 </div>
 </div>
@@ -413,35 +413,67 @@ Stream: d1  from  Mixer-M0
 </pre></div>
 </div>
 </div>
-</div>
-<div class="section" id="Switch-between-flowsheets">
-<h2>Switch between flowsheets<a class="headerlink" href="#Switch-between-flowsheets" title="Permalink to this headline">¶</a></h2>
-<p>A new Flowsheet objects may be created and set as the main flowsheet:</p>
+<p>Access items in a register:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">mainflowsheet</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Flowsheet</span><span class="p">(</span><span class="s1">&#39;New flowsheet&#39;</span><span class="p">)</span>
+<span></span><span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">unit</span><span class="o">.</span><span class="n">M0</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="_images/Find_unit_operations_and_manage_flowsheets_15_0.svg" src="_images/Find_unit_operations_and_manage_flowsheets_15_0.svg" /></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Mixer: M0
+ins...
+[0] missing stream
+[1] missing stream
+outs...
+[0] d1
+    phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
+    flow: 0
+</pre></div></div>
+</div>
+</div>
+<div class="section" id="Switch-between-flowsheets">
+<h2>Switch between flowsheets<a class="headerlink" href="#Switch-between-flowsheets" title="Permalink to this headline">¶</a></h2>
+<p>A new flowsheet may be created and set as the main flowsheet:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">set_flowsheet</span><span class="p">(</span><span class="n">bs</span><span class="o">.</span><span class="n">Flowsheet</span><span class="p">(</span><span class="s1">&#39;New flowsheet&#39;</span><span class="p">))</span>
 <span class="n">bs</span><span class="o">.</span><span class="n">find</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[8]:
+<span></span>Out[9]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>&lt;find: mainflowsheet=New flowsheet&gt;
+<span></span>&lt;MainFlowsheet: New flowsheet&gt;
 </pre></div>
 </div>
 </div>
 <p>Now all new objects will be registered in the new flowsheet:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [9]:
+<span></span>In [10]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -454,13 +486,13 @@ Stream: d1  from  Mixer-M0
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/Find_unit_operations_and_manage_flowsheets_18_0.svg" src="_images/Find_unit_operations_and_manage_flowsheets_18_0.svg" /></div>
+<img alt="_images/Find_unit_operations_and_manage_flowsheets_20_0.svg" src="_images/Find_unit_operations_and_manage_flowsheets_20_0.svg" /></div>
 </div>
 <p>Note that objects in the original flowsheet are not defined anymore and
 searching them would raise an error:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [10]:
+<span></span>In [11]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -475,51 +507,28 @@ searching them would raise an error:</p>
 <div class="highlight"><pre>
 <span class="ansi-red-intense-fg ansi-bold">---------------------------------------------------------------------------</span>
 <span class="ansi-red-intense-fg ansi-bold">ValueError</span>                                Traceback (most recent call last)
-<span class="ansi-green-intense-fg ansi-bold">&lt;ipython-input-10-503e10b7cb09&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span><span class="ansi-blue-intense-fg ansi-bold">()</span>
+<span class="ansi-green-intense-fg ansi-bold">&lt;ipython-input-11-503e10b7cb09&gt;</span> in <span class="ansi-cyan-fg">&lt;module&gt;</span><span class="ansi-blue-intense-fg ansi-bold">()</span>
 <span class="ansi-green-intense-fg ansi-bold">----&gt; 1</span><span class="ansi-yellow-intense-fg ansi-bold"> </span>bs<span class="ansi-yellow-intense-fg ansi-bold">.</span>find<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-blue-intense-fg ansi-bold">&#39;M0&#39;</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
 
-<span class="ansi-green-intense-fg ansi-bold">~\OneDrive\Code\biosteam\biosteam\_flowsheet.py</span> in <span class="ansi-cyan-fg">__call__</span><span class="ansi-blue-intense-fg ansi-bold">(self, item_ID)</span>
-<span class="ansi-green-fg">    243</span>                <span class="ansi-green-intense-fg ansi-bold">or</span> search_register<span class="ansi-yellow-intense-fg ansi-bold">(</span>self<span class="ansi-yellow-intense-fg ansi-bold">.</span>unit<span class="ansi-yellow-intense-fg ansi-bold">,</span> item_ID<span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">    244</span>                or search_register(self.system, item_ID))
-<span class="ansi-green-intense-fg ansi-bold">--&gt; 245</span><span class="ansi-yellow-intense-fg ansi-bold">         </span><span class="ansi-green-intense-fg ansi-bold">if</span> <span class="ansi-green-intense-fg ansi-bold">not</span> obj<span class="ansi-yellow-intense-fg ansi-bold">:</span> <span class="ansi-green-intense-fg ansi-bold">raise</span> ValueError<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-blue-intense-fg ansi-bold">f&#34;no registered item &#39;{item_ID}&#39;&#34;</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
-<span class="ansi-green-fg">    246</span>         <span class="ansi-green-intense-fg ansi-bold">return</span> obj
-<span class="ansi-green-fg">    247</span>
+<span class="ansi-green-intense-fg ansi-bold">~\OneDrive\Code\biosteam\biosteam\_flowsheet.py</span> in <span class="ansi-cyan-fg">__call__</span><span class="ansi-blue-intense-fg ansi-bold">(self, ID)</span>
+<span class="ansi-green-fg">    249</span>                <span class="ansi-green-intense-fg ansi-bold">or</span> search_register<span class="ansi-yellow-intense-fg ansi-bold">(</span>self<span class="ansi-yellow-intense-fg ansi-bold">.</span>unit<span class="ansi-yellow-intense-fg ansi-bold">,</span> ID<span class="ansi-yellow-intense-fg ansi-bold">)</span>
+<span class="ansi-green-fg">    250</span>                or search_register(self.system, ID))
+<span class="ansi-green-intense-fg ansi-bold">--&gt; 251</span><span class="ansi-yellow-intense-fg ansi-bold">         </span><span class="ansi-green-intense-fg ansi-bold">if</span> <span class="ansi-green-intense-fg ansi-bold">not</span> obj<span class="ansi-yellow-intense-fg ansi-bold">:</span> <span class="ansi-green-intense-fg ansi-bold">raise</span> ValueError<span class="ansi-yellow-intense-fg ansi-bold">(</span><span class="ansi-blue-intense-fg ansi-bold">f&#34;no registered item &#39;{ID}&#39;&#34;</span><span class="ansi-yellow-intense-fg ansi-bold">)</span>
+<span class="ansi-green-fg">    252</span>         <span class="ansi-green-intense-fg ansi-bold">return</span> obj
+<span class="ansi-green-fg">    253</span>
 
 <span class="ansi-red-intense-fg ansi-bold">ValueError</span>: no registered item &#39;M0&#39;
 </pre></div></div>
 </div>
-<p>All Flowsheet objects are added to the <code class="docutils literal notranslate"><span class="pre">flowsheet</span></code> dictionary.
-Switching between flowsheets is easy:</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [11]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">mainflowsheet</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">flowsheet</span><span class="p">[</span><span class="s1">&#39;Default&#39;</span><span class="p">]</span> <span class="c1"># Switch back to default flowsheet</span>
-<span class="n">bs</span><span class="o">.</span><span class="n">find</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[11]:
-</pre></div>
-</div>
-<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>&lt;find: mainflowsheet=Default&gt;
-</pre></div>
-</div>
-</div>
-<p>As an example, the <code class="docutils literal notranslate"><span class="pre">lipidcane</span></code> biorefinery defines its own flowsheet
-and leaves it as the main flowsheet when you import it:</p>
+<p>All Flowsheet objects are added to the <code class="docutils literal notranslate"><span class="pre">flowsheet</span></code> registry. Switching
+between flowsheets is easy:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [12]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">lipidcane</span> <span class="c1"># You must pip install lipidcane first</span>
+<span></span><span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">set_flowsheet</span><span class="p">(</span><span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">flowsheet</span><span class="p">[</span><span class="s1">&#39;Default&#39;</span><span class="p">])</span> <span class="c1"># Switch back to default flowsheet</span>
 <span class="n">bs</span><span class="o">.</span><span class="n">find</span>
 </pre></div>
 </div>
@@ -530,13 +539,36 @@ and leaves it as the main flowsheet when you import it:</p>
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>&lt;find: mainflowsheet=Lipidcane&gt;
+<span></span>&lt;MainFlowsheet: Default&gt;
+</pre></div>
+</div>
+</div>
+<p>As an example, the <code class="docutils literal notranslate"><span class="pre">lipidcane</span></code> biorefinery defines its own flowsheet
+and leaves it as the main flowsheet when you import it:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">lipidcane</span> <span class="c1"># You must pip install lipidcane first</span>
+<span class="n">bs</span><span class="o">.</span><span class="n">find</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[13]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>&lt;MainFlowsheet: Lipidcane&gt;
 </pre></div>
 </div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [13]:
+<span></span>In [14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -548,7 +580,7 @@ and leaves it as the main flowsheet when you import it:</p>
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/Find_unit_operations_and_manage_flowsheets_25_0.svg" src="_images/Find_unit_operations_and_manage_flowsheets_25_0.svg" /></div>
+<img alt="_images/Find_unit_operations_and_manage_flowsheets_27_0.svg" src="_images/Find_unit_operations_and_manage_flowsheets_27_0.svg" /></div>
 </div>
 </div>
 </div>

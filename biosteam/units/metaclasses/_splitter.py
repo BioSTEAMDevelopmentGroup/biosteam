@@ -12,6 +12,51 @@ from numpy import asarray
 __all__ = ('splitter', '__init_split__', 'run_split', 'run_split_with_mixing')
 
 class splitter(metaUnit):
+    """Create a splitter Unit class which behaves like a splitter regarding mass and energy balances.
+    
+    **Examples**
+    
+    Create a sugar cane crushing mill Unit subclass and test:
+    
+        >>> from biosteam import *
+        >>> from biosteam.units.decorators import *
+        >>> from biosteam.units.metaclasses import splitter
+        >>> # Create subclass
+        >>> @cost('Flow rate', cost=1.5e6, CE=541.7, exp=0.6, S=335e3, kW=2010)
+        ... @design('Flow rate', 'kg/hr', lambda self: self._ins[0].massnet)
+        ... class CrushingMill(Unit, metaclass=splitter):
+        ...     pass
+        >>> # Set Stream.species
+        >>> species = Species('Water')
+        >>> species.Sugar = compounds.Substance('Sugar')
+        >>> species.Fiber = compounds.Substance('Fiber')
+        >>> Stream.species = species
+        >>> # Create CrushingMill object and simulate
+        >>> CM = CrushingMill(ins=Stream(Water=700, Fiber=150, Sugar=150, units='kg/min'), 
+        ...                   split=(0.86, 0.08, 0.96),
+        ...                   order=('Water', 'Fiber', 'Sugar'))
+        >>> CM.simulate()
+        >>> CM.show()
+        CrushingMill: U1
+        ins...
+        [0] d2
+            phase: 'l', T: 298.15 K, P: 101325 Pa
+            flow (kmol/hr): Water  2.33e+03
+                            Sugar  9e+03
+                            Fiber  9e+03
+        outs...
+        [0] d3
+            phase: 'l', T: 298.15 K, P: 101325 Pa
+            flow (kmol/hr): Water  2e+03
+                            Sugar  8.64e+03
+                            Fiber  720
+        [1] d4
+            phase: 'l', T: 298.15 K, P: 101325 Pa
+            flow (kmol/hr): Water  326
+                            Sugar  360
+                            Fiber  8.28e+03
+    
+    """
     def __new__(mcl, clsname, superclasses, definitions):
         if len(superclasses) != 1:
             raise TypeError('{mcl.__name__} metaclass requires one and only one super class')
@@ -61,6 +106,7 @@ def __init_split__(self, ID='', outs=(), ins=None, split=None, order=None):
     self._install()
     
 def run_split(self):
+    """Splitter mass and energy balance function based on one input stream."""
     top, bot = self.outs
     feed = self._ins[0]
     net_mol = feed.mol
@@ -70,6 +116,7 @@ def run_split(self):
     bot.P = top.P = feed.P
     
 def run_split_with_mixing(self):
+    """Splitter mass and energy balance function with mixing all input streams."""
     top, bot = self._outs
     ins = self._ins
     if len(ins) > 1: Stream.sum(top, ins)

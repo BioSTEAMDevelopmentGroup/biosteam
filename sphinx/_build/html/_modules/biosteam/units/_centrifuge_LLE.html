@@ -72,8 +72,8 @@
 <span class="c1"># Microalgal fatty acids—From harvesting until extraction H.M. Amaro, et. al.,</span>
 <span class="c1"># in Microalgae-Based Biofuels and Bioproducts, 2017</span>
 
-<div class="viewcode-block" id="Centrifuge_LLE"><a class="viewcode-back" href="../../../Centrifuge_LLE.html#biosteam.units.Centrifuge_LLE">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">525.4</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mi">28100</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="mf">0.574</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mf">3.66</span><span class="p">)</span>
-<span class="nd">@design</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;m^3/hr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_volnet_out</span><span class="p">)</span>
+<div class="viewcode-block" id="Centrifuge_LLE"><a class="viewcode-back" href="../../../units.html#biosteam.units.Centrifuge_LLE">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">525.4</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mi">28100</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="mf">0.574</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mf">3.66</span><span class="p">)</span>
+<span class="nd">@design</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;m^3/hr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">volnet</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Centrifuge_LLE</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Create an equlibrium based centrifuge with the option of having liquid non-keys and LIQUID non-keys completly separate into their respective phases.</span>
 
@@ -145,7 +145,7 @@
 <span class="c1">#         top.phase = &#39;l&#39;</span>
 <span class="c1">#         bot.phase = &#39;L&#39;</span>
 
-<span class="k">class</span> <span class="nc">RatioCentrifuge_LLE</span><span class="p">(</span><span class="n">Centrifuge_LLE</span><span class="p">):</span>
+<div class="viewcode-block" id="RatioCentrifuge_LLE"><a class="viewcode-back" href="../../../units.html#biosteam.units.RatioCentrifuge_LLE">[docs]</a><span class="k">class</span> <span class="nc">RatioCentrifuge_LLE</span><span class="p">(</span><span class="n">Centrifuge_LLE</span><span class="p">):</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Kspecies&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of species that correspond to Ks</span>
                <span class="s1">&#39;Ks&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of molar ratio partition coefficinets,</span>
@@ -155,9 +155,9 @@
                <span class="s1">&#39;bot_solvents&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of species that correspond to bot_split</span>
                <span class="s1">&#39;bot_split&#39;</span><span class="p">:</span> <span class="p">[]}</span>  <span class="c1"># list of splits for bot_solvents</span>
     <span class="n">_setup</span> <span class="o">=</span> <span class="n">Unit</span><span class="o">.</span><span class="n">_setup</span>
-    <span class="n">_run</span> <span class="o">=</span> <span class="n">RatioFlash</span><span class="o">.</span><span class="n">_run</span>
+    <span class="n">_run</span> <span class="o">=</span> <span class="n">RatioFlash</span><span class="o">.</span><span class="n">_run</span></div>
     
-<span class="k">class</span> <span class="nc">SplitCentrifuge_LLE</span><span class="p">(</span><span class="n">Centrifuge_LLE</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">splitter</span><span class="p">):</span> <span class="k">pass</span>
+<div class="viewcode-block" id="SplitCentrifuge_LLE"><a class="viewcode-back" href="../../../units.html#biosteam.units.SplitCentrifuge_LLE">[docs]</a><span class="k">class</span> <span class="nc">SplitCentrifuge_LLE</span><span class="p">(</span><span class="n">Centrifuge_LLE</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">splitter</span><span class="p">):</span> <span class="k">pass</span></div>
     
     
     

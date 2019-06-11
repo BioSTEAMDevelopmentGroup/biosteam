@@ -81,7 +81,7 @@
     <span class="k">def</span> <span class="nf">tau</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tau</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_tau</span> <span class="o">=</span> <span class="n">tau</span>
 
-<div class="viewcode-block" id="StorageTank"><a class="viewcode-back" href="../../../StorageTank.html#biosteam.units.StorageTank">[docs]</a><span class="k">class</span> <span class="nc">StorageTank</span><span class="p">(</span><span class="n">Tank</span><span class="p">):</span>
+<div class="viewcode-block" id="StorageTank"><a class="viewcode-back" href="../../../units.html#biosteam.units.StorageTank">[docs]</a><span class="k">class</span> <span class="nc">StorageTank</span><span class="p">(</span><span class="n">Tank</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Create a storage tank with volume based on residence time [1].</span>
 
 <span class="sd">    .. math::</span>
@@ -116,7 +116,7 @@
         <span class="k">else</span><span class="p">:</span>    
             <span class="k">raise</span> <span class="n">DesignError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Volume is out of bounds for costing&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="MixTank"><a class="viewcode-back" href="../../../MixTank.html#biosteam.units.MixTank">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Volume&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mi">12080</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">525.4</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="mf">0.525</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mf">0.591</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="s1">&#39;N&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="MixTank"><a class="viewcode-back" href="../../../units.html#biosteam.units.MixTank">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Volume&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mi">12080</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">525.4</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="mf">0.525</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mf">0.591</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="s1">&#39;N&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">MixTank</span><span class="p">(</span><span class="n">Tank</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a mixing tank with volume based on residence time.</span>
 

@@ -1,0 +1,183 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>designtools &#8212; BioSTEAM 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="facilities" href="facilities.html" />
+    <link rel="prev" title="metaclasses" href="metaclasses.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="facilities.html" title="facilities"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="metaclasses.html" title="metaclasses"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="units.html" accesskey="U">units</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="metaclasses.html"
+                        title="previous chapter">metaclasses</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="facilities.html"
+                        title="next chapter">facilities</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/designtools.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-biosteam.units.designtools">
+<span id="designtools"></span><h1>designtools<a class="headerlink" href="#module-biosteam.units.designtools" title="Permalink to this headline">¶</a></h1>
+<p>Created on Wed Mar  6 16:46:04 2019</p>
+<p>&#64;author: yoelr</p>
+<dl class="function">
+<dt id="biosteam.units.designtools.vacuum_system">
+<code class="descclassname">biosteam.units.designtools.</code><code class="descname">vacuum_system</code><span class="sig-paren">(</span><em>CEPCI</em>, <em>massflow: kg/hr</em>, <em>volflow: m3/hr</em>, <em>P_suction: Pa</em>, <em>vol: m3</em>, <em>vacuum_system_preference=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/designtools/_vacuum.html#vacuum_system"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.designtools.vacuum_system" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return dictionary of results</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><p><strong>CEPCI:</strong> [float] Chemical Engineering Plant Cost Index</p>
+<p><strong>massflow:</strong> [float] Vapor mass flow rate entering vacuum system from vessel (not including inleakage)</p>
+<p><strong>volflow:</strong> [float] Vapor volumetric flow rate entering vacuum system from vessel (not including inleakage)</p>
+<p><strong>P_suction:</strong> [float] Suction pressure</p>
+<p><strong>vol:</strong> [float] Vacuum volume</p>
+<p><strong>vacuum_system_preference:</strong> tuple[str] or [str] Name(s) of preferred vacuum systems</p>
+</div></blockquote>
+<p><strong>Return</strong></p>
+<blockquote>
+<div><p><strong>power:</strong> [float] (kW)</p>
+<p><strong>cost:</strong> [float] (USD)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.designtools.GTable">
+<code class="descclassname">biosteam.units.designtools.</code><code class="descname">GTable</code><span class="sig-paren">(</span><em>DRho</em>, <em>Hlr</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/designtools/_tables.html#GTable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.designtools.GTable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the allowable downflow (baffle liquid load) in gph/ft2, usually used for vertical vessel.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><p>DRho: [float] Density difference between light liquid and vapor (lb/ft^3 ?)</p>
+<p>Hlr: [float] Height of liquid level above the interphase of light liquid and heavy liquid (ft)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.designtools.HNATable">
+<code class="descclassname">biosteam.units.designtools.</code><code class="descname">HNATable</code><span class="sig-paren">(</span><em>Type</em>, <em>X</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/designtools/_tables.html#HNATable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.designtools.HNATable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Table for cylindrical height and area conversions.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><p>Type: [int] 1 if given H/D and find A/At, 2 if given A/At and find H/D</p>
+<p>X: [float] H/D or A/At</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.designtools.FinalValue">
+<code class="descclassname">biosteam.units.designtools.</code><code class="descname">FinalValue</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/designtools/_tables.html#FinalValue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.designtools.FinalValue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return value to the next/highest 0.5 units</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.designtools.VesselWeightAndWallThickness">
+<code class="descclassname">biosteam.units.designtools.</code><code class="descname">VesselWeightAndWallThickness</code><span class="sig-paren">(</span><em>Pressure</em>, <em>Diameter</em>, <em>VesselLength</em>, <em>rho_M</em>, <em>Je=0.85</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/designtools/_tables.html#VesselWeightAndWallThickness"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.designtools.VesselWeightAndWallThickness" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return vessel weight and wall thickness.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><p>Pressure: [float] (psia)</p>
+<p>Diameter: [float] (ft)</p>
+<p>VesselLength: [float] (ft)</p>
+<p>rho_M: [float] Density of Material (lb/ft^3)</p>
+<p>Je: [float] Joint efficiency (1.0 for X-Rayed joints, 0.85 for thin carbon steel)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="biosteam.units.designtools.Kvalue">
+<code class="descclassname">biosteam.units.designtools.</code><code class="descname">Kvalue</code><span class="sig-paren">(</span><em>P</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/designtools/_tables.html#Kvalue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.designtools.Kvalue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return K-constant in Stoke’s Law using the York-Demister equation.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div>P: [float] Pressure (psia)</div></blockquote>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="facilities.html" title="facilities"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="metaclasses.html" title="metaclasses"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="units.html" >units</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>

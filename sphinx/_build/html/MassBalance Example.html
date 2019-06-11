@@ -251,7 +251,7 @@ rate feeding the mixer M1.</strong></p>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Species</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">System</span>
-<span class="kn">from</span> <span class="nn">biosteam.units</span> <span class="k">import</span> <span class="n">Mixer</span><span class="p">,</span> <span class="n">Splitter</span><span class="p">,</span> <span class="n">Tank</span><span class="p">,</span> <span class="n">Pump</span><span class="p">,</span> <span class="n">Flash</span><span class="p">,</span> <span class="n">MassBalance</span>
+<span class="kn">from</span> <span class="nn">biosteam.units</span> <span class="k">import</span> <span class="n">Mixer</span><span class="p">,</span> <span class="n">Splitter</span><span class="p">,</span> <span class="n">StorageTank</span><span class="p">,</span> <span class="n">Pump</span><span class="p">,</span> <span class="n">Flash</span><span class="p">,</span> <span class="n">MassBalance</span>
 <span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
 
 <span class="n">water</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;water&#39;</span><span class="p">,</span>
@@ -263,8 +263,8 @@ rate feeding the mixer M1.</strong></p>
                  <span class="n">T</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
 <span class="n">target</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;target&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="p">[</span><span class="mi">50</span><span class="p">,</span> <span class="mi">50</span><span class="p">])</span>
 
-<span class="n">T1</span> <span class="o">=</span> <span class="n">Tank</span><span class="p">(</span><span class="s1">&#39;T1&#39;</span><span class="p">)</span>
-<span class="n">T2</span> <span class="o">=</span> <span class="n">Tank</span><span class="p">(</span><span class="s1">&#39;T2&#39;</span><span class="p">)</span>
+<span class="n">T1</span> <span class="o">=</span> <span class="n">StorageTank</span><span class="p">(</span><span class="s1">&#39;T1&#39;</span><span class="p">)</span>
+<span class="n">T2</span> <span class="o">=</span> <span class="n">StorageTank</span><span class="p">(</span><span class="s1">&#39;T2&#39;</span><span class="p">)</span>
 <span class="n">P1</span> <span class="o">=</span> <span class="n">Pump</span><span class="p">(</span><span class="s1">&#39;P1&#39;</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
 <span class="n">P2</span> <span class="o">=</span> <span class="n">Pump</span><span class="p">(</span><span class="s1">&#39;P2&#39;</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
 <span class="n">M1</span> <span class="o">=</span> <span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M1&#39;</span><span class="p">)</span>
@@ -281,7 +281,7 @@ rate feeding the mixer M1.</strong></p>
                   <span class="n">ins</span><span class="o">=</span><span class="p">(</span><span class="n">water</span><span class="p">,</span> <span class="n">ethanol</span><span class="p">,</span> <span class="n">S1</span><span class="o">-</span><span class="mi">0</span><span class="p">))</span>
 
 <span class="n">mixSys</span> <span class="o">=</span> <span class="n">System</span><span class="p">(</span><span class="s1">&#39;mixSys&#39;</span><span class="p">,</span>
-                <span class="n">recycle</span> <span class="o">=</span> <span class="n">S1</span><span class="o">-</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">recycle</span><span class="o">=</span><span class="n">S1</span><span class="o">-</span><span class="mi">0</span><span class="p">,</span>
                 <span class="n">network</span><span class="o">=</span><span class="p">(</span><span class="n">MB1</span><span class="p">,</span> <span class="n">T1</span><span class="p">,</span> <span class="n">P1</span><span class="p">,</span> <span class="n">T2</span><span class="p">,</span> <span class="n">P2</span><span class="p">,</span> <span class="n">M1</span><span class="p">,</span> <span class="n">F1</span><span class="p">,</span> <span class="n">S1</span><span class="p">))</span>
 <span class="n">mixSys</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
 <span class="n">mixSys</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
@@ -293,7 +293,8 @@ rate feeding the mixer M1.</strong></p>
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/MassBalance_Example_2_0.svg" src="_images/MassBalance_Example_2_0.svg" /></div>
+<img alt="_images/MassBalance_Example_2_0.png" src="_images/MassBalance_Example_2_0.png" />
+</div>
 </div>
 <div class="nboutput docutils container">
 <div class="prompt empty docutils container">
@@ -301,7 +302,7 @@ rate feeding the mixer M1.</strong></p>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 MassBalance: MB1
-<span class="ansi-white-fg">ins...</span>
+ins...
 [0] water
     phase: &#39;l&#39;, T: 350 K, P: 101325 Pa
     flow (kmol/hr): Water  30.2
@@ -313,7 +314,7 @@ MassBalance: MB1
     phase: &#39;l&#39;, T: 353.88 K, P: 101325 Pa
     flow (kmol/hr): Ethanol  9.65
                     Water    15.3
-<span class="ansi-white-fg">outs...</span>
+outs...
 [0] target
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow (kmol/hr): Ethanol  50
@@ -327,10 +328,8 @@ MassBalance: MB1
 <div class="highlight"><pre>
 C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 1.6053724039011286e-07 reached
   warnings.warn(msg, RuntimeWarning)
-C:\Users\yoelr\Dropbox\Cortes-Pena-Guest_Shared\Code\biosteam\biosteam\units\flash.py:223: DesignWarning: @Flash F1: Vertical vessel weight (949.3 ) is out of bounds (4200 to 1e+06 ).
+C:\Users\yoelr\OneDrive\Code\biosteam\biosteam\units\_flash.py:219: DesignWarning: @Flash F1: Vertical vessel weight (949.3 lb) is out of bounds (4200 to 1e+06 lb).
   out = self._vertical()
-C:\Users\yoelr\Dropbox\Cortes-Pena-Guest_Shared\Code\biosteam\biosteam\units\flash.py:429: DesignWarning: @Flash F1: Diameter (2.5 ft) is out of bounds (3 to 21 ft).
-  d[&#39;Diameter&#39;] = D    # ft
 </pre></div></div>
 </div>
 </div>

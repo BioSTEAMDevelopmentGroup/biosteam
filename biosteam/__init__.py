@@ -6,7 +6,7 @@ Created on Sat Oct 28 17:28:09 2017
 @author: Yoel Rene Cortes-Pena
 """
 
-__all__ = ['units', 'evaluation', 'inspect', 'find', 'compounds', 'Species', 'Stream', 'MixedStream', 'HeatUtility', 'PowerUtility', 'Unit', 'System', 'TEA']
+__all__ = ['units', 'evaluation', 'inspect', 'find', 'compounds']
 
 
 # %% Import base utils

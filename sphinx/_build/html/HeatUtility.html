@@ -79,17 +79,17 @@
 <dt id="biosteam.HeatUtility">
 <em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">HeatUtility</code><span class="sig-paren">(</span><em>efficiency=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_heat_utility.html#HeatUtility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.HeatUtility" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create an HeatUtility object that can choose a utility stream and calculate utility requirements. It can calculate required flow rate, temperature, or phase change of utility. Calculations assume counter current flow rate.</p>
-<dl class="docutils">
-<dt>efficiency <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd>Fraction of heat transfered after accounting for heat loss.</dd>
-</dl>
-<dl class="docutils">
-<dt>cooling_agents <span class="classifier-delimiter">:</span> <span class="classifier">DataFrame</span></dt>
-<dd>All cooling utilities available</dd>
-<dt>heating_agents <span class="classifier-delimiter">:</span> <span class="classifier">DataFrame</span></dt>
-<dd>All heating utilities available</dd>
-</dl>
-<p>Create a heat utility with a source:</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><strong>efficiency:</strong> [float] Fraction of heat transfered after accounting for heat loss.</div></blockquote>
+<p><strong>Class Attributes</strong></p>
+<blockquote>
+<div><p><strong>cooling_agents:</strong> [DataFrame] All cooling utilities available</p>
+<p><strong>heating_agents:</strong> [DataFrame] All heating utilities available</p>
+</div></blockquote>
+<p><strong>Examples</strong></p>
+<blockquote>
+<div><p>Create a heat utility with a source:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hu</span> <span class="o">=</span> <span class="n">HeatUtility</span><span class="p">(</span><span class="s1">&#39;Flash&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">hu</span>
 <span class="go">HeatUtility: None</span>
@@ -115,6 +115,7 @@
 <span class="go"> 0.006741981361808377)</span>
 </pre></div>
 </div>
+</div></blockquote>
 <dl class="attribute">
 <dt id="biosteam.HeatUtility.dT">
 <code class="descname">dT</code><em class="property"> = 5</em><a class="headerlink" href="#biosteam.HeatUtility.dT" title="Permalink to this definition">¶</a></dt>

@@ -16,7 +16,8 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Grid" href="Grid.html" /> 
+    <link rel="next" title="Parameter" href="Parameter.html" />
+    <link rel="prev" title="evaluation" href="evaluation.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
       <h3>Navigation</h3>
@@ -28,7 +29,10 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="Grid.html" title="Grid"
+          <a href="Parameter.html" title="Parameter"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="evaluation.html" title="evaluation"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="evaluation.html" accesskey="U">evaluation</a> &#187;</li> 
@@ -37,8 +41,11 @@
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
   <h4>Previous topic</h4>
-  <p class="topless"><a href="Grid.html"
-                        title="previous chapter">Grid</a></p>
+  <p class="topless"><a href="evaluation.html"
+                        title="previous chapter">evaluation</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="Parameter.html"
+                        title="next chapter">Parameter</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -71,7 +78,7 @@
 <dl class="class">
 <dt id="biosteam.evaluation.Block">
 <em class="property">class </em><code class="descclassname">biosteam.evaluation.</code><code class="descname">Block</code><span class="sig-paren">(</span><em>element</em>, <em>system=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/evaluation/_block.html#Block"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Block" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a Block object that can simulate the element and the system downstream. The block can also generate Parameter object that can update the system state.</p>
+<dd><p>Create a Block object that can simulate the element and the system downstream. The block can also generate Parameter objects that can update the system state.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>element:</strong> [Unit or Stream] Element in the system.</p>
@@ -79,10 +86,10 @@
 </div></blockquote>
 <p><strong>Examples</strong></p>
 <blockquote>
-<div><a class="reference internal" href="Block Example.html"><span class="doc">Block</span></a></div></blockquote>
+<div><span class="xref std std-doc">Block Example</span></div></blockquote>
 <dl class="method">
 <dt id="biosteam.evaluation.Block.parameter">
-<code class="descname">parameter</code><span class="sig-paren">(</span><em>setter</em>, <em>simulate=None</em>, <em>name=None</em><span class="sig-paren">)</span> &#x2192; biosteam.evaluation._parameter.Parameter<a class="reference internal" href="_modules/biosteam/evaluation/_block.html#Block.parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Block.parameter" title="Permalink to this definition">¶</a></dt>
+<code class="descname">parameter</code><span class="sig-paren">(</span><em>setter</em>, <em>simulate=None</em>, <em>name=None</em>, <em>distribution=None</em>, <em>units=None</em><span class="sig-paren">)</span> &#x2192; biosteam.evaluation._parameter.Parameter<a class="reference internal" href="_modules/biosteam/evaluation/_block.html#Block.parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Block.parameter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a Parameter object.</p>
 </dd></dl>
 
@@ -95,7 +102,7 @@
 <dl class="attribute">
 <dt id="biosteam.evaluation.Block.element">
 <code class="descname">element</code><a class="headerlink" href="#biosteam.evaluation.Block.element" title="Permalink to this definition">¶</a></dt>
-<dd><p>Block element that gets checked for changes before simulation.</p>
+<dd><p>Starting element of the system (if any).</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -124,7 +131,10 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="Grid.html" title="Grid"
+          <a href="Parameter.html" title="Parameter"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="evaluation.html" title="evaluation"
              >previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
           <li class="nav-item nav-item-1"><a href="evaluation.html" >evaluation</a> &#187;</li> 

@@ -23,7 +23,7 @@ __all__ = ('Utility', 'Electricity', 'CoolingWater')
 
 class Utility:
     """Abstract class for utilities."""
-    __slots__ = ()
+    __slots__ = _attr2show_ = ()
     ID = 'Utility'
     fuelprice = 12 #: $/GJ
     CEPCI = 567.5 #: Chemical Engineering Plant Cost Index
@@ -44,16 +44,14 @@ class Utility:
         if units: units = ' ' + units
         info =(f"{self.ID}:\n"
              + f" price: {self.price:.2g}{units}")  
-        attr2show = self._attr2show
-        if attr2show:
-            for attr in attr2show:
-                value = getattr(self, attr)
-                units = self.units.get(attr, '')
-                if units:
-                    units = ' ' + units
-                    info += f"\n {attr}: {value:.2g}{units}"
-                else:
-                    info += f"\n {attr}: {value}{units}"
+        for attr in self._attr2show_:
+            value = getattr(self, attr)
+            units = self.units.get(attr, '')
+            if units:
+                units = ' ' + units
+                info += f"\n {attr}: {value:.2g}{units}"
+            else:
+                info += f"\n {attr}: {value}{units}"
         return info
     
     def show(self):
@@ -61,10 +59,8 @@ class Utility:
     
 
 class Electricity(Utility):
-    __slots__ = ('purchased', 'grassroots')
+    __slots__ = _attr2show_ = ('purchased', 'grassroots')
     ID = 'Electricity'
-    _units = 'USD/kWhr'
-    _attr2show = __slots__
     units = {'price': 'USD/kWhr'}
     
     def __init__(self, purchased=True, grassroots=False):
@@ -90,8 +86,8 @@ class Electricity(Utility):
 class CoolingWater(Utility):
     
     __slots__ = ('grassroots', '_flow', '_b')
+    _attr2show_ = ('flow', 'grassroots')
     ID = 'Cooling water'
-    _attr2show = ('flow', 'grassroots')
     units = {'price': 'USD/m^3',
              'flow': 'm^3/s'}
     _flowbounds = (0.01, 10)

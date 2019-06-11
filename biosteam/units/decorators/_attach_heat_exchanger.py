@@ -8,7 +8,7 @@ from .._hx import HXutility as _HXutility
 
 __all__ = ('attach_heat_exchanger',)
 
-def attach_heat_exchanger(cls):    
+def attach_heat_exchanger(cls):
     if cls._N_heat_utilities != 0:
         raise ValueError("number of heat utilities (_N_heat_utilities) must be 0 to attach heat exchanger")
     

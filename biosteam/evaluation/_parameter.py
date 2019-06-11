@@ -8,23 +8,57 @@ __all__ = ('Parameter',)
 from ._name import elementname
 
 class Parameter:
-    __slots__ = ('name', 'setter', 'simulate', 'element', 'system')
+    """Create a Parameter object that, when called, runs the setter and the simulate functions.
     
-    def __init__(self, name, setter, simulate, element, system):
+    **Parameters**
+    
+        **name:** [str] Name of parameter
+        
+        **setter:** [function] Should set the parameter
+        
+        **simulate:** [function] Should simulate parameter effects
+        
+        **element:** [object] Element associated to parameter
+        
+        **system:** [System] System associated to parameter
+        
+        **distribution:** [chaospy Dist] Parameter distribution
+        
+        **units:** [str] Units of parameter
+    
+    """
+    __slots__ = ('name', 'setter', 'simulate', 'element', 'system', 'distribution', 'units')
+    
+    def __init__(self, name, setter, simulate,
+                 element, system, distribution,
+                 units):
         self.name = name.replace('_', ' ').capitalize()
         self.setter = setter
         self.simulate = simulate
         self.element = element
         self.system = system
+        self.distribution = distribution
+        self.units = units
+    
+    def __call__(self, value):
+        self.setter(value)
+        self.simulate()
     
     @property
     def element_name(self):
         return elementname(self.element)
     
     def __repr__(self):
-        if self.element:
-            return f'<{type(self).__name__}: [{self.element_name}] {self.name}>'
-        else:
-            return f'<{type(self).__name__}: {self.name}>'
+        units = f" ({self.units})" if self.units else ""
+        element = f" [{self.element_name}]" if self.element else ""
+        return f'<{type(self).__name__}:{element} {self.name}{units}>'
+    
+    def show(self):
+        print(f'{type(self).__name__}: {self.name}\n'
+           + (f' element: {self.element_name}' if self.element else '')
+           + (f' system: {self.system}\n' if self.system else '')
+           + (f' units: {self.units}\n' if self.units else '')
+           + (f' distribution: {self.distribution}\n' if self.distribution else ''))
+                
     
                

@@ -34,12 +34,13 @@
   <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
 <li><a class="reference internal" href="#">Model</a><ul>
-<li><a class="reference internal" href="#Evaluate-a-metric-around-multiple-parameters-of-a-biorefinery-system">Evaluate a metric around multiple parameters of a biorefinery system</a><ul>
 <li><a class="reference internal" href="#Create-a-model-object">Create a model object</a></li>
-<li><a class="reference internal" href="#Add-multiple-parameters">Add multiple parameters</a></li>
-<li><a class="reference internal" href="#Evaluate-IRR-vs-multiple-parameters">Evaluate IRR vs multiple parameters</a></li>
-</ul>
-</li>
+<li><a class="reference internal" href="#Add-design-parameters">Add design parameters</a></li>
+<li><a class="reference internal" href="#Add-cost-parameters">Add cost parameters</a></li>
+<li><a class="reference internal" href="#Add-isolated-parameters">Add isolated parameters</a></li>
+<li><a class="reference internal" href="#Add-coupled-parameters">Add coupled parameters</a></li>
+<li><a class="reference internal" href="#Evaluate-metric-given-a-sample">Evaluate metric given a sample</a></li>
+<li><a class="reference internal" href="#Evaluate-metric-across-samples">Evaluate metric across samples</a></li>
 </ul>
 </li>
 </ul>
@@ -239,15 +240,15 @@ div.nboutput div.output_area.stderr {
 </style>
 <div class="section" id="Model">
 <h1>Model<a class="headerlink" href="#Model" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="Evaluate-a-metric-around-multiple-parameters-of-a-biorefinery-system">
-<h2>Evaluate a metric around multiple parameters of a biorefinery system<a class="headerlink" href="#Evaluate-a-metric-around-multiple-parameters-of-a-biorefinery-system" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="Create-a-model-object">
-<h3>Create a model object<a class="headerlink" href="#Create-a-model-object" title="Permalink to this headline">¶</a></h3>
-<p>A Model object is used to evaluate a metric that depends on System
-object given</p>
-<div class="nbinput docutils container">
+<h2>Create a model object<a class="headerlink" href="#Create-a-model-object" title="Permalink to this headline">¶</a></h2>
+<p><strong>Model objects are used to evaluate a metric around multiple parameters
+of a system.</strong></p>
+<p>Create a Model object of the lipidcane biorefinery with internal rate of
+return as the metric:</p>
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [2]:
+<span></span>In [1]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -258,28 +259,17 @@ object given</p>
 <span class="n">model</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">evaluation</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="n">system</span><span class="o">=</span><span class="n">lc</span><span class="o">.</span><span class="n">lipidcane_sys</span><span class="p">,</span>
                             <span class="n">metric</span><span class="o">=</span><span class="n">solve_IRR</span><span class="p">,</span>
                             <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;IRR&#39;</span><span class="p">)</span>
-<span class="n">model</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[2]:
-</pre></div>
-</div>
-<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>&lt;Model: IRR&gt;
 </pre></div>
 </div>
 </div>
 <p>The Model object begins with no paramters:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [9]:
+<span></span>In [2]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">model</span><span class="o">.</span><span class="n">show</span><span class="p">()</span> <span class="c1"># Use the show method to view parameters</span>
+<span></span><span class="n">model</span>
 </pre></div>
 </div>
 </div>
@@ -289,38 +279,142 @@ object given</p>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Model: IRR
- Element:  Parameters:
-  None      None
+ (No parameters)
 </pre></div></div>
 </div>
-<p>Calling the model with an empty sample will return the metric value:</p>
-<div class="nbinput docutils container">
+</div>
+<div class="section" id="Add-design-parameters">
+<h2>Add design parameters<a class="headerlink" href="#Add-design-parameters" title="Permalink to this headline">¶</a></h2>
+<p><strong>A design parameter is a Unit attribute that changes design
+requirements but does not affect mass and energy balances.</strong></p>
+<p>Add number of fermentation reactors as a “design” parameter:</p>
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [10]:
+<span></span>In [3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">model</span><span class="p">([])</span> <span class="c1"># Returns IRR</span>
+<span></span><span class="n">U34</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">unit</span><span class="o">.</span><span class="n">U34</span> <span class="c1"># The Fermentation Unit</span>
+<span class="nd">@model</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">element</span><span class="o">=</span><span class="n">U34</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;design&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Number of reactors&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">set_N_reactors</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="n">U34</span><span class="o">.</span><span class="n">N_reactors</span> <span class="o">=</span> <span class="n">N</span>
+</pre></div>
+</div>
+</div>
+<p>The decorator returns a Parameter object and adds it to the model:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">set_N_reactors</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[10]:
+<span></span>Out[4]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>0.19979554624528809
+<span></span>&lt;Parameter: [Fermentation-U34] Number of reactors&gt;
+</pre></div>
+</div>
+</div>
+<p>Calling a Parameter object will update the parameter and results:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">set_N_reactors</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Puchase cost at 5 reactors: </span><span class="si">{U34.purchase_cost}</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">set_N_reactors</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Puchase cost at 8 reactors: </span><span class="si">{U34.purchase_cost}</span><span class="s1">&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Puchase cost at 8 reactors: 2218232.579627459
+Puchase cost at 5 reactors: 2568691.040557923
+</pre></div></div>
+</div>
+</div>
+<div class="section" id="Add-cost-parameters">
+<h2>Add cost parameters<a class="headerlink" href="#Add-cost-parameters" title="Permalink to this headline">¶</a></h2>
+<p><strong>A cost parameter is a Unit attribute that affects cost but does not
+change design requirements.</strong></p>
+<p>Add the fermentation unit base cost as a “cost” parameter:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="nd">@model</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">element</span><span class="o">=</span><span class="n">U34</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;cost&#39;</span><span class="p">)</span> <span class="c1"># Note: name argument not given this time</span>
+<span class="k">def</span> <span class="nf">set_base_cost</span><span class="p">(</span><span class="n">cost</span><span class="p">):</span>
+    <span class="n">U34</span><span class="o">.</span><span class="n">cost_options</span><span class="p">[</span><span class="s1">&#39;Reactors&#39;</span><span class="p">][</span><span class="s1">&#39;Cost (USD)&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cost</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">original</span> <span class="o">=</span> <span class="n">U34</span><span class="o">.</span><span class="n">cost_options</span><span class="p">[</span><span class="s1">&#39;Reactors&#39;</span><span class="p">][</span><span class="s1">&#39;Cost (USD)&#39;</span><span class="p">]</span>
+<span class="n">set_base_cost</span><span class="p">(</span><span class="mf">10e6</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Purchase cost at 10 million USD: </span><span class="si">{U34.purchase_cost}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="n">set_base_cost</span><span class="p">(</span><span class="mf">844e3</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Purchase cost at 844,000 USD: </span><span class="si">{U34.purchase_cost}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Purchase cost at 10 million USD: 26508651.829945903
+Purchase cost at 844,000 USD: 2568691.040557923
+</pre></div></div>
+</div>
+<p>If the name was not defined, it defaults to the setter’s signature:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">set_base_cost</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[8]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>&lt;Parameter: [Fermentation-U34] Cost&gt;
 </pre></div>
 </div>
 </div>
 </div>
-<div class="section" id="Add-multiple-parameters">
-<h3>Add multiple parameters<a class="headerlink" href="#Add-multiple-parameters" title="Permalink to this headline">¶</a></h3>
-<p>An isolated par Add feedstock price as a “isolated” parameter:</p>
-<div class="nbinput docutils container">
+<div class="section" id="Add-isolated-parameters">
+<h2>Add isolated parameters<a class="headerlink" href="#Add-isolated-parameters" title="Permalink to this headline">¶</a></h2>
+<p><strong>An isolated parameter should not affect Unit objects in any way.</strong></p>
+<p>Add feedstock price as a “isolated” parameter:</p>
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [13]:
+<span></span>In [9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -328,7 +422,72 @@ Model: IRR
 <span class="nd">@model</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">element</span><span class="o">=</span><span class="n">Lipid_cane</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;isolated&#39;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">set_feed_price</span><span class="p">(</span><span class="n">feedstock_price</span><span class="p">):</span>
     <span class="n">Lipid_cane</span><span class="o">.</span><span class="n">price</span> <span class="o">=</span> <span class="n">feedstock_price</span>
-<span class="n">model</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Add-coupled-parameters">
+<h2>Add coupled parameters<a class="headerlink" href="#Add-coupled-parameters" title="Permalink to this headline">¶</a></h2>
+<p><strong>A coupled parameter affects mass and energy balances of the system.</strong></p>
+<p>Add lipid fraction as a “coupled” parameter:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">set_lipid_fraction</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">lc</span><span class="o">.</span><span class="n">set_lipid_fraction</span><span class="p">,</span> <span class="n">element</span><span class="o">=</span><span class="n">Lipid_cane</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;coupled&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">set_lipid_fraction</span><span class="p">(</span><span class="mf">0.10</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;IRR at 10</span><span class="si">% li</span><span class="s1">pid: {solve_IRR()}&#39;</span><span class="p">)</span>
+<span class="n">set_lipid_fraction</span><span class="p">(</span><span class="mf">0.05</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;IRR at 5</span><span class="si">% li</span><span class="s1">pid: {solve_IRR()}&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+IRR at 10% lipid: 0.21269826171851816
+IRR at 5% lipid: 0.15987920394748434
+</pre></div></div>
+</div>
+<p>Add fermentation efficiency as a “coupled” parameter:</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="nd">@model</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">element</span><span class="o">=</span><span class="n">U34</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;coupled&#39;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">set_fermentation_efficiency</span><span class="p">(</span><span class="n">efficiency</span><span class="p">):</span>
+    <span class="n">U34</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">efficiency</span><span class="o">=</span><span class="n">efficiency</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Evaluate-metric-given-a-sample">
+<h2>Evaluate metric given a sample<a class="headerlink" href="#Evaluate-metric-given-a-sample" title="Permalink to this headline">¶</a></h2>
+<p><strong>The model can be called to evaluate a sample of parameters.</strong></p>
+<p>All parameters are stored in the model with highly coupled parameters
+first:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">model</span>
 </pre></div>
 </div>
 </div>
@@ -339,78 +498,82 @@ Model: IRR
 <div class="highlight"><pre>
 Model: IRR
  Element:           Parameter:
+  Stream-Lipid cane  Lipid fraction
+  Fermentation-U34   Efficiency
+                     Number of reactors
+                     Cost
   Stream-Lipid cane  Feedstock price
 </pre></div></div>
 </div>
-<p>Note that the signature of the <code class="docutils literal notranslate"><span class="pre">setter</span></code> is used to name the parameter
-by default.</p>
-<p>Add lipid fraction as a parameter:</p>
+<p>Get all parameters as ordered in the model:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [4]:
+<span></span>In [14]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">grid</span><span class="o">.</span><span class="n">addparam</span><span class="p">(</span><span class="n">Lipid_cane</span><span class="p">,</span> <span class="n">lc</span><span class="o">.</span><span class="n">set_lipid_fraction</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.02</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.10</span><span class="p">])</span>
-<span class="n">grid</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span></span><span class="n">model</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[14]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Grid: IRR
- element            parameter
- Stream-Lipid cane  feedstock price
-                    lipid fraction
-</pre></div></div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>(&lt;Parameter: [Stream-Lipid cane] Lipid fraction&gt;,
+ &lt;Parameter: [Fermentation-U34] Efficiency&gt;,
+ &lt;Parameter: [Fermentation-U34] Number of reactors&gt;,
+ &lt;Parameter: [Fermentation-U34] Cost&gt;,
+ &lt;Parameter: [Stream-Lipid cane] Feedstock price&gt;)
+</pre></div>
 </div>
-<p>Add fermentation efficiency as a parameter:</p>
+</div>
+<p>Evaluate sample:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [5]:
+<span></span>In [15]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">U34</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;U34&#39;</span><span class="p">)</span>
-<span class="k">def</span> <span class="nf">set_efficiency</span><span class="p">(</span><span class="n">fermentation_efficiency</span><span class="p">):</span> <span class="n">U34</span><span class="o">.</span><span class="n">reset</span><span class="p">(</span><span class="n">efficiency</span><span class="o">=</span><span class="n">fermentation_efficiency</span><span class="p">)</span>
-<span class="n">grid</span><span class="o">.</span><span class="n">addparam</span><span class="p">(</span><span class="n">U34</span><span class="p">,</span> <span class="n">set_efficiency</span><span class="p">,</span> <span class="p">[</span><span class="mf">0.85</span><span class="p">,</span> <span class="mf">0.90</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">])</span>
-<span class="n">grid</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span></span><span class="n">model</span><span class="p">([</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.85</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">100000</span><span class="p">,</span> <span class="mf">0.040</span><span class="p">])</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[15]:
+</pre></div>
 </div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-Grid: IRR
- element            parameter
- Stream-Lipid cane  feedstock price
-                    lipid fraction
- Fermentation-U34   fermentation efficiency
-</pre></div></div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>0.1147064444782939
+</pre></div>
 </div>
 </div>
-<div class="section" id="Evaluate-IRR-vs-multiple-parameters">
-<h3>Evaluate IRR vs multiple parameters<a class="headerlink" href="#Evaluate-IRR-vs-multiple-parameters" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="Evaluate-metric-across-samples">
+<h2>Evaluate metric across samples<a class="headerlink" href="#Evaluate-metric-across-samples" title="Permalink to this headline">¶</a></h2>
 <p>Evaluate at give parameter values:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [6]:
+<span></span>In [16]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">grid</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
-<span class="n">grid</span><span class="o">.</span><span class="n">table</span>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="n">samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.85</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">100000</span><span class="p">,</span> <span class="mf">0.040</span><span class="p">),</span>
+                    <span class="p">(</span><span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.90</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">100000</span><span class="p">,</span> <span class="mf">0.040</span><span class="p">),</span>
+                    <span class="p">(</span><span class="mf">0.09</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">100000</span><span class="p">,</span> <span class="mf">0.042</span><span class="p">)])</span>
+<span class="n">model</span><span class="o">.</span><span class="n">load_samples</span><span class="p">(</span><span class="n">samples</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">evaluate</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">table</span> <span class="c1"># All evaluations are stored as a pandas DataFrame</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[6]:
+<span></span>Out[16]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -433,297 +596,55 @@ Grid: IRR
     <tr>
       <th>Element</th>
       <th>Stream-Lipid cane</th>
-      <th>Reactor-U34</th>
+      <th colspan="3" halign="left">Fermentation-U34</th>
       <th>Stream-Lipid cane</th>
       <th>IRR</th>
     </tr>
     <tr>
       <th>Parameter</th>
-      <th>Feedstock price</th>
-      <th>Fermentation efficiency</th>
       <th>Lipid fraction</th>
+      <th>Efficiency</th>
+      <th>Number of reactors</th>
+      <th>Cost</th>
+      <th>Feedstock price</th>
       <th></th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <th>0</th>
-      <td>0.03</td>
-      <td>0.85</td>
-      <td>0.02</td>
-      <td>0.0981</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>0.035</td>
-      <td>0.9</td>
       <td>0.05</td>
-      <td>0.129</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>0.04</td>
-      <td>0.95</td>
-      <td>0.1</td>
-      <td>0.169</td>
-    </tr>
-  </tbody>
-</table>
-</div></div>
-</div>
-<p>Note that isolated parameters are on the left most columns, while that
-System parameters are ordered from downstream to upstream (e.g.
-&lt;Fermentation: U34&gt; is downstream from &lt;Stream: Lipid cane&gt;).</p>
-<p>Evaluate at the cartesian product of parameter values:</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [7]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">grid</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="s1">&#39;cartesian&#39;</span>
-<span class="n">grid</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
-<span class="n">grid</span><span class="o">.</span><span class="n">table</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[7]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead tr th {
-        text-align: left;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr>
-      <th>Element</th>
-      <th>Stream-Lipid cane</th>
-      <th>Reactor-U34</th>
-      <th>Stream-Lipid cane</th>
-      <th>IRR</th>
-    </tr>
-    <tr>
-      <th>Parameter</th>
-      <th>Feedstock price</th>
-      <th>Fermentation efficiency</th>
-      <th>Lipid fraction</th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>0.03</td>
       <td>0.85</td>
-      <td>0.02</td>
-      <td>0.0981</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>0.035</td>
-      <td>0.85</td>
-      <td>0.02</td>
-      <td>0.0568</td>
-    </tr>
-    <tr>
-      <th>2</th>
+      <td>8</td>
+      <td>1e+05</td>
       <td>0.04</td>
-      <td>0.85</td>
-      <td>0.02</td>
-      <td>0.00514</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>0.04</td>
-      <td>0.9</td>
-      <td>0.02</td>
-      <td>0.0312</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>0.035</td>
-      <td>0.9</td>
-      <td>0.02</td>
-      <td>0.0768</td>
-    </tr>
-    <tr>
-      <th>5</th>
-      <td>0.03</td>
-      <td>0.9</td>
-      <td>0.02</td>
       <td>0.115</td>
     </tr>
     <tr>
-      <th>6</th>
-      <td>0.03</td>
-      <td>0.95</td>
-      <td>0.02</td>
+      <th>1</th>
+      <td>0.05</td>
+      <td>0.9</td>
+      <td>7</td>
+      <td>1e+05</td>
+      <td>0.04</td>
       <td>0.131</td>
     </tr>
     <tr>
-      <th>7</th>
-      <td>0.035</td>
+      <th>2</th>
+      <td>0.09</td>
       <td>0.95</td>
-      <td>0.02</td>
-      <td>0.0951</td>
-    </tr>
-    <tr>
-      <th>8</th>
-      <td>0.04</td>
-      <td>0.95</td>
-      <td>0.02</td>
-      <td>0.0536</td>
-    </tr>
-    <tr>
-      <th>9</th>
-      <td>0.04</td>
-      <td>0.95</td>
-      <td>0.05</td>
-      <td>0.108</td>
-    </tr>
-    <tr>
-      <th>10</th>
-      <td>0.035</td>
-      <td>0.95</td>
-      <td>0.05</td>
-      <td>0.142</td>
-    </tr>
-    <tr>
-      <th>11</th>
-      <td>0.03</td>
-      <td>0.95</td>
-      <td>0.05</td>
-      <td>0.173</td>
-    </tr>
-    <tr>
-      <th>12</th>
-      <td>0.03</td>
-      <td>0.9</td>
-      <td>0.05</td>
-      <td>0.161</td>
-    </tr>
-    <tr>
-      <th>13</th>
-      <td>0.035</td>
-      <td>0.9</td>
-      <td>0.05</td>
-      <td>0.129</td>
-    </tr>
-    <tr>
-      <th>14</th>
-      <td>0.04</td>
-      <td>0.9</td>
-      <td>0.05</td>
-      <td>0.0929</td>
-    </tr>
-    <tr>
-      <th>15</th>
-      <td>0.04</td>
-      <td>0.85</td>
-      <td>0.05</td>
-      <td>0.0775</td>
-    </tr>
-    <tr>
-      <th>16</th>
-      <td>0.035</td>
-      <td>0.85</td>
-      <td>0.05</td>
-      <td>0.115</td>
-    </tr>
-    <tr>
-      <th>17</th>
-      <td>0.03</td>
-      <td>0.85</td>
-      <td>0.05</td>
-      <td>0.149</td>
-    </tr>
-    <tr>
-      <th>18</th>
-      <td>0.03</td>
-      <td>0.85</td>
-      <td>0.1</td>
-      <td>0.211</td>
-    </tr>
-    <tr>
-      <th>19</th>
-      <td>0.035</td>
-      <td>0.85</td>
-      <td>0.1</td>
-      <td>0.183</td>
-    </tr>
-    <tr>
-      <th>20</th>
-      <td>0.04</td>
-      <td>0.85</td>
-      <td>0.1</td>
-      <td>0.153</td>
-    </tr>
-    <tr>
-      <th>21</th>
-      <td>0.04</td>
-      <td>0.9</td>
-      <td>0.1</td>
-      <td>0.161</td>
-    </tr>
-    <tr>
-      <th>22</th>
-      <td>0.035</td>
-      <td>0.9</td>
-      <td>0.1</td>
-      <td>0.191</td>
-    </tr>
-    <tr>
-      <th>23</th>
-      <td>0.03</td>
-      <td>0.9</td>
-      <td>0.1</td>
-      <td>0.219</td>
-    </tr>
-    <tr>
-      <th>24</th>
-      <td>0.03</td>
-      <td>0.95</td>
-      <td>0.1</td>
-      <td>0.226</td>
-    </tr>
-    <tr>
-      <th>25</th>
-      <td>0.035</td>
-      <td>0.95</td>
-      <td>0.1</td>
-      <td>0.198</td>
-    </tr>
-    <tr>
-      <th>26</th>
-      <td>0.04</td>
-      <td>0.95</td>
-      <td>0.1</td>
-      <td>0.169</td>
+      <td>8</td>
+      <td>1e+05</td>
+      <td>0.042</td>
+      <td>0.178</td>
     </tr>
   </tbody>
 </table>
 </div></div>
 </div>
-<p>The arguments are ordered to reduce computation time and convergence
-efficiency. A disturbance in upstream parameters takes longer to
-converge than a disturbance in downstream parameters. Note that upstream
-parameters (e.g. Lipid fraction) change minimally compared to downstream
-parameters (e.g. Fermentation efficiency).</p>
-</div>
+<p>Note that coupled parameters are on the left most columns, and are
+ordered from upstream to downstream (e.g. &lt;Stream: Lipid cane&gt; is
+upstream from &lt;Fermentation: U34&gt;)</p>
 </div>
 </div>
 

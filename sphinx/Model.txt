@@ -1,0 +1,9 @@
+Model
+=====
+
+.. module:: biosteam.evaluation
+
+.. autoclass:: Model
+   :inherited-members: State
+   :special-members: __call__
+   :members:

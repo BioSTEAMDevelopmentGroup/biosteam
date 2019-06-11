@@ -5,28 +5,16 @@ Created on Thu Aug 23 15:53:14 2018
 @author: yoelr
 """
 import numpy as np
-from .. import Unit
+from .._unit import Unit, metaUnit
 from fluids.pump import nema_sizes_hp
-from .designtools.vacuum import _calc_MotorEfficiency, _calc_BreakEfficiency
+from .designtools._vacuum import _calc_MotorEfficiency, _calc_BreakEfficiency
 
 ln = np.log
 exp = np.exp
 
+# %% Data
+
 max_hp = nema_sizes_hp[-1]
-
-# Ranges of flow rate (m3/hr) and working pressure where pumps work/
-# Assume lower minimum flow rate and pressure for costing in Centrifugal single and Regenerative
-pump_ranges = {'CentrifugalSingle': ((0.0000, 2271  ), (      0, 689500  )), 
-               'CentrifugalDouble': ((0.2271, 2271  ), (      0, 6895000 )),
-               'Gear':              ((0.2271, 681.3 ), (  68950, 13790000)),
-               'MeteringPlunger':   ((0.2271, 6.813 ), (  68950, 20685000)),
-               'Screw':             ((0.2271, 13.626), (  68950, 5516000 )),
-               'MeteringDiaphragm': ((0.2271, 1.1355), (  68950, 5516000 )),
-               'DirectactingSteam': ((0.2271, 454.2 ), (  68950, 13790000)),
-               'AxialFlow':         (( 227.1, 2271  ), (  68950, 137900  ))}
-
-# Regenerative pump (Cost not yet implemented)
-regenerative_ranges = ((0.0100, 34.065), (1379000, 6895000 )) 
 
 # Material factors
 F_Mdict = {'Cast iron':       1,
@@ -52,11 +40,37 @@ F_Tcentrifugal = {'VSC3600':   1,
                   '2HSC3600':  2.7,
                   '2+HSC3600': 8.9}
 
-# Pump types
-Types = ('CentrifugalSingle', 'CentrifugalDouble', 'Gear', 'MeteringPlunger', 'Default')
+# %% Pump selection
 
-# TODO: Fix selection of pump, working ranges, and F_T factors!
-class Pump(Unit):
+# Pump types
+Types = ('CentrifugalSingle', 'CentrifugalDouble', 'Gear')
+
+
+def calc_NPSH(P_suction, P_vapor, rho_liq):
+    """Return NPSH in ft given suction and vapor pressure in Pa and density in kg/m^3."""
+    # Note: NPSH = (P_suction - P_vapor)/(rho_liq*gravity)
+    # Taking into account units, NPSH will be equal to return value
+    return 0.334438*(P_suction - P_vapor)/rho_liq
+    
+
+# %% Classes
+
+class metaPump(metaUnit):
+    @property
+    def material(cls):
+        """Pump material"""
+        return Pump._material
+    @material.setter    
+    def material(cls, material):
+        try:
+            Pump._F_M = F_Mdict[material]
+        except KeyError:
+            dummy = str(F_Mdict.keys())[11:-2]
+            raise ValueError(f"material must be one of the following: {dummy}")
+        Pump._F_Mstr = material   
+
+# TODO: Fix pump selection to include NPSH available and required.
+class Pump(Unit, metaclass=metaPump):
     """Create a pump that sets the pressure of the 0th output stream.
 
     **Parameters**
@@ -77,12 +91,13 @@ class Pump(Unit):
     
     **References**
     
-        .. [0] Seider, Warren D., et al. (2017). "Cost Accounting and Capital Cost Estimation". In Product and Process Design Principles: Synthesis, Analysis, and Evaluation (pp. 450-455). New York: Wiley.
+        [0] Seider, Warren D., et al. (2017). "Cost Accounting and Capital Cost Estimation". In Product and Process Design Principles: Synthesis, Analysis, and Evaluation (pp. 450-455). New York: Wiley.
     
     """
     _units = {'Ideal power': 'hp',
               'Power': 'hp',
               'Head': 'ft',
+              'NPSH': 'ft',
               'Flow rate': 'gpm'}
     _N_ins = 1
     _N_outs = 1
@@ -103,6 +118,9 @@ class Pump(Unit):
     
     #: Pressure for costing purposes (Pa).
     P_startup = 405300 
+    
+    #: [bool] Ignore minimum NPSH requirement if True.
+    ignore_NPSH = True
 
     @property
     def Type(self):
@@ -119,7 +137,6 @@ class Pump(Unit):
     def material(self):
         """Pump material"""
         return self._material
-    
     @material.setter    
     def material(self, material):
         try:
@@ -144,27 +161,52 @@ class Pump(Unit):
         Po = so.P
         Qi = si.volnet
         mass = si.massnet
+        nu = si.nu
         
-        # Get type
-        Type = self.Type
-        if Type == 'Default':
-            Type = self._default_type(Pi, Po, Qi)
-        Design['Type'] = Type
-        
-        # Get ideal power
-        if abs(Po - Pi) < 1:    
-            Po = self.P_startup
+        if abs(Po - Pi) < 1: Po = self.P_startup
         Design['Ideal power'] = power_ideal = Qi*(Po - Pi)*3.725e-7 # hp
         Design['Flow rate'] = q = Qi*4.403 # gpm
         if power_ideal <= max_hp:
             Design['Efficiency'] = e = self._calc_Efficiency(q, power_ideal)
-            Design['Power'] = power =  self._nearest_PumpPower(power_ideal/e)
+            Design['Actual power'] = power = power_ideal/e
+            Design['Pump power'] = self._nearest_PumpPower(power)
             Design['N'] = 1
-            Design['Head'] = power/mass*897806 # (ft) note that: 897806 = (1/gravity * unit_conversion_factor)
+            Design['Head'] = head = power/mass*897806 # ft
+            # Note that:
+            # head = power / (mass * gravity)
+            # head [ft] = power[hp]/mass[kg/hr]/9.81[m/s^2] * conversion_factor
+            # and 897806 = (conversion_factor/9.81)
         else:
-            raise Exception('more than 1 pump required, but not yet implemented')
+            raise NotImplementedError('more than 1 pump required, but not yet implemented')
         
-        self._power_utility(power/1.341)
+        if self.ignore_NPSH:
+            NPSH_satisfied = True
+        else:
+            Design['NPSH'] = NPSH = calc_NPSH(Pi, si.P_vapor, si.rho)
+            NPSH_satisfied = NPSH > 1.52
+        
+        # Get type
+        Type = self.Type
+        if Type == 'Default':
+            if (0.00278 < q < 5000
+                and 15.24 < head < 3200
+                and nu < 0.00001
+                and NPSH_satisfied):
+                Type = 'Centrifugal'
+            elif (q < 1500
+                  and head < 914.4
+                  and 0.00001 < nu < 0.252):
+                Type = 'Gear'
+            elif (head < 20000
+                  and q < 500
+                  and power < 200
+                  and nu < 0.01):
+                Type = 'MeteringPlunger'
+            else:
+                raise NotImplementedError(f'no pump type available at current power ({power:.3g} hp), flow rate ({q:.3g} gpm), and head ({head:.3g} ft), kinematic viscosity ({nu:.3g} m2/s), and NPSH ({NPSH:.3g} ft)')
+                
+        Design['Type'] = Type
+        self._power_utility(power/1.341) # Set power in kW
     
     def _cost(self):
         # Parameters
@@ -174,32 +216,36 @@ class Pump(Unit):
         Type = Design['Type']
         q = Design['Flow rate']
         h = Design['Head']
-        p = Design['Power']
+        p = Design['Pump power']
         F_M = self._F_M
         I = self.CEPCI/567
         lnp = ln(p)
+        
+        # TODO: Add cost equation for small pumps
+        # Head and flow rate is too small, so make conservative estimate on cost
+        if q < 50: q = 50
+        if h < 50: h = 50
         
         # Cost pump
         if 'Centrifugal' in Type:
             # Find pump factor
             F_Tdict = F_Tcentrifugal
             F_T = 1 # Assumption
-            if Type == 'CentrifugalSingle':
-                if 50 <= q <= 900 and 50 <= h <= 400:
-                    F_T = F_Tdict['VSC3600']
-                elif 50 <= q <= 3500 and 50 <= h <= 2000:
-                    F_T = F_Tdict['VSC1800']
-                elif 100 <= q <= 1500 and 100 <= h <= 450:
-                    F_T = F_Tdict['HSC3600']
-                elif 250 <= q <= 5000 and 50 <= h <= 500:
-                    F_T = F_Tdict['HSC1800']
-            elif Type == 'CentrifugalDouble':
-                if 50 <= q <= 1100 and 300 <= h <= 1100:
-                    F_T = F_Tdict['2HSC3600']
-                elif 100 <= q <= 1500 and 650 <= h <= 3200:
-                    F_T = F_Tdict['2+HSC3600']
-            # Calculate cost
-            S = q*h**0.5
+            if p < 75 and 50 <= q <= 900 and 50 <= h <= 400:
+                F_T = F_Tdict['VSC3600']
+            elif p < 200 and 50 <= q <= 3500 and 50 <= h <= 2000:
+                F_T = F_Tdict['VSC1800']
+            elif p < 150 and 100 <= q <= 1500 and 100 <= h <= 450:
+                F_T = F_Tdict['HSC3600']
+            elif p < 250 and 250 <= q <= 5000 and 50 <= h <= 500:
+                F_T = F_Tdict['HSC1800']
+            elif p < 250 and 50 <= q <= 1100 and 300 <= h <= 1100:
+                F_T = F_Tdict['2HSC3600']
+            elif p < 1450 and 100 <= q <= 1500 and 650 <= h <= 3200:
+                F_T = F_Tdict['2+HSC3600']
+            else:
+                raise NotImplementedError(f'no centrifugal pump available at current power ({p:.3g} hp), flow rate ({q:.3g} gpm), and head ({h:.3g} ft)')
+            S = q*h**0.5 # Size factor
             S_new = S if S > 400 else 400
             lnS = ln(S_new)
             Cb = exp(12.1656-1.1448*lnS+0.0862*lnS**2)
@@ -220,48 +266,7 @@ class Pump(Unit):
         lnp3 = lnp2*lnp
         lnp4 = lnp3*lnp
         Cost['Motor'] = exp(5.9332 + 0.16829*lnp - 0.110056*lnp2 + 0.071413*lnp3 - 0.0063788*lnp4)*I
-        return Cost
-    
-    @classmethod
-    def _default_type(cls, Pi, Po, Qi):
-        """Return default selection of pump type."""
-        if Pi <= Po:
-            for key, ranges in pump_ranges.items():
-                flow_range, pressure_range = ranges
-                flow_min, flow_max = flow_range
-                pressure_min, pressure_max = pressure_range
-                if flow_min <  Qi < flow_max and pressure_min < Pi and pressure_max > Po:
-                    return key
-        elif Pi > Po:
-            flow_range, pressure_range = regenerative_ranges
-            flow_min, flow_max = flow_range
-            pressure_min, pressure_max = pressure_range
-            if flow_min <  Qi < flow_max and pressure_min < Pi and pressure_max > Po:
-                return 'Regenerative'
-        raise Exception(f'no valid pump option for pressure, {Pi} Pa, and flow rate, {Qi} m3/hr')
-    
-    @staticmethod
-    def _available_PumpTypes(Pi, Po, Qi):
-        """Return tuple of available pump types.
-        
-        **Parameters**
-        
-            Pi: [Stream] Input pressure (Pa)
-            
-            Po: [Stream] Output pressure (Pa)
-            
-            Qi: [Stream] Input flow rate (m^3/hr)
-            
-        """
-        # Check which pumps work for flow rates
-        pumps = [] # Pumps that work
-        for key, ranges in pump_ranges.items():
-            flow_range, pressure_range = ranges
-            flow_min, flow_max = flow_range
-            pressure_min, pressure_max = pressure_range
-            if flow_min <  Qi < flow_max and pressure_min < Pi and pressure_max > Po:
-                pumps.append(key)
-        return pumps
+        return Cost    
     
     @staticmethod
     def _calc_PowerFlow(Qi, Qo, Dpipe, mass=None):
@@ -292,8 +297,7 @@ class Pump(Unit):
     @staticmethod
     def _nearest_PumpPower(p:'hp'):
         for power in nema_sizes_hp:
-            if power >= p:
-                return power
+            if power >= p: return power
         return power
         
     @staticmethod

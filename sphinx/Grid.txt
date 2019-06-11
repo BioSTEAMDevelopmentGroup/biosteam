@@ -1,7 +1,0 @@
-Grid
-====
-
-.. module:: biosteam.evaluation
-
-.. autoclass:: Grid
-   :members:

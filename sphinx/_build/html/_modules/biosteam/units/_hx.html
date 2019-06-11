@@ -59,6 +59,7 @@
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">.._unit</span> <span class="k">import</span> <span class="n">metaUnit</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">MixedStream</span>
 <span class="kn">from</span> <span class="nn">fluids</span> <span class="k">import</span> <span class="n">nearest_pipe</span>
 <span class="kn">import</span> <span class="nn">ht</span>
@@ -97,7 +98,22 @@
             <span class="k">lambda</span> <span class="n">A</span><span class="p">,</span> <span class="n">CE</span><span class="p">:</span> <span class="n">exp</span><span class="p">(</span> <span class="mf">7.2718</span> <span class="o">+</span> <span class="mf">0.16</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">))</span><span class="o">*</span><span class="n">CE</span><span class="o">/</span><span class="mi">567</span><span class="p">}</span>
 
 
-<span class="k">class</span> <span class="nc">HX</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">metaHX</span><span class="p">(</span><span class="n">metaUnit</span><span class="p">):</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">material</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Default &#39;Carbon steel/carbon steel&#39;&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">HX</span><span class="o">.</span><span class="n">_F_Mstr</span>
+    <span class="nd">@material</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">material</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">HX</span><span class="o">.</span><span class="n">_F_Mab</span> <span class="o">=</span> <span class="n">F_Mdict</span><span class="p">[</span><span class="n">material</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="n">dummy</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">F_Mdict</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">11</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;material must be one of the following: </span><span class="si">{dummy}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">HX</span><span class="o">.</span><span class="n">_F_Mstr</span> <span class="o">=</span> <span class="n">material</span>  
+        
+        
+<span class="k">class</span> <span class="nc">HX</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">metaHX</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Abstract class for counter current heat exchanger.</span>
 
 <span class="sd">    **Parameters**</span>
@@ -270,7 +286,9 @@
         <span class="k">return</span> <span class="n">s_tube</span><span class="p">,</span> <span class="n">s_shell</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_concentric_tubes</span><span class="p">(</span><span class="n">s_tube</span><span class="p">,</span> <span class="n">s_shell</span><span class="p">,</span> <span class="n">Re_i</span><span class="p">,</span> <span class="n">Re_o</span><span class="p">,</span> <span class="n">inside_heating</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;U (kW/m2/K)&#39;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_concentric_tubes</span><span class="p">(</span><span class="n">s_tube</span><span class="p">,</span> <span class="n">s_shell</span><span class="p">,</span> <span class="n">Re_i</span><span class="p">,</span> <span class="n">Re_o</span><span class="p">,</span> <span class="n">inside_heating</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return overall heat transfer coefficient in kW/m2/K for concentric tubes.&quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
         <span class="c1"># Get the h value for calculating U </span>
         <span class="c1"># Need: fluid properties, which are calculated at mean temperature between inlet and outlet both tube and shell side</span>
         
@@ -423,6 +441,7 @@
             <span class="c1"># Look up tabulated values</span>
             <span class="n">U</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_U_table</span><span class="p">(</span><span class="n">ci</span><span class="p">,</span> <span class="n">hi</span><span class="p">,</span> <span class="n">co</span><span class="p">,</span> <span class="n">ho</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">U</span> <span class="o">==</span> <span class="s1">&#39;Concentric tubes&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;&#39;Concentric tubes&#39; not yet implemented&quot;</span><span class="p">)</span>
             <span class="n">Re_i</span> <span class="o">=</span> <span class="mi">30000</span> <span class="c1"># Arbitrary, but turbulent ??</span>
             <span class="n">Re_o</span> <span class="o">=</span> <span class="mi">30000</span> <span class="c1"># Arbitrary, but turbulent ??</span>
             <span class="n">s_tube</span><span class="p">,</span> <span class="n">s_shell</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shellntube_streams</span><span class="p">(</span><span class="n">ci</span><span class="p">,</span> <span class="n">hi</span><span class="p">,</span> <span class="n">co</span><span class="p">,</span> <span class="n">ho</span><span class="p">,</span> <span class="n">inside_heating</span><span class="p">)</span>
@@ -446,7 +465,6 @@
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Shell side pressure drop&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Dp_s</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Operating pressure&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">P</span><span class="o">*</span><span class="mf">14.7</span><span class="o">/</span><span class="mi">101325</span> <span class="c1"># psi</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Total tube length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">L</span>
-        <span class="k">return</span> <span class="n">Design</span>
 
     <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
@@ -483,7 +501,7 @@
         <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">F_p</span> <span class="o">*</span> <span class="n">F_l</span> <span class="o">*</span> <span class="n">F_m</span> <span class="o">*</span> <span class="n">C_b</span>
 
 
-<div class="viewcode-block" id="HXutility"><a class="viewcode-back" href="../../../HXutility.html#biosteam.units.HXutility">[docs]</a><span class="k">class</span> <span class="nc">HXutility</span><span class="p">(</span><span class="n">HX</span><span class="p">):</span>
+<div class="viewcode-block" id="HXutility"><a class="viewcode-back" href="../../../units.html#biosteam.units.HXutility">[docs]</a><span class="k">class</span> <span class="nc">HXutility</span><span class="p">(</span><span class="n">HX</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a heat exchanger that changes temperature of the output stream using a heat utility.</span>
 
 <span class="sd">    **Parameters**</span>
@@ -579,7 +597,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">duty</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="HXprocess"><a class="viewcode-back" href="../../../HXprocess.html#biosteam.units.HXprocess">[docs]</a><span class="k">class</span> <span class="nc">HXprocess</span><span class="p">(</span><span class="n">HX</span><span class="p">):</span>
+<div class="viewcode-block" id="HXprocess"><a class="viewcode-back" href="../../../units.html#biosteam.units.HXprocess">[docs]</a><span class="k">class</span> <span class="nc">HXprocess</span><span class="p">(</span><span class="n">HX</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Counter current heat exchanger for process fluids. Condenses/boils latent fluid until sensible fluid reaches pinch temperature.</span>
 <span class="sd">    </span>
 <span class="sd">    **Parameters**</span>

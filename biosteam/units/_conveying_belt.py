@@ -10,8 +10,8 @@ import numpy as np
 
 @cost('Flow rate', N='N', CE=567, cost=813, exp=0.38)
 class ConveyingBelt(Unit):
-    length = 50 #: ft
-    height = 30 #: ft
+    length = 40 #: ft
+    height = 20 #: ft
     _N_outs = 1
     _has_power_utility = True
     _linkedstreams = True
@@ -25,9 +25,8 @@ class ConveyingBelt(Unit):
         volnet = feed.volnet*35.315 # ft3/hr
         Design['N'] = N = np.ceil(volnet/volbounds[-1])
         Design['Flow rate'] = volnet/N
-        massnet = feed.massnet*0.0006124/N #lb/s
-        power = N * 0.00058*massnet**0.82*self.length + self.height*0.00182*massnet# hp
-        power *= 0.7457 # kW
-        self._power_utility(power)
+        massnet = feed.massnet*0.0006124 #lb/s
+        self._power_utility(0.00058*massnet**0.82*self.length + self.height*0.00182*massnet * 0.7457) # kW
+        
         
 

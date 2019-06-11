@@ -1,0 +1,155 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>find &#8212; BioSTEAM 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="compounds" href="compounds.html" />
+    <link rel="prev" title="TEA" href="TEA.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="compounds.html" title="compounds"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="TEA.html" title="TEA"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="TEA.html"
+                        title="previous chapter">TEA</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="compounds.html"
+                        title="next chapter">compounds</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/Flowsheet.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="find">
+<h1>find<a class="headerlink" href="#find" title="Permalink to this headline">¶</a></h1>
+<p>As BioSTEAM objects are created, they are automatically registered. The <cite>find</cite> object allows the user to find any Unit, Stream or System instance.  When <cite>find</cite> is called, it simply looks up the item and returns it.</p>
+<p><a class="reference internal" href="Find unit operations and manage flowsheets.html"><span class="doc">Find unit operations and manage flowsheets</span></a></p>
+<span class="target" id="module-biosteam"></span><dl class="class">
+<dt id="biosteam.Flowsheet">
+<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Flowsheet</code><span class="sig-paren">(</span><em>ID</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_flowsheet.html#Flowsheet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Flowsheet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a Flowsheet object which stores references to all stream, unit, and system objects.</p>
+<dl class="attribute">
+<dt id="biosteam.Flowsheet.flowsheet">
+<code class="descname">flowsheet</code><em class="property"> = Register:  &lt;Flowsheet: Default&gt;</em><a class="headerlink" href="#biosteam.Flowsheet.flowsheet" title="Permalink to this definition">¶</a></dt>
+<dd><p>[Register] All flowsheets.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Flowsheet.system">
+<code class="descname">system</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.Flowsheet.system" title="Permalink to this definition">¶</a></dt>
+<dd><p>[Register] Contains all System objects as attributes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Flowsheet.unit">
+<code class="descname">unit</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.Flowsheet.unit" title="Permalink to this definition">¶</a></dt>
+<dd><p>[Register] Contains all Unit objects as attributes.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Flowsheet.stream">
+<code class="descname">stream</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.Flowsheet.stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>[Register] Contains all Stream objects as attributes.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Flowsheet.diagram">
+<code class="descname">diagram</code><span class="sig-paren">(</span><em>kind='surface'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_flowsheet.html#Flowsheet.diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Flowsheet.diagram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display all units and attached streams.</p>
+<dl class="docutils">
+<dt><strong>kind:</strong> Must be one of the following:</dt>
+<dd><ul class="first last simple">
+<li><strong>‘thorough’:</strong> Thoroughly display every unit.</li>
+<li><strong>‘surface’:</strong> Display units and recycle systems.</li>
+<li><strong>‘minimal’:</strong> Minimally display flowsheet as a box with feeds and products.</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="compounds.html" title="compounds"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="TEA.html" title="TEA"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>

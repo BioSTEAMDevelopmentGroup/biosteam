@@ -12,6 +12,17 @@ __all__ = ('CoolingTower', 'CoolingTowerWithPowerDemand')
 @cost('Flow rate', cost=1100, CE=567, exp=0.68)
 @design('Flow rate', 'gpm', lambda self: 0.07934*self.ins[0].molnet)
 class CoolingTower(Unit):
+    """Create a cooling tower that is cost based on flow rate of cooling water.
+    
+    **ins**
+    
+        [0] Cooling water
+        
+    **outs**
+    
+        [0] Cooling water
+    
+    """
     _N_ins = 1; _N_outs = 1
     _linkedstreams = True
 
@@ -26,7 +37,6 @@ class CoolingTowerWithPowerDemand(CoolingTower):
         self._power_utility(q*self.power_consumption)
         hu = self._heat_utilities[0]
         cw = hu.cooling_agents['Cooling water']
-        hu.duty = None
         hu.ID = 'Cooling water'
         hu.flow = -q
         hu.cost = -q*cw['Price (USD/kmol)']

@@ -1,0 +1,5 @@
+metaclasses
+===========
+
+.. automodule:: biosteam.metaclasses
+   :members:

@@ -261,7 +261,7 @@ production of 1st generation ethanol using yeast.</strong></p>
               <span class="n">DryYeast</span><span class="o">=</span><span class="mf">1.03e+04</span><span class="p">,</span>
               <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">,</span>
               <span class="n">T</span><span class="o">=</span><span class="mi">32</span><span class="o">+</span><span class="mf">273.15</span><span class="p">)</span>
-<span class="n">F1</span> <span class="o">=</span> <span class="n">Fermentation</span><span class="p">(</span><span class="s1">&#39;F1&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">feed</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;CO2&#39;</span><span class="p">,</span> <span class="s1">&#39;product&#39;</span><span class="p">),</span> <span class="n">tau</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">efficiency</span><span class="o">=</span><span class="mf">0.90</span><span class="p">)</span>
+<span class="n">F1</span> <span class="o">=</span> <span class="n">Fermentation</span><span class="p">(</span><span class="s1">&#39;F1&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">feed</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;CO2&#39;</span><span class="p">,</span> <span class="s1">&#39;product&#39;</span><span class="p">),</span> <span class="n">tau</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">efficiency</span><span class="o">=</span><span class="mf">0.90</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
 <span class="n">F1</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
 
 <span class="c1"># Show results</span>
@@ -274,7 +274,8 @@ production of 1st generation ethanol using yeast.</strong></p>
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/Fermentation_Example_2_0.svg" src="_images/Fermentation_Example_2_0.svg" /></div>
+<img alt="_images/Fermentation_Example_2_0.png" src="_images/Fermentation_Example_2_0.png" />
+</div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
@@ -282,14 +283,14 @@ production of 1st generation ethanol using yeast.</strong></p>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Fermentation: F1
-<span class="ansi-white-fg">ins...</span>
+ins...
 [0] feed
     phase: &#39;l&#39;, T: 305.15 K, P: 101325 Pa
     flow (kmol/hr): Water     6.66e+03
                     Glucose   10.5
                     Sucrose   62.5
                     DryYeast  1.03e+04
-<span class="ansi-white-fg">outs...</span>
+outs...
 [0] CO2
     phase: &#39;l&#39;, T: 305.15 K, P: 101325 Pa
     flow (kmol/hr): Ethanol   244
@@ -335,7 +336,7 @@ Fermentation: F1
   <thead>
     <tr style="text-align: right;">
       <th></th>
-      <th>Reactor</th>
+      <th>Fermentation</th>
       <th>Units</th>
       <th>F1</th>
     </tr>
@@ -345,12 +346,12 @@ Fermentation: F1
       <th rowspan="2" valign="top">Power</th>
       <th>Rate</th>
       <td>kW</td>
-      <td>35.2</td>
+      <td>24.6</td>
     </tr>
     <tr>
       <th>Cost</th>
-      <td>kW</td>
-      <td>2.29</td>
+      <td>USD/hr</td>
+      <td>1.6</td>
     </tr>
     <tr>
       <th rowspan="3" valign="top">Chilled water</th>
@@ -360,7 +361,7 @@ Fermentation: F1
     </tr>
     <tr>
       <th>Flow</th>
-      <td>kg/hr</td>
+      <td>kmol/hr</td>
       <td>9.06e+03</td>
     </tr>
     <tr>
@@ -377,50 +378,50 @@ Fermentation: F1
     <tr>
       <th>Number of reactors</th>
       <td></td>
-      <td>3</td>
+      <td>8</td>
     </tr>
     <tr>
-      <th>Reactor volume</th>
+      <th>Volume</th>
       <td>m3</td>
-      <td>1.82e+03</td>
+      <td>521</td>
     </tr>
     <tr>
       <th>Cycle time</th>
       <td>hr</td>
-      <td>30</td>
+      <td>22.9</td>
     </tr>
     <tr>
       <th>Loading time</th>
       <td>hr</td>
-      <td>10</td>
+      <td>2.86</td>
     </tr>
     <tr>
       <th rowspan="3" valign="top">Cost</th>
       <th>Reactors</th>
       <td>USD</td>
-      <td>1.78e+06</td>
+      <td>2.23e+06</td>
+    </tr>
+    <tr>
+      <th>Agitator</th>
+      <td>USD</td>
+      <td>1.39e+05</td>
     </tr>
     <tr>
       <th>Coolers</th>
       <td>USD</td>
-      <td>9.89e+04</td>
-    </tr>
-    <tr>
-      <th>Agitators</th>
-      <td>USD</td>
-      <td>1.11e+05</td>
+      <td>2.2e+05</td>
     </tr>
     <tr>
       <th>Purchase cost</th>
       <th></th>
       <td>USD</td>
-      <td>1.99e+06</td>
+      <td>2.59e+06</td>
     </tr>
     <tr>
       <th>Utility cost</th>
       <th></th>
       <td>USD/hr</td>
-      <td>69.8</td>
+      <td>69.2</td>
     </tr>
   </tbody>
 </table>

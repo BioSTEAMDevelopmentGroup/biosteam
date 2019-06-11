@@ -4,12 +4,17 @@ units
 .. toctree::
    :maxdepth: 3
 
+   decorators
+   metaclasses
+   designtools
+   facilities
    Centrifuge_LLE
    Distillation
    Fermentation
    Flash
    HXprocess
    HXutility
+   Junction
    MassBalance
    MixTank
    Mixer

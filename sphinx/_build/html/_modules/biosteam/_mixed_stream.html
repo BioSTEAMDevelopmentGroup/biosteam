@@ -64,8 +64,8 @@
 <span class="kn">from</span> <span class="nn">._stream</span> <span class="k">import</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">nonzero_species</span><span class="p">,</span> <span class="n">MassFlow</span><span class="p">,</span> \
                             <span class="n">mol_flow_dim</span><span class="p">,</span> <span class="n">mass_flow_dim</span><span class="p">,</span> <span class="n">vol_flow_dim</span><span class="p">,</span> \
                             <span class="n">phases</span><span class="p">,</span> <span class="n">phase_index</span><span class="p">,</span> <span class="n">flow</span>
-<span class="kn">from</span> <span class="nn">._utils</span> <span class="k">import</span> <span class="n">fraction</span><span class="p">,</span> <span class="n">tuple_array</span><span class="p">,</span> \
-                           <span class="n">PropertyFactory</span><span class="p">,</span> <span class="n">property_array</span>
+<span class="kn">from</span> <span class="nn">._utils</span> <span class="k">import</span> <span class="n">fraction</span><span class="p">,</span> <span class="n">tuple_array</span><span class="p">,</span> <span class="n">missing_stream</span><span class="p">,</span> \
+                    <span class="n">PropertyFactory</span><span class="p">,</span> <span class="n">property_array</span>
 <span class="kn">from</span> <span class="nn">._exceptions</span> <span class="k">import</span> <span class="n">EquilibriumError</span><span class="p">,</span> <span class="n">DimensionError</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_Q</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -144,6 +144,7 @@
             <span class="n">species</span><span class="o">.</span><span class="n">_read_only</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;species must be a Species object, not &#39;{type(species).__name__}&#39;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_source_link</span> <span class="o">=</span> <span class="bp">self</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_T_QinP</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_T_VP</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_link</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sink</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span>  <span class="c1">#: [float] Temperature (K)</span>
@@ -1081,10 +1082,16 @@
         <span class="sd">&quot;&quot;&quot;Return string with all specifications.&quot;&quot;&quot;</span>
         <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span>
         <span class="n">basic_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_info_header</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_mol&#39;</span><span class="p">):</span>
+            <span class="n">nonzero</span><span class="p">,</span> <span class="n">species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nonzero_species</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">basic_info</span> <span class="o">+</span> <span class="n">f</span><span class="s1">&#39; link: </span><span class="si">{self._link}</span><span class="s1">&#39;</span>
         <span class="n">T_units</span><span class="p">,</span> <span class="n">P_units</span><span class="p">,</span> <span class="n">flow_units</span><span class="p">,</span> <span class="n">fraction</span> <span class="o">=</span> <span class="p">[(</span><span class="n">i</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span>
                                                   <span class="nb">zip</span><span class="p">((</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">fraction</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">display_units</span><span class="p">)]</span>
         <span class="n">phases</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase</span>
         <span class="n">basic_info</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_info_phaseTP</span><span class="p">(</span><span class="n">phases</span><span class="p">,</span> <span class="n">T_units</span><span class="p">,</span> <span class="n">P_units</span><span class="p">)</span>
+        <span class="n">len_</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nonzero</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">len_</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="k">return</span> <span class="n">basic_info</span> <span class="o">+</span> <span class="s1">&#39; flow: 0&#39;</span>
         
         <span class="c1"># Get flow attribute name</span>
         <span class="n">flow_dim</span> <span class="o">=</span> <span class="n">_Q</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">flow_units</span><span class="p">)</span><span class="o">.</span><span class="n">dimensionality</span>
@@ -1113,9 +1120,6 @@
             <span class="k">return</span> <span class="n">beginning</span><span class="p">,</span> <span class="n">new_line_spaces</span><span class="p">,</span> <span class="n">end</span>
 
         <span class="c1"># Length of species column</span>
-        <span class="n">nonzero</span><span class="p">,</span> <span class="n">species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nonzero_species</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">nonzero</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">basic_info</span> <span class="o">+</span> <span class="s1">&#39; flow: 0&#39;</span>
         <span class="n">all_lengths</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span> <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">species</span><span class="p">]</span>
         <span class="n">maxlen</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">all_lengths</span> <span class="o">+</span> <span class="p">[</span><span class="mi">7</span><span class="p">])</span>  <span class="c1"># include length of the word &#39;species&#39;</span>
 

@@ -1,0 +1,928 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Unit decorators &#8212; BioSTEAM 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Species" href="Species.html" />
+    <link rel="prev" title="Inheriting from Unit" href="Inheriting from Unit.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Species.html" title="Species"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="Inheriting from Unit.html" title="Inheriting from Unit"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Unit decorators</a><ul>
+<li><a class="reference internal" href="#design-decorator">design decorator</a></li>
+<li><a class="reference internal" href="#cost-decorator">cost decorator</a></li>
+<li><a class="reference internal" href="#N-decorator">N decorator</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="Inheriting from Unit.html"
+                        title="previous chapter">Inheriting from Unit</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="Species.html"
+                        title="next chapter">Species</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/Unit decorators.ipynb.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput,
+div.nbinput div.prompt,
+div.nbinput div.input_area,
+div.nbinput div[class*=highlight],
+div.nbinput div[class*=highlight] pre,
+div.nboutput,
+div.nbinput div.prompt,
+div.nbinput div.output_area,
+div.nboutput div[class*=highlight],
+div.nboutput div[class*=highlight] pre {
+    background: none;
+    border: none;
+    padding: 0 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+/* avoid gaps between output lines */
+div.nboutput div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput,
+div.nboutput {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput,
+    div.nboutput {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput div.prompt pre {
+    color: #303F9F;
+}
+
+/* output prompt */
+div.nboutput div.prompt pre {
+    color: #D84315;
+}
+
+/* all prompts */
+div.nbinput div.prompt,
+div.nboutput div.prompt {
+    min-width: 9ex;
+    padding-top: 0.4em;
+    padding-right: 0.4em;
+    text-align: right;
+    flex: 0;
+}
+@media (max-width: 540px) {
+    div.nbinput div.prompt,
+    div.nboutput div.prompt {
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput div.prompt.empty {
+        padding: 0;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput div.prompt pre,
+div.nboutput div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput div.input_area,
+div.nboutput div.output_area {
+    padding: 0.4em;
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput div.input_area,
+    div.nboutput div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput div.input_area {
+    border: 1px solid #cfcfcf;
+    border-radius: 2px;
+    background: #f7f7f7;
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.pngmath center alignment in output cells */
+div.nboutput div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+</style>
+<div class="section" id="Unit-decorators">
+<h1>Unit decorators<a class="headerlink" href="#Unit-decorators" title="Permalink to this headline">¶</a></h1>
+<p>Unit decorators extend the behavior of Unit subclasses.</p>
+<div class="section" id="design-decorator">
+<h2>design decorator<a class="headerlink" href="#design-decorator" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">design</span></code> decorator adds a design item to the class.</p>
+<p>Create a Shredder Unit subclass with mass flow rate as a design item:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">biosteam.units.decorators</span> <span class="k">import</span> <span class="o">*</span>
+
+<span class="nd">@design</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;kg/hr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">massnet</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">Shredder</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
+    <span class="c1"># Set input stream exactly equal to output stream</span>
+    <span class="n">_linkedstreams</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="c1">### Test a Shreadder object ###</span>
+
+<span class="n">Unit</span><span class="o">.</span><span class="n">CEPCI</span> <span class="o">=</span> <span class="mf">603.1</span> <span class="c1"># For year 2018</span>
+
+<span class="c1"># Set up Stream.species</span>
+<span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">()</span>
+<span class="n">species</span><span class="o">.</span><span class="n">SugarCane</span> <span class="o">=</span> <span class="n">compounds</span><span class="o">.</span><span class="n">Substance</span><span class="p">(</span><span class="s1">&#39;SugarCane&#39;</span><span class="p">,</span> <span class="n">MW</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">default_phase</span> <span class="o">=</span> <span class="s1">&#39;s&#39;</span><span class="p">)</span>
+<span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">species</span>
+
+<span class="c1"># Display flow rate in kg/hr</span>
+<span class="n">Stream</span><span class="o">.</span><span class="n">display_units</span><span class="o">.</span><span class="n">flow</span> <span class="o">=</span> <span class="s1">&#39;kg/hr&#39;</span>
+
+<span class="c1"># Create Shredder object and simulate</span>
+<span class="n">shredder</span> <span class="o">=</span> <span class="n">Shredder</span><span class="p">(</span><span class="n">ins</span><span class="o">=</span><span class="n">Stream</span><span class="p">(</span><span class="n">SugarCane</span><span class="o">=</span><span class="mf">1e6</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">))</span>
+<span class="n">shredder</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+
+<span class="n">shredder</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">shredder</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Shredder: U1
+ins...
+[0] d1
+    phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
+    flow (kg/hr): SugarCane  1e+06
+outs...
+[0] d2
+    phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
+    flow (kg/hr): SugarCane  1e+06
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[1]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Shredder</th>
+      <th>Units</th>
+      <th>U1</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Design</th>
+      <th>Flow rate</th>
+      <td>kg/hr</td>
+      <td>1e+06</td>
+    </tr>
+    <tr>
+      <th>Purchase cost</th>
+      <th></th>
+      <td>USD</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>Utility cost</th>
+      <th></th>
+      <td>USD/hr</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+</div>
+<div class="section" id="cost-decorator">
+<h2>cost decorator<a class="headerlink" href="#cost-decorator" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">cost</span></code> decorator adds an item purchase cost based on the
+exponential scale up equation:</p>
+<p><span class="math notranslate nohighlight">\(C_{f.o.b.} = (N)(CE)(cost)\big(\frac{basis}{S}\big)^{exp}\)</span></p>
+<p><span class="math notranslate nohighlight">\(Electricity\ rate = (N)(kW)\big(\frac{basis}{S}\big)\)</span></p>
+<p>Create a Shredder Unit subclass but this time with a cost item:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mf">2.5e6</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">567.3</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mf">500e3</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mi">3000</span><span class="p">)</span>
+<span class="nd">@design</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;kg/hr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">massnet</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">Shredder</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
+    <span class="n">_linkedstreams</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="c1">### Test a Shreadder object ###</span>
+
+<span class="n">shredder</span> <span class="o">=</span> <span class="n">Shredder</span><span class="p">(</span><span class="n">ins</span><span class="o">=</span><span class="n">Stream</span><span class="p">(</span><span class="n">SugarCane</span><span class="o">=</span><span class="mf">1e6</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">))</span>
+<span class="n">shredder</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+
+<span class="n">shredder</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">shredder</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Shredder: U2
+ins...
+[0] d3
+    phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
+    flow (kg/hr): SugarCane  1e+06
+outs...
+[0] d4
+    phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
+    flow (kg/hr): SugarCane  1e+06
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[2]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Shredder</th>
+      <th>Units</th>
+      <th>U2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="2" valign="top">Power</th>
+      <th>Rate</th>
+      <td>kW</td>
+      <td>6e+03</td>
+    </tr>
+    <tr>
+      <th>Cost</th>
+      <td>USD/hr</td>
+      <td>469</td>
+    </tr>
+    <tr>
+      <th>Design</th>
+      <th>Flow rate</th>
+      <td>kg/hr</td>
+      <td>1e+06</td>
+    </tr>
+    <tr>
+      <th>Cost</th>
+      <th>Shredder</th>
+      <td>USD</td>
+      <td>4.03e+06</td>
+    </tr>
+    <tr>
+      <th>Purchase cost</th>
+      <th></th>
+      <td>USD</td>
+      <td>4.03e+06</td>
+    </tr>
+    <tr>
+      <th>Utility cost</th>
+      <th></th>
+      <td>USD/hr</td>
+      <td>469</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>Cost data is stored as a pandas DataFrame in the “cost_options”
+attribute:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">Shredder</span><span class="o">.</span><span class="n">cost_options</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[3]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Item</th>
+      <th>Shredder</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="3" valign="top">Basis</th>
+      <th>param</th>
+      <td>Flow rate</td>
+    </tr>
+    <tr>
+      <th>units</th>
+      <td>kg/hr</td>
+    </tr>
+    <tr>
+      <th>value</th>
+      <td>5e+05</td>
+    </tr>
+    <tr>
+      <th>Number</th>
+      <th></th>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>CEPCI</th>
+      <th></th>
+      <td>567</td>
+    </tr>
+    <tr>
+      <th>Cost (USD)</th>
+      <th></th>
+      <td>2.5e+06</td>
+    </tr>
+    <tr>
+      <th>Exponent</th>
+      <th></th>
+      <td>0.6</td>
+    </tr>
+    <tr>
+      <th>Electricity (kW)</th>
+      <th></th>
+      <td>3000</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>Any option except for “units” is customizable:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">Shredder</span><span class="o">.</span><span class="n">cost_options</span><span class="p">[</span><span class="s1">&#39;Shredder&#39;</span><span class="p">][</span><span class="s1">&#39;Cost (USD)&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">3e6</span> <span class="c1"># Change base cost</span>
+<span class="n">shredder</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+<span class="n">shredder</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[4]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Shredder</th>
+      <th>Units</th>
+      <th>U2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="2" valign="top">Power</th>
+      <th>Rate</th>
+      <td>kW</td>
+      <td>6e+03</td>
+    </tr>
+    <tr>
+      <th>Cost</th>
+      <td>USD/hr</td>
+      <td>469</td>
+    </tr>
+    <tr>
+      <th>Design</th>
+      <th>Flow rate</th>
+      <td>kg/hr</td>
+      <td>1e+06</td>
+    </tr>
+    <tr>
+      <th>Cost</th>
+      <th>Shredder</th>
+      <td>USD</td>
+      <td>4.83e+06</td>
+    </tr>
+    <tr>
+      <th>Purchase cost</th>
+      <th></th>
+      <td>USD</td>
+      <td>4.83e+06</td>
+    </tr>
+    <tr>
+      <th>Utility cost</th>
+      <th></th>
+      <td>USD/hr</td>
+      <td>469</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+</div>
+<div class="section" id="N-decorator">
+<h2>N decorator<a class="headerlink" href="#N-decorator" title="Permalink to this headline">¶</a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">N</span></code> decorator adds a design item for the number of parellel units
+needed due to the basis limit.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="nd">@N</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;Number of shredders&#39;</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mf">500e3</span><span class="p">)</span>
+<span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="s1">&#39;Number of shredders&#39;</span><span class="p">,</span>
+      <span class="n">cost</span><span class="o">=</span><span class="mf">2.5e6</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">567.3</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mf">500e3</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mi">3000</span><span class="p">)</span>
+<span class="nd">@design</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;kg/hr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">massnet</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">Shredder</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
+    <span class="n">_linkedstreams</span> <span class="o">=</span> <span class="kc">True</span>
+
+<span class="c1">### Test a Shreadder object ###</span>
+
+<span class="n">shredder</span> <span class="o">=</span> <span class="n">Shredder</span><span class="p">(</span><span class="n">ins</span><span class="o">=</span><span class="n">Stream</span><span class="p">(</span><span class="n">SugarCane</span><span class="o">=</span><span class="mf">1e6</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">))</span>
+<span class="n">shredder</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+
+<span class="n">shredder</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">shredder</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Shredder: U3
+ins...
+[0] d5
+    phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
+    flow (kg/hr): SugarCane  1e+06
+outs...
+[0] d6
+    phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
+    flow (kg/hr): SugarCane  1e+06
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[5]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Shredder</th>
+      <th>Units</th>
+      <th>U3</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="2" valign="top">Power</th>
+      <th>Rate</th>
+      <td>kW</td>
+      <td>6e+03</td>
+    </tr>
+    <tr>
+      <th>Cost</th>
+      <td>USD/hr</td>
+      <td>469</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">Design</th>
+      <th>Flow rate</th>
+      <td>kg/hr</td>
+      <td>5e+05</td>
+    </tr>
+    <tr>
+      <th>Number of shredders</th>
+      <td></td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <th>Cost</th>
+      <th>Shredder</th>
+      <td>USD</td>
+      <td>5.32e+06</td>
+    </tr>
+    <tr>
+      <th>Purchase cost</th>
+      <th></th>
+      <td>USD</td>
+      <td>5.32e+06</td>
+    </tr>
+    <tr>
+      <th>Utility cost</th>
+      <th></th>
+      <td>USD/hr</td>
+      <td>469</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">N</span></code> data is stored in the “N_options” attribute:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">Shredder</span><span class="o">.</span><span class="n">N_options</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[6]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Number of shredders</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Basis</th>
+      <td>Flow rate</td>
+    </tr>
+    <tr>
+      <th>Limit</th>
+      <td>5e+05</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>Any option except is customizable:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">Shredder</span><span class="o">.</span><span class="n">N_options</span><span class="p">[</span><span class="s1">&#39;Number of shredders&#39;</span><span class="p">][</span><span class="s1">&#39;Limit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1e6</span>
+<span class="n">shredder</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+<span class="n">shredder</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[7]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Shredder</th>
+      <th>Units</th>
+      <th>U3</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="2" valign="top">Power</th>
+      <th>Rate</th>
+      <td>kW</td>
+      <td>6e+03</td>
+    </tr>
+    <tr>
+      <th>Cost</th>
+      <td>USD/hr</td>
+      <td>469</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">Design</th>
+      <th>Flow rate</th>
+      <td>kg/hr</td>
+      <td>1e+06</td>
+    </tr>
+    <tr>
+      <th>Number of shredders</th>
+      <td></td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>Cost</th>
+      <th>Shredder</th>
+      <td>USD</td>
+      <td>4.03e+06</td>
+    </tr>
+    <tr>
+      <th>Purchase cost</th>
+      <th></th>
+      <td>USD</td>
+      <td>4.03e+06</td>
+    </tr>
+    <tr>
+      <th>Utility cost</th>
+      <th></th>
+      <td>USD/hr</td>
+      <td>469</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Species.html" title="Species"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="Inheriting from Unit.html" title="Inheriting from Unit"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>

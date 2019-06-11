@@ -268,7 +268,7 @@ div.nboutput div.output_area.stderr {
 
 <span class="c1"># See all results</span>
 <span class="n">C1</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
-<span class="n">C1</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="s1">&#39;degC&#39;</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="s1">&#39;atm&#39;</span><span class="p">,</span> <span class="n">in_fractions</span><span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">C1</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="s1">&#39;degC&#39;</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="s1">&#39;atm&#39;</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -276,7 +276,8 @@ div.nboutput div.output_area.stderr {
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/Centrifuge_LLE_Example_1_0.svg" src="_images/Centrifuge_LLE_Example_1_0.svg" /></div>
+<img alt="_images/Centrifuge_LLE_Example_1_0.png" src="_images/Centrifuge_LLE_Example_1_0.png" />
+</div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
@@ -284,26 +285,29 @@ div.nboutput div.output_area.stderr {
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Centrifuge_LLE: C1
-<span class="ansi-white-fg">ins...</span>
+ins...
 [0] d105
     phase: &#39;l&#39;, T: 60 degC, P: 1 atm
-    flow (kmol/hr): Lipid      1
-                    Methanol   51
-                    Glycerol   9
-                    Biodiesel  27
-<span class="ansi-white-fg">outs...</span>
+    flow: Lipid      0.0114
+          Methanol   0.58
+          Glycerol   0.102
+          Biodiesel  0.307
+          net        88 kmol/hr
+outs...
 [0] light
     phase: &#39;l&#39;, T: 60 degC, P: 1 atm
-    flow (kmol/hr): Lipid      1
-                    Methanol   17
-                    Glycerol   0.45
-                    Biodiesel  27
+    flow: Lipid      0.022
+          Methanol   0.374
+          Glycerol   0.00991
+          Biodiesel  0.594
+          net        45.4 kmol/hr
 [1] heavy
     phase: &#39;l&#39;, T: 60 degC, P: 1 atm
-    flow (kmol/hr): Lipid      1.11e-16
-                    Methanol   34
-                    Glycerol   8.55
-                    Biodiesel  0.00972
+    flow: Lipid      2.61e-18
+          Methanol   0.799
+          Glycerol   0.201
+          Biodiesel  0.000228
+          net        42.6 kmol/hr
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -350,36 +354,36 @@ Centrifuge_LLE: C1
       <th rowspan="2" valign="top">Power</th>
       <th>Rate</th>
       <td>kW</td>
-      <td>1.27e+03</td>
+      <td>47.5</td>
     </tr>
     <tr>
       <th>Cost</th>
-      <td>kW</td>
-      <td>82.3</td>
+      <td>USD/hr</td>
+      <td>3.09</td>
     </tr>
     <tr>
       <th>Design</th>
       <th>Flow rate</th>
       <td>m^3/hr</td>
-      <td>346</td>
+      <td>13</td>
     </tr>
     <tr>
       <th>Cost</th>
-      <th>Centrifuge</th>
+      <th>Liquids centrifuge</th>
       <td>USD</td>
-      <td>8.7e+05</td>
+      <td>1.32e+05</td>
     </tr>
     <tr>
       <th>Purchase cost</th>
       <th></th>
       <td>USD</td>
-      <td>8.7e+05</td>
+      <td>1.32e+05</td>
     </tr>
     <tr>
       <th>Utility cost</th>
       <th></th>
       <td>USD/hr</td>
-      <td>82.3</td>
+      <td>3.09</td>
     </tr>
   </tbody>
 </table>

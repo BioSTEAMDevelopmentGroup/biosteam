@@ -5,9 +5,9 @@ Created on Thu Aug 23 14:26:41 2018
 @author: yoelr
 """
 from .. import Unit, Stream
-from .._meta_final import metaFinal
+from .metaclasses import final
 
-class Mixer(Unit, metaclass=metaFinal):
+class Mixer(Unit, metaclass=final):
     """Create a mixer that mixes any number of streams together.
     
     **Parameters**
@@ -67,4 +67,4 @@ class Mixer(Unit, metaclass=metaFinal):
         Stream.sum(self.outs[0], self.ins)
         
     simulate = _run
-    summary = Unit._cost
+

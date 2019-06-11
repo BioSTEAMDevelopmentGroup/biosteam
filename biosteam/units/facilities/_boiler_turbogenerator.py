@@ -19,9 +19,9 @@ class BoilerTurbogenerator(Unit):
     
         **boiler_efficiency:** [float] Fraction of heat transfered to steam.
     
-        **turbo_generator_efficiency:** [float] Fraction of heat converted to electricity.
+        **turbo_generator_efficiency:** [float] Fraction of steam heat converted to electricity.
 
-        **steam:** [Stream] Steam product from the boiler
+        **steam:** [Stream] Steam product from the boiler.
     
     **ins**
     
@@ -31,9 +31,6 @@ class BoilerTurbogenerator(Unit):
     
         [0] Emission (burned feed)
         
-    .. Note::
-        
-        The steam (outs[0]) must be specified with the right flow rate, temperature, pressure, and phase before simulation.
     
     """
     _N_heat_utilities = 2

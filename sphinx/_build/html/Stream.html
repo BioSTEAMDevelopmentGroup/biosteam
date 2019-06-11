@@ -297,7 +297,7 @@
 
 <dl class="classmethod">
 <dt id="biosteam.Stream.proxy">
-<em class="property">classmethod </em><code class="descname">proxy</code><span class="sig-paren">(</span><em>ID</em>, <em>link=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.proxy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.proxy" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="descname">proxy</code><span class="sig-paren">(</span><em>ID</em>, <em>link=&lt;MissingStream&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.proxy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.proxy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Stream object that serves as a proxy for the <cite>link</cite> stream.</p>
 </dd></dl>
 
@@ -357,7 +357,7 @@
 <dd><p>Array of molar flow rates (kmol/hr):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">mol</span>
 <span class="go">array([0, 2])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">mol</span>
 <span class="go">array([1, 2])</span>
 </pre></div>
@@ -655,6 +655,12 @@
 <span class="go">6.421553249380879</span>
 </pre></div>
 </div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.P_vapor">
+<code class="descname">P_vapor</code><a class="headerlink" href="#biosteam.Stream.P_vapor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Vapor pressure (Pa).</p>
 </dd></dl>
 
 <dl class="attribute">

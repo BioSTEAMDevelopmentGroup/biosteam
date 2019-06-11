@@ -5,6 +5,6 @@ compounds
    :maxdepth: 3
       
    Compound
-   DissolvedCompound
+   Substance
    Chemical
    

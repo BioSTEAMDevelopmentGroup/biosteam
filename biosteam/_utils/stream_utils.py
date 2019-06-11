@@ -18,13 +18,16 @@ def missing_method(self, *args, **kwargs):
 
 class MissingStream:
     """Create a MissingStream object that acts as a dummy in Ins and Outs objects until replaced by an actual Stream object."""
-    __slots__ = ('_sink', '_source')
+    _sink = None
+    _source = None
     
     def __new__(cls):
         return cls._missing_stream
     
     def __bool__(self):
         return False
+    
+    def __setattr__(self, key, value): pass
     
     def __getattr__(self, key):
         raise TypeError(type(self).__name__)
@@ -33,7 +36,7 @@ class MissingStream:
         return f'<{type(self).__name__}>'
 
     def __str__(self):
-        return type(self).__name__
+        return 'missing stream'
 
 MissingStream._missing_stream = missing_stream = object.__new__(MissingStream)
 

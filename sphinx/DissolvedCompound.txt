@@ -1,7 +1,0 @@
-DissolvedCompound
-=================
-
-.. module:: biosteam.compounds
-
-.. autoclass:: DissolvedCompound
-   :members:

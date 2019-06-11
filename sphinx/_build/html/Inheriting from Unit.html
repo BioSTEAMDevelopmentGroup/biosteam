@@ -272,7 +272,8 @@ created for every instance.</li>
 bounds for items in <code class="docutils literal notranslate"><span class="pre">_results</span></code>.</li>
 </ul>
 <p><strong>Abstract methods are used to initialize components, setup values for
-simulation, run heat and mass balances, and cost the unit:</strong></p>
+simulation, run heat and mass balances, find design requirements and
+cost the unit:</strong></p>
 <ul class="simple">
 <li><code class="docutils literal notranslate"><span class="pre">_init()</span></code>: Called at the end of the <code class="docutils literal notranslate"><span class="pre">__init__</span></code> function to
 initialize objects related to the unit</li>
@@ -310,6 +311,8 @@ Boiler class:</p>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bs</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">ceil</span>
+
 <span class="k">class</span> <span class="nc">Boiler</span><span class="p">(</span><span class="n">bs</span><span class="o">.</span><span class="n">Unit</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a Boiler object that partially boils feed.</span>
 
@@ -337,7 +340,6 @@ Boiler class:</p>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Area&#39;</span><span class="p">:</span> <span class="s1">&#39;m^2&#39;</span><span class="p">}</span>
-    <span class="n">_bounds</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Area&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">9.29</span><span class="p">,</span> <span class="mf">743.224</span><span class="p">)}</span>
 
     <span class="k">def</span> <span class="nf">_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">gas</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
@@ -354,23 +356,23 @@ Boiler class:</p>
 
     <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="s1">&#39;V&#39;</span><span class="p">]</span> <span class="c1"># Key word arguments from __init__ are stored here</span>
-        <span class="k">if</span> <span class="n">V</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">V</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="n">V</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Vapor fraction must be between 0 and 1, not </span><span class="si">{V}</span><span class="s1">&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">gas</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">ms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mixedstream</span>
-        <span class="n">ms</span><span class="o">.</span><span class="n">liquid_mol</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span>
+        <span class="n">ms</span><span class="o">.</span><span class="n">liquid_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span>
         <span class="n">ms</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">)</span>
-        <span class="n">gas</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">vapor_mol</span>
-        <span class="n">liq</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">liquid_mol</span>
-        <span class="n">ms</span><span class="o">.</span><span class="n">vapor_mol</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># Reset vapor flow to prevent accumulation in multiple simulations</span>
+        <span class="n">gas</span><span class="o">.</span><span class="n">mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">vapor_mol</span>
+        <span class="n">liq</span><span class="o">.</span><span class="n">mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">liquid_mol</span>
+        <span class="n">ms</span><span class="o">.</span><span class="n">vapor_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># Reset vapor flow to prevent accumulation in multiple simulations</span>
         <span class="n">gas</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">T</span>
         <span class="n">gas</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">P</span>
 
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Design and cost requirements are stored in the _results &#39;Design&#39; and &#39;Cost&#39; dictionaries</span>
+        <span class="c1"># Design requirements are stored in the _results &#39;Design&#39; dictionary</span>
         <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
 
         <span class="c1"># Calculate heat utility requirement (please read docs for HeatUtility objects)</span>
@@ -391,17 +393,26 @@ Boiler class:</p>
         <span class="n">U</span> <span class="o">=</span> <span class="mf">8176.699</span>
 
         <span class="c1"># Area requirement (m^2)</span>
-        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Area&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">A</span> <span class="o">=</span> <span class="n">duty</span><span class="o">/</span><span class="p">(</span><span class="n">U</span><span class="o">*</span><span class="n">dT</span><span class="p">)</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="n">duty</span><span class="o">/</span><span class="p">(</span><span class="n">U</span><span class="o">*</span><span class="n">dT</span><span class="p">)</span>
 
-        <span class="c1"># Will return a warning if area too big or small.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_checkbounds</span><span class="p">(</span><span class="s1">&#39;Area&#39;</span><span class="p">,</span> <span class="n">A</span><span class="p">)</span>
+        <span class="c1"># Maximum area per unit</span>
+        <span class="n">A_max</span> <span class="o">=</span> <span class="mf">743.224</span>
+
+        <span class="c1"># Number of units</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="n">ceil</span><span class="p">(</span><span class="n">A</span><span class="o">/</span><span class="n">A_max</span><span class="p">)</span>
+
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Area&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">A</span><span class="o">/</span><span class="n">N</span>
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span>
 
     <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Itemized costs are stored in the _results &#39;Cost&#39; dictionary</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
         <span class="n">Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
-        <span class="n">A</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">][</span><span class="s1">&#39;Area&#39;</span><span class="p">]</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Area&#39;</span><span class="p">]</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">]</span>
         <span class="c1"># Long-tube vertical boiler cost correlation from</span>
         <span class="c1"># &quot;Product process and design&quot;. Warren et. al. (2016) Table 22.32, pg 592</span>
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Boiler&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CEPCI</span><span class="o">*</span><span class="mf">3.086</span><span class="o">*</span><span class="n">A</span><span class="o">**</span><span class="mf">0.55</span>
+        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Boilers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">CEPCI</span><span class="o">*</span><span class="mf">3.086</span><span class="o">*</span><span class="n">A</span><span class="o">**</span><span class="mf">0.55</span>
 </pre></div>
 </div>
 </div>
@@ -435,11 +446,11 @@ Boiler class:</p>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Boiler: B1
-<span class="ansi-white-fg">ins...</span>
+ins...
 [0] water
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow (kmol/hr): Water  300
-<span class="ansi-white-fg">outs...</span>
+outs...
 [0] gas
     phase: &#39;g&#39;, T: 298.15 K, P: 101325 Pa
     flow: 0
@@ -465,11 +476,11 @@ Boiler: B1
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 Boiler: B1
-<span class="ansi-white-fg">ins...</span>
+ins...
 [0] water
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow (kmol/hr): Water  300
-<span class="ansi-white-fg">outs...</span>
+outs...
 [0] gas
     phase: &#39;g&#39;, T: 373.16 K, P: 101325 Pa
     flow (kmol/hr): Water  150
@@ -522,27 +533,32 @@ Boiler: B1
       <th rowspan="3" valign="top">Low pressure steam</th>
       <th>Duty</th>
       <td>kJ/hr</td>
-      <td>8.69e+06</td>
+      <td>8.23e+06</td>
     </tr>
     <tr>
       <th>Flow</th>
-      <td>kg/hr</td>
-      <td>222</td>
+      <td>kmol/hr</td>
+      <td>212</td>
     </tr>
     <tr>
       <th>Cost</th>
       <td>USD/hr</td>
-      <td>52.7</td>
+      <td>50.3</td>
     </tr>
     <tr>
-      <th>Design</th>
+      <th rowspan="2" valign="top">Design</th>
       <th>Area</th>
       <td>m^2</td>
       <td>24.9</td>
     </tr>
     <tr>
+      <th>N</th>
+      <td></td>
+      <td>1</td>
+    </tr>
+    <tr>
       <th>Cost</th>
-      <th>Boiler</th>
+      <th>Boilers</th>
       <td>USD</td>
       <td>1.03e+04</td>
     </tr>
@@ -556,7 +572,7 @@ Boiler: B1
       <th>Utility cost</th>
       <th></th>
       <td>USD/hr</td>
-      <td>52.7</td>
+      <td>50.3</td>
     </tr>
   </tbody>
 </table>
@@ -645,7 +661,7 @@ subclass:</p>
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>[{&#39;tailport&#39;: &#39;c&#39;}, {&#39;tailport&#39;: &#39;c&#39;}, {&#39;tailport&#39;: &#39;c&#39;}]
+<span></span>[{&#39;tailport&#39;: &#39;c&#39;}, {&#39;tailport&#39;: &#39;c&#39;}]
 </pre></div>
 </div>
 </div>

@@ -129,7 +129,7 @@
 
 <span class="c1"># %% Flash</span>
 
-<div class="viewcode-block" id="Flash"><a class="viewcode-back" href="../../../Flash.html#biosteam.units.Flash">[docs]</a><span class="k">class</span> <span class="nc">Flash</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
+<div class="viewcode-block" id="Flash"><a class="viewcode-back" href="../../../units.html#biosteam.units.Flash">[docs]</a><span class="k">class</span> <span class="nc">Flash</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create an equlibrium based flash drum with the option of having light non-keys and heavy non-keys completly separate into their respective phases. Design procedure is based on heuristics by Wayne D. Monnery &amp; William Y. Svrcek [1]. The f.o.b cost is based on classical Guthrie&#39;s correlation [2]:</span>
 
 <span class="sd">    :math:`C_{fob}^{2007} = 6500 V^{0.62} (0.1 &lt; V &lt; 70 m^3)`</span>
@@ -292,7 +292,7 @@
         <span class="c1"># C_v: Vessel cost</span>
         <span class="c1"># C_pl: Platforms and ladders cost</span>
         <span class="k">if</span> <span class="n">type_</span> <span class="o">==</span> <span class="s1">&#39;Vertical&#39;</span><span class="p">:</span>
-            <span class="n">C_v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_F_material</span><span class="o">*</span><span class="n">exp</span><span class="p">(</span><span class="mf">7.1390</span> <span class="o">+</span> <span class="mf">0.18255</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">W</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.02297</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">W</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">C_v</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="mf">7.1390</span> <span class="o">+</span> <span class="mf">0.18255</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">W</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.02297</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">W</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
             <span class="n">C_pl</span> <span class="o">=</span> <span class="mi">410</span><span class="o">*</span><span class="n">D</span><span class="o">**</span><span class="mf">0.7396</span><span class="o">*</span><span class="n">L</span><span class="o">**</span><span class="mf">0.70684</span>
         <span class="k">elif</span> <span class="n">type_</span> <span class="o">==</span> <span class="s1">&#39;Horizontal&#39;</span><span class="p">:</span>
             <span class="n">C_v</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="mf">5.6336</span> <span class="o">-</span> <span class="mf">0.4599</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">W</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.00582</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">W</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
@@ -300,7 +300,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;SepType (</span><span class="si">{type_}</span><span class="s2">) must be either &#39;Vertical&#39;, &#39;Horizontal&#39; or &#39;Default&#39;.&quot;</span><span class="p">)</span>
             
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Flash&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">CE</span><span class="o">/</span><span class="mi">567</span><span class="o">*</span><span class="p">(</span><span class="n">C_v</span><span class="o">+</span><span class="n">C_pl</span><span class="p">)</span>
+        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Flash&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">CE</span><span class="o">/</span><span class="mi">567</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_F_material</span><span class="o">*</span><span class="n">C_v</span><span class="o">+</span><span class="n">C_pl</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_hx</span><span class="p">:</span>
             <span class="n">hx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span>
             <span class="n">hx</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
@@ -309,8 +309,7 @@
 
     <span class="k">def</span> <span class="nf">_cost_vacuum</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="s1">&#39;P&#39;</span><span class="p">]</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">P</span> <span class="ow">or</span> <span class="n">P</span> <span class="o">&gt;</span> <span class="mi">101320</span><span class="p">:</span>
-            <span class="k">return</span> 
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">P</span> <span class="ow">or</span> <span class="n">P</span> <span class="o">&gt;</span> <span class="mi">101320</span><span class="p">:</span> <span class="k">return</span> 
         
         <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span>
         <span class="n">D</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
@@ -651,7 +650,7 @@
 
 <span class="c1"># %% Special</span>
 
-<span class="k">class</span> <span class="nc">SplitFlash</span><span class="p">(</span><span class="n">Flash</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">splitter</span><span class="p">):</span>
+<div class="viewcode-block" id="SplitFlash"><a class="viewcode-back" href="../../../units.html#biosteam.units.SplitFlash">[docs]</a><span class="k">class</span> <span class="nc">SplitFlash</span><span class="p">(</span><span class="n">Flash</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">splitter</span><span class="p">):</span>
     <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Flash&#39;</span>
     
     <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;T&#39;</span><span class="p">:</span> <span class="mf">298.15</span><span class="p">,</span>  <span class="c1"># operating temperature (K)</span>
@@ -681,9 +680,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_hx</span><span class="p">:</span>
             <span class="n">ms</span> <span class="o">=</span> <span class="n">MixedStream</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mixedstream</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">ms</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span></div>
 
-<span class="k">class</span> <span class="nc">PartitionFlash</span><span class="p">(</span><span class="n">Flash</span><span class="p">):</span>
+<div class="viewcode-block" id="PartitionFlash"><a class="viewcode-back" href="../../../units.html#biosteam.units.PartitionFlash">[docs]</a><span class="k">class</span> <span class="nc">PartitionFlash</span><span class="p">(</span><span class="n">Flash</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a PartitionFlash Unit that approximates outputs based on molar partition coefficients.&quot;&quot;&quot;</span>
     
     <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;species_IDs&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Partition species</span>
@@ -730,10 +729,10 @@
         <span class="n">ph1</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">=</span> <span class="n">molnet</span><span class="o">*</span><span class="n">V</span><span class="o">*</span><span class="n">y</span>
         <span class="n">ph2</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span> <span class="o">=</span> <span class="n">mol_in</span> <span class="o">-</span> <span class="n">ph1</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">pos</span><span class="p">]</span>
     
-    <span class="n">_design</span> <span class="o">=</span> <span class="n">SplitFlash</span><span class="o">.</span><span class="n">_design</span>
+    <span class="n">_design</span> <span class="o">=</span> <span class="n">SplitFlash</span><span class="o">.</span><span class="n">_design</span></div>
     
 
-<span class="k">class</span> <span class="nc">RatioFlash</span><span class="p">(</span><span class="n">Flash</span><span class="p">):</span>
+<div class="viewcode-block" id="RatioFlash"><a class="viewcode-back" href="../../../units.html#biosteam.units.RatioFlash">[docs]</a><span class="k">class</span> <span class="nc">RatioFlash</span><span class="p">(</span><span class="n">Flash</span><span class="p">):</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Kspecies&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># list of species that correspond to Ks</span>
                <span class="s1">&#39;Ks&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># array of molar ratio partition coefficinets,</span>
@@ -764,7 +763,7 @@
         <span class="n">top_mol</span><span class="p">[</span><span class="n">Kindex</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ks</span> <span class="o">*</span> <span class="n">topnet</span> <span class="o">*</span> <span class="n">feed_mol</span><span class="p">[</span><span class="n">Kindex</span><span class="p">]</span> <span class="o">/</span> <span class="n">molnet</span>  <span class="c1"># solvent * mol ratio</span>
         <span class="n">bot_mol</span><span class="p">[</span><span class="n">Kindex</span><span class="p">]</span> <span class="o">=</span> <span class="n">feed_mol</span><span class="p">[</span><span class="n">Kindex</span><span class="p">]</span> <span class="o">-</span> <span class="n">top_mol</span><span class="p">[</span><span class="n">Kindex</span><span class="p">]</span>
         <span class="n">top</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">top</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">feed</span><span class="o">.</span><span class="n">P</span>
-        <span class="n">bot</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">bot</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">feed</span><span class="o">.</span><span class="n">P</span>
+        <span class="n">bot</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">bot</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">feed</span><span class="o">.</span><span class="n">P</span></div>
 
 
 <span class="c1"># %% Single Component</span>

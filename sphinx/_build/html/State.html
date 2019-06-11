@@ -1,0 +1,149 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>State &#8212; BioSTEAM 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Model" href="Model.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Model.html" title="Model"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="evaluation.html" accesskey="U">evaluation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="Model.html"
+                        title="previous chapter">Model</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/State.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-biosteam.evaluation">
+<span id="state"></span><h1>State<a class="headerlink" href="#module-biosteam.evaluation" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="biosteam.evaluation.State">
+<em class="property">class </em><code class="descclassname">biosteam.evaluation.</code><code class="descname">State</code><span class="sig-paren">(</span><em>system</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/evaluation/_state.html#State"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a State object that can update the <cite>system</cite> state given a set of parameters.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><strong>system:</strong> [System] Reflects the model state.</div></blockquote>
+<dl class="method">
+<dt id="biosteam.evaluation.State.parameter">
+<code class="descname">parameter</code><span class="sig-paren">(</span><em>setter=None</em>, <em>element=None</em>, <em>kind='isolated'</em>, <em>name=None</em>, <em>distribution=None</em>, <em>units=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/evaluation/_state.html#State.parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.parameter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define parameter and add to model.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><p><strong>setter:</strong> [function] Should set parameter in the element.</p>
+<p><strong>element:</strong> [Unit or Stream] Element in the system being altered.</p>
+<dl class="docutils">
+<dt><strong>kind:</strong> {‘isolated’, ‘design’, ‘cost’}</dt>
+<dd><ul class="first last simple">
+<li>‘coupled’: parameter is coupled to the system.</li>
+<li>‘isolated’: parameter does not affect the system but does affect the element (if any).</li>
+<li>‘design’: parameter only affects design and cost of the element.</li>
+<li>‘cost’: parameter only affects cost of the element.</li>
+</ul>
+</dd>
+</dl>
+<p><strong>name:</strong> [str] Name of parameter. If None, default to argument name of setter.</p>
+<p><strong>distribution:</strong> [chaospy.Dist] Parameter distribution.</p>
+<p><strong>units:</strong> [str] Parameter units</p>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If kind is ‘coupled’, account for downstream operations. Otherwise, only account for given element. If kind is ‘design’ or ‘cost’, element must be a Unit object.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.evaluation.State.__call__">
+<code class="descname">__call__</code><span class="sig-paren">(</span><em>sample</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/evaluation/_state.html#State.__call__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.__call__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update state given sample of parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.evaluation.State.show">
+<code class="descname">show</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/evaluation/_state.html#State.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return information on metric parameters.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Model.html" title="Model"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="evaluation.html" >evaluation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>

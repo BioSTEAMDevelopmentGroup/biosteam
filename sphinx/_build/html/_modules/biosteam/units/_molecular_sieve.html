@@ -66,12 +66,16 @@
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;MolecularSieve&#39;</span><span class="p">,)</span>
 
 
-<div class="viewcode-block" id="MolecularSieve"><a class="viewcode-back" href="../../../MolecularSieve.html#biosteam.units.MolecularSieve">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;Pressure filter drying (2)&#39;</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mi">405000</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">521.9</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mi">22687</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mi">522</span><span class="p">)</span>
-<span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;Pressure filter pressing&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mi">75200</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">521.9</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mi">22687</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mi">112</span><span class="p">)</span>
+<div class="viewcode-block" id="MolecularSieve"><a class="viewcode-back" href="../../../units.html#biosteam.units.MolecularSieve">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;Pressure filter drying (2)&#39;</span><span class="p">,</span>
+      <span class="n">cost</span><span class="o">=</span><span class="mi">405000</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">521.9</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mi">22687</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mi">1044</span><span class="p">)</span>
+<span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;Pressure filter pressing&#39;</span><span class="p">,</span>
+      <span class="n">cost</span><span class="o">=</span><span class="mi">75200</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">521.9</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mi">22687</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mi">112</span><span class="p">)</span>
 <span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;Column&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mi">2601000</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">521.9</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mi">22687</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span>
 <span class="nd">@design</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;kg/hr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_massnet_in</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">MolecularSieve</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">splitter</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Create an ethanol/water molecular sieve for bioethanol plants. The molecular sieve is modeled as a component wise separator. Costing is based on scaling by the 6/10ths rule from an NREL TEA report [1].</span>
+    <span class="sd">&quot;&quot;&quot;Create an ethanol/water molecular sieve for bioethanol plants.</span>
+<span class="sd">    The molecular sieve is modeled as a component wise separator. Costing</span>
+<span class="sd">    is based on scaling by the 6/10ths rule from an NREL TEA report [1].</span>
 <span class="sd">    </span>
 <span class="sd">    **Parameters**</span>
 <span class="sd">    </span>
@@ -89,7 +93,13 @@
 <span class="sd">    </span>
 <span class="sd">    **References**</span>
 <span class="sd">    </span>
-<span class="sd">        [1] Process Design and Economics for Biochemical Conversion of Lignocellulosic Biomass to Ethanol Dilute-Acid Pretreatment and Enzymatic Hydrolysis of Corn Stover. D. Humbird, R. Davis, L. Tao, C. Kinchin, D. Hsu, and A. Aden (National Renewable Energy Laboratory Golden, Colorado). P. Schoen, J. Lukas, B. Olthof, M. Worley, D. Sexton, and D. Dudgeon (Harris Group Inc. Seattle, Washington and Atlanta, Georgia)</span>
+<span class="sd">        [1] Process Design and Economics for Biochemical Conversion of</span>
+<span class="sd">        Lignocellulosic Biomass to Ethanol Dilute-Acid Pretreatment and</span>
+<span class="sd">        Enzymatic Hydrolysis of Corn Stover. D. Humbird, R. Davis, L.</span>
+<span class="sd">        Tao, C. Kinchin, D. Hsu, and A. Aden (National Renewable Energy</span>
+<span class="sd">        Laboratory Golden, Colorado). P. Schoen, J. Lukas, B. Olthof,</span>
+<span class="sd">        M. Worley, D. Sexton, and D. Dudgeon (Harris Group Inc. Seattle,</span>
+<span class="sd">        Washington and Atlanta, Georgia)</span>
 <span class="sd">    </span>
 <span class="sd">    **Examples**</span>
 <span class="sd">    </span>

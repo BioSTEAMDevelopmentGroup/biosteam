@@ -12,8 +12,10 @@ from scipy.integrate import odeint
 from .decorators import cost
 from ._tank import MixTank
 
-@cost('Volume', 'Agitator', N='N', CE=521.9, cost=52500, S=3785, exp=0.6, kW=22.371)
-@cost('Volume', 'Reactors', N='N', CE=521.9, cost=844000, S=3785, exp=0.6)
+@cost('Volume', 'Agitator', N='Number of reactors', CE=521.9,
+      cost=52500, S=3785, exp=0.6, kW=22.371)
+@cost('Volume', 'Reactors', N='Number of reactors', CE=521.9,
+      cost=844000, S=3785, exp=0.6)
 class Fermentation(BatchReactor):
     """Create a Fermentation object which models large-scale batch fermentation for the production of 1st generation ethanol using yeast [1, 2, 3, 4]. Only sucrose and glucose are taken into account. Conversion is based on reaction time, `tau`. Cleaning and unloading time, `tau_0`, fraction of working volume, `V_wf`, and number of reactors, `N_reactors`, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3].
     
@@ -92,8 +94,11 @@ class Fermentation(BatchReactor):
         self._cooler = hx = HXutility(None)
         self._heat_utilities = hx._heat_utilities
         # Species involved in fermentation
-        self._species_index = Stream.indices(Stream,
-            '64-17-5', '492-61-5', '57-50-1', '7732-18-5', '124-38-9', CAS=True)
+        try:
+            self._species_index = Stream.indices(Stream,
+                '64-17-5', '492-61-5', '57-50-1', '7732-18-5', '124-38-9', CAS=True)
+        except:
+            self._species_index = None
         hx._ins = hx._outs
         hx._outs[0].T = 32 + 273.15
     
@@ -173,7 +178,15 @@ class Fermentation(BatchReactor):
         dPdt = (mu_P * X)
         dSdt =  - mu_S * X
         return (dXdt, dPdt, dSdt)
-        
+       
+    @property
+    def N_reactors(self):
+        return self._kwargs['N']
+    @N_reactors.setter
+    def N_reactors(self, N):
+        if N <= 1:
+            raise ValueError(f"number of reactors must be greater than 1, value {N} is infeasible")
+        self._kwargs['N'] = N
 
     def _run(self):
         # Assume no Glycerol produced
@@ -185,7 +198,8 @@ class Fermentation(BatchReactor):
         kwargs = self._kwargs
         out, CO2 = self._outs
         out.sum(out, self._ins)
-        e, g, s, w, co2 = self._species_index
+        e, g, s, w, co2 = self._species_index or out.indices(Stream,
+                '64-17-5', '492-61-5', '57-50-1', '7732-18-5', '124-38-9', CAS=True)
         glucose = out.mol[g]
         sucrose = out.mol[s]
         
@@ -227,7 +241,7 @@ class Fermentation(BatchReactor):
         tau = self._kwargs['tau']
         tau_0 = self.tau_0
         Design = self._results['Design']
-        Design['N'] = N = self._kwargs['N']
+        Design['Number of reactors'] = N = self._kwargs['N']
         Design.update(self._solve(v_0, tau, tau_0, N, self._V_wf))
         hx = self._cooler
         hx.outs[0]._mol[:] = self.outs[0].mol/N 
@@ -240,5 +254,5 @@ class Fermentation(BatchReactor):
         hu.flow *= N
     
     def _end(self):
-        self._results['Cost']['Coolers'] = (self._results['Design']['N']
+        self._results['Cost']['Coolers'] = (self._results['Design']['Number of reactors']
                                          * self._cooler._results['Cost']['Heat exchanger'])

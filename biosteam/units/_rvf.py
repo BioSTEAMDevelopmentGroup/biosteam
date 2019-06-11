@@ -85,7 +85,8 @@ class RotaryVacuumFilter(Unit, metaclass=splitter):
         self._power_utility(power)
     
     @staticmethod
-    def _calc_Area(flow:'kg/hr', filter_rate:'lb/day-ft^2') -> 'ft^2':
+    def _calc_Area(flow, filter_rate):
+        """Return area in ft^2 given flow in kg/hr and filter rate in lb/day-ft^2."""
         return flow*52.91/filter_rate
     
         

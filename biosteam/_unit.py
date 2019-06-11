@@ -31,13 +31,13 @@ _do_nothing = lambda self: None
 def _add_upstream_neighbors(unit, set):
     """Add upsteam neighboring units to set."""
     for s in unit._ins:
-        u_source = s.source
+        u_source = s._source
         if u_source: set.add(u_source)
 
 def _add_downstream_neighbors(unit, set):
     """Add downstream neighboring units to set."""
     for s in unit._outs:
-        u_sink = s.sink
+        u_sink = s._sink
         if u_sink: set.add(u_sink)
 
 
@@ -132,7 +132,6 @@ class metaUnit(type):
     _CEPCI = 567.5 # Chemical engineering plant cost index (567.5 at 2017)
     def __new__(mcl, clsname, superclasses, new_definitions):
         """Prepare unit methods with wrappers for error notification, and add _kwargs as key word arguments to __init__. """
-
         if not _Unit_is_done:
             # Abstract Unit class
             cls = type.__new__(mcl, clsname, superclasses, new_definitions)
@@ -198,11 +197,13 @@ class metaUnit(type):
     
     @property
     def CEPCI(cls):
-        """Chemical engineering plant cost index (CEPCI)"""
-        return cls._CEPCI
+        """Chemical engineering plant cost index of all Unit objects."""
+        return metaUnit._CEPCI
     @CEPCI.setter
     def CEPCI(cls, CEPCI):
-        cls._CEPCI = CEPCI
+        if cls is not Unit:
+            raise TypeError('can only set CEPCI through the Unit class')
+        metaUnit._CEPCI = CEPCI
     
     def __repr__(cls):
         if cls.line == 'Unit' and cls.__name__ == 'Unit':
@@ -234,6 +235,8 @@ class Unit(metaclass=metaUnit):
         **line** = [Defaults to the class name of the first child class]: [str] Name denoting the type of Unit class    
     
         **CEPCI** = 567.5: [float] Chemical Engineering Plant Cost Index
+        
+        **BM** = None: [float] Bare module factor (installation factor)
 
         **_kwargs** = {}: [dict] Default keyword arguments
 
@@ -246,20 +249,15 @@ class Unit(metaclass=metaUnit):
         **_run()**
             Run simulation and update output streams.
 
-        **_prepare()**
-            Prepare for design (called before `design`).
-
         **_design()**
             Add design requirements to results "Design" dictionary.
 
         **_cost()**
             Add itemized purchse costs to results "Cost" dictionary.
             
-        **_spec()**
-            Calculate specification cost factors and update purchase prices.
-            
-        **_end():**
-            Finish setting purchase prices and utility costs.
+        .. Note::
+           
+           Class argument `_init` is called only once when a Unit object is initialized. `_setup` is run after `_init` as well as in the `reset` method to update cached data. The `_run` method is called during recycle loop convergence. The rest of the methods are called in the given order for generating results.
         
         **_units** = {}: [dict] Default units for results Operation and Design
         
@@ -275,13 +273,9 @@ class Unit(metaclass=metaUnit):
         
         **_has_cost** = True: [bool] Should be True if it has any associated cost
     
-        **_linkedstreams = True** = False: [bool] True if outs are proxy streams linked to ins
+        **_linkedstreams** = False: [bool] True if outs are streams linked to ins
     
-        **_graphics** = default_graphics: [biosteam Graphics] a Graphics object for diagram representation.
-        
-    .. Note::
-        
-       Class argument `_init` is called only once when a Unit object is initialized, while `_setup` is run in the `reset` method to update cached data. The `_run` method is called during recycle loop convergence. The rest of the methods are called in the given order for generating results.
+        **_graphics** = <Graphics>: [biosteam Graphics] Settings for diagram representation.
 
     **ins**
         
@@ -298,9 +292,16 @@ class Unit(metaclass=metaUnit):
         :doc:`Using -pipe- notation`
         
         :doc:`Inheriting from Unit`
+        
+        :doc:`Unit decorators`
+        
+        :doc:`Unit metaclasses`
     
     """ 
     ### Abstract Attributes ###
+    
+    # [float] Bare module factor (installation factor)
+    BM = None
     
     # [dict] Default units for results Operation and Design
     _units = {}
@@ -335,7 +336,7 @@ class Unit(metaclass=metaUnit):
     # [biosteam Graphics] a Graphics object for diagram representation.
     _graphics = default_graphics
     
-    #: [str] The general type of unit, regardless of class
+    # [str] The general type of unit, regardless of class
     line = 'Unit'
 
     ### Other defaults ###
@@ -347,7 +348,7 @@ class Unit(metaclass=metaUnit):
     _ID = None 
     
     #: [list] HeatUtility objects associated to unit
-    _heat_utilities = None
+    _heat_utilities = ()
     
     ### Initialize ###
     
@@ -385,7 +386,7 @@ class Unit(metaclass=metaUnit):
         """Initialize output streams."""
         if self._linkedstreams:
             if outs is None:
-                self._outs = Outs(self, (Stream.proxy('*') for i in self._N_outs))
+                self._outs = Outs(self, (Stream.proxy(None) for i in self._N_outs))
             elif not outs:
                 self._outs = Outs(self, (Stream.proxy('') for i in self._ins))
             elif isinstance(outs, Stream):
@@ -482,24 +483,21 @@ class Unit(metaclass=metaUnit):
     _init     = _do_nothing
     _setup    = _do_nothing
     _run      = _do_nothing
-    _prepare  = _do_nothing
     _design   = _do_nothing
+    _N        = _do_nothing #: For Unit decorators
     _cost     = _do_nothing
-    _spec     = _do_nothing
-    _end      = _do_nothing
+    _spec     = _do_nothing #: For Unit decorators
+    _end      = _do_nothing #: For Unit decorators
     
     # Summary
     def _summary(self):
         """Calculate all results from unit run."""
-        self._prepare()
         self._design()
         self._finalize()
 
     def _finalize(self):
         """Run all cost methods and finalize purchase and utility cost."""
         self._cost()
-        self._spec()
-        self._end()
         self._update_utility_cost()
         self._update_purchase_cost()
 
@@ -622,8 +620,8 @@ class Unit(metaclass=metaUnit):
 
     @property
     def CEPCI(self):
-        """Chemical engineering plant cost index (CEPCI)."""
-        return type(self).CEPCI
+        """Chemical engineering plant cost index of all Unit objects."""
+        return metaUnit._CEPCI
     @CEPCI.setter
     def CEPCI(self, CEPCI):
         raise AttributeError('cannot change class attribute through an instance')
@@ -773,6 +771,16 @@ class Unit(metaclass=metaUnit):
             oi += 1
         save_digraph(f, file, format)
     
+    @property
+    def purchase_cost(self):
+        """Total purchase cost (USD)."""
+        return self._totalcosts[0]
+    
+    @property
+    def utility_cost(self):
+        """Total utility cost (USD/hr)."""
+        return self._totalcosts[1]
+    
     ### Net input and output flows ###
     
     # Molar flow rates
@@ -897,6 +905,7 @@ class Unit(metaclass=metaUnit):
     # Representation
     def _info(self, T, P, flow, fraction):
         """Information on unit."""
+        self._link_streams()
         if self.ID:
             info = f'{type(self).__name__}: {self.ID}\n'
         else:
@@ -905,7 +914,7 @@ class Unit(metaclass=metaUnit):
         i = 0
         for stream in self._ins:
             if not stream:
-                info += f'[{i}] missing stream\n'
+                info += f'[{i}] {stream}\n'
                 i += 1
                 continue
             stream_info = stream._info(T, P, flow, fraction)
@@ -918,7 +927,7 @@ class Unit(metaclass=metaUnit):
         i = 0
         for stream in self._outs:
             if not stream:
-                info += f'[{i}] missing stream\n'
+                info += f'[{i}] {stream}\n'
                 i += 1
                 continue
             stream_info = stream._info(T, P, flow, fraction)
@@ -939,7 +948,7 @@ class Unit(metaclass=metaUnit):
         except: pass
         self.show()
     
-    def _delete(self):
+    def _disconnect(self):
         for i in self._ins:
             if i: 
                 if i._source: i._sink = None

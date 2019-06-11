@@ -25,8 +25,6 @@ class ScrewFeeder(Unit):
         volnet = feed.volnet*35.315 # ft3/hr
         N = volnet/volbounds[-1]
         Design['N'] = N = np.ceil(N)
-        Design['Flow rate'] = volnet/N 
-        massnet = feed.massnet*0.0006124/N #lb/s
-        power = N * 0.0146*massnet**0.85*self.length # hp
-        power *= 0.7457 # kW
-        self._power_utility(power)
+        Design['Flow rate'] = volnet
+        massnet = feed.massnet*0.0006124 #lb/s
+        self._power_utility(0.0146*massnet**0.85*self.length*0.7457)

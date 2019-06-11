@@ -4,6 +4,7 @@ Created on Thu Aug 23 14:38:34 2018
 
 @author: yoelr
 """
+from .._unit import metaUnit
 from .. import Unit, Stream, MixedStream
 from fluids import nearest_pipe
 import ht
@@ -42,7 +43,22 @@ Cb_dict = {'Floating head':
             lambda A, CE: exp( 7.2718 + 0.16*ln(A))*CE/567}
 
 
-class HX(Unit):
+class metaHX(metaUnit):
+    @property
+    def material(cls):
+        """Default 'Carbon steel/carbon steel'"""
+        return HX._F_Mstr
+    @material.setter
+    def material(self, material):
+        try:
+            HX._F_Mab = F_Mdict[material]
+        except KeyError:
+            dummy = str(F_Mdict.keys())[11:-2]
+            raise ValueError(f"material must be one of the following: {dummy}")
+        HX._F_Mstr = material  
+        
+        
+class HX(Unit, metaclass=metaHX):
     """Abstract class for counter current heat exchanger.
 
     **Parameters**
@@ -215,7 +231,9 @@ class HX(Unit):
         return s_tube, s_shell
 
     @staticmethod
-    def _concentric_tubes(s_tube, s_shell, Re_i, Re_o, inside_heating) -> 'U (kW/m2/K)':
+    def _concentric_tubes(s_tube, s_shell, Re_i, Re_o, inside_heating):
+        """Return overall heat transfer coefficient in kW/m2/K for concentric tubes."""
+        raise NotImplementedError()
         # Get the h value for calculating U 
         # Need: fluid properties, which are calculated at mean temperature between inlet and outlet both tube and shell side
         
@@ -368,6 +386,7 @@ class HX(Unit):
             # Look up tabulated values
             U = self._U_table(ci, hi, co, ho)
         elif U == 'Concentric tubes':
+            raise NotImplementedError("'Concentric tubes' not yet implemented")
             Re_i = 30000 # Arbitrary, but turbulent ??
             Re_o = 30000 # Arbitrary, but turbulent ??
             s_tube, s_shell = self._shellntube_streams(ci, hi, co, ho, inside_heating)
@@ -391,7 +410,6 @@ class HX(Unit):
         Design['Shell side pressure drop'] = Dp_s
         Design['Operating pressure'] = P*14.7/101325 # psi
         Design['Total tube length'] = L
-        return Design
 
     def _cost(self):
         Design = self._results['Design']

@@ -9,8 +9,8 @@ from ._species import Species
 from ._stream import Stream, nonzero_species, MassFlow, \
                             mol_flow_dim, mass_flow_dim, vol_flow_dim, \
                             phases, phase_index, flow
-from ._utils import fraction, tuple_array, \
-                           PropertyFactory, property_array
+from ._utils import fraction, tuple_array, missing_stream, \
+                    PropertyFactory, property_array
 from ._exceptions import EquilibriumError, DimensionError
 from . import _Q
 import numpy as np
@@ -89,6 +89,7 @@ class MixedStream(Stream):
             species._read_only()
         else:
             raise TypeError(f"species must be a Species object, not '{type(species).__name__}'")
+        self._source_link = self
         self._T_QinP = self._T_VP = self._link = self._source = self._sink = self._ID = None
         self.ID = ID
         self.T = T  #: [float] Temperature (K)
@@ -1026,10 +1027,16 @@ class MixedStream(Stream):
         """Return string with all specifications."""
         units = self.units
         basic_info = self._info_header() + '\n'
+        if hasattr(self, '_mol'):
+            nonzero, species = self.nonzero_species
+        else:
+            return basic_info + f' link: {self._link}'
         T_units, P_units, flow_units, fraction = [(i if i is not None else j) for i, j in
                                                   zip((T, P, flow, fraction), self.display_units)]
         phases = self.phase
         basic_info += self._info_phaseTP(phases, T_units, P_units)
+        len_ = len(nonzero)
+        if len_ == 0: return basic_info + ' flow: 0'
         
         # Get flow attribute name
         flow_dim = _Q(0, flow_units).dimensionality
@@ -1058,9 +1065,6 @@ class MixedStream(Stream):
             return beginning, new_line_spaces, end
 
         # Length of species column
-        nonzero, species = self.nonzero_species
-        if len(nonzero) == 0:
-            return basic_info + ' flow: 0'
         all_lengths = [len(sp) for sp in species]
         maxlen = max(all_lengths + [7])  # include length of the word 'species'
 

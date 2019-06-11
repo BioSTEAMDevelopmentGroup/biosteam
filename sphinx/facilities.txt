@@ -1,0 +1,5 @@
+facilities
+==========
+
+.. automodule:: biosteam.units.facilities
+   :members:

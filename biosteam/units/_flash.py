@@ -237,7 +237,7 @@ class Flash(Unit):
         # C_v: Vessel cost
         # C_pl: Platforms and ladders cost
         if type_ == 'Vertical':
-            C_v = self._F_material*exp(7.1390 + 0.18255*ln(W) + 0.02297*ln(W)**2)
+            C_v = exp(7.1390 + 0.18255*ln(W) + 0.02297*ln(W)**2)
             C_pl = 410*D**0.7396*L**0.70684
         elif type_ == 'Horizontal':
             C_v = exp(5.6336 - 0.4599*ln(W) + 0.00582*ln(W)**2)
@@ -245,7 +245,7 @@ class Flash(Unit):
         else:
             ValueError(f"SepType ({type_}) must be either 'Vertical', 'Horizontal' or 'Default'.")
             
-        Cost['Flash'] = CE/567*(C_v+C_pl)
+        Cost['Flash'] = CE/567*(self._F_material*C_v+C_pl)
         if self._has_hx:
             hx = self._heat_exchanger
             hx._cost()
@@ -254,8 +254,7 @@ class Flash(Unit):
 
     def _cost_vacuum(self):
         P = self._kwargs['P']
-        if not P or P > 101320:
-            return 
+        if not P or P > 101320: return 
         
         r = self._results
         D = r['Design']

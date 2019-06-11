@@ -129,7 +129,7 @@ class System:
     
     #: [dict] Dictionary of convergence options regarding maximum number of iterations and molar flow rate and temperature tolerances
     options = {'Maximum iteration': 100,
-               'Molar tolerance (kmol/hr)': 0.10,
+               'Molar tolerance (kmol/hr)': 0.01,
                'Temperature tolerance (K)': 0.10}
 
     # [dict] Cached downstream systems by (system, unit, with_facilities) keys
@@ -408,6 +408,8 @@ class System:
                 * [str] File name to save diagram.
                 * [None] Display diagram in console.
         
+            **format:** File format.
+        
         """
         if kind == 'thorough':
             return self._thorough_diagram(file, format)
@@ -570,7 +572,8 @@ class System:
         units = set()
         for i in self._unitnetwork:
             if i in units: continue
-            i.ID = ''
+            try: i.ID = ''
+            except: continue
             for s in (i._ins + i._outs):
                 if (s is not missing_stream
                     and s._sink and s._source
@@ -585,8 +588,10 @@ class System:
                               'T_error': 0,
                               'spec_error': 0,
                               'iter': 0}
+        feeds = self.feeds
         for stream in self.streams:
-            if stream._source: stream.empty()
+            if stream._link: continue
+            if stream not in feeds: stream.empty()
 
     def simulate(self):
         """Converge the network and simulate all units."""

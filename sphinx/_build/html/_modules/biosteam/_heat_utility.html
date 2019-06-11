@@ -167,51 +167,49 @@
 <div class="viewcode-block" id="HeatUtility"><a class="viewcode-back" href="../../HeatUtility.html#biosteam.HeatUtility">[docs]</a><span class="k">class</span> <span class="nc">HeatUtility</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Create an HeatUtility object that can choose a utility stream and calculate utility requirements. It can calculate required flow rate, temperature, or phase change of utility. Calculations assume counter current flow rate.</span>
 <span class="sd">    </span>
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    efficiency : float</span>
-<span class="sd">        Fraction of heat transfered after accounting for heat loss.</span>
+<span class="sd">    **Parameters**</span>
 <span class="sd">    </span>
-<span class="sd">    Class Attributes</span>
-<span class="sd">    ----------------</span>
-<span class="sd">    cooling_agents : DataFrame</span>
-<span class="sd">        All cooling utilities available</span>
-<span class="sd">    heating_agents : DataFrame</span>
-<span class="sd">        All heating utilities available</span>
+<span class="sd">        **efficiency:** [float] Fraction of heat transfered after accounting for heat loss.</span>
 <span class="sd">    </span>
-<span class="sd">    Examples</span>
-<span class="sd">    --------</span>
-<span class="sd">    Create a heat utility with a source:</span>
+<span class="sd">    **Class Attributes**</span>
+
+<span class="sd">        **cooling_agents:** [DataFrame] All cooling utilities available</span>
 <span class="sd">        </span>
-<span class="sd">    .. code-block:: python</span>
+<span class="sd">        **heating_agents:** [DataFrame] All heating utilities available</span>
 <span class="sd">    </span>
-<span class="sd">       &gt;&gt;&gt; hu = HeatUtility(&#39;Flash&#39;)</span>
-<span class="sd">       &gt;&gt;&gt; hu</span>
-<span class="sd">       HeatUtility: None</span>
-<span class="sd">        duty: 0</span>
-<span class="sd">        flow: 0</span>
-<span class="sd">        cost: 0</span>
+<span class="sd">    **Examples**</span>
 <span class="sd">    </span>
-<span class="sd">    Calculate utility requirement by calling it with a duty (kJ/hr) and temperature (K):</span>
+<span class="sd">        Create a heat utility with a source:</span>
+<span class="sd">            </span>
+<span class="sd">        .. code-block:: python</span>
 <span class="sd">        </span>
-<span class="sd">    .. code-block:: python</span>
-<span class="sd">    </span>
-<span class="sd">       &gt;&gt;&gt; hu(1000, 300, 350)</span>
-<span class="sd">       &gt;&gt;&gt; hu</span>
-<span class="sd">       HeatUtility: Low pressure steam</span>
-<span class="sd">        duty: 1.11e+03 kJ/hr</span>
-<span class="sd">        flow: 0.0284 kmol/hr,</span>
-<span class="sd">        cost: 0.00674 USD/hr</span>
-<span class="sd">   </span>
-<span class="sd">    All results are accessible:</span>
+<span class="sd">           &gt;&gt;&gt; hu = HeatUtility(&#39;Flash&#39;)</span>
+<span class="sd">           &gt;&gt;&gt; hu</span>
+<span class="sd">           HeatUtility: None</span>
+<span class="sd">            duty: 0</span>
+<span class="sd">            flow: 0</span>
+<span class="sd">            cost: 0</span>
 <span class="sd">        </span>
-<span class="sd">    .. code-block:: python</span>
-<span class="sd">    </span>
-<span class="sd">       &gt;&gt;&gt; hu.ID, hu.duty, hu.flow, hu.cost</span>
-<span class="sd">       (&#39;Low pressure steam&#39;,</span>
-<span class="sd">        1111.111111111111,</span>
-<span class="sd">        0.028351477551759364,</span>
-<span class="sd">        0.006741981361808377)</span>
+<span class="sd">        Calculate utility requirement by calling it with a duty (kJ/hr) and temperature (K):</span>
+<span class="sd">            </span>
+<span class="sd">        .. code-block:: python</span>
+<span class="sd">        </span>
+<span class="sd">           &gt;&gt;&gt; hu(1000, 300, 350)</span>
+<span class="sd">           &gt;&gt;&gt; hu</span>
+<span class="sd">           HeatUtility: Low pressure steam</span>
+<span class="sd">            duty: 1.11e+03 kJ/hr</span>
+<span class="sd">            flow: 0.0284 kmol/hr,</span>
+<span class="sd">            cost: 0.00674 USD/hr</span>
+<span class="sd">       </span>
+<span class="sd">        All results are accessible:</span>
+<span class="sd">            </span>
+<span class="sd">        .. code-block:: python</span>
+<span class="sd">        </span>
+<span class="sd">           &gt;&gt;&gt; hu.ID, hu.duty, hu.flow, hu.cost</span>
+<span class="sd">           (&#39;Low pressure steam&#39;,</span>
+<span class="sd">            1111.111111111111,</span>
+<span class="sd">            0.028351477551759364,</span>
+<span class="sd">            0.006741981361808377)</span>
 <span class="sd">           </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;_fresh&#39;</span><span class="p">,</span> <span class="s1">&#39;_used&#39;</span><span class="p">,</span> <span class="s1">&#39;ID&#39;</span><span class="p">,</span> <span class="s1">&#39;duty&#39;</span><span class="p">,</span>
@@ -243,6 +241,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">duty</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">efficiency</span> <span class="o">=</span> <span class="n">efficiency</span>
+        
+        <span class="c1">#: tuple[bool, float] Cached arguments:</span>
+        <span class="c1">#:     * [0]: [bool] True if duty is negative </span>
+        <span class="c1">#:     * [1]: [float] Temperature of operation</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_args</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">_init_streams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">phase</span><span class="p">):</span>
@@ -271,6 +273,7 @@
         <span class="k">if</span> <span class="n">duty</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">flow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">duty</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cost</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_args</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="k">return</span>
         
         <span class="n">negduty</span> <span class="o">=</span> <span class="n">duty</span> <span class="o">&lt;</span> <span class="mi">0</span>
@@ -472,7 +475,8 @@
                     <span class="o">+</span><span class="n">f</span><span class="s1">&#39; flow: 0</span><span class="se">\n</span><span class="s1">&#39;</span>
                     <span class="o">+</span><span class="n">f</span><span class="s1">&#39; cost: 0&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">duty</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="n">duty_units</span><span class="p">,</span> <span class="n">flow_units</span><span class="p">,</span> <span class="n">cost_units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_info_data</span><span class="p">(</span><span class="n">duty</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">cost</span><span class="p">)</span>
+            <span class="p">(</span><span class="n">duty</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="n">duty_units</span><span class="p">,</span>
+             <span class="n">flow_units</span><span class="p">,</span> <span class="n">cost_units</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_info_data</span><span class="p">(</span><span class="n">duty</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">cost</span><span class="p">)</span>
             <span class="k">return</span> <span class="p">(</span><span class="n">f</span><span class="s1">&#39;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="se">\n</span><span class="s1">&#39;</span>
                     <span class="o">+</span><span class="n">f</span><span class="s1">&#39; duty:</span><span class="si">{duty: .3g}</span><span class="s1"> </span><span class="si">{duty_units}</span><span class="se">\n</span><span class="s1">&#39;</span>
                     <span class="o">+</span><span class="n">f</span><span class="s1">&#39; flow:</span><span class="si">{flow: .3g}</span><span class="s1"> </span><span class="si">{flow_units}</span><span class="se">\n</span><span class="s1">&#39;</span>
@@ -485,7 +489,9 @@
     <span class="n">_ipython_display_</span> <span class="o">=</span> <span class="n">show</span></div>
 
 
-<span class="k">del</span> <span class="n">_Water</span><span class="p">,</span> <span class="n">_columns</span><span class="p">,</span> <span class="n">_cooling_index</span><span class="p">,</span> <span class="n">_cooling_water</span><span class="p">,</span> <span class="n">_chilled_water</span><span class="p">,</span> <span class="n">_chilled_brine</span><span class="p">,</span> <span class="n">_heating_index</span><span class="p">,</span> <span class="n">_low_pressure_steam</span><span class="p">,</span> <span class="n">_medium_pressure_steam</span><span class="p">,</span> <span class="n">_high_pressure_steam</span>
+<span class="k">del</span> <span class="n">_Water</span><span class="p">,</span> <span class="n">_columns</span><span class="p">,</span> <span class="n">_cooling_index</span><span class="p">,</span> <span class="n">_cooling_water</span><span class="p">,</span> <span class="n">_chilled_water</span><span class="p">,</span> \
+    <span class="n">_chilled_brine</span><span class="p">,</span> <span class="n">_heating_index</span><span class="p">,</span> <span class="n">_low_pressure_steam</span><span class="p">,</span> \
+    <span class="n">_medium_pressure_steam</span><span class="p">,</span> <span class="n">_high_pressure_steam</span>
 </pre></div>
 
           </div>

@@ -16,7 +16,7 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="find" href="find.html" />
+    <link rel="next" title="find" href="Flowsheet.html" />
     <link rel="prev" title="System" href="System.html" /> 
   </head><body>
     <div class="related" role="navigation" aria-label="related navigation">
@@ -29,7 +29,7 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="find.html" title="find"
+          <a href="Flowsheet.html" title="find"
              accesskey="N">next</a> |</li>
         <li class="right" >
           <a href="System.html" title="System"
@@ -43,7 +43,7 @@
   <p class="topless"><a href="System.html"
                         title="previous chapter">System</a></p>
   <h4>Next topic</h4>
-  <p class="topless"><a href="find.html"
+  <p class="topless"><a href="Flowsheet.html"
                         title="next chapter">find</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
@@ -90,7 +90,7 @@
 <dd><dl class="docutils">
 <dt>[dict] Options for cash flow analysis [-]:</dt>
 <dd><ul class="first last simple">
-<li><strong>Lang factor:</strong> Used to get fixed capital investment from total purchase cost.</li>
+<li><strong>Lang factor:</strong> Used to get fixed capital investment from total purchase cost. If no lang factor is given, estimate capital investment using bare module factors.</li>
 <li><strong>Operating days:</strong> (day).</li>
 <li><strong>IRR:</strong> Internal rate of return (fraction).</li>
 <li><strong>Wage:</strong> Wage per employee (USD/yr).</li>
@@ -118,15 +118,15 @@
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.TEA.cashflow">
-<code class="descname">cashflow</code><a class="headerlink" href="#biosteam.TEA.cashflow" title="Permalink to this definition">¶</a></dt>
-<dd><p>[DataFrame] Cash flow table</p>
-</dd></dl>
-
-<dl class="attribute">
 <dt id="biosteam.TEA.costs">
 <code class="descname">costs</code><a class="headerlink" href="#biosteam.TEA.costs" title="Permalink to this definition">¶</a></dt>
 <dd><p>[DataFrame] All purchase and utility costs for units.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.cashflow">
+<code class="descname">cashflow</code><a class="headerlink" href="#biosteam.TEA.cashflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>[DataFrame] Cash flow table.</p>
 </dd></dl>
 
 <dl class="method">
@@ -156,16 +156,13 @@
 
 <dl class="method">
 <dt id="biosteam.TEA.solve_IRR">
-<code class="descname">solve_IRR</code><span class="sig-paren">(</span><em>update=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.solve_IRR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.solve_IRR" title="Permalink to this definition">¶</a></dt>
+<code class="descname">solve_IRR</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.solve_IRR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.solve_IRR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the IRR at the break even point (NPV = 0) through cash flow analysis.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><strong>update:</strong> [bool] If True, update IRR, cashflow, and results.</div></blockquote>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.TEA.solve_price">
-<code class="descname">solve_price</code><span class="sig-paren">(</span><em>stream</em>, <em>update=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.solve_price"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.solve_price" title="Permalink to this definition">¶</a></dt>
+<code class="descname">solve_price</code><span class="sig-paren">(</span><em>stream</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.solve_price"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.solve_price" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the price (USD/kg) of stream at the break even point (NPV = 0) through cash flow analysis.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -200,7 +197,7 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="find.html" title="find"
+          <a href="Flowsheet.html" title="find"
              >next</a> |</li>
         <li class="right" >
           <a href="System.html" title="System"

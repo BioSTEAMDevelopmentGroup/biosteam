@@ -66,9 +66,9 @@ class TEA:
             :doc:`Techno-economic analysis of a biorefinery` 
     
     """
-    __slots__ = ('_results', 'system', 'cashflow', '_cached',
+    __slots__ = ('system', '_cached', '_cashflow',
                  '_options', '_IRR_guess', '_cost_guess',
-                 '_costs', '_cost_data')
+                 '_costs', '_cost_data', '_units')
     
     #: Default cash flow options
     _default = {'Lang factor': 4.37,
@@ -94,25 +94,11 @@ class TEA:
                 'Other recurring costs': 0,
                 'Other fixed capital': 0}
     
-    _results_units = {'Pay back period': 'yr',
-                      'Return on investment': '1/yr',
-                      'Net present value': 'USD',
-                      'Depreciable capital': 'USD',
-                      'Fixed capital investment': 'USD',
-                      'Total capital investment': 'USD',
-                      'Depreciation': 'USD/yr',
-                      'Annual operating cost': 'USD/yr',
-                      'Working capital': 'USD',
-                      'Utility cost': 'USD/yr',
-                      'Material cost': 'USD/yr',
-                      'Sales': 'USD/yr',
-                      'Labor': 'USD/yr'}
-    
     @property
     def options(self):
         """
         [dict] Options for cash flow analysis [-]:
-            * **Lang factor:** Used to get fixed capital investment from total purchase cost.
+            * **Lang factor:** Used to get fixed capital investment from total purchase cost. If no lang factor is given, estimate capital investment using bare module factors.
             * **Operating days:** (day).
             * **IRR:** Internal rate of return (fraction).
             * **Wage:** Wage per employee (USD/yr).
@@ -147,12 +133,6 @@ class TEA:
         #   depreciation_schedule: (start, Depreciation, D_len, schedule)}
         self._cached = {}
         
-        #: [dict] Summarized results of cash flow analysis
-        self._results = {}
-        
-        #: [DataFrame] Cash flow table
-        self.cashflow = None
-        
         #: Guess IRR for solve_IRR method
         self._IRR_guess = 0.15
         
@@ -160,7 +140,9 @@ class TEA:
         self._cost_guess = 0
         
         units = system._costunits
-        units = sorted(units, key=lambda x: x.line)
+        
+        #: list[Unit] All unit operations considered
+        self._units = units = sorted(units, key=lambda x: x.line)
         costs = [u._totalcosts for u in units]
         
         #: All purchase and utility costs for units
@@ -181,18 +163,71 @@ class TEA:
         self._costs[:] = self._cost_data
         return self._costs
 
+    @property
+    def cashflow(self):
+        """[DataFrame] Cash flow table."""
+        self.NPV()
+        return self._cashflow    
+
+    def _results(self):
+        """Return a dictionary of summarized results of cash flow analysis."""
+        flow_factor, cashflow_info, depreciation_data = self._get_cached_data()
+        cashflow_data, duration_array = cashflow_info
+        parameters = self._calc_parameters(flow_factor)
+        self._calc_cashflow(cashflow_data,
+                            parameters[:-3],
+                            depreciation_data)
+        NPV = self._calc_NPV_and_update(self.options['IRR'],
+                                         cashflow_data[-3:],
+                                         duration_array)
+        DC, FCI, WC, S, C, tax, UC, MC, L = parameters
+        D = FCI/self._options['Duration']
+        AOC = C + D
+        TCI = FCI + WC
+        net_earnings = (1-tax)*(S-AOC)
+        ROI = net_earnings/TCI
+        PBP = FCI/(net_earnings + D)
+        r = {}
+        r['Depreciable capital'] = DC
+        r['Fixed capital investment'] = FCI
+        r['Working capital'] = WC
+        r['Total capital investment'] = TCI
+        r['Depreciation'] = D
+        r['Utility cost'] = UC
+        r['Material cost'] = MC
+        r['Sales'] = S
+        r['Labor'] = L
+        r['Annual operating cost'] = AOC
+        r['Net present value'] = NPV
+        r['Return on investment'] = ROI
+        r['Pay back period'] = PBP
+        return r
+
     def results(self, with_units=True):
         """Return results of techno-economic analysis as a DataFrame object if `with_units` is True or as a Series otherwise."""
+        r = self._results()
         keys = []; addkey = keys.append
         vals = []; addval = vals.append
         if with_units:
-            results_units = self._results_units
-            for ki, vi in self._results.items():
+            results_units = {'Pay back period': 'yr',
+                             'Return on investment': '1/yr',
+                             'Net present value': 'USD',
+                             'Depreciable capital': 'USD',
+                             'Fixed capital investment': 'USD',
+                             'Total capital investment': 'USD',
+                             'Depreciation': 'USD/yr',
+                             'Annual operating cost': 'USD/yr',
+                             'Working capital': 'USD',
+                             'Utility cost': 'USD/yr',
+                             'Material cost': 'USD/yr',
+                             'Sales': 'USD/yr',
+                             'Labor': 'USD/yr'}
+            for ki, vi in r.items():
                 addkey(ki)
                 addval((results_units.get(ki, ''), vi))
             return pd.DataFrame(vals, keys, ('Units', 'Value'))
         else:
-            return pd.Series(self._results)
+            return pd.Series(r)
 
     def NPV(self):
         """Calculate NPV by cash flow analysis and update the "results" and "cashflow" attributes."""
@@ -202,11 +237,9 @@ class TEA:
         self._calc_cashflow(cashflow_data,
                             parameters[:-3],
                             depreciation_data)
-        NPV = self._calc_NPV_and_update(self.options['IRR'],
-                                        cashflow_data[-3:],
-                                        duration_array)
-        self._update_results(parameters, cashflow_data[-1, -1])
-        return NPV
+        return self._calc_NPV_and_update(self.options['IRR'],
+                                         cashflow_data[-3:],
+                                         duration_array)
     
     def production_cost(self, *products):
         """Return production cost of products.
@@ -224,7 +257,15 @@ class TEA:
         o = self.options
         flow_factor = 24*o['Operating days']
         o = self.options
-        DC_, UC_ = self.costs.sum(0) # Depreciable capital (USD) and utility cost (USD/hr)
+        LF = o['Lang factor']
+        if LF:
+            # DC_: Depreciable capital (USD)
+            # UC_: utility cost (USD/hr)
+            DC_, UC_ = self.costs.sum(0) 
+            DC_ *= LF
+        else:
+            UC_ = self.costs['Utility cost (USD/hr)'].sum()
+            DC_ = (self.costs['Purchase cost (USD)'] * [i.BM for i in self._units]).sum()
         MC_ = 0 # Material cost USD/hr
         CP_ = 0 # Coproducts USD/hr
         for s in sysfeeds:
@@ -238,7 +279,6 @@ class TEA:
         UC_ *= flow_factor
         MC_ *= flow_factor
         CP_ *= flow_factor
-        DC_ *= o['Lang factor']
         FC_ = DC_ * (1 + o['Startup'] + o['Land'] + o['Royalties']) + o['Other fixed capital']
         fb = o['Fringe benefits'] + o['Supplies']
         f =  (o['Maintenance']
@@ -287,8 +327,8 @@ class TEA:
             year, duration = year_duration
             index = tuple(range(year, year + duration)) if year else None
             data = np.zeros((duration, 10))
-            self.cashflow = _DataFrame(data, index, _cashflow_columns, dtype=float)
             cashflow_data = data.transpose()
+            self._cashflow = _DataFrame(data, index, _cashflow_columns, dtype=float)
             duration_array = _array(range(duration))
             cached[year_duration] = cashflow_info = (cashflow_data, duration_array)
         
@@ -324,7 +364,15 @@ class TEA:
         feeds = system.feeds
         products = system.products
         o = self.options
-        DC_, UC_ = self.costs.sum(0) # Depreciable capital (USD) and utility cost (USD/hr)
+        LF = o['Lang factor']
+        if LF:
+            # DC_: Depreciable capital (USD)
+            # UC_: utility cost (USD/hr)
+            DC_, UC_ = self.costs.sum(0)
+            DC_ *= LF
+        else:
+            UC_ = self.costs['Utility cost (USD/hr)'].sum()
+            DC_ = (self.costs['Purchase cost (USD)'] * [i.BM for i in self._units]).sum()
         MC_ = 0 # Material cost USD/hr
         S_  = 0 # Sales USD/hr
         for s in feeds:
@@ -337,7 +385,6 @@ class TEA:
         UC_ *= flow_factor
         MC_ *= flow_factor
         S_ *= flow_factor
-        DC_ *= o['Lang factor']
         FC_ = DC_*(1 + o['Startup'] + o['Land'] + o['Royalties']) + o['Other fixed capital']
         fb = o['Fringe benefits'] + o['Supplies']
         f =  (o['Maintenance']
@@ -393,40 +440,9 @@ class TEA:
     def _calc_NPV(IRR, CF, duration_array):
         """Return NPV at given IRR and cashflow data."""
         return (CF/(1+IRR)**duration_array).sum()
-    
-    def _update_results(self, parameters, NPV):
-        """Update results attribute."""
-        DC, FCI, WC, S, C, tax, UC, MC, L = parameters
-        D = FCI/self._options['Duration']
-        AOC = C + D
-        TCI = FCI + WC
-        net_earnings = (1-tax)*(S-AOC)
-        ROI = net_earnings/TCI
-        PBP = FCI/(net_earnings + D)
-        
-        r = self._results
-        r['Depreciable capital'] = DC
-        r['Fixed capital investment'] = FCI
-        r['Working capital'] = WC
-        r['Total capital investment'] = TCI
-        r['Depreciation'] = D
-        r['Utility cost'] = UC
-        r['Material cost'] = MC
-        r['Sales'] = S
-        r['Labor'] = L
-        r['Annual operating cost'] = AOC
-        r['Net present value'] = NPV
-        r['Return on investment'] = ROI
-        r['Pay back period'] = PBP
 
-    def solve_IRR(self, update=False):
-        """Return the IRR at the break even point (NPV = 0) through cash flow analysis.
-        
-        **Parameters**
-        
-            **update:** [bool] If True, update IRR, cashflow, and results.
-           
-        """
+    def solve_IRR(self):
+        """Return the IRR at the break even point (NPV = 0) through cash flow analysis."""
         # Calculate cashflow table
         flow_factor, cashflow_info, depreciation_data = self._get_cached_data()
         cashflow_data, duration_array = cashflow_info
@@ -435,24 +451,13 @@ class TEA:
                             parameters[:-3],
                             depreciation_data)
         # Solve
-        if update:
-            data_subset = cashflow_data[-3:]
-            args = (data_subset, duration_array)
-            self._calc_cashflow(cashflow_data,
-                                parameters[:-3],
-                                depreciation_data)
-            IRR = newton(self._calc_NPV_and_update,
-                         self._IRR_guess, args=args, tol=1e-5)
-            self.options['IRR'] = IRR
-            self._update_results(parameters, data_subset[-1, -1])
-        else:
-            IRR = newton(self._calc_NPV, self._IRR_guess,
-                         args=(cashflow_data[-3], duration_array),
-                         tol=1e-5)
+        IRR = newton(self._calc_NPV, self._IRR_guess,
+                     args=(cashflow_data[-3], duration_array),
+                     tol=1e-5)
         self._IRR_guess = IRR if (0 < IRR < 1) else 0.15
         return IRR
     
-    def solve_price(self, stream, update=False):
+    def solve_price(self, stream):
         """Return the price (USD/kg) of stream at the break even point (NPV = 0) through cash flow analysis. 
         
         **Parameters**
@@ -486,36 +491,19 @@ class TEA:
             raise ValueError(f"stream must be either a feed or a product of the system")
         
         # Solve
-        if update:
-            calc_NPV = self._calc_NPV_and_update
-            data_subset = cashflow_data[-3:]
-            def break_even_point(cost):
-                CF[:] = adjust(cost)
-                return calc_NPV(IRR, data_subset, duration_array)
-            self._cost_guess = cost = newton(break_even_point, self._cost_guess)
-            stream.price += cost/cost_factor
-            price = stream.price
-            parameters = self._calc_parameters(flow_factor)
-            self._calc_cashflow(cashflow_data,
-                                parameters[:-3],
-                                depreciation_data)
-            self._update_results(parameters, data_subset[-1, -1])
-        else:
-            calc_NPV = self._calc_NPV
-            data_subset = cashflow_data[-3]
-            def break_even_point(cost):
-                CF[:] = adjust(cost)
-                return calc_NPV(IRR, data_subset, duration_array)
-            self._cost_guess = cost = newton(break_even_point, self._cost_guess)
-            price = stream.price + cost/cost_factor
-        
-        return price
+        calc_NPV = self._calc_NPV
+        data_subset = cashflow_data[-3]
+        def break_even_point(cost):
+            CF[:] = adjust(cost)
+            return calc_NPV(IRR, data_subset, duration_array)
+        self._cost_guess = cost = newton(break_even_point, self._cost_guess)
+        return stream.price + cost/cost_factor
     
     def __repr__(self):
         return f'<{type(self).__name__}: {self.system.ID}>'
     
     def _info(self):
-        r = self._results
+        r = self._results()
         out = f'{type(self).__name__}: {self.system.ID}\n'
         IRR = self.options['IRR']*100
         if r:

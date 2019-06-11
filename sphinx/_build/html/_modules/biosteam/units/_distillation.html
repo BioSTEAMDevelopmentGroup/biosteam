@@ -810,7 +810,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_cost_components</span><span class="p">(</span><span class="n">Cost</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">Cost</span>
 
-<div class="viewcode-block" id="Distillation"><a class="viewcode-back" href="../../../Distillation.html#biosteam.units.Distillation">[docs]</a><span class="k">class</span> <span class="nc">Distillation</span><span class="p">(</span><span class="n">Dist</span><span class="p">):</span>
+<div class="viewcode-block" id="Distillation"><a class="viewcode-back" href="../../../units.html#biosteam.units.Distillation">[docs]</a><span class="k">class</span> <span class="nc">Distillation</span><span class="p">(</span><span class="n">Dist</span><span class="p">):</span>
     <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Distillation&#39;</span>
     <span class="vm">__doc__</span> <span class="o">=</span> <span class="n">column_doc</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;{Column Type}&#39;</span><span class="p">,</span> <span class="s1">&#39;Distillation&#39;</span><span class="p">)</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">0</span>
@@ -1112,7 +1112,7 @@
         <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Boiler&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_boiler</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">][</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
         
     
-<div class="viewcode-block" id="Distillation.plot_stages"><a class="viewcode-back" href="../../../Distillation.html#biosteam.units.Distillation.plot_stages">[docs]</a>    <span class="k">def</span> <span class="nf">plot_stages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Distillation.plot_stages"><a class="viewcode-back" href="../../../units.html#biosteam.units.Distillation.plot_stages">[docs]</a>    <span class="k">def</span> <span class="nf">plot_stages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Plot the McCabe Thiele Diagram.&quot;&quot;&quot;</span>
         <span class="c1"># Plot stages, graphical aid and equilibrium curve</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_plot_stages</span><span class="p">()</span>
@@ -1148,7 +1148,7 @@
         <span class="k">return</span> <span class="n">plt</span></div></div>
 
 
-<span class="k">class</span> <span class="nc">Stripper</span><span class="p">(</span><span class="n">Dist</span><span class="p">):</span>
+<div class="viewcode-block" id="Stripper"><a class="viewcode-back" href="../../../units.html#biosteam.units.Stripper">[docs]</a><span class="k">class</span> <span class="nc">Stripper</span><span class="p">(</span><span class="n">Dist</span><span class="p">):</span>
     <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Stripper&#39;</span>
     <span class="vm">__doc__</span> <span class="o">=</span> <span class="n">column_doc</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;{Column Type}&#39;</span><span class="p">,</span> <span class="s1">&#39;Stripper&#39;</span><span class="p">)</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">0</span>
@@ -1294,7 +1294,7 @@
     <span class="k">def</span> <span class="nf">_cost_components</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Cost</span><span class="p">):</span>
         <span class="c1"># Cost boiler</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_calc_boiler</span><span class="p">()</span>
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Boiler&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_boiler</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">][</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
+        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Boiler&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_boiler</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">][</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span></div>
 
     
 </pre></div>

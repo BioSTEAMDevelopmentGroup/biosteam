@@ -62,13 +62,13 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">Unit</span>
 <span class="kn">from</span> <span class="nn">.._utils</span> <span class="k">import</span> <span class="n">MissingStream</span>
-<span class="kn">from</span> <span class="nn">.._meta_final</span> <span class="k">import</span> <span class="n">metaFinal</span>
+<span class="kn">from</span> <span class="nn">.metaclasses</span> <span class="k">import</span> <span class="n">final</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;MassBalance&#39;</span><span class="p">]</span>
 
 <span class="c1"># %% Mass Balance Unit</span>
 
-<div class="viewcode-block" id="MassBalance"><a class="viewcode-back" href="../../../MassBalance.html#biosteam.units.MassBalance">[docs]</a><span class="k">class</span> <span class="nc">MassBalance</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">metaFinal</span><span class="p">):</span>
+<div class="viewcode-block" id="MassBalance"><a class="viewcode-back" href="../../../units.html#biosteam.units.MassBalance">[docs]</a><span class="k">class</span> <span class="nc">MassBalance</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">final</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a Unit object that changes net input flow rates to satisfy output flow rates. This calculation is based on mass balance equations for specified species. </span>
 
 <span class="sd">    **Parameters**</span>
@@ -82,10 +82,6 @@
 <span class="sd">        **balance:** [str] Should be one of the following:</span>
 <span class="sd">                  * &#39;flow&#39;: Satisfy output flow rates</span>
 <span class="sd">                  * &#39;fraction&#39;: Satisfy net output molar fractions</span>
-
-<span class="sd">    .. Note::</span>
-
-<span class="sd">        This is an end-of-the-line/final class that cannot be inherited.</span>
 
 <span class="sd">    **Examples**</span>
 <span class="sd">    </span>
@@ -260,8 +256,8 @@
 
 <span class="c1"># %% Energy Balance Unit</span>
 
-<span class="k">class</span> <span class="nc">EnergyBalance</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">metaFinal</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Create a Unit object that changes a stream temperature, flow rate, or vapor fraction to satisfy energy balance.</span>
+<div class="viewcode-block" id="EnergyBalance"><a class="viewcode-back" href="../../../units.html#biosteam.units.EnergyBalance">[docs]</a><span class="k">class</span> <span class="nc">EnergyBalance</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">final</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a Unit object that changes a stream&#39;s temperature, flow rate, or vapor fraction to satisfy energy balance.</span>
 
 <span class="sd">    **Parameters**</span>
 
@@ -269,14 +265,12 @@
 <span class="sd">        </span>
 <span class="sd">        **Type:** [str] Should be one of the following</span>
 <span class="sd">            * &#39;T&#39;: Vary temperature of output stream</span>
-<span class="sd">            * &#39;V&#39;: Vary vapor fraction of output stream</span>
 <span class="sd">            * &#39;F&#39;: Vary flow rate of input/output stream</span>
+<span class="sd">            * &#39;V&#39;: Vary vapor fraction of output stream</span>
 <span class="sd">        </span>
 <span class="sd">        **Qin:** *[float]* Additional energy input.</span>
-
-<span class="sd">    .. Note::</span>
-
-<span class="sd">        This is an end-of-the-line/final class that cannot be inherited.</span>
+<span class="sd">        </span>
+<span class="sd">    .. Note:: This is not a mixer, input streams and output streams should match flow rates.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;index&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
@@ -317,7 +311,7 @@
         <span class="k">elif</span> <span class="n">Type</span> <span class="o">==</span> <span class="s1">&#39;F&#39;</span><span class="p">:</span>
             <span class="n">s</span><span class="o">.</span><span class="n">mol</span> <span class="o">*=</span> <span class="p">(</span><span class="n">s_out</span><span class="o">.</span><span class="n">H</span> <span class="o">-</span> <span class="n">s_in</span><span class="o">.</span><span class="n">H</span><span class="p">)</span><span class="o">/</span><span class="n">H_s</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Type must be &#39;T&#39;, &#39;V&#39; or &#39;F&#39;, not &#39;</span><span class="si">{Type}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Type must be &#39;T&#39;, &#39;V&#39; or &#39;F&#39;, not &#39;</span><span class="si">{Type}</span><span class="s2">&#39;&quot;</span><span class="p">)</span></div>
             
         
         

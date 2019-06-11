@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Mar 19 10:38:50 2019
-
-@author: yoelr
+This module contains functions to inspect units and streams.
 """
 
 __all__ = []

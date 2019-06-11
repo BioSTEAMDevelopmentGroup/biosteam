@@ -7,10 +7,13 @@ Created on Wed Mar  6 16:46:04 2019
 
 __all__ = []
 
-from . import vacuum
-from . import design_tools
-from .vacuum import *
-from .design_tools import *
+from . import _vacuum
+from . import _tables
+from . import _cost_index
+from ._vacuum import *
+from ._tables import *
+from ._cost_index import *
 
-__all__.extend(vacuum.__all__)
-__all__.extend(design_tools.__all__)
+__all__.extend(_cost_index.__all__)
+__all__.extend(_vacuum.__all__)
+__all__.extend(_tables.__all__)

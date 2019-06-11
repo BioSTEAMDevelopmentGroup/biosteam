@@ -5,11 +5,11 @@ Created on Thu Aug 23 14:34:07 2018
 @author: yoelr
 """
 from .. import Unit, Stream
-from .._meta_final import metaFinal
+from .metaclasses import final
 from numpy import asarray
 from .metaclasses._splitter import split
 
-class Splitter(Unit, metaclass=metaFinal):
+class Splitter(Unit, metaclass=final):
     """Create a splitter that separates mixed streams based on splits.
 
     **Parameters**
@@ -119,7 +119,10 @@ class Splitter(Unit, metaclass=metaFinal):
 
     def __init__(self, ID='', outs=(), ins=None, split=None, order=None):
         self.ID = ID
-        self._reorder_ = Stream._cls_species._reorder
+        try:
+            self._reorder_ = Stream._cls_species._reorder
+        except AttributeError:
+            raise RuntimeError('must specify Stream.species first')
         self._split = self._reorder_(split, order) if order else asarray(split)
         self._init_ins(ins)
         self._init_outs(outs)
@@ -139,7 +142,7 @@ class Splitter(Unit, metaclass=metaFinal):
     summary = Unit._cost
 
 
-class InvSplitter(Unit, metaclass=metaFinal):
+class InvSplitter(Unit, metaclass=final):
     """Create a splitter that sets the input stream based on output streams. Must have only one input stream. The output streams will become the same temperature, pressure and phase as the input.
     """
     line = 'Splitter'

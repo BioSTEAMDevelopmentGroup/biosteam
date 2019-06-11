@@ -34,7 +34,7 @@ class Model(State):
     
     **Examples**
 
-         :doc:`Model Example`
+         :doc:`Advanced simulation`
     
     """
     __slots__ = ('_ID',      # [str] Should be the metric name.
@@ -71,7 +71,9 @@ class Model(State):
             raise ValueError(f'number of parameters in samples ({samples.shape[1]}) must be equal to the number of parameters ({len(params)})')
         key = lambda x: samples[x][i]
         index = list(range(len(samples)))
-        for i in range(paramlen-1,  -1, -1): index.sort(key=key)
+        for i in range(paramlen-1,  -1, -1):
+            if not params[i].system: break
+            index.sort(key=key)
         self._index = index
         self._table = pd.DataFrame(samples, columns=paramindex(params))
         self._table[self._ID] = None
@@ -86,7 +88,7 @@ class Model(State):
         add = values.append
         model = self._model
         samples = self._samples
-        if samples is None: raise ValueError('must load samples before evaluating')
+        if samples is None: raise ValueError('must load samples or distribution before evaluating')
         for i in self._index: 
             try: 
                 model(samples[i])

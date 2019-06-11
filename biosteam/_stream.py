@@ -372,8 +372,7 @@ class Stream(metaclass=metaStream):
     __slots__ = ('T', 'P', '_mol', '_mass', '_vol', 'price', '_ID', '_link',
                  '_species', '_sink', '_source', '_dew_cached', '_bubble_cached',
                  '_phase', '_y_cached', '_lL_split_cached', '_y', '_T_VP', '_T_QinP',
-                 '_yP', '_T_dew', '_upstream_connection', '_downstream_connection',
-                 '_y_over_Psat_gamma', '__weakref__')
+                 '_yP', '_T_dew', '_y_over_Psat_gamma', '__weakref__', '_source_link')
 
     ### Class attributes for working species ###
     _cls_species = None
@@ -398,7 +397,8 @@ class Stream(metaclass=metaStream):
             species._read_only()
         else: 
             self._species = self._cls_species
-        self._ID = self._link = self._sink = self._source = None
+        self._link = self._ID = self._sink = self._source = None
+        self._source_link = self
         self.phase = phase
         self.T = T  #: [float] Temperature (K)
         self.P = P  #: [float] Pressure (Pa)
@@ -537,13 +537,14 @@ class Stream(metaclass=metaStream):
         self._phase = phase
     
     @classmethod
-    def proxy(cls, ID, link=None):
+    def proxy(cls, ID, link=missing_stream):
         """Create a Stream object that serves as a proxy for the `link` stream."""
         self = object.__new__(cls)
-        self._link = self._source = self._sink = self._ID = None
+        self._source = self._sink = self._ID = None
+        self._source_link = missing_stream
         self.ID = ID
         self.price = 0
-        if link: self.link = link
+        self.link = link
         return self
     
     @property
@@ -553,25 +554,37 @@ class Stream(metaclass=metaStream):
     
     @link.setter
     def link(self, stream):
-        if not stream: return
         try:
-            if self._link is not stream:
-                self._species = stream._species
-                self._mass = stream._mass
-                self._mol = stream._mol
-                self._vol = stream._vol
-                self._dew_cached = stream._dew_cached
-                self._bubble_cached = stream._bubble_cached
+            if (not stream
+                or self._source_link is stream._source_link):
                 self._link = stream
-                self.P = stream.P
-                self.T = stream.T
-                self._phase = stream.phase
+                return
+            self._species = stream._species
+            self._mass = stream._mass
+            self._mol = stream._mol
+            self._vol = stream._vol
+            self._dew_cached = stream._dew_cached
+            self._bubble_cached = stream._bubble_cached
+            self._source_link = stream._source_link
+            self._link = stream
+            self.P = stream.P
+            self.T = stream.T
+            self._phase = stream.phase
         except Exception as Error:
-            if isinstance(stream, Stream):
-                raise Error
-            else:
-                raise TypeError(f"link must be a Stream object or None, not a '{type(stream).__name__}' object.")
-              
+            if isinstance(stream, Stream): raise Error
+            else: raise TypeError(f"link must be a Stream object, not a '{type(stream).__name__}' object.")
+    
+    def __getattr__(self, key):
+        if self._link is missing_stream:
+            if self.source and self.source._ins[0] is missing_stream:
+                self.source._link_streams()
+                try: return object.__getattribute__(self, key)
+                except: raise AttributeError(f'{repr(self.source)}.ins[0] is missing stream')
+            raise AttributeError(f'{self}.link is missing stream')
+        elif not self._source_link:
+            raise AttributeError(f'{repr(self.link.source)} must be simulated first')
+        else:
+            raise AttributeError(f"'{type(self).__name__}' has no attribute '{key}'")
     
     @property
     def species(self):
@@ -586,7 +599,7 @@ class Stream(metaclass=metaStream):
     @ID.setter
     def ID(self, ID):
         if ID == '':
-            # Select a default ID if requested
+            # Select a default ID
             letter, number = self._default_ID
             self._default_ID[1] += 1
             num = str(number)
@@ -665,7 +678,7 @@ class Stream(metaclass=metaStream):
 
         >>> s1.mol
         array([0, 2])
-        >>> s1.mol = [1, 2]
+        >>> s1.mol[:] = [1, 2]
         >>> s1.mol
         array([1, 2])
         """
@@ -978,6 +991,23 @@ class Stream(metaclass=metaStream):
         """
         return self._species._prop('Pr', self._mol, self.T, self.P, self._phase)
 
+    @property
+    def P_vapor(self):
+        """Vapor pressure (Pa)."""
+        species, x, P = self._equilibrium_args()
+        T = self.T
+        
+        # Remove species that account for less than 1 percent
+        pos = x > 0.02/len(x)
+        species = tuple(i for i,j in zip(species, pos) if j)
+        x = x[pos]
+        x = x/x.sum()
+        
+        if len(species) == 1: return species[0].VaporPressure(T)
+        gamma = self.activity_coefficients(species, x, T)
+        Psat = [s.VaporPressure(T) for s in species]
+        return sum(x * Psat * gamma)
+        
     # Other properties
     @property
     def source(self):
@@ -1065,8 +1095,8 @@ class Stream(metaclass=metaStream):
                                  T=s.T, P=s.P)
             out._molarray[:] = stream._molarray
         else:
-            out = Stream(ID, flow=s.mol, species=s._species,
-                         phase=s.phase, T=s.T, P=s.P)
+            out = Stream(ID, flow=s._mol, species=s._species,
+                         phase=s._phase, T=s.T, P=s.P)
         return out
     
     def copylike(self, stream):
@@ -1559,10 +1589,16 @@ class Stream(metaclass=metaStream):
         """Return string with all specifications."""
         units = self.units
         basic_info = self._info_header() + '\n'
+        if hasattr(self, '_mol'):
+            nonzero, species = self.nonzero_species
+        else:
+            return basic_info + f' link: {self._link}'
         T_units, P_units, flow_units, fraction = [(i if i is not None else j) for i, j in
                                                   zip((T, P, flow, fraction), self.display_units)]
         basic_info += self._info_phaseTP(self._phase, T_units, P_units)
-        
+        len_ = len(nonzero)
+        if len_ == 0:
+            return basic_info + ' flow: 0' 
         # Start of third line (flow rates)
         flow_dim = _Q(0, flow_units).dimensionality
         if fraction:
@@ -1592,40 +1628,36 @@ class Stream(metaclass=metaStream):
                 raise DimensionError(f"dimensions for flow units must be in molar, mass or volumetric flow rates, not '{flow_dim}'")
         # Remaining lines (all flow rates)
         new_line_spaces = len(beginning) * ' '
-        nonzero, species = self.nonzero_species
         if 'frac' in flow:
             flow = getattr(self, flow)[nonzero]
         else:
             flow = _Q(getattr(self, flow)[nonzero], units[flow]).to(flow_units).magnitude
-        len_ = len(nonzero)
-        if len_ == 0:
-            return basic_info + ' flow: 0'
-        else:
-            flowrates = ''
-            lengths = [len(sp) for sp in species]
-            maxlen = max(lengths) + 1
-            for i in range(len_-1):
-                spaces = ' ' * (maxlen - lengths[i])
-                flowrates += species[i] + spaces + f' {flow[i]:.3g}\n' + new_line_spaces
-            spaces = ' ' * (maxlen - lengths[len_-1])
-            flowrates += species[len_-1] + spaces + f' {flow[len_-1]:.3g}'
+        
+        flowrates = ''
+        lengths = [len(sp) for sp in species]
+        maxlen = max(lengths) + 1
+        for i in range(len_-1):
+            spaces = ' ' * (maxlen - lengths[i])
+            flowrates += species[i] + spaces + f' {flow[i]:.3g}\n' + new_line_spaces
+        spaces = ' ' * (maxlen - lengths[len_-1])
+        flowrates += species[len_-1] + spaces + f' {flow[len_-1]:.3g}'
         
         return (basic_info 
               + beginning
               + flowrates
-              + end.replace('*', new_line_spaces + 'net' + (maxlen-4)*' ' + '  ')
-              + (f'\n link: {self._link}' if self._link else ''))
+              + end.replace('*', new_line_spaces + 'net' + (maxlen-4)*' ' + '  '))
 
     def _ipython_display_(self, T=None, P=None, flow=None, fraction=None):
         """Print all specifications."""
         print(self._info(T, P, flow, fraction))
     show = _ipython_display_
 
-    def _delete(self):
-        source = self._source and self._source._outs
-        if source: source[source.index(self)] = missing_stream
-        sink = self._sink and self._sink._ins
-        if sink: sink[sink.index(self)] = missing_stream
+    def _disconnect(self):
+        outs = self._source and self._source._outs
+        if outs: outs[outs.index(self)] = missing_stream
+        ins = self._sink and self._sink._ins
+        if ins: ins[ins.index(self)] = missing_stream
+        self._source = self._sink = None
 
     def __str__(self):
         if self.ID: return self.ID

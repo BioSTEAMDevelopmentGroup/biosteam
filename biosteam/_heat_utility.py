@@ -218,6 +218,7 @@ class HeatUtility:
         if duty == 0:
             self.ID = ''
             self.flow = self.duty = self.cost = 0
+            self._args = None
             return
         
         negduty = duty < 0

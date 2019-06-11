@@ -1,0 +1,140 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Junction &#8212; BioSTEAM 0.1 documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="MassBalance" href="MassBalance.html" />
+    <link rel="prev" title="HXutility" href="HXutility.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="MassBalance.html" title="MassBalance"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="HXutility.html" title="HXutility"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="units.html" accesskey="U">units</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="HXutility.html"
+                        title="previous chapter">HXutility</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="MassBalance.html"
+                        title="next chapter">MassBalance</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/Junction.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-biosteam.units">
+<span id="junction"></span><h1>Junction<a class="headerlink" href="#module-biosteam.units" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="biosteam.units.Junction">
+<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">Junction</code><span class="sig-paren">(</span><em>upstream=None</em>, <em>downstream=''</em>, <em>species=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_junction.html#Junction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Junction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a Junction object that copies specifications from <cite>upstream</cite>
+to <cite>downstream</cite>. This serves to connect streams with different
+Species object.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><p><strong>ID:</strong> [str] Unique identification. If set as ‘’, a default ID will be chosen.</p>
+<p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+<p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+<p><strong>downstream:</strong> [Stream or str] Flow rate, T, P, and phase information
+will be copied from <cite>upstream</cite> to this stream.
+If None, stream will be missing.</p>
+<p><strong>upstream:</strong> [Stream or str] Stream that will be copied to
+<cite>downstream</cite>. If None, stream will be missing.</p>
+<p><strong>species:</strong> list[str] IDs of species to be passed down.
+If None, all species in common will be passed.</p>
+</div></blockquote>
+<p><strong>Examples</strong></p>
+<blockquote>
+<div><span class="xref std std-doc">Junction Example</span></div></blockquote>
+<dl class="attribute">
+<dt id="biosteam.units.Junction.ID">
+<code class="descname">ID</code><a class="headerlink" href="#biosteam.units.Junction.ID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unique Identification (str). If set as ‘’, it will choose a default ID.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="MassBalance.html" title="MassBalance"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="HXutility.html" title="HXutility"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">BioSTEAM 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="units.html" >units</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2018, Yoel Cortes-Pena and Guest Group.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.7.4.
+    </div>
+  </body>
+</html>

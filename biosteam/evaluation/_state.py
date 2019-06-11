@@ -6,7 +6,6 @@ Created on Thu May  9 13:38:57 2019
 """
 from ._block import Block
 from .. import Unit, Stream
-from ._name import elementname
 import numpy as np
 
 __all__ = ('State',)
@@ -18,15 +17,15 @@ def param_unit(param):
     if isinstance(element, Unit): return element
     elif isinstance(element, Stream): return element._sink
 
-def parameter(system, element, setter, kind, name):
+def parameter(system, element, setter, kind, name, distribution, units):
     if kind is 'coupled':
-        return Block(element, system).parameter(setter, name=name)
+        return Block(element, system).parameter(setter, name=name, distribution=distribution, units=units)
     elif kind is 'isolated':
-        return Block(element, None).parameter(setter, name=name)
+        return Block(element, None).parameter(setter, name=name, distribution=distribution, units=units)
     elif kind is 'design':
-        return Block(element, None).parameter(setter, element._summary, name)
+        return Block(element, None).parameter(setter, element._summary, name, distribution=distribution, units=units)
     elif kind is 'cost':
-        return Block(element, None).parameter(setter, element._finalize, name)
+        return Block(element, None).parameter(setter, element._finalize, name, distribution=distribution, units=units)
     raise ValueError(f"kind must be either 'coupled', 'isolated', 'design', or 'cost' (not {kind}).")
 
 def modelfunction(params):
@@ -50,6 +49,7 @@ def modelfunction(params):
             raise Error
     return model
 
+
 # %%
     
 class State:
@@ -58,10 +58,6 @@ class State:
     **Parameters**
     
         **system:** [System] Reflects the model state.
-        
-    **Examples**
-    
-        :doc:`Model Example`
     
     """
     __slots__ = ('_system', # [System] Reflects the model state.
@@ -80,7 +76,8 @@ class State:
         if not self._model: self._loadmodel()
         return tuple(self._params)
     
-    def parameter(self, setter=None, element=None, kind='isolated', name=None):
+    def parameter(self, setter=None, element=None, kind='isolated',
+                  name=None, distribution=None, units=None):
         """Define parameter and add to model.
         
         **Parameters**
@@ -95,15 +92,19 @@ class State:
                 * 'design': parameter only affects design and cost of the element.
                 * 'cost': parameter only affects cost of the element.
                 
-            **param:** [str] Name of parameter. If None, default to argument name of setter.
+            **name:** [str] Name of parameter. If None, default to argument name of setter.
+            
+            **distribution:** [chaospy.Dist] Parameter distribution.
+            
+            **units:** [str] Parameter units
             
         .. Note::
             
             If kind is 'coupled', account for downstream operations. Otherwise, only account for given element. If kind is 'design' or 'cost', element must be a Unit object.
         
         """
-        if not setter: return lambda setter: self.parameter(setter, element, kind, name)
-        param = parameter(self._system, element, setter, kind, name)
+        if not setter: return lambda setter: self.parameter(setter, element, kind, name, distribution, units)
+        param = parameter(self._system, element, setter, kind, name, distribution, units)
         self._params.append(param)
         self._erase()
         return param
@@ -120,6 +121,7 @@ class State:
         self._model = modelfunction(self._params)
     
     def __call__(self, sample):
+        """Update state given sample of parameters."""
         if not self._model: self._loadmodel()
         return self._model(np.asarray(sample))
     
@@ -128,18 +130,17 @@ class State:
     
     def __repr__(self):
         return '<' + self._repr() + '>'
-       
+    
     def _info(self):
         if not self._model: self._loadmodel()
         if not self._params:
             return (f'{self._repr()}\n'
-                    +' Element:  Parameters:\n'
-                    +'  None      None')
+                    +' (No parameters)')
         lines = []
         lenghts_block = []
         lastblk = None
         for i in self._params:
-            blk = elementname(i.element)
+            blk = i.element_name
             element = len(blk)*' ' if blk==lastblk else blk
             lines.append(f"  {element}${i.name}\n")
             lastblk = blk

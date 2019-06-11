@@ -6,6 +6,7 @@ Created on Wed May  1 19:05:53 2019
 """
 from inspect import signature
 from functools import reduce
+from ._extend import extend_finalize
 
 __all__ = ('spec',)
 
@@ -25,14 +26,15 @@ def spec(item, param, func):
     if N != 1:
         raise ValueError(f"one and only one argument in 'func' signature is allowed ({N or 'no'} parameters given)")
     
-    def costfactor_decorator(cls):
+    def spec_decorator(cls):
+        extend_finalize(cls)
         if hasattr(cls, '_specdata'): data = cls._specdata
         else: cls._specdata = data = {}
         if item in data: data[item].append((func, param))
         else: data[item] = [(func, param)]
         cls._spec = _spec
         return cls
-    return costfactor_decorator
+    return spec_decorator
         
     
     

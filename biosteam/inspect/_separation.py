@@ -13,7 +13,7 @@ import numpy as np
 __all__ = ('compound_split', 'partition_coefficient')
 
 def compound_split(streams):
-    """Return compound split fractions for each stream in outs as a pandas DataFrame."""
+    """Return compound split fractions for each stream as a pandas DataFrame."""
     mol_out = sum(s._mol for s in streams)
     mol_out[mol_out==0] = 1
     return pd.DataFrame(data=np.array([i.mol/mol_out for i in streams]).transpose(),

@@ -16,7 +16,7 @@ do_nothing = lambda: None
 # %% Simulation blocks
 
 class Block:
-    """Create a Block object that can simulate the element and the system downstream. The block can also generate Parameter object that can update the system state.
+    """Create a Block object that can simulate the element and the system downstream. The block can also generate Parameter objects that can update the system state.
     
     **Parameters**
     
@@ -57,11 +57,11 @@ class Block:
         self._element = element
         self._blocks[system, element] = self
     
-    def parameter(self, setter, simulate=None, name=None) -> Parameter:
+    def parameter(self, setter, simulate=None, name=None, distribution=None, units=None) -> Parameter:
         """Return a Parameter object."""
         if simulate is None: simulate = self._simulate
         if not name: name, = signature(setter).parameters.keys()
-        return Parameter(name, setter, simulate, self._element, self._system)
+        return Parameter(name, setter, simulate, self._element, self._system, distribution, units)
     
     @property
     def system(self):

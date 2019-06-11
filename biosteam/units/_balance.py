@@ -7,13 +7,13 @@ Created on Sat Sep  1 17:35:28 2018
 import numpy as np
 from .. import Stream, Unit
 from .._utils import MissingStream
-from .._meta_final import metaFinal
+from .metaclasses import final
 
 __all__ = ['MassBalance']
 
 # %% Mass Balance Unit
 
-class MassBalance(Unit, metaclass=metaFinal):
+class MassBalance(Unit, metaclass=final):
     """Create a Unit object that changes net input flow rates to satisfy output flow rates. This calculation is based on mass balance equations for specified species. 
 
     **Parameters**
@@ -27,10 +27,6 @@ class MassBalance(Unit, metaclass=metaFinal):
         **balance:** [str] Should be one of the following:
                   * 'flow': Satisfy output flow rates
                   * 'fraction': Satisfy net output molar fractions
-
-    .. Note::
-
-        This is an end-of-the-line/final class that cannot be inherited.
 
     **Examples**
     
@@ -205,8 +201,8 @@ class MassBalance(Unit, metaclass=metaFinal):
 
 # %% Energy Balance Unit
 
-class EnergyBalance(Unit, metaclass=metaFinal):
-    """Create a Unit object that changes a stream temperature, flow rate, or vapor fraction to satisfy energy balance.
+class EnergyBalance(Unit, metaclass=final):
+    """Create a Unit object that changes a stream's temperature, flow rate, or vapor fraction to satisfy energy balance.
 
     **Parameters**
 
@@ -214,14 +210,12 @@ class EnergyBalance(Unit, metaclass=metaFinal):
         
         **Type:** [str] Should be one of the following
             * 'T': Vary temperature of output stream
-            * 'V': Vary vapor fraction of output stream
             * 'F': Vary flow rate of input/output stream
+            * 'V': Vary vapor fraction of output stream
         
         **Qin:** *[float]* Additional energy input.
-
-    .. Note::
-
-        This is an end-of-the-line/final class that cannot be inherited.
+        
+    .. Note:: This is not a mixer, input streams and output streams should match flow rates.
 
     """
     _kwargs = {'index': None,

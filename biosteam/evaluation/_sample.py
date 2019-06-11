@@ -4,29 +4,29 @@ Created on Sun May 12 17:15:43 2019
 
 @author: yoelr
 """
-def cartesian_samples(parameter_values):
-    tuple_ = tuple
-    initial_sample = []
-    sorted_ = sorted
-    paramvals = []
-    for args in parameter_values:
-        args = sorted_(args)
-        paramvals.append(args)
-        initial_sample.append(args[0])
-    num_args = tuple_(enumerate(paramvals))
-    sample = initial_sample
-    initial_sample = tuple_(initial_sample)
-    samples = [initial_sample]
-    _fillspace(sample, num_args, samples, tuple_)
-    return samples
+# def cartesian_samples(parameter_values):
+#     tuple_ = tuple
+#     initial_sample = []
+#     sorted_ = sorted
+#     paramvals = []
+#     for args in parameter_values:
+#         args = sorted_(args)
+#         paramvals.append(args)
+#         initial_sample.append(args[0])
+#     num_args = tuple_(enumerate(paramvals))
+#     sample = initial_sample
+#     initial_sample = tuple_(initial_sample)
+#     samples = [initial_sample]
+#     _fillspace(sample, num_args, samples, tuple_)
+#     return samples
 
-def _fillspace(args, num_args, argspace, tuple_):
-    for i, fargs in num_args:
-        for a in fargs[1:]:
-            args[i] = a
-            argspace.append(tuple_(args))
-            _fillspace(args, num_args[:i], argspace, tuple_)
-        fargs.reverse()
+# def _fillspace(args, num_args, argspace, tuple_):
+#     for i, fargs in num_args:
+#         for a in fargs[1:]:
+#             args[i] = a
+#             argspace.append(tuple_(args))
+#             _fillspace(args, num_args[:i], argspace, tuple_)
+#         fargs.reverse()
 
 # def _split(samples, i):
 #     subgrids = {}
