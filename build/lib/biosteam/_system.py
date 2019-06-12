@@ -15,6 +15,7 @@ from ._unit import Unit
 from ._report import save_report
 from ._utils import color_scheme, missing_stream, strtuple, function
 from warnings import warn
+import biosteam
 
 __all__ = ('System',)
 
@@ -36,7 +37,7 @@ def _evaluate(self, command=None):
         for attr in ('stream', 'unit', 'system'):
             dct = getattr(find, attr).__dict__
             lcs.update({i:j() for i, j in dct.items()})
-        lcs['find'] = find
+        lcs.update({attr:getattr(biosteam, attr) for attr in biosteam.__all__})
         try:
             out = eval(command, {}, lcs)            
         except Exception as err:
@@ -48,10 +49,11 @@ def _evaluate(self, command=None):
             _evaluate(self, command)        
         else:
             # If successful, continue evaluating
-            if out is None:
-                if '.show(' not in command: print('\n')
-            else:
-                print(out)
+            if out is None: pass
+            elif (not hasattr(out, '_ipython_display_')
+                  or isinstance(type(out), type)): print(out)
+            else: out._ipython_display_()
+                
             command = input(">>> ")
             _evaluate(self, command)
 
@@ -670,20 +672,15 @@ class System:
         """Return information on convergence."""
         x = self._solver_error
         recycle = self.recycle
-
         error_info = ''
-
         spec = x['spec_error']
         if spec:
             error_info += f'\n specification error: {spec:.3g}'
-
         if recycle:
             error_info += f"\n convergence error: Flow rate   {x['mol_error']:.2e} kmol/hr"
             error_info += f"\n                    Temperature {x['T_error']:.2e} K"
-
         if spec or recycle:
             error_info += f"\n iterations: {x['iter']}"
-
         return error_info
 
     def _info(self):

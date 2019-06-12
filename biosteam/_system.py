@@ -5,7 +5,6 @@ Created on Sat Aug 18 15:04:55 2018
 @author: yoelr
 """
 from copy import copy
-import IPython
 import numpy as np
 from scipy.optimize import newton
 from ._exceptions import Stop, SolverError, _try_method

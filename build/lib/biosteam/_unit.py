@@ -206,12 +206,17 @@ class metaUnit(type):
         metaUnit._CEPCI = CEPCI
     
     def __repr__(cls):
-        if cls.line == 'Unit' and cls.__name__ == 'Unit':
-            return f'biosteam.{cls.__name__}'
-        elif cls.line == cls.__name__ or cls.line == 'Unit':
-            return f'Unit.{cls.__name__}'
+        modules = cls.__module__
+        if cls is Unit:
+            return f'biosteam.Unit'
+        elif 'biosteam.units' in  modules:
+            if 'facilities' in modules:
+                return f'biosteam.units.facilities.{cls.__name__}'
+            else:
+                return f'biosteam.units.{cls.__name__}'
         else:
-            return f'{cls.line}.{cls.__name__}'
+            return super().__repr__()
+            
 
 
 # %% Unit Operation

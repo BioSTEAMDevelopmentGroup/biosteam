@@ -52,8 +52,28 @@ class Junction(Unit, metaclass=final):
     
     **Examples**
     
-        :doc:`Junction Example`
-    
+    Create a Junction object and connect streams with different Species objects:
+        
+    >>> from biosteam import *
+    >>> species = Species('Water')
+    >>> species.Sugar = compounds.Substance('Sugar')
+    >>> Stream.species = species
+    >>> s1 = Stream('s1', Water=20)
+    >>> Stream.species = Species('Water', 'Ethanol')
+    >>> s2 = Stream('s2') # Note that s2 and s1 have different Species objects
+    >>> J1 = units.Junction(s1, s2)
+    >>> J1.simulate()
+    >>> J1.show()
+    Junction:
+    ins...
+    [0] s1
+        phase: 'l', T: 298.15 K, P: 101325 Pa
+        flow (kmol/hr): Water  20
+    outs...
+    [0] s2
+        phase: 'l', T: 298.15 K, P: 101325 Pa
+        flow (kmol/hr): Water  20
+        
     """
     _has_cost = False
     _N_ins = _N_outs = 1

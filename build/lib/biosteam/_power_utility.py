@@ -10,15 +10,7 @@ from ._utils import DisplayUnits
 __all__ = ('PowerUtility',)
 
 class PowerUtility:
-    """Create an PowerUtility object that can calculates the cost of power.
-    
-    **__call__()**
-    
-       Calculate utility requirements given the essential parameters.
-        
-        **Parameters**
-        
-            rate: [float] Power requirement (kW)
+    """Create an PowerUtility object that, when called, calculates the cost of power (kW) and saves the power and cost.
             
     **Class Parameters**
     
