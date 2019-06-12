@@ -7,14 +7,13 @@ Created on Thu Mar  7 23:17:38 2019
 import numpy as np
 import pandas as pd
 from ._state import State
-from ._name import elementname
 
 __all__ = ('Model',)
 
 # %% Functions
 
 paramindex = lambda params: pd.MultiIndex.from_arrays(
-                                ([elementname(f.element) for f in params], 
+                                ([f.element_name for f in params], 
                                  [f.name for f in params]),
                                 names=('Element', 'Parameter'))
 

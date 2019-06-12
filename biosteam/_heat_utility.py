@@ -124,11 +124,11 @@ class HeatUtility:
     
     **Examples**
     
-        Create a heat utility with a source:
+        Create a heat utility:
             
         .. code-block:: python
         
-           >>> hu = HeatUtility('Flash')
+           >>> hu = HeatUtility()
            >>> hu
            HeatUtility: None
             duty: 0

@@ -133,9 +133,7 @@ class State:
     
     def _info(self):
         if not self._model: self._loadmodel()
-        if not self._params:
-            return (f'{self._repr()}\n'
-                    +' (No parameters)')
+        if not self._params: return f'{self._repr()}\n (No parameters)'
         lines = []
         lenghts_block = []
         lastblk = None
