@@ -33,10 +33,6 @@ class Transesterification(Unit):
     
         [0] Product
     
-    **Examples**
-    
-        :doc:`Transesterification Example`
-    
     """
     _kwargs = {'efficiency': None,  # fraction of theoretical conversion
                'r': None,  # Methanol to lipid molar ratio

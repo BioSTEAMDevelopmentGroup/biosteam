@@ -104,12 +104,13 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">3. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Find unit operations and manage flowsheets.html">4. Find unit operations and manage flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">5. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">6. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">7. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">8. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">9. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit operation examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -126,18 +127,6 @@
 <li class="toctree-l1"><a class="reference internal" href="units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inspect.html">inspect</a></li>
 <li class="toctree-l1"><a class="reference internal" href="evaluation.html">evaluation</a></li>
-</ul>
-<p class="caption"><span class="caption-text">Unit Operation Examples</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="Centrifuge_LLE Example.html">Centrifuge_LLE</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Distillation Example.html">Distillation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Fermentation Example.html">Fermentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Flash Example.html">Flash</a></li>
-<li class="toctree-l1"><a class="reference internal" href="HXprocess Example.html">HXprocess</a></li>
-<li class="toctree-l1"><a class="reference internal" href="HXutility Example.html">HXutility</a></li>
-<li class="toctree-l1"><a class="reference internal" href="MassBalance Example.html">MassBalance</a></li>
-<li class="toctree-l1"><a class="reference internal" href="MolecularSieve Example.html">MolecularSieve</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Pump Example.html">Pump</a></li>
 </ul>
 
             
@@ -789,7 +778,7 @@ MixedStream: ms1
 </pre></div>
 </div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">Note:</span> <span class="pre">When</span> <span class="pre">a</span> <span class="pre">phase</span> <span class="pre">has</span> <span class="pre">no</span> <span class="pre">flow</span> <span class="pre">rate,</span> <span class="pre">all</span> <span class="pre">specie</span> <span class="pre">fractions</span> <span class="pre">will</span> <span class="pre">be</span> <span class="pre">equal.</span></code></p>
+<p>Note: When a phase has no flow rate, all specie fractions will be equal.</p>
 </div>
 <div class="section" id="Overall-flow-properties">
 <h2>2.4. Overall flow properties<a class="headerlink" href="#Overall-flow-properties" title="Permalink to this headline">¶</a></h2>
@@ -853,7 +842,8 @@ MixedStream: ms1
 </pre></div>
 </div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">Note:</span> <span class="pre">Overall</span> <span class="pre">flow</span> <span class="pre">rate</span> <span class="pre">properties</span> <span class="pre">'molnet',</span> <span class="pre">'massnet',</span> <span class="pre">'volnet',</span> <span class="pre">'molfrac',</span> <span class="pre">'massfrac',</span> <span class="pre">and</span> <span class="pre">'volfrac'</span> <span class="pre">are</span> <span class="pre">also</span> <span class="pre">available</span></code></p>
+<p>Note that overall flow rate properties ‘molnet’, ‘massnet’, ‘volnet’,
+‘molfrac’, ‘massfrac’, and ‘volfrac’ are also available.</p>
 </div>
 <div class="section" id="Material-and-thermodynamic-properties">
 <h2>2.5. Material and thermodynamic properties<a class="headerlink" href="#Material-and-thermodynamic-properties" title="Permalink to this headline">¶</a></h2>
@@ -1044,7 +1034,8 @@ C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeW
   warnings.warn(msg, RuntimeWarning)
 </pre></div></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">Note:</span> <span class="pre">It</span> <span class="pre">is</span> <span class="pre">also</span> <span class="pre">possible</span> <span class="pre">to</span> <span class="pre">set</span> <span class="pre">light</span> <span class="pre">and</span> <span class="pre">heavy</span> <span class="pre">keys</span> <span class="pre">that</span> <span class="pre">are</span> <span class="pre">not</span> <span class="pre">used</span> <span class="pre">to</span> <span class="pre">calculate</span> <span class="pre">equilibrium.</span> <span class="pre">Please</span> <span class="pre">see</span> <span class="pre">documentation</span> <span class="pre">for</span> <span class="pre">more</span> <span class="pre">information.</span></code></p>
+<p>It is also possible to set light and heavy keys that are not used to
+calculate equilibrium using the <code class="docutils literal notranslate"><span class="pre">LNK</span></code> and <code class="docutils literal notranslate"><span class="pre">HNK</span></code> key word arguments.</p>
 </div>
 <div class="section" id="Liquid-liquid-equilibrium">
 <h2>2.7. Liquid-liquid equilibrium<a class="headerlink" href="#Liquid-liquid-equilibrium" title="Permalink to this headline">¶</a></h2>
@@ -1102,7 +1093,8 @@ MixedStream: ms3
          Octane   2
 </pre></div></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">Note:</span> <span class="pre">LLE</span> <span class="pre">assumes</span> <span class="pre">no</span> <span class="pre">significat</span> <span class="pre">temperature</span> <span class="pre">change</span> <span class="pre">with</span> <span class="pre">phase</span> <span class="pre">partitioning,</span> <span class="pre">resulting</span> <span class="pre">in</span> <span class="pre">constant</span> <span class="pre">temperature.</span></code></p>
+<p>Note that <code class="docutils literal notranslate"><span class="pre">LLE</span></code> assumes no significat temperature change with phase
+partitioning, resulting in constant temperature.</p>
 <p>Isothermal and isobaric conditions:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>

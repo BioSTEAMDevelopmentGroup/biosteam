@@ -24,10 +24,6 @@ class Block:
         
         **system:** [System] If None, ignore downstream.
         
-    **Examples**
-
-         :doc:`Block Example`
-    
     """
     
     _blocks = {}

@@ -474,7 +474,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "`Note: When a phase has no flow rate, all specie fractions will be equal.`"
+    "Note: When a phase has no flow rate, all specie fractions will be equal."
    ]
   },
   {
@@ -548,7 +548,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "`Note: Overall flow rate properties 'molnet', 'massnet', 'volnet', 'molfrac', 'massfrac', and 'volfrac' are also available`"
+    "Note that overall flow rate properties 'molnet', 'massnet', 'volnet', 'molfrac', 'massfrac', and 'volfrac' are also available."
    ]
   },
   {
@@ -779,7 +779,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "`Note: It is also possible to set light and heavy keys that are not used to calculate equilibrium. Please see documentation for more information.`"
+    "It is also possible to set light and heavy keys that are not used to calculate equilibrium using the `LNK` and `HNK` key word arguments."
    ]
   },
   {
@@ -859,7 +859,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "`Note: LLE assumes no significat temperature change with phase partitioning, resulting in constant temperature.`"
+    "Note that `LLE` assumes no significat temperature change with phase partitioning, resulting in constant temperature."
    ]
   },
   {
