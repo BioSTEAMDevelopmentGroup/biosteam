@@ -82,5 +82,5 @@ Citation
 
 To cite BioSTEAM in publications use::
 
-    Yoel Cortes-Pena, Jeremy Guest (2019). BioSTEAM: The Open-Source Bioprocess Simulation and Techno-Economic Analysis Modules in Python
+    Yoel Cortes-Pena, Jeremy Guest (2019). BioSTEAM: The Bioprocess Simulation and Techno-Economic Analysis Modules
     https://github.com/yoelcortes/biosteam

@@ -50,15 +50,8 @@ class Species:
     
     def __init__(self, *IDs, cls=None):
         # Sphinx docs look ugly if a class is in the default argument
+        if not IDs: return
         if cls is None: cls = Chemical
-        
-        # Make sure IDs is a tuple
-        if not IDs:
-            return
-        elif isinstance(IDs, str):
-            IDs = (IDs,)
-        elif not isinstance(IDs[0], str):
-            IDs = IDs[0] # For backwards compatibility
         
         # Set Compound object attributes
         for n in IDs:

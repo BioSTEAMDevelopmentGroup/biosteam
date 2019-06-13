@@ -299,8 +299,6 @@ class Unit(metaclass=metaUnit):
         :doc:`Inheriting from Unit`
         
         :doc:`Unit decorators`
-        
-        :doc:`Unit metaclasses`
     
     """ 
     ### Abstract Attributes ###

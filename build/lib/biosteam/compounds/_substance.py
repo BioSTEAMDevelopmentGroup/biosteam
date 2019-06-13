@@ -34,7 +34,7 @@ class Substance(Compound):
         
         **obj** [Specie] Should contain analog properties for specie at STP. Defaults to water if None.
 
-        **MW:** Molecular weight of specie
+        **MW:** Molecular weight of compound (defaults to 1)
          
         **T:** Temperature (K)
          
@@ -81,10 +81,10 @@ class Substance(Compound):
         self.ID = ID
         self.T = T
         self.P = P
-        self.MW = MW
         self.Hvapm = 0
         
         # Set property values (defaults to Water property values)
+        self.MW = select_value(obj, MW, 'MW', 1)
         self.CAS = select_value(obj, CAS, 'CAS', ID)
         self.Cp = select_value(obj, Cp, 'Cp', 4.18)
         self.sigma = select_value(obj, sigma, 'mu', 0.072055)

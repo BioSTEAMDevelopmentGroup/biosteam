@@ -22,8 +22,8 @@ for p in new_path:
 # -- Project information -----------------------------------------------------
 
 project = 'BioSTEAM'
-copyright = '2018, Yoel Cortes-Pena and Guest Group'
-author = 'Yoel Cortes-Pena and Guest Group'
+copyright = '2018, Yoel Cortes-Pena and Jeremy Guest'
+author = 'Yoel Cortes-Pena'
 
 # The short X.Y version
 version = ''
@@ -51,6 +51,7 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
     'sphinx.ext.ifconfig',
+    'sphinx.ext.autosummary',
     'nbsphinx']
 
 # Add any paths that contain templates here, relative to this directory.
@@ -86,7 +87,7 @@ pygments_style = 'sphinx'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'sphinxdoc'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -162,7 +163,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'BioSTEAM', 'BioSTEAM Documentation',
-     author, 'BioSTEAM', 'One line description of project.',
+     author, 'BioSTEAM', 'The Bioprocess Simulation and Techno-Economic Analysis Modules',
      'Miscellaneous'),
 ]
 
@@ -173,3 +174,10 @@ texinfo_documents = [
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
+
+
+
+
+
+
+
