@@ -9,6 +9,7 @@ from .. import Unit, Stream, MixedStream
 from fluids import nearest_pipe
 import ht
 import numpy as np
+import biosteam as bs
 ln = np.log
 exp = np.exp
 pi = np.pi
@@ -440,7 +441,7 @@ class HX(Unit, metaclass=metaHX):
             F_p = 0.9803 + 0.018*P + 0.0017*P**2
         
         C_b_func = self._Cb_func
-        C_b = C_b_func(A, self.CEPCI)
+        C_b = C_b_func(A, bs.CEPCI)
         
         # Free on board purchase prize 
         Cost['Heat exchanger'] = F_p * F_l * F_m * C_b

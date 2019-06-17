@@ -27,7 +27,7 @@ class BatchReactor(Unit):
         t_B = tau + tau_0 + t_L
         V_i /= V_wf
         
-        return {'Volume': V_i,
+        return {'Reactor volume': V_i,
                 'Cycle time': t_B, 
                 'Loading time': t_L}
     

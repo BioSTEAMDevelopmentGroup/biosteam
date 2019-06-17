@@ -13,6 +13,7 @@ from .designtools import vacuum_system, HNATable, FinalValue, \
                           VesselWeightAndWallThickness, Kvalue
 from .metaclasses import splitter
 from ._hx import HX, HXutility
+import biosteam as bst
 
 exp = np.exp
 ln = np.log
@@ -231,7 +232,7 @@ class Flash(Unit):
         W = Design['Weight']
         D = Design['Diameter']
         L = Design['Length']
-        CE = self.CEPCI
+        CE = bst.CEPCI
         type_ = self.SepType
         
         # C_v: Vessel cost
@@ -281,10 +282,8 @@ class Flash(Unit):
             massflow = vapor.massnet
             volflow = vapor.volnet
         
-        power, cost = vacuum_system(self.CEPCI, 
-                                    massflow, volflow,
-                                    P, vol,
-                                    self.vacuum_system_preference)
+        power, cost = vacuum_system(massflow, volflow,
+                                    P, vol, self.vacuum_system_preference)
         C['Liquid-ring pump'] = cost
         self._power_utility(power)
 

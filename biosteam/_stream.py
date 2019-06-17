@@ -536,15 +536,16 @@ class Stream(metaclass=metaStream):
             raise ValueError(f"phase must be either 's', 'l', or 'g'")
         self._phase = phase
     
-    @classmethod
-    def proxy(cls, ID, link=missing_stream):
-        """Create a Stream object that serves as a proxy for the `link` stream."""
-        self = object.__new__(cls)
+    @staticmethod
+    def proxy(ID, link=missing_stream):
+        """Create a Stream object that serves as a proxy for its `link` stream."""
+        self = object.__new__(Stream)
         self._source = self._sink = self._ID = None
         self._source_link = missing_stream
         self.ID = ID
         self.price = 0
-        self.link = link
+        if link: self.link = link
+        else: self._link = missing_stream
         return self
     
     @property
@@ -555,21 +556,24 @@ class Stream(metaclass=metaStream):
     @link.setter
     def link(self, stream):
         try:
-            if (not stream
-                or self._source_link is stream._source_link):
+            if self._source_link is stream._source_link:
                 self._link = stream
-                return
-            self._species = stream._species
-            self._mass = stream._mass
-            self._mol = stream._mol
-            self._vol = stream._vol
-            self._dew_cached = stream._dew_cached
-            self._bubble_cached = stream._bubble_cached
-            self._source_link = stream._source_link
-            self._link = stream
-            self.P = stream.P
-            self.T = stream.T
-            self._phase = stream.phase
+            elif stream is None:
+                self.__init__(ID=self._ID, flow=self._mol,
+                              species=self._species,
+                              T=self.T, P=self.P, phase=self._phase)
+            else:
+                self._species = stream._species
+                self._mass = stream._mass
+                self._mol = stream._mol
+                self._vol = stream._vol
+                self._dew_cached = stream._dew_cached
+                self._bubble_cached = stream._bubble_cached
+                self._source_link = stream._source_link
+                self._link = stream
+                self.P = stream.P
+                self.T = stream.T
+                self._phase = stream.phase
         except Exception as Error:
             if isinstance(stream, Stream): raise Error
             else: raise TypeError(f"link must be a Stream object, not a '{type(stream).__name__}' object.")

@@ -140,13 +140,13 @@ class State:
         for i in self._params:
             blk = i.element_name
             element = len(blk)*' ' if blk==lastblk else blk
-            lines.append(f"  {element}${i.name}\n")
+            lines.append(f" {element}${i.name}\n")
             lastblk = blk
             lenghts_block.append(len(blk))
         maxlen_block = max(lenghts_block)
         out = f'{self._repr()}\n'
-        maxlen_block = max(maxlen_block, 8)
-        out += ' Element:' + (maxlen_block - 8)*' ' + '  Parameter:\n'
+        maxlen_block = max(maxlen_block, 7)
+        out += ' Element:' + (maxlen_block - 7)*' ' + ' Parameter:\n'
         for newline, len_ in zip(lines, lenghts_block):
             newline = newline.replace('$', ' '*(maxlen_block-len_) + '  ')
             out += newline

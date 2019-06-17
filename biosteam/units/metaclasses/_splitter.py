@@ -57,17 +57,15 @@ class splitter(metaUnit):
                         Fiber  8.28e+03
     
     """
-    def __new__(mcl, clsname, superclasses, definitions):
-        if len(superclasses) != 1:
-            raise TypeError('{mcl.__name__} metaclass requires one and only one super class')
-        elif '__init__' in definitions:
+    def __new__(mcl, name, bases, dct):
+        if '__init__' in dct:
             raise TypeError(f"cannot use {mcl.__name__} metaclass with an implemented '__init__' method")
-        elif 'split' in definitions:
+        elif 'split' in dct:
             raise TypeError("cannot use {mcl.__name__} metaclass with an implemented 'split' member")
         
-        _kwargs = definitions.get('_kwargs')
+        _kwargs = dct.get('_kwargs')
         if _kwargs is None:
-            definitions['__init__'] = __init_split__
+            dct['__init__'] = __init_split__
         elif 'split' in _kwargs or 'order' in _kwargs:
             raise TypeError("cannot use {mcl.__name__} metaclass with 'split' or 'order' defined in '{clsname}._kwargs'")
         else:
@@ -82,18 +80,21 @@ class splitter(metaUnit):
             # Execute string and replace __init__
             globs = {'_': __init_split__}
             globs.update(_kwargs)
-            exec(str2exec, globs, definitions)
+            exec(str2exec, globs, dct)
         
-        if '_run' not in definitions:
-            definitions['_run'] = run_split
+        if '_run' not in dct:
+            dct['_run'] = run_split
         
-        definitions['split'] = split
-        return super().__new__(mcl, clsname, superclasses, definitions)
+        dct['split'] = split
+        return super().__new__(mcl, name, bases, dct)
 
 split = property(lambda self: self._split, doc="[array] Componentwise split of feed to 0th output stream.")
 
 def __init_split__(self, ID='', outs=(), ins=None, split=None, order=None):
-    self._reorder_ = Stream._cls_species._reorder
+    try: self._reorder_ = Stream._cls_species._reorder
+    except AttributeError as err:
+        if Stream._cls_species: raise err
+        else: raise RuntimeError('must set Stream.species first')
     self.ID = ID
     self._split = self._reorder_(split, order) if order else asarray(split)
     self._init_ins(ins)
@@ -103,7 +104,6 @@ def __init_split__(self, ID='', outs=(), ins=None, split=None, order=None):
     self._init_power_util()
     self._init()
     self._setup()
-    self._install()
     
 def run_split(self):
     """Splitter mass and energy balance function based on one input stream."""

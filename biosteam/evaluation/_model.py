@@ -25,27 +25,23 @@ class Model(State):
     
     **Parameters**
     
-        **ID:** [str] ID of metric        
-    
         **system:** [System] Should reflect the model state.
     
-        **metric:** [function] Should return metric value.
+        ****metrics:** dict[str: function] ID-metric pairs.
     
     **Examples**
 
          :doc:`Advanced simulation`
     
     """
-    __slots__ = ('_ID',      # [str] Should be the metric name.
-                 '_table',   # [DataFrame] All arguments and results.
-                 '_metric',  # [function] Should return metric being evaluated.
+    __slots__ = ('_table',   # [DataFrame] All arguments and results.
+                 '_metrics', # dict[ID: function] Functions should return metric being evaluated.
                  '_index',   # list[int] Order of sample evaluation for performance.
                  '_samples') # [array] Argument sample space.
     
-    def __init__(self, ID, system, metric):
+    def __init__(self, system, **metrics):
         super().__init__(system)
-        self._ID = ID
-        self._metric = metric
+        self._metrics = metrics
         self._samples = self._table = None
     
     def _erase(self):
@@ -75,14 +71,13 @@ class Model(State):
             index.sort(key=key)
         self._index = index
         self._table = pd.DataFrame(samples, columns=paramindex(params))
-        self._table[self._ID] = None
         self._samples = samples
         
     def evaluate(self, default=None):
         """Evaluate metric over the argument sample space and save values to `table`."""
         if not self._model: self._loadmodel()
         # Setup before simulation
-        metric = self._metric
+        funcs = tuple(self._metrics.values())
         values = []
         add = values.append
         model = self._model
@@ -91,16 +86,20 @@ class Model(State):
         for i in self._index: 
             try: 
                 model(samples[i])
-                add(metric())
+                add([i() for i in funcs])
             except: add(default)
-        self.table[self._ID] = values
+        for k, v in zip(self._metrics.keys(), zip(*values)):
+            self.table[k] = v
     
     def __call__(self, sample):
+        """Return dictionary of metric values."""
         super().__call__(sample)
-        return self._metric()
+        return {i:j() for i,j in self.metrics.items()}
     
     def _repr(self):
-        return f'{type(self).__name__}: {self._ID}'
+        clsname = type(self).__name__
+        newline = "\n" + " "*(len(clsname)+2)
+        return f'{clsname}: {newline.join(self._metrics.keys())}'
         
    
     

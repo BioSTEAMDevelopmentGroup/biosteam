@@ -4,10 +4,6 @@ BioSTEAM: The Bioprocess Simulation and Techno-Economic Analysis Modules
 
 BioSTEAM is an open source process simulation package in Python for fast and flexible preliminary technoeconomic analysis. BioSTEAM objects serve as basic building blocks to design and simulate a biorefinery. These include objects that handle material properties, material flows, unit operations, recycle loops and process specifications.
 
-
-Overview
-========
-
 .. figure:: UML.png
 
    **Figure 1.** A simplified UML class diagram depicts the core classes of BioSTEAM.

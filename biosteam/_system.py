@@ -13,8 +13,7 @@ from ._stream import Stream
 from ._unit import Unit
 from ._report import save_report
 from ._utils import color_scheme, missing_stream, strtuple, function
-from warnings import warn
-import biosteam
+import biosteam as bst
 
 __all__ = ('System',)
 
@@ -36,7 +35,7 @@ def _evaluate(self, command=None):
         for attr in ('stream', 'unit', 'system'):
             dct = getattr(find, attr).__dict__
             lcs.update({i:j() for i, j in dct.items()})
-        lcs.update({attr:getattr(biosteam, attr) for attr in biosteam.__all__})
+        lcs.update({attr:getattr(bst, attr) for attr in bst.__all__})
         try:
             out = eval(command, {}, lcs)            
         except Exception as err:
@@ -169,11 +168,7 @@ class System:
         
         # link all unit operations with linked streams
         for u in units:
-            try:
-                if u._linkedstreams: u._link_streams() 
-            except Exception as Error:
-                if missing_stream in (u._ins + u._outs):
-                    warn(f'missing stream object in {repr(u)}')
+            if hasattr(u, '_link_streams'): u._link_streams()
         
         #: set[Unit] All units within the system
         self.units = units = set(units)
@@ -197,13 +192,6 @@ class System:
             #: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the network simulation.
             self.facilities = tuple(facilities)
         else: self.facilities = ()
-        
-        has = hasattr
-        upstream_connections = set()
-        for s in streams:
-            if has(s, '_downstream_connection'):
-                upstream_connections.add(s)
-        streams.difference_update(upstream_connections)
         
         #: set[Stream] All feed streams in the system.
         self.feeds = set(filter(_isfeed, streams))

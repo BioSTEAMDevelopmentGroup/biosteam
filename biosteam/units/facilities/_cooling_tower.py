@@ -6,12 +6,13 @@ Created on Mon Apr 29 18:28:55 2019
 """
 from ... import Unit
 from ..decorators import cost, design
+from ..metaclasses import static
 
 __all__ = ('CoolingTower', 'CoolingTowerWithPowerDemand')
 
 @cost('Flow rate', cost=1100, CE=567, exp=0.68)
 @design('Flow rate', 'gpm', lambda self: 0.07934*self.ins[0].molnet)
-class CoolingTower(Unit):
+class CoolingTower(Unit, metaclass=static):
     """Create a cooling tower that is cost based on flow rate of cooling water.
     
     **ins**
@@ -23,8 +24,6 @@ class CoolingTower(Unit):
         [0] Cooling water
     
     """
-    _N_ins = 1; _N_outs = 1
-    _linkedstreams = True
 
    
 class CoolingTowerWithPowerDemand(CoolingTower):

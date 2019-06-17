@@ -12,7 +12,7 @@ from .._exceptions import biosteamError
 from scipy.optimize import brentq
 from ._hx import HXutility
 import matplotlib.pyplot as plt
-
+import biosteam as bst
 array = np.array
 
 # %% Equations
@@ -430,14 +430,14 @@ class Dist(Unit):
     def _cost_trays(self, N_T, Di:'ft'):
         """Return total cost of all trays."""
         # Note: Can only use this function after running design method.
-        C_BT = self._calc_TrayBaseCost(Di, self.CEPCI)
+        C_BT = self._calc_TrayBaseCost(Di)
         F_NT = self._calc_NTrayFactor(N_T)
         return N_T*F_NT*self._F_TT*self._F_TM(Di)*C_BT
 
     def _cost_tower(self, Di:'ft', L:'ft', W:'lb'):
         C_V = self._calc_EmptyTowerCost(W)
         C_PL = self._calc_PlaformLadderCost(Di, L)
-        return (self._F_M*C_V + C_PL)*self.CEPCI/500
+        return (self._F_M*C_V + C_PL)*bst.CEPCI/500
     
     @staticmethod
     def _calc_EmptyTowerCost(W):
@@ -548,16 +548,15 @@ class Dist(Unit):
         return tv
     
     @staticmethod
-    def _calc_TrayBaseCost(Di, CE):
+    def _calc_TrayBaseCost(Di):
         """Return C_BT, the base cost of a tray (USD).
         
         **Parameters**
         
             Di: Inner diameter (ft)
-            CE: Chemical Engineering Plant Cost Index
         
         """
-        return CE * 0.825397 * np.exp(0.1482*Di)
+        return bst.CEPCI * 0.825397 * np.exp(0.1482*Di)
 
     @staticmethod
     def _calc_NTrayFactor(N_T):

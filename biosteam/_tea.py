@@ -7,7 +7,9 @@ Created on Mon Feb  4 19:38:37 2019
 
 import pandas as pd
 import numpy as np
+from ._unit import metaUnit
 from scipy.optimize import newton
+import biosteam as bs
 
 __all__ = ('TEA',)
 
@@ -71,8 +73,7 @@ class TEA:
                  '_costs', '_cost_data', '_units')
     
     #: Default cash flow options
-    _default = {'Lang factor': 4.37,
-                'Operating days': 330,
+    _default = {'Operating days': 330,
                 'IRR': 0.15,
                 'Wage': 5e4,
                 'Year': None,
@@ -98,7 +99,6 @@ class TEA:
     def options(self):
         """
         [dict] Options for cash flow analysis [-]:
-            * **Lang factor:** Used to get fixed capital investment from total purchase cost. If no lang factor is given, estimate capital investment using bare module factors.
             * **Operating days:** (day).
             * **IRR:** Internal rate of return (fraction).
             * **Wage:** Wage per employee (USD/yr).
@@ -257,15 +257,10 @@ class TEA:
         o = self.options
         flow_factor = 24*o['Operating days']
         o = self.options
-        LF = o['Lang factor']
-        if LF:
-            # DC_: Depreciable capital (USD)
-            # UC_: utility cost (USD/hr)
-            DC_, UC_ = self.costs.sum(0) 
-            DC_ *= LF
-        else:
-            UC_ = self.costs['Utility cost (USD/hr)'].sum()
-            DC_ = (self.costs['Purchase cost (USD)'] * [i.BM for i in self._units]).sum()
+        # DC_: Depreciable capital (USD)
+        # UC_: utility cost (USD/hr)
+        DC_, UC_ = self.costs.sum(0) 
+        if bs.lang_factor: DC_ *= bs.lang_factor
         MC_ = 0 # Material cost USD/hr
         CP_ = 0 # Coproducts USD/hr
         for s in sysfeeds:
@@ -364,15 +359,10 @@ class TEA:
         feeds = system.feeds
         products = system.products
         o = self.options
-        LF = o['Lang factor']
-        if LF:
-            # DC_: Depreciable capital (USD)
-            # UC_: utility cost (USD/hr)
-            DC_, UC_ = self.costs.sum(0)
-            DC_ *= LF
-        else:
-            UC_ = self.costs['Utility cost (USD/hr)'].sum()
-            DC_ = (self.costs['Purchase cost (USD)'] * [i.BM for i in self._units]).sum()
+        # DC_: Depreciable capital (USD)
+        # UC_: utility cost (USD/hr)
+        DC_, UC_ = self.costs.sum(0) 
+        if bs.lang_factor: DC_ *= bs.lang_factor
         MC_ = 0 # Material cost USD/hr
         S_  = 0 # Sales USD/hr
         for s in feeds:

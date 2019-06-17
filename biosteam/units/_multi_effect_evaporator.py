@@ -5,6 +5,7 @@ Created on Thu Aug 23 21:43:13 2018
 @author: yoelr
 """
 import numpy as np
+import biosteam as bst
 from .. import Unit, Stream
 from scipy.optimize import brentq
 from . import Pump, Mixer, HXutility
@@ -178,7 +179,7 @@ class MultiEffectEvaporator(Unit):
         r = self._results
         Design = r['Design']
         Cost = r['Cost']
-        CE = self.CEPCI
+        CE = bst.CEPCI
         
         evap0 = evaporators[0]
         hu = evap0._heat_utilities[0]
@@ -217,7 +218,7 @@ class MultiEffectEvaporator(Unit):
         Cost['Evaporators'] = sum(evap_costs)
         
         # Calculate power
-        power, cost = vacuum_system(self.CEPCI, massflow=0, volflow=0,
+        power, cost = vacuum_system(massflow=0, volflow=0,
                                     P_suction=evap.outs[0].P, vol=vol,
                                     vacuum_system_preference='Liquid-ring pump')
         Cost['Vacuum liquid-ring pump'] = cost

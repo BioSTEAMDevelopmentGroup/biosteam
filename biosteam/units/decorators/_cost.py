@@ -4,42 +4,51 @@ Created on Wed May  1 19:05:53 2019
 
 @author: yoelr
 """
+import biosteam as bst
 import pandas as pd
 from copy import copy
 from ._extend import extend_finalize
+from math import ceil
 
 __all__ = ('cost',)
 
-_index = pd.MultiIndex.from_tuples(
-        (('Basis', 'param'),
-         ('Basis', 'units'),
-         ('Basis', 'value'),
-         ('Number', ''),
-         ('CEPCI', ''),
-         ('Cost (USD)', ''),
-         ('Exponent', ''),
-         ('Electricity (kW)', '')))
+_index = pd.Index(['Basis',
+                   'Units',
+                   'Size',
+                   'Limit',
+                   'CEPCI',
+                   'Cost (USD)',
+                   'Exponent',
+                   'Electricity (kW)'])
 
 def _cost(self):
     table = self.cost_options
     Cost = self._results['Cost']
     Design = self._results['Design']
-    check = isinstance
     net_e = 0
     for i in table:
-        param, units, value, N, CEPCI, cost, n, e = table[i]
-        if check(N, str): N = Design[N]
-        S = Design[param]/value
-        Cost[i] = N*self.CEPCI/CEPCI*cost*S**n
-        net_e += (e*N*S)
+        basis, units, value, limit, CE, cost, n, e = table[i]
+        size = Design[basis]
+        if limit:
+            Design['#'+i] = N = ceil(size/limit)
+            f = size/value
+            S = f/N
+            Cost[i] = N*bst.CEPCI/CE*cost*S**n
+            net_e += e*f
+        else:
+            S = size/value
+            Cost[i] = bst.CEPCI/CE*cost*S**n
+            net_e += e*S
     if net_e: self._power_utility(net_e)
 
-def cost(basis, name=None, *, cost, exp, CE, S=1, kW=0, N=1):    
+def cost(basis, name=None, *, cost, exp, CE, S=1, kW=0, limit=None):    
     r"""Add item purchase cost based on exponential scale up:
     
     :math:`C_{f.o.b.} = (N)(CE)(cost)(\frac{basis}{S})^{exp}` 
     
     :math:`Electricity\ rate = (N)(kW)(\frac{basis}{S})`
+    
+    Where `N` corresponds to the minimum number of parallel units given the size limit (if any).
     
     **Parameters**
     
@@ -57,7 +66,7 @@ def cost(basis, name=None, *, cost, exp, CE, S=1, kW=0, N=1):
         
         **kW:** Electricity rate.
         
-        **N:** Number of items or name of Design item that represents N.
+        **limit:** Size limit.
         
     **Examples**
     
@@ -71,7 +80,7 @@ def cost(basis, name=None, *, cost, exp, CE, S=1, kW=0, N=1):
             units = cls._units[basis]
         except KeyError:
             raise RuntimeError(f'units of cost basis ({basis}) is not available in "{cls.__name__}._units" dictionary')
-        data = [basis, units, S, N, CE, cost, exp, kW]
+        data = [basis, units, S, limit, CE, cost, exp, kW]
         if hasattr(cls, 'cost_options'):
             if 'cost_options' not in cls.__dict__:
                 cls.cost_options = copy(cls.cost_options)

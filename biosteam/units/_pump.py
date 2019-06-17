@@ -8,6 +8,8 @@ import numpy as np
 from .._unit import Unit, metaUnit
 from fluids.pump import nema_sizes_hp
 from .designtools._vacuum import _calc_MotorEfficiency, _calc_BreakEfficiency
+from .metaclasses import static
+import biosteam as bst
 
 ln = np.log
 exp = np.exp
@@ -55,7 +57,8 @@ def calc_NPSH(P_suction, P_vapor, rho_liq):
 
 # %% Classes
 
-class metaPump(metaUnit):
+class metaPump(static):
+    
     @property
     def material(cls):
         """Pump material"""
@@ -68,6 +71,7 @@ class metaPump(metaUnit):
             dummy = str(F_Mdict.keys())[11:-2]
             raise ValueError(f"material must be one of the following: {dummy}")
         Pump._F_Mstr = material   
+
 
 # TODO: Fix pump selection to include NPSH available and required.
 class Pump(Unit, metaclass=metaPump):
@@ -99,10 +103,7 @@ class Pump(Unit, metaclass=metaPump):
               'Head': 'ft',
               'NPSH': 'ft',
               'Flow rate': 'gpm'}
-    _N_ins = 1
-    _N_outs = 1
     _has_power_utility = True
-    _linkedstreams = True
     _kwargs = {'P': None}
     
     # Pump type
@@ -218,7 +219,7 @@ class Pump(Unit, metaclass=metaPump):
         h = Design['Head']
         p = Design['Pump power']
         F_M = self._F_M
-        I = self.CEPCI/567
+        I = bst.CEPCI/567
         lnp = ln(p)
         
         # TODO: Add cost equation for small pumps

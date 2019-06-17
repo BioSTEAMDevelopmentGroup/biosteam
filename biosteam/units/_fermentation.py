@@ -12,10 +12,8 @@ from scipy.integrate import odeint
 from .decorators import cost
 from ._tank import MixTank
 
-@cost('Volume', 'Agitator', N='Number of reactors', CE=521.9,
-      cost=52500, S=3785, exp=0.6, kW=22.371)
-@cost('Volume', 'Reactors', N='Number of reactors', CE=521.9,
-      cost=844000, S=3785, exp=0.6)
+@cost('Reactor volume', 'Agitators', CE=521.9, cost=52500, S=3785, exp=0.6, kW=22.371)
+@cost('Reactor volume', 'Reactors', CE=521.9, cost=844000, S=3785, exp=0.6)
 class Fermentation(BatchReactor):
     """Create a Fermentation object which models large-scale batch fermentation for the production of 1st generation ethanol using yeast [1, 2, 3, 4]. Only sucrose and glucose are taken into account. Conversion is based on reaction time, `tau`. Cleaning and unloading time, `tau_0`, fraction of working volume, `V_wf`, and number of reactors, `N_reactors`, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3].
     
@@ -58,7 +56,7 @@ class Fermentation(BatchReactor):
         :doc:`Fermentation Example`
         
     """
-    _units = {'Volume': 'm3',
+    _units = {'Reactor volume': 'm3',
               'Cycle time': 'hr',
               'Loading time': 'hr',
               'Total dead time': 'hr'}
@@ -254,5 +252,8 @@ class Fermentation(BatchReactor):
         hu.flow *= N
     
     def _end(self):
-        self._results['Cost']['Coolers'] = (self._results['Design']['Number of reactors']
-                                         * self._cooler._results['Cost']['Heat exchanger'])
+        N = self._results['Design']['Number of reactors']
+        Cost = self._results['Cost']
+        Cost['Agitators'] *= N
+        Cost['Reactors'] *= N
+        Cost['Coolers'] = N*self._cooler._results['Cost']['Heat exchanger']

@@ -8,6 +8,7 @@ from .. import Unit
 from .metaclasses import splitter, run_split_with_mixing
 from .designtools import vacuum_system
 import numpy as np
+import biosteam as bst
 
 class RotaryVacuumFilter(Unit, metaclass=splitter):
     _has_power_utility = True
@@ -46,7 +47,7 @@ class RotaryVacuumFilter(Unit, metaclass=splitter):
         Design['Individual area'] = iArea
         logArea = np.log(iArea)
         Cost = np.exp(11.796-0.1905*logArea+0.0554*logArea**2)
-        results['Cost']['Cost of vessels'] = N_vessels*Cost*self.CEPCI/567
+        results['Cost']['Cost of vessels'] = N_vessels*Cost*bst.CEPCI/567
     
     def _power(self, area, N_vessels) :
         r = self._results
@@ -77,8 +78,7 @@ class RotaryVacuumFilter(Unit, metaclass=splitter):
         # Assume same volume of air comes in as volume of liquid
         volflow = s_vacuumed.volnet
         massflow = volflow*1.2041 # multiply by density of air kg/m3 
-        work_vacuum, r['Cost']['Liquid-ring pump'] = vacuum_system(self.CEPCI,
-                                                                   massflow,
+        work_vacuum, r['Cost']['Liquid-ring pump'] = vacuum_system(massflow,
                                                                    volflow,
                                                                    P_suction, vol)
         power = work_rot/self.power_efficiency/1000 + work_vacuum # kW
