@@ -9,5 +9,5 @@ from .decorators import cost, design
 from .metaclasses import static
 
 @cost('Flow rate', cost=2.5e6, CE=567.3, exp=0.6, S=500e3, kW=3000)
-@design('Flow rate', 'kg/hr', lambda self: self._ins[0].massnet)
+@design('Flow rate', 'kg/hr')
 class Shredder(Unit, metaclass=static): pass

@@ -35,7 +35,7 @@ class Model(State):
     
     """
     __slots__ = ('_table',   # [DataFrame] All arguments and results.
-                 '_metrics', # dict[ID: function] Functions should return metric being evaluated.
+                 '_metrics', # dict[ID: function] Functions should return evaluated metric.
                  '_index',   # list[int] Order of sample evaluation for performance.
                  '_samples') # [array] Argument sample space.
     
@@ -87,7 +87,9 @@ class Model(State):
             try: 
                 model(samples[i])
                 add([i() for i in funcs])
-            except: add(default)
+            except Exception as err:
+                if default: add(default)
+                else: raise err
         for k, v in zip(self._metrics.keys(), zip(*values)):
             self.table[k] = v
     

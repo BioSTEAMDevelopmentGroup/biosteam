@@ -19,7 +19,8 @@ _index = pd.Index(['Basis',
                    'CEPCI',
                    'Cost (USD)',
                    'Exponent',
-                   'Electricity (kW)'])
+                   'Electricity (kW)',
+                   'Installation factor'])
 
 def _cost(self):
     table = self.cost_options
@@ -27,7 +28,7 @@ def _cost(self):
     Design = self._results['Design']
     net_e = 0
     for i in table:
-        basis, units, value, limit, CE, cost, n, e = table[i]
+        basis, units, value, limit, CE, cost, n, e, BM = table[i]
         size = Design[basis]
         if limit:
             Design['#'+i] = N = ceil(size/limit)
@@ -41,7 +42,18 @@ def _cost(self):
             net_e += e*S
     if net_e: self._power_utility(net_e)
 
-def cost(basis, name=None, *, cost, exp, CE, S=1, kW=0, limit=None):    
+@property
+def _BM(self):
+    return self.cost_options.loc['Installation factor', :]
+@_BM.setter 
+def _BM(self, BM):
+    self.cost_options.loc['Installation factor', :] = BM
+@property
+def installation_cost(self):
+    f = bst.lang_factor
+    return f*self.purchase_cost if f else (self._BM*[*self._results['Cost'].values()]).sum()
+
+def cost(basis, name=None, *, cost, exp, CE, S=1, kW=0, limit=None, BM=None):    
     r"""Add item purchase cost based on exponential scale up:
     
     :math:`C_{f.o.b.} = (N)(CE)(cost)(\frac{basis}{S})^{exp}` 
@@ -68,6 +80,8 @@ def cost(basis, name=None, *, cost, exp, CE, S=1, kW=0, limit=None):
         
         **limit:** Size limit.
         
+        **BM:** Bare module factor (installation factor).
+        
     **Examples**
     
         :doc:`Unit decorators`
@@ -80,7 +94,7 @@ def cost(basis, name=None, *, cost, exp, CE, S=1, kW=0, limit=None):
             units = cls._units[basis]
         except KeyError:
             raise RuntimeError(f'units of cost basis ({basis}) is not available in "{cls.__name__}._units" dictionary')
-        data = [basis, units, S, limit, CE, cost, exp, kW]
+        data = [basis, units, S, limit, CE, cost, exp, kW, BM]
         if hasattr(cls, 'cost_options'):
             if 'cost_options' not in cls.__dict__:
                 cls.cost_options = copy(cls.cost_options)
@@ -95,6 +109,9 @@ def cost(basis, name=None, *, cost, exp, CE, S=1, kW=0, limit=None):
             columns = pd.Index((name or cls.line,), name='Item')
             cls.cost_options = pd.DataFrame(data, _index, columns)
             cls._cost = _cost
+            cls._BM = _BM
+            cls.installation_cost = installation_cost
         return cls
     return cost_decorator
+
 

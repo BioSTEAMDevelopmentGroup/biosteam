@@ -16,7 +16,7 @@ __all__ = ('MolecularSieve',)
 @cost('Flow rate', 'Pressure filter pressing',
       cost=75200, CE=521.9, S=22687, exp=0.6, kW=112)
 @cost('Flow rate', 'Column', cost=2601000, CE=521.9, S=22687, exp=0.6)
-@design('Flow rate', 'kg/hr', lambda self: self._massnet_in)
+@design('Flow rate', 'kg/hr')
 class MolecularSieve(Unit, metaclass=splitter):
     """Create an ethanol/water molecular sieve for bioethanol plants.
     The molecular sieve is modeled as a component wise separator. Costing

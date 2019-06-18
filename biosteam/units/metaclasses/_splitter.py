@@ -85,10 +85,13 @@ class splitter(metaUnit):
         if '_run' not in dct:
             dct['_run'] = run_split
         
-        dct['split'] = split
+        if '_N_ins' not in dct: dct['_N_ins'] = 1
+        dct['_N_outs'] = 2
+        dct['split'] = splitprop
         return super().__new__(mcl, name, bases, dct)
 
-split = property(lambda self: self._split, doc="[array] Componentwise split of feed to 0th output stream.")
+splitprop = property(lambda self: self._split,
+                     doc="[array] Componentwise split of feed to 0th output stream.")
 
 def __init_split__(self, ID='', outs=(), ins=None, split=None, order=None):
     try: self._reorder_ = Stream._cls_species._reorder

@@ -10,6 +10,6 @@ from .decorators import cost, design
 from .metaclasses import static
 
 @cost('Flow rate', CE=576, cost=533471, S=333333, exp=0.6)
-@design('Flow rate', 'kg/hr', lambda self: self._ins[0].massnet)
+@design('Flow rate', 'kg/hr')
 class MagneticSeparator(Unit, metaclass=static): pass
     

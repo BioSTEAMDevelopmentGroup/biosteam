@@ -7,9 +7,8 @@ Created on Mon Feb  4 19:38:37 2019
 
 import pandas as pd
 import numpy as np
-from ._unit import metaUnit
 from scipy.optimize import newton
-import biosteam as bs
+from copy import copy
 
 __all__ = ('TEA',)
 
@@ -149,7 +148,7 @@ class TEA:
         self._cost_data = costs
         
         index = pd.MultiIndex.from_tuples([(u.line, u.ID) for u in units])
-        columns = ('Purchase cost (USD)',
+        columns = ('Installation cost (USD)',
                    'Utility cost (USD/hr)')
         
         #: [DataFrame] All purchase and utility costs for units
@@ -163,11 +162,18 @@ class TEA:
         self._costs[:] = self._cost_data
         return self._costs
 
-    @property
-    def cashflow(self):
+    def get_cashflow(self):
         """[DataFrame] Cash flow table."""
-        self.NPV()
-        return self._cashflow    
+        flow_factor, cashflow_info, depreciation_data = self._get_cached_data()
+        cashflow_data, duration_array = cashflow_info
+        parameters = self._calc_parameters(flow_factor)
+        self._calc_cashflow(cashflow_data,
+                            parameters[:-3],
+                            depreciation_data)
+        CF, DCF, CPV = cashflow_data[-3:]
+        DCF[:] = CF/(1+self.options['IRR'])**duration_array
+        CPV[:] = DCF.cumsum()
+        return copy(self._cashflow)
 
     def _results(self):
         """Return a dictionary of summarized results of cash flow analysis."""
@@ -177,9 +183,9 @@ class TEA:
         self._calc_cashflow(cashflow_data,
                             parameters[:-3],
                             depreciation_data)
-        NPV = self._calc_NPV_and_update(self.options['IRR'],
-                                         cashflow_data[-3:],
-                                         duration_array)
+        NPV = self._calc_NPV(self.options['IRR'],
+                             cashflow_data[-3],
+                             duration_array)
         DC, FCI, WC, S, C, tax, UC, MC, L = parameters
         D = FCI/self._options['Duration']
         AOC = C + D
@@ -230,16 +236,16 @@ class TEA:
             return pd.Series(r)
 
     def NPV(self):
-        """Calculate NPV by cash flow analysis and update the "results" and "cashflow" attributes."""
+        """Calculate NPV by cash flow analysis."""
         flow_factor, cashflow_info, depreciation_data = self._get_cached_data()
         cashflow_data, duration_array = cashflow_info
         parameters = self._calc_parameters(flow_factor)
         self._calc_cashflow(cashflow_data,
                             parameters[:-3],
                             depreciation_data)
-        return self._calc_NPV_and_update(self.options['IRR'],
-                                         cashflow_data[-3:],
-                                         duration_array)
+        return self._calc_NPV(self.options['IRR'],
+                              cashflow_data[-3],
+                              duration_array)
     
     def production_cost(self, *products):
         """Return production cost of products.
@@ -260,7 +266,6 @@ class TEA:
         # DC_: Depreciable capital (USD)
         # UC_: utility cost (USD/hr)
         DC_, UC_ = self.costs.sum(0) 
-        if bs.lang_factor: DC_ *= bs.lang_factor
         MC_ = 0 # Material cost USD/hr
         CP_ = 0 # Coproducts USD/hr
         for s in sysfeeds:
@@ -362,7 +367,6 @@ class TEA:
         # DC_: Depreciable capital (USD)
         # UC_: utility cost (USD/hr)
         DC_, UC_ = self.costs.sum(0) 
-        if bs.lang_factor: DC_ *= bs.lang_factor
         MC_ = 0 # Material cost USD/hr
         S_  = 0 # Sales USD/hr
         for s in feeds:
@@ -417,14 +421,6 @@ class TEA:
         S[start:] = S_
         NE[:] = (S - C - D)*(1 - tax)
         CF[:] = (NE + D) - C_FC - C_WC
-    
-    @staticmethod
-    def _calc_NPV_and_update(IRR, CF_subset, duration_array):
-        """Return NPV at given IRR and cashflow data. Update cash flow subset."""
-        CF, DCF, CPV = CF_subset
-        DCF[:] = CF/(1+IRR)**duration_array
-        CPV[:] = DCF.cumsum()
-        return CPV[-1]
     
     @staticmethod
     def _calc_NPV(IRR, CF, duration_array):

@@ -7,7 +7,7 @@ Created on Thu Aug 23 14:34:07 2018
 from .. import Unit, Stream
 from .metaclasses import final
 from numpy import asarray
-from .metaclasses._splitter import split
+from .metaclasses._splitter import splitprop
 
 class Splitter(Unit, metaclass=final):
     """Create a splitter that separates mixed streams based on splits.
@@ -137,7 +137,7 @@ class Splitter(Unit, metaclass=final):
         top._mol[:] = net_mol * self._split
         bot._mol[:] = net_mol - top._mol
     
-    split = split
+    split = splitprop
     simulate = _run
     summary = Unit._cost
 

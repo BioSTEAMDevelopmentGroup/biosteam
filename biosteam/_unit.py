@@ -19,9 +19,6 @@ from ._power_utility import PowerUtility
 from warnings import warn
 import biosteam as bst
 
-dir_path = os.path.dirname(os.path.realpath(__file__)) + '\\'
-
-
 __all__ = ('Unit',)
 _do_nothing = lambda self: None
 
@@ -162,7 +159,8 @@ class metaUnit(type):
         
                 # Begin changing __init__ to have kwargs by making a string to execute
                 str2exec = f"def __init__(self, ID='', outs=(), ins=None, {inputs}):\n"
-                str2exec+= f"     _(self, ID, outs, ins, {inputs})"
+                str2exec+= f"    self._kwargs = dict({inputs})\n"
+                str2exec+= f"    _(self, ID, outs, ins)"
         
                 # Execute string and replace __init__
                 globs = {'_': Unit.__init__}
@@ -171,6 +169,22 @@ class metaUnit(type):
                 exec(str2exec, globs, locs)
                 cls.__init__ = locs['__init__']
         return cls
+    
+    @property
+    def BM(cls):
+        """Bare module factor (installation factor)."""
+        _BM = cls._BM
+        if isinstance(_BM, property):
+            return _BM.fget(cls)
+        else:
+            return _BM
+    @BM.setter
+    def BM(cls, BM):
+        _BM = cls._BM
+        if isinstance(_BM, property):
+            _BM.fset(cls, BM)
+        else:
+            cls._BM = BM
     
     @property
     def enforce_bounds(cls):
@@ -183,16 +197,14 @@ class metaUnit(type):
         cls._enforce_bounds = val
     
     def __repr__(cls):
-        modules = cls.__module__
         if cls is Unit:
             return f'biosteam.Unit'
-        elif 'biosteam.units' in  modules:
-            if 'facilities' in modules:
-                return f'biosteam.units.facilities.{cls.__name__}'
-            else:
-                return f'biosteam.units.{cls.__name__}'
+        elif cls.__name__ in bst.units.__all__:
+            return f'biosteam.units.{cls.__name__}'
+        elif cls.__name__ in bst.units.facilities.__all__:
+            return f'biosteam.units.facilities.{cls.__name__}'
         else:
-            return super().__repr__()
+            return cls.__module__ + '.' + cls.__name__
             
 
 
@@ -276,8 +288,8 @@ class Unit(metaclass=metaUnit):
     """ 
     ### Abstract Attributes ###
     
-    # [float] Bare module factor (installation factor)
-    BM = None
+    # [float] Installation factor
+    _BM = None
     
     # [dict] Default units for results Operation and Design
     _units = {}
@@ -325,8 +337,7 @@ class Unit(metaclass=metaUnit):
     
     ### Initialize ###
     
-    def __init__(self, ID='', outs=(), ins=None, **kwargs):
-        self._kwargs = kwargs
+    def __init__(self, ID='', outs=(), ins=None):
         self._init_ins(ins)
         self._init_outs(outs)
         self._init_results()
@@ -445,8 +456,7 @@ class Unit(metaclass=metaUnit):
         self._update_utility_cost()
 
     def _update_capital_cost(self):
-        self._totalcosts[0] = (self.purchase_cost if bst.lang_factor
-                               else self.installation_cost)
+        self._totalcosts[0] = self.installation_cost
         
     def _update_utility_cost(self):
         if self._power_utility:
@@ -454,21 +464,23 @@ class Unit(metaclass=metaUnit):
                                  + self._power_utility.cost)
         else:
             self._totalcosts[1] = sum([i.cost for i in self._heat_utilities])
-            
+    
+    @property
+    def BM(self):
+        """Bare module factor (installation factor)."""
+        return self._BM
+    @BM.setter
+    def BM(self, BM):
+        raise AttributeError('class attribute cannot be set through instance')
+    
     @property
     def purchase_cost(self):
         """Total purchase cost (USD)."""
         return sum(self._results['Cost'].values())
-    
     @property
     def installation_cost(self):
         """Installation cost (USD)."""
-        BM = self._BM
-        if isinstance(self._BM, dict):
-            return sum([BM[i]*j for i,j in self._results['Cost'].items()])
-        else:
-            return BM*sum(self._results['Cost'].values())
-        
+        return (bst.lang_factor or self._BM) * self.purchase_cost
     @property
     def utility_cost(self):
         """Total utility cost (USD/hr)."""
@@ -514,7 +526,7 @@ class Unit(metaclass=metaUnit):
                 addkey(('Cost', ki))
                 addval(('USD', vi))
             capital, utility = self._totalcosts
-            addkey(('Purchase cost', ''))
+            addkey(('Installation cost', ''))
             addval(('USD', capital))
             addkey(('Utility cost', ''))
             addval(('USD/hr', utility))

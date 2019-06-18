@@ -60,7 +60,7 @@ class StorageTank(Tank, metaclass=static):
         else:    
             raise DesignError(f"Volume is out of bounds for costing")
 
-@cost('Total volume', cost=12080, CE=525.4, exp=0.525, kW=0.591, limit=30)
+@cost('Total volume', cost=12080, CE=525.4, exp=0.525, kW=0.0985, limit=30)
 class MixTank(Tank):
     """Create a mixing tank with volume based on residence time.
 

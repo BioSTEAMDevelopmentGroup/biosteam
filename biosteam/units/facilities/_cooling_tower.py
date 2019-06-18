@@ -10,8 +10,8 @@ from ..metaclasses import static
 
 __all__ = ('CoolingTower', 'CoolingTowerWithPowerDemand')
 
-@cost('Flow rate', cost=1100, CE=567, exp=0.68)
-@design('Flow rate', 'gpm', lambda self: 0.07934*self.ins[0].molnet)
+@cost('Flow rate', cost=1100, CE=567, exp=0.7)
+@design('Flow rate', 'gpm')
 class CoolingTower(Unit, metaclass=static):
     """Create a cooling tower that is cost based on flow rate of cooling water.
     
@@ -29,7 +29,7 @@ class CoolingTower(Unit, metaclass=static):
 class CoolingTowerWithPowerDemand(CoolingTower):
     _has_power_utility = True
     _N_heat_utilities = 1
-    power_consumption = 0.03 #: kWhr per kmol cooling water
+    power_consumption = 0.020 #: kWhr per kmol cooling water
     def _cost(self):
         super()._cost()
         q = self.ins[0].molnet # kmol/hr
