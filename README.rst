@@ -13,6 +13,8 @@ BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
    :alt: license
 
 
+.. contents::
+
 What is BioSTEAM?
 -----------------
 
