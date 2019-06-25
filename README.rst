@@ -1,4 +1,4 @@
-=========================================================================
+
 BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
 =========================================================================
 
@@ -12,8 +12,6 @@ BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
    :target: https://github.com/yoelcortes/biosteam/blob/master/LICENSE.txt
    :alt: license
 
-
-.. contents::
 
 What is BioSTEAM?
 -----------------
