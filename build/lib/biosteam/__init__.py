@@ -8,6 +8,7 @@ Created on Sat Oct 28 17:28:09 2017
 
 __all__ = ['units', 'evaluation', 'inspect', 'find', 'compounds']
 
+CE = 567.5 #: Chemical engineering plant cost index (defaults to 567.5 at 2017)
 
 # %% Import base utils
 

@@ -25,39 +25,46 @@ class Model(State):
     
     **Parameters**
     
-        **ID:** [str] ID of metric        
-    
         **system:** [System] Should reflect the model state.
     
-        **metric:** [function] Should return metric value.
+        **skip:** [bool] If True, skip simulation for repeated states
+    
+        ****metrics:** dict[str: function] ID-metric pairs.
     
     **Examples**
 
          :doc:`Advanced simulation`
     
     """
-    __slots__ = ('_ID',      # [str] Should be the metric name.
-                 '_table',   # [DataFrame] All arguments and results.
-                 '_metric',  # [function] Should return metric being evaluated.
+    __slots__ = ('_table',   # [DataFrame] All arguments and results.
+                 '_metrics', # dict[ID: function] Functions should return evaluated metric.
                  '_index',   # list[int] Order of sample evaluation for performance.
-                 '_samples') # [array] Argument sample space.
+                 '_samples', # [array] Argument sample space.
+                 '_setters', # list[function] Cached parameter setters
+                 '_repeats') # [bool] True if parameter states repeat
     
-    def __init__(self, ID, system, metric):
-        super().__init__(system)
-        self._ID = ID
-        self._metric = metric
-        self._samples = self._table = None
+    def __init__(self, system, skip=False, **metrics):
+        super().__init__(system, skip)
+        self._metrics = metrics
+        self._repeats = self._setters = self._samples = self._table = None
     
     def _erase(self):
         """Erase cached data."""
-        self._model = self._table = self._samples = None
+        self._setters = self._model = self._table = self._samples = None
+    
+    def reset_metrics(self, **metrics):
+        table = self._table
+        if table is not None:
+            for i in self._metrics:
+                if i in table: del table[i]
+        self._metrics = metrics
     
     @property
     def table(self):
         """[DataFrame] Table of the sample space with results in the final column."""
         return self._table
     
-    def load_samples(self, samples):
+    def load_samples(self, samples, has_repeats=None):
         """Load samples for evaluation"""
         if not self._model: self._loadmodel()
         params = self._params
@@ -75,33 +82,59 @@ class Model(State):
             index.sort(key=key)
         self._index = index
         self._table = pd.DataFrame(samples, columns=paramindex(params))
-        self._table[self._ID] = None
         self._samples = samples
+        if has_repeats is None:
+            try:
+                j = samples[0]
+                for i in samples[1:]:
+                    if any(i==j):
+                        self._repeats = True
+                        break
+            except: pass
+        else:
+            self._repeats = has_repeats
         
     def evaluate(self, default=None):
         """Evaluate metric over the argument sample space and save values to `table`."""
-        if not self._model: self._loadmodel()
         # Setup before simulation
-        metric = self._metric
+        funcs = tuple(self._metrics.values())
         values = []
         add = values.append
-        model = self._model
         samples = self._samples
         if samples is None: raise ValueError('must load samples or distribution before evaluating')
-        for i in self._index: 
-            try: 
-                model(samples[i])
-                add(metric())
-            except: add(default)
-        self.table[self._ID] = values
+        if self._repeats:
+            model = self._model
+            for i in self._index: 
+                try: 
+                    model(samples[i])
+                    add([i() for i in funcs])
+                except Exception as err:
+                    if default: add(default)
+                    else: raise err            
+        else:
+            if self._setters:
+                setters = self._setters
+            else:
+                self._setters = setters = [p.setter for p in self._params]
+            add = values.append
+            sim = self._system.simulate
+            for i in self._index:
+                for f, s in zip(setters, samples[i]): f(s)
+                sim()
+                add([i() for i in funcs])
+        for k, v in zip(self._metrics.keys(), zip(*values)): self.table[k] = v
     
     def __call__(self, sample):
+        """Return dictionary of metric values."""
         super().__call__(sample)
-        return self._metric()
+        return {i:j() for i,j in self._metrics.items()}
     
     def _repr(self):
-        return f'{type(self).__name__}: {self._ID}'
+        clsname = type(self).__name__
+        newline = "\n" + " "*(len(clsname)+2)
+        return f'{clsname}: {newline.join(self._metrics.keys())}'
         
-   
+    def __repr__(self):
+        return f'<{type(self).__name__}: {", ".join(self._metrics.keys())}>'
     
         

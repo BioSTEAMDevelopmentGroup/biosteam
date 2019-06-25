@@ -9,7 +9,7 @@ from .. import Unit
 from .decorators import cost
 from .metaclasses import splitter
 
-@cost('Solids loading', cost=68040, CE=567, exp=0.50)
+@cost('Solids loading', cost=68040, CE=567, n=0.50, ub=40, BM=2.03)
 class SolidsCentrifuge(Unit, metaclass=splitter):
     """Create a solids centrifuge that separates out solids according to user defined split. Assume a continuous scroll solid bowl. 
     
@@ -35,8 +35,8 @@ class SolidsCentrifuge(Unit, metaclass=splitter):
     
     """
     _kwargs = {'solids': None}
-    _bounds ={'Solids loading': (2, 40)}
-    _units = {'Solids loading': 'tonn'}
+    _units = {'Solids loading': 'tonn/hr'}
+    _minimum_solids_loading = 2
     
     def _design(self):
         solids = self._kwargs['solids']
@@ -46,6 +46,8 @@ class SolidsCentrifuge(Unit, metaclass=splitter):
             mass_solids += s.mass[index]
         ts = np.asarray(mass_solids).sum() # Total solids
         ts *= 0.0011023 # To short tons (2000 lbs/hr)
-        self._results['Design']['Solids loading'] = ts
-        self._checkbounds('Solids loading', ts)
+        self._Design['Solids loading'] = ts
+        lb = self._minimum_solids_loading
+        if ts < lb:
+            self._lb_warning('Solids loading', ts, 'tonn/hr', lb)
     

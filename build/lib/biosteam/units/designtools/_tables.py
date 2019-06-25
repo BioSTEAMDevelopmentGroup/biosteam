@@ -210,7 +210,6 @@ def VesselWeightAndWallThickness(Pressure, Diameter, VesselLength, rho_M, Je=0.8
         ts_min = ts
     if ts < ts_min:
         ts = ts_min
-        
     VW = rho_M * ts/12 * (SSA + 2.0 * HSA)  # in lb
     VW = round(VW, 2)
     return VW, ts

@@ -4,9 +4,7 @@ Created on Sat Aug 18 14:40:28 2018
 
 @author: yoelr
 """
-
 import re
-import os
 import numpy as np
 import pandas as pd
 from graphviz import Digraph
@@ -18,10 +16,7 @@ from ._heat_utility import HeatUtility
 from ._utils import Ins, Outs, missing_stream
 from ._power_utility import PowerUtility
 from warnings import warn
-import biosteam
-
-dir_path = os.path.dirname(os.path.realpath(__file__)) + '\\'
-
+import biosteam as bst
 
 __all__ = ('Unit',)
 _do_nothing = lambda self: None
@@ -50,34 +45,6 @@ def _warning(source, msg, category=Warning):
         elif source:
             msg = f'@{type(source).__name__} {str(source)}: ' + msg
         return category(msg)
-
-def _warnbounds(key, value, units, bounds, stacklevel, source):
-        """A lower level, functional version of "_checkbounds". Issue a warning if value is out of bounds.
-        
-        **Parameters**
-        
-            **key:** [str] Name of value
-            
-            **value:** [number, Quantity, or array]
-            
-            **units:** [str] Units of measure
-            
-            **bounds:** [array or Quantity-array] Lower and upper bounds
-            
-            **stacklevel:** [int] Stacklevel for warning.
-        
-            **source:** [str or object] Short description or object it describes.
-        
-        """
-        lb, ub = bounds
-        # Warn when value is out of bounds
-        if not lb<=value and ub>=value:
-            units = ' ' + units if units else ''
-            try:
-                msg = f"{key} ({value:.4g}{units}) is out of bounds ({lb:.4g} to {ub:.4g}{units})."
-            except:  # Handle format errors
-                msg = f"{key} ({value:.4g}{units}) is out of bounds ({lb} to {ub}{units})."
-            warn(_warning(source, msg, DesignWarning), stacklevel=stacklevel)
             
 def _lb_warning(key, value, units, lb, stacklevel, source):
     units = ' ' + units if units else ''
@@ -97,83 +64,57 @@ def _ub_warning(key, value, units, ub, stacklevel, source):
     
     warn(_warning(source, msg, DesignWarning), stacklevel=stacklevel)
 
-def _checkbounds(self, key, value):
-        """Issue a warning if value is out of bounds.
-        
-        **Parameters**
-        
-            **key:** [str] Name of value
-            
-            **value:** [number, Quantity, or array]
-            
-        """
-        bounds = self._bounds.get(key)
-        if bounds is not None:
-            _warnbounds(key, value, self._units.get(key, ''), bounds, 4, self)
-
-def _boundsignore(*args, **kwargs): pass
-
-# %% Proxies
-
-def _proxy_run(self):
-    out = self._outs[0]
-    feed = self._ins[0]
-    out.T = feed.T
-    out.P = feed.P
-    out._phase = feed._phase
 
 # %% Unit metaclass
 
 _Unit_is_done = False
 
 class metaUnit(type):
-    """Unit metaclass for wrapping up methods with error notifiers, adding key word arguments, and keeping track for Unit lines and inheritance."""
-    _enforce_bounds = True
-    _CEPCI = 567.5 # Chemical engineering plant cost index (567.5 at 2017)
-    def __new__(mcl, clsname, superclasses, new_definitions):
-        """Prepare unit methods with wrappers for error notification, and add _kwargs as key word arguments to __init__. """
+    """Unit metaclass for extending the documentation, adding key word arguments, and keeping track for Unit lines and inheritance."""
+    def __new__(mcl, name, bases, dct):
         if not _Unit_is_done:
             # Abstract Unit class
-            cls = type.__new__(mcl, clsname, superclasses, new_definitions)
+            cls = type.__new__(mcl, name, bases, dct)
         else:
             # Make new Unit class
-            cls = type.__new__(mcl, clsname, superclasses, new_definitions)
+            cls = type.__new__(mcl, name, bases, dct)
             
             if cls.__doc__ is Unit.__doc__:
                 # Do not inherit docstring from Unit
                 cls.__doc__ = None
-            if cls.__doc__:
+            if "__doc__" in dct:
                 cls.__doc__ = cls.__doc__.replace('**Parameters**', 
-            "**Parameters**\n\n" +
-            
-        "        **ID:** [str] Unique identification. If set as '', a default ID will be chosen.\n\n" +
-
-        "        **outs:** tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.\n\n" +
-        
-        "        **ins:** tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.")
-    
+       "**Parameters**"
++"\n"    
++"\n        **ID:** [str] Unique identification. If set as '', a default ID will be chosen."
++"\n"
++"\n        **outs:** tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given."
++"\n"
++"\n        **ins:** tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.")
             # Set line
             # default_line constitutes a new Unit class
             line = cls.line
             if line is 'Unit':
                 line = cls.__name__.replace('_', ' ')
                 # Set new graphics object for new line
-                if not new_definitions.get('_graphics'):
+                if not dct.get('_graphics'):
                     cls._graphics = Graphics()
-            elif new_definitions.get('line'):
+            elif dct.get('line'):
                 # Set new graphics for specified line
-                if not new_definitions.get('_graphics'):
+                if not dct.get('_graphics'):
                     cls._graphics = Graphics()
             
             cls.line = line = re.sub(r"\B([A-Z])", r" \1", line).capitalize()
-            kwargs = new_definitions.get('_kwargs')
-            if kwargs and '__init__' not in new_definitions:
+            if '_kwargs' in dct and '__init__' not in dct:
+                kwargs = dct['_kwargs']
+                
                 # Key word arguments to replace
                 inputs = ', '.join([key + '=' + key for key in kwargs])
         
                 # Begin changing __init__ to have kwargs by making a string to execute
                 str2exec = f"def __init__(self, ID='', outs=(), ins=None, {inputs}):\n"
-                str2exec+= f"     _(self, ID, outs, ins, {inputs})"
+                str2exec+= f"    self._kwargs = dict({inputs})\n"
+                str2exec+= f"    _(self, ID, outs, ins)"
         
                 # Execute string and replace __init__
                 globs = {'_': Unit.__init__}
@@ -181,41 +122,17 @@ class metaUnit(type):
                 locs = {}
                 exec(str2exec, globs, locs)
                 cls.__init__ = locs['__init__']
-            if cls._linkedstreams and cls._run is Unit._run:
-                cls._run = _proxy_run
         return cls
     
-    @property
-    def enforce_bounds(cls):
-        """[bool] True if bounds are checked for all instances and False otherwise."""
-        return cls._enforce_bounds
-    @enforce_bounds.setter
-    def enforce_bounds(cls, val):
-        val = bool(val)
-        cls._checkbounds = _checkbounds if val else _boundsignore
-        cls._enforce_bounds = val
-    
-    @property
-    def CEPCI(cls):
-        """Chemical engineering plant cost index of all Unit objects."""
-        return metaUnit._CEPCI
-    @CEPCI.setter
-    def CEPCI(cls, CEPCI):
-        if cls is not Unit:
-            raise TypeError('can only set CEPCI through the Unit class')
-        metaUnit._CEPCI = CEPCI
-    
     def __repr__(cls):
-        modules = cls.__module__
         if cls is Unit:
             return f'biosteam.Unit'
-        elif 'biosteam.units' in  modules:
-            if 'facilities' in modules:
-                return f'biosteam.units.facilities.{cls.__name__}'
-            else:
-                return f'biosteam.units.{cls.__name__}'
+        elif cls.__name__ in bst.units.__all__:
+            return f'biosteam.units.{cls.__name__}'
+        elif cls.__name__ in bst.units.facilities.__all__:
+            return f'biosteam.units.facilities.{cls.__name__}'
         else:
-            return super().__repr__()
+            return cls.__module__ + '.' + cls.__name__
             
 
 
@@ -223,7 +140,7 @@ class metaUnit(type):
 
 
 class Unit(metaclass=metaUnit):
-    """Abstract parent class for Unit objects. Child objects must contain _setup, _run, _design and _cost methods to setup internal objects, estimate stream outputs of a Unit and find design and cost information. These methods should store information in the '_results' dictionary (an instance attribute).  
+    """Abstract parent class for Unit objects. Child objects must contain _setup, _run, _design and _cost methods to setup internal objects, estimate stream outputs of a Unit and find design and cost information.  
 
     **Parameters**
 
@@ -238,8 +155,6 @@ class Unit(metaclass=metaUnit):
     **Class Definitions** 
     
         **line** = [Defaults to the class name of the first child class]: [str] Name denoting the type of Unit class    
-    
-        **CEPCI** = 567.5: [float] Chemical Engineering Plant Cost Index
         
         **BM** = None: [float] Bare module factor (installation factor)
 
@@ -255,18 +170,16 @@ class Unit(metaclass=metaUnit):
             Run simulation and update output streams.
 
         **_design()**
-            Add design requirements to results "Design" dictionary.
+            Add design requirements to "_Design" dictionary attribute.
 
         **_cost()**
-            Add itemized purchse costs to results "Cost" dictionary.
+            Add itemized purchse costs to results "_Cost" dictionary attribute.
             
         .. Note::
            
            Class argument `_init` is called only once when a Unit object is initialized. `_setup` is run after `_init` as well as in the `reset` method to update cached data. The `_run` method is called during recycle loop convergence. The rest of the methods are called in the given order for generating results.
         
         **_units** = {}: [dict] Default units for results Operation and Design
-        
-        **_bounds** = {} [dict] Values should be tuples with lower and upper bounds.
         
         **_N_ins** = 1: [int] Expected number of input streams
 
@@ -277,8 +190,6 @@ class Unit(metaclass=metaUnit):
         **_has_power_utility** = False: [bool] If True, a PowerUtility object is created for every instance.
         
         **_has_cost** = True: [bool] Should be True if it has any associated cost
-    
-        **_linkedstreams** = False: [bool] True if outs are streams linked to ins
     
         **_graphics** = <Graphics>: [biosteam Graphics] Settings for diagram representation.
 
@@ -298,15 +209,15 @@ class Unit(metaclass=metaUnit):
         
         :doc:`Inheriting from Unit`
         
-        :doc:`Unit decorators`
+        :doc:`Unit metaclasses and decorators`
     
     """ 
     ### Abstract Attributes ###
     
-    # [float] Bare module factor (installation factor)
+    #: [float] Bare module factor (installation factor).
     BM = None
     
-    # [dict] Default units for results Operation and Design
+    # [dict] Default units for construction
     _units = {}
     
     # [bool] Should be True if it has any associated cost
@@ -317,12 +228,6 @@ class Unit(metaclass=metaUnit):
     
     # [int] Expected number of output streams
     _N_outs = 2  
-    
-    # [bool] True if outs are proxy streams linked to ins
-    _linkedstreams = False
-    
-    # [dict] Values should be tuples with lower and upper bounds for results dictionary.
-    _bounds = {}
     
     # [int] number of heat utilities
     _N_heat_utilities = 0
@@ -355,8 +260,7 @@ class Unit(metaclass=metaUnit):
     
     ### Initialize ###
     
-    def __init__(self, ID='', outs=(), ins=None, **kwargs):
-        self._kwargs = kwargs
+    def __init__(self, ID='', outs=(), ins=None):
         self._init_ins(ins)
         self._init_outs(outs)
         self._init_results()
@@ -364,7 +268,6 @@ class Unit(metaclass=metaUnit):
         self._init_power_util()
         self._init()
         self._setup()
-        self._install()
         self.ID = ID
 
     def reset(self, **kwargs):
@@ -387,36 +290,27 @@ class Unit(metaclass=metaUnit):
     
     def _init_outs(self, outs):
         """Initialize output streams."""
-        if self._linkedstreams:
-            if outs is None:
-                self._outs = Outs(self, (Stream.proxy(None) for i in self._N_outs))
-            elif not outs:
-                self._outs = Outs(self, (Stream.proxy('') for i in self._ins))
-            elif isinstance(outs, Stream):
-                self._outs = Outs(self, (outs,))
-            elif isinstance(outs, str):
-                self._outs = Outs(self, (Stream.proxy(outs),))
-            else:
-                self._outs = Outs(self, (o if isinstance(o, Stream)
-                                         else Stream.proxy(o)
-                                         for o in outs))
+        if outs is None:
+            self._outs = Outs(self, (missing_stream for i in range(self._N_outs)))
+        elif not outs:
+            self._outs = Outs(self, (Stream('') for i in range(self._N_outs)))
+        elif isinstance(outs, Stream):
+            self._outs = Outs(self, (outs,))
+        elif isinstance(outs, str):
+            self._outs = Outs(self, (Stream(outs),))
         else:
-            if outs is None:
-                self._outs = Outs(self, (missing_stream for i in range(self._N_outs)))
-            elif not outs:
-                self._outs = Outs(self, (Stream('') for i in range(self._N_outs)))
-            elif isinstance(outs, Stream):
-                self._outs = Outs(self, (outs,))
-            elif isinstance(outs, str):
-                self._outs = Outs(self, (Stream(outs),))
-            else:
-                self._outs = Outs(self, (i if isinstance(i, Stream) else Stream(i) for i in outs))        
+            self._outs = Outs(self, (i if isinstance(i, Stream) else Stream(i) for i in outs))        
     
     def _init_results(self):
-        """Initialize results attribute."""
-        self._results = {'Design': {}, 'Cost': {}}
-        #: [array] Purchase price (USD) and utility cost (USD/hr)
-        self._totalcosts = np.array([0, 0], float)
+        """Initialize attributes to store results."""
+        # [dict] Updated in `_cost` method
+        self._Cost = {}
+        
+        # [dict] Updated in `_design` method
+        self._Design = {}
+        
+        # [dict] Greenhouse gas emissions
+        self._GHGs = {}
     
     def _init_heat_utils(self):
         """Initialize heat utilities."""
@@ -427,22 +321,7 @@ class Unit(metaclass=metaUnit):
     def _init_power_util(self):
         """Initialize power utility."""
         if self._has_power_utility:
-            self._power_utility = PowerUtility()
-    
-    def _install(self):
-        """Cache objects and/or replace methods for computational efficiency."""
-        # Result dictionaries for all utilities
-        self._utils = utils = []
-        heat_utilities = self._heat_utilities
-        power_utility = self._power_utility
-        if heat_utilities: utils.extend(heat_utilities)
-        if power_utility: utils.append(power_utility)            
-        # Itemized purchase costs
-        self._purchase_costs = self._results['Cost'].values()
-    
-    def _link_streams(self):
-        """Link product to feed."""
-        if self._linkedstreams: self._outs[0].link = self._ins[0]
+            self._power_utility = PowerUtility()         
     
     # Forward pipping
     def __sub__(self, other):
@@ -487,42 +366,43 @@ class Unit(metaclass=metaUnit):
     _setup    = _do_nothing
     _run      = _do_nothing
     _design   = _do_nothing
-    _N        = _do_nothing #: For Unit decorators
     _cost     = _do_nothing
-    _spec     = _do_nothing #: For Unit decorators
-    _end      = _do_nothing #: For Unit decorators
     
     # Summary
     def _summary(self):
         """Calculate all results from unit run."""
         self._design()
-        self._finalize()
-
-    def _finalize(self):
-        """Run all cost methods and finalize purchase and utility cost."""
         self._cost()
-        self._update_utility_cost()
-        self._update_purchase_cost()
-
-    def _update_purchase_cost(self):
-        self._totalcosts[0] = sum(self._purchase_costs)
     
-    def _update_utility_cost(self):
-        self._totalcosts[1] = sum([i.cost for i in self._utils])
+    @property
+    def purchase_cost(self):
+        """Total purchase cost (USD)."""
+        return sum(self._Cost.values())
+    
+    @property
+    def installation_cost(self):
+        """Installation cost (USD)."""
+        return self.BM * sum(self._Cost.values())
+    
+    @property
+    def utility_cost(self):
+        """Total utility cost (USD/hr)."""
+        if self._power_utility:
+            return (sum([i.cost for i in self._heat_utilities])
+                                 + self._power_utility.cost)
+        else:
+            return sum([i.cost for i in self._heat_utilities])
 
     def simulate(self):
         """Run rigourous simulation and determine all design requirements."""
-        self._link_streams()
         _try_method(self._run)
         _try_method(self._summary)
 
     def results(self, with_units=True):
         """Return key results from simulation as a DataFrame if `with_units` is True or as a Series otherwise."""
-        results = self._results
         ID = self.ID
         keys = []; addkey = keys.append
         vals = []; addval = vals.append
-        include_GHG = hasattr(self, '_totalGHG')
         if with_units:
             if self._power_utility:
                 i = self._power_utility
@@ -539,26 +419,21 @@ class Unit(metaclass=metaUnit):
                     addval(('kmol/hr', i.flow))
                     addval(('USD/hr', i.cost))
             units = self._units
-            results = self._results.copy()
-            Cost = results.pop('Cost')
-            if include_GHG:
-                GHG = results.pop('GHG') if 'GHG' in results else None
-            for ko, vo in results.items():
-                for ki, vi in vo.items():
-                    addkey((ko, ki))
-                    addval((units.get(ki, ''), vi))
+            Cost = self._Cost
+            for ki, vi in self._Design.items():
+                addkey(('Design', ki))
+                addval((units.get(ki, ''), vi))
             for ki, vi in Cost.items():
                 addkey(('Cost', ki))
                 addval(('USD', vi))
-            capital, utility = self._totalcosts
             addkey(('Purchase cost', ''))
-            addval(('USD', capital))
+            addval(('USD', self.purchase_cost))
             addkey(('Utility cost', ''))
-            addval(('USD/hr', utility))
-            if include_GHG:
+            addval(('USD/hr', self.utility_cost))
+            if self._GHGs:
                 a, b = self._totalGHG
                 GHG_units =  self._GHG_units
-                for ko, vo in GHG.items():
+                for ko, vo in self._GHGs.items():
                     for ki, vi in vo.items():
                         addkey((ko, ki))
                         addval((GHG_units.get(ko, ''), vi))
@@ -568,7 +443,6 @@ class Unit(metaclass=metaUnit):
                 addval((a_unit, a))
                 addkey(('Total ' + b_key, ''))
                 addval((b_unit, b))
-            
             df = pd.DataFrame(vals,
                               pd.MultiIndex.from_tuples(keys),
                               ('Units', ID))
@@ -589,20 +463,15 @@ class Unit(metaclass=metaUnit):
                     addval(i.duty)
                     addval(i.flow)
                     addval(i.cost)
-            if include_GHG:
-                GHG = results.pop('GHG') if 'GHG' in results else None
-            for ko, vo in results.items():
-                for ki, vi in vo.items():
-                    addkey((ko, ki))
-                    addval(vi)
-            capital, utility = self._totalcosts
-            addkey(('Purchase cost', ''))
-            addval(capital)
-            addkey(('Utility cost', ''))
-            addval(utility)
-            if include_GHG:
+            for ki, vi in self._Design.items():
+                addkey(('Design', ki))
+                addval(vi)
+            for ki, vi in self._Cost.items():
+                addkey(('Cost', ki))
+                addval(vi)    
+            if self._GHGs:
                 GHG_units =  self._GHG_units
-                for ko, vo in GHG.items():
+                for ko, vo in self._GHGs.items():
                     for ki, vi in vo.items():
                         addkey((ko, ki))
                         addval(vi)
@@ -612,22 +481,67 @@ class Unit(metaclass=metaUnit):
                 addval(a)
                 addkey(('Total ' + b_key, ''))
                 addval(b)
+            addkey(('Purchase cost', ''))
+            addval(self.purchase_cost)
+            addkey(('Utility cost', ''))
+            addval(self.utility_cost)
             series = pd.Series(vals, pd.MultiIndex.from_tuples(keys))
             series.name = ID
             return series
 
-    _checkbounds = _checkbounds
-    def _lb_warning(self, key, value, lb):
-        """Warn that value is below lower bound."""
-        _lb_warning(key, value, self._units.get(key), lb, 4, self)
+    def __getattr__(self, name):
+        if name is '_results':
+            warn(DeprecationWarning("'_results' dictionary will be deprecated in favor of attributes '_Design', '_Cost', and '_GHGs'"))
+            self._results = results = {'Design': self._Design,
+                                       'Cost': self._Cost,
+                                       'GHG': self._GHGs}
+            return results
+        elif name in ('_Cost', '_Design') and hasattr(self, '_results'):
+            warn(DeprecationWarning("'_results' dictionary will be deprecated in favor of attributes '_Design', '_Cost', and '_GHGs'"))
+            self._Cost = self._results['Cost']
+            self._Design = self._results['Design']
+            self._GHGs = self._results['GHG']
+        else:
+            raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
 
-    @property
-    def CEPCI(self):
-        """Chemical engineering plant cost index of all Unit objects."""
-        return metaUnit._CEPCI
-    @CEPCI.setter
-    def CEPCI(self, CEPCI):
-        raise AttributeError('cannot change class attribute through an instance')
+    def _checkbounds(self, key, value, units, bounds):
+        """Issue a warning if value is out of bounds.
+        
+        **Parameters**
+        
+            **key:** [str] Name of value.
+            
+            **value:** [float]
+            
+            **units:** [str] Units of value
+            
+            **bounds:** iterable[float, float] Upper and lower bounds.
+            
+        """
+        # Warn when value is out of bounds
+        lb, ub = bounds
+        if not lb<=value and ub>=value:
+            units = ' ' + units if units else ''
+            try:
+                msg = f"{key} ({value:.4g}{units}) is out of bounds ({lb:.4g} to {ub:.4g}{units})."
+            except:  # Handle format errors
+                msg = f"{key} ({value:.4g}{units}) is out of bounds ({lb} to {ub}{units})."
+            warn(_warning(self, msg, DesignWarning), stacklevel=3)
+    def _lb_warning(self, key, value, units, lb):
+        """Warn that value is below lower bound.
+        
+         **Parameters**
+        
+            **key:** [str] Name of value.
+            
+            **value:** [float]
+            
+            **units:** [str] Units of value.
+            
+            **lb:** [float] lower bound.
+        
+        """
+        _lb_warning(key, value, units, lb, 4, self)
 
     @property
     def ID(self):
@@ -723,7 +637,7 @@ class Unit(metaclass=metaUnit):
         if radius > 0:
             neighborhood = self._neighborhood(radius)
             neighborhood.add(self)
-            sys = biosteam.System('', neighborhood)
+            sys = bst.System('', neighborhood)
             return sys.diagram('thorough', file, format)
         
         graphics = self._graphics
@@ -773,16 +687,6 @@ class Unit(metaclass=metaUnit):
             f.edge(name, stream.ID)
             oi += 1
         save_digraph(f, file, format)
-    
-    @property
-    def purchase_cost(self):
-        """Total purchase cost (USD)."""
-        return self._totalcosts[0]
-    
-    @property
-    def utility_cost(self):
-        """Total utility cost (USD/hr)."""
-        return self._totalcosts[1]
     
     ### Net input and output flows ###
     
@@ -908,7 +812,6 @@ class Unit(metaclass=metaUnit):
     # Representation
     def _info(self, T, P, flow, fraction):
         """Information on unit."""
-        self._link_streams()
         if self.ID:
             info = f'{type(self).__name__}: {self.ID}\n'
         else:

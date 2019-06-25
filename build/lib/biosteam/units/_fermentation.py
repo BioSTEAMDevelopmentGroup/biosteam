@@ -12,10 +12,10 @@ from scipy.integrate import odeint
 from .decorators import cost
 from ._tank import MixTank
 
-@cost('Volume', 'Agitator', N='Number of reactors', CE=521.9,
-      cost=52500, S=3785, exp=0.6, kW=22.371)
-@cost('Volume', 'Reactors', N='Number of reactors', CE=521.9,
-      cost=844000, S=3785, exp=0.6)
+@cost('Reactor volume', 'Agitators', CE=521.9, cost=52500,
+      S=3785, n=0.6, kW=22.371, BM=1.5)
+@cost('Reactor volume', 'Reactors', CE=521.9, cost=844000,
+      S=3785, n=0.6, BM=1.5)
 class Fermentation(BatchReactor):
     """Create a Fermentation object which models large-scale batch fermentation for the production of 1st generation ethanol using yeast [1, 2, 3, 4]. Only sucrose and glucose are taken into account. Conversion is based on reaction time, `tau`. Cleaning and unloading time, `tau_0`, fraction of working volume, `V_wf`, and number of reactors, `N_reactors`, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3].
     
@@ -58,7 +58,7 @@ class Fermentation(BatchReactor):
         :doc:`Fermentation Example`
         
     """
-    _units = {'Volume': 'm3',
+    _units = {'Reactor volume': 'm3',
               'Cycle time': 'hr',
               'Loading time': 'hr',
               'Total dead time': 'hr'}
@@ -71,9 +71,6 @@ class Fermentation(BatchReactor):
     
     #: Cleaning and unloading time (hr)
     tau_0 = 12 
-    
-    #: Number of reactors
-    _N_reactors = None
     
     #: Fraction of filled tank to total tank volume
     working_volume_fraction = MixTank.working_volume_fraction
@@ -180,13 +177,21 @@ class Fermentation(BatchReactor):
         return (dXdt, dPdt, dSdt)
        
     @property
-    def N_reactors(self):
+    def N(self):
+        """[int] Number of reactors"""
         return self._kwargs['N']
-    @N_reactors.setter
-    def N_reactors(self, N):
+    @N.setter
+    def N(self, N):
         if N <= 1:
             raise ValueError(f"number of reactors must be greater than 1, value {N} is infeasible")
         self._kwargs['N'] = N
+
+    @property
+    def efficiency(self):
+        return self._kwargs['efficiency'] or self._efficiency
+    @efficiency.setter
+    def efficiency(self, efficiency):
+        self._kwargs['efficiency'] = efficiency
 
     def _run(self):
         # Assume no Glycerol produced
@@ -210,7 +215,7 @@ class Fermentation(BatchReactor):
         out._mol[[g, s, w]] += [new_glucose, ch_sucrose, ch_Water]
         
         # Fermentation
-        self._results['Design']['Efficiency'] = eff = (
+        self._efficiency = eff = (
             kwargs.get('efficiency')
             or self._calc_efficiency(out, kwargs['tau'])
             )
@@ -240,7 +245,7 @@ class Fermentation(BatchReactor):
         v_0 = self.outs[0].volnet
         tau = self._kwargs['tau']
         tau_0 = self.tau_0
-        Design = self._results['Design']
+        Design = self._Design
         Design['Number of reactors'] = N = self._kwargs['N']
         Design.update(self._solve(v_0, tau, tau_0, N, self._V_wf))
         hx = self._cooler
@@ -254,5 +259,8 @@ class Fermentation(BatchReactor):
         hu.flow *= N
     
     def _end(self):
-        self._results['Cost']['Coolers'] = (self._results['Design']['Number of reactors']
-                                         * self._cooler._results['Cost']['Heat exchanger'])
+        N = self._Design['Number of reactors']
+        Cost = self._Cost
+        Cost['Agitators'] *= N
+        Cost['Reactors'] *= N
+        Cost['Coolers'] = N*self._cooler._Cost['Heat exchanger']

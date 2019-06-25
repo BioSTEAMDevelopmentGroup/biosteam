@@ -153,7 +153,10 @@ class metaStream(type):
             species._read_only()
         else: raise ValueError('must pass a Species object')
     _species = species
-        
+    
+    @property
+    def MW(cls):
+        return cls._MW
 
 class Stream(metaclass=metaStream):
     """Create a Stream object that defines material flow rates along its thermodynamic state. Thermodynamic and transport properties of a stream are readily available. Ideal mixture is assumed for stream properties and excess thermodynamic energies are neglected as a simplifying assumption for low pressure processes.
@@ -223,8 +226,6 @@ class Stream(metaclass=metaStream):
        array([1., 2.])
 
     .. Warning:: Stream objects do not automatically calculate thermodynamic equilibrium. They simply assume the given phase, temperature and pressure are correct. To find equilibrium, use the VLE or LLE method.
-
-    .. Note:: All following examples will use the Stream objects created here (s1, s2, and s3) starting from its initial values.
 
     Use the `show` method to print all specifications with desired units:
 
@@ -375,7 +376,7 @@ class Stream(metaclass=metaStream):
                  '_yP', '_T_dew', '_y_over_Psat_gamma', '__weakref__', '_source_link')
 
     ### Class attributes for working species ###
-    _cls_species = None
+    _cls_species = _MW = None
     
     # [list] Default starting letter and current number for ID (class attribute)
     _default_ID = ['d', 1]
@@ -387,7 +388,6 @@ class Stream(metaclass=metaStream):
     display_units = DisplayUnits(T='K', P='Pa',
                                  flow=('kmol/hr', 'kg/hr', 'm3/hr'),
                                  fraction=False)
-    line = 'Stream'
 
     def __init__(self, ID='', flow=(), species=(), units='kmol/hr',
                  phase='l', T=298.15, P=101325, *, price=0, **flow_pairs):
@@ -536,15 +536,16 @@ class Stream(metaclass=metaStream):
             raise ValueError(f"phase must be either 's', 'l', or 'g'")
         self._phase = phase
     
-    @classmethod
-    def proxy(cls, ID, link=missing_stream):
-        """Create a Stream object that serves as a proxy for the `link` stream."""
-        self = object.__new__(cls)
+    @staticmethod
+    def proxy(ID, link=missing_stream):
+        """Create a Stream object that serves as a proxy for its `link` stream."""
+        self = object.__new__(Stream)
         self._source = self._sink = self._ID = None
         self._source_link = missing_stream
         self.ID = ID
         self.price = 0
-        self.link = link
+        if link: self.link = link
+        else: self._link = missing_stream
         return self
     
     @property
@@ -555,28 +556,32 @@ class Stream(metaclass=metaStream):
     @link.setter
     def link(self, stream):
         try:
-            if (not stream
-                or self._source_link is stream._source_link):
+            if self._source_link is stream._source_link:
                 self._link = stream
-                return
-            self._species = stream._species
-            self._mass = stream._mass
-            self._mol = stream._mol
-            self._vol = stream._vol
-            self._dew_cached = stream._dew_cached
-            self._bubble_cached = stream._bubble_cached
-            self._source_link = stream._source_link
-            self._link = stream
-            self.P = stream.P
-            self.T = stream.T
-            self._phase = stream.phase
+            elif stream is None:
+                self.__init__(ID=self._ID, flow=self._mol,
+                              species=self._species,
+                              T=self.T, P=self.P, phase=self._phase)
+            else:
+                self._species = stream._species
+                self._mass = stream._mass
+                self._mol = stream._mol
+                self._vol = stream._vol
+                self._dew_cached = stream._dew_cached
+                self._bubble_cached = stream._bubble_cached
+                self._source_link = stream._source_link
+                self._link = stream
+                self.P = stream.P
+                self.T = stream.T
+                self._phase = stream.phase
         except Exception as Error:
             if isinstance(stream, Stream): raise Error
             else: raise TypeError(f"link must be a Stream object, not a '{type(stream).__name__}' object.")
     
     def __getattr__(self, key):
+        if key is 'line': return 'Stream'
         if self._link is missing_stream:
-            if self.source and self.source._ins[0] is missing_stream:
+            if self.source and self.source._ins[0] is not missing_stream:
                 self.source._link_streams()
                 try: return object.__getattribute__(self, key)
                 except: raise AttributeError(f'{repr(self.source)}.ins[0] is missing stream')
@@ -623,8 +628,10 @@ class Stream(metaclass=metaStream):
     def MW(self):
         """Molecular weight of all species (array g/mol):     
 
-        >>> s2.MW 
-        tuple_array([46.06844, 18.01528])
+        from biosteam import *
+        >>> Stream.species = Species('Water', 'Ethanol')
+        >>> Stream.MW
+        tuple_array([18.01528, 46.06844])
         """
         return self._species._MW.view(tuple_array)
 
@@ -643,6 +650,9 @@ class Stream(metaclass=metaStream):
 
         Indices by ID:
         
+        >>> from biosteam import *
+        >>> Stream.species = Species(['Ethanol', 'Water'])
+        >>> s1 = Stream()
         >>> s1.indices('Water', 'Ethanol')
         [1, 0]
 
@@ -676,6 +686,9 @@ class Stream(metaclass=metaStream):
     def mol(self):
         """Array of molar flow rates (kmol/hr):
 
+        >>> from biosteam import *
+        >>> Stream.species = Species('Water', 'Ethanol')
+        >>> s1 = Stream(Ethanol=2)
         >>> s1.mol
         array([0, 2])
         >>> s1.mol[:] = [1, 2]
@@ -688,6 +701,9 @@ class Stream(metaclass=metaStream):
     def molfrac(self):
         """Array of molar fractions.
 
+        >>> from biosteam import *
+        >>> Stream.species = Species('Water', 'Ethanol')
+        >>> s1 = Stream(Ethanol=2)
         >>> s1.molfrac
         tuple_array([0., 1.])
         """
@@ -697,7 +713,10 @@ class Stream(metaclass=metaStream):
     def molnet(self):
         """Net molar flow rate (kmol/hr)
 
-        >>> s2.molnet
+        >>> from biosteam import *
+        >>> Stream.species = Species('Water', 'Ethanol')
+        >>> s1 = Stream(Ethanol=2, Water=1)
+        >>> s1.molnet
         3
         """
         return self._mol.sum()
@@ -707,6 +726,9 @@ class Stream(metaclass=metaStream):
     def mass(self):
         """Array of mass flow rates (kg/hr)
 
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Water=2)
         >>> s1.mass
         property_array([ 0.   , 36.031])
         """
@@ -716,6 +738,9 @@ class Stream(metaclass=metaStream):
     def massfrac(self):
         """Array of mass fractions.
 
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Water=2)
         >>> s1.massfrac
         tuple_array([0, 1])
         """
@@ -725,8 +750,11 @@ class Stream(metaclass=metaStream):
     def massnet(self):
         """Net mass flow rate (kg/hr)
 
-        >>> s2.massnet
-        82.099
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Water=2)
+        >>> s1.mass
+        36.031
         """
         return (self._species._MW * self._mol).sum()
 
@@ -735,8 +763,11 @@ class Stream(metaclass=metaStream):
     def vol(self):
         """Array of volumetric flow rates as a function of T and P (m^3/hr).
 
-        >>> s2.vol
-        property_array([0.059, 0.036])
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Water=2)
+        >>> s1.vol
+        property_array([0.   , 0.036])
         
         """
         return self._vol
@@ -745,19 +776,23 @@ class Stream(metaclass=metaStream):
     def volfrac(self):
         """Array of volumetric fractions as a function of T and P.
 
-        >>> s2.volfrac
-        tuple_array([0.619, 0.381])
-        """
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Water=2)
+        >>> s1.volfrac
+        tuple_array([0.0, 1.0], dtype=object)
+                """
         return fraction(self._vol).view(tuple_array)
         
     @property
     def volnet(self):
         """Net volumetric flow rate as a function of T and P (m^3/hr).
 
-        >>> s2.volnet # a liquid stream
-        0.09475552896916632
-        >>> s3.volnet # a gas stream
-        97.32699378482434
+        from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Water=2)
+        >>> s1.volnet
+        0.036138079740245625
         """
         return self._species._propflow('Vm', self._mol, self.T, self.P, self._phase)*1000
 
@@ -768,13 +803,16 @@ class Stream(metaclass=metaStream):
     def H(self):
         """Enthalpy flow rate as a function of T, excluding formation energies (kJ/hr).
 
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Water=2)
         >>> s1.H # The stream is at the reference state
         0.0
         >>> s1.H = 1000
         >>> s1.T
-        304.80600901692236
+        304.7888167493753
         >>> s1.H
-        1002.1604769775776
+        999.5728716085112
 
         .. Note:: The solver reaches a level of tolerance and the new temperature is an approximation.
         """
@@ -809,6 +847,9 @@ class Stream(metaclass=metaStream):
     def Hf(self):
         """Heat of formation flow rate (kJ/hr).
 
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Water=2)
         >>> s1.Hf
         -483640.0
         """
@@ -818,8 +859,11 @@ class Stream(metaclass=metaStream):
     def Hc(self):
         """Heat of combustion flow rate (kJ/hr).
 
-        >>> s2.Hc
-        -1409983.0
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Ethanol=2)
+        >>> s1.Hc
+        -2819966.0
         """
         return (self.mol * [i.Hc or 0 for i in self._species._compounds]).sum()
         
@@ -828,11 +872,14 @@ class Stream(metaclass=metaStream):
     def S(self):
         """Entropy flow rate as a function of T and P, excluding formation energies (kJ/hr).
 
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Ethanol=2)
         >>> s1.S # The stream is at the reference state
         0.0
         >>> s1.T = 320
         >>> s1.S
-        10.642980522582695
+        16.503899351682694
         """
         return self._species._propflow('S', self._mol, self.T, self.P, self._phase)
 
@@ -841,11 +888,14 @@ class Stream(metaclass=metaStream):
     def G(self):
         """Gibbs free energy flow rate as a function of T and P, excluding formation energies (kJ/hr).
 
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Ethanol=2)
         >>> s1.G # The stream is at the reference state
         0.0
         >>> s1.T = 320
         >>> s1.G
-        -117.6450204179555
+        -182.43024800100193
         """
         return self.H - self.S*self.T
 
@@ -854,11 +904,14 @@ class Stream(metaclass=metaStream):
     def U(self):
         """Internal energy flow rate as a function of T and P, excluding formation energies (kJ/hr).
 
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Ethanol=2)
         >>> s1.U # The stream is at the reference state
         0.0
         >>> s1.T = 320
         >>> s1.U
-        -409.16014979602505
+        -7090.732710112934
         """
         return self.H - self.P*self.volnet
 
@@ -867,11 +920,14 @@ class Stream(metaclass=metaStream):
     def A(self):
         """Helmholtz energy flow rate as a function of T and P, excluding formation energies (kJ/hr).
 
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Ethanol=2)
         >>> s1.A # The stream is at the reference state
         0.0
         >>> s1.T = 320
         >>> s1.A
-        -3814.9139170224876
+        -12371.980502651397
         """
         return self.U - self.T*self.S
 
@@ -880,8 +936,11 @@ class Stream(metaclass=metaStream):
     def C(self):
         """Heat capacity flow rate as a function of T (kJ/K/hr).
 
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Ethanol=2)
         >>> s2.C
-        262.74816631655267
+        243.41704115214097
         """
         return self._species._propflow('Cpm', self._mol, self.T, self.P, self._phase)
 
@@ -890,8 +949,11 @@ class Stream(metaclass=metaStream):
     def Cp(self):
         """Specific heat capacity as a function of T (kJ/kg/K).
 
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Ethanol=2)
         >>> s1.Cp
-        4.180597021827335
+        2.641906706110962
         """
         return self.Cpm*self.molnet/self.massnet
 
@@ -899,8 +961,11 @@ class Stream(metaclass=metaStream):
     def Cpm(self):
         """Molar heat capacity as a function of T (kJ/kmol/K).
 
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Ethanol=2)
         >>> s1.Cpm # (J/mol/K)
-        75.31462591538556
+        121.70852057607048
         """
         return self.C/self.molnet
 
@@ -908,8 +973,11 @@ class Stream(metaclass=metaStream):
     def Vm(self):
         """Molar volume as a function of T and P (m^3/mol).
 
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Ethanol=2)
         >>> s1.Vm
-        1.8069039870122814e-05
+        0.00012030150757118572
         """
         return self._species._prop('Vm', self._mol, self.T, self.P, self._phase)
 
@@ -917,8 +985,11 @@ class Stream(metaclass=metaStream):
     def rho(self):
         """Density as a function of T (kg/m^3).
 
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Ethanol=2)
         >>> s1.rho
-        997.0247522552814
+        765.8830039638536
         """
         return self.massnet/self.volnet
 
@@ -926,8 +997,11 @@ class Stream(metaclass=metaStream):
     def rhom(self):
         """Molar density as a function of T and P (mol/m^3).
 
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Ethanol=2)
         >>> s1.rhom
-        55343.283715561534
+        16.624895567634884
         """
         return self.molnet/self.volnet
 
@@ -935,8 +1009,11 @@ class Stream(metaclass=metaStream):
     def nu(self):
         """Kinematic viscosity as a function of T and P (m^2/s).
 
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Ethanol=2)
         >>> s1.nu
-        9.154438858391748e-07
+        5.733020843964377e-06
         """
         return self.mu/self.rho
 
@@ -944,8 +1021,11 @@ class Stream(metaclass=metaStream):
     def mu(self):
         """Hydraulic viscosity as a function of T and P (Pa*s).
 
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Ethanol=2)
         >>> s1.mu
-        0.0009127202134824155
+        0.0043908232257628245
         """
         # Katti, P.K.; Chaudhri, M.M. (1964). "Viscosities of Binary Mixtures of Benzyl Acetate with Dioxane, Aniline, and m-Cresol". Journal of Chemical and Engineering Data. 9 (1964): 442–443.
         molfrac = self.molfrac
@@ -959,8 +1039,11 @@ class Stream(metaclass=metaStream):
     def k(self):
         """Thermal conductivity as a function of T and P (W/m/k).
 
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Ethanol=2)
         >>> s1.k
-        0.5942044328004411
+        0.3182327138341469
         """
         return self._species._prop('k', self._mol, self.T, self.P, self._phase)
 
@@ -968,8 +1051,11 @@ class Stream(metaclass=metaStream):
     def alpha(self):
         """Thermal diffusivity as a function of T and P (m^2/s).
 
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Ethanol=2)
         >>> s1.alpha
-        1.4255801521655763e-07
+        1.5727689011218135e-07
         """
         return self._species._prop('alpha', self._mol, self.T, self.P, self._phase)
 
@@ -977,8 +1063,11 @@ class Stream(metaclass=metaStream):
     def sigma(self):
         """Surface tension as a function of T (N/m).
 
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Ethanol=2)
         >>> s1.sigma
-        0.07205503890847455
+        0.039538267032201244
         """
         return self._species._prop('sigma', self._mol, self.T, self.P, self._phase)
 
@@ -986,14 +1075,23 @@ class Stream(metaclass=metaStream):
     def Pr(self):
         """Prandtl number as a function of T and P (non-dimensional).
 
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Ethanol=2)
         >>> s1.Pr
-        6.421553249380879
+        24.13465846907633
         """
         return self._species._prop('Pr', self._mol, self.T, self.P, self._phase)
 
     @property
     def P_vapor(self):
-        """Vapor pressure (Pa)."""
+        """Vapor pressure (Pa).
+        
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Ethanol=2)
+        25272.75671868146
+        """
         species, x, P = self._equilibrium_args()
         T = self.T
         
@@ -1023,6 +1121,9 @@ class Stream(metaclass=metaStream):
     def nonzero_species(self):
         """Flow indices and species that have a non-zero flow rate.
 
+        from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Water=2)
         >>> s1.nonzero_species
         [1], ['Water']
         """
@@ -1037,8 +1138,11 @@ class Stream(metaclass=metaStream):
 
         Example:
 
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Ethanol=2)
         >>> s1.quantity('Cp')
-        <Quantity(4.180597021827335, 'joule / gram / kelvin')>
+        2.641906706110962 J/K/g
 
         """
         attr = getattr(self, prop_ID)
@@ -1058,10 +1162,13 @@ class Stream(metaclass=metaStream):
 
              **index:** [array_like or None] Optional indices if the variable is an array
 
-        Example
+        **Example**
 
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Ethanol=2)
         >>> s1.derivative('rho', 'T')
-        -0.4010588564718449
+        -0.943576312801604
 
         """
         if index is not None:
@@ -1102,7 +1209,11 @@ class Stream(metaclass=metaStream):
     def copylike(self, stream):
         """Copy mol, T, P, and phase of stream to self.
 
-        >>> s1.copylike(s3)
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream()
+        >>> s2 = Stream(Ethanol=1, Water=2, T=400, phase='g')
+        >>> s1.copylike(s2)
         >>> s1.show()
         Stream: s1
          phase: 'g', T: 400.00 K, P: 101325 Pa
@@ -1123,6 +1234,9 @@ class Stream(metaclass=metaStream):
     def empty(self):
         """Set flow rates to zero
 
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Water=1)
         >>> s1.empty()
         >>> s1.mol
         array([0, 0])
@@ -1152,6 +1266,7 @@ class Stream(metaclass=metaStream):
              
             **eq_species:** tuple[str] Species in equilibrium.
 
+        >>> from biosteam import *
         >>> stream = Stream(flow=(0.6, 0.4),
         ...                 species=Species('Ethanol', 'Water'))
         >>> stream.bubble_point()
@@ -1196,8 +1311,11 @@ class Stream(metaclass=metaStream):
              
             **eq_species:** tuple[str] Species in equilibrium.
 
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream()
         >>> s1._bubble_point(species=Species('Ethanol', 'Water'),
-        ...                 x=(0.6, 0.4), P=101325)
+        ...                  x=(0.6, 0.4), P=101325)
         (352.2820850833474, array([0.703, 0.297]))
         
         """
@@ -1286,7 +1404,9 @@ class Stream(metaclass=metaStream):
              
             **eq_species:** tuple[str] Species in equilibrium.
 
-
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream()
         >>> s1.dew_point(species=Species('Ethanol', 'Water'),
         ...              y=(0.5, 0.5), P=101325)
         (353.7420742149825, array([0.556, 0.444]))
@@ -1332,8 +1452,11 @@ class Stream(metaclass=metaStream):
 
         Example
 
+        >>> from biosteam import *
+        >>> Stream.species = Species('Ethanol', 'Water')
+        >>> s1 = Stream(Water=200)
         >>> s1.Re(0.2, 0.031416)
-        373.43769007101764
+        27639.956372923512
         """
         volnet = self.volnet/3600 # m3/s
         if A is None:  # Assume pipe
@@ -1425,9 +1548,15 @@ class Stream(metaclass=metaStream):
 
              **T:** [float] New temperature (K)
 
-        >>> Stream.eqT((s1, s2, s3))
-        >>> (s1.T, s2.T, s3.T)
-        (346.06735249999997,  346.06735249999997,  346.06735249999997)
+        **Example**
+
+        from biosteam import *
+        >>> Stream.species = Species('Water', 'Ethanol')
+        >>> s1 = Stream(Water=2, T=300)
+        >>> s2 = Stream(Ethanol=1, Water=2, T=340)
+        >>> Stream.eqT([s1, s2])
+        >>> (s1.T, s2.T)
+        (325.8281231556553, 325.8281231556553)
         """
         sum_ = sum
         # Set up problem
@@ -1476,20 +1605,20 @@ class Stream(metaclass=metaStream):
              **s_sum:** [Stream] Container for the resulting mixture of streams
 
              **streams:** [tuple] Stream objects to be mixed
-             
-        **Return**
 
-             **s_sum:** same object as in arguments
+        .. Note:: Ignores contents of `s_sum` as if it was empty
 
-        .. Note:: Ignores contents of s_sum as if it was empty
+        **Example**
 
-        Example
-
-        >>> s2.T = 340 # Set higher temperature to show energy balance
-        >>> s_sum = Stream.sum(Stream('s_sum'), s1, s2)
+        >>> from biosteam import *
+        >>> Stream.species = Species('Water', 'Ethanol')
+        >>> s1 = Stream(Water=2, T=300)
+        >>> s2 = Stream(Ethanol=1, Water=2, T=340)
+        >>> s_sum = Stream('s_sum')
+        >>> Stream.sum(s_sum, [s1, s2])
         >>> s_sum.show()
         Stream: s_sum
-         phase: 'l', T: 325.32 K, P: 101325 Pa
+         phase: 'l', T: 326.29 K, P: 101325 Pa
          flow (kmol/hr): Ethanol  1
                          Water    4
         """
@@ -1527,7 +1656,6 @@ class Stream(metaclass=metaStream):
 
         # Energy Balance
         if energy_balance: s_sum.H = H
-        return s_sum
 
     # MixedStream compatibility
     def enable_phases(self):

@@ -9,6 +9,7 @@ from .. import Unit, Stream, MixedStream
 from fluids import nearest_pipe
 import ht
 import numpy as np
+import biosteam as bst
 ln = np.log
 exp = np.exp
 pi = np.pi
@@ -84,10 +85,18 @@ class HX(Unit, metaclass=metaHX):
               'Shell side pressure drop': 'psi',
               'Operating pressure': 'psi',
               'Total tube length': 'ft'}
-    
     _N_ins = 1
     _N_outs = 1
     _N_heat_utilities = 1
+    
+    BM_douple_pipe = 1.80
+    BM_shell_and_tube = 3.17
+    @property
+    def BM(self):
+        if self._Type is "Double pipe":
+            return self.BM_douple_pipe
+        else:
+            return self.BM_shell_and_tube
     
     # Heat exchanger type
     _Type = 'Floating head'
@@ -360,7 +369,7 @@ class HX(Unit, metaclass=metaHX):
 
     def _design(self):
         ###  Use LMTD correction factor method  ###
-        Design = self._results['Design']
+        Design = self._Design
         
         # Get cold and hot inlet and outlet streams
         ci, hi, co, ho = self._order_streams(*self._get_streams())
@@ -402,7 +411,6 @@ class HX(Unit, metaclass=metaHX):
         # Design pressure
         P = max((ci.P, hi.P))
         
-        # Calculate Area
         Design['Area'] = self._calc_area(LMTD, U, Q, ft) * 10.763
         Design['Overall heat transfer coefficient'] = U
         Design['Fouling correction factor'] = ft
@@ -412,8 +420,7 @@ class HX(Unit, metaclass=metaHX):
         Design['Total tube length'] = L
 
     def _cost(self):
-        Design = self._results['Design']
-        Cost = self._results['Cost']
+        Design = self._Design
         A = Design['Area']
         L = Design['Total tube length']
         P = Design['Operating pressure']
@@ -440,10 +447,10 @@ class HX(Unit, metaclass=metaHX):
             F_p = 0.9803 + 0.018*P + 0.0017*P**2
         
         C_b_func = self._Cb_func
-        C_b = C_b_func(A, self.CEPCI)
+        C_b = C_b_func(A, bst.CE)
         
         # Free on board purchase prize 
-        Cost['Heat exchanger'] = F_p * F_l * F_m * C_b
+        self._Cost['Heat exchanger'] = F_p * F_l * F_m * C_b
 
 
 class HXutility(HX):

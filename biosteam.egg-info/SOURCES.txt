@@ -56,6 +56,7 @@ biosteam/units/_distillation.py
 biosteam/units/_enzyme_treatment.py
 biosteam/units/_fermentation.py
 biosteam/units/_flash.py
+biosteam/units/_humbird2011.xlsx
 biosteam/units/_hx.py
 biosteam/units/_junction.py
 biosteam/units/_magnetic_separator.py
@@ -72,9 +73,8 @@ biosteam/units/_splitter.py
 biosteam/units/_tank.py
 biosteam/units/_transesterification.py
 biosteam/units/_vibrating_screen.py
-biosteam/units/details.xlsx
+biosteam/units/factories.py
 biosteam/units/humbird2011.py
-biosteam/units/decorators/_N.py
 biosteam/units/decorators/__init__.py
 biosteam/units/decorators/_attach_heat_exchanger.py
 biosteam/units/decorators/_cost.py
@@ -90,4 +90,6 @@ biosteam/units/facilities/_boiler_turbogenerator.py
 biosteam/units/facilities/_cooling_tower.py
 biosteam/units/metaclasses/__init__.py
 biosteam/units/metaclasses/_final.py
+biosteam/units/metaclasses/_mixer.py
 biosteam/units/metaclasses/_splitter.py
+biosteam/units/metaclasses/_static.py

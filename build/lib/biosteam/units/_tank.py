@@ -9,15 +9,14 @@ from .._unit import Unit
 from .._exceptions import DesignError
 from ._mixer import Mixer
 from .decorators import cost
+from .metaclasses import static
 import numpy as np
+import biosteam as bst
 
 class Tank(Unit):
     """Abstract Tank class."""
-    _units = {'Volume': 'm^3'}
-    _linkedstreams = True
-    _N_ins = 1
+    _units = {'Total volume': 'm^3'}
     _N_outs = 1
-
     @property
     def tau(self):
         """Residence time (hr)."""
@@ -26,7 +25,7 @@ class Tank(Unit):
     def tau(self, tau):
         self._tau = tau
 
-class StorageTank(Tank):
+class StorageTank(Tank, metaclass=static):
     r"""Create a storage tank with volume based on residence time [1].
 
     .. math::
@@ -45,23 +44,21 @@ class StorageTank(Tank):
     _tau = 4*7*24
 
     def _design(self):
-        Design = self._results['Design']
         V = self._tau*self._volnet_out
-        Design['N'] = N = np.ceil(V/50e3)
-        Design['Volume'] = V/N
-        return Design
+        self._Design['N'] = N = np.ceil(V/50e3)
+        self._Design['Total volume'] = V/N
 
     def _cost(self):
-        Design = self._results['Design']
-        N, V = Design.values()
+        N = self._Design['N']
+        V = self._Design['Total volume']
         if V < 2e3:
-            self._results['Cost']['Tank'] = N * (65000 + 158.7*(V/N)) * self.CEPCI/525.4
+            self._Cost['Tank'] = N * (65000 + 158.7*(V/N)) * bst.CE/525.4
         elif V < 50e3:
-            self._results['Cost']['Tank'] = N * (250000 + 94.2*(V/N)) * self.CEPCI/525.4
+            self._Cost['Tank'] = N * (250000 + 94.2*(V/N)) * bst.CE/525.4
         else:    
             raise DesignError(f"Volume is out of bounds for costing")
 
-@cost('Volume', cost=12080, CE=525.4, exp=0.525, kW=0.591, N='N')
+@cost('Total volume', cost=12080, CE=525.4, n=0.525, kW=0.0985, ub=30)
 class MixTank(Tank):
     """Create a mixing tank with volume based on residence time.
 
@@ -79,9 +76,8 @@ class MixTank(Tank):
     line = 'Mix tank'
     _tau = 1
     _N_ins = 2
-    _linkedstreams = False
     _run = Mixer._run
-    _bounds = {'Volume': (0.1, 30)}
+    _minimum_volume = 0.1
     
     #: Fraction of working volume
     _V_wf = 0.8
@@ -98,10 +94,6 @@ class MixTank(Tank):
         self._V_wf = V_wf
     
     def _design(self):
-        V = self._tau * self.outs[0].volnet / self._V_wf
-        lb, ub = self._bounds['Volume']
-        if V < lb: self._lb_warning('Volume', V, lb)
-        Design = self._results['Design']
-        Design['N'] = N = np.ceil(V/ub)
-        Design['Volume'] = V/N
+        self._Design['Total volume'] = V = self._tau * self.outs[0].volnet / self._V_wf
+        if V < self._minimum_volume: self._lb_warning('Volume', V, self._minimum_volume)
 

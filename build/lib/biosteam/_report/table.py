@@ -10,7 +10,6 @@ from warnings import warn
 from .._stream import Stream, mol_flow_dim, mass_flow_dim, vol_flow_dim
 from .. import _Q
 from .._exceptions import DimensionError
-from warnings import warn
 import os
 
 DataFrame = pd.DataFrame
@@ -26,20 +25,6 @@ def _stream_key(s):
     else: return -1
 
 # %% Helpful functions
-
-def _units_sort_by_cost(units):
-    """Sort by first grouping units by line and then order groups by maximum capital."""
-    unit_lines = list({u.line for u in units})
-    line_dict = {ut:[] for ut in unit_lines}
-    for u in units:
-        line_dict[u.line].append(u)
-    units = []
-    unit_lines.sort(key=lambda ut: max(u._totalcosts[0] for u in line_dict[ut]), reverse=True)
-    for key in unit_lines:
-        ulist = line_dict[key]
-        ulist.sort(key=lambda x: x._totalcosts[0], reverse=True)
-        units += ulist
-    return units
 
 def _save(tables, writer, sheet_name='Sheet1', n_row=1):
     """Save a list of tables as an excel file.
@@ -87,7 +72,7 @@ def save_report(system, file='report.xlsx', **stream_properties):
         
         # Cash flow
         TEA = system._TEA
-        TEA.cashflow.to_excel(writer, 'Cash flow')
+        TEA.get_cashflow().to_excel(writer, 'Cash flow')
         
         # TEA
         TEA.results().to_excel(writer, 'Techno-Economic Analysis')
@@ -172,11 +157,11 @@ def cost_table(system):
 
     """
     columns = ('Unit operation',
-              f'Fixed capital investment (10^6 USD)',
+              f'Purchase cost (10^6 USD)',
               f'Utility cost (10^6 USD/yr)')
     units = system.units
     units = system._costunits
-    units = _units_sort_by_cost(units)
+    units = sorted(units, key=lambda x: x.line)
     
     # Initialize data
     try:
@@ -185,7 +170,6 @@ def cost_table(system):
         if not hasattr(system, 'TEA'):
             raise ValueError('Cannot find TEA object related to system. A TEA object of the system must be created first.')
         else: raise AE
-    lang_factor = o['Lang factor']
     operating_days = o['Operating days']
     N_units = len(units)
     array = np.empty((N_units, 3), dtype=object)
@@ -197,13 +181,16 @@ def cost_table(system):
     # Get data
     for i in range(N_units):
         unit = units[i]
-        ci, co = unit._totalcosts
         types[i] = unit.line
-        C_cap[i] = ci * lang_factor / 1e6
-        C_op[i] = co * operating_days * 24  / 1e6
+        C_cap[i] = unit.purchase_cost / 1e6
+        C_op[i] = unit.utility_cost * operating_days * 24  / 1e6
         IDs.append(unit.ID)
     
-    return DataFrame(array, columns=columns, index=IDs)    
+    df = DataFrame(array, columns=columns, index=IDs)    
+    if not o['Lang factor']:
+        df['Installation cost (10^6 USD)'] = [u.installation_cost for u in units]
+    
+    return df
 
 def heat_utilities_table(units):
     """Return a list of utility tables for each heat utility source.

@@ -7,14 +7,15 @@ Created on Thu Aug 23 14:34:07 2018
 from .. import Unit, Stream
 from .metaclasses import final
 from numpy import asarray
-from .metaclasses._splitter import split
+from .metaclasses._splitter import splitprop
+from . import Mixer
 
 class Splitter(Unit, metaclass=final):
     """Create a splitter that separates mixed streams based on splits.
 
     **Parameters**
 
-        **split:** Shoulds be one of the following:
+        **split:** Should be one of the following
             * [float] The fraction of net feed in the 0th output stream
             * [array_like] Componentwise split of feed to 0th output stream
             
@@ -137,9 +138,9 @@ class Splitter(Unit, metaclass=final):
         top._mol[:] = net_mol * self._split
         bot._mol[:] = net_mol - top._mol
     
-    split = split
+    split = splitprop
     simulate = _run
-    summary = Unit._cost
+    installation_cost = purchase_cost = utility_cost = Mixer.purchase_cost
 
 
 class InvSplitter(Unit, metaclass=final):
@@ -167,4 +168,5 @@ class InvSplitter(Unit, metaclass=final):
             out.phase = phase 
             
     simulate = _run
-    summary = Unit._cost
+
+

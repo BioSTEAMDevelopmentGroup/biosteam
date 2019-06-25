@@ -18,7 +18,7 @@ def make_digraph(units, streams):
     # Set up unit nodes
     UD = {}  # Contains full description (ID and line) by ID
     for u in units:
-        u._link_streams()
+        if hasattr(u, 'link_streams'): u._link_streams()
         graphics = u._graphics
         if not graphics.in_system:
             continue  # Ignore Unit
@@ -79,7 +79,8 @@ def make_digraph(units, streams):
 
 def save_digraph(digraph, file, format):
     if not file:
-        if format is 'svg':
+        format = 'png'
+        if format == 'svg':
             x = display.SVG(digraph.pipe(format=format))
         else:
             x = display.Image(digraph.pipe(format='png'))

@@ -6,17 +6,17 @@ Created on Thu Aug 23 22:17:05 2018
 """
 from .metaclasses import splitter
 from .. import Unit
-from .decorators import cost, design
+from .decorators import cost
 
 __all__ = ('MolecularSieve',)
 
 
 @cost('Flow rate', 'Pressure filter drying (2)',
-      cost=405000, CE=521.9, S=22687, exp=0.6, kW=1044)
+      cost=405000, CE=521.9, S=22687, n=0.6, kW=1044)
 @cost('Flow rate', 'Pressure filter pressing',
-      cost=75200, CE=521.9, S=22687, exp=0.6, kW=112)
-@cost('Flow rate', 'Column', cost=2601000, CE=521.9, S=22687, exp=0.6)
-@design('Flow rate', 'kg/hr', lambda self: self._massnet_in)
+      cost=75200, CE=521.9, S=22687, n=0.6, kW=112)
+@cost('Flow rate', 'Column', units='kg/hr',
+      cost=2601000, CE=521.9, S=22687, n=0.6)
 class MolecularSieve(Unit, metaclass=splitter):
     """Create an ethanol/water molecular sieve for bioethanol plants.
     The molecular sieve is modeled as a component wise separator. Costing
@@ -51,6 +51,7 @@ class MolecularSieve(Unit, metaclass=splitter):
         :doc:`MolecularSieve Example`
     
     """
+    BM = 1.8
     def _init(self):
         self._outs[0]._phase = self._outs[1]._phase = 'g'
 

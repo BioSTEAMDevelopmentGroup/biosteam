@@ -8,6 +8,8 @@ import numpy as np
 from .._unit import Unit, metaUnit
 from fluids.pump import nema_sizes_hp
 from .designtools._vacuum import _calc_MotorEfficiency, _calc_BreakEfficiency
+from .metaclasses import static
+import biosteam as bst
 
 ln = np.log
 exp = np.exp
@@ -55,7 +57,8 @@ def calc_NPSH(P_suction, P_vapor, rho_liq):
 
 # %% Classes
 
-class metaPump(metaUnit):
+class metaPump(static):
+    
     @property
     def material(cls):
         """Pump material"""
@@ -68,6 +71,7 @@ class metaPump(metaUnit):
             dummy = str(F_Mdict.keys())[11:-2]
             raise ValueError(f"material must be one of the following: {dummy}")
         Pump._F_Mstr = material   
+
 
 # TODO: Fix pump selection to include NPSH available and required.
 class Pump(Unit, metaclass=metaPump):
@@ -99,11 +103,9 @@ class Pump(Unit, metaclass=metaPump):
               'Head': 'ft',
               'NPSH': 'ft',
               'Flow rate': 'gpm'}
-    _N_ins = 1
-    _N_outs = 1
     _has_power_utility = True
-    _linkedstreams = True
     _kwargs = {'P': None}
+    BM = 3.3
     
     # Pump type
     _Type = 'Default'
@@ -154,7 +156,7 @@ class Pump(Unit, metaclass=metaPump):
         out._phase = feed._phase
     
     def _design(self):
-        Design = self._results['Design']
+        Design = self._Design
         si = self.ins[0]
         so = self.outs[0]
         Pi = si.P
@@ -162,9 +164,9 @@ class Pump(Unit, metaclass=metaPump):
         Qi = si.volnet
         mass = si.massnet
         nu = si.nu
-        
-        if abs(Po - Pi) < 1: Po = self.P_startup
-        Design['Ideal power'] = power_ideal = Qi*(Po - Pi)*3.725e-7 # hp
+        dP = Po - Pi
+        if dP < 1: dP = self.P_startup - Pi
+        Design['Ideal power'] = power_ideal = Qi*dP*3.725e-7 # hp
         Design['Flow rate'] = q = Qi*4.403 # gpm
         if power_ideal <= max_hp:
             Design['Efficiency'] = e = self._calc_Efficiency(q, power_ideal)
@@ -203,6 +205,7 @@ class Pump(Unit, metaclass=metaPump):
                   and nu < 0.01):
                 Type = 'MeteringPlunger'
             else:
+                NPSH = calc_NPSH(Pi, si.P_vapor, si.rho)
                 raise NotImplementedError(f'no pump type available at current power ({power:.3g} hp), flow rate ({q:.3g} gpm), and head ({head:.3g} ft), kinematic viscosity ({nu:.3g} m2/s), and NPSH ({NPSH:.3g} ft)')
                 
         Design['Type'] = Type
@@ -210,15 +213,14 @@ class Pump(Unit, metaclass=metaPump):
     
     def _cost(self):
         # Parameters
-        results = self._results
-        Cost = results['Cost']
-        Design = results['Design']
+        Design = self._Design
+        Cost = self._Cost
         Type = Design['Type']
         q = Design['Flow rate']
         h = Design['Head']
         p = Design['Pump power']
         F_M = self._F_M
-        I = self.CEPCI/567
+        I = bst.CE/567
         lnp = ln(p)
         
         # TODO: Add cost equation for small pumps
@@ -266,33 +268,6 @@ class Pump(Unit, metaclass=metaPump):
         lnp3 = lnp2*lnp
         lnp4 = lnp3*lnp
         Cost['Motor'] = exp(5.9332 + 0.16829*lnp - 0.110056*lnp2 + 0.071413*lnp3 - 0.0063788*lnp4)*I
-        return Cost    
-    
-    @staticmethod
-    def _calc_PowerFlow(Qi, Qo, Dpipe, mass=None):
-        """Return ideal power due to flow rate change.
-        
-        **Parameters**
-            
-            Qi: [Stream] Input flow rate
-            
-            Qo: [Stream] Output flow rate
-            
-            Dpipe: [float] Pipe inside diameter
-            
-            mass: [float] Mass flow rate
-        
-        """
-        if mass:
-            A = np.pi*((Dpipe/2)**2)
-            # Kinetic energy change term
-            vi = Qi/A # velocity in
-            vo = Qo/A # velocity out
-            K_term = (mass*vo**2 - mass*vi**2)/2
-        else:
-            K_term = 0
-        
-        return K_term
     
     @staticmethod
     def _nearest_PumpPower(p:'hp'):

@@ -8,6 +8,7 @@ Created on Mon Feb  4 19:38:37 2019
 import pandas as pd
 import numpy as np
 from scipy.optimize import newton
+from copy import copy
 
 __all__ = ('TEA',)
 
@@ -68,10 +69,10 @@ class TEA:
     """
     __slots__ = ('system', '_cached', '_cashflow',
                  '_options', '_IRR_guess', '_cost_guess',
-                 '_costs', '_cost_data', '_units')
+                 '_costarr', '_units')
     
     #: Default cash flow options
-    _default = {'Lang factor': 4.37,
+    _default = {'Lang factor': 3,
                 'Operating days': 330,
                 'IRR': 0.15,
                 'Wage': 5e4,
@@ -89,6 +90,7 @@ class TEA:
                 'Startup': 0,
                 'Land': 0,
                 'Royalties': 0,
+                'Contingency': 0.18,
                 'Depreciation': 'MACRS7',
                 'Startup schedule': (0.4, 0.6),
                 'Other recurring costs': 0,
@@ -98,7 +100,7 @@ class TEA:
     def options(self):
         """
         [dict] Options for cash flow analysis [-]:
-            * **Lang factor:** Used to get fixed capital investment from total purchase cost. If no lang factor is given, estimate capital investment using bare module factors.
+            * **Lang factor:** Lang factor for getting fixed capital investment from total purchase cost. If no lang factor, estimate capital investment using bare module factors.
             * **Operating days:** (day).
             * **IRR:** Internal rate of return (fraction).
             * **Wage:** Wage per employee (USD/yr).
@@ -118,8 +120,9 @@ class TEA:
             * **Royalties:** Cost of royalties as a fraction of depreciable capital.
             * **Depreciation:** 'MACRS' + number of years (e.g. 'MACRS7').
             * **Startup schedule:** tuple of startup investment fractions per year, starting from year 0. For example, for 50% capital investment in year 0 and 50% investment in year 1: (0.5, 0.5).
+            * **Contingency:** Cost as a fraction of direct permanent invesment.
             * **Other recurring costs:** Any additional recurring costs per year of operation.
-            * **Other fixed capital:** Any additional investment not accounted for in equipment cost.
+            * **Other fixed capital:** Any additional investment not accounted for.
         """
         return self._options
     
@@ -143,31 +146,35 @@ class TEA:
         
         #: list[Unit] All unit operations considered
         self._units = units = sorted(units, key=lambda x: x.line)
-        costs = [u._totalcosts for u in units]
-        
-        #: All purchase and utility costs for units
-        self._cost_data = costs
-        
-        index = pd.MultiIndex.from_tuples([(u.line, u.ID) for u in units])
-        columns = ('Purchase cost (USD)',
-                   'Utility cost (USD/hr)')
-        
-        #: [DataFrame] All purchase and utility costs for units
-        self._costs = pd.DataFrame(costs, index, columns)
+        self._costarr = np.zeros([len(units), 2])
         
         system._TEA = self
 
     @property
-    def costs(self):
-        """[DataFrame] All purchase and utility costs for units."""
-        self._costs[:] = self._cost_data
-        return self._costs
-
+    def utility_cost(self):
+        """Total utility cost (USD/hr)."""
+        return sum([u.utility_cost for u in self._units])
     @property
-    def cashflow(self):
-        """[DataFrame] Cash flow table."""
-        self.NPV()
-        return self._cashflow    
+    def purchase_cost(self):
+        """Total purchase cost (USD)."""
+        return sum([u.purchase_cost for u in self._units])
+    @property
+    def intallation_cost(self):
+        """Total installation cost (USD)."""
+        return sum([u.installation_cost for u in self._units])
+
+    def get_cashflow(self):
+        """Return DataFrame of the cash flow analysis."""
+        flow_factor, cashflow_info, depreciation_data = self._get_cached_data()
+        cashflow_data, duration_array = cashflow_info
+        parameters = self._calc_parameters(flow_factor)
+        self._calc_cashflow(cashflow_data,
+                            parameters[:-3],
+                            depreciation_data)
+        CF, DCF, CPV = cashflow_data[-3:]
+        DCF[:] = CF/(1+self.options['IRR'])**duration_array
+        CPV[:] = DCF.cumsum()
+        return copy(self._cashflow)
 
     def _results(self):
         """Return a dictionary of summarized results of cash flow analysis."""
@@ -177,9 +184,9 @@ class TEA:
         self._calc_cashflow(cashflow_data,
                             parameters[:-3],
                             depreciation_data)
-        NPV = self._calc_NPV_and_update(self.options['IRR'],
-                                         cashflow_data[-3:],
-                                         duration_array)
+        NPV = self._calc_NPV(self.options['IRR'],
+                             cashflow_data[-3],
+                             duration_array)
         DC, FCI, WC, S, C, tax, UC, MC, L = parameters
         D = FCI/self._options['Duration']
         AOC = C + D
@@ -230,16 +237,16 @@ class TEA:
             return pd.Series(r)
 
     def NPV(self):
-        """Calculate NPV by cash flow analysis and update the "results" and "cashflow" attributes."""
+        """Calculate NPV by cash flow analysis."""
         flow_factor, cashflow_info, depreciation_data = self._get_cached_data()
         cashflow_data, duration_array = cashflow_info
         parameters = self._calc_parameters(flow_factor)
         self._calc_cashflow(cashflow_data,
                             parameters[:-3],
                             depreciation_data)
-        return self._calc_NPV_and_update(self.options['IRR'],
-                                         cashflow_data[-3:],
-                                         duration_array)
+        return self._calc_NPV(self.options['IRR'],
+                              cashflow_data[-3],
+                              duration_array)
     
     def production_cost(self, *products):
         """Return production cost of products.
@@ -256,16 +263,20 @@ class TEA:
         sysproducts = system.products
         o = self.options
         flow_factor = 24*o['Operating days']
-        o = self.options
-        LF = o['Lang factor']
-        if LF:
-            # DC_: Depreciable capital (USD)
-            # UC_: utility cost (USD/hr)
-            DC_, UC_ = self.costs.sum(0) 
-            DC_ *= LF
+        # DPI_: Direct permanent investment (USD)
+        # DC_: Depreciable capital (USD)
+        # UC_: utility cost (USD/hr)
+        costarr = self._costarr
+        F_lang = o['Lang factor']
+        if F_lang:
+            costarr[:] = [(u.purchase_cost, u.utility_cost) for u in self._units]
+            DC_, UC_ = costarr.sum(0) 
+            DC_ *=  F_lang
         else:
-            UC_ = self.costs['Utility cost (USD/hr)'].sum()
-            DC_ = (self.costs['Purchase cost (USD)'] * [i.BM for i in self._units]).sum()
+            costarr[:] = [(u.installation_cost, u.utility_cost) for u in self._units]
+            DPI_, UC_ = costarr.sum(0) 
+            DC_ = DPI_ * (1 + o['Contingency'])
+        FC_ = DC_ * (1 + o['Startup'] + o['Land'] + o['Royalties']) + o['Other fixed capital']
         MC_ = 0 # Material cost USD/hr
         CP_ = 0 # Coproducts USD/hr
         for s in sysfeeds:
@@ -279,7 +290,6 @@ class TEA:
         UC_ *= flow_factor
         MC_ *= flow_factor
         CP_ *= flow_factor
-        FC_ = DC_ * (1 + o['Startup'] + o['Land'] + o['Royalties']) + o['Other fixed capital']
         fb = o['Fringe benefits'] + o['Supplies']
         f =  (o['Maintenance']
             + o['Administration']
@@ -364,15 +374,19 @@ class TEA:
         feeds = system.feeds
         products = system.products
         o = self.options
-        LF = o['Lang factor']
-        if LF:
-            # DC_: Depreciable capital (USD)
-            # UC_: utility cost (USD/hr)
-            DC_, UC_ = self.costs.sum(0)
-            DC_ *= LF
+        # DC_: Depreciable capital (USD)
+        # UC_: utility cost (USD/hr)
+        costarr = self._costarr
+        F_lang = o['Lang factor']
+        if F_lang:
+            costarr[:] = [(u.purchase_cost, u.utility_cost) for u in self._units]
+            DC_, UC_ = costarr.sum(0) 
+            DC_ *=  F_lang
         else:
-            UC_ = self.costs['Utility cost (USD/hr)'].sum()
-            DC_ = (self.costs['Purchase cost (USD)'] * [i.BM for i in self._units]).sum()
+            costarr[:] = [(u.installation_cost, u.utility_cost) for u in self._units]
+            DPI_, UC_ = costarr.sum(0) 
+            DC_ = DPI_ * (1 + o['Contingency'])
+        FC_ = DC_ * (1 + o['Startup'] + o['Land'] + o['Royalties']) + o['Other fixed capital']
         MC_ = 0 # Material cost USD/hr
         S_  = 0 # Sales USD/hr
         for s in feeds:
@@ -429,14 +443,6 @@ class TEA:
         CF[:] = (NE + D) - C_FC - C_WC
     
     @staticmethod
-    def _calc_NPV_and_update(IRR, CF_subset, duration_array):
-        """Return NPV at given IRR and cashflow data. Update cash flow subset."""
-        CF, DCF, CPV = CF_subset
-        DCF[:] = CF/(1+IRR)**duration_array
-        CPV[:] = DCF.cumsum()
-        return CPV[-1]
-    
-    @staticmethod
     def _calc_NPV(IRR, CF, duration_array):
         """Return NPV at given IRR and cashflow data."""
         return (CF/(1+IRR)**duration_array).sum()
@@ -463,8 +469,6 @@ class TEA:
         **Parameters**
         
             **stream:** [Stream] Stream with variable selling price.
-            
-            **update:** [bool] If True, update stream price, cashflow, and results.
             
         """
         # Calculate cashflow table

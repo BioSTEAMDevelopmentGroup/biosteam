@@ -7,7 +7,7 @@ Created on Thu Aug 23 21:23:56 2018
 from .. import Unit, MixedStream
 from ._flash import RatioFlash
 from .metaclasses import splitter
-from .decorators import cost, design
+from .decorators import cost
 
 __all__ = ('Centrifuge_LLE', 'RatioCentrifuge_LLE', 'SplitCentrifuge_LLE')
 
@@ -17,8 +17,8 @@ __all__ = ('Centrifuge_LLE', 'RatioCentrifuge_LLE', 'SplitCentrifuge_LLE')
 # Microalgal fatty acids—From harvesting until extraction H.M. Amaro, et. al.,
 # in Microalgae-Based Biofuels and Bioproducts, 2017
 
-@cost('Flow rate', CE=525.4, cost=28100, exp=0.574, kW=3.66)
-@design('Flow rate', 'm^3/hr', lambda self: self._ins[0].volnet)
+@cost('Flow rate', units='m^3/hr', CE=525.4, cost=28100,
+      n=0.574, kW=3.66, ub=100, BM=2.03)
 class Centrifuge_LLE(Unit):
     r"""Create an equlibrium based centrifuge with the option of having liquid non-keys and LIQUID non-keys completly separate into their respective phases.
 
@@ -56,7 +56,6 @@ class Centrifuge_LLE(Unit):
     
     """
     line = 'Liquids Centrifuge'
-    
     _kwargs = {'species_IDs': None,
                'split': None,
                'lNK': (),

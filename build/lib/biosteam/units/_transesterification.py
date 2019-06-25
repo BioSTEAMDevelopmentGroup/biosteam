@@ -6,10 +6,10 @@ Created on Thu Aug 23 22:49:58 2018
 """
 import numpy as np
 from .. import Unit
-from .decorators import design, cost
+from .decorators import cost
 
-@cost('Volume', CE=525.4, cost=15000, exp=0.55, kW=1.5)
-@design('Volume', 'm^3', lambda self: self._tau*self._volnet_out/0.8)
+@cost('Volume', units='m^3', CE=525.4, cost=15000, n=0.55, kW=1.5, BM=4.3,
+      fsize=lambda self: self._tau*self._outs[0].volnet/0.8)
 class Transesterification(Unit):
     """Create a transesterification reactor that converts 'Lipid' and 'Methanol' to 'Biodiesel' and 'Glycerol'. Finds the amount of catalyist 'NaOCH3' required and consumes it to 'NaOH' and 'Methanol'.
     
@@ -32,10 +32,6 @@ class Transesterification(Unit):
     **outs**
     
         [0] Product
-    
-    **Examples**
-    
-        :doc:`Transesterification Example`
     
     """
     _kwargs = {'efficiency': None,  # fraction of theoretical conversion

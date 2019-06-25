@@ -4,8 +4,9 @@ Created on Thu Aug 23 14:26:41 2018
 
 @author: yoelr
 """
-from .. import Unit, Stream
+from .. import Unit
 from .metaclasses import final
+from .metaclasses._mixer import run_mixer
 
 class Mixer(Unit, metaclass=final):
     """Create a mixer that mixes any number of streams together.
@@ -63,8 +64,6 @@ class Mixer(Unit, metaclass=final):
         self._init_ins(ins)
         self._init_outs(outs)
 
-    def _run(self):
-        Stream.sum(self.outs[0], self.ins)
-        
-    simulate = _run
+    simulate = _run = run_mixer
+    installation_cost = purchase_cost = utility_cost = property(lambda: 0)
 

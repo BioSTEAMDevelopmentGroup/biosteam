@@ -13,6 +13,7 @@ from .designtools import vacuum_system, HNATable, FinalValue, \
                           VesselWeightAndWallThickness, Kvalue
 from .metaclasses import splitter
 from ._hx import HX, HXutility
+import biosteam as bst
 
 exp = np.exp
 ln = np.log
@@ -128,6 +129,19 @@ class Flash(Unit):
     _has_power_utility = False
     _N_heat_utilities = 0
     
+    # Bare module factor
+    BM_horizontal = 3.05
+    BM_vertical = 4.16
+    @property
+    def BM(self):
+        SepType = self.SetType
+        if SepType is 'Vertical':
+            return self._BM_vertical
+        elif SepType is 'Horizontal':
+            return self._BM_horizontal
+        else:
+            raise AttributeError('SepType not defined')
+    
     # Column material factor
     _material = 'Carbon steel'
     _F_material = 1 
@@ -160,7 +174,7 @@ class Flash(Unit):
     _bounds = {'Vertical vessel weight': (4200, 1e6),
                'Horizontal vessel weight': (1e3, 9.2e5),
                'Diameter': (3, 21),
-               'Vertical vessel Length': (12, 40)}
+               'Vertical vessel length': (12, 40)}
 
     @property
     def material(self):
@@ -222,44 +236,41 @@ class Flash(Unit):
         else:
             raise ValueError( f"SepType must be either 'Horizontal' or 'Vertical', not '{self.SepType}'")
         if self._has_hx: self._heat_exchanger._design()
-        self._results['Design']['Material'] = self._material
+        self._Design['Material'] = self._material
         return out
 
     def _cost(self):
-        Cost = self._results['Cost']
-        Design = self._results['Design']
+        Design = self._Design
         W = Design['Weight']
         D = Design['Diameter']
         L = Design['Length']
-        CE = self.CEPCI
-        type_ = self.SepType
+        CE = bst.CE
+        SepType = self.SepType
         
         # C_v: Vessel cost
         # C_pl: Platforms and ladders cost
-        if type_ == 'Vertical':
+        if SepType == 'Vertical':
             C_v = exp(7.1390 + 0.18255*ln(W) + 0.02297*ln(W)**2)
             C_pl = 410*D**0.7396*L**0.70684
-        elif type_ == 'Horizontal':
+        elif SepType == 'Horizontal':
             C_v = exp(5.6336 - 0.4599*ln(W) + 0.00582*ln(W)**2)
             C_pl = 2275*D**0.20294
         else:
-            ValueError(f"SepType ({type_}) must be either 'Vertical', 'Horizontal' or 'Default'.")
+            ValueError(f"SepType ({SepType}) must be either 'Vertical', 'Horizontal' or 'Default'.")
             
-        Cost['Flash'] = CE/567*(self._F_material*C_v+C_pl)
+        self._Cost['Flash'] = CE/567*(self._F_material*C_v+C_pl)
         if self._has_hx:
             hx = self._heat_exchanger
             hx._cost()
-            Cost.update(hx._results['Cost'])
+            self._Cost.update(hx._Cost)
         self._cost_vacuum()
 
     def _cost_vacuum(self):
         P = self._kwargs['P']
         if not P or P > 101320: return 
         
-        r = self._results
-        D = r['Design']
-        C = r['Cost']
-        vol = 0.02832 * np.pi * D['Length'] * (D['Diameter']/2)**2
+        Design = self._Design
+        vol = 0.02832 * np.pi * Design['Length'] * (Design['Diameter']/2)**2
         
         # If vapor is condensed, assume vacuum system is after condenser
         vapor = self.outs[0]
@@ -281,11 +292,9 @@ class Flash(Unit):
             massflow = vapor.massnet
             volflow = vapor.volnet
         
-        power, cost = vacuum_system(self.CEPCI, 
-                                    massflow, volflow,
-                                    P, vol,
-                                    self.vacuum_system_preference)
-        C['Liquid-ring pump'] = cost
+        power, cost = vacuum_system(massflow, volflow,
+                                    P, vol, self.vacuum_system_preference)
+        self._Cost['Liquid-ring pump'] = cost
         self._power_utility(power)
 
     def _design_parameters(self):
@@ -415,20 +424,17 @@ class Flash(Unit):
         # Hhll = Hs + Hh + Hlll
         # Hnll = Hh + Hlll
 
-        # Results
-        d = self._results['Design']
-        self._checkbounds('Vertical vessel weight', VW)
-        self._checkbounds('Vertical vessel length', Ht)
-        d['SepType'] = 'Vertical'
-        d['Length'] = Ht     # ft
-        d['Diameter'] = D    # ft
-        d['Weight'] = VW     # lb
-        d['Wall thickness'] = VWT  # in
-        return d
+        Design = self._Design
+        self._checkbounds('Vertical vessel weight', VW, 'lb', self._bounds['Vertical vessel weight'])
+        self._checkbounds('Vertical vessel length', Ht, 'ft', self._bounds['Vertical vessel length'])
+        Design['SepType'] = 'Vertical'
+        Design['Length'] = Ht     # ft
+        Design['Diameter'] = D    # ft
+        Design['Weight'] = VW     # lb
+        Design['Wall thickness'] = VWT  # in
         
     def _horizontal(self):
         rhov, rhol, P, Th, Ts, Mist, Qv, Qll, Ut, Uv, Vh, Vs = self._design_parameters()
-        maxIter = 50
 
         # Initialize LD
         if P > 0 and P <= 264.7:
@@ -446,7 +452,7 @@ class Flash(Unit):
         outerIter = 0
         converged = False
         converged1 = False
-        while not converged and outerIter < maxIter:
+        while not converged and outerIter < 50:
             outerIter += 1
             At = pi*(D**2)/4.0
 
@@ -500,7 +506,7 @@ class Flash(Unit):
 
             if needToIter:
                 innerIter = 0
-                while not converged1 and innerIter < maxIter:
+                while not converged1 and innerIter < 50:
                     innerIter += 1
                     Hv = Hv + sign*0.5
                     if Mist and Hv <= 2.0:
@@ -581,16 +587,13 @@ class Flash(Unit):
         # Y = HNATable(2, X)
         # Hnll = Y*D
         
-        # Results
-        d = self._results['Design']
-        self._checkbounds('Horizontal vessel weight', VW)
-        d['SepType'] = 'Horizontal'
-        d['Length'] = L  # ft
-        d['Diameter'] = D  # ft
-        d['Weight'] = VW  # lb
-        d['Wall thickness'] = VWT  # in
-        return d
-    
+        Design = self._Design
+        self._checkbounds('Horizontal vessel weight', VW, 'lb', self._bounds['Horizontal vessel weight'])
+        Design['SepType'] = 'Horizontal'
+        Design['Length'] = L  # ft
+        Design['Diameter'] = D  # ft
+        Design['Weight'] = VW  # lb
+        Design['Wall thickness'] = VWT  # in    
     
 
 # %% Special
@@ -623,8 +626,8 @@ class SplitFlash(Flash, metaclass=splitter):
 
     def _design(self):
         if self._has_hx:
-            ms = MixedStream.sum(self._mixedstream, self.outs)
-            self._heat_exchanger.outs[0] = ms
+            self._heat_exchanger.outs[0] = ms = self._mixedstream
+            ms = MixedStream.sum(ms, self.outs)
         super()._design()
 
 class PartitionFlash(Flash):

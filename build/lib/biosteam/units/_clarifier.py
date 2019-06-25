@@ -7,14 +7,13 @@ Created on Thu Aug 23 22:18:16 2018
 
 from .._unit import Unit
 from .._exceptions import DesignError
-from .decorators import cost, spec
+from .decorators import cost
 from .metaclasses import splitter
 
 _iswithin = lambda x, bounds: bounds[0] < x < bounds[1]
 # Electricity: 16 hp / 200 ft diameter
 
-@spec('Clarifier', 'Material', lambda M: 1.4 if M=='Steel' else 1)
-@cost('Settling area', cost=2720, CE=567, exp=0.58, kW=0.00048355)
+@cost('Settling area', cost=2720, CE=567, n=0.58, kW=0.00048355)
 class Clarifier(Unit, metaclass=splitter):
     _units = {'Settling area': 'ft^2'}
     # Height of the clarifier tank from other designs, estimate (ft)
@@ -26,11 +25,17 @@ class Clarifier(Unit, metaclass=splitter):
     def _design(self):
         # Heuristic settling area estimation
         # Settling area in ft^2 = overflow in gpm
-        Design = self._results['Design']
+        Design = self._Design
         Design['Settling area'] = SetArea = self.outs[0].volnet *  4.4028
         # Checking to see which cost equation/material to use
         Steel_bounds, Concrete_bounds = self._bounds.values()
         if _iswithin(SetArea, Steel_bounds): Design['Material'] = 'Steel'
         elif _iswithin(SetArea, Concrete_bounds): Design['Material'] = 'Concrete'
         else: raise DesignError('Volumetric flow rate is out of working range.')
+        
+    def _end(self):
+        self._Cost['Clarifier'] *= 1.4 if self._Design['Material']=='Steel' else 1
+        
+        
+        
         

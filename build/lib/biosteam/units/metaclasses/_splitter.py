@@ -8,6 +8,7 @@ Created on Mon May 20 22:04:02 2019
 from ... import Stream
 from ..._unit import metaUnit
 from numpy import asarray
+from pandas import Series
 
 __all__ = ('splitter', '__init_split__', 'run_split', 'run_split_with_mixing')
 
@@ -22,10 +23,9 @@ class splitter(metaUnit):
     >>> from biosteam.units.decorators import *
     >>> from biosteam.units.metaclasses import splitter
     >>> # Create subclass
-    >>> @cost('Flow rate', cost=1.5e6, CE=541.7, exp=0.6, S=335e3, kW=2010)
-    ... @design('Flow rate', 'kg/hr', lambda self: self._ins[0].massnet)
-    ... class CrushingMill(Unit, metaclass=splitter):
-    ...     pass
+    >>> @cost('Flow rate', units='kg/hr', cost=1.5e6,
+    ...       CE=541.7, exp=0.6, S=335e3, kW=2010)
+    ... class CrushingMill(Unit, metaclass=splitter): pass
     >>> # Set Stream.species
     >>> species = Species('Water')
     >>> species.Sugar = compounds.Substance('Sugar')
@@ -57,17 +57,15 @@ class splitter(metaUnit):
                         Fiber  8.28e+03
     
     """
-    def __new__(mcl, clsname, superclasses, definitions):
-        if len(superclasses) != 1:
-            raise TypeError('{mcl.__name__} metaclass requires one and only one super class')
-        elif '__init__' in definitions:
+    def __new__(mcl, name, bases, dct):
+        if '__init__' in dct:
             raise TypeError(f"cannot use {mcl.__name__} metaclass with an implemented '__init__' method")
-        elif 'split' in definitions:
+        elif 'split' in dct:
             raise TypeError("cannot use {mcl.__name__} metaclass with an implemented 'split' member")
         
-        _kwargs = definitions.get('_kwargs')
+        _kwargs = dct.get('_kwargs')
         if _kwargs is None:
-            definitions['__init__'] = __init_split__
+            dct['__init__'] = __init_split__
         elif 'split' in _kwargs or 'order' in _kwargs:
             raise TypeError("cannot use {mcl.__name__} metaclass with 'split' or 'order' defined in '{clsname}._kwargs'")
         else:
@@ -75,25 +73,49 @@ class splitter(metaUnit):
             inputs = ', '.join([key + '=' + key for key in _kwargs])
             
             # Make a string to execute
-            str2exec = f"def __init__(self, ID='', outs=(), ins=None, split=None, order=None, {inputs}):\n"
+            str2exec = f"def __init__(self, ID='', outs=(), ins=None, order=None, {inputs}, *, split):\n"
             str2exec+= f"    self._kwargs = dict({inputs})\n"
-            str2exec+= f"    _(self, ID, outs, ins, split, order)"
+            str2exec+= f"    _(self, ID, outs, ins, order, split=split)"
             
             # Execute string and replace __init__
             globs = {'_': __init_split__}
             globs.update(_kwargs)
-            exec(str2exec, globs, definitions)
+            exec(str2exec, globs, dct)
         
-        if '_run' not in definitions:
-            definitions['_run'] = run_split
+        if '_run' not in dct:
+            dct['_run'] = run_split
         
-        definitions['split'] = split
-        return super().__new__(mcl, clsname, superclasses, definitions)
+        if '_N_ins' not in dct: dct['_N_ins'] = 1
+        dct['_N_outs'] = 2
+        dct['split'] = splitprop
+        
+        if "__doc__" in dct:
+            dct['__doc__'] = dct['__doc__'].replace('**Parameters**', 
+       "**Parameters**"
++"\n"    
++"\n        **split:** Should be one of the following"
++"\n            * [float] The fraction of net feed in the 0th output stream"
++"\n            * [array_like] Componentwise split of feed to 0th output stream"
++"\n"
++"\n        **order:** Iterable[str] Species order of split")    
+        
+        return super().__new__(mcl, name, bases, dct)
 
-split = property(lambda self: self._split, doc="[array] Componentwise split of feed to 0th output stream.")
+@property
+def splitprop(self):
+    """[array] Componentwise split of feed to 0th output stream."""
+    try:
+        return self._split_series
+    except:
+        self._split_series = split = Series(self._split,
+                                            index=self._reorder_.__self__._IDs)
+        return split
 
-def __init_split__(self, ID='', outs=(), ins=None, split=None, order=None):
-    self._reorder_ = Stream._cls_species._reorder
+def __init_split__(self, ID='', outs=(), ins=None, order=None, *, split):
+    try: self._reorder_ = Stream._cls_species._reorder
+    except AttributeError as err:
+        if Stream._cls_species: raise err
+        else: raise RuntimeError('must set Stream.species first')
     self.ID = ID
     self._split = self._reorder_(split, order) if order else asarray(split)
     self._init_ins(ins)
@@ -103,7 +125,6 @@ def __init_split__(self, ID='', outs=(), ins=None, split=None, order=None):
     self._init_power_util()
     self._init()
     self._setup()
-    self._install()
     
 def run_split(self):
     """Splitter mass and energy balance function based on one input stream."""
@@ -122,5 +143,5 @@ def run_split_with_mixing(self):
     if len(ins) > 1: Stream.sum(top, ins)
     else: top.copylike(ins[0])
     bot.copylike(top)
-    top._mol *= self._split
-    bot._mol -= top._mol
+    top._mol[:] *= self._split
+    bot._mol[:] -= top._mol

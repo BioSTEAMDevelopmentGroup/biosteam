@@ -12,7 +12,7 @@ from .._exceptions import biosteamError
 from scipy.optimize import brentq
 from ._hx import HXutility
 import matplotlib.pyplot as plt
-
+import biosteam as bst
 array = np.array
 
 # %% Equations
@@ -101,6 +101,9 @@ column_doc = """Create a {Column Type} column that assumes all light and heavy n
 
 class Dist(Unit):
     """Abstract class for a column."""
+    # Bare module factor
+    _BM = 4.3
+    
     # Column material factor
     _F_Mstr = 'Carbon steel'
     _F_M = 1
@@ -271,12 +274,11 @@ class Dist(Unit):
                 HNK_index.append(i)
             else:
                 raise ValueError(f"intermediate volatile specie, '{species_list[i]}', between light and heavy key, ['{LK}', '{HK}'].")
-    
-        self._update_composition_requirement(kwargs['y_top'], kwargs['x_bot'])
-    
-    def _update_composition_requirement(self, y_top, x_bot):
-        # Set light and heavy key compositions at top and bottoms product
-        cached = self._cached
+
+        # Update composition requirement and
+        # set light and heavy key compositions at top and bottoms product    
+        y_top = kwargs['y_top']
+        x_bot = kwargs['x_bot']
         cached['y'] = array([y_top, 1-y_top])
         cached['x'] = array([x_bot, 1-x_bot])
     
@@ -286,8 +288,9 @@ class Dist(Unit):
         cached = self._cached
 
         # Get all important flow rates (both light and heavy keys and non-keys)
-        LHK_index, LNK_index, HNK_index, y = (cached[i] for i in
-                                              ('LHK_index', 'LNK_index', 'HNK_index', 'y'))
+        LHK_index = cached['LHK_index']
+        LNK_index = cached['LNK_index']
+        HNK_index = cached['HNK_index']
         mol = self._mol_in
         LHK_mol = mol[LHK_index]
         HNK_mol = mol[HNK_index]
@@ -297,12 +300,11 @@ class Dist(Unit):
         light, heavy = LHK_mol
         LHK_molnet = light + heavy
         zf = light/LHK_molnet
-        y_top, x_bot = kwargs['y_top'], kwargs['x_bot']
-        split_frac = (zf-x_bot)/(y_top-x_bot)
+        split_frac = (zf-kwargs['x_bot'])/(kwargs['y_top']-kwargs['x_bot'])
         top_net = LHK_molnet*split_frac
 
         # Set output streams
-        vap.mol[LHK_index] = top_net * y
+        vap.mol[LHK_index] = top_net * cached['y']
         liq.mol[LHK_index] = LHK_mol - vap.mol[LHK_index]
         vap.mol[LNK_index] = LNK_mol
         liq.mol[HNK_index] = HNK_mol
@@ -319,10 +321,10 @@ class Dist(Unit):
 
         # Get top and bottom compositions
         vap_mol = vap.mol[top_index]
-        y = vap_mol/sum(vap_mol)
+        y = vap_mol/vap_mol.sum()
 
         liq_mol = liq.mol[bot_index]
-        x = liq_mol/sum(liq_mol)
+        x = liq_mol/liq_mol.sum()
 
         # Run top equilibrium to find temperature and composition of condensate
         T, y = vap._dew_point(species=(*vle_top,), y=y, P=vap.P)
@@ -368,7 +370,7 @@ class Dist(Unit):
             # Go Right
             xi = operating_line(yi)
             if xi > 1:
-                xi = 0.9999999
+                xi = x_limit
             x_stairs.append(xi)
 
     def _plot_stages(self):
@@ -428,16 +430,17 @@ class Dist(Unit):
         plt.plot(x_eq, y_eq, lw=2)
 
     def _cost_trays(self, N_T, Di:'ft'):
-        """Return total cost of all trays."""
+        """Return total cost of all trays at a CE of 500."""
         # Note: Can only use this function after running design method.
-        C_BT = self._calc_TrayBaseCost(Di, self.CEPCI)
+        C_BT = self._calc_TrayBaseCost(Di)
         F_NT = self._calc_NTrayFactor(N_T)
         return N_T*F_NT*self._F_TT*self._F_TM(Di)*C_BT
 
     def _cost_tower(self, Di:'ft', L:'ft', W:'lb'):
+        """Return cost of tower at a CE of 500."""
         C_V = self._calc_EmptyTowerCost(W)
         C_PL = self._calc_PlaformLadderCost(Di, L)
-        return (self._F_M*C_V + C_PL)*self.CEPCI/500
+        return (self._F_M*C_V + C_PL)
     
     @staticmethod
     def _calc_EmptyTowerCost(W):
@@ -526,8 +529,12 @@ class Dist(Unit):
                 E = 0.85
                 ts = Pd*Di/(2*S*E-1.2*Pd)
         
+        # Add corrosion allowence
+        ts += 1/8
+        
         # Minimum thickness for vessel rigidity may be larger
-        ts_min = np.polyval(ts_min_p, Di/12)
+        Di_ft = Di/12
+        ts_min = np.polyval(ts_min_p, Di/12) if Di_ft < 4 else 0.25
         if ts < ts_min:
             ts = ts_min
         
@@ -536,8 +543,6 @@ class Dist(Unit):
         tw = 0.22*(Do + 18)*L**2/(S*Do**2)
         tv = max(tw, ts)
         
-        # Add corrosion allowence
-        tv += 1/8
         # Vessels are fabricated from metal plates with small increments
         if tv < 0.5:
             tv = approx2step(tv, 3/16, 1/16)
@@ -548,16 +553,15 @@ class Dist(Unit):
         return tv
     
     @staticmethod
-    def _calc_TrayBaseCost(Di, CE):
-        """Return C_BT, the base cost of a tray (USD).
+    def _calc_TrayBaseCost(Di):
+        """Return C_BT, the base cost of a tray (USD) at a CE of 500.
         
         **Parameters**
         
             Di: Inner diameter (ft)
-            CE: Chemical Engineering Plant Cost Index
         
         """
-        return CE * 0.825397 * np.exp(0.1482*Di)
+        return 412.6985 * np.exp(0.1482*Di)
 
     @staticmethod
     def _calc_NTrayFactor(N_T):
@@ -738,22 +742,21 @@ class Dist(Unit):
             boiler._cost()
         
     def _cost(self):
-        results = self._results
-        Design = results['Design']
-        Cost = results['Cost']
+        Design = self._Design
+        Cost = self._Cost
+        F_CE = bst.CE/500
         
         # Cost trays assuming a partial condenser
         N_T = Design['Actual stages'] - 1
         Di = Design['Diameter']
-        Cost['Trays'] = self._cost_trays(N_T, Di)
+        Cost['Trays'] = F_CE*self._cost_trays(N_T, Di)
         
         # Cost vessel assuming T < 800 F
         W = Design['Weight'] # in lb
         L = Design['Height']*3.28 # in ft
-        Cost['Tower'] = self._cost_tower(Di, L, W)
+        Cost['Tower'] = F_CE*self._cost_tower(Di, L, W)
+        self._cost_components()
         
-        self._cost_components(Cost)
-        return Cost
 
 class Distillation(Dist):
     line = 'Distillation'
@@ -809,11 +812,11 @@ class Distillation(Dist):
         self._is_divided = is_divided
         self._units = self._units_divided if is_divided else self._units_not_divided
     
-    def _calc_Nstages(self) -> 'Nstages':
+    def _calc_Nstages(self):
         """Return a tuple with the actual number of stages for the rectifier and the stripper."""
         vap, liq = self.outs
         cached = self._cached
-        Design = self._results['Design']
+        Design = self._Design
         x_stages = cached['x_stages']
         y_stages = cached['y_stages']
         R = Design['Reflux']
@@ -862,7 +865,7 @@ class Distillation(Dist):
         distillate, bottoms = self.outs
         kwargs = self._kwargs
         cached = self._cached
-        Design = self._results['Design']
+        Design = self._Design
         bubble_point = bottoms._bubble_point
 
         # Some important info
@@ -892,11 +895,11 @@ class Distillation(Dist):
         cached['feed_liqmol'] = liq_mol
         cached['feed_vapmol'] = vap_mol
         LHK_mol = liq_mol[LHK_index] + vap_mol[LHK_index]
-        LHK_molnet = sum(LHK_mol)
+        LHK_molnet = LHK_mol.sum()
         zf = LHK_mol[0]/LHK_molnet
         
         # Get feed quality
-        q = sum(liq_mol[LHK_index])/LHK_molnet
+        q = liq_mol[LHK_index].sum()/LHK_molnet
         
         # Get R_min and the q_line 
         if q == 1:
@@ -994,15 +997,12 @@ class Distillation(Dist):
         F_LV = self._calc_FlowParameter(L, V, rho_V, rho_L)
         C_sbf = self._calc_MaxCapacityParameter(TS, F_LV)
         sigma = 1000 * bottoms.sigma # dyn/cm
-        F_F = self._F_F
-        A_ha = self._A_ha
         U_f = self._calc_MaxVaporVelocity(C_sbf, sigma, rho_L, rho_V, F_F, A_ha)
         A_dn = self._A_dn
         if A_dn is None:
             self.A_dn = self._calc_DowncomerAreaRatio(F_LV)
-        f = self._f
         S_diameter = self._calc_Diameter(V_vol, U_f, f, A_dn)
-        Po = kwargs['P']/101325*14.7
+        Po = kwargs['P']*0.000145078 # to psi
         rho_M = rho_Mdict[self._F_Mstr]
         
         if is_divided:
@@ -1022,39 +1022,38 @@ class Distillation(Dist):
             Design['Diameter'] = Di = max((R_diameter, S_diameter))
             Design['Wall thickness'] = tv = self._calc_WallThickness(Po, Di, H)
             Design['Weight'] = self._calc_Weight(Di, H, tv, rho_M)
-        return Design
         
     def _cost(self):
         if not self.is_divided: return super()._cost()
-        Design = self._results['Design']
-        Cost = self._results['Cost']
+        Design = self._Design
+        Cost = self._Cost
+        F_CE = bst.CE/500
         
         # Number of trays assuming a partial condenser
         N_RT = Design['Rectifier stages'] - 1
         Di_R = Design['Rectifier diameter']
-        Cost['Rectifier trays'] = self._cost_trays(N_RT, Di_R)
+        Cost['Rectifier trays'] = F_CE*self._cost_trays(N_RT, Di_R)
         N_ST = Design['Stripper stages'] - 1
         Di_S = Design['Stripper diameter']
-        Cost['Stripper trays'] = self._cost_trays(N_ST, Di_S)
+        Cost['Stripper trays'] = F_CE*self._cost_trays(N_ST, Di_S)
         
         # Cost vessel assuming T < 800 F
         W_R = Design['Rectifier weight'] # in lb
         H_R = Design['Rectifier height']*3.28 # in ft
-        Cost['Rectifier tower'] = self._cost_tower(Di_R, H_R, W_R)
+        Cost['Rectifier tower'] = F_CE*self._cost_tower(Di_R, H_R, W_R)
         W_S = Design['Stripper weight'] # in lb
         H_S = Design['Stripper height']*3.28 # in ft
-        Cost['Stripper tower'] = self._cost_tower(Di_S, H_S, W_S)
-        self._cost_components(Cost)
-        return Cost
+        Cost['Stripper tower'] = F_CE*self._cost_tower(Di_S, H_S, W_S)
+        self._cost_components()
     
-    def _cost_components(self, Cost): 
+    def _cost_components(self): 
         # Cost condenser
         self._calc_condenser()
-        Cost['Condenser'] = self._condenser._results['Cost']['Heat exchanger']
+        self._Cost['Condenser'] = self._condenser._Cost['Heat exchanger']
         
         # Cost boiler
         self._calc_boiler()
-        Cost['Boiler'] = self._boiler._results['Cost']['Heat exchanger']
+        self._Cost['Boiler'] = self._boiler._Cost['Heat exchanger']
         
     
     def plot_stages(self):
@@ -1064,7 +1063,7 @@ class Distillation(Dist):
         
         # Cached Data
         vap, liq = self.outs
-        Design = self._results['Design']
+        Design = self._Design
         cached = self._cached
         x_stages = cached.get('x_stages')
         if not x_stages:
@@ -1118,7 +1117,7 @@ class Stripper(Dist):
         
         # Cached Data
         vap, liq = self.outs
-        Design = self._results['Design']
+        Design = self._Design
         cached = self._cached
         x_stages = cached.get('x_stages')
         if not x_stages:
@@ -1145,7 +1144,7 @@ class Stripper(Dist):
         """Return the actunal number of stages"""
         vap, liq = self.outs
         cached = self._cached
-        Design = self._results['Design']
+        Design = self._Design
         x_stages = cached['x_stages']
         y_stages = cached['y_stages']
         LHK_index = cached['LHK_index']
@@ -1169,7 +1168,7 @@ class Stripper(Dist):
     def _design(self):
         distillate, bottoms = self.outs
         kwargs = self._kwargs
-        Design = self._results['Design']
+        Design = self._Design
         cached = self._cached
         
         # Some important info
@@ -1234,11 +1233,10 @@ class Stripper(Dist):
         Design['Wall thickness'] = tv = self._calc_WallThickness(Po, Di, H)
         rho_M = rho_Mdict[self._F_Mstr]
         Design['Weight'] = self._calc_Weight(Di, H, tv, rho_M)
-        return Design
     
-    def _cost_components(self, Cost):
+    def _cost_components(self):
         # Cost boiler
         self._calc_boiler()
-        Cost['Boiler'] = self._boiler._results['Cost']['Heat exchanger']
+        self._Cost['Boiler'] = self._boiler._Cost['Heat exchanger']
 
     

@@ -43,8 +43,7 @@ class MassBalance(Unit, metaclass=final):
         self.ID = ID
         self._init_ins(ins)
         self._init_outs(outs)
-        self._cached = {}
-        self._cached['spindex'] = Stream._species._IDs.index
+        self._spindex = Stream._species._IDs.index
         self._kwargs = {'species': species,
                         'streams': streams,
                         'exact': exact,
@@ -80,7 +79,6 @@ class MassBalance(Unit, metaclass=final):
     def _setup(self):
         exact = self._kwargs['exact']
         balance = self._kwargs['balance']
-        cached = self._cached
         
         # Make sure balance type is valid
         if balance not in ('flow', 'fraction'):
@@ -99,19 +97,18 @@ class MassBalance(Unit, metaclass=final):
             solver = np.linalg.lstsq
 
         # Cach indices for species and solver
-        spindex = cached['spindex']
-        cached['bal_index'] = [spindex(specie) for specie in species_IDs]
-        cached['linalg_solver'] = solver
+        spindex = self._spindex
+        self._bal_index = [spindex(specie) for specie in species_IDs]
+        self._linalg_solver = solver
 
     def _run(self):
         """Solve mass balance by iteration."""
         # SOLVING BY ITERATION TAKES 15 LOOPS FOR 2 STREAMS
         # SOLVING BY LEAST-SQUARES TAKES 40 LOOPS
         kwargs = self._kwargs
-        cached= self._cached
         stream_index = kwargs['streams']
         balance = kwargs['balance']
-        solver = cached['linalg_solver']
+        solver = self._linalg_solver
 
         # Set up constant and variable streams
         vary = []  # Streams to vary in mass balance
@@ -123,7 +120,7 @@ class MassBalance(Unit, metaclass=final):
                 constant.append(self.ins[i])
 
         # Species indices used in mass balace
-        index = cached['bal_index']
+        index = self._bal_index
 
         if balance == 'flow':
             # Perform the following calculation: Ax = b = f - g

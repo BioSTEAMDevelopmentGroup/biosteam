@@ -1,15 +1,15 @@
 Metadata-Version: 1.2
 Name: biosteam
-Version: 0.3.2
-Summary: The Bioprocess Simulation and Techno-Economic Analysis Modules
+Version: 0.4.0
+Summary: The Biorefinery Simulation and Techno-Economic Analysis Modules
 Home-page: https://github.com/yoelcortes/biosteam
 Author: Yoel Cortes-Pena
 Author-email: yoelcortes@gmail.com
 License: MIT
 Download-URL: https://github.com/yoelcortes/biosteam.git
-Description: ========
-        BioSTEAM
-        ========
+Description: =========================================================================
+        BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+        =========================================================================
         
         .. image:: http://img.shields.io/pypi/v/biosteam.svg?style=flat
            :target: https://pypi.python.org/pypi/biosteam
@@ -91,10 +91,10 @@ Description: ========
         
         To cite BioSTEAM in publications use::
         
-            Yoel Cortes-Pena, Jeremy Guest (2019). BioSTEAM: The Bioprocess Simulation and Techno-Economic Analysis Modules
+            Yoel Cortes-Pena, Jeremy Guest (2019). BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
             https://github.com/yoelcortes/biosteam
         
-Keywords: chemical process simmulation bioprocess engineering mass energy balance material properties phase equilibrium CABBI
+Keywords: chemical process simmulation bioprocess engineering mass energy balance material properties phase equilibrium CABBI biorefinery biofuel bioproducts
 Platform: Windows
 Platform: Mac
 Classifier: Development Status :: 3 - Alpha

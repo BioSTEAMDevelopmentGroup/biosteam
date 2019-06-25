@@ -13,8 +13,7 @@ from ._stream import Stream
 from ._unit import Unit
 from ._report import save_report
 from ._utils import color_scheme, missing_stream, strtuple, function
-from warnings import warn
-import biosteam
+import biosteam as bst
 
 __all__ = ('System',)
 
@@ -36,7 +35,7 @@ def _evaluate(self, command=None):
         for attr in ('stream', 'unit', 'system'):
             dct = getattr(find, attr).__dict__
             lcs.update({i:j() for i, j in dct.items()})
-        lcs.update({attr:getattr(biosteam, attr) for attr in biosteam.__all__})
+        lcs.update({attr:getattr(bst, attr) for attr in bst.__all__})
         try:
             out = eval(command, {}, lcs)            
         except Exception as err:
@@ -50,7 +49,7 @@ def _evaluate(self, command=None):
             # If successful, continue evaluating
             if out is None: pass
             elif (not hasattr(out, '_ipython_display_')
-                  or isinstance(type(out), type)): print(out)
+                  or isinstance(out, type)): print(out)
             else: out._ipython_display_()
                 
             command = input(">>> ")
@@ -136,7 +135,7 @@ class System:
     # [dict] Cached downstream systems by (system, unit, with_facilities) keys
     _cached_downstream_systems = {} 
 
-    def __init__(self, ID, network, recycle=None, facilities=None):
+    def __init__(self, ID, network, recycle=None, facilities=()):
         #: [dict] Current molar flow and temperature errors and number of iterations made
         self._solver_error = {'mol_error': 0,
                               'T_error': 0,
@@ -151,6 +150,9 @@ class System:
         
         #: list[Unit] Network of only unit operations
         self._unitnetwork = units = []
+        
+        #: tuple[Unit, function and/or System] A network that is run element by element until the recycle converges.
+        self.network = tuple(network)
         inst = isinstance
         for i in network:
             if i in units: continue
@@ -164,16 +166,10 @@ class System:
                 streams.update(i.streams)
         streams.discard(missing_stream) 
         
-        #: tuple[Unit, function and/or System] A network that is run element by element until the recycle converges.
-        self.network = tuple(network)
-        
         # link all unit operations with linked streams
+        has = hasattr
         for u in units:
-            try:
-                if u._linkedstreams: u._link_streams() 
-            except Exception as Error:
-                if missing_stream in (u._ins + u._outs):
-                    warn(f'missing stream object in {repr(u)}')
+            if has(u, '_link_streams'): u._link_streams()
         
         #: set[Unit] All units within the system
         self.units = units = set(units)
@@ -183,27 +179,19 @@ class System:
         
         #: set[Unit] All units that have costs.
         self._costunits = costunits = costunits.copy()
-        if facilities:
-            for i in facilities:
-                if inst(i, Unit):
-                    units.add(i)
-                    streams.update(i._ins + i._outs)
-                    if i._has_cost: costunits.add(i)
-                elif inst(i, System):
-                    units.update(i.units)
-                    streams.update(i.streams)
-                    subsystems.add(i)
-                    costunits.update(i._costunits)
-            #: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the network simulation.
-            self.facilities = tuple(facilities)
-        else: self.facilities = ()
         
-        has = hasattr
-        upstream_connections = set()
-        for s in streams:
-            if has(s, '_downstream_connection'):
-                upstream_connections.add(s)
-        streams.difference_update(upstream_connections)
+        #: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the network simulation.
+        self.facilities = tuple(facilities)
+        for i in facilities:
+            if inst(i, Unit):
+                units.add(i)
+                streams.update(i._ins + i._outs)
+                if i._has_cost: costunits.add(i)
+            elif inst(i, System):
+                units.update(i.units)
+                streams.update(i.streams)
+                subsystems.add(i)
+                costunits.update(i._costunits)
         
         #: set[Stream] All feed streams in the system.
         self.feeds = set(filter(_isfeed, streams))
@@ -530,7 +518,7 @@ class System:
             return self._converge_method()
         except Exception as e:
             if self._recycle: self._recycle.empty()
-            raise e
+            self._converge_method()
 
     def set_spec(self, getter, setter, solver=newton, **kwargs):
         """Wrap a solver around the converge method.

@@ -30,7 +30,7 @@ class MissingStream:
     def __setattr__(self, key, value): pass
     
     def __getattr__(self, key):
-        raise TypeError(type(self).__name__)
+        raise AttributeError(type(self).__name__)
 
     def __repr__(self):
         return f'<{type(self).__name__}>'

@@ -162,16 +162,12 @@ class MixedStream(Stream):
         self._mass = property_array(massflows)
         self._vol = property_array(volflows)
 
-    @classmethod
-    def proxy(cls, ID, link=None, T=298.15, P=101325):
-        """Create a Stream object that serves as a proxy for the `link` stream."""
-        self = object.__new__(cls)
-        self._link = self._source = self._sink = self._ID = None
-        self.T = T
-        self.P = P
-        self.ID = ID
-        if link: self.link = link
-        return self
+    @property
+    def link(self):
+        return None
+    @link.setter
+    def link(self, stream):
+        raise TypeError(f'{type(self).__name__} objects do not support linking')
 
     @property
     def phase(self):
