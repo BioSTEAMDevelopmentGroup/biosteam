@@ -34,7 +34,6 @@
         <script type="text/javascript" src="../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -98,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -334,7 +333,10 @@
             <span class="n">species</span><span class="o">.</span><span class="n">_read_only</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;must pass a Species object&#39;</span><span class="p">)</span>
     <span class="n">_species</span> <span class="o">=</span> <span class="n">species</span>
-        
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">MW</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_MW</span>
 
 <div class="viewcode-block" id="Stream"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream">[docs]</a><span class="k">class</span> <span class="nc">Stream</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">metaStream</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a Stream object that defines material flow rates along its thermodynamic state. Thermodynamic and transport properties of a stream are readily available. Ideal mixture is assumed for stream properties and excess thermodynamic energies are neglected as a simplifying assumption for low pressure processes.</span>
@@ -404,8 +406,6 @@
 <span class="sd">       array([1., 2.])</span>
 
 <span class="sd">    .. Warning:: Stream objects do not automatically calculate thermodynamic equilibrium. They simply assume the given phase, temperature and pressure are correct. To find equilibrium, use the VLE or LLE method.</span>
-
-<span class="sd">    .. Note:: All following examples will use the Stream objects created here (s1, s2, and s3) starting from its initial values.</span>
 
 <span class="sd">    Use the `show` method to print all specifications with desired units:</span>
 
@@ -556,7 +556,7 @@
                  <span class="s1">&#39;_yP&#39;</span><span class="p">,</span> <span class="s1">&#39;_T_dew&#39;</span><span class="p">,</span> <span class="s1">&#39;_y_over_Psat_gamma&#39;</span><span class="p">,</span> <span class="s1">&#39;__weakref__&#39;</span><span class="p">,</span> <span class="s1">&#39;_source_link&#39;</span><span class="p">)</span>
 
     <span class="c1">### Class attributes for working species ###</span>
-    <span class="n">_cls_species</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_cls_species</span> <span class="o">=</span> <span class="n">_MW</span> <span class="o">=</span> <span class="kc">None</span>
     
     <span class="c1"># [list] Default starting letter and current number for ID (class attribute)</span>
     <span class="n">_default_ID</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
@@ -568,7 +568,6 @@
     <span class="n">display_units</span> <span class="o">=</span> <span class="n">DisplayUnits</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="s1">&#39;K&#39;</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="s1">&#39;Pa&#39;</span><span class="p">,</span>
                                  <span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">,</span> <span class="s1">&#39;kg/hr&#39;</span><span class="p">,</span> <span class="s1">&#39;m3/hr&#39;</span><span class="p">),</span>
                                  <span class="n">fraction</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Stream&#39;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="p">(),</span> <span class="n">species</span><span class="o">=</span><span class="p">(),</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">,</span>
                  <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">298.15</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">price</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">flow_pairs</span><span class="p">):</span>
@@ -717,15 +716,16 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;phase must be either &#39;s&#39;, &#39;l&#39;, or &#39;g&#39;&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="n">phase</span>
     
-<div class="viewcode-block" id="Stream.proxy"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.proxy">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">proxy</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">link</span><span class="o">=</span><span class="n">missing_stream</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Create a Stream object that serves as a proxy for the `link` stream.&quot;&quot;&quot;</span>
-        <span class="bp">self</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
+<div class="viewcode-block" id="Stream.proxy"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.proxy">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">proxy</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">link</span><span class="o">=</span><span class="n">missing_stream</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Create a Stream object that serves as a proxy for its `link` stream.&quot;&quot;&quot;</span>
+        <span class="bp">self</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">Stream</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sink</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_source_link</span> <span class="o">=</span> <span class="n">missing_stream</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">price</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">link</span> <span class="o">=</span> <span class="n">link</span>
+        <span class="k">if</span> <span class="n">link</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">link</span> <span class="o">=</span> <span class="n">link</span>
+        <span class="k">else</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_link</span> <span class="o">=</span> <span class="n">missing_stream</span>
         <span class="k">return</span> <span class="bp">self</span></div>
     
     <span class="nd">@property</span>
@@ -736,28 +736,32 @@
     <span class="nd">@link</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">link</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">stream</span>
-                <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source_link</span> <span class="ow">is</span> <span class="n">stream</span><span class="o">.</span><span class="n">_source_link</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source_link</span> <span class="ow">is</span> <span class="n">stream</span><span class="o">.</span><span class="n">_source_link</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_link</span> <span class="o">=</span> <span class="n">stream</span>
-                <span class="k">return</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_species</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_mass</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_mass</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_mol</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_vol</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_vol</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_dew_cached</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_dew_cached</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_bubble_cached</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_bubble_cached</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_source_link</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_source_link</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_link</span> <span class="o">=</span> <span class="n">stream</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">P</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">T</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">phase</span>
+            <span class="k">elif</span> <span class="n">stream</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_ID</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mol</span><span class="p">,</span>
+                              <span class="n">species</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="p">,</span>
+                              <span class="n">T</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_phase</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_species</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_mass</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_mass</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_mol</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_vol</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_vol</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_dew_cached</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_dew_cached</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_bubble_cached</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_bubble_cached</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_source_link</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_source_link</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_link</span> <span class="o">=</span> <span class="n">stream</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">P</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">T</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">phase</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">Error</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span> <span class="k">raise</span> <span class="n">Error</span>
             <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;link must be a Stream object, not a &#39;{type(stream).__name__}&#39; object.&quot;</span><span class="p">)</span>
     
     <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">is</span> <span class="s1">&#39;line&#39;</span><span class="p">:</span> <span class="k">return</span> <span class="s1">&#39;Stream&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_link</span> <span class="ow">is</span> <span class="n">missing_stream</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">_ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="n">missing_stream</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">_ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">missing_stream</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="o">.</span><span class="n">_link_streams</span><span class="p">()</span>
                 <span class="k">try</span><span class="p">:</span> <span class="k">return</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__getattribute__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
                 <span class="k">except</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;{repr(self.source)}.ins[0] is missing stream&#39;</span><span class="p">)</span>
@@ -804,8 +808,10 @@
     <span class="k">def</span> <span class="nf">MW</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Molecular weight of all species (array g/mol):     </span>
 
-<span class="sd">        &gt;&gt;&gt; s2.MW </span>
-<span class="sd">        tuple_array([46.06844, 18.01528])</span>
+<span class="sd">        from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; Stream.MW</span>
+<span class="sd">        tuple_array([18.01528, 46.06844])</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_MW</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">tuple_array</span><span class="p">)</span>
 
@@ -824,6 +830,9 @@
 
 <span class="sd">        Indices by ID:</span>
 <span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species([&#39;Ethanol&#39;, &#39;Water&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream()</span>
 <span class="sd">        &gt;&gt;&gt; s1.indices(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
 <span class="sd">        [1, 0]</span>
 
@@ -857,6 +866,9 @@
     <span class="k">def</span> <span class="nf">mol</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Array of molar flow rates (kmol/hr):</span>
 
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Ethanol=2)</span>
 <span class="sd">        &gt;&gt;&gt; s1.mol</span>
 <span class="sd">        array([0, 2])</span>
 <span class="sd">        &gt;&gt;&gt; s1.mol[:] = [1, 2]</span>
@@ -869,6 +881,9 @@
     <span class="k">def</span> <span class="nf">molfrac</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Array of molar fractions.</span>
 
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Ethanol=2)</span>
 <span class="sd">        &gt;&gt;&gt; s1.molfrac</span>
 <span class="sd">        tuple_array([0., 1.])</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -878,7 +893,10 @@
     <span class="k">def</span> <span class="nf">molnet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Net molar flow rate (kmol/hr)</span>
 
-<span class="sd">        &gt;&gt;&gt; s2.molnet</span>
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Ethanol=2, Water=1)</span>
+<span class="sd">        &gt;&gt;&gt; s1.molnet</span>
 <span class="sd">        3</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
@@ -888,6 +906,9 @@
     <span class="k">def</span> <span class="nf">mass</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Array of mass flow rates (kg/hr)</span>
 
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Water=2)</span>
 <span class="sd">        &gt;&gt;&gt; s1.mass</span>
 <span class="sd">        property_array([ 0.   , 36.031])</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -897,6 +918,9 @@
     <span class="k">def</span> <span class="nf">massfrac</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Array of mass fractions.</span>
 
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Water=2)</span>
 <span class="sd">        &gt;&gt;&gt; s1.massfrac</span>
 <span class="sd">        tuple_array([0, 1])</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -906,8 +930,11 @@
     <span class="k">def</span> <span class="nf">massnet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Net mass flow rate (kg/hr)</span>
 
-<span class="sd">        &gt;&gt;&gt; s2.massnet</span>
-<span class="sd">        82.099</span>
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Water=2)</span>
+<span class="sd">        &gt;&gt;&gt; s1.mass</span>
+<span class="sd">        36.031</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_MW</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 
@@ -916,8 +943,11 @@
     <span class="k">def</span> <span class="nf">vol</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Array of volumetric flow rates as a function of T and P (m^3/hr).</span>
 
-<span class="sd">        &gt;&gt;&gt; s2.vol</span>
-<span class="sd">        property_array([0.059, 0.036])</span>
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Water=2)</span>
+<span class="sd">        &gt;&gt;&gt; s1.vol</span>
+<span class="sd">        property_array([0.   , 0.036])</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_vol</span>
@@ -926,19 +956,23 @@
     <span class="k">def</span> <span class="nf">volfrac</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Array of volumetric fractions as a function of T and P.</span>
 
-<span class="sd">        &gt;&gt;&gt; s2.volfrac</span>
-<span class="sd">        tuple_array([0.619, 0.381])</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Water=2)</span>
+<span class="sd">        &gt;&gt;&gt; s1.volfrac</span>
+<span class="sd">        tuple_array([0.0, 1.0], dtype=object)</span>
+<span class="sd">                &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">fraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_vol</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">tuple_array</span><span class="p">)</span>
         
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">volnet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Net volumetric flow rate as a function of T and P (m^3/hr).</span>
 
-<span class="sd">        &gt;&gt;&gt; s2.volnet # a liquid stream</span>
-<span class="sd">        0.09475552896916632</span>
-<span class="sd">        &gt;&gt;&gt; s3.volnet # a gas stream</span>
-<span class="sd">        97.32699378482434</span>
+<span class="sd">        from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Water=2)</span>
+<span class="sd">        &gt;&gt;&gt; s1.volnet</span>
+<span class="sd">        0.036138079740245625</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_propflow</span><span class="p">(</span><span class="s1">&#39;Vm&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span><span class="p">)</span><span class="o">*</span><span class="mi">1000</span>
 
@@ -949,13 +983,16 @@
     <span class="k">def</span> <span class="nf">H</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Enthalpy flow rate as a function of T, excluding formation energies (kJ/hr).</span>
 
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Water=2)</span>
 <span class="sd">        &gt;&gt;&gt; s1.H # The stream is at the reference state</span>
 <span class="sd">        0.0</span>
 <span class="sd">        &gt;&gt;&gt; s1.H = 1000</span>
 <span class="sd">        &gt;&gt;&gt; s1.T</span>
-<span class="sd">        304.80600901692236</span>
+<span class="sd">        304.7888167493753</span>
 <span class="sd">        &gt;&gt;&gt; s1.H</span>
-<span class="sd">        1002.1604769775776</span>
+<span class="sd">        999.5728716085112</span>
 
 <span class="sd">        .. Note:: The solver reaches a level of tolerance and the new temperature is an approximation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -990,6 +1027,9 @@
     <span class="k">def</span> <span class="nf">Hf</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Heat of formation flow rate (kJ/hr).</span>
 
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Water=2)</span>
 <span class="sd">        &gt;&gt;&gt; s1.Hf</span>
 <span class="sd">        -483640.0</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -999,8 +1039,11 @@
     <span class="k">def</span> <span class="nf">Hc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Heat of combustion flow rate (kJ/hr).</span>
 
-<span class="sd">        &gt;&gt;&gt; s2.Hc</span>
-<span class="sd">        -1409983.0</span>
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Ethanol=2)</span>
+<span class="sd">        &gt;&gt;&gt; s1.Hc</span>
+<span class="sd">        -2819966.0</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mol</span> <span class="o">*</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">Hc</span> <span class="ow">or</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_compounds</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
         
@@ -1009,11 +1052,14 @@
     <span class="k">def</span> <span class="nf">S</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Entropy flow rate as a function of T and P, excluding formation energies (kJ/hr).</span>
 
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Ethanol=2)</span>
 <span class="sd">        &gt;&gt;&gt; s1.S # The stream is at the reference state</span>
 <span class="sd">        0.0</span>
 <span class="sd">        &gt;&gt;&gt; s1.T = 320</span>
 <span class="sd">        &gt;&gt;&gt; s1.S</span>
-<span class="sd">        10.642980522582695</span>
+<span class="sd">        16.503899351682694</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_propflow</span><span class="p">(</span><span class="s1">&#39;S&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span><span class="p">)</span>
 
@@ -1022,11 +1068,14 @@
     <span class="k">def</span> <span class="nf">G</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Gibbs free energy flow rate as a function of T and P, excluding formation energies (kJ/hr).</span>
 
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Ethanol=2)</span>
 <span class="sd">        &gt;&gt;&gt; s1.G # The stream is at the reference state</span>
 <span class="sd">        0.0</span>
 <span class="sd">        &gt;&gt;&gt; s1.T = 320</span>
 <span class="sd">        &gt;&gt;&gt; s1.G</span>
-<span class="sd">        -117.6450204179555</span>
+<span class="sd">        -182.43024800100193</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">S</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">T</span>
 
@@ -1035,11 +1084,14 @@
     <span class="k">def</span> <span class="nf">U</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Internal energy flow rate as a function of T and P, excluding formation energies (kJ/hr).</span>
 
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Ethanol=2)</span>
 <span class="sd">        &gt;&gt;&gt; s1.U # The stream is at the reference state</span>
 <span class="sd">        0.0</span>
 <span class="sd">        &gt;&gt;&gt; s1.T = 320</span>
 <span class="sd">        &gt;&gt;&gt; s1.U</span>
-<span class="sd">        -409.16014979602505</span>
+<span class="sd">        -7090.732710112934</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">volnet</span>
 
@@ -1048,11 +1100,14 @@
     <span class="k">def</span> <span class="nf">A</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Helmholtz energy flow rate as a function of T and P, excluding formation energies (kJ/hr).</span>
 
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Ethanol=2)</span>
 <span class="sd">        &gt;&gt;&gt; s1.A # The stream is at the reference state</span>
 <span class="sd">        0.0</span>
 <span class="sd">        &gt;&gt;&gt; s1.T = 320</span>
 <span class="sd">        &gt;&gt;&gt; s1.A</span>
-<span class="sd">        -3814.9139170224876</span>
+<span class="sd">        -12371.980502651397</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">U</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">S</span>
 
@@ -1061,8 +1116,11 @@
     <span class="k">def</span> <span class="nf">C</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Heat capacity flow rate as a function of T (kJ/K/hr).</span>
 
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Ethanol=2)</span>
 <span class="sd">        &gt;&gt;&gt; s2.C</span>
-<span class="sd">        262.74816631655267</span>
+<span class="sd">        243.41704115214097</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_propflow</span><span class="p">(</span><span class="s1">&#39;Cpm&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span><span class="p">)</span>
 
@@ -1071,8 +1129,11 @@
     <span class="k">def</span> <span class="nf">Cp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Specific heat capacity as a function of T (kJ/kg/K).</span>
 
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Ethanol=2)</span>
 <span class="sd">        &gt;&gt;&gt; s1.Cp</span>
-<span class="sd">        4.180597021827335</span>
+<span class="sd">        2.641906706110962</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Cpm</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">molnet</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">massnet</span>
 
@@ -1080,8 +1141,11 @@
     <span class="k">def</span> <span class="nf">Cpm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Molar heat capacity as a function of T (kJ/kmol/K).</span>
 
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Ethanol=2)</span>
 <span class="sd">        &gt;&gt;&gt; s1.Cpm # (J/mol/K)</span>
-<span class="sd">        75.31462591538556</span>
+<span class="sd">        121.70852057607048</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">C</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">molnet</span>
 
@@ -1089,8 +1153,11 @@
     <span class="k">def</span> <span class="nf">Vm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Molar volume as a function of T and P (m^3/mol).</span>
 
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Ethanol=2)</span>
 <span class="sd">        &gt;&gt;&gt; s1.Vm</span>
-<span class="sd">        1.8069039870122814e-05</span>
+<span class="sd">        0.00012030150757118572</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_prop</span><span class="p">(</span><span class="s1">&#39;Vm&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span><span class="p">)</span>
 
@@ -1098,8 +1165,11 @@
     <span class="k">def</span> <span class="nf">rho</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Density as a function of T (kg/m^3).</span>
 
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Ethanol=2)</span>
 <span class="sd">        &gt;&gt;&gt; s1.rho</span>
-<span class="sd">        997.0247522552814</span>
+<span class="sd">        765.8830039638536</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">massnet</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">volnet</span>
 
@@ -1107,8 +1177,11 @@
     <span class="k">def</span> <span class="nf">rhom</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Molar density as a function of T and P (mol/m^3).</span>
 
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Ethanol=2)</span>
 <span class="sd">        &gt;&gt;&gt; s1.rhom</span>
-<span class="sd">        55343.283715561534</span>
+<span class="sd">        16.624895567634884</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">molnet</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">volnet</span>
 
@@ -1116,8 +1189,11 @@
     <span class="k">def</span> <span class="nf">nu</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Kinematic viscosity as a function of T and P (m^2/s).</span>
 
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Ethanol=2)</span>
 <span class="sd">        &gt;&gt;&gt; s1.nu</span>
-<span class="sd">        9.154438858391748e-07</span>
+<span class="sd">        5.733020843964377e-06</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mu</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">rho</span>
 
@@ -1125,8 +1201,11 @@
     <span class="k">def</span> <span class="nf">mu</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Hydraulic viscosity as a function of T and P (Pa*s).</span>
 
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Ethanol=2)</span>
 <span class="sd">        &gt;&gt;&gt; s1.mu</span>
-<span class="sd">        0.0009127202134824155</span>
+<span class="sd">        0.0043908232257628245</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Katti, P.K.; Chaudhri, M.M. (1964). &quot;Viscosities of Binary Mixtures of Benzyl Acetate with Dioxane, Aniline, and m-Cresol&quot;. Journal of Chemical and Engineering Data. 9 (1964): 442–443.</span>
         <span class="n">molfrac</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">molfrac</span>
@@ -1140,8 +1219,11 @@
     <span class="k">def</span> <span class="nf">k</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Thermal conductivity as a function of T and P (W/m/k).</span>
 
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Ethanol=2)</span>
 <span class="sd">        &gt;&gt;&gt; s1.k</span>
-<span class="sd">        0.5942044328004411</span>
+<span class="sd">        0.3182327138341469</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_prop</span><span class="p">(</span><span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span><span class="p">)</span>
 
@@ -1149,8 +1231,11 @@
     <span class="k">def</span> <span class="nf">alpha</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Thermal diffusivity as a function of T and P (m^2/s).</span>
 
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Ethanol=2)</span>
 <span class="sd">        &gt;&gt;&gt; s1.alpha</span>
-<span class="sd">        1.4255801521655763e-07</span>
+<span class="sd">        1.5727689011218135e-07</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_prop</span><span class="p">(</span><span class="s1">&#39;alpha&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span><span class="p">)</span>
 
@@ -1158,8 +1243,11 @@
     <span class="k">def</span> <span class="nf">sigma</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Surface tension as a function of T (N/m).</span>
 
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Ethanol=2)</span>
 <span class="sd">        &gt;&gt;&gt; s1.sigma</span>
-<span class="sd">        0.07205503890847455</span>
+<span class="sd">        0.039538267032201244</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_prop</span><span class="p">(</span><span class="s1">&#39;sigma&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span><span class="p">)</span>
 
@@ -1167,14 +1255,23 @@
     <span class="k">def</span> <span class="nf">Pr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Prandtl number as a function of T and P (non-dimensional).</span>
 
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Ethanol=2)</span>
 <span class="sd">        &gt;&gt;&gt; s1.Pr</span>
-<span class="sd">        6.421553249380879</span>
+<span class="sd">        24.13465846907633</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_prop</span><span class="p">(</span><span class="s1">&#39;Pr&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">P_vapor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Vapor pressure (Pa).&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Vapor pressure (Pa).</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Ethanol=2)</span>
+<span class="sd">        25272.75671868146</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">species</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_equilibrium_args</span><span class="p">()</span>
         <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span>
         
@@ -1204,6 +1301,9 @@
     <span class="k">def</span> <span class="nf">nonzero_species</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Flow indices and species that have a non-zero flow rate.</span>
 
+<span class="sd">        from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Water=2)</span>
 <span class="sd">        &gt;&gt;&gt; s1.nonzero_species</span>
 <span class="sd">        [1], [&#39;Water&#39;]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1218,8 +1318,11 @@
 
 <span class="sd">        Example:</span>
 
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Ethanol=2)</span>
 <span class="sd">        &gt;&gt;&gt; s1.quantity(&#39;Cp&#39;)</span>
-<span class="sd">        &lt;Quantity(4.180597021827335, &#39;joule / gram / kelvin&#39;)&gt;</span>
+<span class="sd">        2.641906706110962 J/K/g</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">attr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">)</span>
@@ -1239,10 +1342,13 @@
 
 <span class="sd">             **index:** [array_like or None] Optional indices if the variable is an array</span>
 
-<span class="sd">        Example</span>
+<span class="sd">        **Example**</span>
 
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Ethanol=2)</span>
 <span class="sd">        &gt;&gt;&gt; s1.derivative(&#39;rho&#39;, &#39;T&#39;)</span>
-<span class="sd">        -0.4010588564718449</span>
+<span class="sd">        -0.943576312801604</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1283,7 +1389,11 @@
 <div class="viewcode-block" id="Stream.copylike"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.copylike">[docs]</a>    <span class="k">def</span> <span class="nf">copylike</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Copy mol, T, P, and phase of stream to self.</span>
 
-<span class="sd">        &gt;&gt;&gt; s1.copylike(s3)</span>
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream()</span>
+<span class="sd">        &gt;&gt;&gt; s2 = Stream(Ethanol=1, Water=2, T=400, phase=&#39;g&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1.copylike(s2)</span>
 <span class="sd">        &gt;&gt;&gt; s1.show()</span>
 <span class="sd">        Stream: s1</span>
 <span class="sd">         phase: &#39;g&#39;, T: 400.00 K, P: 101325 Pa</span>
@@ -1304,6 +1414,9 @@
 <div class="viewcode-block" id="Stream.empty"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.empty">[docs]</a>    <span class="k">def</span> <span class="nf">empty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set flow rates to zero</span>
 
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Water=1)</span>
 <span class="sd">        &gt;&gt;&gt; s1.empty()</span>
 <span class="sd">        &gt;&gt;&gt; s1.mol</span>
 <span class="sd">        array([0, 0])</span>
@@ -1333,6 +1446,7 @@
 <span class="sd">             </span>
 <span class="sd">            **eq_species:** tuple[str] Species in equilibrium.</span>
 
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
 <span class="sd">        &gt;&gt;&gt; stream = Stream(flow=(0.6, 0.4),</span>
 <span class="sd">        ...                 species=Species(&#39;Ethanol&#39;, &#39;Water&#39;))</span>
 <span class="sd">        &gt;&gt;&gt; stream.bubble_point()</span>
@@ -1377,8 +1491,11 @@
 <span class="sd">             </span>
 <span class="sd">            **eq_species:** tuple[str] Species in equilibrium.</span>
 
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream()</span>
 <span class="sd">        &gt;&gt;&gt; s1._bubble_point(species=Species(&#39;Ethanol&#39;, &#39;Water&#39;),</span>
-<span class="sd">        ...                 x=(0.6, 0.4), P=101325)</span>
+<span class="sd">        ...                  x=(0.6, 0.4), P=101325)</span>
 <span class="sd">        (352.2820850833474, array([0.703, 0.297]))</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1467,7 +1584,9 @@
 <span class="sd">             </span>
 <span class="sd">            **eq_species:** tuple[str] Species in equilibrium.</span>
 
-
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream()</span>
 <span class="sd">        &gt;&gt;&gt; s1.dew_point(species=Species(&#39;Ethanol&#39;, &#39;Water&#39;),</span>
 <span class="sd">        ...              y=(0.5, 0.5), P=101325)</span>
 <span class="sd">        (353.7420742149825, array([0.556, 0.444]))</span>
@@ -1513,8 +1632,11 @@
 
 <span class="sd">        Example</span>
 
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Water=200)</span>
 <span class="sd">        &gt;&gt;&gt; s1.Re(0.2, 0.031416)</span>
-<span class="sd">        373.43769007101764</span>
+<span class="sd">        27639.956372923512</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">volnet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">volnet</span><span class="o">/</span><span class="mi">3600</span> <span class="c1"># m3/s</span>
         <span class="k">if</span> <span class="n">A</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># Assume pipe</span>
@@ -1606,9 +1728,15 @@
 
 <span class="sd">             **T:** [float] New temperature (K)</span>
 
-<span class="sd">        &gt;&gt;&gt; Stream.eqT((s1, s2, s3))</span>
-<span class="sd">        &gt;&gt;&gt; (s1.T, s2.T, s3.T)</span>
-<span class="sd">        (346.06735249999997,  346.06735249999997,  346.06735249999997)</span>
+<span class="sd">        **Example**</span>
+
+<span class="sd">        from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Water=2, T=300)</span>
+<span class="sd">        &gt;&gt;&gt; s2 = Stream(Ethanol=1, Water=2, T=340)</span>
+<span class="sd">        &gt;&gt;&gt; Stream.eqT([s1, s2])</span>
+<span class="sd">        &gt;&gt;&gt; (s1.T, s2.T)</span>
+<span class="sd">        (325.8281231556553, 325.8281231556553)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">sum_</span> <span class="o">=</span> <span class="nb">sum</span>
         <span class="c1"># Set up problem</span>
@@ -1657,20 +1785,20 @@
 <span class="sd">             **s_sum:** [Stream] Container for the resulting mixture of streams</span>
 
 <span class="sd">             **streams:** [tuple] Stream objects to be mixed</span>
-<span class="sd">             </span>
-<span class="sd">        **Return**</span>
 
-<span class="sd">             **s_sum:** same object as in arguments</span>
+<span class="sd">        .. Note:: Ignores contents of `s_sum` as if it was empty</span>
 
-<span class="sd">        .. Note:: Ignores contents of s_sum as if it was empty</span>
+<span class="sd">        **Example**</span>
 
-<span class="sd">        Example</span>
-
-<span class="sd">        &gt;&gt;&gt; s2.T = 340 # Set higher temperature to show energy balance</span>
-<span class="sd">        &gt;&gt;&gt; s_sum = Stream.sum(Stream(&#39;s_sum&#39;), s1, s2)</span>
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(Water=2, T=300)</span>
+<span class="sd">        &gt;&gt;&gt; s2 = Stream(Ethanol=1, Water=2, T=340)</span>
+<span class="sd">        &gt;&gt;&gt; s_sum = Stream(&#39;s_sum&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; Stream.sum(s_sum, [s1, s2])</span>
 <span class="sd">        &gt;&gt;&gt; s_sum.show()</span>
 <span class="sd">        Stream: s_sum</span>
-<span class="sd">         phase: &#39;l&#39;, T: 325.32 K, P: 101325 Pa</span>
+<span class="sd">         phase: &#39;l&#39;, T: 326.29 K, P: 101325 Pa</span>
 <span class="sd">         flow (kmol/hr): Ethanol  1</span>
 <span class="sd">                         Water    4</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1707,8 +1835,7 @@
             <span class="k">raise</span> <span class="n">Error</span>
 
         <span class="c1"># Energy Balance</span>
-        <span class="k">if</span> <span class="n">energy_balance</span><span class="p">:</span> <span class="n">s_sum</span><span class="o">.</span><span class="n">H</span> <span class="o">=</span> <span class="n">H</span>
-        <span class="k">return</span> <span class="n">s_sum</span></div>
+        <span class="k">if</span> <span class="n">energy_balance</span><span class="p">:</span> <span class="n">s_sum</span><span class="o">.</span><span class="n">H</span> <span class="o">=</span> <span class="n">H</span></div>
 
     <span class="c1"># MixedStream compatibility</span>
 <div class="viewcode-block" id="Stream.enable_phases"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.enable_phases">[docs]</a>    <span class="k">def</span> <span class="nf">enable_phases</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

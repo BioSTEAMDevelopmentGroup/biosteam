@@ -34,7 +34,6 @@
         <script type="text/javascript" src="../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -98,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -189,6 +188,8 @@
 <span class="kn">from</span> <span class="nn">.._unit</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">metaUnit</span>
 <span class="kn">from</span> <span class="nn">fluids.pump</span> <span class="k">import</span> <span class="n">nema_sizes_hp</span>
 <span class="kn">from</span> <span class="nn">.designtools._vacuum</span> <span class="k">import</span> <span class="n">_calc_MotorEfficiency</span><span class="p">,</span> <span class="n">_calc_BreakEfficiency</span>
+<span class="kn">from</span> <span class="nn">.metaclasses</span> <span class="k">import</span> <span class="n">static</span>
+<span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
 
 <span class="n">ln</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span>
 <span class="n">exp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span>
@@ -236,7 +237,8 @@
 
 <span class="c1"># %% Classes</span>
 
-<span class="k">class</span> <span class="nc">metaPump</span><span class="p">(</span><span class="n">metaUnit</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">metaPump</span><span class="p">(</span><span class="n">static</span><span class="p">):</span>
+    
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">material</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Pump material&quot;&quot;&quot;</span>
@@ -249,6 +251,7 @@
             <span class="n">dummy</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">F_Mdict</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">11</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;material must be one of the following: </span><span class="si">{dummy}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">Pump</span><span class="o">.</span><span class="n">_F_Mstr</span> <span class="o">=</span> <span class="n">material</span>   
+
 
 <span class="c1"># TODO: Fix pump selection to include NPSH available and required.</span>
 <div class="viewcode-block" id="Pump"><a class="viewcode-back" href="../../../Pump.html#biosteam.units.Pump">[docs]</a><span class="k">class</span> <span class="nc">Pump</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">metaPump</span><span class="p">):</span>
@@ -280,11 +283,9 @@
               <span class="s1">&#39;Head&#39;</span><span class="p">:</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span>
               <span class="s1">&#39;NPSH&#39;</span><span class="p">:</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span>
               <span class="s1">&#39;Flow rate&#39;</span><span class="p">:</span> <span class="s1">&#39;gpm&#39;</span><span class="p">}</span>
-    <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="n">_linkedstreams</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+    <span class="n">BM</span> <span class="o">=</span> <span class="mf">3.3</span>
     
     <span class="c1"># Pump type</span>
     <span class="n">_Type</span> <span class="o">=</span> <span class="s1">&#39;Default&#39;</span>
@@ -335,7 +336,7 @@
         <span class="n">out</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">_phase</span>
     
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
         <span class="n">si</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">so</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">Pi</span> <span class="o">=</span> <span class="n">si</span><span class="o">.</span><span class="n">P</span>
@@ -343,9 +344,9 @@
         <span class="n">Qi</span> <span class="o">=</span> <span class="n">si</span><span class="o">.</span><span class="n">volnet</span>
         <span class="n">mass</span> <span class="o">=</span> <span class="n">si</span><span class="o">.</span><span class="n">massnet</span>
         <span class="n">nu</span> <span class="o">=</span> <span class="n">si</span><span class="o">.</span><span class="n">nu</span>
-        
-        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">Po</span> <span class="o">-</span> <span class="n">Pi</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span> <span class="n">Po</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P_startup</span>
-        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Ideal power&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">power_ideal</span> <span class="o">=</span> <span class="n">Qi</span><span class="o">*</span><span class="p">(</span><span class="n">Po</span> <span class="o">-</span> <span class="n">Pi</span><span class="p">)</span><span class="o">*</span><span class="mf">3.725e-7</span> <span class="c1"># hp</span>
+        <span class="n">dP</span> <span class="o">=</span> <span class="n">Po</span> <span class="o">-</span> <span class="n">Pi</span>
+        <span class="k">if</span> <span class="n">dP</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span> <span class="n">dP</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P_startup</span> <span class="o">-</span> <span class="n">Pi</span>
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Ideal power&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">power_ideal</span> <span class="o">=</span> <span class="n">Qi</span><span class="o">*</span><span class="n">dP</span><span class="o">*</span><span class="mf">3.725e-7</span> <span class="c1"># hp</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">q</span> <span class="o">=</span> <span class="n">Qi</span><span class="o">*</span><span class="mf">4.403</span> <span class="c1"># gpm</span>
         <span class="k">if</span> <span class="n">power_ideal</span> <span class="o">&lt;=</span> <span class="n">max_hp</span><span class="p">:</span>
             <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Efficiency&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_Efficiency</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">power_ideal</span><span class="p">)</span>
@@ -384,6 +385,7 @@
                   <span class="ow">and</span> <span class="n">nu</span> <span class="o">&lt;</span> <span class="mf">0.01</span><span class="p">):</span>
                 <span class="n">Type</span> <span class="o">=</span> <span class="s1">&#39;MeteringPlunger&#39;</span>
             <span class="k">else</span><span class="p">:</span>
+                <span class="n">NPSH</span> <span class="o">=</span> <span class="n">calc_NPSH</span><span class="p">(</span><span class="n">Pi</span><span class="p">,</span> <span class="n">si</span><span class="o">.</span><span class="n">P_vapor</span><span class="p">,</span> <span class="n">si</span><span class="o">.</span><span class="n">rho</span><span class="p">)</span>
                 <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;no pump type available at current power (</span><span class="si">{power:.3g}</span><span class="s1"> hp), flow rate (</span><span class="si">{q:.3g}</span><span class="s1"> gpm), and head (</span><span class="si">{head:.3g}</span><span class="s1"> ft), kinematic viscosity (</span><span class="si">{nu:.3g}</span><span class="s1"> m2/s), and NPSH (</span><span class="si">{NPSH:.3g}</span><span class="s1"> ft)&#39;</span><span class="p">)</span>
                 
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Type</span>
@@ -391,15 +393,14 @@
     
     <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Parameters</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span>
-        <span class="n">Cost</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
-        <span class="n">Design</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
+        <span class="n">Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span>
         <span class="n">Type</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Type&#39;</span><span class="p">]</span>
         <span class="n">q</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">]</span>
         <span class="n">h</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Head&#39;</span><span class="p">]</span>
         <span class="n">p</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Pump power&#39;</span><span class="p">]</span>
         <span class="n">F_M</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_F_M</span>
-        <span class="n">I</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CEPCI</span><span class="o">/</span><span class="mi">567</span>
+        <span class="n">I</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">CE</span><span class="o">/</span><span class="mi">567</span>
         <span class="n">lnp</span> <span class="o">=</span> <span class="n">ln</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
         
         <span class="c1"># TODO: Add cost equation for small pumps</span>
@@ -447,33 +448,6 @@
         <span class="n">lnp3</span> <span class="o">=</span> <span class="n">lnp2</span><span class="o">*</span><span class="n">lnp</span>
         <span class="n">lnp4</span> <span class="o">=</span> <span class="n">lnp3</span><span class="o">*</span><span class="n">lnp</span>
         <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Motor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="mf">5.9332</span> <span class="o">+</span> <span class="mf">0.16829</span><span class="o">*</span><span class="n">lnp</span> <span class="o">-</span> <span class="mf">0.110056</span><span class="o">*</span><span class="n">lnp2</span> <span class="o">+</span> <span class="mf">0.071413</span><span class="o">*</span><span class="n">lnp3</span> <span class="o">-</span> <span class="mf">0.0063788</span><span class="o">*</span><span class="n">lnp4</span><span class="p">)</span><span class="o">*</span><span class="n">I</span>
-        <span class="k">return</span> <span class="n">Cost</span>    
-    
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_calc_PowerFlow</span><span class="p">(</span><span class="n">Qi</span><span class="p">,</span> <span class="n">Qo</span><span class="p">,</span> <span class="n">Dpipe</span><span class="p">,</span> <span class="n">mass</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return ideal power due to flow rate change.</span>
-<span class="sd">        </span>
-<span class="sd">        **Parameters**</span>
-<span class="sd">            </span>
-<span class="sd">            Qi: [Stream] Input flow rate</span>
-<span class="sd">            </span>
-<span class="sd">            Qo: [Stream] Output flow rate</span>
-<span class="sd">            </span>
-<span class="sd">            Dpipe: [float] Pipe inside diameter</span>
-<span class="sd">            </span>
-<span class="sd">            mass: [float] Mass flow rate</span>
-<span class="sd">        </span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">mass</span><span class="p">:</span>
-            <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="p">((</span><span class="n">Dpipe</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
-            <span class="c1"># Kinetic energy change term</span>
-            <span class="n">vi</span> <span class="o">=</span> <span class="n">Qi</span><span class="o">/</span><span class="n">A</span> <span class="c1"># velocity in</span>
-            <span class="n">vo</span> <span class="o">=</span> <span class="n">Qo</span><span class="o">/</span><span class="n">A</span> <span class="c1"># velocity out</span>
-            <span class="n">K_term</span> <span class="o">=</span> <span class="p">(</span><span class="n">mass</span><span class="o">*</span><span class="n">vo</span><span class="o">**</span><span class="mi">2</span> <span class="o">-</span> <span class="n">mass</span><span class="o">*</span><span class="n">vi</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">K_term</span> <span class="o">=</span> <span class="mi">0</span>
-        
-        <span class="k">return</span> <span class="n">K_term</span>
     
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_nearest_PumpPower</span><span class="p">(</span><span class="n">p</span><span class="p">:</span><span class="s1">&#39;hp&#39;</span><span class="p">):</span>

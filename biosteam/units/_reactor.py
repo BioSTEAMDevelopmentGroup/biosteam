@@ -12,7 +12,6 @@ from .. import Unit
 class BatchReactor(Unit):
     line = 'Batch reactor'
     _N_heat_utilities = 1
-    
     @classmethod
     def _solve(cls, 
                v_0: 'Flow rate',

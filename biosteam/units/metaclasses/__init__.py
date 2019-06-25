@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Mon May 20 22:59:57 2019
-
-@author: yoelr
+Unit metaclasses are used to adjust mass and energy balance of Unit operations, mainly by setting the "_run" method.
 """
 __all__ = []
 

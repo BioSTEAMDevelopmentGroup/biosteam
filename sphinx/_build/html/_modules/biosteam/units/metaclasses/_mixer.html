@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>biosteam.units.decorators._design &mdash; BioSTEAM 0.1 documentation</title>
+  <title>biosteam.units.metaclasses._mixer &mdash; BioSTEAM 0.1 documentation</title>
   
 
   
@@ -34,7 +34,6 @@
         <script type="text/javascript" src="../../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
@@ -98,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -163,7 +162,7 @@
         
           <li><a href="../../../index.html">Module code</a> &raquo;</li>
         
-      <li>biosteam.units.decorators._design</li>
+      <li>biosteam.units.metaclasses._mixer</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -178,50 +177,31 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for biosteam.units.decorators._design</h1><div class="highlight"><pre>
+  <h1>Source code for biosteam.units.metaclasses._mixer</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Created on Mon May  6 17:19:41 2019</span>
+<span class="sd">Created on Thu Aug 23 14:26:41 2018</span>
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">...</span> <span class="k">import</span> <span class="n">Stream</span>
+<span class="kn">from</span> <span class="nn">..._unit</span> <span class="k">import</span> <span class="n">metaUnit</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;design&#39;</span><span class="p">,)</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;mixer&#39;</span><span class="p">,</span> <span class="s1">&#39;run_mixer&#39;</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="n">D</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_design_basis</span><span class="p">:</span> <span class="n">D</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">j</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+<div class="viewcode-block" id="mixer"><a class="viewcode-back" href="../../../../metaclasses.html#biosteam.units.metaclasses.mixer">[docs]</a><span class="k">class</span> <span class="nc">mixer</span><span class="p">(</span><span class="n">metaUnit</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a mixer Unit class which behaves like a mixer regarding mass and energy balances.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s1">&#39;_run&#39;</span> <span class="ow">in</span> <span class="n">dct</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;cannot use </span><span class="si">{mcl.__name__}</span><span class="s2"> metaclass with an implemented &#39;_run&#39; method&quot;</span><span class="p">)</span>
+        <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;_run&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">run_mixer</span>
+        <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;_N_ins&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;_N_outs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="design"><a class="viewcode-back" href="../../../../decorators.html#biosteam.units.decorators.design">[docs]</a><span class="k">def</span> <span class="nf">design</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">func</span><span class="p">):</span>    
-    <span class="sd">&quot;&quot;&quot;Add design item.</span>
-<span class="sd">    </span>
-<span class="sd">    **Parameters**</span>
-<span class="sd">    </span>
-<span class="sd">        **name:** Name of design item.</span>
-<span class="sd">        </span>
-<span class="sd">        **units:** Units of measure of design item.</span>
-<span class="sd">        </span>
-<span class="sd">        **func:** Should return design item given the Unit object.</span>
-<span class="sd">        </span>
-<span class="sd">    **Examples**</span>
-<span class="sd">    </span>
-<span class="sd">        :doc:`Unit decorators`</span>
-<span class="sd">    </span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">design_decorator</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_units</span><span class="p">:</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">_units</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">elif</span> <span class="s1">&#39;_units&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">:</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">_units</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_units</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">_units</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">units</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s1">&#39;_design_basis&#39;</span><span class="p">):</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">_design_basis</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">name</span><span class="p">,</span> <span class="n">func</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">_design_basis</span> <span class="o">=</span> <span class="p">[(</span><span class="n">name</span><span class="p">,</span> <span class="n">func</span><span class="p">)]</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">_design</span> <span class="o">=</span> <span class="n">_design</span>
-        <span class="k">return</span> <span class="bp">cls</span>
-    <span class="k">return</span> <span class="n">design_decorator</span></div>
-
+<span class="n">run_mixer</span> <span class="o">=</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="n">Stream</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">)</span>
+    
+    
 </pre></div>
 
            </div>

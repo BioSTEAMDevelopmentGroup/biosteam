@@ -34,7 +34,6 @@
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -104,7 +103,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -381,8 +380,8 @@ registered. The main flowsheet defaults to the ‘Default’ flowsheet:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bs</span>
-<span class="n">bs</span><span class="o">.</span><span class="n">find</span>
+<span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
+<span class="n">bst</span><span class="o">.</span><span class="n">find</span>
 </pre></div>
 </div>
 </div>
@@ -403,9 +402,9 @@ registered. The main flowsheet defaults to the ‘Default’ flowsheet:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bs</span><span class="o">.</span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">)</span>
-<span class="n">unit</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M0&#39;</span><span class="p">)</span>
-<span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;M0&#39;</span><span class="p">)</span>
+<span></span><span class="n">bs</span><span class="o">.</span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">)</span>
+<span class="n">unit</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M0&#39;</span><span class="p">)</span>
+<span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;M0&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -437,7 +436,7 @@ outs...
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;d1&#39;</span><span class="p">)</span>
+<span></span><span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;d1&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -458,8 +457,8 @@ Stream: d1  from  Mixer-M0
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bs</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M1&#39;</span><span class="p">)</span>
-<span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
+<span></span><span class="n">bst</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M1&#39;</span><span class="p">)</span>
+<span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -477,7 +476,7 @@ Stream: d1  from  Mixer-M0
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">stream</span>
+<span></span><span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">stream</span>
 </pre></div>
 </div>
 </div>
@@ -499,7 +498,7 @@ Stream: d1  from  Mixer-M0
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">unit</span>
+<span></span><span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">unit</span>
 </pre></div>
 </div>
 </div>
@@ -521,7 +520,7 @@ Stream: d1  from  Mixer-M0
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">system</span>
+<span></span><span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">system</span>
 </pre></div>
 </div>
 </div>
@@ -542,7 +541,7 @@ Stream: d1  from  Mixer-M0
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">unit</span><span class="o">.</span><span class="n">M0</span>
+<span></span><span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">unit</span><span class="o">.</span><span class="n">M0</span>
 </pre></div>
 </div>
 </div>
@@ -577,8 +576,8 @@ outs...
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">set_flowsheet</span><span class="p">(</span><span class="n">bs</span><span class="o">.</span><span class="n">Flowsheet</span><span class="p">(</span><span class="s1">&#39;New flowsheet&#39;</span><span class="p">))</span>
-<span class="n">bs</span><span class="o">.</span><span class="n">find</span>
+<span></span><span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">set_flowsheet</span><span class="p">(</span><span class="n">bs</span><span class="o">.</span><span class="n">Flowsheet</span><span class="p">(</span><span class="s1">&#39;New flowsheet&#39;</span><span class="p">))</span>
+<span class="n">bst</span><span class="o">.</span><span class="n">find</span>
 </pre></div>
 </div>
 </div>
@@ -600,7 +599,7 @@ outs...
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">unit</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M2&#39;</span><span class="p">)</span>
-<span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
+<span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -618,7 +617,7 @@ searching them would raise an error:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;M0&#39;</span><span class="p">)</span>
+<span></span><span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;M0&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -650,8 +649,8 @@ between flowsheets is easy:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">set_flowsheet</span><span class="p">(</span><span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">flowsheet</span><span class="p">[</span><span class="s1">&#39;Default&#39;</span><span class="p">])</span> <span class="c1"># Switch back to default flowsheet</span>
-<span class="n">bs</span><span class="o">.</span><span class="n">find</span>
+<span></span><span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">set_flowsheet</span><span class="p">(</span><span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">flowsheet</span><span class="p">[</span><span class="s1">&#39;Default&#39;</span><span class="p">])</span> <span class="c1"># Switch back to default flowsheet</span>
+<span class="n">bst</span><span class="o">.</span><span class="n">find</span>
 </pre></div>
 </div>
 </div>
@@ -674,7 +673,7 @@ and leaves it as the main flowsheet when you import it:</p>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">lipidcane</span> <span class="c1"># You must pip install lipidcane first</span>
-<span class="n">bs</span><span class="o">.</span><span class="n">find</span>
+<span class="n">bst</span><span class="o">.</span><span class="n">find</span>
 </pre></div>
 </div>
 </div>
@@ -694,7 +693,7 @@ and leaves it as the main flowsheet when you import it:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
+<span></span><span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>

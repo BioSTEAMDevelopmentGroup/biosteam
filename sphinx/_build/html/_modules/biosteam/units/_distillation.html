@@ -34,7 +34,6 @@
         <script type="text/javascript" src="../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -98,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -193,7 +192,7 @@
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">brentq</span>
 <span class="kn">from</span> <span class="nn">._hx</span> <span class="k">import</span> <span class="n">HXutility</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-
+<span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
 <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span>
 
 <span class="c1"># %% Equations</span>
@@ -282,6 +281,9 @@
 
 <span class="k">class</span> <span class="nc">Dist</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Abstract class for a column.&quot;&quot;&quot;</span>
+    <span class="c1"># Bare module factor</span>
+    <span class="n">_BM</span> <span class="o">=</span> <span class="mf">4.3</span>
+    
     <span class="c1"># Column material factor</span>
     <span class="n">_F_Mstr</span> <span class="o">=</span> <span class="s1">&#39;Carbon steel&#39;</span>
     <span class="n">_F_M</span> <span class="o">=</span> <span class="mi">1</span>
@@ -452,12 +454,11 @@
                 <span class="n">HNK_index</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;intermediate volatile specie, &#39;</span><span class="si">{species_list[i]}</span><span class="s2">&#39;, between light and heavy key, [&#39;</span><span class="si">{LK}</span><span class="s2">&#39;, &#39;</span><span class="si">{HK}</span><span class="s2">&#39;].&quot;</span><span class="p">)</span>
-    
-        <span class="bp">self</span><span class="o">.</span><span class="n">_update_composition_requirement</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;y_top&#39;</span><span class="p">],</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;x_bot&#39;</span><span class="p">])</span>
-    
-    <span class="k">def</span> <span class="nf">_update_composition_requirement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y_top</span><span class="p">,</span> <span class="n">x_bot</span><span class="p">):</span>
-        <span class="c1"># Set light and heavy key compositions at top and bottoms product</span>
-        <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span>
+
+        <span class="c1"># Update composition requirement and</span>
+        <span class="c1"># set light and heavy key compositions at top and bottoms product    </span>
+        <span class="n">y_top</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;y_top&#39;</span><span class="p">]</span>
+        <span class="n">x_bot</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;x_bot&#39;</span><span class="p">]</span>
         <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">array</span><span class="p">([</span><span class="n">y_top</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span><span class="n">y_top</span><span class="p">])</span>
         <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">array</span><span class="p">([</span><span class="n">x_bot</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span><span class="n">x_bot</span><span class="p">])</span>
     
@@ -467,8 +468,9 @@
         <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span>
 
         <span class="c1"># Get all important flow rates (both light and heavy keys and non-keys)</span>
-        <span class="n">LHK_index</span><span class="p">,</span> <span class="n">LNK_index</span><span class="p">,</span> <span class="n">HNK_index</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="p">(</span><span class="n">cached</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span>
-                                              <span class="p">(</span><span class="s1">&#39;LHK_index&#39;</span><span class="p">,</span> <span class="s1">&#39;LNK_index&#39;</span><span class="p">,</span> <span class="s1">&#39;HNK_index&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">))</span>
+        <span class="n">LHK_index</span> <span class="o">=</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;LHK_index&#39;</span><span class="p">]</span>
+        <span class="n">LNK_index</span> <span class="o">=</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;LNK_index&#39;</span><span class="p">]</span>
+        <span class="n">HNK_index</span> <span class="o">=</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;HNK_index&#39;</span><span class="p">]</span>
         <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol_in</span>
         <span class="n">LHK_mol</span> <span class="o">=</span> <span class="n">mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span>
         <span class="n">HNK_mol</span> <span class="o">=</span> <span class="n">mol</span><span class="p">[</span><span class="n">HNK_index</span><span class="p">]</span>
@@ -478,12 +480,11 @@
         <span class="n">light</span><span class="p">,</span> <span class="n">heavy</span> <span class="o">=</span> <span class="n">LHK_mol</span>
         <span class="n">LHK_molnet</span> <span class="o">=</span> <span class="n">light</span> <span class="o">+</span> <span class="n">heavy</span>
         <span class="n">zf</span> <span class="o">=</span> <span class="n">light</span><span class="o">/</span><span class="n">LHK_molnet</span>
-        <span class="n">y_top</span><span class="p">,</span> <span class="n">x_bot</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;y_top&#39;</span><span class="p">],</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;x_bot&#39;</span><span class="p">]</span>
-        <span class="n">split_frac</span> <span class="o">=</span> <span class="p">(</span><span class="n">zf</span><span class="o">-</span><span class="n">x_bot</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">y_top</span><span class="o">-</span><span class="n">x_bot</span><span class="p">)</span>
+        <span class="n">split_frac</span> <span class="o">=</span> <span class="p">(</span><span class="n">zf</span><span class="o">-</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;x_bot&#39;</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;y_top&#39;</span><span class="p">]</span><span class="o">-</span><span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;x_bot&#39;</span><span class="p">])</span>
         <span class="n">top_net</span> <span class="o">=</span> <span class="n">LHK_molnet</span><span class="o">*</span><span class="n">split_frac</span>
 
         <span class="c1"># Set output streams</span>
-        <span class="n">vap</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">top_net</span> <span class="o">*</span> <span class="n">y</span>
+        <span class="n">vap</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">top_net</span> <span class="o">*</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]</span>
         <span class="n">liq</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">LHK_mol</span> <span class="o">-</span> <span class="n">vap</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span>
         <span class="n">vap</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">LNK_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">LNK_mol</span>
         <span class="n">liq</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">HNK_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">HNK_mol</span>
@@ -500,10 +501,10 @@
 
         <span class="c1"># Get top and bottom compositions</span>
         <span class="n">vap_mol</span> <span class="o">=</span> <span class="n">vap</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">top_index</span><span class="p">]</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="n">vap_mol</span><span class="o">/</span><span class="nb">sum</span><span class="p">(</span><span class="n">vap_mol</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">vap_mol</span><span class="o">/</span><span class="n">vap_mol</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 
         <span class="n">liq_mol</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">bot_index</span><span class="p">]</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">liq_mol</span><span class="o">/</span><span class="nb">sum</span><span class="p">(</span><span class="n">liq_mol</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">liq_mol</span><span class="o">/</span><span class="n">liq_mol</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 
         <span class="c1"># Run top equilibrium to find temperature and composition of condensate</span>
         <span class="n">T</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">vap</span><span class="o">.</span><span class="n">_dew_point</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="p">(</span><span class="o">*</span><span class="n">vle_top</span><span class="p">,),</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">vap</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
@@ -549,7 +550,7 @@
             <span class="c1"># Go Right</span>
             <span class="n">xi</span> <span class="o">=</span> <span class="n">operating_line</span><span class="p">(</span><span class="n">yi</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">xi</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">xi</span> <span class="o">=</span> <span class="mf">0.9999999</span>
+                <span class="n">xi</span> <span class="o">=</span> <span class="n">x_limit</span>
             <span class="n">x_stairs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xi</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_plot_stages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -609,16 +610,17 @@
         <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_eq</span><span class="p">,</span> <span class="n">y_eq</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_cost_trays</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">N_T</span><span class="p">,</span> <span class="n">Di</span><span class="p">:</span><span class="s1">&#39;ft&#39;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return total cost of all trays.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Return total cost of all trays at a CE of 500.&quot;&quot;&quot;</span>
         <span class="c1"># Note: Can only use this function after running design method.</span>
-        <span class="n">C_BT</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_TrayBaseCost</span><span class="p">(</span><span class="n">Di</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">CEPCI</span><span class="p">)</span>
+        <span class="n">C_BT</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_TrayBaseCost</span><span class="p">(</span><span class="n">Di</span><span class="p">)</span>
         <span class="n">F_NT</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_NTrayFactor</span><span class="p">(</span><span class="n">N_T</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">N_T</span><span class="o">*</span><span class="n">F_NT</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_F_TT</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_F_TM</span><span class="p">(</span><span class="n">Di</span><span class="p">)</span><span class="o">*</span><span class="n">C_BT</span>
 
     <span class="k">def</span> <span class="nf">_cost_tower</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Di</span><span class="p">:</span><span class="s1">&#39;ft&#39;</span><span class="p">,</span> <span class="n">L</span><span class="p">:</span><span class="s1">&#39;ft&#39;</span><span class="p">,</span> <span class="n">W</span><span class="p">:</span><span class="s1">&#39;lb&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return cost of tower at a CE of 500.&quot;&quot;&quot;</span>
         <span class="n">C_V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_EmptyTowerCost</span><span class="p">(</span><span class="n">W</span><span class="p">)</span>
         <span class="n">C_PL</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_PlaformLadderCost</span><span class="p">(</span><span class="n">Di</span><span class="p">,</span> <span class="n">L</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_F_M</span><span class="o">*</span><span class="n">C_V</span> <span class="o">+</span> <span class="n">C_PL</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">CEPCI</span><span class="o">/</span><span class="mi">500</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_F_M</span><span class="o">*</span><span class="n">C_V</span> <span class="o">+</span> <span class="n">C_PL</span><span class="p">)</span>
     
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_calc_EmptyTowerCost</span><span class="p">(</span><span class="n">W</span><span class="p">):</span>
@@ -707,8 +709,12 @@
                 <span class="n">E</span> <span class="o">=</span> <span class="mf">0.85</span>
                 <span class="n">ts</span> <span class="o">=</span> <span class="n">Pd</span><span class="o">*</span><span class="n">Di</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">S</span><span class="o">*</span><span class="n">E</span><span class="o">-</span><span class="mf">1.2</span><span class="o">*</span><span class="n">Pd</span><span class="p">)</span>
         
+        <span class="c1"># Add corrosion allowence</span>
+        <span class="n">ts</span> <span class="o">+=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">8</span>
+        
         <span class="c1"># Minimum thickness for vessel rigidity may be larger</span>
-        <span class="n">ts_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyval</span><span class="p">(</span><span class="n">ts_min_p</span><span class="p">,</span> <span class="n">Di</span><span class="o">/</span><span class="mi">12</span><span class="p">)</span>
+        <span class="n">Di_ft</span> <span class="o">=</span> <span class="n">Di</span><span class="o">/</span><span class="mi">12</span>
+        <span class="n">ts_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">polyval</span><span class="p">(</span><span class="n">ts_min_p</span><span class="p">,</span> <span class="n">Di</span><span class="o">/</span><span class="mi">12</span><span class="p">)</span> <span class="k">if</span> <span class="n">Di_ft</span> <span class="o">&lt;</span> <span class="mi">4</span> <span class="k">else</span> <span class="mf">0.25</span>
         <span class="k">if</span> <span class="n">ts</span> <span class="o">&lt;</span> <span class="n">ts_min</span><span class="p">:</span>
             <span class="n">ts</span> <span class="o">=</span> <span class="n">ts_min</span>
         
@@ -717,8 +723,6 @@
         <span class="n">tw</span> <span class="o">=</span> <span class="mf">0.22</span><span class="o">*</span><span class="p">(</span><span class="n">Do</span> <span class="o">+</span> <span class="mi">18</span><span class="p">)</span><span class="o">*</span><span class="n">L</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="p">(</span><span class="n">S</span><span class="o">*</span><span class="n">Do</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
         <span class="n">tv</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">tw</span><span class="p">,</span> <span class="n">ts</span><span class="p">)</span>
         
-        <span class="c1"># Add corrosion allowence</span>
-        <span class="n">tv</span> <span class="o">+=</span> <span class="mi">1</span><span class="o">/</span><span class="mi">8</span>
         <span class="c1"># Vessels are fabricated from metal plates with small increments</span>
         <span class="k">if</span> <span class="n">tv</span> <span class="o">&lt;</span> <span class="mf">0.5</span><span class="p">:</span>
             <span class="n">tv</span> <span class="o">=</span> <span class="n">approx2step</span><span class="p">(</span><span class="n">tv</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">16</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="mi">16</span><span class="p">)</span>
@@ -729,16 +733,15 @@
         <span class="k">return</span> <span class="n">tv</span>
     
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_calc_TrayBaseCost</span><span class="p">(</span><span class="n">Di</span><span class="p">,</span> <span class="n">CE</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return C_BT, the base cost of a tray (USD).</span>
+    <span class="k">def</span> <span class="nf">_calc_TrayBaseCost</span><span class="p">(</span><span class="n">Di</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return C_BT, the base cost of a tray (USD) at a CE of 500.</span>
 <span class="sd">        </span>
 <span class="sd">        **Parameters**</span>
 <span class="sd">        </span>
 <span class="sd">            Di: Inner diameter (ft)</span>
-<span class="sd">            CE: Chemical Engineering Plant Cost Index</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">CE</span> <span class="o">*</span> <span class="mf">0.825397</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mf">0.1482</span><span class="o">*</span><span class="n">Di</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mf">412.6985</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mf">0.1482</span><span class="o">*</span><span class="n">Di</span><span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_calc_NTrayFactor</span><span class="p">(</span><span class="n">N_T</span><span class="p">):</span>
@@ -919,22 +922,21 @@
             <span class="n">boiler</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
         
     <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span>
-        <span class="n">Design</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
-        <span class="n">Cost</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
+        <span class="n">Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span>
+        <span class="n">F_CE</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">CE</span><span class="o">/</span><span class="mi">500</span>
         
         <span class="c1"># Cost trays assuming a partial condenser</span>
         <span class="n">N_T</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Actual stages&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
         <span class="n">Di</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Diameter&#39;</span><span class="p">]</span>
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Trays&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cost_trays</span><span class="p">(</span><span class="n">N_T</span><span class="p">,</span> <span class="n">Di</span><span class="p">)</span>
+        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Trays&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">F_CE</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_cost_trays</span><span class="p">(</span><span class="n">N_T</span><span class="p">,</span> <span class="n">Di</span><span class="p">)</span>
         
         <span class="c1"># Cost vessel assuming T &lt; 800 F</span>
         <span class="n">W</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Weight&#39;</span><span class="p">]</span> <span class="c1"># in lb</span>
         <span class="n">L</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Height&#39;</span><span class="p">]</span><span class="o">*</span><span class="mf">3.28</span> <span class="c1"># in ft</span>
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Tower&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cost_tower</span><span class="p">(</span><span class="n">Di</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">W</span><span class="p">)</span>
+        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Tower&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">F_CE</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_cost_tower</span><span class="p">(</span><span class="n">Di</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">W</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cost_components</span><span class="p">()</span>
         
-        <span class="bp">self</span><span class="o">.</span><span class="n">_cost_components</span><span class="p">(</span><span class="n">Cost</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Cost</span>
 
 <div class="viewcode-block" id="Distillation"><a class="viewcode-back" href="../../../Distillation.html#biosteam.units.Distillation">[docs]</a><span class="k">class</span> <span class="nc">Distillation</span><span class="p">(</span><span class="n">Dist</span><span class="p">):</span>
     <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Distillation&#39;</span>
@@ -990,11 +992,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_is_divided</span> <span class="o">=</span> <span class="n">is_divided</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units_divided</span> <span class="k">if</span> <span class="n">is_divided</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units_not_divided</span>
     
-    <span class="k">def</span> <span class="nf">_calc_Nstages</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;Nstages&#39;</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_calc_Nstages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a tuple with the actual number of stages for the rectifier and the stripper.&quot;&quot;&quot;</span>
         <span class="n">vap</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span>
-        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
         <span class="n">x_stages</span> <span class="o">=</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;x_stages&#39;</span><span class="p">]</span>
         <span class="n">y_stages</span> <span class="o">=</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;y_stages&#39;</span><span class="p">]</span>
         <span class="n">R</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Reflux&#39;</span><span class="p">]</span>
@@ -1043,7 +1045,7 @@
         <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span>
         <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span>
-        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
         <span class="n">bubble_point</span> <span class="o">=</span> <span class="n">bottoms</span><span class="o">.</span><span class="n">_bubble_point</span>
 
         <span class="c1"># Some important info</span>
@@ -1073,11 +1075,11 @@
         <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;feed_liqmol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">liq_mol</span>
         <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;feed_vapmol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vap_mol</span>
         <span class="n">LHK_mol</span> <span class="o">=</span> <span class="n">liq_mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span> <span class="o">+</span> <span class="n">vap_mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span>
-        <span class="n">LHK_molnet</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">LHK_mol</span><span class="p">)</span>
+        <span class="n">LHK_molnet</span> <span class="o">=</span> <span class="n">LHK_mol</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
         <span class="n">zf</span> <span class="o">=</span> <span class="n">LHK_mol</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="n">LHK_molnet</span>
         
         <span class="c1"># Get feed quality</span>
-        <span class="n">q</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">liq_mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">])</span><span class="o">/</span><span class="n">LHK_molnet</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">liq_mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">/</span><span class="n">LHK_molnet</span>
         
         <span class="c1"># Get R_min and the q_line </span>
         <span class="k">if</span> <span class="n">q</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -1175,15 +1177,12 @@
         <span class="n">F_LV</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_FlowParameter</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">rho_V</span><span class="p">,</span> <span class="n">rho_L</span><span class="p">)</span>
         <span class="n">C_sbf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_MaxCapacityParameter</span><span class="p">(</span><span class="n">TS</span><span class="p">,</span> <span class="n">F_LV</span><span class="p">)</span>
         <span class="n">sigma</span> <span class="o">=</span> <span class="mi">1000</span> <span class="o">*</span> <span class="n">bottoms</span><span class="o">.</span><span class="n">sigma</span> <span class="c1"># dyn/cm</span>
-        <span class="n">F_F</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_F_F</span>
-        <span class="n">A_ha</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_A_ha</span>
         <span class="n">U_f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_MaxVaporVelocity</span><span class="p">(</span><span class="n">C_sbf</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">rho_L</span><span class="p">,</span> <span class="n">rho_V</span><span class="p">,</span> <span class="n">F_F</span><span class="p">,</span> <span class="n">A_ha</span><span class="p">)</span>
         <span class="n">A_dn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_A_dn</span>
         <span class="k">if</span> <span class="n">A_dn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">A_dn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_DowncomerAreaRatio</span><span class="p">(</span><span class="n">F_LV</span><span class="p">)</span>
-        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_f</span>
         <span class="n">S_diameter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_Diameter</span><span class="p">(</span><span class="n">V_vol</span><span class="p">,</span> <span class="n">U_f</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">A_dn</span><span class="p">)</span>
-        <span class="n">Po</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;P&#39;</span><span class="p">]</span><span class="o">/</span><span class="mi">101325</span><span class="o">*</span><span class="mf">14.7</span>
+        <span class="n">Po</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;P&#39;</span><span class="p">]</span><span class="o">*</span><span class="mf">0.000145078</span> <span class="c1"># to psi</span>
         <span class="n">rho_M</span> <span class="o">=</span> <span class="n">rho_Mdict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_F_Mstr</span><span class="p">]</span>
         
         <span class="k">if</span> <span class="n">is_divided</span><span class="p">:</span>
@@ -1203,39 +1202,38 @@
             <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Diameter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Di</span> <span class="o">=</span> <span class="nb">max</span><span class="p">((</span><span class="n">R_diameter</span><span class="p">,</span> <span class="n">S_diameter</span><span class="p">))</span>
             <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Wall thickness&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_WallThickness</span><span class="p">(</span><span class="n">Po</span><span class="p">,</span> <span class="n">Di</span><span class="p">,</span> <span class="n">H</span><span class="p">)</span>
             <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Weight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_Weight</span><span class="p">(</span><span class="n">Di</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">tv</span><span class="p">,</span> <span class="n">rho_M</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Design</span>
         
     <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_divided</span><span class="p">:</span> <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
-        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
-        <span class="n">Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
+        <span class="n">Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span>
+        <span class="n">F_CE</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">CE</span><span class="o">/</span><span class="mi">500</span>
         
         <span class="c1"># Number of trays assuming a partial condenser</span>
         <span class="n">N_RT</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Rectifier stages&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
         <span class="n">Di_R</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Rectifier diameter&#39;</span><span class="p">]</span>
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Rectifier trays&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cost_trays</span><span class="p">(</span><span class="n">N_RT</span><span class="p">,</span> <span class="n">Di_R</span><span class="p">)</span>
+        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Rectifier trays&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">F_CE</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_cost_trays</span><span class="p">(</span><span class="n">N_RT</span><span class="p">,</span> <span class="n">Di_R</span><span class="p">)</span>
         <span class="n">N_ST</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Stripper stages&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span>
         <span class="n">Di_S</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Stripper diameter&#39;</span><span class="p">]</span>
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Stripper trays&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cost_trays</span><span class="p">(</span><span class="n">N_ST</span><span class="p">,</span> <span class="n">Di_S</span><span class="p">)</span>
+        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Stripper trays&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">F_CE</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_cost_trays</span><span class="p">(</span><span class="n">N_ST</span><span class="p">,</span> <span class="n">Di_S</span><span class="p">)</span>
         
         <span class="c1"># Cost vessel assuming T &lt; 800 F</span>
         <span class="n">W_R</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Rectifier weight&#39;</span><span class="p">]</span> <span class="c1"># in lb</span>
         <span class="n">H_R</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Rectifier height&#39;</span><span class="p">]</span><span class="o">*</span><span class="mf">3.28</span> <span class="c1"># in ft</span>
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Rectifier tower&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cost_tower</span><span class="p">(</span><span class="n">Di_R</span><span class="p">,</span> <span class="n">H_R</span><span class="p">,</span> <span class="n">W_R</span><span class="p">)</span>
+        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Rectifier tower&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">F_CE</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_cost_tower</span><span class="p">(</span><span class="n">Di_R</span><span class="p">,</span> <span class="n">H_R</span><span class="p">,</span> <span class="n">W_R</span><span class="p">)</span>
         <span class="n">W_S</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Stripper weight&#39;</span><span class="p">]</span> <span class="c1"># in lb</span>
         <span class="n">H_S</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Stripper height&#39;</span><span class="p">]</span><span class="o">*</span><span class="mf">3.28</span> <span class="c1"># in ft</span>
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Stripper tower&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cost_tower</span><span class="p">(</span><span class="n">Di_S</span><span class="p">,</span> <span class="n">H_S</span><span class="p">,</span> <span class="n">W_S</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_cost_components</span><span class="p">(</span><span class="n">Cost</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Cost</span>
+        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Stripper tower&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">F_CE</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_cost_tower</span><span class="p">(</span><span class="n">Di_S</span><span class="p">,</span> <span class="n">H_S</span><span class="p">,</span> <span class="n">W_S</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cost_components</span><span class="p">()</span>
     
-    <span class="k">def</span> <span class="nf">_cost_components</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Cost</span><span class="p">):</span> 
+    <span class="k">def</span> <span class="nf">_cost_components</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> 
         <span class="c1"># Cost condenser</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_calc_condenser</span><span class="p">()</span>
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Condenser&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_condenser</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">][</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span><span class="p">[</span><span class="s1">&#39;Condenser&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_condenser</span><span class="o">.</span><span class="n">_Cost</span><span class="p">[</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
         
         <span class="c1"># Cost boiler</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_calc_boiler</span><span class="p">()</span>
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Boiler&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_boiler</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">][</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span><span class="p">[</span><span class="s1">&#39;Boiler&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_boiler</span><span class="o">.</span><span class="n">_Cost</span><span class="p">[</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
         
     
 <div class="viewcode-block" id="Distillation.plot_stages"><a class="viewcode-back" href="../../../Distillation.html#biosteam.units.Distillation.plot_stages">[docs]</a>    <span class="k">def</span> <span class="nf">plot_stages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1245,7 +1243,7 @@
         
         <span class="c1"># Cached Data</span>
         <span class="n">vap</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
         <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span>
         <span class="n">x_stages</span> <span class="o">=</span> <span class="n">cached</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x_stages&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">x_stages</span><span class="p">:</span>
@@ -1299,7 +1297,7 @@
         
         <span class="c1"># Cached Data</span>
         <span class="n">vap</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
         <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span>
         <span class="n">x_stages</span> <span class="o">=</span> <span class="n">cached</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x_stages&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">x_stages</span><span class="p">:</span>
@@ -1326,7 +1324,7 @@
         <span class="sd">&quot;&quot;&quot;Return the actunal number of stages&quot;&quot;&quot;</span>
         <span class="n">vap</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span>
-        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
         <span class="n">x_stages</span> <span class="o">=</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;x_stages&#39;</span><span class="p">]</span>
         <span class="n">y_stages</span> <span class="o">=</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;y_stages&#39;</span><span class="p">]</span>
         <span class="n">LHK_index</span> <span class="o">=</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;LHK_index&#39;</span><span class="p">]</span>
@@ -1350,7 +1348,7 @@
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span>
-        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
         <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span>
         
         <span class="c1"># Some important info</span>
@@ -1415,12 +1413,11 @@
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Wall thickness&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tv</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_WallThickness</span><span class="p">(</span><span class="n">Po</span><span class="p">,</span> <span class="n">Di</span><span class="p">,</span> <span class="n">H</span><span class="p">)</span>
         <span class="n">rho_M</span> <span class="o">=</span> <span class="n">rho_Mdict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_F_Mstr</span><span class="p">]</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Weight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_Weight</span><span class="p">(</span><span class="n">Di</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">tv</span><span class="p">,</span> <span class="n">rho_M</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Design</span>
     
-    <span class="k">def</span> <span class="nf">_cost_components</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Cost</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_cost_components</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Cost boiler</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_calc_boiler</span><span class="p">()</span>
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Boiler&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_boiler</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">][</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span><span class="p">[</span><span class="s1">&#39;Boiler&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_boiler</span><span class="o">.</span><span class="n">_Cost</span><span class="p">[</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
 
     
 </pre></div>

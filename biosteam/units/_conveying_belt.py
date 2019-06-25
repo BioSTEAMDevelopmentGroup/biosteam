@@ -8,7 +8,7 @@ from .. import Unit
 from .decorators import cost
 from .metaclasses import static
 
-@cost('Flow rate', CE=567, cost=813, limit=500, exp=0.38)
+@cost('Flow rate', CE=567, cost=813, ub=500, n=0.38)
 class ConveyingBelt(Unit, metaclass=static):
     length = 40 #: ft
     height = 20 #: ft
@@ -19,11 +19,9 @@ class ConveyingBelt(Unit, metaclass=static):
     
     def _design(self):
         feed = self.ins[0]
-        Design = self._results['Design']
-        volnet = feed.volnet*35.315 # ft3/hr
+        self._Design['Flow rate'] = volnet = feed.volnet*35.315 # ft3/hr
         if volnet < self._minimum_flow:
             self._lb_warning('Flow rate', volnet, self._minimum_flow)
-        Design['Flow rate'] = volnet
         massnet = feed.massnet*0.0006124 #lb/s
         self._power_utility(0.00058*massnet**0.82*self.length + self.height*0.00182*massnet * 0.7457) # kW
         

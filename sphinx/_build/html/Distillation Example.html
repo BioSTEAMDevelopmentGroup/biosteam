@@ -34,7 +34,6 @@
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -114,7 +113,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -408,7 +407,7 @@ div.nboutput div.output_area.stderr {
 
 <span class="c1"># See all results</span>
 <span class="n">D1</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
-<span class="n">D1</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="s1">&#39;degC&#39;</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="s1">&#39;atm&#39;</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">D1</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="s1">&#39;degC&#39;</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="s1">&#39;atm&#39;</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -416,7 +415,8 @@ div.nboutput div.output_area.stderr {
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/Distillation_Example_2_0.svg" src="_images/Distillation_Example_2_0.svg" /></div>
+<img alt="_images/Distillation_Example_2_0.png" src="_images/Distillation_Example_2_0.png" />
+</div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
@@ -541,7 +541,7 @@ outs...
     <tr>
       <th>Rectifier stages</th>
       <td></td>
-      <td>12</td>
+      <td>6</td>
     </tr>
     <tr>
       <th>Stripper stages</th>
@@ -551,7 +551,7 @@ outs...
     <tr>
       <th>Rectifier height</th>
       <td>ft</td>
-      <td>30.2</td>
+      <td>21.4</td>
     </tr>
     <tr>
       <th>Stripper height</th>
@@ -571,28 +571,28 @@ outs...
     <tr>
       <th>Rectifier wall thickness</th>
       <td>in</td>
-      <td>0.438</td>
+      <td>0.312</td>
     </tr>
     <tr>
       <th>Stripper wall thickness</th>
       <td>in</td>
-      <td>0.438</td>
+      <td>0.312</td>
     </tr>
     <tr>
       <th>Rectifier weight</th>
       <td>lb</td>
-      <td>8.31e+03</td>
+      <td>4.37e+03</td>
     </tr>
     <tr>
       <th>Stripper weight</th>
       <td>lb</td>
-      <td>9.85e+03</td>
+      <td>7.01e+03</td>
     </tr>
     <tr>
       <th rowspan="6" valign="top">Cost</th>
       <th>Rectifier trays</th>
       <td>USD</td>
-      <td>1.41e+04</td>
+      <td>8.2e+03</td>
     </tr>
     <tr>
       <th>Stripper trays</th>
@@ -602,12 +602,12 @@ outs...
     <tr>
       <th>Rectifier tower</th>
       <td>USD</td>
-      <td>8.98e+04</td>
+      <td>6.42e+04</td>
     </tr>
     <tr>
       <th>Stripper tower</th>
       <td>USD</td>
-      <td>1.06e+05</td>
+      <td>9.43e+04</td>
     </tr>
     <tr>
       <th>Condenser</th>
@@ -623,7 +623,7 @@ outs...
       <th>Purchase cost</th>
       <th></th>
       <td>USD</td>
-      <td>2.81e+05</td>
+      <td>2.38e+05</td>
     </tr>
     <tr>
       <th>Utility cost</th>

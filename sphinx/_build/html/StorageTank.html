@@ -34,7 +34,6 @@
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -100,7 +99,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -229,12 +228,12 @@
 <span id="storagetank"></span><h1>StorageTank<a class="headerlink" href="#module-biosteam.units" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.units.StorageTank">
-<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">StorageTank</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_tank.html#StorageTank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.StorageTank" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">StorageTank</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_tank.html#StorageTank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.StorageTank" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a storage tank with volume based on residence time [1].</p>
-<div class="math notranslate nohighlight">
-\[\begin{split}V &amp;= \\tau Q \\\\
-C_{fob}^{2007} &amp;= 250000 + 94.2 V (2*10^3 &lt; V &lt; 50*10^3 m^3) \\\\\end{split}\]</div>
-<p><strong>References</strong></p>
+<div class="math">
+<p><img src="_images/math/8bbdcf9ce519fab2b352248f1d201f5aa96ae8cf.png" alt="V &amp;= \\tau Q \\\\
+C_{fob}^{2007} &amp;= 250000 + 94.2 V (2*10^3 &lt; V &lt; 50*10^3 m^3) \\\\"/></p>
+</div><p><strong>References</strong></p>
 <blockquote>
 <div>[1] Apostolakou, A. A., Kookos, I. K., Marazioti, C., &amp; Angelopoulos, K. C. (2009). Techno-economic analysis of a biodiesel production process from vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031. <a class="reference external" href="https://doi.org/10.1016/j.fuproc.2009.04.017">https://doi.org/10.1016/j.fuproc.2009.04.017</a></div></blockquote>
 <dl class="attribute">
@@ -260,6 +259,12 @@ C_{fob}^{2007} &amp;= 250000 + 94.2 V (2*10^3 &lt; V &lt; 50*10^3 m^3) \\\\\end{
 </dl>
 <p><strong>format:</strong> Format of file.</p>
 </div></blockquote>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.StorageTank.installation_cost">
+<code class="descname">installation_cost</code><a class="headerlink" href="#biosteam.units.StorageTank.installation_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Installation cost (USD).</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -289,7 +294,7 @@ C_{fob}^{2007} &amp;= 250000 + 94.2 V (2*10^3 &lt; V &lt; 50*10^3 m^3) \\\\\end{
 <dl class="method">
 <dt id="biosteam.units.StorageTank.simulate">
 <code class="descname">simulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.StorageTank.simulate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run rigourous simulation and determine all design requirements.</p>
+<dd><p>Run rigourous simulation and determine all design requirements and costs.</p>
 </dd></dl>
 
 <dl class="attribute">

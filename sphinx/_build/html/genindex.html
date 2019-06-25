@@ -35,7 +35,6 @@
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -99,7 +98,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -262,6 +261,8 @@
 </li>
       <li><a href="Block.html#biosteam.evaluation.Block">Block (class in biosteam.evaluation)</a>
 </li>
+      <li><a href="Unit.html#biosteam.Unit.BM">BM (biosteam.Unit attribute)</a>
+</li>
       <li><a href="facilities.html#biosteam.units.facilities.BoilerTurbogenerator">BoilerTurbogenerator (class in biosteam.units.facilities)</a>
 </li>
       <li><a href="Stream.html#biosteam.Stream.bubble_point">bubble_point() (biosteam.Stream method)</a>
@@ -273,8 +274,6 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="Stream.html#biosteam.Stream.C">C (biosteam.Stream attribute)</a>
-</li>
-      <li><a href="TEA.html#biosteam.TEA.cashflow">cashflow (biosteam.TEA attribute)</a>
 </li>
       <li><a href="Centrifuge_LLE.html#biosteam.units.Centrifuge_LLE">Centrifuge_LLE (class in biosteam.units)</a>
 </li>
@@ -298,8 +297,6 @@
 </li>
       <li><a href="decorators.html#biosteam.units.decorators.cost">cost() (in module biosteam.units.decorators)</a>
 </li>
-      <li><a href="TEA.html#biosteam.TEA.costs">costs (biosteam.TEA attribute)</a>
-</li>
       <li><a href="Chemical.html#biosteam.compounds.Chemical.Cp">Cp (biosteam.compounds.Chemical attribute)</a>
 
       <ul>
@@ -317,8 +314,6 @@
       <li><a href="System.html#biosteam.System.debug">debug() (biosteam.System method)</a>
 </li>
       <li><a href="Stream.html#biosteam.Stream.derivative">derivative() (biosteam.Stream method)</a>
-</li>
-      <li><a href="decorators.html#biosteam.units.decorators.design">design() (in module biosteam.units.decorators)</a>
 </li>
       <li><a href="Stream.html#biosteam.Stream.dew_point">dew_point() (biosteam.Stream method)</a>
 </li>
@@ -414,10 +409,12 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="Stream.html#biosteam.Stream.G">G (biosteam.Stream attribute)</a>
 </li>
-      <li><a href="Stream.html#biosteam.Stream.getflow">getflow() (biosteam.Stream method)</a>
+      <li><a href="TEA.html#biosteam.TEA.get_cashflow">get_cashflow() (biosteam.TEA method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="Stream.html#biosteam.Stream.getflow">getflow() (biosteam.Stream method)</a>
+</li>
       <li><a href="Species.html#biosteam.Species.getprops">getprops() (biosteam.Species method)</a>
 </li>
       <li><a href="designtools.html#biosteam.units.designtools.GTable">GTable() (in module biosteam.units.designtools)</a>
@@ -481,6 +478,16 @@
       <li><a href="Stream.html#biosteam.Stream.indices">indices() (biosteam.Stream method)</a>
 </li>
       <li><a href="MassBalance.html#biosteam.units.MassBalance.ins">ins (biosteam.units.MassBalance attribute)</a>
+</li>
+      <li><a href="Unit.html#biosteam.Unit.installation_cost">installation_cost (biosteam.Unit attribute)</a>
+
+      <ul>
+        <li><a href="Distillation.html#biosteam.units.Distillation.installation_cost">(biosteam.units.Distillation attribute)</a>
+</li>
+        <li><a href="StorageTank.html#biosteam.units.StorageTank.installation_cost">(biosteam.units.StorageTank attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="TEA.html#biosteam.TEA.intallation_cost">intallation_cost (biosteam.TEA attribute)</a>
 </li>
       <li><a href="Distillation.html#biosteam.units.Distillation.is_divided">is_divided (biosteam.units.Distillation attribute)</a>
 </li>
@@ -606,6 +613,8 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="metaclasses.html#biosteam.units.metaclasses.mixer">mixer (class in biosteam.units.metaclasses)</a>
+</li>
       <li><a href="MixTank.html#biosteam.units.MixTank">MixTank (class in biosteam.units)</a>
 </li>
       <li><a href="Model.html#biosteam.evaluation.Model">Model (class in biosteam.evaluation)</a>
@@ -634,15 +643,13 @@
 </li>
       <li><a href="MultiEffectEvaporator.html#biosteam.units.MultiEffectEvaporator">MultiEffectEvaporator (class in biosteam.units)</a>
 </li>
-      <li><a href="Stream.html#biosteam.Stream.MW">MW (biosteam.Stream attribute)</a>
-</li>
   </ul></td>
 </tr></table>
 
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="decorators.html#biosteam.units.decorators.N">N() (in module biosteam.units.decorators)</a>
+      <li><a href="Fermentation.html#biosteam.units.Fermentation.N">N (biosteam.units.Fermentation attribute)</a>
 </li>
       <li><a href="System.html#biosteam.System.network">network (biosteam.System attribute)</a>
 </li>
@@ -712,8 +719,6 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="facilities.html#biosteam.units.facilities.CoolingTowerWithPowerDemand.power_consumption">power_consumption (biosteam.units.facilities.CoolingTowerWithPowerDemand attribute)</a>
-</li>
       <li><a href="PowerUtility.html#biosteam.PowerUtility">PowerUtility (class in biosteam)</a>
 </li>
       <li><a href="Stream.html#biosteam.Stream.Pr">Pr (biosteam.Stream attribute)</a>
@@ -728,13 +733,15 @@
 </li>
       <li><a href="System.html#biosteam.System.products">products (biosteam.System attribute)</a>
 </li>
-      <li><a href="Stream.html#biosteam.Stream.proxy">proxy() (biosteam.Stream class method)</a>
+      <li><a href="Stream.html#biosteam.Stream.proxy">proxy() (biosteam.Stream static method)</a>
 </li>
       <li><a href="Pump.html#biosteam.units.Pump">Pump (class in biosteam.units)</a>
 </li>
-      <li><a href="Unit.html#biosteam.Unit.purchase_cost">purchase_cost (biosteam.Unit attribute)</a>
+      <li><a href="TEA.html#biosteam.TEA.purchase_cost">purchase_cost (biosteam.TEA attribute)</a>
 
       <ul>
+        <li><a href="Unit.html#biosteam.Unit.purchase_cost">(biosteam.Unit attribute)</a>
+</li>
         <li><a href="Distillation.html#biosteam.units.Distillation.purchase_cost">(biosteam.units.Distillation attribute)</a>
 </li>
         <li><a href="MixTank.html#biosteam.units.MixTank.purchase_cost">(biosteam.units.MixTank attribute)</a>
@@ -861,7 +868,11 @@
 </li>
         <li><a href="MixTank.html#biosteam.units.MixTank.simulate">(biosteam.units.MixTank method)</a>
 </li>
+        <li><a href="Pump.html#biosteam.units.Pump.simulate">(biosteam.units.Pump method)</a>
+</li>
         <li><a href="StorageTank.html#biosteam.units.StorageTank.simulate">(biosteam.units.StorageTank method)</a>
+</li>
+        <li><a href="facilities.html#biosteam.units.facilities.CoolingTower.simulate">(biosteam.units.facilities.CoolingTower method)</a>
 </li>
       </ul></li>
       <li><a href="Stream.html#biosteam.Stream.sink">sink (biosteam.Stream attribute)</a>
@@ -907,6 +918,8 @@
       <li><a href="Distillation.html#biosteam.units.Distillation.stage_efficiency">stage_efficiency (biosteam.units.Distillation attribute)</a>
 </li>
       <li><a href="State.html#biosteam.evaluation.State">State (class in biosteam.evaluation)</a>
+</li>
+      <li><a href="metaclasses.html#biosteam.units.metaclasses.static">static (class in biosteam.units.metaclasses)</a>
 </li>
       <li><a href="StorageTank.html#biosteam.units.StorageTank">StorageTank (class in biosteam.units)</a>
 </li>
@@ -990,9 +1003,11 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="Unit.html#biosteam.Unit.utility_cost">utility_cost (biosteam.Unit attribute)</a>
+      <li><a href="TEA.html#biosteam.TEA.utility_cost">utility_cost (biosteam.TEA attribute)</a>
 
       <ul>
+        <li><a href="Unit.html#biosteam.Unit.utility_cost">(biosteam.Unit attribute)</a>
+</li>
         <li><a href="Distillation.html#biosteam.units.Distillation.utility_cost">(biosteam.units.Distillation attribute)</a>
 </li>
         <li><a href="MixTank.html#biosteam.units.MixTank.utility_cost">(biosteam.units.MixTank attribute)</a>

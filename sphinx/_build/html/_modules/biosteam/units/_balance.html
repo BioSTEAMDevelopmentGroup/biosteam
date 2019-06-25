@@ -34,7 +34,6 @@
         <script type="text/javascript" src="../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -98,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -224,8 +223,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_ins</span><span class="p">(</span><span class="n">ins</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_outs</span><span class="p">(</span><span class="n">outs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span><span class="p">[</span><span class="s1">&#39;spindex&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Stream</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_IDs</span><span class="o">.</span><span class="n">index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_spindex</span> <span class="o">=</span> <span class="n">Stream</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_IDs</span><span class="o">.</span><span class="n">index</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;species&#39;</span><span class="p">:</span> <span class="n">species</span><span class="p">,</span>
                         <span class="s1">&#39;streams&#39;</span><span class="p">:</span> <span class="n">streams</span><span class="p">,</span>
                         <span class="s1">&#39;exact&#39;</span><span class="p">:</span> <span class="n">exact</span><span class="p">,</span>
@@ -261,7 +259,6 @@
     <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">exact</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="s1">&#39;exact&#39;</span><span class="p">]</span>
         <span class="n">balance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="s1">&#39;balance&#39;</span><span class="p">]</span>
-        <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span>
         
         <span class="c1"># Make sure balance type is valid</span>
         <span class="k">if</span> <span class="n">balance</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;flow&#39;</span><span class="p">,</span> <span class="s1">&#39;fraction&#39;</span><span class="p">):</span>
@@ -280,19 +277,18 @@
             <span class="n">solver</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span>
 
         <span class="c1"># Cach indices for species and solver</span>
-        <span class="n">spindex</span> <span class="o">=</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;spindex&#39;</span><span class="p">]</span>
-        <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;bal_index&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">spindex</span><span class="p">(</span><span class="n">specie</span><span class="p">)</span> <span class="k">for</span> <span class="n">specie</span> <span class="ow">in</span> <span class="n">species_IDs</span><span class="p">]</span>
-        <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;linalg_solver&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">solver</span>
+        <span class="n">spindex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spindex</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bal_index</span> <span class="o">=</span> <span class="p">[</span><span class="n">spindex</span><span class="p">(</span><span class="n">specie</span><span class="p">)</span> <span class="k">for</span> <span class="n">specie</span> <span class="ow">in</span> <span class="n">species_IDs</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_linalg_solver</span> <span class="o">=</span> <span class="n">solver</span>
 
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Solve mass balance by iteration.&quot;&quot;&quot;</span>
         <span class="c1"># SOLVING BY ITERATION TAKES 15 LOOPS FOR 2 STREAMS</span>
         <span class="c1"># SOLVING BY LEAST-SQUARES TAKES 40 LOOPS</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span>
-        <span class="n">cached</span><span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span>
         <span class="n">stream_index</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;streams&#39;</span><span class="p">]</span>
         <span class="n">balance</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;balance&#39;</span><span class="p">]</span>
-        <span class="n">solver</span> <span class="o">=</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;linalg_solver&#39;</span><span class="p">]</span>
+        <span class="n">solver</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_linalg_solver</span>
 
         <span class="c1"># Set up constant and variable streams</span>
         <span class="n">vary</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># Streams to vary in mass balance</span>
@@ -304,7 +300,7 @@
                 <span class="n">constant</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
 
         <span class="c1"># Species indices used in mass balace</span>
-        <span class="n">index</span> <span class="o">=</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;bal_index&#39;</span><span class="p">]</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bal_index</span>
 
         <span class="k">if</span> <span class="n">balance</span> <span class="o">==</span> <span class="s1">&#39;flow&#39;</span><span class="p">:</span>
             <span class="c1"># Perform the following calculation: Ax = b = f - g</span>

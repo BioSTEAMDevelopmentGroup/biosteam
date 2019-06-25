@@ -34,7 +34,6 @@
         <script type="text/javascript" src="../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -98,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -194,8 +193,7 @@
 <span class="kn">from</span> <span class="nn">._unit</span> <span class="k">import</span> <span class="n">Unit</span>
 <span class="kn">from</span> <span class="nn">._report</span> <span class="k">import</span> <span class="n">save_report</span>
 <span class="kn">from</span> <span class="nn">._utils</span> <span class="k">import</span> <span class="n">color_scheme</span><span class="p">,</span> <span class="n">missing_stream</span><span class="p">,</span> <span class="n">strtuple</span><span class="p">,</span> <span class="n">function</span>
-<span class="kn">from</span> <span class="nn">warnings</span> <span class="k">import</span> <span class="n">warn</span>
-<span class="kn">import</span> <span class="nn">biosteam</span>
+<span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;System&#39;</span><span class="p">,)</span>
 
@@ -217,7 +215,7 @@
         <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;stream&#39;</span><span class="p">,</span> <span class="s1">&#39;unit&#39;</span><span class="p">,</span> <span class="s1">&#39;system&#39;</span><span class="p">):</span>
             <span class="n">dct</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">find</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span><span class="o">.</span><span class="vm">__dict__</span>
             <span class="n">lcs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">i</span><span class="p">:</span><span class="n">j</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">dct</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span>
-        <span class="n">lcs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">attr</span><span class="p">:</span><span class="nb">getattr</span><span class="p">(</span><span class="n">biosteam</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span> <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">biosteam</span><span class="o">.</span><span class="n">__all__</span><span class="p">})</span>
+        <span class="n">lcs</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">attr</span><span class="p">:</span><span class="nb">getattr</span><span class="p">(</span><span class="n">bst</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span> <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">bst</span><span class="o">.</span><span class="n">__all__</span><span class="p">})</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">out</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="p">{},</span> <span class="n">lcs</span><span class="p">)</span>            
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
@@ -231,7 +229,7 @@
             <span class="c1"># If successful, continue evaluating</span>
             <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">pass</span>
             <span class="k">elif</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="s1">&#39;_ipython_display_&#39;</span><span class="p">)</span>
-                  <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">out</span><span class="p">),</span> <span class="nb">type</span><span class="p">)):</span> <span class="nb">print</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+                  <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="nb">type</span><span class="p">)):</span> <span class="nb">print</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span> <span class="n">out</span><span class="o">.</span><span class="n">_ipython_display_</span><span class="p">()</span>
                 
             <span class="n">command</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;&gt;&gt;&gt; &quot;</span><span class="p">)</span>
@@ -317,7 +315,7 @@
     <span class="c1"># [dict] Cached downstream systems by (system, unit, with_facilities) keys</span>
     <span class="n">_cached_downstream_systems</span> <span class="o">=</span> <span class="p">{}</span> 
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">network</span><span class="p">,</span> <span class="n">recycle</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">facilities</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">network</span><span class="p">,</span> <span class="n">recycle</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">facilities</span><span class="o">=</span><span class="p">()):</span>
         <span class="c1">#: [dict] Current molar flow and temperature errors and number of iterations made</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_solver_error</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;mol_error&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
                               <span class="s1">&#39;T_error&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
@@ -332,6 +330,9 @@
         
         <span class="c1">#: list[Unit] Network of only unit operations</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_unitnetwork</span> <span class="o">=</span> <span class="n">units</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="c1">#: tuple[Unit, function and/or System] A network that is run element by element until the recycle converges.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">network</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">network</span><span class="p">)</span>
         <span class="n">inst</span> <span class="o">=</span> <span class="nb">isinstance</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">network</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">units</span><span class="p">:</span> <span class="k">continue</span>
@@ -345,16 +346,10 @@
                 <span class="n">streams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">streams</span><span class="p">)</span>
         <span class="n">streams</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="n">missing_stream</span><span class="p">)</span> 
         
-        <span class="c1">#: tuple[Unit, function and/or System] A network that is run element by element until the recycle converges.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">network</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">network</span><span class="p">)</span>
-        
         <span class="c1"># link all unit operations with linked streams</span>
+        <span class="n">has</span> <span class="o">=</span> <span class="nb">hasattr</span>
         <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">u</span><span class="o">.</span><span class="n">_linkedstreams</span><span class="p">:</span> <span class="n">u</span><span class="o">.</span><span class="n">_link_streams</span><span class="p">()</span> 
-            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">Error</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">missing_stream</span> <span class="ow">in</span> <span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">_ins</span> <span class="o">+</span> <span class="n">u</span><span class="o">.</span><span class="n">_outs</span><span class="p">):</span>
-                    <span class="n">warn</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;missing stream object in {repr(u)}&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">has</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="s1">&#39;_link_streams&#39;</span><span class="p">):</span> <span class="n">u</span><span class="o">.</span><span class="n">_link_streams</span><span class="p">()</span>
         
         <span class="c1">#: set[Unit] All units within the system</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="n">units</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
@@ -364,27 +359,19 @@
         
         <span class="c1">#: set[Unit] All units that have costs.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_costunits</span> <span class="o">=</span> <span class="n">costunits</span> <span class="o">=</span> <span class="n">costunits</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">facilities</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">facilities</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">inst</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">Unit</span><span class="p">):</span>
-                    <span class="n">units</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-                    <span class="n">streams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">_ins</span> <span class="o">+</span> <span class="n">i</span><span class="o">.</span><span class="n">_outs</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">_has_cost</span><span class="p">:</span> <span class="n">costunits</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-                <span class="k">elif</span> <span class="n">inst</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">System</span><span class="p">):</span>
-                    <span class="n">units</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">units</span><span class="p">)</span>
-                    <span class="n">streams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">streams</span><span class="p">)</span>
-                    <span class="n">subsystems</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-                    <span class="n">costunits</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">_costunits</span><span class="p">)</span>
-            <span class="c1">#: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the network simulation.</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">facilities</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">facilities</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">facilities</span> <span class="o">=</span> <span class="p">()</span>
         
-        <span class="n">has</span> <span class="o">=</span> <span class="nb">hasattr</span>
-        <span class="n">upstream_connections</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">streams</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">has</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="s1">&#39;_downstream_connection&#39;</span><span class="p">):</span>
-                <span class="n">upstream_connections</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-        <span class="n">streams</span><span class="o">.</span><span class="n">difference_update</span><span class="p">(</span><span class="n">upstream_connections</span><span class="p">)</span>
+        <span class="c1">#: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the network simulation.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">facilities</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">facilities</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">facilities</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">inst</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">Unit</span><span class="p">):</span>
+                <span class="n">units</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="n">streams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">_ins</span> <span class="o">+</span> <span class="n">i</span><span class="o">.</span><span class="n">_outs</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">_has_cost</span><span class="p">:</span> <span class="n">costunits</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">inst</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">System</span><span class="p">):</span>
+                <span class="n">units</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">units</span><span class="p">)</span>
+                <span class="n">streams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">streams</span><span class="p">)</span>
+                <span class="n">subsystems</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="n">costunits</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">_costunits</span><span class="p">)</span>
         
         <span class="c1">#: set[Stream] All feed streams in the system.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">feeds</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="nb">filter</span><span class="p">(</span><span class="n">_isfeed</span><span class="p">,</span> <span class="n">streams</span><span class="p">))</span>
@@ -711,7 +698,7 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_converge_method</span><span class="p">()</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_recycle</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_recycle</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
-            <span class="k">raise</span> <span class="n">e</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_converge_method</span><span class="p">()</span>
 
 <div class="viewcode-block" id="System.set_spec"><a class="viewcode-back" href="../../System.html#biosteam.System.set_spec">[docs]</a>    <span class="k">def</span> <span class="nf">set_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">getter</span><span class="p">,</span> <span class="n">setter</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="n">newton</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Wrap a solver around the converge method.</span>

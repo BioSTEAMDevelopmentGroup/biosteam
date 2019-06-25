@@ -34,7 +34,6 @@
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -100,7 +99,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -213,13 +212,13 @@
 <span id="model"></span><h1>Model<a class="headerlink" href="#module-biosteam.evaluation" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.evaluation.Model">
-<em class="property">class </em><code class="descclassname">biosteam.evaluation.</code><code class="descname">Model</code><span class="sig-paren">(</span><em>ID</em>, <em>system</em>, <em>metric</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/evaluation/_model.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Model" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.evaluation.</code><code class="descname">Model</code><span class="sig-paren">(</span><em>system</em>, <em>skip=False</em>, <em>**metrics</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/evaluation/_model.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Model" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Model object that allows for evaluation over a sample space.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
-<div><p><strong>ID:</strong> [str] ID of metric</p>
-<p><strong>system:</strong> [System] Should reflect the model state.</p>
-<p><strong>metric:</strong> [function] Should return metric value.</p>
+<div><p><strong>system:</strong> [System] Should reflect the model state.</p>
+<p><strong>skip:</strong> [bool] If True, skip simulation for repeated states</p>
+<p><strong>**metrics:</strong> dict[str: function] ID-metric pairs.</p>
 </div></blockquote>
 <p><strong>Examples</strong></p>
 <blockquote>
@@ -232,7 +231,7 @@
 
 <dl class="method">
 <dt id="biosteam.evaluation.Model.load_samples">
-<code class="descname">load_samples</code><span class="sig-paren">(</span><em>samples</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/evaluation/_model.html#Model.load_samples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Model.load_samples" title="Permalink to this definition">¶</a></dt>
+<code class="descname">load_samples</code><span class="sig-paren">(</span><em>samples</em>, <em>has_repeats=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/evaluation/_model.html#Model.load_samples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Model.load_samples" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load samples for evaluation</p>
 </dd></dl>
 
@@ -245,7 +244,7 @@
 <dl class="method">
 <dt id="biosteam.evaluation.Model.__call__">
 <code class="descname">__call__</code><span class="sig-paren">(</span><em>sample</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/evaluation/_model.html#Model.__call__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Model.__call__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Update state given sample of parameters.</p>
+<dd><p>Return dictionary of metric values.</p>
 </dd></dl>
 
 <dl class="method">

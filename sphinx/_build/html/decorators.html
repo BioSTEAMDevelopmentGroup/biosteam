@@ -34,7 +34,6 @@
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -100,7 +99,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -231,54 +230,29 @@
 <p>&#64;author: yoelr</p>
 <dl class="function">
 <dt id="biosteam.units.decorators.cost">
-<code class="descclassname">biosteam.units.decorators.</code><code class="descname">cost</code><span class="sig-paren">(</span><em>basis</em>, <em>name=None</em>, <em>*</em>, <em>cost</em>, <em>exp</em>, <em>CE</em>, <em>S=1</em>, <em>kW=0</em>, <em>N=1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/decorators/_cost.html#cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.decorators.cost" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add item purchase cost based on exponential scale up:</p>
-<p><span class="math notranslate nohighlight">\(C_{f.o.b.} = (N)(CE)(cost)(\frac{basis}{S})^{exp}\)</span></p>
-<p><span class="math notranslate nohighlight">\(Electricity\ rate = (N)(kW)(\frac{basis}{S})\)</span></p>
+<code class="descclassname">biosteam.units.decorators.</code><code class="descname">cost</code><span class="sig-paren">(</span><em>basis</em>, <em>ID=None</em>, <em>*</em>, <em>CE</em>, <em>cost</em>, <em>n</em>, <em>S=1</em>, <em>ub=0</em>, <em>kW=0</em>, <em>BM=1</em>, <em>units=None</em>, <em>fsize=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/decorators/_cost.html#cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.decorators.cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add item (free-on-board) purchase cost based on exponential scale up:</p>
+<p><img class="math" src="_images/math/330f4f2f9f5d3d57d6f6943aca786a07af6ed17c.png" alt="C_{f.o.b.} = N \cdot CE \cdot cost \big(\frac{basis}{S}\big)^{exp}"/></p>
+<p><img class="math" src="_images/math/698243d070eaeebcad94d29ef1f1467322776a7c.png" alt="Electricity\ rate = N \cdot kW \big(\frac{basis}{S}\big)"/></p>
+<p>Where <cite>N</cite> corresponds to the minimum number of parallel units given the size limit, <cite>lim</cite>:</p>
+<p>$N = ceil big( frac{basis}{lim} big)$</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
-<div><p><strong>basis:</strong> Name of Design item used for scaling.</p>
-<p><strong>name:</strong> Name of item.</p>
-<p><strong>cost:</strong> Cost of item.</p>
-<p><strong>exp:</strong> Exponential factor.</p>
+<div><p><strong>basis:</strong> Name of size parameter used for scaling.</p>
+<p><strong>ID:</strong> Name of purchase item.</p>
 <p><strong>CE:</strong> Chemical engineering plant cost index.</p>
+<p><strong>cost:</strong> Purchase cost of item.</p>
+<p><strong>n:</strong> Exponential factor.</p>
 <p><strong>S:</strong> Size.</p>
+<p><strong>ub:</strong> Size limit.</p>
 <p><strong>kW:</strong> Electricity rate.</p>
-<p><strong>N:</strong> Number of items or name of Design item that represents N.</p>
+<p><strong>BM:</strong> Bare module factor (installation factor).</p>
+<p><strong>units:</strong> Units of measure.</p>
+<p><strong>fsize:</strong> Function that accepts a Unit object argument and returns the size parameter. If None, defaults to function predefined for given name and units of measure.</p>
 </div></blockquote>
 <p><strong>Examples</strong></p>
 <blockquote>
-<div><a class="reference internal" href="Unit decorators.html"><span class="doc">Unit decorators</span></a></div></blockquote>
-</dd></dl>
-
-<dl class="function">
-<dt id="biosteam.units.decorators.design">
-<code class="descclassname">biosteam.units.decorators.</code><code class="descname">design</code><span class="sig-paren">(</span><em>name</em>, <em>units</em>, <em>func</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/decorators/_design.html#design"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.decorators.design" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add design item.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><p><strong>name:</strong> Name of design item.</p>
-<p><strong>units:</strong> Units of measure of design item.</p>
-<p><strong>func:</strong> Should return design item given the Unit object.</p>
-</div></blockquote>
-<p><strong>Examples</strong></p>
-<blockquote>
-<div><a class="reference internal" href="Unit decorators.html"><span class="doc">Unit decorators</span></a></div></blockquote>
-</dd></dl>
-
-<dl class="function">
-<dt id="biosteam.units.decorators.N">
-<code class="descclassname">biosteam.units.decorators.</code><code class="descname">N</code><span class="sig-paren">(</span><em>basis</em>, <em>name='N'</em>, <em>*</em>, <em>limit</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/decorators/_N.html#N"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.decorators.N" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add design item for number of parallel unit items based on basis limit.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><p><strong>basis:</strong> Name of Design item used for scaling.</p>
-<p><strong>name:</strong> Name of item.</p>
-<p><strong>limit:</strong> Maximum value of basis.</p>
-</div></blockquote>
-<p><strong>Examples</strong></p>
-<blockquote>
-<div><a class="reference internal" href="Unit decorators.html"><span class="doc">Unit decorators</span></a></div></blockquote>
+<div><a class="reference internal" href="Unit metaclasses and decorators.html"><span class="doc">Unit metaclasses and decorators</span></a></div></blockquote>
 </dd></dl>
 
 </div>

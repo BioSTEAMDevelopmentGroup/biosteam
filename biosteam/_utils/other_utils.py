@@ -24,8 +24,7 @@ def checkbounds(x, bounds):
 def approx2step(val, x0, dx):
     """Approximate value, val, to closest increment/step, dx, starting from x0."""
     while True:
-        if val < x0:
-            break
+        if x0 > val: break
         x0 += dx
     return x0
 

@@ -34,7 +34,6 @@
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -111,7 +110,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -408,7 +407,7 @@ div.nboutput div.output_area.stderr {
 
 <span class="c1"># See all results</span>
 <span class="n">C1</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
-<span class="n">C1</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="s1">&#39;degC&#39;</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="s1">&#39;atm&#39;</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">C1</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="s1">&#39;degC&#39;</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="s1">&#39;atm&#39;</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -416,8 +415,7 @@ div.nboutput div.output_area.stderr {
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/Centrifuge_LLE_Example_1_0.png" src="_images/Centrifuge_LLE_Example_1_0.png" />
-</div>
+<img alt="_images/Centrifuge_LLE_Example_1_0.svg" src="_images/Centrifuge_LLE_Example_1_0.svg" /></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
@@ -426,7 +424,7 @@ div.nboutput div.output_area.stderr {
 <div class="highlight"><pre>
 Centrifuge_LLE: C1
 ins...
-[0] d105
+[0] d106
     phase: &#39;l&#39;, T: 60 degC, P: 1 atm
     flow: Lipid      0.0114
           Methanol   0.58
@@ -502,10 +500,15 @@ outs...
       <td>3.09</td>
     </tr>
     <tr>
-      <th>Design</th>
+      <th rowspan="2" valign="top">Design</th>
       <th>Flow rate</th>
       <td>m^3/hr</td>
       <td>13</td>
+    </tr>
+    <tr>
+      <th># Liquids centrifuge</th>
+      <td></td>
+      <td>1</td>
     </tr>
     <tr>
       <th>Cost</th>
@@ -514,10 +517,10 @@ outs...
       <td>1.32e+05</td>
     </tr>
     <tr>
-      <th>Purchase cost</th>
+      <th>Installation cost</th>
       <th></th>
       <td>USD</td>
-      <td>1.32e+05</td>
+      <td>3.96e+05</td>
     </tr>
     <tr>
       <th>Utility cost</th>

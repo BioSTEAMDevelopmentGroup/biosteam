@@ -34,8 +34,8 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "import biosteam as bs\n",
-    "bs.MixedStream.species = bs.Species('Water', 'Ethanol')"
+    "import biosteam as bst\n",
+    "bst.MixedStream.species = bst.Species('Water', 'Ethanol')"
    ]
   },
   {
@@ -62,7 +62,7 @@
     }
    ],
    "source": [
-    "ms1 = bs.MixedStream(ID='ms1', T=351, P=101325)\n",
+    "ms1 = bst.MixedStream(ID='ms1', T=351, P=101325)\n",
     "ms1.setflow('l', Ethanol=1, units='kmol/hr')\n",
     "ms1.setflow('g', Ethanol=2) # Assuming kmol/hr\n",
     "ms1.getflow('l', 'Ethanol', 'Water')"
@@ -695,7 +695,7 @@
     }
    ],
    "source": [
-    "ms2 = bs.MixedStream('ms2', T=370)\n",
+    "ms2 = bst.MixedStream('ms2', T=370)\n",
     "# Set flows in same order as in Species object\n",
     "ms2.setflow('g', (1, 2))\n",
     "ms2.setflow('l', (2, 1))\n",
@@ -815,7 +815,7 @@
    ],
    "source": [
     "# Make stream with hydrophobic species\n",
-    "ms3 = bs.MixedStream('ms3', species=bs.Species('Water', 'Octane'))\n",
+    "ms3 = bst.MixedStream('ms3', species=bst.Species('Water', 'Octane'))\n",
     "ms3.setflow('l', (2, 2))\n",
     "ms3"
    ]

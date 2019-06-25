@@ -8,7 +8,7 @@ from .. import Unit
 from .decorators import cost
 from .metaclasses import static
 
-@cost('Flow rate', limit=10e4, CE=567, cost=1096, exp=0.22)
+@cost('Flow rate', ub=10e4, CE=567, cost=1096, n=0.22)
 class ScrewFeeder(Unit, metaclass=static):
     length = 30 #: ft
     _N_outs = 1

@@ -25,10 +25,16 @@ def parameter(system, element, setter, kind, name, distribution, units):
     elif kind is 'design':
         return Block(element, None).parameter(setter, element._summary, name, distribution=distribution, units=units)
     elif kind is 'cost':
-        return Block(element, None).parameter(setter, element._finalize, name, distribution=distribution, units=units)
+        if hasattr(element, '_end'):
+            def simulate():
+                element._cost()
+                element._end()
+        else:
+            simulate = element._cost
+        return Block(element, None).parameter(setter, simulate, name, distribution=distribution, units=units)
     raise ValueError(f"kind must be either 'coupled', 'isolated', 'design', or 'cost' (not {kind}).")
 
-def modelfunction(params):
+def modelfunction_with_skipping(params):
     cached = None
     zip_= zip
     params = tuple(params)
@@ -49,25 +55,42 @@ def modelfunction(params):
             raise Error
     return model
 
+def modelfunction(params):
+    zip_= zip
+    params = tuple(params)
+    def model(sample): 
+        sim = None
+        for p, x in zip_(params, sample):
+            p.setter(x)
+            if sim: continue
+            if p.system: sim = p.simulate 
+            else: p.simulate()
+        if sim: sim()
+    return model
+
 
 # %%
     
 class State:
-    """Create a State object that can update the `system` state given a set of parameters.
+    """Create a State object that can update the `system` state given a sample of parameter states.
     
     **Parameters**
     
         **system:** [System] Reflects the model state.
+        
+        **skip:** [bool] If True, skip simulation for repeated states
     
     """
     __slots__ = ('_system', # [System] Reflects the model state.
                  '_params', # list[Parameter] All parameters.
-                 '_model')  # [function] Model function.
+                 '_model', # [function] Model function.
+                 '_skip') # [bool] If True, skip simulation for repeated states
     
-    def __init__(self, system):
+    def __init__(self, system, skip=True):
         self._system = system
         self._params = []
         self._model = None
+        self._skip = skip
     
     def __len__(self):
         return len(self._params)
@@ -118,7 +141,10 @@ class State:
         index =  self._system._unitnetwork.index
         self._params.sort(key=lambda x: index(param_unit(x))
                                         if x.system else length)
-        self._model = modelfunction(self._params)
+        if self._skip:
+            self._model = modelfunction_with_skipping(self._params)
+        else:
+            self._model = modelfunction(self._params)
     
     def __call__(self, sample):
         """Update state given sample of parameters."""

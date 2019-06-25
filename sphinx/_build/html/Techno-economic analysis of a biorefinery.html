@@ -34,7 +34,6 @@
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -105,7 +104,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -381,12 +380,12 @@ div.nboutput div.output_area.stderr {
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bs</span>
+<span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
 <span class="kn">import</span> <span class="nn">lipidcane</span> <span class="k">as</span> <span class="nn">lc</span>
 
 <span class="n">lc</span><span class="o">.</span><span class="n">lipidcane_sys</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
-<span class="n">lipidcane_tea</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">TEA</span><span class="p">(</span><span class="n">lc</span><span class="o">.</span><span class="n">lipidcane_sys</span><span class="p">)</span>
-<span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">show</span><span class="p">()</span> <span class="c1"># Show key results</span>
+<span class="n">lipidcane_tea</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">TEA</span><span class="p">(</span><span class="n">lc</span><span class="o">.</span><span class="n">lipidcane_sys</span><span class="p">)</span>
+<span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">show</span><span class="p">()</span> <span class="c1"># Print TEA summary at current options</span>
 </pre></div>
 </div>
 </div>
@@ -396,9 +395,9 @@ div.nboutput div.output_area.stderr {
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 TEA: lipid_cane_system
- NPV: 1.34e+08 USD at 15.0% IRR
- ROI: 0.2 1/yr
- PBP: 3.84 yr
+ NPV: 2.18e+08 USD at 15.0% IRR
+ ROI: 0.326 1/yr
+ PBP: 2.55 yr
 </pre></div></div>
 </div>
 <p>TEA objects have a long list of options for cash flow analysis:</p>
@@ -418,7 +417,7 @@ TEA: lipid_cane_system
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>{&#39;Lang factor&#39;: 4.37,
+<span></span>{&#39;Lang factor&#39;: 3,
  &#39;Operating days&#39;: 330,
  &#39;IRR&#39;: 0.15,
  &#39;Wage&#39;: 50000.0,
@@ -436,6 +435,7 @@ TEA: lipid_cane_system
  &#39;Startup&#39;: 0,
  &#39;Land&#39;: 0,
  &#39;Royalties&#39;: 0,
+ &#39;Contingency&#39;: 0.18,
  &#39;Depreciation&#39;: &#39;MACRS7&#39;,
  &#39;Startup schedule&#39;: (0.4, 0.6),
  &#39;Other recurring costs&#39;: 0,
@@ -443,7 +443,7 @@ TEA: lipid_cane_system
 </pre></div>
 </div>
 </div>
-<p>Update options and run cash flow analysis:</p>
+<p>Update options and retrieve results from cash flow analysis:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [3]:
@@ -458,35 +458,13 @@ TEA: lipid_cane_system
            <span class="s1">&#39;Administration&#39;</span><span class="p">:</span> <span class="mf">0.005</span><span class="p">,</span>
            <span class="s1">&#39;Duration&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">}</span>
 <span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
-<span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-TEA: lipid_cane_system
- NPV: 3.17e+07 USD at 17.5% IRR
- ROI: 0.166 1/yr
- PBP: 4.45 yr
-</pre></div></div>
-</div>
-<p>Retrieve general results:</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [4]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
+<span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[4]:
+<span></span>Out[3]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -516,32 +494,32 @@ TEA: lipid_cane_system
     <tr>
       <th>Depreciable capital</th>
       <td>USD</td>
-      <td>1.74e+08</td>
+      <td>1.77e+08</td>
     </tr>
     <tr>
       <th>Fixed capital investment</th>
       <td>USD</td>
-      <td>1.74e+08</td>
+      <td>1.77e+08</td>
     </tr>
     <tr>
       <th>Working capital</th>
       <td>USD</td>
-      <td>8.72e+06</td>
+      <td>8.86e+06</td>
     </tr>
     <tr>
       <th>Total capital investment</th>
       <td>USD</td>
-      <td>1.83e+08</td>
+      <td>1.86e+08</td>
     </tr>
     <tr>
       <th>Depreciation</th>
       <td>USD/yr</td>
-      <td>8.72e+06</td>
+      <td>8.86e+06</td>
     </tr>
     <tr>
       <th>Utility cost</th>
       <td>USD/yr</td>
-      <td>-1.49e+07</td>
+      <td>-1.85e+07</td>
     </tr>
     <tr>
       <th>Material cost</th>
@@ -561,41 +539,41 @@ TEA: lipid_cane_system
     <tr>
       <th>Annual operating cost</th>
       <td>USD/yr</td>
-      <td>6.35e+07</td>
+      <td>6e+07</td>
     </tr>
     <tr>
       <th>Net present value</th>
       <td>USD</td>
-      <td>3.17e+07</td>
+      <td>3.95e+07</td>
     </tr>
     <tr>
       <th>Return on investment</th>
       <td>1/yr</td>
-      <td>0.166</td>
+      <td>0.175</td>
     </tr>
     <tr>
       <th>Pay back period</th>
       <td>yr</td>
-      <td>4.45</td>
+      <td>4.29</td>
     </tr>
   </tbody>
 </table>
 </div></div>
 </div>
-<p>The complete cashflow analysis is stored as a DataFrame object:</p>
+<p>Retrieve complete cashflow analysis as a DataFrame object:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [5]:
+<span></span>In [4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">cashflow</span>
+<span></span><span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">get_cashflow</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[5]:
+<span></span>Out[4]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -632,133 +610,133 @@ TEA: lipid_cane_system
   <tbody>
     <tr>
       <th>2020</th>
-      <td>6.97e+07</td>
+      <td>7.09e+07</td>
       <td>0</td>
-      <td>6.97e+07</td>
-      <td>0</td>
-      <td>0</td>
+      <td>7.09e+07</td>
       <td>0</td>
       <td>0</td>
-      <td>-6.97e+07</td>
-      <td>-6.97e+07</td>
-      <td>-6.97e+07</td>
+      <td>0</td>
+      <td>0</td>
+      <td>-7.09e+07</td>
+      <td>-7.09e+07</td>
+      <td>-7.09e+07</td>
     </tr>
     <tr>
       <th>2021</th>
-      <td>1.05e+08</td>
+      <td>1.06e+08</td>
       <td>0</td>
-      <td>1.05e+08</td>
-      <td>0</td>
-      <td>0</td>
+      <td>1.06e+08</td>
       <td>0</td>
       <td>0</td>
-      <td>-1.05e+08</td>
-      <td>-8.9e+07</td>
-      <td>-1.59e+08</td>
+      <td>0</td>
+      <td>0</td>
+      <td>-1.06e+08</td>
+      <td>-9.05e+07</td>
+      <td>-1.61e+08</td>
     </tr>
     <tr>
       <th>2022</th>
       <td>0</td>
-      <td>2.49e+07</td>
+      <td>2.53e+07</td>
       <td>0</td>
-      <td>8.72e+06</td>
-      <td>5.48e+07</td>
+      <td>8.86e+06</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>1.99e+07</td>
-      <td>3.61e+07</td>
-      <td>2.61e+07</td>
-      <td>-1.33e+08</td>
+      <td>2.18e+07</td>
+      <td>3.83e+07</td>
+      <td>2.77e+07</td>
+      <td>-1.34e+08</td>
     </tr>
     <tr>
       <th>2023</th>
       <td>0</td>
-      <td>4.27e+07</td>
+      <td>4.34e+07</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>8.33e+06</td>
-      <td>5.1e+07</td>
-      <td>3.15e+07</td>
+      <td>1e+07</td>
+      <td>5.34e+07</td>
+      <td>3.29e+07</td>
       <td>-1.01e+08</td>
     </tr>
     <tr>
       <th>2024</th>
       <td>0</td>
-      <td>3.05e+07</td>
+      <td>3.1e+07</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>1.63e+07</td>
-      <td>4.68e+07</td>
-      <td>2.45e+07</td>
-      <td>-7.66e+07</td>
+      <td>1.81e+07</td>
+      <td>4.91e+07</td>
+      <td>2.58e+07</td>
+      <td>-7.5e+07</td>
     </tr>
     <tr>
       <th>2025</th>
       <td>0</td>
-      <td>2.18e+07</td>
+      <td>2.21e+07</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>2.19e+07</td>
-      <td>4.37e+07</td>
-      <td>1.95e+07</td>
-      <td>-5.71e+07</td>
+      <td>2.39e+07</td>
+      <td>4.6e+07</td>
+      <td>2.05e+07</td>
+      <td>-5.44e+07</td>
     </tr>
     <tr>
       <th>2026</th>
       <td>0</td>
-      <td>1.56e+07</td>
-      <td>0</td>
-      <td>0</td>
-      <td>5.48e+07</td>
-      <td>1.1e+08</td>
-      <td>2.6e+07</td>
-      <td>4.15e+07</td>
       <td>1.58e+07</td>
-      <td>-4.13e+07</td>
+      <td>0</td>
+      <td>0</td>
+      <td>5.12e+07</td>
+      <td>1.1e+08</td>
+      <td>2.8e+07</td>
+      <td>4.38e+07</td>
+      <td>1.66e+07</td>
+      <td>-3.78e+07</td>
     </tr>
     <tr>
       <th>2027</th>
       <td>0</td>
-      <td>1.56e+07</td>
+      <td>1.58e+07</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>2.6e+07</td>
-      <td>4.15e+07</td>
-      <td>1.34e+07</td>
-      <td>-2.79e+07</td>
+      <td>2.8e+07</td>
+      <td>4.38e+07</td>
+      <td>1.42e+07</td>
+      <td>-2.36e+07</td>
     </tr>
     <tr>
       <th>2028</th>
       <td>0</td>
-      <td>1.56e+07</td>
+      <td>1.58e+07</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>2.6e+07</td>
-      <td>4.15e+07</td>
-      <td>1.14e+07</td>
-      <td>-1.65e+07</td>
+      <td>2.8e+07</td>
+      <td>4.38e+07</td>
+      <td>1.21e+07</td>
+      <td>-1.16e+07</td>
     </tr>
     <tr>
       <th>2029</th>
       <td>0</td>
-      <td>7.78e+06</td>
+      <td>7.9e+06</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>3.1e+07</td>
-      <td>3.88e+07</td>
-      <td>9.09e+06</td>
-      <td>-7.39e+06</td>
+      <td>3.31e+07</td>
+      <td>4.1e+07</td>
+      <td>9.61e+06</td>
+      <td>-1.96e+06</td>
     </tr>
     <tr>
       <th>2030</th>
@@ -766,12 +744,12 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>3.61e+07</td>
-      <td>3.61e+07</td>
-      <td>7.19e+06</td>
-      <td>-2e+05</td>
+      <td>3.83e+07</td>
+      <td>3.83e+07</td>
+      <td>7.63e+06</td>
+      <td>5.67e+06</td>
     </tr>
     <tr>
       <th>2031</th>
@@ -779,12 +757,12 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>3.61e+07</td>
-      <td>3.61e+07</td>
-      <td>6.12e+06</td>
-      <td>5.92e+06</td>
+      <td>3.83e+07</td>
+      <td>3.83e+07</td>
+      <td>6.49e+06</td>
+      <td>1.22e+07</td>
     </tr>
     <tr>
       <th>2032</th>
@@ -792,12 +770,12 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>3.61e+07</td>
-      <td>3.61e+07</td>
-      <td>5.21e+06</td>
-      <td>1.11e+07</td>
+      <td>3.83e+07</td>
+      <td>3.83e+07</td>
+      <td>5.52e+06</td>
+      <td>1.77e+07</td>
     </tr>
     <tr>
       <th>2033</th>
@@ -805,12 +783,12 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>3.61e+07</td>
-      <td>3.61e+07</td>
-      <td>4.43e+06</td>
-      <td>1.56e+07</td>
+      <td>3.83e+07</td>
+      <td>3.83e+07</td>
+      <td>4.7e+06</td>
+      <td>2.24e+07</td>
     </tr>
     <tr>
       <th>2034</th>
@@ -818,12 +796,12 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>3.61e+07</td>
-      <td>3.61e+07</td>
-      <td>3.77e+06</td>
-      <td>1.93e+07</td>
+      <td>3.83e+07</td>
+      <td>3.83e+07</td>
+      <td>4e+06</td>
+      <td>2.64e+07</td>
     </tr>
     <tr>
       <th>2035</th>
@@ -831,12 +809,12 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>3.61e+07</td>
-      <td>3.61e+07</td>
-      <td>3.21e+06</td>
-      <td>2.26e+07</td>
+      <td>3.83e+07</td>
+      <td>3.83e+07</td>
+      <td>3.41e+06</td>
+      <td>2.98e+07</td>
     </tr>
     <tr>
       <th>2036</th>
@@ -844,12 +822,12 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>3.61e+07</td>
-      <td>3.61e+07</td>
-      <td>2.73e+06</td>
-      <td>2.53e+07</td>
+      <td>3.83e+07</td>
+      <td>3.83e+07</td>
+      <td>2.9e+06</td>
+      <td>3.27e+07</td>
     </tr>
     <tr>
       <th>2037</th>
@@ -857,12 +835,12 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>3.61e+07</td>
-      <td>3.61e+07</td>
-      <td>2.33e+06</td>
-      <td>2.76e+07</td>
+      <td>3.83e+07</td>
+      <td>3.83e+07</td>
+      <td>2.47e+06</td>
+      <td>3.52e+07</td>
     </tr>
     <tr>
       <th>2038</th>
@@ -870,25 +848,25 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>3.61e+07</td>
-      <td>3.61e+07</td>
-      <td>1.98e+06</td>
-      <td>2.96e+07</td>
+      <td>3.83e+07</td>
+      <td>3.83e+07</td>
+      <td>2.1e+06</td>
+      <td>3.73e+07</td>
     </tr>
     <tr>
       <th>2039</th>
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>-8.72e+06</td>
-      <td>5.48e+07</td>
+      <td>-8.86e+06</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>3.61e+07</td>
-      <td>4.48e+07</td>
-      <td>2.09e+06</td>
-      <td>3.17e+07</td>
+      <td>3.83e+07</td>
+      <td>4.71e+07</td>
+      <td>2.2e+06</td>
+      <td>3.95e+07</td>
     </tr>
   </tbody>
 </table>
@@ -900,11 +878,33 @@ TEA: lipid_cane_system
 <p>Find production cost:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">production_cost</span><span class="p">(</span><span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">),</span> <span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;Biodiesel&#39;</span><span class="p">))</span><span class="c1"># USD/yr</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[5]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>array([25128633.021, 34902818.506])
+</pre></div>
+</div>
+</div>
+<p>Solve for the price of a stream at the break even point:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">production_cost</span><span class="p">(</span><span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">),</span> <span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;Biodiesel&#39;</span><span class="p">))</span><span class="c1"># USD/yr</span>
+<span></span><span class="n">feed</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;Lipid cane&#39;</span><span class="p">)</span>
+<span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">solve_price</span><span class="p">(</span><span class="n">feed</span><span class="p">)</span> <span class="c1"># USD/kg</span>
 </pre></div>
 </div>
 </div>
@@ -914,36 +914,14 @@ TEA: lipid_cane_system
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>array([26492933.566, 37012550.153])
-</pre></div>
-</div>
-</div>
-<p>Solve for the price of a stream at the break even point:</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [7]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">feed</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;Lipid cane&#39;</span><span class="p">)</span>
-<span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">solve_price</span><span class="p">(</span><span class="n">feed</span><span class="p">)</span> <span class="c1"># USD/kg</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[7]:
-</pre></div>
-</div>
-<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>0.04117789345272506
+<span></span>0.04280288947446607
 </pre></div>
 </div>
 </div>
 <p>Solve for the IRR at the break even point:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [8]:
+<span></span>In [7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -958,25 +936,25 @@ TEA: lipid_cane_system
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 TEA: lipid_cane_system
- NPV: 3.06 USD at 21.4% IRR
- ROI: 0.166 1/yr
- PBP: 4.45 yr
+ NPV: 11 USD at 22.2% IRR
+ ROI: 0.175 1/yr
+ PBP: 4.29 yr
 </pre></div></div>
 </div>
-<p>Note that the cashflow table will update itself:</p>
+<p>Note that the cashflow table is always created up to date:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [9]:
+<span></span>In [8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">cashflow</span>
+<span></span><span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">get_cashflow</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[9]:
+<span></span>Out[8]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -1013,133 +991,133 @@ TEA: lipid_cane_system
   <tbody>
     <tr>
       <th>2020</th>
-      <td>6.97e+07</td>
+      <td>7.09e+07</td>
       <td>0</td>
-      <td>6.97e+07</td>
-      <td>0</td>
-      <td>0</td>
+      <td>7.09e+07</td>
       <td>0</td>
       <td>0</td>
-      <td>-6.97e+07</td>
-      <td>-6.97e+07</td>
-      <td>-6.97e+07</td>
+      <td>0</td>
+      <td>0</td>
+      <td>-7.09e+07</td>
+      <td>-7.09e+07</td>
+      <td>-7.09e+07</td>
     </tr>
     <tr>
       <th>2021</th>
-      <td>1.05e+08</td>
+      <td>1.06e+08</td>
       <td>0</td>
-      <td>1.05e+08</td>
-      <td>0</td>
-      <td>0</td>
+      <td>1.06e+08</td>
       <td>0</td>
       <td>0</td>
-      <td>-1.05e+08</td>
-      <td>-8.62e+07</td>
-      <td>-1.56e+08</td>
+      <td>0</td>
+      <td>0</td>
+      <td>-1.06e+08</td>
+      <td>-8.7e+07</td>
+      <td>-1.58e+08</td>
     </tr>
     <tr>
       <th>2022</th>
       <td>0</td>
-      <td>2.49e+07</td>
+      <td>2.53e+07</td>
       <td>0</td>
-      <td>8.72e+06</td>
-      <td>5.48e+07</td>
+      <td>8.86e+06</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>1.99e+07</td>
-      <td>3.61e+07</td>
-      <td>2.45e+07</td>
-      <td>-1.31e+08</td>
+      <td>2.18e+07</td>
+      <td>3.83e+07</td>
+      <td>2.56e+07</td>
+      <td>-1.32e+08</td>
     </tr>
     <tr>
       <th>2023</th>
       <td>0</td>
-      <td>4.27e+07</td>
+      <td>4.34e+07</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>8.33e+06</td>
-      <td>5.1e+07</td>
-      <td>2.85e+07</td>
+      <td>1e+07</td>
+      <td>5.34e+07</td>
+      <td>2.93e+07</td>
       <td>-1.03e+08</td>
     </tr>
     <tr>
       <th>2024</th>
       <td>0</td>
-      <td>3.05e+07</td>
+      <td>3.1e+07</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>1.63e+07</td>
-      <td>4.68e+07</td>
-      <td>2.15e+07</td>
-      <td>-8.13e+07</td>
+      <td>1.81e+07</td>
+      <td>4.91e+07</td>
+      <td>2.2e+07</td>
+      <td>-8.1e+07</td>
     </tr>
     <tr>
       <th>2025</th>
       <td>0</td>
-      <td>2.18e+07</td>
+      <td>2.21e+07</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>2.19e+07</td>
-      <td>4.37e+07</td>
-      <td>1.66e+07</td>
-      <td>-6.48e+07</td>
+      <td>2.39e+07</td>
+      <td>4.6e+07</td>
+      <td>1.69e+07</td>
+      <td>-6.41e+07</td>
     </tr>
     <tr>
       <th>2026</th>
       <td>0</td>
-      <td>1.56e+07</td>
+      <td>1.58e+07</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>2.6e+07</td>
-      <td>4.15e+07</td>
-      <td>1.3e+07</td>
-      <td>-5.18e+07</td>
+      <td>2.8e+07</td>
+      <td>4.38e+07</td>
+      <td>1.31e+07</td>
+      <td>-5.1e+07</td>
     </tr>
     <tr>
       <th>2027</th>
       <td>0</td>
-      <td>1.56e+07</td>
+      <td>1.58e+07</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>2.6e+07</td>
-      <td>4.15e+07</td>
-      <td>1.07e+07</td>
-      <td>-4.11e+07</td>
+      <td>2.8e+07</td>
+      <td>4.38e+07</td>
+      <td>1.08e+07</td>
+      <td>-4.02e+07</td>
     </tr>
     <tr>
       <th>2028</th>
       <td>0</td>
-      <td>1.56e+07</td>
+      <td>1.58e+07</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>2.6e+07</td>
-      <td>4.15e+07</td>
-      <td>8.81e+06</td>
-      <td>-3.23e+07</td>
+      <td>2.8e+07</td>
+      <td>4.38e+07</td>
+      <td>8.8e+06</td>
+      <td>-3.14e+07</td>
     </tr>
     <tr>
       <th>2029</th>
       <td>0</td>
-      <td>7.78e+06</td>
+      <td>7.9e+06</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>3.1e+07</td>
-      <td>3.88e+07</td>
-      <td>6.78e+06</td>
-      <td>-2.55e+07</td>
+      <td>3.31e+07</td>
+      <td>4.1e+07</td>
+      <td>6.74e+06</td>
+      <td>-2.47e+07</td>
     </tr>
     <tr>
       <th>2030</th>
@@ -1147,12 +1125,12 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>3.61e+07</td>
-      <td>3.61e+07</td>
-      <td>5.2e+06</td>
-      <td>-2.03e+07</td>
+      <td>3.83e+07</td>
+      <td>3.83e+07</td>
+      <td>5.14e+06</td>
+      <td>-1.95e+07</td>
     </tr>
     <tr>
       <th>2031</th>
@@ -1160,12 +1138,12 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>3.61e+07</td>
-      <td>3.61e+07</td>
-      <td>4.28e+06</td>
-      <td>-1.6e+07</td>
+      <td>3.83e+07</td>
+      <td>3.83e+07</td>
+      <td>4.21e+06</td>
+      <td>-1.53e+07</td>
     </tr>
     <tr>
       <th>2032</th>
@@ -1173,12 +1151,12 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>3.61e+07</td>
-      <td>3.61e+07</td>
-      <td>3.53e+06</td>
-      <td>-1.25e+07</td>
+      <td>3.83e+07</td>
+      <td>3.83e+07</td>
+      <td>3.44e+06</td>
+      <td>-1.19e+07</td>
     </tr>
     <tr>
       <th>2033</th>
@@ -1186,12 +1164,12 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>3.61e+07</td>
-      <td>3.61e+07</td>
-      <td>2.91e+06</td>
-      <td>-9.56e+06</td>
+      <td>3.83e+07</td>
+      <td>3.83e+07</td>
+      <td>2.82e+06</td>
+      <td>-9.07e+06</td>
     </tr>
     <tr>
       <th>2034</th>
@@ -1199,12 +1177,12 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>3.61e+07</td>
-      <td>3.61e+07</td>
-      <td>2.39e+06</td>
-      <td>-7.17e+06</td>
+      <td>3.83e+07</td>
+      <td>3.83e+07</td>
+      <td>2.31e+06</td>
+      <td>-6.77e+06</td>
     </tr>
     <tr>
       <th>2035</th>
@@ -1212,12 +1190,12 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>3.61e+07</td>
-      <td>3.61e+07</td>
-      <td>1.97e+06</td>
-      <td>-5.2e+06</td>
+      <td>3.83e+07</td>
+      <td>3.83e+07</td>
+      <td>1.89e+06</td>
+      <td>-4.88e+06</td>
     </tr>
     <tr>
       <th>2036</th>
@@ -1225,12 +1203,12 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>3.61e+07</td>
-      <td>3.61e+07</td>
-      <td>1.63e+06</td>
-      <td>-3.57e+06</td>
+      <td>3.83e+07</td>
+      <td>3.83e+07</td>
+      <td>1.54e+06</td>
+      <td>-3.34e+06</td>
     </tr>
     <tr>
       <th>2037</th>
@@ -1238,12 +1216,12 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>3.61e+07</td>
-      <td>3.61e+07</td>
-      <td>1.34e+06</td>
-      <td>-2.23e+06</td>
+      <td>3.83e+07</td>
+      <td>3.83e+07</td>
+      <td>1.26e+06</td>
+      <td>-2.08e+06</td>
     </tr>
     <tr>
       <th>2038</th>
@@ -1251,25 +1229,25 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>5.48e+07</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>3.61e+07</td>
-      <td>3.61e+07</td>
-      <td>1.1e+06</td>
-      <td>-1.13e+06</td>
+      <td>3.83e+07</td>
+      <td>3.83e+07</td>
+      <td>1.03e+06</td>
+      <td>-1.04e+06</td>
     </tr>
     <tr>
       <th>2039</th>
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>-8.72e+06</td>
-      <td>5.48e+07</td>
+      <td>-8.86e+06</td>
+      <td>5.12e+07</td>
       <td>1.1e+08</td>
-      <td>3.61e+07</td>
-      <td>4.48e+07</td>
-      <td>1.13e+06</td>
-      <td>3.06</td>
+      <td>3.83e+07</td>
+      <td>4.71e+07</td>
+      <td>1.04e+06</td>
+      <td>11</td>
     </tr>
   </tbody>
 </table>
@@ -1282,7 +1260,7 @@ TEA: lipid_cane_system
 and a cash flow table:</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [10]:
+<span></span>In [9]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>

@@ -905,15 +905,17 @@ def DORTMUND(species, xs, T, cached={}):
         cached: {species: (chemgroups, rs, qs, group_counts)} Cached UNIFAC parameters
     
     """ 
-    data = cached.get(species)
-    if not data:
+    if species in cached:
+        data = cached[species]
+        chemgroups, rs, qs, group_counts = data
+    else:
         chemgroups = [s.UNIFAC_Dortmund_groups for s in species]
         rs, qs, group_counts = calc_set_up(DOUFSG, chemgroups)
         cached[species] = (chemgroups, rs, qs, group_counts)
-    else:
-        chemgroups, rs, qs, group_counts = data
     
-    return UNIFAC_Coeffictients(xs, T, DOUFSG, DOUFIP2016, DORTMUND_psi, loggammacs_DORTMUND, chemgroups, rs, qs, group_counts)
+    return UNIFAC_Coeffictients(xs, T, DOUFSG, DOUFIP2016,
+                                DORTMUND_psi, loggammacs_DORTMUND,
+                                chemgroups, rs, qs, group_counts)
 
 # def UNIFAC(self, xs, T):
 #     return UNIFAC_Coeffictients(self, xs, T, UFSG, UFIP, UNIFAC_psi, loggammacs_UNIFAC)

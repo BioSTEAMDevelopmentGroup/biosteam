@@ -34,7 +34,6 @@
         <script type="text/javascript" src="../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -98,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -186,9 +185,10 @@
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">Stream</span>
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">brentq</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">Pump</span><span class="p">,</span> <span class="n">Mixer</span><span class="p">,</span> <span class="n">HXutility</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">Mixer</span><span class="p">,</span> <span class="n">HXutility</span>
 <span class="kn">from</span> <span class="nn">._flash</span> <span class="k">import</span> <span class="n">Evaporator_PV</span><span class="p">,</span> <span class="n">Evaporator_PQin</span>
 <span class="kn">from</span> <span class="nn">.designtools</span> <span class="k">import</span> <span class="n">vacuum_system</span>
 <span class="kn">import</span> <span class="nn">ht</span>
@@ -237,6 +237,7 @@
               <span class="s1">&#39;Volume&#39;</span><span class="p">:</span> <span class="s1">&#39;m^3&#39;</span><span class="p">}</span>
     <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">BM</span> <span class="o">=</span> <span class="mf">2.45</span>
     <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Multi-Effect Evaporator&#39;</span>
     <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;component&#39;</span><span class="p">:</span> <span class="s1">&#39;Water&#39;</span><span class="p">,</span>
                <span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">101325</span><span class="p">,),</span>  
@@ -341,25 +342,15 @@
         <span class="n">mixer</span><span class="o">.</span><span class="n">ins</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">outs_liq</span>
         <span class="n">mixer</span><span class="o">.</span><span class="n">_run</span><span class="p">()</span>
         <span class="n">liq</span><span class="o">.</span><span class="n">copylike</span><span class="p">(</span><span class="n">mixer</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-
-    <span class="k">def</span> <span class="nf">_lazy_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">out_wt_solids</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
-        <span class="n">component</span><span class="p">,</span> <span class="n">V</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="s1">&#39;V&#39;</span><span class="p">))</span>
-
-        <span class="n">component_pos</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">Settings</span><span class="o">.</span><span class="n">ID_index_dictionary</span><span class="p">[</span><span class="n">component</span><span class="p">]</span>
-        <span class="n">liq</span><span class="o">.</span><span class="n">mass</span><span class="p">[</span><span class="n">component_pos</span><span class="p">]</span> <span class="o">=</span> <span class="n">V</span><span class="o">*</span><span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">component_pos</span><span class="p">]</span>
-        <span class="n">out_wt_solids</span><span class="o">.</span><span class="n">mol</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span> <span class="o">-</span> <span class="n">liq</span><span class="o">.</span><span class="n">mol</span>
         
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># This functions also finds the cost</span>
         <span class="n">A_range</span><span class="p">,</span> <span class="n">C_func</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_evap_data</span>
         <span class="n">components</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span>
         <span class="n">evaporators</span> <span class="o">=</span> <span class="n">components</span><span class="p">[</span><span class="s1">&#39;evaporators&#39;</span><span class="p">]</span>
-        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span>
-        <span class="n">Design</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
-        <span class="n">Cost</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
-        <span class="n">CE</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CEPCI</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
+        <span class="n">Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span>
+        <span class="n">CE</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">CE</span>
         
         <span class="n">evap0</span> <span class="o">=</span> <span class="n">evaporators</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">hu</span> <span class="o">=</span> <span class="n">evap0</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -378,7 +369,7 @@
         <span class="n">condenser</span> <span class="o">=</span> <span class="n">components</span><span class="p">[</span><span class="s1">&#39;condenser&#39;</span><span class="p">]</span>
         <span class="n">condenser</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
         <span class="n">condenser</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Condenser&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">condenser</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">][</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
+        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Condenser&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">condenser</span><span class="o">.</span><span class="n">_Cost</span><span class="p">[</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
         
         <span class="c1"># Find area and cost of evaporators</span>
         <span class="n">As</span> <span class="o">=</span> <span class="p">[</span><span class="n">A</span><span class="p">]</span>
@@ -398,12 +389,11 @@
         <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Evaporators&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">evap_costs</span><span class="p">)</span>
         
         <span class="c1"># Calculate power</span>
-        <span class="n">power</span><span class="p">,</span> <span class="n">cost</span> <span class="o">=</span> <span class="n">vacuum_system</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CEPCI</span><span class="p">,</span> <span class="n">massflow</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">volflow</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">power</span><span class="p">,</span> <span class="n">cost</span> <span class="o">=</span> <span class="n">vacuum_system</span><span class="p">(</span><span class="n">massflow</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">volflow</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
                                     <span class="n">P_suction</span><span class="o">=</span><span class="n">evap</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">vol</span><span class="o">=</span><span class="n">vol</span><span class="p">,</span>
                                     <span class="n">vacuum_system_preference</span><span class="o">=</span><span class="s1">&#39;Liquid-ring pump&#39;</span><span class="p">)</span>
         <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Vacuum liquid-ring pump&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cost</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span><span class="p">(</span><span class="n">power</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Design</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span><span class="p">(</span><span class="n">power</span><span class="p">)</span></div>
         
         
 </pre></div>

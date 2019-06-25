@@ -6,28 +6,23 @@ Created on Fri Jun  7 00:53:29 2019
 """
 from ... import Unit
 
-__all__ = ('extend_finalize', )
+__all__ = ('extend_summary', )
 
-def extend_finalize(cls):
+def extend_summary(cls):
     """Extends the Unit class with the following abstract methods:
-
-    **_spec()**
-        Calculate specification cost factors and update purchase prices (called after `_cost`).
         
     **_end():**
-        Finish setting purchase prices and utility costs (called after `_spec`).
+        Finish setting purchase prices and utility costs.
         
     """
+    if hasattr(cls, '_end'):    
+        if cls._summary is Unit._summary:
+            cls._summary = _summary
+        elif cls._summary is not _summary:
+            raise RuntimeError("cannot decorate Unit subclass an implemented '_summary' method")
 
-    if cls._finalize is Unit._finalize:
-        cls._finalize = _finalize
-    elif cls._finalize is not _finalize:
-        raise RuntimeError("cannot decorate Unit class with an implemented '_finalize' method")
-
-def _finalize(self):
-    """Run all cost methods and finalize costs."""
+def _summary(self):
+    """Calculate all results from unit run."""
+    self._design()
     self._cost()
-    self._spec()
     self._end()
-    self._update_capital_cost()
-    self._update_utility_cost()

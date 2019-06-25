@@ -7,7 +7,7 @@ Created on Fri Feb 22 17:31:50 2019
 import numpy as np
 from biosteam._utils import checkbounds
 from biosteam._exceptions import DesignError
-import biosteam as bs
+import biosteam as bst
 
 __all__ = ('vacuum_system', '_calc_MotorEfficiency', '_calc_BreakEfficiency')
 
@@ -81,7 +81,7 @@ def vacuum_system(massflow:'kg/hr', volflow:'m3/hr',
     massflow_lbph = 2.205*massflow_kgph
     power = _power(massflow_kgph, P_suction)
     vacuum_sys, grade = _select_VacuumSystem(vacuum_systems, volflow_cfm, P_suction)
-    cost = bs.CEPCI*_cost(vacuum_sys, grade, massflow_lbph, volflow_cfm, P_suction)/567
+    cost = bst.CE*_cost(vacuum_sys, grade, massflow_lbph, volflow_cfm, P_suction)/567
     return power, cost
 
 # %% Supporting functions

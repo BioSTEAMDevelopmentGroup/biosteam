@@ -8,7 +8,7 @@ import numpy as np
 import biosteam as bst
 from .. import Unit, Stream
 from scipy.optimize import brentq
-from . import Pump, Mixer, HXutility
+from . import Mixer, HXutility
 from ._flash import Evaporator_PV, Evaporator_PQin
 from .designtools import vacuum_system
 import ht
@@ -57,6 +57,7 @@ class MultiEffectEvaporator(Unit):
               'Volume': 'm^3'}
     _has_power_utility = True
     _N_heat_utilities = 2
+    BM = 2.45
     line = 'Multi-Effect Evaporator'
     _kwargs = {'component': 'Water',
                'P': (101325,),  
@@ -161,25 +162,15 @@ class MultiEffectEvaporator(Unit):
         mixer.ins[:] = outs_liq
         mixer._run()
         liq.copylike(mixer.outs[0])
-
-    def _lazy_run(self):
-        feed = self.ins[0]
-        out_wt_solids, liq = self.outs
-        component, V = (self._kwargs[i] for i in ('component', 'V'))
-
-        component_pos = feed.Settings.ID_index_dictionary[component]
-        liq.mass[component_pos] = V*feed.mol[component_pos]
-        out_wt_solids.mol = feed.mol - liq.mol
         
     def _design(self):
         # This functions also finds the cost
         A_range, C_func, U, _ = self._evap_data
         components = self.components
         evaporators = components['evaporators']
-        r = self._results
-        Design = r['Design']
-        Cost = r['Cost']
-        CE = bst.CEPCI
+        Design = self._Design
+        Cost = self._Cost
+        CE = bst.CE
         
         evap0 = evaporators[0]
         hu = evap0._heat_utilities[0]
@@ -198,7 +189,7 @@ class MultiEffectEvaporator(Unit):
         condenser = components['condenser']
         condenser._design()
         condenser._cost()
-        Cost['Condenser'] = condenser._results['Cost']['Heat exchanger']
+        Cost['Condenser'] = condenser._Cost['Heat exchanger']
         
         # Find area and cost of evaporators
         As = [A]
@@ -223,6 +214,5 @@ class MultiEffectEvaporator(Unit):
                                     vacuum_system_preference='Liquid-ring pump')
         Cost['Vacuum liquid-ring pump'] = cost
         self._power_utility(power)
-        return Design
         
         

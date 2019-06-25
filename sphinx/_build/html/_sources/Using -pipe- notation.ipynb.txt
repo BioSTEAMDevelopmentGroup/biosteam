@@ -59,17 +59,17 @@
     }
    ],
    "source": [
-    "import biosteam as bs\n",
+    "import biosteam as bst\n",
     "from biosteam.units import Mixer, Splitter\n",
-    "bs.Stream.species = bs.Species('Water',)\n",
+    "bst.Stream.species = bst.Species('Water',)\n",
     "# Set feed stream and units\n",
-    "feed1 = bs.Stream('feed1')\n",
+    "feed1 = bst.Stream('feed1')\n",
     "M1 = Mixer('M1', outs='s1')\n",
     "S1 = Splitter('S1', outs=('s2', 'product1'))\n",
-    "feed2 = bs.Stream('feed2')\n",
+    "feed2 = bst.Stream('feed2')\n",
     "M2 = Mixer('M2', outs='s3')\n",
     "S2 = Splitter('S2', outs=('recycle', 'product2'))\n",
-    "bs.find.diagram()"
+    "bst.find.diagram()"
    ]
   },
   {
@@ -106,7 +106,7 @@
     "# M2.ins[:] = (feed2, S1.outs[0])\n",
     "# S2.ins[:] = M2.outs\n",
     "\n",
-    "bs.find.diagram()"
+    "bst.find.diagram()"
    ]
   }
  ],

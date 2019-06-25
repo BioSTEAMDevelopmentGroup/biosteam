@@ -34,7 +34,6 @@
         <script type="text/javascript" src="../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -98,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -185,9 +184,7 @@
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
-
 <span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">from</span> <span class="nn">graphviz</span> <span class="k">import</span> <span class="n">Digraph</span>
@@ -199,10 +196,7 @@
 <span class="kn">from</span> <span class="nn">._utils</span> <span class="k">import</span> <span class="n">Ins</span><span class="p">,</span> <span class="n">Outs</span><span class="p">,</span> <span class="n">missing_stream</span>
 <span class="kn">from</span> <span class="nn">._power_utility</span> <span class="k">import</span> <span class="n">PowerUtility</span>
 <span class="kn">from</span> <span class="nn">warnings</span> <span class="k">import</span> <span class="n">warn</span>
-<span class="kn">import</span> <span class="nn">biosteam</span>
-
-<span class="n">dir_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&#39;</span>
-
+<span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Unit&#39;</span><span class="p">,)</span>
 <span class="n">_do_nothing</span> <span class="o">=</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="kc">None</span>
@@ -231,34 +225,6 @@
         <span class="k">elif</span> <span class="n">source</span><span class="p">:</span>
             <span class="n">msg</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;@{type(source).__name__} {str(source)}: &#39;</span> <span class="o">+</span> <span class="n">msg</span>
         <span class="k">return</span> <span class="n">category</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-
-<span class="k">def</span> <span class="nf">_warnbounds</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">stacklevel</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;A lower level, functional version of &quot;_checkbounds&quot;. Issue a warning if value is out of bounds.</span>
-<span class="sd">        </span>
-<span class="sd">        **Parameters**</span>
-<span class="sd">        </span>
-<span class="sd">            **key:** [str] Name of value</span>
-<span class="sd">            </span>
-<span class="sd">            **value:** [number, Quantity, or array]</span>
-<span class="sd">            </span>
-<span class="sd">            **units:** [str] Units of measure</span>
-<span class="sd">            </span>
-<span class="sd">            **bounds:** [array or Quantity-array] Lower and upper bounds</span>
-<span class="sd">            </span>
-<span class="sd">            **stacklevel:** [int] Stacklevel for warning.</span>
-<span class="sd">        </span>
-<span class="sd">            **source:** [str or object] Short description or object it describes.</span>
-<span class="sd">        </span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">lb</span><span class="p">,</span> <span class="n">ub</span> <span class="o">=</span> <span class="n">bounds</span>
-        <span class="c1"># Warn when value is out of bounds</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">lb</span><span class="o">&lt;=</span><span class="n">value</span> <span class="ow">and</span> <span class="n">ub</span><span class="o">&gt;=</span><span class="n">value</span><span class="p">:</span>
-            <span class="n">units</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">units</span> <span class="k">if</span> <span class="n">units</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (</span><span class="si">{lb:.4g}</span><span class="s2"> to </span><span class="si">{ub:.4g}{units}</span><span class="s2">).&quot;</span>
-            <span class="k">except</span><span class="p">:</span>  <span class="c1"># Handle format errors</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (</span><span class="si">{lb}</span><span class="s2"> to </span><span class="si">{ub}{units}</span><span class="s2">).&quot;</span>
-            <span class="n">warn</span><span class="p">(</span><span class="n">_warning</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">DesignWarning</span><span class="p">),</span> <span class="n">stacklevel</span><span class="o">=</span><span class="n">stacklevel</span><span class="p">)</span>
             
 <span class="k">def</span> <span class="nf">_lb_warning</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">lb</span><span class="p">,</span> <span class="n">stacklevel</span><span class="p">,</span> <span class="n">source</span><span class="p">):</span>
     <span class="n">units</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">units</span> <span class="k">if</span> <span class="n">units</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
@@ -278,83 +244,57 @@
     
     <span class="n">warn</span><span class="p">(</span><span class="n">_warning</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">DesignWarning</span><span class="p">),</span> <span class="n">stacklevel</span><span class="o">=</span><span class="n">stacklevel</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">_checkbounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Issue a warning if value is out of bounds.</span>
-<span class="sd">        </span>
-<span class="sd">        **Parameters**</span>
-<span class="sd">        </span>
-<span class="sd">            **key:** [str] Name of value</span>
-<span class="sd">            </span>
-<span class="sd">            **value:** [number, Quantity, or array]</span>
-<span class="sd">            </span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">bounds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">bounds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">_warnbounds</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="n">bounds</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
-
-<span class="k">def</span> <span class="nf">_boundsignore</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span> <span class="k">pass</span>
-
-<span class="c1"># %% Proxies</span>
-
-<span class="k">def</span> <span class="nf">_proxy_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">T</span>
-    <span class="n">out</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">P</span>
-    <span class="n">out</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">_phase</span>
 
 <span class="c1"># %% Unit metaclass</span>
 
 <span class="n">_Unit_is_done</span> <span class="o">=</span> <span class="kc">False</span>
 
 <span class="k">class</span> <span class="nc">metaUnit</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Unit metaclass for wrapping up methods with error notifiers, adding key word arguments, and keeping track for Unit lines and inheritance.&quot;&quot;&quot;</span>
-    <span class="n">_enforce_bounds</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="n">_CEPCI</span> <span class="o">=</span> <span class="mf">567.5</span> <span class="c1"># Chemical engineering plant cost index (567.5 at 2017)</span>
-    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">clsname</span><span class="p">,</span> <span class="n">superclasses</span><span class="p">,</span> <span class="n">new_definitions</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Prepare unit methods with wrappers for error notification, and add _kwargs as key word arguments to __init__. &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Unit metaclass for extending the documentation, adding key word arguments, and keeping track for Unit lines and inheritance.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">_Unit_is_done</span><span class="p">:</span>
             <span class="c1"># Abstract Unit class</span>
-            <span class="bp">cls</span> <span class="o">=</span> <span class="nb">type</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">clsname</span><span class="p">,</span> <span class="n">superclasses</span><span class="p">,</span> <span class="n">new_definitions</span><span class="p">)</span>
+            <span class="bp">cls</span> <span class="o">=</span> <span class="nb">type</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Make new Unit class</span>
-            <span class="bp">cls</span> <span class="o">=</span> <span class="nb">type</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">clsname</span><span class="p">,</span> <span class="n">superclasses</span><span class="p">,</span> <span class="n">new_definitions</span><span class="p">)</span>
+            <span class="bp">cls</span> <span class="o">=</span> <span class="nb">type</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
             
             <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__doc__</span> <span class="ow">is</span> <span class="n">Unit</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">:</span>
                 <span class="c1"># Do not inherit docstring from Unit</span>
                 <span class="bp">cls</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;__doc__&quot;</span> <span class="ow">in</span> <span class="n">dct</span><span class="p">:</span>
                 <span class="bp">cls</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__doc__</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;**Parameters**&#39;</span><span class="p">,</span> 
-            <span class="s2">&quot;**Parameters**</span><span class="se">\n\n</span><span class="s2">&quot;</span> <span class="o">+</span>
-            
-        <span class="s2">&quot;        **ID:** [str] Unique identification. If set as &#39;&#39;, a default ID will be chosen.</span><span class="se">\n\n</span><span class="s2">&quot;</span> <span class="o">+</span>
-
-        <span class="s2">&quot;        **outs:** tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</span><span class="se">\n\n</span><span class="s2">&quot;</span> <span class="o">+</span>
-        
-        <span class="s2">&quot;        **ins:** tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.&quot;</span><span class="p">)</span>
-    
+       <span class="s2">&quot;**Parameters**&quot;</span>
+<span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>    
+<span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">        **ID:** [str] Unique identification. If set as &#39;&#39;, a default ID will be chosen.&quot;</span>
+<span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">        **outs:** tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.&quot;</span>
+<span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">        **ins:** tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.&quot;</span><span class="p">)</span>
             <span class="c1"># Set line</span>
             <span class="c1"># default_line constitutes a new Unit class</span>
             <span class="n">line</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">line</span>
             <span class="k">if</span> <span class="n">line</span> <span class="ow">is</span> <span class="s1">&#39;Unit&#39;</span><span class="p">:</span>
                 <span class="n">line</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span>
                 <span class="c1"># Set new graphics object for new line</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">new_definitions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_graphics&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">dct</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_graphics&#39;</span><span class="p">):</span>
                     <span class="bp">cls</span><span class="o">.</span><span class="n">_graphics</span> <span class="o">=</span> <span class="n">Graphics</span><span class="p">()</span>
-            <span class="k">elif</span> <span class="n">new_definitions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;line&#39;</span><span class="p">):</span>
+            <span class="k">elif</span> <span class="n">dct</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;line&#39;</span><span class="p">):</span>
                 <span class="c1"># Set new graphics for specified line</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">new_definitions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_graphics&#39;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">dct</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_graphics&#39;</span><span class="p">):</span>
                     <span class="bp">cls</span><span class="o">.</span><span class="n">_graphics</span> <span class="o">=</span> <span class="n">Graphics</span><span class="p">()</span>
             
             <span class="bp">cls</span><span class="o">.</span><span class="n">line</span> <span class="o">=</span> <span class="n">line</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\B([A-Z])&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot; \1&quot;</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span>
-            <span class="n">kwargs</span> <span class="o">=</span> <span class="n">new_definitions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_kwargs&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">kwargs</span> <span class="ow">and</span> <span class="s1">&#39;__init__&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">new_definitions</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">&#39;_kwargs&#39;</span> <span class="ow">in</span> <span class="n">dct</span> <span class="ow">and</span> <span class="s1">&#39;__init__&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dct</span><span class="p">:</span>
+                <span class="n">kwargs</span> <span class="o">=</span> <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;_kwargs&#39;</span><span class="p">]</span>
+                
                 <span class="c1"># Key word arguments to replace</span>
                 <span class="n">inputs</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;=&#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">])</span>
         
                 <span class="c1"># Begin changing __init__ to have kwargs by making a string to execute</span>
                 <span class="n">str2exec</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;def __init__(self, ID=&#39;&#39;, outs=(), ins=None, </span><span class="si">{inputs}</span><span class="s2">):</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="n">str2exec</span><span class="o">+=</span> <span class="n">f</span><span class="s2">&quot;     _(self, ID, outs, ins, </span><span class="si">{inputs}</span><span class="s2">)&quot;</span>
+                <span class="n">str2exec</span><span class="o">+=</span> <span class="n">f</span><span class="s2">&quot;    self._kwargs = dict(</span><span class="si">{inputs}</span><span class="s2">)</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">str2exec</span><span class="o">+=</span> <span class="n">f</span><span class="s2">&quot;    _(self, ID, outs, ins)&quot;</span>
         
                 <span class="c1"># Execute string and replace __init__</span>
                 <span class="n">globs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;_&#39;</span><span class="p">:</span> <span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">}</span>
@@ -362,41 +302,17 @@
                 <span class="n">locs</span> <span class="o">=</span> <span class="p">{}</span>
                 <span class="n">exec</span><span class="p">(</span><span class="n">str2exec</span><span class="p">,</span> <span class="n">globs</span><span class="p">,</span> <span class="n">locs</span><span class="p">)</span>
                 <span class="bp">cls</span><span class="o">.</span><span class="fm">__init__</span> <span class="o">=</span> <span class="n">locs</span><span class="p">[</span><span class="s1">&#39;__init__&#39;</span><span class="p">]</span>
-            <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_linkedstreams</span> <span class="ow">and</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_run</span> <span class="ow">is</span> <span class="n">Unit</span><span class="o">.</span><span class="n">_run</span><span class="p">:</span>
-                <span class="bp">cls</span><span class="o">.</span><span class="n">_run</span> <span class="o">=</span> <span class="n">_proxy_run</span>
         <span class="k">return</span> <span class="bp">cls</span>
     
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">enforce_bounds</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[bool] True if bounds are checked for all instances and False otherwise.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_enforce_bounds</span>
-    <span class="nd">@enforce_bounds</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">enforce_bounds</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
-        <span class="n">val</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">_checkbounds</span> <span class="o">=</span> <span class="n">_checkbounds</span> <span class="k">if</span> <span class="n">val</span> <span class="k">else</span> <span class="n">_boundsignore</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">_enforce_bounds</span> <span class="o">=</span> <span class="n">val</span>
-    
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">CEPCI</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Chemical engineering plant cost index of all Unit objects.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">metaUnit</span><span class="o">.</span><span class="n">_CEPCI</span>
-    <span class="nd">@CEPCI</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">CEPCI</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">CEPCI</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">cls</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">Unit</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;can only set CEPCI through the Unit class&#39;</span><span class="p">)</span>
-        <span class="n">metaUnit</span><span class="o">.</span><span class="n">_CEPCI</span> <span class="o">=</span> <span class="n">CEPCI</span>
-    
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="n">modules</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__module__</span>
         <span class="k">if</span> <span class="bp">cls</span> <span class="ow">is</span> <span class="n">Unit</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;biosteam.Unit&#39;</span>
-        <span class="k">elif</span> <span class="s1">&#39;biosteam.units&#39;</span> <span class="ow">in</span>  <span class="n">modules</span><span class="p">:</span>
-            <span class="k">if</span> <span class="s1">&#39;facilities&#39;</span> <span class="ow">in</span> <span class="n">modules</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;biosteam.units.facilities.</span><span class="si">{cls.__name__}</span><span class="s1">&#39;</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;biosteam.units.</span><span class="si">{cls.__name__}</span><span class="s1">&#39;</span>
+        <span class="k">elif</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span> <span class="ow">in</span> <span class="n">bst</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">__all__</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;biosteam.units.</span><span class="si">{cls.__name__}</span><span class="s1">&#39;</span>
+        <span class="k">elif</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span> <span class="ow">in</span> <span class="n">bst</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">facilities</span><span class="o">.</span><span class="n">__all__</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;biosteam.units.facilities.</span><span class="si">{cls.__name__}</span><span class="s1">&#39;</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__module__</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span>
             
 
 
@@ -404,7 +320,7 @@
 
 
 <div class="viewcode-block" id="Unit"><a class="viewcode-back" href="../../Unit.html#biosteam.units.Unit">[docs]</a><span class="k">class</span> <span class="nc">Unit</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">metaUnit</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Abstract parent class for Unit objects. Child objects must contain _setup, _run, _design and _cost methods to setup internal objects, estimate stream outputs of a Unit and find design and cost information. These methods should store information in the &#39;_results&#39; dictionary (an instance attribute).  </span>
+    <span class="sd">&quot;&quot;&quot;Abstract parent class for Unit objects. Child objects must contain _setup, _run, _design and _cost methods to setup internal objects, estimate stream outputs of a Unit and find design and cost information.  </span>
 
 <span class="sd">    **Parameters**</span>
 
@@ -419,8 +335,6 @@
 <span class="sd">    **Class Definitions** </span>
 <span class="sd">    </span>
 <span class="sd">        **line** = [Defaults to the class name of the first child class]: [str] Name denoting the type of Unit class    </span>
-<span class="sd">    </span>
-<span class="sd">        **CEPCI** = 567.5: [float] Chemical Engineering Plant Cost Index</span>
 <span class="sd">        </span>
 <span class="sd">        **BM** = None: [float] Bare module factor (installation factor)</span>
 
@@ -436,18 +350,16 @@
 <span class="sd">            Run simulation and update output streams.</span>
 
 <span class="sd">        **_design()**</span>
-<span class="sd">            Add design requirements to results &quot;Design&quot; dictionary.</span>
+<span class="sd">            Add design requirements to &quot;_Design&quot; dictionary attribute.</span>
 
 <span class="sd">        **_cost()**</span>
-<span class="sd">            Add itemized purchse costs to results &quot;Cost&quot; dictionary.</span>
+<span class="sd">            Add itemized purchse costs to results &quot;_Cost&quot; dictionary attribute.</span>
 <span class="sd">            </span>
 <span class="sd">        .. Note::</span>
 <span class="sd">           </span>
 <span class="sd">           Class argument `_init` is called only once when a Unit object is initialized. `_setup` is run after `_init` as well as in the `reset` method to update cached data. The `_run` method is called during recycle loop convergence. The rest of the methods are called in the given order for generating results.</span>
 <span class="sd">        </span>
 <span class="sd">        **_units** = {}: [dict] Default units for results Operation and Design</span>
-<span class="sd">        </span>
-<span class="sd">        **_bounds** = {} [dict] Values should be tuples with lower and upper bounds.</span>
 <span class="sd">        </span>
 <span class="sd">        **_N_ins** = 1: [int] Expected number of input streams</span>
 
@@ -458,8 +370,6 @@
 <span class="sd">        **_has_power_utility** = False: [bool] If True, a PowerUtility object is created for every instance.</span>
 <span class="sd">        </span>
 <span class="sd">        **_has_cost** = True: [bool] Should be True if it has any associated cost</span>
-<span class="sd">    </span>
-<span class="sd">        **_linkedstreams** = False: [bool] True if outs are streams linked to ins</span>
 <span class="sd">    </span>
 <span class="sd">        **_graphics** = &lt;Graphics&gt;: [biosteam Graphics] Settings for diagram representation.</span>
 
@@ -479,15 +389,15 @@
 <span class="sd">        </span>
 <span class="sd">        :doc:`Inheriting from Unit`</span>
 <span class="sd">        </span>
-<span class="sd">        :doc:`Unit decorators`</span>
+<span class="sd">        :doc:`Unit metaclasses and decorators`</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span> 
     <span class="c1">### Abstract Attributes ###</span>
     
-    <span class="c1"># [float] Bare module factor (installation factor)</span>
+    <span class="c1">#: [float] Bare module factor (installation factor).</span>
     <span class="n">BM</span> <span class="o">=</span> <span class="kc">None</span>
     
-    <span class="c1"># [dict] Default units for results Operation and Design</span>
+    <span class="c1"># [dict] Default units for construction</span>
     <span class="n">_units</span> <span class="o">=</span> <span class="p">{}</span>
     
     <span class="c1"># [bool] Should be True if it has any associated cost</span>
@@ -498,12 +408,6 @@
     
     <span class="c1"># [int] Expected number of output streams</span>
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">2</span>  
-    
-    <span class="c1"># [bool] True if outs are proxy streams linked to ins</span>
-    <span class="n">_linkedstreams</span> <span class="o">=</span> <span class="kc">False</span>
-    
-    <span class="c1"># [dict] Values should be tuples with lower and upper bounds for results dictionary.</span>
-    <span class="n">_bounds</span> <span class="o">=</span> <span class="p">{}</span>
     
     <span class="c1"># [int] number of heat utilities</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">0</span>
@@ -536,8 +440,7 @@
     
     <span class="c1">### Initialize ###</span>
     
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span> <span class="o">=</span> <span class="n">kwargs</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_ins</span><span class="p">(</span><span class="n">ins</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_outs</span><span class="p">(</span><span class="n">outs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_results</span><span class="p">()</span>
@@ -545,7 +448,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_power_util</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_setup</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_install</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span>
 
 <div class="viewcode-block" id="Unit.reset"><a class="viewcode-back" href="../../Unit.html#biosteam.units.Unit.reset">[docs]</a>    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -568,36 +470,27 @@
     
     <span class="k">def</span> <span class="nf">_init_outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize output streams.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_linkedstreams</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">outs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">Stream</span><span class="o">.</span><span class="n">proxy</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_N_outs</span><span class="p">))</span>
-            <span class="k">elif</span> <span class="ow">not</span> <span class="n">outs</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">Stream</span><span class="o">.</span><span class="n">proxy</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">))</span>
-            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outs</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">outs</span><span class="p">,))</span>
-            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outs</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">Stream</span><span class="o">.</span><span class="n">proxy</span><span class="p">(</span><span class="n">outs</span><span class="p">),))</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">o</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">Stream</span><span class="p">)</span>
-                                         <span class="k">else</span> <span class="n">Stream</span><span class="o">.</span><span class="n">proxy</span><span class="p">(</span><span class="n">o</span><span class="p">)</span>
-                                         <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">outs</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">outs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">missing_stream</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_N_outs</span><span class="p">)))</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">outs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_N_outs</span><span class="p">)))</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outs</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">outs</span><span class="p">,))</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outs</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">Stream</span><span class="p">(</span><span class="n">outs</span><span class="p">),))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">outs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">missing_stream</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_N_outs</span><span class="p">)))</span>
-            <span class="k">elif</span> <span class="ow">not</span> <span class="n">outs</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_N_outs</span><span class="p">)))</span>
-            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outs</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">outs</span><span class="p">,))</span>
-            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outs</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">Stream</span><span class="p">(</span><span class="n">outs</span><span class="p">),))</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">Stream</span><span class="p">)</span> <span class="k">else</span> <span class="n">Stream</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">outs</span><span class="p">))</span>        
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">Stream</span><span class="p">)</span> <span class="k">else</span> <span class="n">Stream</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">outs</span><span class="p">))</span>        
     
     <span class="k">def</span> <span class="nf">_init_results</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Initialize results attribute.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_results</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Design&#39;</span><span class="p">:</span> <span class="p">{},</span> <span class="s1">&#39;Cost&#39;</span><span class="p">:</span> <span class="p">{}}</span>
-        <span class="c1">#: [array] Purchase price (USD) and utility cost (USD/hr)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_totalcosts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="nb">float</span><span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot;Initialize attributes to store results.&quot;&quot;&quot;</span>
+        <span class="c1"># [dict] Updated in `_cost` method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span> <span class="o">=</span> <span class="p">{}</span>
+        
+        <span class="c1"># [dict] Updated in `_design` method</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span> <span class="o">=</span> <span class="p">{}</span>
+        
+        <span class="c1"># [dict] Greenhouse gas emissions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_GHGs</span> <span class="o">=</span> <span class="p">{}</span>
     
     <span class="k">def</span> <span class="nf">_init_heat_utils</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize heat utilities.&quot;&quot;&quot;</span>
@@ -608,22 +501,7 @@
     <span class="k">def</span> <span class="nf">_init_power_util</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize power utility.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_power_utility</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span> <span class="o">=</span> <span class="n">PowerUtility</span><span class="p">()</span>
-    
-    <span class="k">def</span> <span class="nf">_install</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Cache objects and/or replace methods for computational efficiency.&quot;&quot;&quot;</span>
-        <span class="c1"># Result dictionaries for all utilities</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_utils</span> <span class="o">=</span> <span class="n">utils</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">heat_utilities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span>
-        <span class="n">power_utility</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span>
-        <span class="k">if</span> <span class="n">heat_utilities</span><span class="p">:</span> <span class="n">utils</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">heat_utilities</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">power_utility</span><span class="p">:</span> <span class="n">utils</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">power_utility</span><span class="p">)</span>            
-        <span class="c1"># Itemized purchase costs</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_purchase_costs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
-    
-    <span class="k">def</span> <span class="nf">_link_streams</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Link product to feed.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_linkedstreams</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">link</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span> <span class="o">=</span> <span class="n">PowerUtility</span><span class="p">()</span>         
     
     <span class="c1"># Forward pipping</span>
     <span class="k">def</span> <span class="nf">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
@@ -668,42 +546,43 @@
     <span class="n">_setup</span>    <span class="o">=</span> <span class="n">_do_nothing</span>
     <span class="n">_run</span>      <span class="o">=</span> <span class="n">_do_nothing</span>
     <span class="n">_design</span>   <span class="o">=</span> <span class="n">_do_nothing</span>
-    <span class="n">_N</span>        <span class="o">=</span> <span class="n">_do_nothing</span> <span class="c1">#: For Unit decorators</span>
     <span class="n">_cost</span>     <span class="o">=</span> <span class="n">_do_nothing</span>
-    <span class="n">_spec</span>     <span class="o">=</span> <span class="n">_do_nothing</span> <span class="c1">#: For Unit decorators</span>
-    <span class="n">_end</span>      <span class="o">=</span> <span class="n">_do_nothing</span> <span class="c1">#: For Unit decorators</span>
     
     <span class="c1"># Summary</span>
     <span class="k">def</span> <span class="nf">_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Calculate all results from unit run.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_finalize</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">_finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Run all cost methods and finalize purchase and utility cost.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_update_utility_cost</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_update_purchase_cost</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">_update_purchase_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_totalcosts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_purchase_costs</span><span class="p">)</span>
     
-    <span class="k">def</span> <span class="nf">_update_utility_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_totalcosts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">cost</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_utils</span><span class="p">])</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">purchase_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Total purchase cost (USD).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">installation_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Installation cost (USD).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">BM</span> <span class="o">*</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">utility_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Total utility cost (USD/hr).&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="nb">sum</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">cost</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">])</span>
+                                 <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span><span class="o">.</span><span class="n">cost</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">cost</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">])</span>
 
 <div class="viewcode-block" id="Unit.simulate"><a class="viewcode-back" href="../../Unit.html#biosteam.units.Unit.simulate">[docs]</a>    <span class="k">def</span> <span class="nf">simulate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Run rigourous simulation and determine all design requirements.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_link_streams</span><span class="p">()</span>
         <span class="n">_try_method</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">)</span>
         <span class="n">_try_method</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Unit.results"><a class="viewcode-back" href="../../Unit.html#biosteam.units.Unit.results">[docs]</a>    <span class="k">def</span> <span class="nf">results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_units</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return key results from simulation as a DataFrame if `with_units` is True or as a Series otherwise.&quot;&quot;&quot;</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span>
         <span class="n">ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span>
         <span class="n">keys</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">addkey</span> <span class="o">=</span> <span class="n">keys</span><span class="o">.</span><span class="n">append</span>
         <span class="n">vals</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">addval</span> <span class="o">=</span> <span class="n">vals</span><span class="o">.</span><span class="n">append</span>
-        <span class="n">include_GHG</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_totalGHG&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">with_units</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span><span class="p">:</span>
                 <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span>
@@ -720,26 +599,21 @@
                     <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">flow</span><span class="p">))</span>
                     <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;USD/hr&#39;</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">cost</span><span class="p">))</span>
             <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units</span>
-            <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-            <span class="n">Cost</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;Cost&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">include_GHG</span><span class="p">:</span>
-                <span class="n">GHG</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;GHG&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="s1">&#39;GHG&#39;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="kc">None</span>
-            <span class="k">for</span> <span class="n">ko</span><span class="p">,</span> <span class="n">vo</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span> <span class="ow">in</span> <span class="n">vo</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                    <span class="n">addkey</span><span class="p">((</span><span class="n">ko</span><span class="p">,</span> <span class="n">ki</span><span class="p">))</span>
-                    <span class="n">addval</span><span class="p">((</span><span class="n">units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ki</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="n">vi</span><span class="p">))</span>
+            <span class="n">Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span>
+            <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Design&#39;</span><span class="p">,</span> <span class="n">ki</span><span class="p">))</span>
+                <span class="n">addval</span><span class="p">((</span><span class="n">units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ki</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="n">vi</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span> <span class="ow">in</span> <span class="n">Cost</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Cost&#39;</span><span class="p">,</span> <span class="n">ki</span><span class="p">))</span>
                 <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;USD&#39;</span><span class="p">,</span> <span class="n">vi</span><span class="p">))</span>
-            <span class="n">capital</span><span class="p">,</span> <span class="n">utility</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_totalcosts</span>
             <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Purchase cost&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
-            <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;USD&#39;</span><span class="p">,</span> <span class="n">capital</span><span class="p">))</span>
+            <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;USD&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">purchase_cost</span><span class="p">))</span>
             <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Utility cost&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
-            <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;USD/hr&#39;</span><span class="p">,</span> <span class="n">utility</span><span class="p">))</span>
-            <span class="k">if</span> <span class="n">include_GHG</span><span class="p">:</span>
+            <span class="n">addval</span><span class="p">((</span><span class="s1">&#39;USD/hr&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">utility_cost</span><span class="p">))</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GHGs</span><span class="p">:</span>
                 <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_totalGHG</span>
                 <span class="n">GHG_units</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">_GHG_units</span>
-                <span class="k">for</span> <span class="n">ko</span><span class="p">,</span> <span class="n">vo</span> <span class="ow">in</span> <span class="n">GHG</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">ko</span><span class="p">,</span> <span class="n">vo</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GHGs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                     <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span> <span class="ow">in</span> <span class="n">vo</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                         <span class="n">addkey</span><span class="p">((</span><span class="n">ko</span><span class="p">,</span> <span class="n">ki</span><span class="p">))</span>
                         <span class="n">addval</span><span class="p">((</span><span class="n">GHG_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ko</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span> <span class="n">vi</span><span class="p">))</span>
@@ -749,7 +623,6 @@
                 <span class="n">addval</span><span class="p">((</span><span class="n">a_unit</span><span class="p">,</span> <span class="n">a</span><span class="p">))</span>
                 <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Total &#39;</span> <span class="o">+</span> <span class="n">b_key</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
                 <span class="n">addval</span><span class="p">((</span><span class="n">b_unit</span><span class="p">,</span> <span class="n">b</span><span class="p">))</span>
-            
             <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span>
                               <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">(</span><span class="n">keys</span><span class="p">),</span>
                               <span class="p">(</span><span class="s1">&#39;Units&#39;</span><span class="p">,</span> <span class="n">ID</span><span class="p">))</span>
@@ -770,20 +643,15 @@
                     <span class="n">addval</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">duty</span><span class="p">)</span>
                     <span class="n">addval</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">flow</span><span class="p">)</span>
                     <span class="n">addval</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">cost</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">include_GHG</span><span class="p">:</span>
-                <span class="n">GHG</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;GHG&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="s1">&#39;GHG&#39;</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">else</span> <span class="kc">None</span>
-            <span class="k">for</span> <span class="n">ko</span><span class="p">,</span> <span class="n">vo</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span> <span class="ow">in</span> <span class="n">vo</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                    <span class="n">addkey</span><span class="p">((</span><span class="n">ko</span><span class="p">,</span> <span class="n">ki</span><span class="p">))</span>
-                    <span class="n">addval</span><span class="p">(</span><span class="n">vi</span><span class="p">)</span>
-            <span class="n">capital</span><span class="p">,</span> <span class="n">utility</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_totalcosts</span>
-            <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Purchase cost&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
-            <span class="n">addval</span><span class="p">(</span><span class="n">capital</span><span class="p">)</span>
-            <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Utility cost&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
-            <span class="n">addval</span><span class="p">(</span><span class="n">utility</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">include_GHG</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Design&#39;</span><span class="p">,</span> <span class="n">ki</span><span class="p">))</span>
+                <span class="n">addval</span><span class="p">(</span><span class="n">vi</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Cost&#39;</span><span class="p">,</span> <span class="n">ki</span><span class="p">))</span>
+                <span class="n">addval</span><span class="p">(</span><span class="n">vi</span><span class="p">)</span>    
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GHGs</span><span class="p">:</span>
                 <span class="n">GHG_units</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">_GHG_units</span>
-                <span class="k">for</span> <span class="n">ko</span><span class="p">,</span> <span class="n">vo</span> <span class="ow">in</span> <span class="n">GHG</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">ko</span><span class="p">,</span> <span class="n">vo</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GHGs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                     <span class="k">for</span> <span class="n">ki</span><span class="p">,</span> <span class="n">vi</span> <span class="ow">in</span> <span class="n">vo</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                         <span class="n">addkey</span><span class="p">((</span><span class="n">ko</span><span class="p">,</span> <span class="n">ki</span><span class="p">))</span>
                         <span class="n">addval</span><span class="p">(</span><span class="n">vi</span><span class="p">)</span>
@@ -793,22 +661,67 @@
                 <span class="n">addval</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
                 <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Total &#39;</span> <span class="o">+</span> <span class="n">b_key</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
                 <span class="n">addval</span><span class="p">(</span><span class="n">b</span><span class="p">)</span>
+            <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Purchase cost&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+            <span class="n">addval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">purchase_cost</span><span class="p">)</span>
+            <span class="n">addkey</span><span class="p">((</span><span class="s1">&#39;Utility cost&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
+            <span class="n">addval</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">utility_cost</span><span class="p">)</span>
             <span class="n">series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">vals</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">MultiIndex</span><span class="o">.</span><span class="n">from_tuples</span><span class="p">(</span><span class="n">keys</span><span class="p">))</span>
             <span class="n">series</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">ID</span>
             <span class="k">return</span> <span class="n">series</span></div>
 
-    <span class="n">_checkbounds</span> <span class="o">=</span> <span class="n">_checkbounds</span>
-    <span class="k">def</span> <span class="nf">_lb_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">lb</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Warn that value is below lower bound.&quot;&quot;&quot;</span>
-        <span class="n">_lb_warning</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_units</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">lb</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="s1">&#39;_results&#39;</span><span class="p">:</span>
+            <span class="n">warn</span><span class="p">(</span><span class="ne">DeprecationWarning</span><span class="p">(</span><span class="s2">&quot;&#39;_results&#39; dictionary will be deprecated in favor of attributes &#39;_Design&#39;, &#39;_Cost&#39;, and &#39;_GHGs&#39;&quot;</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_results</span> <span class="o">=</span> <span class="n">results</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Design&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">,</span>
+                                       <span class="s1">&#39;Cost&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span><span class="p">,</span>
+                                       <span class="s1">&#39;GHG&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GHGs</span><span class="p">}</span>
+            <span class="k">return</span> <span class="n">results</span>
+        <span class="k">elif</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;_Cost&#39;</span><span class="p">,</span> <span class="s1">&#39;_Design&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_results&#39;</span><span class="p">):</span>
+            <span class="n">warn</span><span class="p">(</span><span class="ne">DeprecationWarning</span><span class="p">(</span><span class="s2">&quot;&#39;_results&#39; dictionary will be deprecated in favor of attributes &#39;_Design&#39;, &#39;_Cost&#39;, and &#39;_GHGs&#39;&quot;</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_GHGs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;GHG&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;&#39;{type(self).__name__}&#39; object has no attribute &#39;</span><span class="si">{name}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
 
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">CEPCI</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Chemical engineering plant cost index of all Unit objects.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">metaUnit</span><span class="o">.</span><span class="n">_CEPCI</span>
-    <span class="nd">@CEPCI</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">CEPCI</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">CEPCI</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;cannot change class attribute through an instance&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_checkbounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">bounds</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Issue a warning if value is out of bounds.</span>
+<span class="sd">        </span>
+<span class="sd">        **Parameters**</span>
+<span class="sd">        </span>
+<span class="sd">            **key:** [str] Name of value.</span>
+<span class="sd">            </span>
+<span class="sd">            **value:** [float]</span>
+<span class="sd">            </span>
+<span class="sd">            **units:** [str] Units of value</span>
+<span class="sd">            </span>
+<span class="sd">            **bounds:** iterable[float, float] Upper and lower bounds.</span>
+<span class="sd">            </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Warn when value is out of bounds</span>
+        <span class="n">lb</span><span class="p">,</span> <span class="n">ub</span> <span class="o">=</span> <span class="n">bounds</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">lb</span><span class="o">&lt;=</span><span class="n">value</span> <span class="ow">and</span> <span class="n">ub</span><span class="o">&gt;=</span><span class="n">value</span><span class="p">:</span>
+            <span class="n">units</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">units</span> <span class="k">if</span> <span class="n">units</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (</span><span class="si">{lb:.4g}</span><span class="s2"> to </span><span class="si">{ub:.4g}{units}</span><span class="s2">).&quot;</span>
+            <span class="k">except</span><span class="p">:</span>  <span class="c1"># Handle format errors</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="si">{key}</span><span class="s2"> (</span><span class="si">{value:.4g}{units}</span><span class="s2">) is out of bounds (</span><span class="si">{lb}</span><span class="s2"> to </span><span class="si">{ub}{units}</span><span class="s2">).&quot;</span>
+            <span class="n">warn</span><span class="p">(</span><span class="n">_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">DesignWarning</span><span class="p">),</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_lb_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">lb</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Warn that value is below lower bound.</span>
+<span class="sd">        </span>
+<span class="sd">         **Parameters**</span>
+<span class="sd">        </span>
+<span class="sd">            **key:** [str] Name of value.</span>
+<span class="sd">            </span>
+<span class="sd">            **value:** [float]</span>
+<span class="sd">            </span>
+<span class="sd">            **units:** [str] Units of value.</span>
+<span class="sd">            </span>
+<span class="sd">            **lb:** [float] lower bound.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_lb_warning</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">lb</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ID</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -904,7 +817,7 @@
         <span class="k">if</span> <span class="n">radius</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">neighborhood</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_neighborhood</span><span class="p">(</span><span class="n">radius</span><span class="p">)</span>
             <span class="n">neighborhood</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-            <span class="n">sys</span> <span class="o">=</span> <span class="n">biosteam</span><span class="o">.</span><span class="n">System</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">neighborhood</span><span class="p">)</span>
+            <span class="n">sys</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">System</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">neighborhood</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">sys</span><span class="o">.</span><span class="n">diagram</span><span class="p">(</span><span class="s1">&#39;thorough&#39;</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="nb">format</span><span class="p">)</span>
         
         <span class="n">graphics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_graphics</span>
@@ -954,16 +867,6 @@
             <span class="n">f</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">stream</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>
             <span class="n">oi</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="n">save_digraph</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="nb">format</span><span class="p">)</span></div>
-    
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">purchase_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Total purchase cost (USD).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_totalcosts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">utility_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Total utility cost (USD/hr).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_totalcosts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
     
     <span class="c1">### Net input and output flows ###</span>
     
@@ -1089,7 +992,6 @@
     <span class="c1"># Representation</span>
     <span class="k">def</span> <span class="nf">_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">fraction</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Information on unit.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_link_streams</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">:</span>
             <span class="n">info</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;{type(self).__name__}: </span><span class="si">{self.ID}</span><span class="se">\n</span><span class="s1">&#39;</span>
         <span class="k">else</span><span class="p">:</span>

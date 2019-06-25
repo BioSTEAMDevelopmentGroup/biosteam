@@ -34,7 +34,6 @@
         <script type="text/javascript" src="../../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
@@ -98,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -189,6 +188,7 @@
 <span class="kn">from</span> <span class="nn">...</span> <span class="k">import</span> <span class="n">Stream</span>
 <span class="kn">from</span> <span class="nn">..._unit</span> <span class="k">import</span> <span class="n">metaUnit</span>
 <span class="kn">from</span> <span class="nn">numpy</span> <span class="k">import</span> <span class="n">asarray</span>
+<span class="kn">from</span> <span class="nn">pandas</span> <span class="k">import</span> <span class="n">Series</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;splitter&#39;</span><span class="p">,</span> <span class="s1">&#39;__init_split__&#39;</span><span class="p">,</span> <span class="s1">&#39;run_split&#39;</span><span class="p">,</span> <span class="s1">&#39;run_split_with_mixing&#39;</span><span class="p">)</span>
 
@@ -203,10 +203,9 @@
 <span class="sd">    &gt;&gt;&gt; from biosteam.units.decorators import *</span>
 <span class="sd">    &gt;&gt;&gt; from biosteam.units.metaclasses import splitter</span>
 <span class="sd">    &gt;&gt;&gt; # Create subclass</span>
-<span class="sd">    &gt;&gt;&gt; @cost(&#39;Flow rate&#39;, cost=1.5e6, CE=541.7, exp=0.6, S=335e3, kW=2010)</span>
-<span class="sd">    ... @design(&#39;Flow rate&#39;, &#39;kg/hr&#39;, lambda self: self._ins[0].massnet)</span>
-<span class="sd">    ... class CrushingMill(Unit, metaclass=splitter):</span>
-<span class="sd">    ...     pass</span>
+<span class="sd">    &gt;&gt;&gt; @cost(&#39;Flow rate&#39;, units=&#39;kg/hr&#39;, cost=1.5e6,</span>
+<span class="sd">    ...       CE=541.7, exp=0.6, S=335e3, kW=2010)</span>
+<span class="sd">    ... class CrushingMill(Unit, metaclass=splitter): pass</span>
 <span class="sd">    &gt;&gt;&gt; # Set Stream.species</span>
 <span class="sd">    &gt;&gt;&gt; species = Species(&#39;Water&#39;)</span>
 <span class="sd">    &gt;&gt;&gt; species.Sugar = compounds.Substance(&#39;Sugar&#39;)</span>
@@ -238,17 +237,15 @@
 <span class="sd">                        Fiber  8.28e+03</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">clsname</span><span class="p">,</span> <span class="n">superclasses</span><span class="p">,</span> <span class="n">definitions</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">superclasses</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{mcl.__name__}</span><span class="s1"> metaclass requires one and only one super class&#39;</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="s1">&#39;__init__&#39;</span> <span class="ow">in</span> <span class="n">definitions</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s1">&#39;__init__&#39;</span> <span class="ow">in</span> <span class="n">dct</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;cannot use </span><span class="si">{mcl.__name__}</span><span class="s2"> metaclass with an implemented &#39;__init__&#39; method&quot;</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="s1">&#39;split&#39;</span> <span class="ow">in</span> <span class="n">definitions</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="s1">&#39;split&#39;</span> <span class="ow">in</span> <span class="n">dct</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;cannot use </span><span class="si">{mcl.__name__}</span><span class="s2"> metaclass with an implemented &#39;split&#39; member&quot;</span><span class="p">)</span>
         
-        <span class="n">_kwargs</span> <span class="o">=</span> <span class="n">definitions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_kwargs&#39;</span><span class="p">)</span>
+        <span class="n">_kwargs</span> <span class="o">=</span> <span class="n">dct</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_kwargs&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">_kwargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">definitions</span><span class="p">[</span><span class="s1">&#39;__init__&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">__init_split__</span>
+            <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;__init__&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">__init_split__</span>
         <span class="k">elif</span> <span class="s1">&#39;split&#39;</span> <span class="ow">in</span> <span class="n">_kwargs</span> <span class="ow">or</span> <span class="s1">&#39;order&#39;</span> <span class="ow">in</span> <span class="n">_kwargs</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;cannot use </span><span class="si">{mcl.__name__}</span><span class="s2"> metaclass with &#39;split&#39; or &#39;order&#39; defined in &#39;</span><span class="si">{clsname}</span><span class="s2">._kwargs&#39;&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -256,25 +253,49 @@
             <span class="n">inputs</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;=&#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">_kwargs</span><span class="p">])</span>
             
             <span class="c1"># Make a string to execute</span>
-            <span class="n">str2exec</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;def __init__(self, ID=&#39;&#39;, outs=(), ins=None, split=None, order=None, </span><span class="si">{inputs}</span><span class="s2">):</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">str2exec</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;def __init__(self, ID=&#39;&#39;, outs=(), ins=None, order=None, </span><span class="si">{inputs}</span><span class="s2">, *, split):</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="n">str2exec</span><span class="o">+=</span> <span class="n">f</span><span class="s2">&quot;    self._kwargs = dict(</span><span class="si">{inputs}</span><span class="s2">)</span><span class="se">\n</span><span class="s2">&quot;</span>
-            <span class="n">str2exec</span><span class="o">+=</span> <span class="n">f</span><span class="s2">&quot;    _(self, ID, outs, ins, split, order)&quot;</span>
+            <span class="n">str2exec</span><span class="o">+=</span> <span class="n">f</span><span class="s2">&quot;    _(self, ID, outs, ins, order, split=split)&quot;</span>
             
             <span class="c1"># Execute string and replace __init__</span>
             <span class="n">globs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;_&#39;</span><span class="p">:</span> <span class="n">__init_split__</span><span class="p">}</span>
             <span class="n">globs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">_kwargs</span><span class="p">)</span>
-            <span class="n">exec</span><span class="p">(</span><span class="n">str2exec</span><span class="p">,</span> <span class="n">globs</span><span class="p">,</span> <span class="n">definitions</span><span class="p">)</span>
+            <span class="n">exec</span><span class="p">(</span><span class="n">str2exec</span><span class="p">,</span> <span class="n">globs</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
         
-        <span class="k">if</span> <span class="s1">&#39;_run&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">definitions</span><span class="p">:</span>
-            <span class="n">definitions</span><span class="p">[</span><span class="s1">&#39;_run&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">run_split</span>
+        <span class="k">if</span> <span class="s1">&#39;_run&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dct</span><span class="p">:</span>
+            <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;_run&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">run_split</span>
         
-        <span class="n">definitions</span><span class="p">[</span><span class="s1">&#39;split&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">split</span>
-        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">clsname</span><span class="p">,</span> <span class="n">superclasses</span><span class="p">,</span> <span class="n">definitions</span><span class="p">)</span></div>
+        <span class="k">if</span> <span class="s1">&#39;_N_ins&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dct</span><span class="p">:</span> <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;_N_ins&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;_N_outs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;split&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">splitprop</span>
+        
+        <span class="k">if</span> <span class="s2">&quot;__doc__&quot;</span> <span class="ow">in</span> <span class="n">dct</span><span class="p">:</span>
+            <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;__doc__&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;__doc__&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;**Parameters**&#39;</span><span class="p">,</span> 
+       <span class="s2">&quot;**Parameters**&quot;</span>
+<span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>    
+<span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">        **split:** Should be one of the following&quot;</span>
+<span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">            * [float] The fraction of net feed in the 0th output stream&quot;</span>
+<span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">            * [array_like] Componentwise split of feed to 0th output stream&quot;</span>
+<span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">        **order:** Iterable[str] Species order of split&quot;</span><span class="p">)</span>    
+        
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span></div>
 
-<span class="n">split</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="s2">&quot;[array] Componentwise split of feed to 0th output stream.&quot;</span><span class="p">)</span>
+<span class="nd">@property</span>
+<span class="k">def</span> <span class="nf">splitprop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;[array] Componentwise split of feed to 0th output stream.&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split_series</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_split_series</span> <span class="o">=</span> <span class="n">split</span> <span class="o">=</span> <span class="n">Series</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_split</span><span class="p">,</span>
+                                            <span class="n">index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_reorder_</span><span class="o">.</span><span class="vm">__self__</span><span class="o">.</span><span class="n">_IDs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">split</span>
 
-<span class="k">def</span> <span class="nf">__init_split__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_reorder_</span> <span class="o">=</span> <span class="n">Stream</span><span class="o">.</span><span class="n">_cls_species</span><span class="o">.</span><span class="n">_reorder</span>
+<span class="k">def</span> <span class="nf">__init_split__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">split</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reorder_</span> <span class="o">=</span> <span class="n">Stream</span><span class="o">.</span><span class="n">_cls_species</span><span class="o">.</span><span class="n">_reorder</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">Stream</span><span class="o">.</span><span class="n">_cls_species</span><span class="p">:</span> <span class="k">raise</span> <span class="n">err</span>
+        <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;must set Stream.species first&#39;</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_split</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reorder_</span><span class="p">(</span><span class="n">split</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span> <span class="k">if</span> <span class="n">order</span> <span class="k">else</span> <span class="n">asarray</span><span class="p">(</span><span class="n">split</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_init_ins</span><span class="p">(</span><span class="n">ins</span><span class="p">)</span>
@@ -284,7 +305,6 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">_init_power_util</span><span class="p">()</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_init</span><span class="p">()</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_setup</span><span class="p">()</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_install</span><span class="p">()</span>
     
 <div class="viewcode-block" id="run_split"><a class="viewcode-back" href="../../../../metaclasses.html#biosteam.units.metaclasses.run_split">[docs]</a><span class="k">def</span> <span class="nf">run_split</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Splitter mass and energy balance function based on one input stream.&quot;&quot;&quot;</span>
@@ -303,8 +323,8 @@
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ins</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span> <span class="n">Stream</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">ins</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span> <span class="n">top</span><span class="o">.</span><span class="n">copylike</span><span class="p">(</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
     <span class="n">bot</span><span class="o">.</span><span class="n">copylike</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
-    <span class="n">top</span><span class="o">.</span><span class="n">_mol</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split</span>
-    <span class="n">bot</span><span class="o">.</span><span class="n">_mol</span> <span class="o">-=</span> <span class="n">top</span><span class="o">.</span><span class="n">_mol</span></div>
+    <span class="n">top</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split</span>
+    <span class="n">bot</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">-=</span> <span class="n">top</span><span class="o">.</span><span class="n">_mol</span></div>
 </pre></div>
 
            </div>

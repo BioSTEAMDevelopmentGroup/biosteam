@@ -8,49 +8,35 @@ from .. import Unit, units
 from . import metaclasses
 from . import decorators
 import pandas as pd
+import numpy as np
 
-_finalize = decorators._extend._finalize
-_index = decorators._cost._index
-_cost = decorators._cost._cost
-_design = decorators._design._design
-design_center = decorators._design_center.design_center
+_add_cost = decorators.add_cost
+_index = np.array(['Basis',
+                   'Units',
+                   'Size',
+                   'Upper bound',
+                   'CEPCI',
+                   'Cost (USD)',
+                   'Exponent',
+                   'Electricity (kW)',
+                   'Installation factor'])
+
 
 __all__ = ('df2unit', 'xl2dct', 'xl2mod')
 
-def df2unit(clsname, cost_options, *, superclass=None, metaclass=None):
+def df2unit(clsname, cost_items, *, supercls=None, metacls=None):
     """Return Unit subclass from cost_options DataFrame."""
-    dct = {'_cost': _cost,
-           '_finalize': _finalize,
-           'cost_options': cost_options}
-    
-    superclasses = (superclass,) if superclass else (Unit,)
-    if not metaclass: metaclass = type(superclass)
-    
-    try: assert all(cost_options.index==_index), "'cost_options' index is incorrect"
+    superclasses = (supercls,) if supercls else (Unit,)
+    if not metacls: metacls = type(supercls)
+    try: assert all(cost_items.index==_index), "'cost_items' index is incorrect"
     except Exception as err:
-        if not isinstance(cost_options, pd.DataFrame):
-            raise ValueError(f"'cost_options' must be a DataFrame, not '{type(cost_options).__name__}'")
+        if not isinstance(cost_items, pd.DataFrame):
+            raise ValueError(f"'cost_items' must be a DataFrame, not '{type(cost_items).__name__}'")
         else:
             raise err
-    
-    dct['_design'] = _design
-    dct['_design_basis'] = []
-    add_basis = dct['_design_basis'].append
-    if any(cost_options.loc['Electricity (kW)', :]):
-        dct['_has_power_utility'] = True
-    cls = metaclass.__new__(metaclass, clsname, superclasses, dct)
-    
-    done = set()
-    for i in cost_options:
-        column = cost_options[i]
-        name = column['Basis']
-        units = column['Units']
-        if name in done: continue
-        cls._units[name] = units
-        basis = design_center(name, (units, cls._N_ins, cls._N_outs))    
-        add_basis((name, basis))   
-        done.add(name)
-            
+    cls = metacls.__new__(metacls, clsname, superclasses, {})
+    for ID in cost_items:
+        _add_cost(cls, ID, *cost_items[ID], None)
     return cls
 
 def xl2dct(file, sheet_name=0):
@@ -58,7 +44,7 @@ def xl2dct(file, sheet_name=0):
     df = pd.read_excel(file, header=[0, 1])
     dct = {}
     for name_sim in df.columns.levels[0]:
-        cost_options = df[name_sim]
+        cost_items = df[name_sim]
         if '-' in name_sim:
             sim, name = name_sim.split('-')
         else:
@@ -70,15 +56,15 @@ def xl2dct(file, sheet_name=0):
                 name = name.replace(i, ' ')
         metaname = sim.casefold()
         if metaname in metaclasses.__dict__:
-            metaclass = getattr(metaclasses, metaname)
-            new = df2unit(name, cost_options, metaclass=metaclass)
+            metacls = getattr(metaclasses, metaname)
+            new = df2unit(name, cost_items, metacls=metacls)
         else:
             supername = ''.join([i.capitalize() for i in sim.split(' ')])
             if supername in units.__dict__:
                 superclass = getattr(units, supername)
             else:
                 raise ValueError(f"invalid simulation option '{sim}'")
-            new = df2unit(name, cost_options, superclass=superclass)
+            new = df2unit(name, cost_items, superclass=superclass)
         dct[name] = new
     return dct
 

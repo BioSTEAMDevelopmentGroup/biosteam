@@ -34,7 +34,6 @@
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -109,7 +108,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -389,8 +388,8 @@ upper case ‘LIQUID’ denotes that it is a distinct phase from ‘liquid’.</
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bs</span>
-<span class="n">bs</span><span class="o">.</span><span class="n">MixedStream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">)</span>
+<span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
+<span class="n">bst</span><span class="o">.</span><span class="n">MixedStream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -402,7 +401,7 @@ rates for different phases:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">ms1</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">MixedStream</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;ms1&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">351</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
+<span></span><span class="n">ms1</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">MixedStream</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;ms1&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">351</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
 <span class="n">ms1</span><span class="o">.</span><span class="n">setflow</span><span class="p">(</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">)</span>
 <span class="n">ms1</span><span class="o">.</span><span class="n">setflow</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="c1"># Assuming kmol/hr</span>
 <span class="n">ms1</span><span class="o">.</span><span class="n">getflow</span><span class="p">(</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
@@ -947,7 +946,7 @@ MixedStream: ms1
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">ms2</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">MixedStream</span><span class="p">(</span><span class="s1">&#39;ms2&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">370</span><span class="p">)</span>
+<span></span><span class="n">ms2</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">MixedStream</span><span class="p">(</span><span class="s1">&#39;ms2&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">370</span><span class="p">)</span>
 <span class="c1"># Set flows in same order as in Species object</span>
 <span class="n">ms2</span><span class="o">.</span><span class="n">setflow</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
 <span class="n">ms2</span><span class="o">.</span><span class="n">setflow</span><span class="p">(</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
@@ -1047,7 +1046,7 @@ calculate equilibrium using the <code class="docutils literal notranslate"><span
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1"># Make stream with hydrophobic species</span>
-<span class="n">ms3</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">MixedStream</span><span class="p">(</span><span class="s1">&#39;ms3&#39;</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">bs</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Octane&#39;</span><span class="p">))</span>
+<span class="n">ms3</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">MixedStream</span><span class="p">(</span><span class="s1">&#39;ms3&#39;</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">bst</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Octane&#39;</span><span class="p">))</span>
 <span class="n">ms3</span><span class="o">.</span><span class="n">setflow</span><span class="p">(</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
 <span class="n">ms3</span>
 </pre></div>

@@ -34,7 +34,6 @@
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -100,7 +99,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -219,7 +218,7 @@
 <dd><dl class="docutils">
 <dt>[dict] Options for cash flow analysis [-]:</dt>
 <dd><ul class="first last simple">
-<li><strong>Lang factor:</strong> Used to get fixed capital investment from total purchase cost. If no lang factor is given, estimate capital investment using bare module factors.</li>
+<li><strong>Lang factor:</strong> Lang factor for getting fixed capital investment from total purchase cost. If no lang factor, estimate capital investment using bare module factors.</li>
 <li><strong>Operating days:</strong> (day).</li>
 <li><strong>IRR:</strong> Internal rate of return (fraction).</li>
 <li><strong>Wage:</strong> Wage per employee (USD/yr).</li>
@@ -239,23 +238,36 @@
 <li><strong>Royalties:</strong> Cost of royalties as a fraction of depreciable capital.</li>
 <li><strong>Depreciation:</strong> ‘MACRS’ + number of years (e.g. ‘MACRS7’).</li>
 <li><strong>Startup schedule:</strong> tuple of startup investment fractions per year, starting from year 0. For example, for 50% capital investment in year 0 and 50% investment in year 1: (0.5, 0.5).</li>
+<li><strong>Contingency:</strong> Cost as a fraction of direct permanent invesment.</li>
 <li><strong>Other recurring costs:</strong> Any additional recurring costs per year of operation.</li>
-<li><strong>Other fixed capital:</strong> Any additional investment not accounted for in equipment cost.</li>
+<li><strong>Other fixed capital:</strong> Any additional investment not accounted for.</li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.TEA.costs">
-<code class="descname">costs</code><a class="headerlink" href="#biosteam.TEA.costs" title="Permalink to this definition">¶</a></dt>
-<dd><p>[DataFrame] All purchase and utility costs for units.</p>
+<dt id="biosteam.TEA.utility_cost">
+<code class="descname">utility_cost</code><a class="headerlink" href="#biosteam.TEA.utility_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total utility cost (USD/hr).</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.TEA.cashflow">
-<code class="descname">cashflow</code><a class="headerlink" href="#biosteam.TEA.cashflow" title="Permalink to this definition">¶</a></dt>
-<dd><p>[DataFrame] Cash flow table.</p>
+<dt id="biosteam.TEA.purchase_cost">
+<code class="descname">purchase_cost</code><a class="headerlink" href="#biosteam.TEA.purchase_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total purchase cost (USD).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.intallation_cost">
+<code class="descname">intallation_cost</code><a class="headerlink" href="#biosteam.TEA.intallation_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total installation cost (USD).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.TEA.get_cashflow">
+<code class="descname">get_cashflow</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.get_cashflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.get_cashflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return DataFrame of the cash flow analysis.</p>
 </dd></dl>
 
 <dl class="method">
@@ -267,7 +279,7 @@
 <dl class="method">
 <dt id="biosteam.TEA.NPV">
 <code class="descname">NPV</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.NPV"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.NPV" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate NPV by cash flow analysis and update the “results” and “cashflow” attributes.</p>
+<dd><p>Calculate NPV by cash flow analysis.</p>
 </dd></dl>
 
 <dl class="method">
@@ -295,9 +307,7 @@
 <dd><p>Return the price (USD/kg) of stream at the break even point (NPV = 0) through cash flow analysis.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
-<div><p><strong>stream:</strong> [Stream] Stream with variable selling price.</p>
-<p><strong>update:</strong> [bool] If True, update stream price, cashflow, and results.</p>
-</div></blockquote>
+<div><strong>stream:</strong> [Stream] Stream with variable selling price.</div></blockquote>
 </dd></dl>
 
 <dl class="method">

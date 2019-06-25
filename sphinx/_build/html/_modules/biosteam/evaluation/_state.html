@@ -34,7 +34,6 @@
         <script type="text/javascript" src="../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -98,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -206,10 +205,16 @@
     <span class="k">elif</span> <span class="n">kind</span> <span class="ow">is</span> <span class="s1">&#39;design&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">Block</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">setter</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">_summary</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">distribution</span><span class="o">=</span><span class="n">distribution</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">kind</span> <span class="ow">is</span> <span class="s1">&#39;cost&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">Block</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">setter</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">_finalize</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">distribution</span><span class="o">=</span><span class="n">distribution</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="s1">&#39;_end&#39;</span><span class="p">):</span>
+            <span class="k">def</span> <span class="nf">simulate</span><span class="p">():</span>
+                <span class="n">element</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
+                <span class="n">element</span><span class="o">.</span><span class="n">_end</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">simulate</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">_cost</span>
+        <span class="k">return</span> <span class="n">Block</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">setter</span><span class="p">,</span> <span class="n">simulate</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">distribution</span><span class="o">=</span><span class="n">distribution</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">)</span>
     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;kind must be either &#39;coupled&#39;, &#39;isolated&#39;, &#39;design&#39;, or &#39;cost&#39; (not </span><span class="si">{kind}</span><span class="s2">).&quot;</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">modelfunction</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">modelfunction_with_skipping</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
     <span class="n">cached</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">zip_</span><span class="o">=</span> <span class="nb">zip</span>
     <span class="n">params</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
@@ -230,25 +235,42 @@
             <span class="k">raise</span> <span class="n">Error</span>
     <span class="k">return</span> <span class="n">model</span>
 
+<span class="k">def</span> <span class="nf">modelfunction</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+    <span class="n">zip_</span><span class="o">=</span> <span class="nb">zip</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">model</span><span class="p">(</span><span class="n">sample</span><span class="p">):</span> 
+        <span class="n">sim</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">zip_</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">sample</span><span class="p">):</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">setter</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">sim</span><span class="p">:</span> <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">system</span><span class="p">:</span> <span class="n">sim</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">simulate</span> 
+            <span class="k">else</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">sim</span><span class="p">:</span> <span class="n">sim</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">model</span>
+
 
 <span class="c1"># %%</span>
     
 <div class="viewcode-block" id="State"><a class="viewcode-back" href="../../../State.html#biosteam.evaluation.State">[docs]</a><span class="k">class</span> <span class="nc">State</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Create a State object that can update the `system` state given a set of parameters.</span>
+    <span class="sd">&quot;&quot;&quot;Create a State object that can update the `system` state given a sample of parameter states.</span>
 <span class="sd">    </span>
 <span class="sd">    **Parameters**</span>
 <span class="sd">    </span>
 <span class="sd">        **system:** [System] Reflects the model state.</span>
+<span class="sd">        </span>
+<span class="sd">        **skip:** [bool] If True, skip simulation for repeated states</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;_system&#39;</span><span class="p">,</span> <span class="c1"># [System] Reflects the model state.</span>
                  <span class="s1">&#39;_params&#39;</span><span class="p">,</span> <span class="c1"># list[Parameter] All parameters.</span>
-                 <span class="s1">&#39;_model&#39;</span><span class="p">)</span>  <span class="c1"># [function] Model function.</span>
+                 <span class="s1">&#39;_model&#39;</span><span class="p">,</span> <span class="c1"># [function] Model function.</span>
+                 <span class="s1">&#39;_skip&#39;</span><span class="p">)</span> <span class="c1"># [bool] If True, skip simulation for repeated states</span>
     
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_system</span> <span class="o">=</span> <span class="n">system</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_skip</span> <span class="o">=</span> <span class="n">skip</span>
     
     <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
@@ -299,7 +321,10 @@
         <span class="n">index</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">_unitnetwork</span><span class="o">.</span><span class="n">index</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">index</span><span class="p">(</span><span class="n">param_unit</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
                                         <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">system</span> <span class="k">else</span> <span class="n">length</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="n">modelfunction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_skip</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="n">modelfunction_with_skipping</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="n">modelfunction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
     
 <div class="viewcode-block" id="State.__call__"><a class="viewcode-back" href="../../../State.html#biosteam.evaluation.State.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Update state given sample of parameters.&quot;&quot;&quot;</span>
@@ -321,13 +346,13 @@
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">:</span>
             <span class="n">blk</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">element_name</span>
             <span class="n">element</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">blk</span><span class="p">)</span><span class="o">*</span><span class="s1">&#39; &#39;</span> <span class="k">if</span> <span class="n">blk</span><span class="o">==</span><span class="n">lastblk</span> <span class="k">else</span> <span class="n">blk</span>
-            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;  </span><span class="si">{element}</span><span class="s2">$</span><span class="si">{i.name}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot; </span><span class="si">{element}</span><span class="s2">$</span><span class="si">{i.name}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">lastblk</span> <span class="o">=</span> <span class="n">blk</span>
             <span class="n">lenghts_block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">blk</span><span class="p">))</span>
         <span class="n">maxlen_block</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">lenghts_block</span><span class="p">)</span>
         <span class="n">out</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;{self._repr()}</span><span class="se">\n</span><span class="s1">&#39;</span>
-        <span class="n">maxlen_block</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">maxlen_block</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
-        <span class="n">out</span> <span class="o">+=</span> <span class="s1">&#39; Element:&#39;</span> <span class="o">+</span> <span class="p">(</span><span class="n">maxlen_block</span> <span class="o">-</span> <span class="mi">8</span><span class="p">)</span><span class="o">*</span><span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="s1">&#39;  Parameter:</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">maxlen_block</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">maxlen_block</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">+=</span> <span class="s1">&#39; Element:&#39;</span> <span class="o">+</span> <span class="p">(</span><span class="n">maxlen_block</span> <span class="o">-</span> <span class="mi">7</span><span class="p">)</span><span class="o">*</span><span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="s1">&#39; Parameter:</span><span class="se">\n</span><span class="s1">&#39;</span>
         <span class="k">for</span> <span class="n">newline</span><span class="p">,</span> <span class="n">len_</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="n">lenghts_block</span><span class="p">):</span>
             <span class="n">newline</span> <span class="o">=</span> <span class="n">newline</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;$&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="o">*</span><span class="p">(</span><span class="n">maxlen_block</span><span class="o">-</span><span class="n">len_</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;  &#39;</span><span class="p">)</span>
             <span class="n">out</span> <span class="o">+=</span> <span class="n">newline</span>

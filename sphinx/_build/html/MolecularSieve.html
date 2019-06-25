@@ -34,7 +34,6 @@
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -100,7 +99,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -229,7 +228,7 @@
 <span id="molecularsieve"></span><h1>MolecularSieve<a class="headerlink" href="#module-biosteam.units" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.units.MolecularSieve">
-<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">MolecularSieve</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>split=None</em>, <em>order=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_molecular_sieve.html#MolecularSieve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.MolecularSieve" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">MolecularSieve</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>order=None</em>, <em>*</em>, <em>split</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_molecular_sieve.html#MolecularSieve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.MolecularSieve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create an ethanol/water molecular sieve for bioethanol plants.
 The molecular sieve is modeled as a component wise separator. Costing
 is based on scaling by the 6/10ths rule from an NREL TEA report [1].</p>
@@ -238,6 +237,15 @@ is based on scaling by the 6/10ths rule from an NREL TEA report [1].</p>
 <div><p><strong>ID:</strong> [str] Unique identification. If set as ‘’, a default ID will be chosen.</p>
 <p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
 <p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+<dl class="docutils">
+<dt><strong>split:</strong> Should be one of the following</dt>
+<dd><ul class="first last simple">
+<li>[float] The fraction of net feed in the 0th output stream</li>
+<li>[array_like] Componentwise split of feed to 0th output stream</li>
+</ul>
+</dd>
+</dl>
+<p><strong>order:</strong> Iterable[str] Species order of split</p>
 <p><strong>split:</strong> [array_like] Componentwise split to the 0th output stream</p>
 </div></blockquote>
 <p><strong>ins</strong></p>

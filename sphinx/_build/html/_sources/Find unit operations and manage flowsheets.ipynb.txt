@@ -38,8 +38,8 @@
     }
    ],
    "source": [
-    "import biosteam as bs\n",
-    "bs.find"
+    "import biosteam as bst\n",
+    "bst.find"
    ]
   },
   {
@@ -112,9 +112,9 @@
     }
    ],
    "source": [
-    "bs.Stream.species = bs.Species('Water', 'Ethanol')\n",
-    "unit = bs.units.Mixer('M0')\n",
-    "bs.find('M0')"
+    "bs.Stream.species = bst.Species('Water', 'Ethanol')\n",
+    "unit = bst.units.Mixer('M0')\n",
+    "bst.find('M0')"
    ]
   },
   {
@@ -140,7 +140,7 @@
     }
    ],
    "source": [
-    "bs.find('d1')"
+    "bst.find('d1')"
    ]
   },
   {
@@ -224,8 +224,8 @@
     }
    ],
    "source": [
-    "bs.units.Mixer('M1')\n",
-    "bs.find.diagram()"
+    "bst.units.Mixer('M1')\n",
+    "bst.find.diagram()"
    ]
   },
   {
@@ -254,7 +254,7 @@
     }
    ],
    "source": [
-    "bs.find.stream"
+    "bst.find.stream"
    ]
   },
   {
@@ -276,7 +276,7 @@
     }
    ],
    "source": [
-    "bs.find.unit"
+    "bst.find.unit"
    ]
   },
   {
@@ -296,7 +296,7 @@
     }
    ],
    "source": [
-    "bs.find.system"
+    "bst.find.system"
    ]
   },
   {
@@ -369,7 +369,7 @@
     }
    ],
    "source": [
-    "bs.find.unit.M0"
+    "bst.find.unit.M0"
    ]
   },
   {
@@ -403,8 +403,8 @@
     }
    ],
    "source": [
-    "bs.find.set_flowsheet(bs.Flowsheet('New flowsheet'))\n",
-    "bs.find"
+    "bst.find.set_flowsheet(bs.Flowsheet('New flowsheet'))\n",
+    "bst.find"
    ]
   },
   {
@@ -464,7 +464,7 @@
    ],
    "source": [
     "unit = bs.units.Mixer('M2')\n",
-    "bs.find.diagram()"
+    "bst.find.diagram()"
    ]
   },
   {
@@ -493,7 +493,7 @@
     }
    ],
    "source": [
-    "bs.find('M0')"
+    "bst.find('M0')"
    ]
   },
   {
@@ -520,8 +520,8 @@
     }
    ],
    "source": [
-    "bs.find.set_flowsheet(bs.find.flowsheet['Default']) # Switch back to default flowsheet\n",
-    "bs.find"
+    "bst.find.set_flowsheet(bs.find.flowsheet['Default']) # Switch back to default flowsheet\n",
+    "bst.find"
    ]
   },
   {
@@ -549,7 +549,7 @@
    ],
    "source": [
     "import lipidcane # You must pip install lipidcane first\n",
-    "bs.find"
+    "bst.find"
    ]
   },
   {
@@ -2576,7 +2576,7 @@
     }
    ],
    "source": [
-    "bs.find.diagram()"
+    "bst.find.diagram()"
    ]
   }
  ],

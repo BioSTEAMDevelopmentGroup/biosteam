@@ -34,7 +34,6 @@
         <script type="text/javascript" src="../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -98,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -191,7 +190,6 @@
 <span class="kn">from</span> <span class="nn">.._stream</span> <span class="k">import</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">mol_flow_dim</span><span class="p">,</span> <span class="n">mass_flow_dim</span><span class="p">,</span> <span class="n">vol_flow_dim</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">_Q</span>
 <span class="kn">from</span> <span class="nn">.._exceptions</span> <span class="k">import</span> <span class="n">DimensionError</span>
-<span class="kn">from</span> <span class="nn">warnings</span> <span class="k">import</span> <span class="n">warn</span>
 <span class="kn">import</span> <span class="nn">os</span>
 
 <span class="n">DataFrame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span>
@@ -207,20 +205,6 @@
     <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
 
 <span class="c1"># %% Helpful functions</span>
-
-<span class="k">def</span> <span class="nf">_units_sort_by_cost</span><span class="p">(</span><span class="n">units</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Sort by first grouping units by line and then order groups by maximum capital.&quot;&quot;&quot;</span>
-    <span class="n">unit_lines</span> <span class="o">=</span> <span class="nb">list</span><span class="p">({</span><span class="n">u</span><span class="o">.</span><span class="n">line</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">})</span>
-    <span class="n">line_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">ut</span><span class="p">:[]</span> <span class="k">for</span> <span class="n">ut</span> <span class="ow">in</span> <span class="n">unit_lines</span><span class="p">}</span>
-    <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">:</span>
-        <span class="n">line_dict</span><span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">line</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
-    <span class="n">units</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">unit_lines</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">ut</span><span class="p">:</span> <span class="nb">max</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">_totalcosts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">line_dict</span><span class="p">[</span><span class="n">ut</span><span class="p">]),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">unit_lines</span><span class="p">:</span>
-        <span class="n">ulist</span> <span class="o">=</span> <span class="n">line_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
-        <span class="n">ulist</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">_totalcosts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">units</span> <span class="o">+=</span> <span class="n">ulist</span>
-    <span class="k">return</span> <span class="n">units</span>
 
 <span class="k">def</span> <span class="nf">_save</span><span class="p">(</span><span class="n">tables</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">sheet_name</span><span class="o">=</span><span class="s1">&#39;Sheet1&#39;</span><span class="p">,</span> <span class="n">n_row</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Save a list of tables as an excel file.</span>
@@ -268,7 +252,7 @@
         
         <span class="c1"># Cash flow</span>
         <span class="n">TEA</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">_TEA</span>
-        <span class="n">TEA</span><span class="o">.</span><span class="n">cashflow</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="s1">&#39;Cash flow&#39;</span><span class="p">)</span>
+        <span class="n">TEA</span><span class="o">.</span><span class="n">get_cashflow</span><span class="p">()</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="s1">&#39;Cash flow&#39;</span><span class="p">)</span>
         
         <span class="c1"># TEA</span>
         <span class="n">TEA</span><span class="o">.</span><span class="n">results</span><span class="p">()</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="s1">&#39;Techno-Economic Analysis&#39;</span><span class="p">)</span>
@@ -353,11 +337,11 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">columns</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Unit operation&#39;</span><span class="p">,</span>
-              <span class="n">f</span><span class="s1">&#39;Fixed capital investment (10^6 USD)&#39;</span><span class="p">,</span>
+              <span class="n">f</span><span class="s1">&#39;Purchase cost (10^6 USD)&#39;</span><span class="p">,</span>
               <span class="n">f</span><span class="s1">&#39;Utility cost (10^6 USD/yr)&#39;</span><span class="p">)</span>
     <span class="n">units</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">units</span>
     <span class="n">units</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">_costunits</span>
-    <span class="n">units</span> <span class="o">=</span> <span class="n">_units_sort_by_cost</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">line</span><span class="p">)</span>
     
     <span class="c1"># Initialize data</span>
     <span class="k">try</span><span class="p">:</span>
@@ -366,7 +350,6 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="s1">&#39;TEA&#39;</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Cannot find TEA object related to system. A TEA object of the system must be created first.&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="n">AE</span>
-    <span class="n">lang_factor</span> <span class="o">=</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Lang factor&#39;</span><span class="p">]</span>
     <span class="n">operating_days</span> <span class="o">=</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Operating days&#39;</span><span class="p">]</span>
     <span class="n">N_units</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
     <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">N_units</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
@@ -378,13 +361,16 @@
     <span class="c1"># Get data</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N_units</span><span class="p">):</span>
         <span class="n">unit</span> <span class="o">=</span> <span class="n">units</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-        <span class="n">ci</span><span class="p">,</span> <span class="n">co</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">_totalcosts</span>
         <span class="n">types</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">line</span>
-        <span class="n">C_cap</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">ci</span> <span class="o">*</span> <span class="n">lang_factor</span> <span class="o">/</span> <span class="mf">1e6</span>
-        <span class="n">C_op</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">co</span> <span class="o">*</span> <span class="n">operating_days</span> <span class="o">*</span> <span class="mi">24</span>  <span class="o">/</span> <span class="mf">1e6</span>
+        <span class="n">C_cap</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">purchase_cost</span> <span class="o">/</span> <span class="mf">1e6</span>
+        <span class="n">C_op</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">utility_cost</span> <span class="o">*</span> <span class="n">operating_days</span> <span class="o">*</span> <span class="mi">24</span>  <span class="o">/</span> <span class="mf">1e6</span>
         <span class="n">IDs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>
     
-    <span class="k">return</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">IDs</span><span class="p">)</span>    
+    <span class="n">df</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">IDs</span><span class="p">)</span>    
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">o</span><span class="p">[</span><span class="s1">&#39;Lang factor&#39;</span><span class="p">]:</span>
+        <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Installation cost (10^6 USD)&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">installation_cost</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">]</span>
+    
+    <span class="k">return</span> <span class="n">df</span>
 
 <span class="k">def</span> <span class="nf">heat_utilities_table</span><span class="p">(</span><span class="n">units</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Return a list of utility tables for each heat utility source.</span>

@@ -34,7 +34,6 @@
         <script type="text/javascript" src="../../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
@@ -98,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -391,7 +390,6 @@
         <span class="n">ts_min</span> <span class="o">=</span> <span class="n">ts</span>
     <span class="k">if</span> <span class="n">ts</span> <span class="o">&lt;</span> <span class="n">ts_min</span><span class="p">:</span>
         <span class="n">ts</span> <span class="o">=</span> <span class="n">ts_min</span>
-        
     <span class="n">VW</span> <span class="o">=</span> <span class="n">rho_M</span> <span class="o">*</span> <span class="n">ts</span><span class="o">/</span><span class="mi">12</span> <span class="o">*</span> <span class="p">(</span><span class="n">SSA</span> <span class="o">+</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">HSA</span><span class="p">)</span>  <span class="c1"># in lb</span>
     <span class="n">VW</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">VW</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">VW</span><span class="p">,</span> <span class="n">ts</span></div>

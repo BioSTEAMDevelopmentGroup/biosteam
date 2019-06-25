@@ -6,10 +6,9 @@ Created on Mon Mar  4 11:32:01 2019
 """
 
 from .. import Unit
-from .decorators import cost, design
+from .decorators import cost
 from .metaclasses import static
 
-@cost('Flow rate', CE=576, cost=533471, S=333333, exp=0.6)
-@design('Flow rate', 'kg/hr')
+@cost('Flow rate', units='kg/hr', CE=576, cost=533471, S=333333, n=0.6)
 class MagneticSeparator(Unit, metaclass=static): pass
     

@@ -34,7 +34,6 @@
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -100,7 +99,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -252,7 +251,7 @@
 
 <dl class="class">
 <dt id="biosteam.units.facilities.CoolingTower">
-<em class="property">class </em><code class="descclassname">biosteam.units.facilities.</code><code class="descname">CoolingTower</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/facilities/_cooling_tower.html#CoolingTower"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.CoolingTower" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.units.facilities.</code><code class="descname">CoolingTower</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/facilities/_cooling_tower.html#CoolingTower"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.CoolingTower" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a cooling tower that is cost based on flow rate of cooling water.</p>
 <p><strong>ins</strong></p>
 <blockquote>
@@ -260,18 +259,18 @@
 <p><strong>outs</strong></p>
 <blockquote>
 <div>[0] Cooling water</div></blockquote>
+<dl class="method">
+<dt id="biosteam.units.facilities.CoolingTower.simulate">
+<code class="descname">simulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.simulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run rigourous simulation and determine all design requirements and costs.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
 <dt id="biosteam.units.facilities.CoolingTowerWithPowerDemand">
-<em class="property">class </em><code class="descclassname">biosteam.units.facilities.</code><code class="descname">CoolingTowerWithPowerDemand</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/facilities/_cooling_tower.html#CoolingTowerWithPowerDemand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.CoolingTowerWithPowerDemand" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="attribute">
-<dt id="biosteam.units.facilities.CoolingTowerWithPowerDemand.power_consumption">
-<code class="descname">power_consumption</code><em class="property"> = 0.03</em><a class="headerlink" href="#biosteam.units.facilities.CoolingTowerWithPowerDemand.power_consumption" title="Permalink to this definition">¶</a></dt>
-<dd><p>kWhr per kmol cooling water</p>
-</dd></dl>
-
-</dd></dl>
+<em class="property">class </em><code class="descclassname">biosteam.units.facilities.</code><code class="descname">CoolingTowerWithPowerDemand</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/facilities/_cooling_tower.html#CoolingTowerWithPowerDemand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.CoolingTowerWithPowerDemand" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </div>
 

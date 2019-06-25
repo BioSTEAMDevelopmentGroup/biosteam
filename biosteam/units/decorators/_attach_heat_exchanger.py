@@ -30,7 +30,7 @@ def attach_heat_exchanger(cls):
             super()._cost()
             he = self._heat_exchanger
             he._cost()
-            self._results['Cost']['Heat exchanger'] = he._results['Cost']['Heat exchanger'] 
+            self._Cost['Heat exchanger'] = he._Cost['Heat exchanger'] 
         
         _init.__doc__ = cls.__doc__
         _design.__doc__ = cls.__doc__

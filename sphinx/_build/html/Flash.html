@@ -34,7 +34,6 @@
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -100,7 +99,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -231,7 +230,7 @@
 <dt id="biosteam.units.Flash">
 <em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">Flash</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>species_IDs=None</em>, <em>LNK=None</em>, <em>HNK=None</em>, <em>V=None</em>, <em>T=None</em>, <em>Qin=None</em>, <em>P=None</em>, <em>y=None</em>, <em>x=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_flash.html#Flash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Flash" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create an equlibrium based flash drum with the option of having light non-keys and heavy non-keys completly separate into their respective phases. Design procedure is based on heuristics by Wayne D. Monnery &amp; William Y. Svrcek [1]. The f.o.b cost is based on classical Guthrie’s correlation [2]:</p>
-<p><span class="math notranslate nohighlight">\(C_{fob}^{2007} = 6500 V^{0.62} (0.1 &lt; V &lt; 70 m^3)\)</span></p>
+<p><img class="math" src="_images/math/27bb75df2c377947d51bbc7b01e35c51231b1118.png" alt="C_{fob}^{2007} = 6500 V^{0.62} (0.1 &lt; V &lt; 70 m^3)"/></p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>ID:</strong> [str] Unique identification. If set as ‘’, a default ID will be chosen.</p>

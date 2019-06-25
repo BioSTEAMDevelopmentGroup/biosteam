@@ -34,7 +34,6 @@
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -45,7 +44,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="9. Unit decorators" href="Unit decorators.html" />
+    <link rel="next" title="9. Unit metaclasses and decorators" href="Unit metaclasses and decorators.html" />
     <link rel="prev" title="7. Techno-economic analysis of a biorefinery" href="Techno-economic analysis of a biorefinery.html" /> 
 </head>
 
@@ -106,7 +105,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#Graphviz-attributes">8.4. Graphviz attributes</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -389,9 +388,7 @@ signature.</li>
 <code class="docutils literal notranslate"><span class="pre">_heat_utilities</span></code> list.</li>
 <li><code class="docutils literal notranslate"><span class="pre">_has_power_utility</span></code>: [bool] If True, a PowerUtility object is
 created for every instance.</li>
-<li><code class="docutils literal notranslate"><span class="pre">_units</span></code>: [dict] Units of measure for <code class="docutils literal notranslate"><span class="pre">_results</span></code> ‘Design’ items</li>
-<li><code class="docutils literal notranslate"><span class="pre">_bounds</span></code>: [dict] Items should be array-like with lower and upper
-bounds for items in <code class="docutils literal notranslate"><span class="pre">_results</span></code>.</li>
+<li><code class="docutils literal notranslate"><span class="pre">_units</span></code>: [dict] Units of measure for <code class="docutils literal notranslate"><span class="pre">_Design</span></code> items</li>
 </ul>
 <p><strong>Abstract methods are used to initialize components, setup values for
 simulation, run heat and mass balances, find design requirements and
@@ -418,8 +415,8 @@ method.</li>
 requirement.</li>
 <li><code class="docutils literal notranslate"><span class="pre">_heat_utilities</span></code>: list[HeatUtility] Can find cooling and heating
 requirements.</li>
-<li><code class="docutils literal notranslate"><span class="pre">_results</span></code>: dict[dict] Contains “Design” requirements and itemized
-purchase “Cost” dictionaries.</li>
+<li><code class="docutils literal notranslate"><span class="pre">_Design</span></code>: [dict] Design requirements.</li>
+<li><code class="docutils literal notranslate"><span class="pre">_Cost</span></code>: [dict] Itemized purchase costs.</li>
 </ul>
 </div>
 <div class="section" id="Subclass-example">
@@ -432,10 +429,10 @@ Boiler class:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bs</span>
+<span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
 <span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">ceil</span>
 
-<span class="k">class</span> <span class="nc">Boiler</span><span class="p">(</span><span class="n">bs</span><span class="o">.</span><span class="n">Unit</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">Boiler</span><span class="p">(</span><span class="n">bst</span><span class="o">.</span><span class="n">Unit</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a Boiler object that partially boils feed.</span>
 
 <span class="sd">    **Parameters**</span>
@@ -473,7 +470,7 @@ Boiler class:</p>
         <span class="n">liq</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;l&#39;</span>
 
         <span class="c1"># Initialize MixedStream object to perform vapor-liquid equilibrium later</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_mixedstream</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">MixedStream</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mixedstream</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">MixedStream</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
         <span class="c1"># NOTE: ID is None to not register it in the flowsheet</span>
 
     <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -484,19 +481,23 @@ Boiler class:</p>
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">gas</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+
+        <span class="c1"># Perform vapor-liquid equilibrium</span>
         <span class="n">ms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mixedstream</span>
         <span class="n">ms</span><span class="o">.</span><span class="n">liquid_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span>
         <span class="n">ms</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">)</span>
+
+        <span class="c1"># Update output streams</span>
         <span class="n">gas</span><span class="o">.</span><span class="n">mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">vapor_mol</span>
         <span class="n">liq</span><span class="o">.</span><span class="n">mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">liquid_mol</span>
-        <span class="n">ms</span><span class="o">.</span><span class="n">vapor_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># Reset vapor flow to prevent accumulation in multiple simulations</span>
         <span class="n">gas</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">T</span>
         <span class="n">gas</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">P</span>
 
-    <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Design requirements are stored in the _results &#39;Design&#39; dictionary</span>
-        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
+        <span class="c1"># Reset vapor flow to prevent accumulation in multiple simulations</span>
+        <span class="n">ms</span><span class="o">.</span><span class="n">vapor_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="mi">0</span>
 
+
+    <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Calculate heat utility requirement (please read docs for HeatUtility objects)</span>
         <span class="n">T_operation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mixedstream</span><span class="o">.</span><span class="n">T</span>
         <span class="n">duty</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">H</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">H</span>
@@ -523,18 +524,20 @@ Boiler class:</p>
         <span class="c1"># Number of units</span>
         <span class="n">N</span> <span class="o">=</span> <span class="n">ceil</span><span class="p">(</span><span class="n">A</span><span class="o">/</span><span class="n">A_max</span><span class="p">)</span>
 
-        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Area&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">A</span><span class="o">/</span><span class="n">N</span>
-        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span>
+        <span class="c1"># Design requirements are stored here</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;Area&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">A</span><span class="o">/</span><span class="n">N</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span>
 
     <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Itemized costs are stored in the _results &#39;Cost&#39; dictionary</span>
-        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
-        <span class="n">Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
-        <span class="n">A</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Area&#39;</span><span class="p">]</span>
-        <span class="n">N</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">]</span>
+        <span class="n">A</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;Area&#39;</span><span class="p">]</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">]</span>
+
         <span class="c1"># Long-tube vertical boiler cost correlation from</span>
         <span class="c1"># &quot;Product process and design&quot;. Warren et. al. (2016) Table 22.32, pg 592</span>
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Boilers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">CEPCI</span><span class="o">*</span><span class="mf">3.086</span><span class="o">*</span><span class="n">A</span><span class="o">**</span><span class="mf">0.55</span>
+        <span class="n">purchase_cost</span> <span class="o">=</span> <span class="n">N</span><span class="o">*</span><span class="n">bst</span><span class="o">.</span><span class="n">CE</span><span class="o">*</span><span class="mf">3.086</span><span class="o">*</span><span class="n">A</span><span class="o">**</span><span class="mf">0.55</span>
+
+        <span class="c1"># Itemized purchase costs are stored here</span>
+        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Boilers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">purchase_cost</span>
 </pre></div>
 </div>
 </div>
@@ -547,8 +550,8 @@ Boiler class:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bs</span><span class="o">.</span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">)</span>
-<span class="n">water</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;water&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+<span></span><span class="n">bst</span><span class="o">.</span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="n">water</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;water&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
 <span class="n">B1</span> <span class="o">=</span> <span class="n">Boiler</span><span class="p">(</span><span class="s1">&#39;B1&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">water</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;gas&#39;</span><span class="p">,</span> <span class="s1">&#39;liq&#39;</span><span class="p">),</span> <span class="n">V</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
 <span class="n">B1</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
 <span class="n">B1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
@@ -901,7 +904,7 @@ suggested; best to keep diagrams simple.</strong></p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="Unit decorators.html" class="btn btn-neutral float-right" title="9. Unit decorators" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="Unit metaclasses and decorators.html" class="btn btn-neutral float-right" title="9. Unit metaclasses and decorators" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="Techno-economic analysis of a biorefinery.html" class="btn btn-neutral float-left" title="7. Techno-economic analysis of a biorefinery" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

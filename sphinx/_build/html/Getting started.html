@@ -34,7 +34,6 @@
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -46,7 +45,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="2. MixedStream objects and thermodynamic equilibrium" href="MixedStream objects and thermodynamic equilibrium.html" />
-    <link rel="prev" title="BioSTEAM: The Bioprocess Simulation and Techno-Economic Analysis Modules" href="index.html" /> 
+    <link rel="prev" title="BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -96,8 +95,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#Get-thermodynamic-and-material-properties-using-Chemical-objects">1.1. Get thermodynamic and material properties using Chemical objects</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#Group-Chemical-objects-with-a-Species-object">1.2. Group Chemical objects with a Species object</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#Material-flows-and-mixture-properties-with-Stream-objects">1.3. Material flows and mixture properties with Stream objects</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Find-design-requirements-and-cost-with-Unit-objects">1.4. Find design requirements and cost with Unit objects</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Process-settings">1.5. Process settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Process-settings">1.4. Process settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Find-design-requirements-and-cost-with-Unit-objects">1.5. Find design requirements and cost with Unit objects</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#Solve-recycle-loops-and-process-specifications-with-System-objects">1.6. Solve recycle loops and process specifications with System objects</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#Join-the-community!">1.7. Join the community!</a></li>
 </ul>
@@ -109,7 +108,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -388,8 +387,8 @@ class from the Chemical Engineering Design Library.</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bs</span>
-<span class="n">Water</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">compounds</span><span class="o">.</span><span class="n">Chemical</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
+<span class="n">Water</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">compounds</span><span class="o">.</span><span class="n">Chemical</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">)</span>
 <span class="n">Water</span>
 </pre></div>
 </div>
@@ -505,7 +504,7 @@ object with IDs:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">species</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Methanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Glycerol&#39;</span><span class="p">)</span>
+<span></span><span class="n">species</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Methanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Glycerol&#39;</span><span class="p">)</span>
 <span class="n">species</span>
 </pre></div>
 </div>
@@ -575,7 +574,7 @@ objects:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bs</span><span class="o">.</span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">species</span> <span class="c1"># From before</span>
+<span></span><span class="n">bst</span><span class="o">.</span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">species</span> <span class="c1"># From before</span>
 </pre></div>
 </div>
 </div>
@@ -587,7 +586,7 @@ pressure and phase:</p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">feed</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">Methanol</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">Glycerol</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span></span><span class="n">feed</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">Methanol</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">Glycerol</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 <span class="n">feed</span>
 </pre></div>
 </div>
@@ -611,7 +610,7 @@ Stream: feed
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">feed</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">T</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
+<span></span><span class="n">feed</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span> <span class="n">T</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
 <span class="n">feed</span>
 </pre></div>
 </div>
@@ -752,7 +751,7 @@ MixedStream: feed
 </pre></div>
 </div>
 </div>
-<div class="nboutput docutils container">
+<div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
@@ -767,15 +766,6 @@ MixedStream: feed
  vapor:  Methanol  0.773
          Glycerol  0.00096
          Water     2.11
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="stderr output_area docutils container">
-<div class="highlight"><pre>
-C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 5.765637638432963e-07 reached
-  warnings.warn(msg, RuntimeWarning)
 </pre></div></div>
 </div>
 <p>The stream is cast to a
@@ -801,12 +791,334 @@ object. Mixed streams contain multiple phases:</p>
 </pre></div>
 </div>
 </div>
+</div>
+<div class="section" id="Process-settings">
+<h2>1.4. Process settings<a class="headerlink" href="#Process-settings" title="Permalink to this headline">¶</a></h2>
+<p><strong>Process settings include price of feeds and products, conditions of
+utilities, and the chemical engineering plant cost index. These should
+be set before simulating a system.</strong></p>
+<p>Set the chemical engineering plant cost index:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">bst</span><span class="o">.</span><span class="n">CE</span> <span class="c1"># Default year is 2018</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[19]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>567.5
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [20]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">bst</span><span class="o">.</span><span class="n">CE</span> <span class="o">=</span> <span class="mf">603.1</span> <span class="c1"># To year 2018</span>
+</pre></div>
+</div>
+</div>
+<p>Set price of streams:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [21]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">feed</span><span class="o">.</span><span class="n">price</span> <span class="c1"># Default price is zero</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[21]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>0
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [22]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">feed</span><span class="o">.</span><span class="n">price</span> <span class="o">=</span> <span class="mf">0.50</span>
+</pre></div>
+</div>
+</div>
+<p>Set
+<a class="reference external" href="https://biosteam.readthedocs.io/en/latest/PowerUtility.html">PowerUtility</a>
+options:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [23]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">bst</span><span class="o">.</span><span class="n">PowerUtility</span><span class="o">.</span><span class="n">price</span> <span class="c1"># Default price</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[23]:
+</pre></div>
+</div>
+<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
+<span></span>0.0782
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [24]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">bst</span><span class="o">.</span><span class="n">PowerUtility</span><span class="o">.</span><span class="n">price</span> <span class="o">=</span> <span class="mf">0.065</span> <span class="c1"># Adjust price</span>
+</pre></div>
+</div>
+</div>
+<p>Set
+<a class="reference external" href="https://biosteam.readthedocs.io/en/latest/HeatUtility.html">HeatUtility</a>
+options:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [25]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">bst</span><span class="o">.</span><span class="n">HeatUtility</span><span class="o">.</span><span class="n">cooling_agents</span> <span class="c1"># [DataFrame] Available cooling agents and defaults</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[25]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Cooling water</th>
+      <th>Chilled water</th>
+      <th>Chilled Brine</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Species</th>
+      <td>(Water)</td>
+      <td>(Water)</td>
+      <td>(Water)</td>
+    </tr>
+    <tr>
+      <th>Molar fraction</th>
+      <td>(1,)</td>
+      <td>(1,)</td>
+      <td>(1,)</td>
+    </tr>
+    <tr>
+      <th>Temperature (K)</th>
+      <td>305</td>
+      <td>280</td>
+      <td>255</td>
+    </tr>
+    <tr>
+      <th>Pressure (Pa)</th>
+      <td>101325</td>
+      <td>101325</td>
+      <td>101325</td>
+    </tr>
+    <tr>
+      <th>Phase</th>
+      <td>liq</td>
+      <td>liq</td>
+      <td>liq</td>
+    </tr>
+    <tr>
+      <th>Latent heat (kJ/kmol)</th>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>Temperature limit (K)</th>
+      <td>325</td>
+      <td>300</td>
+      <td>275</td>
+    </tr>
+    <tr>
+      <th>Price (USD/kJ)</th>
+      <td>0</td>
+      <td>-5e-06</td>
+      <td>-8.15e-06</td>
+    </tr>
+    <tr>
+      <th>Price (USD/kmol)</th>
+      <td>0.000488</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>Heat transfer efficiency</th>
+      <td>1</td>
+      <td>1</td>
+      <td>1</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [26]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">bst</span><span class="o">.</span><span class="n">HeatUtility</span><span class="o">.</span><span class="n">heating_agents</span> <span class="c1"># [DataFrame] Available heating agents and defaults</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[26]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Low pressure steam</th>
+      <th>Medium pressure steam</th>
+      <th>High pressure steam</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Species</th>
+      <td>(Water)</td>
+      <td>(Water)</td>
+      <td>(Water)</td>
+    </tr>
+    <tr>
+      <th>Molar fraction</th>
+      <td>(1,)</td>
+      <td>(1,)</td>
+      <td>(1,)</td>
+    </tr>
+    <tr>
+      <th>Temperature (K)</th>
+      <td>411</td>
+      <td>454</td>
+      <td>509</td>
+    </tr>
+    <tr>
+      <th>Pressure (Pa)</th>
+      <td>3.45e+05</td>
+      <td>1.03e+06</td>
+      <td>3.1e+06</td>
+    </tr>
+    <tr>
+      <th>Phase</th>
+      <td>gas</td>
+      <td>gas</td>
+      <td>gas</td>
+    </tr>
+    <tr>
+      <th>Latent heat (kJ/kmol)</th>
+      <td>3.89e+04</td>
+      <td>3.63e+04</td>
+      <td>3.21e+04</td>
+    </tr>
+    <tr>
+      <th>Temperature limit (K)</th>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+    </tr>
+    <tr>
+      <th>Price (USD/kJ)</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>Price (USD/kmol)</th>
+      <td>0.238</td>
+      <td>0.276</td>
+      <td>0.317</td>
+    </tr>
+    <tr>
+      <th>Heat transfer efficiency</th>
+      <td>0.95</td>
+      <td>0.9</td>
+      <td>0.85</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [27]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">bst</span><span class="o">.</span><span class="n">HeatUtility</span><span class="o">.</span><span class="n">heating_agents</span><span class="p">[</span><span class="s1">&#39;Low pressure steam&#39;</span><span class="p">][</span><span class="s1">&#39;Price (USD/kmol)&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.20</span> <span class="c1"># Change price</span>
+</pre></div>
+</div>
+</div>
 <p>Please refer to the <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/MixedStream%20objects%20and%20thermodynamic%20equilibrium.html">MixedStream objects and thermodynamic equilibrium
 example</a>
 for more details.</p>
 </div>
 <div class="section" id="Find-design-requirements-and-cost-with-Unit-objects">
-<h2>1.4. Find design requirements and cost with Unit objects<a class="headerlink" href="#Find-design-requirements-and-cost-with-Unit-objects" title="Permalink to this headline">¶</a></h2>
+<h2>1.5. Find design requirements and cost with Unit objects<a class="headerlink" href="#Find-design-requirements-and-cost-with-Unit-objects" title="Permalink to this headline">¶</a></h2>
 <p><a class="reference external" href="https://biosteam.readthedocs.io/en/latest/Creating%20a%20Unit.html">Creating a
 Unit</a>
 can be flexible. But in summary, a
@@ -814,12 +1126,12 @@ can be flexible. But in summary, a
 initialized with an ID, and unit specific arguments:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [19]:
+<span></span>In [28]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="c1"># Specify vapor fraction and isobaric conditions</span>
-<span class="n">F1</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">Flash</span><span class="p">(</span><span class="s1">&#39;F1&#39;</span><span class="p">,</span> <span class="n">V</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
+<span class="n">F1</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">Flash</span><span class="p">(</span><span class="s1">&#39;F1&#39;</span><span class="p">,</span> <span class="n">V</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
 <span class="n">F1</span>
 </pre></div>
 </div>
@@ -828,7 +1140,7 @@ initialized with an ID, and unit specific arguments:</p>
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/Getting_started_44_0.png" src="_images/Getting_started_44_0.png" />
+<img alt="_images/Getting_started_59_0.png" src="_images/Getting_started_59_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -852,7 +1164,7 @@ outs...
 <code class="docutils literal notranslate"><span class="pre">ins</span></code>, and empty streams to outputs, <code class="docutils literal notranslate"><span class="pre">outs</span></code>:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [20]:
+<span></span>In [29]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -862,7 +1174,7 @@ outs...
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[20]:
+<span></span>Out[29]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -872,7 +1184,7 @@ outs...
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [21]:
+<span></span>In [30]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -882,7 +1194,7 @@ outs...
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[21]:
+<span></span>Out[30]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -893,11 +1205,11 @@ outs...
 <p>You can connect streams by setting the <code class="docutils literal notranslate"><span class="pre">ins</span></code> and <code class="docutils literal notranslate"><span class="pre">outs</span></code>:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [22]:
+<span></span>In [31]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">F1</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mi">220</span><span class="p">,</span> <span class="n">Glycerol</span><span class="o">=</span><span class="mi">180</span><span class="p">)</span>
+<span></span><span class="n">F1</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mi">220</span><span class="p">,</span> <span class="n">Glycerol</span><span class="o">=</span><span class="mi">180</span><span class="p">)</span>
 <span class="n">F1</span>
 </pre></div>
 </div>
@@ -906,7 +1218,7 @@ outs...
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/Getting_started_49_0.png" src="_images/Getting_started_49_0.png" />
+<img alt="_images/Getting_started_64_0.png" src="_images/Getting_started_64_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -932,7 +1244,7 @@ outs...
 <p>To simulate the flash, use the <code class="docutils literal notranslate"><span class="pre">simulate</span></code> method:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [23]:
+<span></span>In [32]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -941,7 +1253,7 @@ outs...
 </pre></div>
 </div>
 </div>
-<div class="nboutput docutils container">
+<div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
@@ -963,44 +1275,10 @@ outs...
                     Water     20.7
 </pre></div></div>
 </div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="stderr output_area docutils container">
-<div class="highlight"><pre>
-C:\Users\yoelr\OneDrive\Code\biosteam\biosteam\units\_flash.py:219: DesignWarning: @Flash F1: Vertical vessel weight (3772 lb) is out of bounds (4200 to 1e+06 lb).
-  out = self._vertical()
-</pre></div></div>
-</div>
-<p>Note that some design methods have bounds that warn when calculations
-may be inaccurate. These bounds are stored in the class:</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [24]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bs</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">Flash</span><span class="o">.</span><span class="n">_bounds</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[24]:
-</pre></div>
-</div>
-<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>{&#39;Vertical vessel weight&#39;: (4200, 1000000.0),
- &#39;Horizontal vessel weight&#39;: (1000.0, 920000.0),
- &#39;Diameter&#39;: (3, 21),
- &#39;Vertical vessel Length&#39;: (12, 40)}
-</pre></div>
-</div>
-</div>
 <p>The <code class="docutils literal notranslate"><span class="pre">results</span></code> method returns simulation results:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [25]:
+<span></span>In [33]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1010,7 +1288,7 @@ may be inaccurate. These bounds are stored in the class:</p>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[25]:
+<span></span>Out[33]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -1042,17 +1320,17 @@ may be inaccurate. These bounds are stored in the class:</p>
       <th rowspan="3" valign="top">Medium pressure steam</th>
       <th>Duty</th>
       <td>kJ/hr</td>
-      <td>1.88e+07</td>
+      <td>1.67e+07</td>
     </tr>
     <tr>
       <th>Flow</th>
-      <td>kg/hr</td>
-      <td>504</td>
+      <td>kmol/hr</td>
+      <td>461</td>
     </tr>
     <tr>
       <th>Cost</th>
       <td>USD/hr</td>
-      <td>139</td>
+      <td>127</td>
     </tr>
     <tr>
       <th rowspan="6" valign="top">Design</th>
@@ -1089,24 +1367,24 @@ may be inaccurate. These bounds are stored in the class:</p>
       <th rowspan="2" valign="top">Cost</th>
       <th>Flash</th>
       <td>USD</td>
-      <td>3.68e+04</td>
+      <td>3.91e+04</td>
     </tr>
     <tr>
       <th>Heat exchanger</th>
       <td>USD</td>
-      <td>2.5e+04</td>
+      <td>2.66e+04</td>
     </tr>
     <tr>
       <th>Purchase cost</th>
       <th></th>
       <td>USD</td>
-      <td>6.18e+04</td>
+      <td>6.56e+04</td>
     </tr>
     <tr>
       <th>Utility cost</th>
       <th></th>
       <td>USD/hr</td>
-      <td>139</td>
+      <td>127</td>
     </tr>
   </tbody>
 </table>
@@ -1114,7 +1392,7 @@ may be inaccurate. These bounds are stored in the class:</p>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [26]:
+<span></span>In [34]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1124,314 +1402,24 @@ may be inaccurate. These bounds are stored in the class:</p>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[26]:
+<span></span>Out[34]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Medium pressure steam  Duty                  1.88e+07
-                       Flow                       504
-                       Cost                       139
+<span></span>Medium pressure steam  Duty                  1.67e+07
+                       Flow                       461
+                       Cost                       127
 Design                 SepType               Vertical
                        Length                    18.5
                        Diameter                   4.5
                        Weight                3.77e+03
                        Wall thickness           0.312
                        Material          Carbon steel
-Cost                   Flash                 3.68e+04
-                       Heat exchanger         2.5e+04
-Purchase cost                                6.18e+04
-Utility cost                                      139
+Cost                   Flash                 3.91e+04
+                       Heat exchanger        2.66e+04
+Purchase cost                                6.56e+04
+Utility cost                                      127
 Name: F1, dtype: object
-</pre></div>
-</div>
-</div>
-</div>
-<div class="section" id="Process-settings">
-<h2>1.5. Process settings<a class="headerlink" href="#Process-settings" title="Permalink to this headline">¶</a></h2>
-<p><strong>Process settings include price of feeds and products and conditions of
-utilities. These should be set before simulating a system.</strong></p>
-<p>Change price of streams:</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [27]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">feed</span><span class="o">.</span><span class="n">price</span> <span class="c1"># Default price is zero</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[27]:
-</pre></div>
-</div>
-<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>0
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [28]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">feed</span><span class="o">.</span><span class="n">price</span> <span class="o">=</span> <span class="mf">0.50</span>
-</pre></div>
-</div>
-</div>
-<p>Change
-<a class="reference external" href="https://biosteam.readthedocs.io/en/latest/PowerUtility.html">PowerUtility</a>
-options:</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [29]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bs</span><span class="o">.</span><span class="n">PowerUtility</span><span class="o">.</span><span class="n">price</span> <span class="c1"># Default price</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[29]:
-</pre></div>
-</div>
-<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>0.0782
-</pre></div>
-</div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [30]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bs</span><span class="o">.</span><span class="n">PowerUtility</span><span class="o">.</span><span class="n">price</span> <span class="o">=</span> <span class="mf">0.065</span> <span class="c1"># Change price</span>
-</pre></div>
-</div>
-</div>
-<p>Change
-<a class="reference external" href="https://biosteam.readthedocs.io/en/latest/HeatUtility.html">HeatUtility</a>
-options:</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [31]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bs</span><span class="o">.</span><span class="n">HeatUtility</span><span class="o">.</span><span class="n">cooling_agents</span> <span class="c1"># [DataFrame] Available cooling agents and defaults</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[31]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>Cooling water</th>
-      <th>Chilled water</th>
-      <th>Chilled Brine</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>Type</th>
-      <td>sensible</td>
-      <td>sensible</td>
-      <td>sensible</td>
-    </tr>
-    <tr>
-      <th>Species</th>
-      <td>(Water)</td>
-      <td>(Water)</td>
-      <td>(Water)</td>
-    </tr>
-    <tr>
-      <th>Molar fraction</th>
-      <td>(1,)</td>
-      <td>(1,)</td>
-      <td>(1,)</td>
-    </tr>
-    <tr>
-      <th>Temperature (K)</th>
-      <td>305</td>
-      <td>280</td>
-      <td>255</td>
-    </tr>
-    <tr>
-      <th>Pressure (Pa)</th>
-      <td>101325</td>
-      <td>101325</td>
-      <td>101325</td>
-    </tr>
-    <tr>
-      <th>Phase</th>
-      <td>liq</td>
-      <td>liq</td>
-      <td>liq</td>
-    </tr>
-    <tr>
-      <th>Temperature limit (K)</th>
-      <td>325</td>
-      <td>300</td>
-      <td>275</td>
-    </tr>
-    <tr>
-      <th>Price (USD/kJ)</th>
-      <td>0</td>
-      <td>-5e-06</td>
-      <td>-8.15e-06</td>
-    </tr>
-    <tr>
-      <th>Price (USD/kmol)</th>
-      <td>0.000488</td>
-      <td>0</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>Heat transfer efficiency</th>
-      <td>1</td>
-      <td>1</td>
-      <td>1</td>
-    </tr>
-  </tbody>
-</table>
-</div></div>
-</div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [32]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bs</span><span class="o">.</span><span class="n">HeatUtility</span><span class="o">.</span><span class="n">heating_agents</span> <span class="c1"># [DataFrame] Available heating agents and defaults</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[32]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>Low pressure steam</th>
-      <th>Medium pressure steam</th>
-      <th>High pressure steam</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>Type</th>
-      <td>latent</td>
-      <td>latent</td>
-      <td>latent</td>
-    </tr>
-    <tr>
-      <th>Species</th>
-      <td>(Water)</td>
-      <td>(Water)</td>
-      <td>(Water)</td>
-    </tr>
-    <tr>
-      <th>Molar fraction</th>
-      <td>(1,)</td>
-      <td>(1,)</td>
-      <td>(1,)</td>
-    </tr>
-    <tr>
-      <th>Temperature (K)</th>
-      <td>411</td>
-      <td>454</td>
-      <td>509</td>
-    </tr>
-    <tr>
-      <th>Pressure (Pa)</th>
-      <td>3.45e+05</td>
-      <td>1.03e+06</td>
-      <td>3.1e+06</td>
-    </tr>
-    <tr>
-      <th>Phase</th>
-      <td>gas</td>
-      <td>gas</td>
-      <td>gas</td>
-    </tr>
-    <tr>
-      <th>Temperature limit (K)</th>
-      <td>None</td>
-      <td>None</td>
-      <td>None</td>
-    </tr>
-    <tr>
-      <th>Price (USD/kJ)</th>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-    </tr>
-    <tr>
-      <th>Price (USD/kmol)</th>
-      <td>0.238</td>
-      <td>0.276</td>
-      <td>0.317</td>
-    </tr>
-    <tr>
-      <th>Heat transfer efficiency</th>
-      <td>0.9</td>
-      <td>0.8</td>
-      <td>0.7</td>
-    </tr>
-  </tbody>
-</table>
-</div></div>
-</div>
-<div class="nbinput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [33]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bs</span><span class="o">.</span><span class="n">HeatUtility</span><span class="o">.</span><span class="n">heating_agents</span><span class="p">[</span><span class="s1">&#39;Low pressure steam&#39;</span><span class="p">][</span><span class="s1">&#39;Price (USD/kmol)&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.20</span> <span class="c1"># Change price</span>
 </pre></div>
 </div>
 </div>
@@ -1447,12 +1435,12 @@ and a
 object:</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [34]:
+<span></span>In [35]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">M1</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M1&#39;</span><span class="p">)</span>
-<span class="n">S1</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">Splitter</span><span class="p">(</span><span class="s1">&#39;S1&#39;</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span> <span class="c1"># Split to 0th output stream</span>
+<span></span><span class="n">M1</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">Mixer</span><span class="p">(</span><span class="s1">&#39;M1&#39;</span><span class="p">)</span>
+<span class="n">S1</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">Splitter</span><span class="p">(</span><span class="s1">&#39;S1&#39;</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span> <span class="c1"># Split to 0th output stream</span>
 <span class="n">F1</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="s1">&#39;product&#39;</span>
 </pre></div>
 </div>
@@ -1462,11 +1450,11 @@ flowsheets</a>
 with <code class="docutils literal notranslate"><span class="pre">find</span></code>:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [35]:
+<span></span>In [36]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">bs</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
+<span></span><span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -1474,18 +1462,18 @@ with <code class="docutils literal notranslate"><span class="pre">find</span></c
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/Getting_started_74_0.png" src="_images/Getting_started_74_0.png" />
+<img alt="_images/Getting_started_75_0.png" src="_images/Getting_started_75_0.png" />
 </div>
 </div>
 <p>Connect streams and make a recycle loop using <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/Using%20-pipe-%20notation.html">-pipe-
 notation</a>:</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [36]:
+<span></span>In [37]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">feed</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">Glycerol</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">450</span><span class="p">)</span>
+<span></span><span class="n">feed</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">Glycerol</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">450</span><span class="p">)</span>
 
 <span class="c1"># Broken down -pipe- notation</span>
 <span class="p">[</span><span class="n">S1</span><span class="o">-</span><span class="mi">0</span><span class="p">,</span> <span class="n">feed</span><span class="p">]</span><span class="o">-</span><span class="n">M1</span>     <span class="c1"># M1.ins[:] = [S1.outs[0], feed]</span>
@@ -1503,11 +1491,11 @@ object by specifying an ID, a <code class="docutils literal notranslate"><span c
 units:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [37]:
+<span></span>In [38]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">sys1</span> <span class="o">=</span> <span class="n">bs</span><span class="o">.</span><span class="n">System</span><span class="p">(</span><span class="s1">&#39;sys1&#39;</span><span class="p">,</span> <span class="n">network</span><span class="o">=</span><span class="p">(</span><span class="n">M1</span><span class="p">,</span> <span class="n">F1</span><span class="p">,</span> <span class="n">S1</span><span class="p">),</span> <span class="n">recycle</span><span class="o">=</span><span class="n">S1</span><span class="o">-</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># recycle=S1.outs[0]</span>
+<span></span><span class="n">sys1</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">System</span><span class="p">(</span><span class="s1">&#39;sys1&#39;</span><span class="p">,</span> <span class="n">network</span><span class="o">=</span><span class="p">(</span><span class="n">M1</span><span class="p">,</span> <span class="n">F1</span><span class="p">,</span> <span class="n">S1</span><span class="p">),</span> <span class="n">recycle</span><span class="o">=</span><span class="n">S1</span><span class="o">-</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># recycle=S1.outs[0]</span>
 <span class="n">sys1</span>
 </pre></div>
 </div>
@@ -1516,7 +1504,7 @@ units:</p>
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/Getting_started_78_0.png" src="_images/Getting_started_78_0.png" />
+<img alt="_images/Getting_started_79_0.png" src="_images/Getting_started_79_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -1535,7 +1523,7 @@ System: sys1
 <p>View the System object as a Graphviz diagram:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [38]:
+<span></span>In [39]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1547,13 +1535,13 @@ System: sys1
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/Getting_started_80_0.png" src="_images/Getting_started_80_0.png" />
+<img alt="_images/Getting_started_81_0.png" src="_images/Getting_started_81_0.png" />
 </div>
 </div>
 <p>Simulate the System object:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [39]:
+<span></span>In [40]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1562,7 +1550,7 @@ System: sys1
 </pre></div>
 </div>
 </div>
-<div class="nboutput docutils container">
+<div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
@@ -1570,31 +1558,14 @@ System: sys1
 System: sys1
  recycle: d5
  network: (M1, F1, S1)
- convergence error: Flow rate   4.29e-02 kmol/hr
-                    Temperature 3.99e-03 K
- iterations: 7
-</pre></div></div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="stderr output_area docutils container">
-<div class="highlight"><pre>
-C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 1.8499520137993386e-08 reached
-  warnings.warn(msg, RuntimeWarning)
-C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 3.0562853226001607e-07 reached
-  warnings.warn(msg, RuntimeWarning)
-C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 7.95389780705591e-07 reached
-  warnings.warn(msg, RuntimeWarning)
-C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 3.8928249068703735e-08 reached
-  warnings.warn(msg, RuntimeWarning)
-C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of -1.9522678940120386e-07 reached
-  warnings.warn(msg, RuntimeWarning)
+ convergence error: Flow rate   2.68e-03 kmol/hr
+                    Temperature 2.41e-04 K
+ iterations: 9
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [40]:
+<span></span>In [41]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1615,18 +1586,18 @@ ins...
                     Water     533
 outs...
 [0] product
-    phase: &#39;g&#39;, T: 377.44 K, P: 101325 Pa
+    phase: &#39;g&#39;, T: 377.45 K, P: 101325 Pa
     flow (kmol/hr): Glycerol  0.0795
                     Water     367
 [1] d2  to  Splitter-S1
-    phase: &#39;l&#39;, T: 377.44 K, P: 101325 Pa
+    phase: &#39;l&#39;, T: 377.45 K, P: 101325 Pa
     flow (kmol/hr): Glycerol  200
                     Water     167
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [41]:
+<span></span>In [42]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1636,7 +1607,7 @@ outs...
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[41]:
+<span></span>Out[42]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -1668,17 +1639,17 @@ outs...
       <th rowspan="3" valign="top">Low pressure steam</th>
       <th>Duty</th>
       <td>kJ/hr</td>
-      <td>2.15e+07</td>
+      <td>2.04e+07</td>
     </tr>
     <tr>
       <th>Flow</th>
-      <td>kg/hr</td>
-      <td>549</td>
+      <td>kmol/hr</td>
+      <td>524</td>
     </tr>
     <tr>
       <th>Cost</th>
       <td>USD/hr</td>
-      <td>110</td>
+      <td>105</td>
     </tr>
     <tr>
       <th rowspan="6" valign="top">Design</th>
@@ -1715,48 +1686,39 @@ outs...
       <th rowspan="2" valign="top">Cost</th>
       <th>Flash</th>
       <td>USD</td>
-      <td>4.78e+04</td>
+      <td>5.08e+04</td>
     </tr>
     <tr>
       <th>Heat exchanger</th>
       <td>USD</td>
-      <td>3.03e+04</td>
+      <td>3.22e+04</td>
     </tr>
     <tr>
       <th>Purchase cost</th>
       <th></th>
       <td>USD</td>
-      <td>7.81e+04</td>
+      <td>8.3e+04</td>
     </tr>
     <tr>
       <th>Utility cost</th>
       <th></th>
       <td>USD/hr</td>
-      <td>110</td>
+      <td>105</td>
     </tr>
   </tbody>
 </table>
 </div></div>
 </div>
 <p>Save a system report:</p>
-<div class="nbinput docutils container">
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [42]:
+<span></span>In [43]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">sys1</span><span class="o">.</span><span class="n">save_report</span><span class="p">(</span><span class="s1">&#39;Example.xlsx&#39;</span><span class="p">)</span> <span class="c1"># Try this on your computer and open excel</span>
 </pre></div>
 </div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="stderr output_area docutils container">
-<div class="highlight"><pre>
-C:\ProgramData\Anaconda3\lib\site-packages\ipykernel_launcher.py:1: RuntimeWarning: Cannot find TEA object in &lt;System: sys1&gt;. Ignoring TEA sheets.
-  &#34;&#34;&#34;Entry point for launching an IPython kernel.
-</pre></div></div>
 </div>
 <p>Once process settings are set and the system is simulated, it is
 possible to perform <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/Techno-economic%20analysis%20of%20a%20biorefinery.html">techno-economic analysis of a
@@ -1785,7 +1747,7 @@ no matter how preliminary or rigorous they are.</p>
         <a href="MixedStream objects and thermodynamic equilibrium.html" class="btn btn-neutral float-right" title="2. MixedStream objects and thermodynamic equilibrium" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="index.html" class="btn btn-neutral float-left" title="BioSTEAM: The Bioprocess Simulation and Techno-Economic Analysis Modules" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral float-left" title="BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

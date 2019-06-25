@@ -12,8 +12,8 @@ setup(
     name='biosteam',
     packages=['biosteam'],
     license='MIT',
-    version='0.3.2',
-    description='The Bioprocess Simulation and Techno-Economic Analysis Modules',
+    version='0.4.0',
+    description='The Biorefinery Simulation and Techno-Economic Analysis Modules',
     long_description=open('README.rst').read(),
     #ext_modules=cythonize('biosteam/equilibrium/unifac.pyx'),
     #include_dirs=[numpy.get_include()],
@@ -40,5 +40,5 @@ setup(
                  'Topic :: Scientific/Engineering',
                  'Topic :: Scientific/Engineering :: Chemistry',
                  'Topic :: Scientific/Engineering :: Mathematics'],
-    keywords='chemical process simmulation bioprocess engineering mass energy balance material properties phase equilibrium CABBI',
+    keywords='chemical process simmulation bioprocess engineering mass energy balance material properties phase equilibrium CABBI biorefinery biofuel bioproducts',
 )

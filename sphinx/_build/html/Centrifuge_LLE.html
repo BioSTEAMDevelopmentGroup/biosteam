@@ -34,7 +34,6 @@
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -100,7 +99,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -232,7 +231,7 @@
 <em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">Centrifuge_LLE</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>species_IDs=None</em>, <em>split=None</em>, <em>lNK=()</em>, <em>LNK=()</em>, <em>solvents=()</em>, <em>solvent_split=()</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_centrifuge_LLE.html#Centrifuge_LLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Centrifuge_LLE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create an equlibrium based centrifuge with the option of having liquid non-keys and LIQUID non-keys completly separate into their respective phases.</p>
 <p>Equation for f.o.b cost:</p>
-<p><span class="math notranslate nohighlight">\(C_{fob}^{2007} = 28100 Q^{0.574} (0.1 &lt; Q &lt; 100 \frac{m^3}{h})\)</span></p>
+<p><img class="math" src="_images/math/8142f7ea516e1aacf3985005d6397d9b0ecf8b4f.png" alt="C_{fob}^{2007} = 28100 Q^{0.574} (0.1 &lt; Q &lt; 100 \frac{m^3}{h})"/></p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>ID:</strong> [str] Unique identification. If set as ‘’, a default ID will be chosen.</p>

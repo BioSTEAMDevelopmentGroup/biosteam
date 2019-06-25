@@ -34,7 +34,6 @@
         <script type="text/javascript" src="../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -98,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -194,6 +193,7 @@
                           <span class="n">VesselWeightAndWallThickness</span><span class="p">,</span> <span class="n">Kvalue</span>
 <span class="kn">from</span> <span class="nn">.metaclasses</span> <span class="k">import</span> <span class="n">splitter</span>
 <span class="kn">from</span> <span class="nn">._hx</span> <span class="k">import</span> <span class="n">HX</span><span class="p">,</span> <span class="n">HXutility</span>
+<span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
 
 <span class="n">exp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span>
 <span class="n">ln</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span>
@@ -309,6 +309,19 @@
     <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">0</span>
     
+    <span class="c1"># Bare module factor</span>
+    <span class="n">BM_horizontal</span> <span class="o">=</span> <span class="mf">3.05</span>
+    <span class="n">BM_vertical</span> <span class="o">=</span> <span class="mf">4.16</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">BM</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">SepType</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SetType</span>
+        <span class="k">if</span> <span class="n">SepType</span> <span class="ow">is</span> <span class="s1">&#39;Vertical&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_BM_vertical</span>
+        <span class="k">elif</span> <span class="n">SepType</span> <span class="ow">is</span> <span class="s1">&#39;Horizontal&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_BM_horizontal</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;SepType not defined&#39;</span><span class="p">)</span>
+    
     <span class="c1"># Column material factor</span>
     <span class="n">_material</span> <span class="o">=</span> <span class="s1">&#39;Carbon steel&#39;</span>
     <span class="n">_F_material</span> <span class="o">=</span> <span class="mi">1</span> 
@@ -341,7 +354,7 @@
     <span class="n">_bounds</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Vertical vessel weight&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">4200</span><span class="p">,</span> <span class="mf">1e6</span><span class="p">),</span>
                <span class="s1">&#39;Horizontal vessel weight&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">1e3</span><span class="p">,</span> <span class="mf">9.2e5</span><span class="p">),</span>
                <span class="s1">&#39;Diameter&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">21</span><span class="p">),</span>
-               <span class="s1">&#39;Vertical vessel Length&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">40</span><span class="p">)}</span>
+               <span class="s1">&#39;Vertical vessel length&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">40</span><span class="p">)}</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">material</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -403,44 +416,41 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span> <span class="n">f</span><span class="s2">&quot;SepType must be either &#39;Horizontal&#39; or &#39;Vertical&#39;, not &#39;</span><span class="si">{self.SepType}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_hx</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">][</span><span class="s1">&#39;Material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_material</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;Material&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_material</span>
         <span class="k">return</span> <span class="n">out</span>
 
     <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
-        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
         <span class="n">W</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Weight&#39;</span><span class="p">]</span>
         <span class="n">D</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Diameter&#39;</span><span class="p">]</span>
         <span class="n">L</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Length&#39;</span><span class="p">]</span>
-        <span class="n">CE</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CEPCI</span>
-        <span class="n">type_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SepType</span>
+        <span class="n">CE</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">CE</span>
+        <span class="n">SepType</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SepType</span>
         
         <span class="c1"># C_v: Vessel cost</span>
         <span class="c1"># C_pl: Platforms and ladders cost</span>
-        <span class="k">if</span> <span class="n">type_</span> <span class="o">==</span> <span class="s1">&#39;Vertical&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">SepType</span> <span class="o">==</span> <span class="s1">&#39;Vertical&#39;</span><span class="p">:</span>
             <span class="n">C_v</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="mf">7.1390</span> <span class="o">+</span> <span class="mf">0.18255</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">W</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.02297</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">W</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
             <span class="n">C_pl</span> <span class="o">=</span> <span class="mi">410</span><span class="o">*</span><span class="n">D</span><span class="o">**</span><span class="mf">0.7396</span><span class="o">*</span><span class="n">L</span><span class="o">**</span><span class="mf">0.70684</span>
-        <span class="k">elif</span> <span class="n">type_</span> <span class="o">==</span> <span class="s1">&#39;Horizontal&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">SepType</span> <span class="o">==</span> <span class="s1">&#39;Horizontal&#39;</span><span class="p">:</span>
             <span class="n">C_v</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="mf">5.6336</span> <span class="o">-</span> <span class="mf">0.4599</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">W</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.00582</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">W</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
             <span class="n">C_pl</span> <span class="o">=</span> <span class="mi">2275</span><span class="o">*</span><span class="n">D</span><span class="o">**</span><span class="mf">0.20294</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;SepType (</span><span class="si">{type_}</span><span class="s2">) must be either &#39;Vertical&#39;, &#39;Horizontal&#39; or &#39;Default&#39;.&quot;</span><span class="p">)</span>
+            <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;SepType (</span><span class="si">{SepType}</span><span class="s2">) must be either &#39;Vertical&#39;, &#39;Horizontal&#39; or &#39;Default&#39;.&quot;</span><span class="p">)</span>
             
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Flash&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">CE</span><span class="o">/</span><span class="mi">567</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_F_material</span><span class="o">*</span><span class="n">C_v</span><span class="o">+</span><span class="n">C_pl</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span><span class="p">[</span><span class="s1">&#39;Flash&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">CE</span><span class="o">/</span><span class="mi">567</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_F_material</span><span class="o">*</span><span class="n">C_v</span><span class="o">+</span><span class="n">C_pl</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_hx</span><span class="p">:</span>
             <span class="n">hx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span>
             <span class="n">hx</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
-            <span class="n">Cost</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">hx</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">hx</span><span class="o">.</span><span class="n">_Cost</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cost_vacuum</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_cost_vacuum</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="s1">&#39;P&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">P</span> <span class="ow">or</span> <span class="n">P</span> <span class="o">&gt;</span> <span class="mi">101320</span><span class="p">:</span> <span class="k">return</span> 
         
-        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span>
-        <span class="n">D</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
-        <span class="n">C</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
-        <span class="n">vol</span> <span class="o">=</span> <span class="mf">0.02832</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">D</span><span class="p">[</span><span class="s1">&#39;Length&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">D</span><span class="p">[</span><span class="s1">&#39;Diameter&#39;</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
+        <span class="n">vol</span> <span class="o">=</span> <span class="mf">0.02832</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Length&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Diameter&#39;</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
         
         <span class="c1"># If vapor is condensed, assume vacuum system is after condenser</span>
         <span class="n">vapor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -462,11 +472,9 @@
             <span class="n">massflow</span> <span class="o">=</span> <span class="n">vapor</span><span class="o">.</span><span class="n">massnet</span>
             <span class="n">volflow</span> <span class="o">=</span> <span class="n">vapor</span><span class="o">.</span><span class="n">volnet</span>
         
-        <span class="n">power</span><span class="p">,</span> <span class="n">cost</span> <span class="o">=</span> <span class="n">vacuum_system</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CEPCI</span><span class="p">,</span> 
-                                    <span class="n">massflow</span><span class="p">,</span> <span class="n">volflow</span><span class="p">,</span>
-                                    <span class="n">P</span><span class="p">,</span> <span class="n">vol</span><span class="p">,</span>
-                                    <span class="bp">self</span><span class="o">.</span><span class="n">vacuum_system_preference</span><span class="p">)</span>
-        <span class="n">C</span><span class="p">[</span><span class="s1">&#39;Liquid-ring pump&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cost</span>
+        <span class="n">power</span><span class="p">,</span> <span class="n">cost</span> <span class="o">=</span> <span class="n">vacuum_system</span><span class="p">(</span><span class="n">massflow</span><span class="p">,</span> <span class="n">volflow</span><span class="p">,</span>
+                                    <span class="n">P</span><span class="p">,</span> <span class="n">vol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vacuum_system_preference</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span><span class="p">[</span><span class="s1">&#39;Liquid-ring pump&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cost</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span><span class="p">(</span><span class="n">power</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_design_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -596,20 +604,17 @@
         <span class="c1"># Hhll = Hs + Hh + Hlll</span>
         <span class="c1"># Hnll = Hh + Hlll</span>
 
-        <span class="c1"># Results</span>
-        <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_checkbounds</span><span class="p">(</span><span class="s1">&#39;Vertical vessel weight&#39;</span><span class="p">,</span> <span class="n">VW</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_checkbounds</span><span class="p">(</span><span class="s1">&#39;Vertical vessel length&#39;</span><span class="p">,</span> <span class="n">Ht</span><span class="p">)</span>
-        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;SepType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Vertical&#39;</span>
-        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;Length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ht</span>     <span class="c1"># ft</span>
-        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;Diameter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">D</span>    <span class="c1"># ft</span>
-        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;Weight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">VW</span>     <span class="c1"># lb</span>
-        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;Wall thickness&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">VWT</span>  <span class="c1"># in</span>
-        <span class="k">return</span> <span class="n">d</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_checkbounds</span><span class="p">(</span><span class="s1">&#39;Vertical vessel weight&#39;</span><span class="p">,</span> <span class="n">VW</span><span class="p">,</span> <span class="s1">&#39;lb&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span><span class="p">[</span><span class="s1">&#39;Vertical vessel weight&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_checkbounds</span><span class="p">(</span><span class="s1">&#39;Vertical vessel length&#39;</span><span class="p">,</span> <span class="n">Ht</span><span class="p">,</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span><span class="p">[</span><span class="s1">&#39;Vertical vessel length&#39;</span><span class="p">])</span>
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;SepType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Vertical&#39;</span>
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ht</span>     <span class="c1"># ft</span>
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Diameter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">D</span>    <span class="c1"># ft</span>
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Weight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">VW</span>     <span class="c1"># lb</span>
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Wall thickness&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">VWT</span>  <span class="c1"># in</span>
         
     <span class="k">def</span> <span class="nf">_horizontal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">rhov</span><span class="p">,</span> <span class="n">rhol</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">Th</span><span class="p">,</span> <span class="n">Ts</span><span class="p">,</span> <span class="n">Mist</span><span class="p">,</span> <span class="n">Qv</span><span class="p">,</span> <span class="n">Qll</span><span class="p">,</span> <span class="n">Ut</span><span class="p">,</span> <span class="n">Uv</span><span class="p">,</span> <span class="n">Vh</span><span class="p">,</span> <span class="n">Vs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_design_parameters</span><span class="p">()</span>
-        <span class="n">maxIter</span> <span class="o">=</span> <span class="mi">50</span>
 
         <span class="c1"># Initialize LD</span>
         <span class="k">if</span> <span class="n">P</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">P</span> <span class="o">&lt;=</span> <span class="mf">264.7</span><span class="p">:</span>
@@ -627,7 +632,7 @@
         <span class="n">outerIter</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">converged</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">converged1</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">while</span> <span class="ow">not</span> <span class="n">converged</span> <span class="ow">and</span> <span class="n">outerIter</span> <span class="o">&lt;</span> <span class="n">maxIter</span><span class="p">:</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="n">converged</span> <span class="ow">and</span> <span class="n">outerIter</span> <span class="o">&lt;</span> <span class="mi">50</span><span class="p">:</span>
             <span class="n">outerIter</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="n">At</span> <span class="o">=</span> <span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="n">D</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mf">4.0</span>
 
@@ -681,7 +686,7 @@
 
             <span class="k">if</span> <span class="n">needToIter</span><span class="p">:</span>
                 <span class="n">innerIter</span> <span class="o">=</span> <span class="mi">0</span>
-                <span class="k">while</span> <span class="ow">not</span> <span class="n">converged1</span> <span class="ow">and</span> <span class="n">innerIter</span> <span class="o">&lt;</span> <span class="n">maxIter</span><span class="p">:</span>
+                <span class="k">while</span> <span class="ow">not</span> <span class="n">converged1</span> <span class="ow">and</span> <span class="n">innerIter</span> <span class="o">&lt;</span> <span class="mi">50</span><span class="p">:</span>
                     <span class="n">innerIter</span> <span class="o">+=</span> <span class="mi">1</span>
                     <span class="n">Hv</span> <span class="o">=</span> <span class="n">Hv</span> <span class="o">+</span> <span class="n">sign</span><span class="o">*</span><span class="mf">0.5</span>
                     <span class="k">if</span> <span class="n">Mist</span> <span class="ow">and</span> <span class="n">Hv</span> <span class="o">&lt;=</span> <span class="mf">2.0</span><span class="p">:</span>
@@ -762,16 +767,13 @@
         <span class="c1"># Y = HNATable(2, X)</span>
         <span class="c1"># Hnll = Y*D</span>
         
-        <span class="c1"># Results</span>
-        <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_checkbounds</span><span class="p">(</span><span class="s1">&#39;Horizontal vessel weight&#39;</span><span class="p">,</span> <span class="n">VW</span><span class="p">)</span>
-        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;SepType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Horizontal&#39;</span>
-        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;Length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">L</span>  <span class="c1"># ft</span>
-        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;Diameter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">D</span>  <span class="c1"># ft</span>
-        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;Weight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">VW</span>  <span class="c1"># lb</span>
-        <span class="n">d</span><span class="p">[</span><span class="s1">&#39;Wall thickness&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">VWT</span>  <span class="c1"># in</span>
-        <span class="k">return</span> <span class="n">d</span></div>
-    
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_checkbounds</span><span class="p">(</span><span class="s1">&#39;Horizontal vessel weight&#39;</span><span class="p">,</span> <span class="n">VW</span><span class="p">,</span> <span class="s1">&#39;lb&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bounds</span><span class="p">[</span><span class="s1">&#39;Horizontal vessel weight&#39;</span><span class="p">])</span>
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;SepType&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Horizontal&#39;</span>
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Length&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">L</span>  <span class="c1"># ft</span>
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Diameter&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">D</span>  <span class="c1"># ft</span>
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Weight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">VW</span>  <span class="c1"># lb</span>
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Wall thickness&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">VWT</span>  <span class="c1"># in    </span></div>
     
 
 <span class="c1"># %% Special</span>
@@ -804,8 +806,8 @@
 
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_hx</span><span class="p">:</span>
-            <span class="n">ms</span> <span class="o">=</span> <span class="n">MixedStream</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mixedstream</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">ms</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_heat_exchanger</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">ms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mixedstream</span>
+            <span class="n">ms</span> <span class="o">=</span> <span class="n">MixedStream</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">ms</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
 
 <span class="k">class</span> <span class="nc">PartitionFlash</span><span class="p">(</span><span class="n">Flash</span><span class="p">):</span>

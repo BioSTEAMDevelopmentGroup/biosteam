@@ -34,7 +34,6 @@
         <script type="text/javascript" src="../../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
 
@@ -98,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -192,7 +191,7 @@
 
 <span class="c1">#: TODO add reference of NREL</span>
 
-<div class="viewcode-block" id="BoilerTurbogenerator"><a class="viewcode-back" href="../../../../facilities.html#biosteam.units.facilities.BoilerTurbogenerator">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">567.3</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mf">36e6</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mi">129000</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<div class="viewcode-block" id="BoilerTurbogenerator"><a class="viewcode-back" href="../../../../facilities.html#biosteam.units.facilities.BoilerTurbogenerator">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">567.3</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mf">36e6</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mi">129000</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">BoilerTurbogenerator</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a Boiler_TurboGenerator object that will calculate electricity generation from burning the feed. It also takes into account how much steam is being produced, and the required cooling utility of the turbo generator. No emissions or mass balances are taken into account.</span>
 <span class="sd">    </span>
@@ -244,7 +243,7 @@
         <span class="n">emission</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span>
         <span class="n">H_content</span> <span class="o">=</span> <span class="n">feed_Hc</span><span class="o">*</span><span class="n">B_eff</span>
         <span class="n">feed_massnet</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">massnet</span>
-        <span class="n">H_electricity</span> <span class="o">=</span> <span class="n">H_content</span> <span class="o">-</span> <span class="n">H_steam</span> <span class="o">-</span> <span class="n">feed_massnet</span><span class="o">*</span><span class="mf">1440.9</span> <span class="c1"># 50 percent of bagasse is water, so remove latent heat of vaporization (as a conservative estimate, assume 100% is water)</span>
+        <span class="n">H_electricity</span> <span class="o">=</span> <span class="n">H_content</span> <span class="o">-</span> <span class="n">H_steam</span> <span class="o">-</span> <span class="n">feed_massnet</span><span class="o">*</span><span class="mi">1130</span> <span class="c1"># 50 percent of bagasse is water, so remove latent heat of vaporization</span>
         <span class="k">if</span> <span class="n">H_electricity</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">H_steam</span> <span class="o">=</span> <span class="n">H_content</span>
             <span class="n">cooling</span> <span class="o">=</span> <span class="n">electricity</span> <span class="o">=</span> <span class="mi">0</span>
@@ -257,7 +256,7 @@
         <span class="n">hu_steam</span><span class="o">.</span><span class="n">flow</span> <span class="o">=</span> <span class="n">molnet</span> <span class="o">=</span> <span class="o">-</span><span class="n">steam</span><span class="o">.</span><span class="n">molnet</span>
         <span class="n">hu_steam</span><span class="o">.</span><span class="n">cost</span> <span class="o">=</span> <span class="n">molnet</span><span class="o">*</span><span class="n">lps</span><span class="p">[</span><span class="s1">&#39;Price (USD/kmol)&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">H_steam</span><span class="o">*</span><span class="n">lps</span><span class="p">[</span><span class="s1">&#39;Price (USD/kJ)&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span><span class="p">(</span><span class="o">-</span><span class="n">electricity</span><span class="o">/</span><span class="mi">3600</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">][</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">feed_massnet</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">feed_massnet</span></div>
         
     
 </pre></div>

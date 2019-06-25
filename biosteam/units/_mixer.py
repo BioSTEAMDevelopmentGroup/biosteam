@@ -4,7 +4,7 @@ Created on Thu Aug 23 14:26:41 2018
 
 @author: yoelr
 """
-from .. import Unit, Stream
+from .. import Unit
 from .metaclasses import final
 from .metaclasses._mixer import run_mixer
 
@@ -65,5 +65,5 @@ class Mixer(Unit, metaclass=final):
         self._init_outs(outs)
 
     simulate = _run = run_mixer
-    
+    installation_cost = purchase_cost = utility_cost = property(lambda: 0)
 

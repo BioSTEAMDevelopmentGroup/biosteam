@@ -34,7 +34,6 @@
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -100,7 +99,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -227,8 +226,7 @@
 </style>
 <div class="section" id="module-biosteam.units.metaclasses">
 <span id="metaclasses"></span><h1>metaclasses<a class="headerlink" href="#module-biosteam.units.metaclasses" title="Permalink to this headline">¶</a></h1>
-<p>Created on Mon May 20 22:59:57 2019</p>
-<p>&#64;author: yoelr</p>
+<p>Unit metaclasses are used to adjust mass and energy balance of Unit operations, mainly by setting the “_run” method.</p>
 <dl class="class">
 <dt id="biosteam.units.metaclasses.splitter">
 <em class="property">class </em><code class="descclassname">biosteam.units.metaclasses.</code><code class="descname">splitter</code><a class="reference internal" href="_modules/biosteam/units/metaclasses/_splitter.html#splitter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.metaclasses.splitter" title="Permalink to this definition">¶</a></dt>
@@ -239,10 +237,9 @@
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam.units.decorators</span> <span class="k">import</span> <span class="o">*</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam.units.metaclasses</span> <span class="k">import</span> <span class="n">splitter</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create subclass</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mf">1.5e6</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">541.7</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mf">335e3</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mi">2010</span><span class="p">)</span>
-<span class="gp">... </span><span class="nd">@design</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;kg/hr&#39;</span><span class="p">,</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">massnet</span><span class="p">)</span>
-<span class="gp">... </span><span class="k">class</span> <span class="nc">CrushingMill</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">splitter</span><span class="p">):</span>
-<span class="gp">... </span>    <span class="k">pass</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mf">1.5e6</span><span class="p">,</span>
+<span class="gp">... </span>      <span class="n">CE</span><span class="o">=</span><span class="mf">541.7</span><span class="p">,</span> <span class="n">exp</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mf">335e3</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mi">2010</span><span class="p">)</span>
+<span class="gp">... </span><span class="k">class</span> <span class="nc">CrushingMill</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">splitter</span><span class="p">):</span> <span class="k">pass</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Set Stream.species</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">species</span><span class="o">.</span><span class="n">Sugar</span> <span class="o">=</span> <span class="n">compounds</span><span class="o">.</span><span class="n">Substance</span><span class="p">(</span><span class="s1">&#39;Sugar&#39;</span><span class="p">)</span>
@@ -292,6 +289,18 @@
 <dt id="biosteam.units.metaclasses.final">
 <em class="property">class </em><code class="descclassname">biosteam.units.metaclasses.</code><code class="descname">final</code><a class="reference internal" href="_modules/biosteam/units/metaclasses/_final.html#final"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.metaclasses.final" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create final subclass which is unable to be inherited.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="biosteam.units.metaclasses.static">
+<em class="property">class </em><code class="descclassname">biosteam.units.metaclasses.</code><code class="descname">static</code><a class="reference internal" href="_modules/biosteam/units/metaclasses/_static.html#static"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.metaclasses.static" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unit subclasses that implement the static metaclass expect only one input stream (the <cite>feed</cite>) and only one output stream (the <cite>product</cite>). The static metaclass makes the <cite>feed</cite> and <cite>product</cite> share data on material flow rates. Therefore <cite>feed</cite>.mol and <cite>product</cite>.mol will always be equal. Also, the <cite>product</cite>’s T, P, and phase will be equal to the <cite>feed</cite>’s upon simulation if no <cite>_run</cite> method is implemented.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="biosteam.units.metaclasses.mixer">
+<em class="property">class </em><code class="descclassname">biosteam.units.metaclasses.</code><code class="descname">mixer</code><a class="reference internal" href="_modules/biosteam/units/metaclasses/_mixer.html#mixer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.metaclasses.mixer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a mixer Unit class which behaves like a mixer regarding mass and energy balances.</p>
 </dd></dl>
 
 </div>

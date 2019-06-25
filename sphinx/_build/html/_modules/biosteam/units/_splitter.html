@@ -34,7 +34,6 @@
         <script type="text/javascript" src="../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../_static/doctools.js"></script>
-        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -98,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">10. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
@@ -188,14 +187,15 @@
 <span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">Stream</span>
 <span class="kn">from</span> <span class="nn">.metaclasses</span> <span class="k">import</span> <span class="n">final</span>
 <span class="kn">from</span> <span class="nn">numpy</span> <span class="k">import</span> <span class="n">asarray</span>
-<span class="kn">from</span> <span class="nn">.metaclasses._splitter</span> <span class="k">import</span> <span class="n">split</span>
+<span class="kn">from</span> <span class="nn">.metaclasses._splitter</span> <span class="k">import</span> <span class="n">splitprop</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">Mixer</span>
 
 <div class="viewcode-block" id="Splitter"><a class="viewcode-back" href="../../../Splitter.html#biosteam.units.Splitter">[docs]</a><span class="k">class</span> <span class="nc">Splitter</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">final</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a splitter that separates mixed streams based on splits.</span>
 
 <span class="sd">    **Parameters**</span>
 
-<span class="sd">        **split:** Shoulds be one of the following:</span>
+<span class="sd">        **split:** Should be one of the following</span>
 <span class="sd">            * [float] The fraction of net feed in the 0th output stream</span>
 <span class="sd">            * [array_like] Componentwise split of feed to 0th output stream</span>
 <span class="sd">            </span>
@@ -318,9 +318,9 @@
         <span class="n">top</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">net_mol</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split</span>
         <span class="n">bot</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">net_mol</span> <span class="o">-</span> <span class="n">top</span><span class="o">.</span><span class="n">_mol</span>
     
-    <span class="n">split</span> <span class="o">=</span> <span class="n">split</span>
+    <span class="n">split</span> <span class="o">=</span> <span class="n">splitprop</span>
     <span class="n">simulate</span> <span class="o">=</span> <span class="n">_run</span>
-    <span class="n">summary</span> <span class="o">=</span> <span class="n">Unit</span><span class="o">.</span><span class="n">_cost</span></div>
+    <span class="n">installation_cost</span> <span class="o">=</span> <span class="n">purchase_cost</span> <span class="o">=</span> <span class="n">utility_cost</span> <span class="o">=</span> <span class="n">Mixer</span><span class="o">.</span><span class="n">purchase_cost</span></div>
 
 
 <span class="k">class</span> <span class="nc">InvSplitter</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">final</span><span class="p">):</span>
@@ -348,7 +348,8 @@
             <span class="n">out</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="n">phase</span> 
             
     <span class="n">simulate</span> <span class="o">=</span> <span class="n">_run</span>
-    <span class="n">summary</span> <span class="o">=</span> <span class="n">Unit</span><span class="o">.</span><span class="n">_cost</span>
+
+
 </pre></div>
 
            </div>
