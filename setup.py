@@ -25,7 +25,8 @@ setup(
     python_requires=">=3.6",
     package_data=
         {'biosteam': ['_equilibrium/*', 'inspect/*', 'price/*', '_report/*',
-                      'my_units_defs.txt', '_utils/*', 'units/*', 'evaluation/*', 
+                      'my_units_defs.txt', '_utils/*', 'units/*',
+                      '_units/_humbird2011.xlsx', 'evaluation/*', 
                       'compounds/*', 'units/designtools/*', 'units/metaclasses/*',
                       'units/facilities/*', 'units/decorators/*'], },
     platforms=["Windows", "Mac"],
