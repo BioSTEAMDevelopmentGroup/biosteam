@@ -107,14 +107,6 @@ def installation_cost(self):
 def cost(basis, ID=None, *, CE, cost, n, S=1, ub=0, kW=0, BM=1, units=None, fsize=None):    
     r"""Add item (free-on-board) purchase cost based on exponential scale up:
     
-    :math:`C_{f.o.b.} = N \cdot CE \cdot cost \big(\frac{basis}{S}\big)^{exp}` 
-    
-    :math:`Electricity\ rate = N \cdot kW \big(\frac{basis}{S}\big)`
-    
-    Where `N` corresponds to the minimum number of parallel units given the size limit, `lim`:
-        
-    $N = ceil \big( \frac{basis}{lim} \big)$
-    
     **Parameters**
     
         **basis:** Name of size parameter used for scaling.

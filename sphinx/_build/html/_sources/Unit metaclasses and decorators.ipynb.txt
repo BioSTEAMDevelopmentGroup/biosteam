@@ -207,7 +207,7 @@
    "source": [
     "The cost decorator adds a free on board purchase cost based on the exponential scale up equation:\n",
     "\n",
-    "$$New\\ cost = N \\cdot CE \\cdot cost \\bigg(\\frac{S_{new}}{N \\cdot S}\\bigg)^{n}$$\n",
+    "$$New\\ cost = N \\cdot cost \\bigg(\\frac{CE_{new}}{CE}\\bigg) \\bigg(\\frac{S_{new}}{N \\cdot S}\\bigg)^{n}$$\n",
     "    \n",
     "$$Electricity\\ rate = kW \\bigg(\\frac{S_{new}}{S}\\bigg)$$\n",
     "\n",
@@ -216,6 +216,8 @@
     "$N\\text{: Number of units}$\n",
     "\n",
     "$ub\\text{: Upper bound of size}$\n",
+    "\n",
+    "$CE\\text{: New Chemical Engineering Plant Cost Index}$\n",
     "\n",
     "$CE\\text{: Chemical Engineering Plant Cost Index}$\n",
     "\n",

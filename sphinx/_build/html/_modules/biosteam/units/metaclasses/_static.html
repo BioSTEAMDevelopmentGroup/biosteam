@@ -184,7 +184,7 @@
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">..._unit</span> <span class="k">import</span> <span class="n">Outs</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">_do_nothing</span><span class="p">,</span> <span class="n">missing_stream</span><span class="p">,</span> <span class="n">metaUnit</span><span class="p">,</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">_try_method</span>
+<span class="kn">from</span> <span class="nn">..._unit</span> <span class="k">import</span> <span class="n">Outs</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">missing_stream</span><span class="p">,</span> <span class="n">metaUnit</span><span class="p">,</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">_try_method</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;static&#39;</span><span class="p">,)</span>
 
@@ -228,7 +228,7 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">_link_streams</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">Unit</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">fraction</span><span class="p">)</span>
     
-<div class="viewcode-block" id="static"><a class="viewcode-back" href="../../../../metaclasses.html#biosteam.units.static">[docs]</a><span class="k">class</span> <span class="nc">static</span><span class="p">(</span><span class="n">metaUnit</span><span class="p">):</span>
+<div class="viewcode-block" id="static"><a class="viewcode-back" href="../../../../metaclasses.html#biosteam.units.metaclasses.static">[docs]</a><span class="k">class</span> <span class="nc">static</span><span class="p">(</span><span class="n">metaUnit</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Unit subclasses that implement the static metaclass expect only one input stream (the `feed`) and only one output stream (the `product`). The static metaclass makes the `feed` and `product` share data on material flow rates. Therefore `feed`.mol and `product`.mol will always be equal. Also, the `product`&#39;s T, P, and phase will be equal to the `feed`&#39;s upon simulation if no `_run` method is implemented.&quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
