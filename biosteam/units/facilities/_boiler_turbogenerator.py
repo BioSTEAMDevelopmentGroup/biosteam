@@ -74,7 +74,7 @@ class BoilerTurbogenerator(Unit):
         hu_steam.duty = -H_steam
         hu_steam.ID = 'Low pressure steam'
         hu_steam.flow = molnet = -steam.molnet
-        hu_steam.cost = molnet*lps['Price (USD/kmol)'] + H_steam*lps['Price (USD/kJ)']
+        hu_steam.cost = molnet*lps.price_kmol + H_steam*lps.price_kJ
         self._power_utility(-electricity/3600)
         self._Design['Flow rate'] = feed_massnet
         

@@ -4,7 +4,7 @@ Created on Sat Jun 15 21:01:26 2019
 
 @author: yoelr
 """
-from ..._unit import Outs, Stream, _do_nothing, missing_stream, metaUnit, Unit, _try_method
+from ..._unit import Outs, Stream, missing_stream, metaUnit, Unit, _try_method
 
 __all__ = ('static',)
 

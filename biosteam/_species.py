@@ -223,6 +223,6 @@ class Species:
     
     # Representation
     def __repr__(self):
-        return '<Species: ' + str(self.IDs).replace("'", '')[1:-1] + '>'
+        return f'<Species: {", ".join(self.IDs)}>'
 
     

@@ -8,7 +8,6 @@ from ._exceptions import DimensionError, biosteamError
 from ._utils import DisplayUnits
 from ._species import Species
 from ._stream import Stream, mol_flow_dim, mass_flow_dim, vol_flow_dim
-import pandas as pd
 from . import _Q
 
 
@@ -21,89 +20,6 @@ __all__ = ('HeatUtility',)
 # %% Default Heat Transfer species
 
 _Water = Species('Water')
-
-# %% Data for cooling utilities 
-
-_columns = ('Species', 'Molar fraction', 'Temperature (K)', 'Pressure (Pa)',
-            'Phase', 'Latent heat (kJ/kmol)', 'Temperature limit (K)',
-            'Price (USD/kJ)', 'Price (USD/kmol)', 'Heat transfer efficiency')
-
-_cooling_index = ('Cooling water',
-                  'Chilled water',
-                  'Chilled Brine')
-
-_cooling_water = (_Water,          # species [Species]
-                  (1,),            # flow: [tuple]
-                  305.372,         # T (K)
-                  101325,          # P (Pa)
-                  'liq',           # phase: {'g', 'l'}
-                  None,            # latent heat (kJ/kmol)
-                  324.817,         # T limit (K)
-                  0,               # price (USD/kJ)
-                  4.8785e-4,       # price (USD/kmol)
-                  1)               # heat transfer efficiency
-
-_chilled_water = (_Water,
-                  (1,),
-                  280.372,
-                  101325,
-                  'liq',
-                  None,
-                  300.372,
-                  -5e-6,
-                  0,
-                  1)
-
-_chilled_brine = (_Water,
-                  (1,),
-                  255.372,
-                  101325,
-                  'liq',
-                  None,
-                  275.372,
-                  -8.145e-6,
-                  0,
-                  1)
-
-
-# %% Data for heating utilities
-
-_heating_index = ('Low pressure steam',
-                  'Medium pressure steam',
-                  'High pressure steam')
-
-_low_pressure_steam = (_Water,
-                       (1,),
-                       411.494,
-                       344738.0,
-                       'gas',
-                       3.89e+04,
-                       None,
-                       0,
-                       0.2378,
-                       0.95)
-
-_medium_pressure_steam = (_Water,
-                          (1,),
-                          454.484,
-                          1034214.0,
-                          'gas',
-                          3.63e+04,
-                          None,
-                          0,
-                          0.2756,
-                          0.90)
-
-_high_pressure_steam = (_Water,
-                        (1,),
-                        508.858,
-                        3102642.0,
-                        'gas',
-                        3.21e+04,
-                        None,
-                        0,
-                        0.3171,
-                        0.85)
 
 
 # %% Utility classes
@@ -118,9 +34,9 @@ class HeatUtility:
     
     **Class Attributes**
 
-        **cooling_agents:** [DataFrame] All cooling utilities available
+        **cooling_agents:** dict[str: UtilityAgent] All cooling utilities available
         
-        **heating_agents:** [DataFrame] All heating utilities available
+        **heating_agents:** dict[str: UtilityAgent] All heating utilities available
     
     **Examples**
     
@@ -168,19 +84,87 @@ class HeatUtility:
     #: [DisplayUnits] Units of measure for IPython display
     display_units = DisplayUnits(**_units)
 
-    # All cooling utilities available
-    cooling_agents = pd.DataFrame([_cooling_water,
-                                   _chilled_water,
-                                   _chilled_brine],
-                                  columns=_columns,
-                                  index=_cooling_index).transpose()
+    class UtilityAgent:
+        """Create a UtilityAgent object that defines a utility option.
+        
+            **Parameters**
+        
+                species: [Species] 
+                
+                molfrac: [tuple] Molar fraction of species
+                
+                phase: [str] {'g', 'l'}
+                
+                Hvap: [float] Latent heat of vaporization (kJ/kmol)
+                
+                T_limit: [float] Temperature limit (K)
+                
+                price_kJ: [float] Price (USD/kJ)
+                
+                price_kmol: [float] Price (USD/kmol)
+                
+                efficiency: [float] Heat transfer efficiency (between 0 to 1)
+                
+        """
+        __slots__ = ('species', 'molfrac', 'T', 'P', 'phase', 'Hvap', 'T_limit',
+                     'price_kJ', 'price_kmol', 'efficiency')
+        def __init__(self, species, molfrac, T, P, phase, Hvap, T_limit,
+                     price_kJ, price_kmol, efficiency):
+            self.species = species
+            self.molfrac = molfrac
+            self.T = T
+            self.P = P
+            self.phase = phase
+            self.Hvap = Hvap
+            self.T_limit = T_limit
+            self.price_kJ = price_kJ
+            self.price_kmol = price_kmol
+            self.efficiency = efficiency
+        
+        def __repr__(self):
+            return f"<{type(self).__name__}: T={self.T} K>"
+        
+        def _ipython_display_(self):
+            out = (f"{type(self).__name__}:\n"
+                  +f" species     {repr(self.species)}\n"
+                  +f" molfrac     ({', '.join([format(i,'.2f') for i in self.molfrac])},)\n"
+                  +f" T           {self.T:,.2f}\n"
+                  +f" P           {self.P:,.0f}\n"
+                  +f" phase       '{self.phase}'\n"
+                  +f" Hvap        {self.Hvap and format(self.Hvap, ',.4g')}\n"
+                  +f" T_limit     {self.T_limit and format(self.T_limit, ',.2f')}\n"
+                  +f" price_kJ    {self.price_kJ:.4g}\n"
+                  +f" price_kmol  {self.price_kmol:.4g}\n"
+                  +f" efficiency  {self.efficiency:.2f}")
+            lines = out.splitlines()
+            wt_units_index = (3, 4, 6, 7, 8, 9)
+            units = ('K', 'Pa', 'kJ/kmol', 'K', 'USD/kJ', 'USD/kmol')
+            lines_wt_units = [lines[i] for i in wt_units_index]
+            maxlen = max([len(i) for i in lines_wt_units])+2
+            for i, line, u in zip(range(6), lines_wt_units, units):
+                lines_wt_units[i] = line + (maxlen - len(line))*' ' + u
+            for i, line in zip(wt_units_index, lines_wt_units):
+                lines[i] = line
+            print('\n'.join(lines))
+            
+        show = _ipython_display_
+            
 
-    # All heating utilities available
-    heating_agents = pd.DataFrame([_low_pressure_steam,
-                                   _medium_pressure_steam,
-                                   _high_pressure_steam],
-                                  columns=_columns,
-                                  index=_heating_index).transpose()
+    cooling_agents = {
+        'Cooling water': UtilityAgent(_Water, (1,), 305.372, 101325, 'l',
+                                      None, 324.817, 0, 4.8785e-4, 1),
+        'Chilled water': UtilityAgent(_Water, (1,), 280.372, 101325, 'l',
+                                      None, 300.372, -5e-6, 0, 1),
+        'Chilled Brine': UtilityAgent(_Water, (1,), 255.372, 101325, 'l',
+                                      None, 275.372, -8.145e-6, 0, 1)}
+
+    heating_agents = {
+        'Low pressure steam': UtilityAgent(_Water, (1,), 411.494, 344738.0, 'g',
+                                           3.89e+04, None, 0, 0.2378, 0.95),
+        'Medium pressure steam': UtilityAgent(_Water, (1,), 454.484, 1034214.0,
+                                              'g', 3.63e+04, None, 0, 0.2756, 0.90),
+        'High pressure steam': UtilityAgent(_Water, (1,), 508.858, 3102642.0, 'g',
+                                            3.21e+04, None, 0, 0.3171, 0.85)}
 
     def __init__(self, efficiency=None):
         self.ID = ''
@@ -223,37 +207,31 @@ class HeatUtility:
         
         negduty = duty < 0
         args = (negduty, T_op)
-        if self._args != args:
+        if self._args == args:
+            if negduty:
+                agent = self.cooling_agents[self.ID]
+            else:
+                agent = self.heating_agents[self.ID]
+        else:
             self._args = args
             # Select heat transfer agent
             if negduty:
-                (latent_heat, price_duty,
-                 price_mol, T_limit,
-                 efficiency) = self._select_cooling_agent(T_op)
+                agent = self._select_cooling_agent(T_op)
             else:
-                (latent_heat, price_duty,
-                price_mol, T_limit,
-                efficiency) = self._select_heating_agent(T_op)
-        else:
-            if negduty:
-                (*_, latent_heat, T_limit,
-                 price_duty, price_mol, efficiency) = self.cooling_agents[self.ID]
-            else:
-                (*_, latent_heat, T_limit,
-                 price_duty, price_mol, efficiency) = self.heating_agents[self.ID]
-        
+                agent = self._select_heating_agent(T_op)
+            
         # Calculate utility flow rate requirement
-        efficiency = self.efficiency if self.efficiency else efficiency
+        efficiency = self.efficiency if self.efficiency else agent.efficiency
         duty = duty/efficiency
-        if latent_heat:
-            self._update_flow_wt_phase_change(duty, latent_heat)
+        if agent.Hvap:
+            self._update_flow_wt_phase_change(duty, agent.Hvap)
         else:
-            self._update_flow_wt_pinch_T(duty, T_pinch, T_limit, negduty)
+            self._update_flow_wt_pinch_T(duty, T_pinch, agent.T_limit, negduty)
         
         # Update and return results
         self.flow = mol = self._fresh.molnet
         self.duty = duty
-        self.cost = price_duty*duty + price_mol*mol
+        self.cost = agent.price_kJ*duty + agent.price_kmol*mol
 
     @staticmethod
     def _get_pinch(duty, T_in, T_out):
@@ -271,65 +249,39 @@ class HeatUtility:
 
              **T_pinch:**  [float] Pinch temperature of process stream (K)
         
-        **Returns**
-        
-            **latent_heat:** [float] (kJ/kmol)
-            
-            **price_duty:** [float] (USD/kJ)
-            
-            **price_mass:** [float] (USD/kg)
-            
-            **T_limit:** [float] Maximum or minimum temperature of agent (K)
-            
-            **efficiency:** [float] Heat transfer efficiency
+        **Returns:** [UtilityAgent]
         
         """
         dt = 2*self.dT
         T_max = T_pinch - dt
-        cooling_agents = self.cooling_agents
-        for ID in cooling_agents:
-            (species, flow, T, P, phase,
-             latent_heat, T_limit, price_duty,
-             price_mol, efficiency) = cooling_agents[ID]
-            if T_max > T:
+        for ID, agent in self.cooling_agents.items():
+            if T_max > agent.T:
                 if self.ID != ID:
-                    self._init_streams(flow, species, T, P, phase[0])
+                    self._init_streams(agent.molfrac, agent.species,
+                                       agent.T, agent.P, agent.phase)
                     self.ID = ID
-                return (latent_heat, price_duty, price_mol, T_limit, efficiency)
+                return agent
         raise biosteamError(f'no cooling agent that can cool under {T_pinch} K')
             
     def _select_heating_agent(self, T_pinch):
-        """Select a heating agent that works at the pinch temperature and return relevant information.
+        """Return a heating agent that works at the pinch temperature and return relevant information.
         
         **Parameters**
 
              **T_pinch:**  [float] Pinch temperature of process stream (K)
         
-        **Returns**
-        
-            **latent_heat:** [float] (kJ/kmol)
-            
-            **price_duty:** [float] (USD/kJ)
-            
-            **price_mass:** [float] (USD/kg)
-            
-            **T_limit:** [float] Maximum or minimum temperature of agent (K)
-            
-            **efficiency:** [float] Heat transfer efficiency
+        **Returns:** [UtilityAgent]
         
         """
         dt = 2*self.dT
         T_min = T_pinch + dt
-        heating_agents = self.heating_agents
-        for ID in heating_agents:
-            (species, flow, T, P, phase,
-             latent_heat, T_limit, price_duty,
-             price_mol, efficiency) =  heating_agents[ID]
-            if T_min < T:
+        for ID, agent in self.heating_agents.items():
+            if T_min < agent.T:
                 if self.ID != ID:
-                    self._init_streams(flow, species, T, P, phase[0])
+                    self._init_streams(agent.molfrac, agent.species,
+                                       agent.T, agent.P, agent.phase)
                     self.ID = ID
-                return (latent_heat, price_duty, price_mol, T_limit, efficiency)
+                return agent
         raise biosteamError(f'no heating agent that can heat over {T_pinch} K')
 
     # Main Calculations
@@ -434,6 +386,4 @@ class HeatUtility:
     _ipython_display_ = show
 
 
-del _Water, _columns, _cooling_index, _cooling_water, _chilled_water, \
-    _chilled_brine, _heating_index, _low_pressure_steam, \
-    _medium_pressure_steam, _high_pressure_steam
+del _Water
