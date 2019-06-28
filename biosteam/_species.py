@@ -46,6 +46,7 @@ class Species:
         self = cls.__new__(cls)
         for c in compounds: 
             if isinstance(c, Compound): setattr_(self, c.ID, c)
+            else: raise ValueError('compounds must be an iterable of Compound objects')
         return self
     
     def __init__(self, *IDs, cls=None):

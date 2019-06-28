@@ -523,7 +523,13 @@ class MixedStream(Stream):
     ### Specifications ###
 
     def copylike(self, stream):
-        """Copy mol, T, P, and phase of stream to self."""
+        """Copy flow rates, T, P, and phase of stream to self."""
+        self.copyflow(stream)
+        self.P = stream.P
+        self.T = stream.T
+
+    def copyflow(self, stream):
+        """Copy flow rates of stream to self."""
         if self._species is not stream._species:
             raise ValueError('species must be the same to copy stream specifications')
         if isinstance(stream, MixedStream):
@@ -533,8 +539,6 @@ class MixedStream(Stream):
             self._mol[phase_index[stream._phase]] = stream.mol
         else:
             raise TypeError('argument must be a Stream object')
-        self.P = stream.P
-        self.T = stream.T
 
     ### Equilibrium ###
 

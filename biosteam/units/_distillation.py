@@ -801,6 +801,7 @@ class Distillation(Dist):
         self._cached = {'condensate': Stream(None),
                         'boil_up': Stream(None, phase='g'),
                         'vapor stream': Stream(None)}
+        self._McCabeThiele_args = np.zeros(6)
     
     @property
     def is_divided(self):
@@ -861,19 +862,12 @@ class Distillation(Dist):
             N_stripper = np.ceil( (N_stages-mid_stage)/E_stripper )
         return N_rectifier, N_stripper
 
-    def _design(self):
+    def _McCabeThiele(self):
         distillate, bottoms = self.outs
         kwargs = self._kwargs
         cached = self._cached
-        Design = self._Design
-        bubble_point = bottoms._bubble_point
-
-        # Some important info
         LHK_index = cached['LHK_index']
         LHK_species = self._LHK_species
-        P = kwargs['P']
-        k = kwargs['k']
-        y_top, x_bot = kwargs['y_top'], kwargs['x_bot']
 
         # Feed light key mol fraction
         species = bottoms._species
@@ -901,11 +895,23 @@ class Distillation(Dist):
         # Get feed quality
         q = liq_mol[LHK_index].sum()/LHK_molnet
         
+        # Main arguments
+        P = kwargs['P']
+        k = kwargs['k']
+        y_top, x_bot = kwargs['y_top'], kwargs['x_bot']
+        
+        # Cache
+        old_args = self._McCabeThiele_args
+        args = np.array([P, k, y_top, x_bot, q, zf])
+        if (abs(old_args - args) < np.array([50, 0.01, 0.00001, 0.00001, 0.005, 0.005], float)).all(): return
+        self._McCabeThiele_args = args
+        
         # Get R_min and the q_line 
         if q == 1:
             q = 1 - 1e-5
         self._q_line = q_line = lambda x: q*x/(q-1) - zf/(q-1)
         
+        bubble_point = bottoms._bubble_point
         Rmin_intersection = lambda x: q_line(x) - bubble_point(LHK_species, array((x, 1-x)), P)[1][0]
         x_Rmin = brentq(Rmin_intersection, 0, 1)
         y_Rmin = q_line(x_Rmin)
@@ -948,10 +954,19 @@ class Distillation(Dist):
         stages = len(x_stages)
         
         # Results
+        Design = self._Design
         Design['Theoretical feed stage'] = feed_stage
         Design['Theoretical stages'] = stages
         Design['Minimum reflux'] = Rmin
         Design['Reflux'] = R
+        
+
+    def _design(self):
+        self._McCabeThiele()
+        cached = self._cached
+        distillate, bottoms = self._outs
+        Design = self._Design
+        R = Design['Reflux']
         Rstages, Sstages = self._calc_Nstages()
         calc_Height = self._calc_Height
         is_divided = self.is_divided
@@ -987,7 +1002,7 @@ class Distillation(Dist):
         boil_up_flow = cached['boilup_molfrac'] * V_mol
         boil_up = cached['boil_up']
         boil_up.T = bottoms.T; boil_up.P = bottoms.P
-        lookup = species._compounds.index
+        lookup = bottoms._species._compounds.index
         index_ = [lookup(i) for i in cached['vle_bot']]
         boil_up.mol[index_] = boil_up_flow
         V = boil_up.massnet
@@ -1002,7 +1017,7 @@ class Distillation(Dist):
         if A_dn is None:
             self.A_dn = self._calc_DowncomerAreaRatio(F_LV)
         S_diameter = self._calc_Diameter(V_vol, U_f, f, A_dn)
-        Po = kwargs['P']*0.000145078 # to psi
+        Po = self._kwargs['P']*0.000145078 # to psi
         rho_M = rho_Mdict[self._F_Mstr]
         
         if is_divided:
@@ -1110,6 +1125,7 @@ class Stripper(Dist):
                                  outs=MixedStream(None))
         self._heat_utilities = self._boiler._heat_utilities
         self._cached = {'boil_up': Stream(None)}
+        self._McCabeThiele_args = np.array([0, 0, 0, 0])
     
     def plot_stages(self):
         # Plot stages, graphical aid and equilibrium curve
@@ -1165,7 +1181,7 @@ class Stripper(Dist):
             cached['Stripping Section Efficiency'] = E_stripper = self._calc_MurphreeEfficiency(mu, alpha, L_mol, V_mol)
         return np.ceil(N_stages/E_stripper)
     
-    def _design(self):
+    def _McCabeThiele(self):
         distillate, bottoms = self.outs
         kwargs = self._kwargs
         Design = self._Design
@@ -1176,6 +1192,12 @@ class Stripper(Dist):
         P = kwargs['P']
         k = kwargs['k']
         y_top, x_bot = kwargs['y_top'], kwargs['x_bot']
+        
+        old_args = self._McCabeThiele_args
+        args = np.array([y_top, x_bot, k, P])
+        if (abs(old_args - args) < np.array([0.00001, 0.00001, 0.01, 50], float)).all(): return
+        self._McCabeThiele_args = args
+        
         # Get B_min (Boil up ratio)
         y_Rmin = y_top
         T_guess, x = distillate._dew_point(species, [y_Rmin, 1-y_Rmin], P)
@@ -1201,9 +1223,16 @@ class Stripper(Dist):
         Design['Theoretical stages'] = stages
         Design['Minimum boil up'] = Bmin
         Design['Boil up'] = B
+    
+    def _design(self):
+        distillate, bottoms = self.outs
+        kwargs = self._kwargs
+        Design = self._Design
+        cached = self._cached
         
         ### Get number of stages and height ###
         
+        self._McCabeThiele()
         TS = self._TS
         Design['Actual stages'] = Nstages = self._calc_Nstages()
         Design['Height'] = H = self._calc_Height(TS, Nstages-1)

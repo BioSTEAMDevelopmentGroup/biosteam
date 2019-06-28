@@ -1207,7 +1207,7 @@ class Stream(metaclass=metaStream):
         return out
     
     def copylike(self, stream):
-        """Copy mol, T, P, and phase of stream to self.
+        """Copy flow rates, T, P, and phase of stream to self.
 
         >>> from biosteam import *
         >>> Stream.species = Species('Ethanol', 'Water')
@@ -1230,6 +1230,17 @@ class Stream(metaclass=metaStream):
             self.P = stream.P
             self._phase = stream.phase
             self.T = stream.T
+
+    def copyflow(self, stream):
+        """Copy flow rates and phase of stream to self."""
+        if isinstance(stream, MS.MixedStream):
+            self.enable_phases()
+            self.copyflow(stream)
+        elif not (self._species is stream._species):
+            raise ValueError('species must be the same to copy stream specifications')
+        else:
+            self._mol[:] = stream._mol
+            self._phase = stream.phase
 
     def empty(self):
         """Set flow rates to zero
@@ -1639,7 +1650,7 @@ class Stream(metaclass=metaStream):
                 # For MixedStream objects
                 for s in other_streams:
                     if inst(s, MStream):
-                        s_sum._mol += s._mol
+                        s_sum._mol[:] += s._mol
                     else:
                         s_sum._mol[phase_index[s._phase]] += s._mol
             else:

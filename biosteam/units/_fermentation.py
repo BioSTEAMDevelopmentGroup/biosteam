@@ -13,9 +13,9 @@ from .decorators import cost
 from ._tank import MixTank
 
 @cost('Reactor volume', 'Agitators', CE=521.9, cost=52500,
-      S=3785, n=0.6, kW=22.371, BM=1.5)
+      S=3785, n=0.5, kW=22.371, BM=1.5)
 @cost('Reactor volume', 'Reactors', CE=521.9, cost=844000,
-      S=3785, n=0.6, BM=1.5)
+      S=3785, n=0.5, BM=1.5)
 class Fermentation(BatchReactor):
     """Create a Fermentation object which models large-scale batch fermentation for the production of 1st generation ethanol using yeast [1, 2, 3, 4]. Only sucrose and glucose are taken into account. Conversion is based on reaction time, `tau`. Cleaning and unloading time, `tau_0`, fraction of working volume, `V_wf`, and number of reactors, `N_reactors`, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3].
     

@@ -600,6 +600,9 @@ class HXprocess(HX):
               'LNK': None,
               'HNK': None}
     
+    def _init(self):
+        self._cached_equilibrium_species_index = self._Hvaps = self._not_zero_arr = self._cached_run_args = None
+    
     def _get_streams(self):
         s_in1, s_in2 = self.ins
         s_out1, s_out2  = self.outs
@@ -613,19 +616,44 @@ class HXprocess(HX):
             self._species_index = tuple(getattr(_species, ID) for ID in species_IDs), feed.indices(*species_IDs)
     
     def _run(self):
-        no_heat_exchange = False
-        for si, so in zip(self._ins, self._outs):
-            so.copylike(si)
-            if not si.molnet: no_heat_exchange = True
-        if no_heat_exchange: return
-        Type = self._kwargs['Type']
-        try:
-            getattr(self, '_run_' + Type)()
-        except AttributeError as AE:
-            if Type not in ('ss', 'ls', 'll'):
-                raise ValueError(f"Type must be either 'ss', 'ls', or 'll', not {Type}")
+        so0, so1 = self._outs
+        si0, si1 = self._ins
+        s0_molnet = si0.molnet
+        s1_molnet = si1.molnet
+        if not s0_molnet:
+            so1.copylike(si1)
+        elif not s1_molnet:
+            so0.copylike(si0)
+        else:
+            Type = self._kwargs['Type']
+            if Type != 'ss':
+                # ll and ls take a lot of time, so approximate using cached data
+                new_ratio = s0_molnet/s1_molnet
+                if self._cached_run_args:
+                    old_ratio, s0_T, s1_T, dTc = self._cached_run_args
+                    if ((abs(new_ratio - old_ratio) < 0.001)
+                        and (abs(si0.T - s0_T) < 0.1)
+                        and (abs(si1.T - s1_T) < 0.1)
+                        and (abs(self.dT-dTc) < 0.1)):
+                            r0 = s0_molnet/so0.molnet
+                            r1 = s1_molnet/si1.molnet
+                            so0._mol[:] *= r0
+                            so1._mol[:] *= r1
+                            self._duty *= s0_molnet/self._s0_molnet
+                            self._s0_molnet = s0_molnet
+                            return
+                self._s0_molnet = s0_molnet
+                self._cached_run_args = new_ratio, si0.T, si1.T, self.dT
+            so0.copylike(si0)
+            so1.copylike(si1)
+            if Type == 'ss':
+                self._run_ss()
+            elif Type == 'ls':
+                self._run_ls()
+            elif Type == 'll':
+                self._run_ll()
             else:
-                raise AE
+                raise ValueError(f"Type must be either 'ss', 'ls', or 'll', not {Type}")
     
     def _run_ss(self):
         dT = self.dT
@@ -651,14 +679,7 @@ class HXprocess(HX):
         HNK = kwargs['HNK']
         
         # Arguments for dew and bubble point
-        species_IDs = kwargs['species_IDs']
-        _species = s1_out._species
-        if species_IDs:
-            species, index = self._species_index
-        else:
-            species, index = _species._equilibrium_species(s1_out.mol)
-            species = tuple(species)
-            species_IDs = tuple(s.ID for s in species)
+        species, index, species_IDs = self._get_species_data(s1_out, kwargs['species_IDs'])
         z = s1_out.mol[index]/s1_out.molnet
         P = s1_out.P
         
@@ -705,15 +726,12 @@ class HXprocess(HX):
         s1_in, s2_in = self.ins
         s1_out, s2_out = self.outs
         kwargs = self._kwargs
-        species_IDs_ = kwargs['species_IDs']
         LNK = kwargs['LNK']
         HNK = kwargs['HNK']
         
         for s in self.outs:
             s.enable_phases()
-        _species = s1_out._species
-        compounds = _species._compounds
-        Hvaps = [c.Hvapm or 0 for c in compounds]
+        Hvaps = self._get_Hvaps(s1_out)
         if s1_in.T > s2_in.T and ('g' in s1_in.phase) and ('l' in s2_in.phase):
             # s2 boiling, s1 condensing
             boiling = s2_out
@@ -739,13 +757,7 @@ class HXprocess(HX):
             sp_out = s2_out
         
         # Arguments for dew and bubble point
-        if species_IDs_:
-            species, index = self._species_index
-            species_IDs = species_IDs_
-        else:
-            species, index = _species._equilibrium_species(sc_out.mol)
-            species = tuple(species)
-            species_IDs = tuple(s.ID for s in species)
+        species, index, species_IDs = self._get_species_data(sc_out, kwargs['species_IDs'])
         z = sc_out.mol[index]/sc_out.molnet
         P = sc_out.P
         
@@ -756,12 +768,33 @@ class HXprocess(HX):
             sc_out.phase = 'l'
             sc_out.T = sc_out._bubble_point(species, z, P)[0]
         
-        # Arguments for VLE
-        if species_IDs_:
-            species_IDs = species_IDs_
-        else:
-            species, _ = _species._equilibrium_species(sp_out.mol)
-            species_IDs = tuple(s.ID for s in species)
+        # VLE
         duty = (sc_in.H-sc_out.H)
-        sp_out.VLE(species_IDs, LNK, HNK, Qin=duty)
+        sp_out.VLE(kwargs['species_IDs'], LNK, HNK, Qin=duty)
         self._duty = abs(duty)
+        
+    def _get_Hvaps(self, stream):
+        if self._Hvaps is None:
+            compounds = stream._species._compounds
+            P = stream.P
+            for c in compounds: c.P = P
+            self._Hvaps = Hvaps = np.array([c.Hvapm or 0 for c in stream._species._compounds])
+            return Hvaps
+        else:
+            return self._Hvaps
+        
+    def _get_species_data(self, stream, species_IDs):
+        _species = stream._species
+        if species_IDs:
+            return (*self._species_index, species_IDs)
+        else:
+            not_zero_arr = (stream.mol >= 0.001)
+            if (self._not_zero_arr == not_zero_arr).all():
+                return self._cached_equilibrium_species_index
+            else:
+                species, index = _species._equilibrium_species(stream.mol)
+                species = tuple(species)
+                species_IDs = tuple([s.ID for s in species])
+                self._cached_equilibrium_species_index = out = species, index, species_IDs
+                self._not_zero_arr = not_zero_arr
+                return out

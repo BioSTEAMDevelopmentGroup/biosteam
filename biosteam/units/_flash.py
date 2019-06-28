@@ -149,6 +149,12 @@ class Flash(Unit):
     #: If a vacuum system is needed, it will choose one according to this preference.
     vacuum_system_preference = 'Liquid-ring pump'
     
+    #: True if glycol groups are present in the mixture
+    HasGlycolGroups = False
+    
+    #: True if amine groups are present in the mixture
+    HasAmineGroups = False
+    
     #: [str] 'Horizontal', 'Vertical', or 'Default'
     SepType = 'Default'
     
@@ -222,22 +228,25 @@ class Flash(Unit):
 
     def _design(self):
         # Set horizontal or vertical vessel
-        if self.SepType == 'Default':
+        SepType = self.SepType
+        if SepType == 'Default':
             if self.outs[0].massnet/self.outs[1].massnet > 0.2:
-                self.SepType = 'Vertical'
+                isVertical = True
             else:
-                self.SepType = 'Horizontal'
-
-        # Run Vertical or Horizontal:
-        if self.SepType == 'Vertical':
-            out = self._vertical()
-        elif self.SepType == 'Horizontal' or '(USDA) Biodiesel':
-            out = self._horizontal()
+                isVertical = False
+        elif SepType == 'Vertical':
+            isVertical = True
+        elif SepType == 'Horizontal':
+            isVertical = False
         else:
-            raise ValueError( f"SepType must be either 'Horizontal' or 'Vertical', not '{self.SepType}'")
+            raise ValueError( f"SepType must be either 'Default', 'Horizontal', 'Vertical', not '{self.SepType}'")
+        self._isVertical = isVertical
+
+        # Run vertical or horizontal design
+        if isVertical: self._vertical()
+        else: self._horizontal()
         if self._has_hx: self._heat_exchanger._design()
         self._Design['Material'] = self._material
-        return out
 
     def _cost(self):
         Design = self._Design
@@ -245,18 +254,15 @@ class Flash(Unit):
         D = Design['Diameter']
         L = Design['Length']
         CE = bst.CE
-        SepType = self.SepType
         
         # C_v: Vessel cost
         # C_pl: Platforms and ladders cost
-        if SepType == 'Vertical':
+        if self._isVertical:
             C_v = exp(7.1390 + 0.18255*ln(W) + 0.02297*ln(W)**2)
             C_pl = 410*D**0.7396*L**0.70684
-        elif SepType == 'Horizontal':
+        else:
             C_v = exp(5.6336 - 0.4599*ln(W) + 0.00582*ln(W)**2)
             C_pl = 2275*D**0.20294
-        else:
-            ValueError(f"SepType ({SepType}) must be either 'Vertical', 'Horizontal' or 'Default'.")
             
         self._Cost['Flash'] = CE/567*(self._F_material*C_v+C_pl)
         if self._has_hx:
@@ -299,12 +305,10 @@ class Flash(Unit):
 
     def _design_parameters(self):
         # Retrieve run_args and properties
-        vap, liq = self.outs[0:2]
-        v = vap.quantity
-        l = liq.quantity
-        rhov = v('rho').to('lb/ft3').magnitude  # VapDensity
-        rhol = l('rho').to('lb/ft3').magnitude  # LLiqDensity
-        P = l('P').to('psi').magnitude  # Pressure
+        vap, liq = self._outs
+        rhov = vap.rho*0.06243  # VapDensity (lb/ft3)
+        rhol = liq.rho*0.06243  # LLiqDensity (lb/ft3)
+        P = liq.P*0.000145  # Pressure (psi)
 
         # SepType (str), HoldupTime (min), SurgeTime (min), Mist (bool)
         SepType = self.SepType
@@ -313,35 +317,22 @@ class Flash(Unit):
         Mist = self.Mist
 
         # Calculate the volumetric flowrate
-        Qv = v('volnet').to('ft3/s').magnitude
-        Qll = l('volnet').to('ft3/min').magnitude
+        Qv = vap.volnet * 0.0098096 # ft3/s
+        Qll = liq.volnet * 0.58857 # ft3/min
 
         # Calculate Ut and set Uv
         K = Kvalue(P)
 
         # Adjust K value
-        if not Mist and SepType == 'Vertical':
-            K = K/2
+        if not Mist and SepType == 'Vertical': K /= 2
 
-        xs = liq.massfrac
-        for s, x in zip(liq._species, xs):
-            if x > 0.1:
-                # TODO: Verify unifac groups to determine if glycol and/or amine
-                dct = s.UNIFAC_groups
-                keys = dct.keys()
-                if 14 in keys:
-                    OHs = dct[14]
-                else:
-                    OHs = 0
-                if OHs > 1:
-                    K = K*0.6
-                elif any([i in keys for i in (28, 29, 30, 31, 32, 33)]):
-                    K = K*0.8
-                else:
-                    OHs = 0
+        # Adjust for amine or glycol groups:
+        if self.HasGlycolGroups: K *= 0.6
+        elif self.HasAmineGroups: K *= 0.8
 
         Ut = K*((rhol - rhov) / rhov)**0.5
         Uv = 0.75*Ut
+
         # Calculate Holdup and Surge volume
         Vh = Th*Qll
         Vs = Ts*Qll
@@ -366,12 +357,14 @@ class Flash(Unit):
         Hh = Vh/(pi/4.0*Dvd**2)
         if Hh < 1.0:
             Hh = 1.0
+        else:
             Hh = FinalValue(Hh)
 
         # Calculate the height from Hnll to  High liq level, Hhll
         Hs = Vs/(pi/4.0*Dvd**2)
         if Hs < 0.5:
             Hs = 0.5
+        else:
             Hs = FinalValue(Hs)
 
         # Calculate dN
@@ -391,8 +384,7 @@ class Flash(Unit):
         else:
             Hv2 = 3.0 + dN/2.0
 
-        if Hv2 < Hv:
-            Hv = Hv2
+        if Hv2 < Hv: Hv = Hv2
         Hv = ceil(Hv)
 
         # Calculate total height, Ht
@@ -403,18 +395,11 @@ class Flash(Unit):
         Ht = FinalValue(Ht)
 
         # Check if LD is between 1.5 and 6.0
-        converged = False
-        LD = Ht/D
-        while not converged:
-            if (LD < 1.5):
-                D = D - 0.5
-                converged = False
-            elif (LD > 6.0):
-                D = D + 0.5
-                converged = False
-            else:
-                converged = True
+        while True:
             LD = Ht/D
+            if (LD < 1.5): D -= 0.5
+            elif (LD > 6.0): D += 0.5
+            else: break
 
         # Calculate Vessel weight and wall thickness
         rho_M = material_density[self._material]
@@ -445,16 +430,15 @@ class Flash(Unit):
             LD = 5.0
 
         D = (4.0*(Vh+Vs)/(0.6*pi*LD))**(1.0/3.0)
-        D = round(D)
         if D <= 4.0:
             D = 4.0
+        else:
+            D = FinalValue(D)
 
         outerIter = 0
-        converged = False
-        converged1 = False
-        while not converged and outerIter < 50:
+        while outerIter < 50:
             outerIter += 1
-            At = pi*(D**2)/4.0
+            At = pi*(D**2)/4.0 # Total area
 
             # Calculate Lower Liquid Area
             Hlll = round(0.5*D + 7.0)  
@@ -463,17 +447,13 @@ class Flash(Unit):
             Y = HNATable(1, X)
             Alll = Y*At
 
-            # Calculate the Vapor  disengagement area, Av
+            # Calculate the Vapor disengagement area, Av
             Hv = 0.2*D
-            if Mist and Hv <= 2.0:
-                Hv = 2.0
-            else:
-                if Hv <= 1.0:
-                    Hv = 1.0
-            X = Hv/D
-            Y = HNATable(1, X)
-            Av = Y*At
-
+            if Mist and Hv <= 2.0: Hv = 2.0
+            elif Hv <= 1.0: Hv = 1.0
+            else: Hv = FinalValue(Hv)
+            Av = HNATable(1, Hv/D)*At
+            
             # Calculate minimum length for surge and holdup
             L = (Vh + Vs)/(At - Av - Alll)
             # Calculate liquid dropout
@@ -483,90 +463,41 @@ class Flash(Unit):
             # Calculate minimum length for vapor disengagement
             Lmin = Uva*Phi
             Li = L
-
-            if L < Lmin:
-                Li = Lmin
-
-            if L < 0.8*Lmin:
-                sign = 1.0
-                needToIter = True
-            elif L > 1.2*Lmin:
-                if int(Mist) == 1 and Hv <= 2.0:
-                    Hv = 2.0
-                    Li = L
-                elif not int(Mist) == 0 and Hv <= 1.0:
-                    Hv = 1.0
-                    Li = L
-                else:
-                    sign = -1.0
-                    needToIter = True
-            else:
-                sign = -1.0
-                needToIter = False
-
-            if needToIter:
-                innerIter = 0
-                while not converged1 and innerIter < 50:
-                    innerIter += 1
-                    Hv = Hv + sign*0.5
-                    if Mist and Hv <= 2.0:
-                        Hv = 2.0
-                    if Mist and Hv <= 1.0:
-                        Hv = 1.0
-                    X = Hv/D
-                    Y = HNATable(1, X)
-                    Av = Y*At
-
-                    X = Hlll/D
-                    Y = HNATable(1, X)
-                    Alll = Y*At
-
-                    Li = (Vh + Vs)/(At - Av - Alll)
-                    Phi = Hv/Uv
-                    Uva = Qv/Av
-                    Lmin = Uva*Phi
-                    if Li < 0.8*Lmin:
-                        sign = 1.0
-                        converged1 = False
-                    elif Li > 1.2*Lmin:
-                        sign = -1.0
-                        converged1 = False
-                    else:
-                        Li = Li
-                        converged1 = True
+            
+            innerIter = 0
+            while innerIter < 50:
+                if L < 0.8*Lmin: Hv += 0.5
+                elif L > 1.2*Lmin:
+                    if Mist and Hv <= 2.0: Hv = 2.0
+                    elif not Mist and Hv <= 1.0: Hv = 1.0
+                    else: Hv -= 0.5
+                else: break
+                Av = HNATable(1, Hv/D)*At
+                Alll = HNATable(1, Hlll/D)*At
+                Li = (Vh + Vs)/(At - Av - Alll)
+                Phi = Hv/Uv
+                Uva = Qv/Av
+                Lmin = Uva*Phi                
+                innerIter += 1
             
             L = Li
             LD = L/D
             # Check LD
             if LD < 1.2:
-                if D <= 4.0:
-                    D = D
-                    converged = True
-                else:
-                    D = D - 0.5
-                    converged = False
+                if D <= 4.0: break
+                else: D -= 0.5
 
             if LD > 7.2:
-                D = D + 0.5
-                converged = False
-            else:
-                converged = True
+                D += 0.5
+            else: break
 
         # Recalculate LD so it lies between 1.5 - 6.0
-        converged = False
-        while not converged:
+        while True:
             LD = L / D
-            if (LD < 1.5) and D <= 4.0:
-                L = L + 0.5
-                converged = False
-            elif LD < 1.5:
-                D = D - 0.5
-                converged = False
-            elif (LD > 6.0):
-                D = D + 0.5
-                converged = False
-            else:
-                converged = True
+            if (LD < 1.5) and D <= 4.0: L += 0.5
+            elif LD < 1.5: D -= 0.5
+            elif (LD > 6.0): D += 0.5
+            else: break
 
         # Calculate vessel weight and wall thickness
         rho_M = material_density[self._material]

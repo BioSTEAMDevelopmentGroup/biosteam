@@ -11,7 +11,7 @@ __all__ = ('BoilerTurbogenerator',)
 
 #: TODO add reference of NREL
 
-@cost('Flow rate', CE=567.3, cost=36e6, S=129000, n=1)
+@cost('Heat', CE=567.3, cost=36e6, S=103e7, n=0.93)
 class BoilerTurbogenerator(Unit):
     """Create a Boiler_TurboGenerator object that will calculate electricity generation from burning the feed. It also takes into account how much steam is being produced, and the required cooling utility of the turbo generator. No emissions or mass balances are taken into account.
     
@@ -35,7 +35,7 @@ class BoilerTurbogenerator(Unit):
     """
     _N_heat_utilities = 2
     _has_power_utility = True
-    _units = {'Flow rate': 'kg/hr'}
+    _units = {'Heat': 'kJ/hr'}
     _kwargs = {'boiler_efficiency': 0.80,
                'turbo_generator_efficiency': 0.85,
                'steam': None}
@@ -47,22 +47,15 @@ class BoilerTurbogenerator(Unit):
         hu_cooling, hu_steam = self._heat_utilities
         lps = hu_steam.heating_agents['Low pressure steam']
         H_steam = steam.H
-        # Simulation of ethanol production from sugarcane
-        # in Brazil: economic study of an autonomous
-        # distillery
-        # Marina O.S. Diasa,b, Marcelo P. Cunhaa, Charles D.F. Jesusa, Mirna I.G.
-        # Scandiffioa, Carlos E.V. Rossella,b, Rubens Maciel Filhob, Antonio Bonomia
-        # a CTBE – Bioethanol Science and Technology National Laboratory, PO Box 6170 –
-        # CEP 13083-970, Campinas – SP, Brazil, marina.dias@bioetanol.org.br
-        # b School of Chemical Engineering, University of Campinas, PO Box 6066 – CEP
-        # 13083-970, Campinas – SP, Brazil
-        #LHV = 7565 # Bagasse lower heating value (kJ/kg)
-        feed_Hc = feed.Hc
+        self._Design['Heat'] = feed_Hc = feed.Hc
+        
+        # This is simply for the mass balance (no special purpose)
         emission.mol[:] = feed.mol # TODO: In reality, this should be CO2
         emission.T = steam.T
         emission.phase = 'g'
-        H_content = feed_Hc*B_eff
+        
         feed_massnet = feed.massnet
+        H_content = feed_Hc*B_eff
         H_electricity = H_content - H_steam - feed_massnet*1130 # 50 percent of bagasse is water, so remove latent heat of vaporization
         if H_electricity < 0:
             H_steam = H_content
@@ -76,6 +69,15 @@ class BoilerTurbogenerator(Unit):
         hu_steam.flow = molnet = -steam.molnet
         hu_steam.cost = molnet*lps.price_kmol + H_steam*lps.price_kJ
         self._power_utility(-electricity/3600)
-        self._Design['Flow rate'] = feed_massnet
         
-    
+
+# Simulation of ethanol production from sugarcane
+# in Brazil: economic study of an autonomous
+# distillery
+# Marina O.S. Diasa,b, Marcelo P. Cunhaa, Charles D.F. Jesusa, Mirna I.G.
+# Scandiffioa, Carlos E.V. Rossella,b, Rubens Maciel Filhob, Antonio Bonomia
+# a CTBE – Bioethanol Science and Technology National Laboratory, PO Box 6170 –
+# CEP 13083-970, Campinas – SP, Brazil, marina.dias@bioetanol.org.br
+# b School of Chemical Engineering, University of Campinas, PO Box 6066 – CEP
+# 13083-970, Campinas – SP, Brazil
+# LHV = 7565 # Bagasse lower heating value (kJ/kg)

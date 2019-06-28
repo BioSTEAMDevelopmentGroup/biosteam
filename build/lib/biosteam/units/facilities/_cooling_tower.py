@@ -41,4 +41,4 @@ class CoolingTowerWithPowerDemand(CoolingTower):
         cw = hu.cooling_agents['Cooling water']
         hu.ID = 'Cooling water'
         hu.flow = -q
-        hu.cost = -q*cw['Price (USD/kmol)']
+        hu.cost = -q*cw.price_kmol

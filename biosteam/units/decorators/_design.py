@@ -68,8 +68,8 @@ class Basis:
         return func
     
     def __repr__(self):
-        return f"<{type(self).__name__}: {self.factory.__name__}(units, N_ins, N_outs)>"
-    
+        return f"<{type(self).__name__}: {self.factory.__name__}(units, N_ins, N_outs)>"    
+
 
 class DesignCenter:
     """Create a DesignCenter object that manages all design basis. When called, it returns a Unit class decorator that adds a design item to the given Unit class."""
@@ -89,7 +89,8 @@ class DesignCenter:
         name = factory.__name__
         if name in self:
             raise ValueError(f"basis '{name}' already implemented")
-        self.__dict__[name] = Basis(factory)
+        self.__dict__[name] = basis = Basis(factory)
+        return basis
     
     def __call__(self, name, units, fsize=None):    
         """Return a Unit class decorator that adds a size/design requirement to the class.
@@ -178,10 +179,7 @@ class DesignCenter:
         return object.__getattribute__(self, name.replace(' ', '_').casefold())
 
     def __setattr__(self, name, basis):
-        if isinstance(basis, Basis):
-            self.__dict__[name] = basis
-        else:
-            raise ValueError(f"can only set 'DesignBasis' objects, not '{type(basis).__name__}'")
+        raise AttributeError(f"can't set attribute")
 
     def __contains__(self, basis):
         return basis in self.__dict__
