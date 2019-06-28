@@ -261,6 +261,5 @@ class Fermentation(BatchReactor):
     def _end(self):
         N = self._Design['Number of reactors']
         Cost = self._Cost
-        Cost['Agitators'] *= N
-        Cost['Reactors'] *= N
-        Cost['Coolers'] = N*self._cooler._Cost['Heat exchanger']
+        Cost['Coolers'] = self._cooler._Cost['Heat exchanger']
+        for i in Cost: Cost[i] *= N

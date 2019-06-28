@@ -97,12 +97,10 @@ class metaUnit(type):
             if line is 'Unit':
                 line = cls.__name__.replace('_', ' ')
                 # Set new graphics object for new line
-                if not dct.get('_graphics'):
-                    cls._graphics = Graphics()
-            elif dct.get('line'):
+                if '_graphics' not in dct: cls._graphics = Graphics()
+            elif 'line' in dct and '_graphics' not in dct:
                 # Set new graphics for specified line
-                if not dct.get('_graphics'):
-                    cls._graphics = Graphics()
+                cls._graphics = Graphics()
             
             cls.line = line = re.sub(r"\B([A-Z])", r" \1", line).capitalize()
             if '_kwargs' in dct and '__init__' not in dct:
