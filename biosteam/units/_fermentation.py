@@ -93,7 +93,7 @@ class Fermentation(BatchReactor):
         # Species involved in fermentation
         try:
             self._species_index = Stream.indices(Stream,
-                '64-17-5', '492-61-5', '57-50-1', '7732-18-5', '124-38-9', CAS=True)
+                '64-17-5', '492-61-5', '57-50-1', '7732-18-5', '124-38-9')
         except:
             self._species_index = None
         hx._ins = hx._outs
@@ -113,7 +113,7 @@ class Fermentation(BatchReactor):
         y, e, s, w = feed.indices('Yeast',
                                   '64-17-5',
                                   '492-61-5',
-                                  '7732-18-5', CAS=True)
+                                  '7732-18-5')
         mass = feed.mass
         volnet = feed.volnet
         concentration_in = mass/volnet
@@ -204,7 +204,7 @@ class Fermentation(BatchReactor):
         out, CO2 = self._outs
         out.sum(out, self._ins)
         e, g, s, w, co2 = self._species_index or out.indices(Stream,
-                '64-17-5', '492-61-5', '57-50-1', '7732-18-5', '124-38-9', CAS=True)
+                '64-17-5', '492-61-5', '57-50-1', '7732-18-5', '124-38-9')
         glucose = out.mol[g]
         sucrose = out.mol[s]
         

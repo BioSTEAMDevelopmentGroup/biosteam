@@ -7,7 +7,8 @@ Created on Thu Aug 23 14:34:07 2018
 from .. import Unit, Stream
 from .metaclasses import final
 from numpy import asarray
-from .metaclasses._splitter import splitprop
+from pandas import Series
+from .metaclasses._splitter import split
 from . import Mixer
 
 class Splitter(Unit, metaclass=final):
@@ -120,11 +121,8 @@ class Splitter(Unit, metaclass=final):
 
     def __init__(self, ID='', outs=(), ins=None, split=None, order=None):
         self.ID = ID
-        try:
-            self._reorder_ = Stream._cls_species._reorder
-        except AttributeError:
-            raise RuntimeError('must specify Stream.species first')
-        self._split = self._reorder_(split, order) if order else asarray(split)
+        self._split = split = Stream.species.array(order, split) if order else asarray(split)
+        self._split_series =  Series(split, Stream.species)
         self._init_ins(ins)
         self._init_outs(outs)
 
@@ -138,7 +136,7 @@ class Splitter(Unit, metaclass=final):
         top._mol[:] = net_mol * self._split
         bot._mol[:] = net_mol - top._mol
     
-    split = splitprop
+    split = split
     simulate = _run
     installation_cost = purchase_cost = utility_cost = Mixer.purchase_cost
 

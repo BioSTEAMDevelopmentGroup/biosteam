@@ -4,7 +4,7 @@ Created on Sat Aug 18 14:25:34 2018
 
 @author: yoelr
 """
-from ._exceptions import DimensionError, biosteamError
+from ._exceptions import DimensionError
 from ._utils import DisplayUnits
 from ._species import Species
 from ._stream import Stream, mol_flow_dim, mass_flow_dim, vol_flow_dim
@@ -261,7 +261,7 @@ class HeatUtility:
                                        agent.T, agent.P, agent.phase)
                     self.ID = ID
                 return agent
-        raise biosteamError(f'no cooling agent that can cool under {T_pinch} K')
+        raise RuntimeError(f'no cooling agent that can cool under {T_pinch} K')
             
     def _select_heating_agent(self, T_pinch):
         """Return a heating agent that works at the pinch temperature and return relevant information.
@@ -282,7 +282,7 @@ class HeatUtility:
                                        agent.T, agent.P, agent.phase)
                     self.ID = ID
                 return agent
-        raise biosteamError(f'no heating agent that can heat over {T_pinch} K')
+        raise RuntimeError(f'no heating agent that can heat over {T_pinch} K')
 
     # Main Calculations
     def _update_flow_wt_pinch_T(self, duty, T_pinch, T_limit, negduty):

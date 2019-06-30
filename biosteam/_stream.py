@@ -15,6 +15,7 @@ from ._species import Species
 from ._exceptions import SolverError, EquilibriumError, DimensionError
 from ._equilibrium import DORTMUND
 
+
 __all__ = ('Stream',)
 
 
@@ -24,10 +25,10 @@ __all__ = ('Stream',)
 
 # %% Functions
 
-def nonzero_species(num_IDs, flow):
+def nonzero_species(numIDs, flow):
     index = []
     species = []
-    for i, ID in num_IDs:
+    for i, ID in numIDs:
         if flow[i] != 0:
             index.append(i)
             species.append(ID)
@@ -137,6 +138,20 @@ def flow(fget):
 
 # %% Stream classes
 
+class MissingSpecies:
+    __slots__ = ()
+    def __new__(self):
+        return missing_species
+    def __iter__(self):
+        yield from ()
+    def __bool__(self):
+        return False
+    def __getattr__(self, ID):
+        raise RuntimeError('must set Stream.species first')
+    def __repr__(self):
+        return '<MissingSpecies>'
+missing_species = object.__new__(MissingSpecies)
+
 class metaStream(type):
     """Metaclass for Stream."""
     @property
@@ -150,9 +165,14 @@ class metaStream(type):
         elif isinstance(species, Species):
             for cl in (Stream, MS.MixedStream):
                 cl._cls_species = species
-            species._read_only()
+            species.read_only()
         else: raise ValueError('must pass a Species object')
     _species = species
+    
+    @property
+    def indices(self):
+        try: return self._cls_species.indices
+        except AttributeError: RuntimeError('must set Stream.species first')
     
     @property
     def MW(cls):
@@ -376,7 +396,9 @@ class Stream(metaclass=metaStream):
                  '_yP', '_T_dew', '_y_over_Psat_gamma', '__weakref__', '_source_link')
 
     ### Class attributes for working species ###
-    _cls_species = _MW = None
+    _cls_species = missing_species
+    
+    _MW = None
     
     # [list] Default starting letter and current number for ID (class attribute)
     _default_ID = ['d', 1]
@@ -394,7 +416,7 @@ class Stream(metaclass=metaStream):
         # Get species and set species information
         if isinstance(species, Species):
             self._species = species
-            species._read_only()
+            species.read_only()
         else: 
             self._species = self._cls_species
         self._link = self._ID = self._sink = self._source = None
@@ -410,16 +432,12 @@ class Stream(metaclass=metaStream):
         self._dew_cached = self._bubble_cached = (None,)
         
         # Initialize flows
-        try:
-            self._setflows(flow, species, flow_pairs)
-        except Exception as Error:
-            if not self._species: raise RuntimeError(f'must specify Stream.species first')
-            else: raise Error
+        self._setflows(flow, species, flow_pairs)
         mol = self._mol
         MW = self._species._MW
         mass = [] # Mass flow rates
         vol = [] # Volumetric flow rates    
-        for i, s in self._species._num_compounds:
+        for i, s in self._species._numcompounds:
             mol_i = mol[i:i+1]
             mass.append(MassFlow(s.ID, (mol_i, MW[i])))
             vol.append(VolumetricFlow(s, (self, mol_i)))
@@ -480,32 +498,27 @@ class Stream(metaclass=metaStream):
     def _setflows(self, flow, species, flow_pairs):
         """Initialize molar flow rates accoring the species order, and flow_pairs. Instance species do not change."""
         lenflow = len(flow)
-        empty_flow = lenflow == 0
+        self._mol = np.zeros(self.species._Nspecies, float)
         if species is self._species:
             if flow_pairs:
-                raise ValueError('cannot specify flow pairs when a Species object is passed')
-            elif empty_flow:
-                self._mol = np.zeros(species._Nspecies, float)
-            elif lenflow == self._species._Nspecies:
+                raise ValueError('cannot specify flow pairs when species is passed')
+            elif lenflow == species._Nspecies:
                 self._mol = np.array(flow, float)
-            else:
-                raise ValueError('if flow is not empty, length of flow must be equal to length of Species object')
-        else:
-            lenspecies = len(species)
-            empty_species = lenspecies == 0
-            N = self._species._Nspecies
-            self._mol = np.zeros(N, float)
-            if flow_pairs and empty_flow and empty_species:
-                self._mol[self.indices(*flow_pairs.keys())] = (*flow_pairs.values(),)
-            elif lenspecies == lenflow:
-                if flow_pairs:
-                    self._mol[self.indices(*species, *flow_pairs.keys())] = (*flow, *flow_pairs.values())
-                elif not empty_flow:
+            elif lenflow:
+                raise ValueError('length of flow must be equal to length of species')
+        elif species:
+            if flow_pairs:
+                raise ValueError('cannot specify flow pairs when species is passed')
+            if species:
+                if lenflow == len(species):
                     self._mol[self.indices(*species)] = flow
-            elif empty_species and lenflow == N:
-                self._mol = np.array(flow, float)
-            else:
-                raise ValueError('length of flow rates must be equal to length of species')
+                else:
+                    raise ValueError('length of flow rates must be equal to length of species')
+        elif lenflow:
+            raise ValueError('length of flow must be equal to length of species')
+        elif flow_pairs:
+            self._mol[self.indices(*flow_pairs.keys())] = (*flow_pairs.values(),)
+                
 
     # Forward pipping
     def __sub__(self, index):
@@ -637,14 +650,13 @@ class Stream(metaclass=metaStream):
 
     ### Flow properties ###
     
-    def indices(self, *species, CAS=False):
+    @property
+    def indices(self):
         """Return flow indices of specified species.
 
         **Parameters**
 
-             ***species:** [iterable] species IDs or CAS numbers.
-             
-             **CAS:** [bool] True if species are CAS numbers.
+             ***IDs:** [iterable] species IDs or CAS numbers.
 
         Example
 
@@ -658,28 +670,11 @@ class Stream(metaclass=metaStream):
 
         Indices by CAS number:
         
-        >>> s1.indices('7732-18-5', '64-17-5', CAS=True):
+        >>> s1.indices('7732-18-5', '64-17-5'):
         [1, 0]
 
         """
-        try:
-            lookup = self._species._CAS.index if CAS else self._species._IDs.index
-            return [lookup(i) for i in species]
-        except ValueError as VE:
-            if not self._species:
-                raise RuntimeError(f'no species defined in stream')
-            if all([isinstance(i, str) for i in species]):
-                if CAS:
-                    stream_species = self._species._CAS
-                    start = 'CAS numbers '
-                else:
-                    stream_species = self._species._IDs
-                    start = 'IDs '
-            else:
-                raise TypeError(f'species must all be str objects')
-            not_included = tuple([i for i in species if i not in stream_species])
-            if not_included: raise ValueError(f'{start}{not_included} not defined in stream species')
-            else: raise VE
+        return self._species.indices
                 
     # Molar flow
     @flow
@@ -1127,7 +1122,7 @@ class Stream(metaclass=metaStream):
         >>> s1.nonzero_species
         [1], ['Water']
         """
-        return nonzero_species(self._species._num_IDs, self.mol)
+        return nonzero_species(self._species._numIDs, self.mol)
     
     def quantity(self, prop_ID):
         """Return a property as a Quantity object as described in the `pint package <https://pint.readthedocs.io/en/latest/>`__ 

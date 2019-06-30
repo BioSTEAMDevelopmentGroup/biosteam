@@ -110,9 +110,9 @@ class Junction(Unit, metaclass=final):
             else:
                 downstream.disable_phases(upstream._phase)
                 downstream._mol[self._downindex] = upstream._mol[self._upindex]
-        except Exception as error:
+        except AttributeError as error:
             species = default_species(upstream, downstream)
-            if self._species and all([(i in species) for i in self._species]): raise error
+            if self._species and all([(i in self._species) for i in species]): raise error
             downstream._mol[:] = 0
             self.species = species
             self._run()

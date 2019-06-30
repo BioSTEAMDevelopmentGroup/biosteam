@@ -8,7 +8,6 @@ Created on Thu Aug 23 19:33:20 2018
 import numpy as np
 from .. import Unit, MixedStream, Stream
 from .._utils import approx2step
-from .._exceptions import biosteamError
 from scipy.optimize import brentq
 from ._hx import HXutility
 import matplotlib.pyplot as plt
@@ -885,7 +884,7 @@ class Distillation(Dist):
                 liq_mol += s.liquid_mol
                 vap_mol += s.vapor_mol
             else:
-                raise biosteamError(f'invalid phase encountered in stream {s.ID}')
+                raise RuntimeError(f'invalid phase encountered in {repr(s)}')
         cached['feed_liqmol'] = liq_mol
         cached['feed_vapmol'] = vap_mol
         LHK_mol = liq_mol[LHK_index] + vap_mol[LHK_index]

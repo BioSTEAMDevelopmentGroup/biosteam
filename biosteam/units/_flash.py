@@ -561,6 +561,7 @@ class SplitFlash(Flash, metaclass=splitter):
             ms = MixedStream.sum(ms, self.outs)
         super()._design()
 
+
 class PartitionFlash(Flash):
     """Create a PartitionFlash Unit that approximates outputs based on molar partition coefficients."""
     

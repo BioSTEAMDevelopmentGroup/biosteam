@@ -86,7 +86,7 @@ class MixedStream(Stream):
         if species is None: self._species = self._cls_species
         elif isinstance(species, Species):
             self._species = species
-            species._read_only()
+            species.read_only()
         else:
             raise TypeError(f"species must be a Species object, not '{type(species).__name__}'")
         self._source_link = self
@@ -146,13 +146,13 @@ class MixedStream(Stream):
         """
         species = self._species
         MW = species._MW
-        num_compounds = species._num_compounds
+        numcompounds = species._numcompounds
         massflows = [] # Mass flow rates    
         volflows = [] # Volumetric flow rates    
         for phase, m in zip(phases, mol):
             vol = []
             mass = []
-            for i, s in num_compounds:
+            for i, s in numcompounds:
                 mi = m[i:i+1]
                 mass.append(MassFlow(s.ID, (mi, MW[i])))
                 vol.append(VolumetricFlow(s, (self, mi, phase.lower())))
@@ -625,7 +625,7 @@ class MixedStream(Stream):
         # Reused attributes
         _species = self._species
         sp_dict = _species.__dict__
-        sp_index = _species._IDs.index
+        sp_index = _species._IDs2index
 
         # Get flow rates
         liquid_mol = self._mol[1]
@@ -910,7 +910,7 @@ class MixedStream(Stream):
         # Set up indices for both equilibrium and non-equilibrium species
         _species = self._species
         sp_dict = _species.__dict__
-        sp_index = _species._IDs.index
+        sp_index = _species._IDs2index
         if species_IDs is None:
             species, index = _species._equilibrium_species(all_mol)
         else:
@@ -1071,13 +1071,13 @@ class MixedStream(Stream):
         # Set up flow rate information for all phases
         first_phase = True
         phases_flowrates_info = ''
-        num_IDs = self._species._num_IDs
+        numIDs = self._species._numIDs
         for phase in phases:
             # Get flow rates of phase in nice structure
             flow_attr = letter_phases[phase] + '_' + flow_type
             if fraction: flow_attr += 'frac'
             flow = getattr(self, flow_attr)
-            nonzero, species = nonzero_species(num_IDs, flow)
+            nonzero, species = nonzero_species(numIDs, flow)
             if fraction:
                 flow_nonzero = flow[nonzero]
             else:

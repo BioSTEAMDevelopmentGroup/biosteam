@@ -34,8 +34,7 @@ class CrushingMill(Unit, metaclass=splitter):
     _N_ins = 2
     _kwargs = {'moisture_content': 0.5}
     def _init(self):
-        self._water_index = wi = bst.Stream.indices(bst.Stream,
-                                                    '7732-18-5', CAS=True)
+        self._water_index = wi = bst.Stream.indices('7732-18-5')
         if float(self._split[wi]) != 0:
             raise ValueError('cannot define water split, only moisture content')
     

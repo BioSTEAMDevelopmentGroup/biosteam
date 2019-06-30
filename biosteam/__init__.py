@@ -6,7 +6,7 @@ Created on Sat Oct 28 17:28:09 2017
 @author: Yoel Rene Cortes-Pena
 """
 
-__all__ = ['units', 'evaluation', 'inspect', 'find', 'compounds']
+__all__ = ['units', 'evaluation', 'inspect', 'find', 'compounds', 'reaction']
 
 CE = 567.5 #: Chemical engineering plant cost index (defaults to 567.5 at 2017)
 
@@ -45,6 +45,7 @@ from ._system import *
 from ._tea import *
 from ._flowsheet import *
 
+from . import reaction
 from . import inspect
 from . import compounds
 from . import _species 

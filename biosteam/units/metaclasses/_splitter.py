@@ -10,7 +10,7 @@ from ..._unit import metaUnit
 from numpy import asarray
 from pandas import Series
 
-__all__ = ('splitter', '__init_split__', 'run_split', 'run_split_with_mixing')
+__all__ = ('splitter', '__init__', 'run_split', 'run_split_with_mixing')
 
 class splitter(metaUnit):
     """Create a splitter Unit class which behaves like a splitter regarding mass and energy balances.
@@ -65,7 +65,7 @@ class splitter(metaUnit):
         
         _kwargs = dct.get('_kwargs')
         if _kwargs is None:
-            dct['__init__'] = __init_split__
+            dct['__init__'] = __init__
         elif 'split' in _kwargs or 'order' in _kwargs:
             raise TypeError("cannot use {mcl.__name__} metaclass with 'split' or 'order' defined in '{clsname}._kwargs'")
         else:
@@ -78,7 +78,7 @@ class splitter(metaUnit):
             str2exec+= f"    _(self, ID, outs, ins, order, split=split)"
             
             # Execute string and replace __init__
-            globs = {'_': __init_split__}
+            globs = {'_': __init__}
             globs.update(_kwargs)
             exec(str2exec, globs, dct)
         
@@ -87,7 +87,7 @@ class splitter(metaUnit):
         
         if '_N_ins' not in dct: dct['_N_ins'] = 1
         dct['_N_outs'] = 2
-        dct['split'] = splitprop
+        dct['split'] = split
         
         if "__doc__" in dct:
             dct['__doc__'] = dct['__doc__'].replace('**Parameters**', 
@@ -102,22 +102,14 @@ class splitter(metaUnit):
         return super().__new__(mcl, name, bases, dct)
 
 @property
-def splitprop(self):
+def split(self):
     """[array] Componentwise split of feed to 0th output stream."""
-    try:
-        return self._split_series
-    except:
-        self._split_series = split = Series(self._split,
-                                            index=self._reorder_.__self__._IDs)
-        return split
+    return self._split_series
 
-def __init_split__(self, ID='', outs=(), ins=None, order=None, *, split):
-    try: self._reorder_ = Stream._cls_species._reorder
-    except AttributeError as err:
-        if Stream._cls_species: raise err
-        else: raise RuntimeError('must set Stream.species first')
+def __init__(self, ID='', outs=(), ins=None, order=None, *, split):
     self.ID = ID
-    self._split = self._reorder_(split, order) if order else asarray(split)
+    self._split = split = Stream.species.array(order, split) if order else asarray(split)
+    self._split_series =  Series(split, Stream.species)
     self._init_ins(ins)
     self._init_outs(outs)
     self._init_results()
