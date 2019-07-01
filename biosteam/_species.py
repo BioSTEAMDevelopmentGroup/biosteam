@@ -47,6 +47,9 @@ class Species:
             else: raise ValueError('compounds must be an iterable of Compound objects')
         return self
     
+    def __dir__(self):
+        return [i for i in super().__dir__() if i.isalnum()]
+    
     def __init__(self, *IDs, cls=None):
         # Sphinx docs look ugly if a class is in the default argument
         if not IDs: return
@@ -61,32 +64,62 @@ class Species:
             setattr_(self, n, compound)
 
     def set_synonym(self, ID, synonym):
-        if not self._immutable:
-            raise RuntimeError("'{type(self).__name__}' object must be read-only to set synonyms")
         compound = getattr(self, ID)
         dct = self.__dict__
         if synonym in dct and dct[synonym] is not compound:
             raise ValueError(f"synonym '{synonym}' already in use by {repr(dct[synonym])}")
         else:
+            try:
+                self._indexdct[synonym] = self._indexdct[ID]
+            except AttributeError:
+                raise RuntimeError("'{type(self).__name__}' object must be read-only to set synonyms")
             dct[synonym] = compound
-            self._indexdct[synonym] = self._indexdct[ID]
+            
 
     def kwarray(self, **data):
-        """Return an array with zeros in place of missing species IDs."""
+        """Return an array with entries that correspond to compound IDs.
+        
+        **Parameters**
+        
+            ****data:** ID-value pair.
+            
+        **Examples**
+        
+            >>> from biosteam import *
+            >>> Stream.species = Species('Water', 'Ethanol')
+            >>> Stream.species.kwarray(Water=2)
+            array([2., 0.])
+        
+        """
         return self.array(data.keys(), [*data.values()])
     
     def array(self, IDs, data):
-        """Return an array with zeros in place of missing species IDs."""
+        """Return an array with entries that correspond to species IDs.
+        
+        **Parameters**
+        
+            **IDs:** [iterable] compound IDs.
+            
+            **data:** [array_like] Data corresponding to IDs.
+            
+        **Examples**
+        
+            >>> from biosteam import *
+            >>> Stream.species = Species('Water', 'Ethanol')
+            >>> Stream.species.array(['Water'], [2])
+            array([2., 0.])
+        
+        """
         array = np.zeros(self._Nspecies)
-        array[self.indices(*IDs)] = data
+        array[self.indices(IDs)] = data
         return array
 
-    def indices(self, *IDs):
+    def indices(self, IDs):
         """Return flow indices of specified species.
 
         **Parameters**
 
-             ***IDs:** [iterable] species IDs or CAS numbers.
+             **IDs:** [iterable] species IDs or CAS numbers.
 
         Example
 
@@ -94,12 +127,12 @@ class Species:
         
         >>> from biosteam import *
         >>> Stream.species = Species(['Ethanol', 'Water'])
-        >>> Stream.species.indices('Water', 'Ethanol')
+        >>> Stream.species.indices(['Water', 'Ethanol'])
         [1, 0]
 
         Indices by CAS number:
         
-        >>> Stream.species.indices('7732-18-5', '64-17-5'):
+        >>> Stream.species.indices(['7732-18-5', '64-17-5']):
         [1, 0]
 
         """

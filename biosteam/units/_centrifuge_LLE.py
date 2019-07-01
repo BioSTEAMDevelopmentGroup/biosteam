@@ -64,7 +64,7 @@ class Centrifuge_LLE(Unit):
                'solvent_split': ()}
     _bounds = {'Flow rate': (0.1, 100)}
 
-    def _setup(self):
+    def _init(self):
         self._mixedstream =  MixedStream(None)
 
     def _run(self):
@@ -98,7 +98,6 @@ class RatioCentrifuge_LLE(Centrifuge_LLE):
                'top_split': [],  # list of splits for top_solvents
                'bot_solvents': [],  # list of species that correspond to bot_split
                'bot_split': []}  # list of splits for bot_solvents
-    _setup = Unit._setup
     _run = RatioFlash._run
     
 class SplitCentrifuge_LLE(Centrifuge_LLE, metaclass=splitter): pass

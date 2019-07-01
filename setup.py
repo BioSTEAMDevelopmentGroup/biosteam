@@ -20,7 +20,7 @@ setup(
     author='Yoel Cortes-Pena',
     install_requires=['pint==0.9', 'ht==0.1.52', 'fluids==0.1.74',
                       'scipy', 'IPython', 'thermo==0.1.39', 'colorpalette==0.1.1',
-                      'array_collections==0.1.8', 'free_properties==0.1.9',
+                      'array_collections==0.1.9', 'free_properties==0.1.9',
                       'pandas', 'numpy', 'graphviz', 'matplotlib'],
     python_requires=">=3.6",
     package_data=

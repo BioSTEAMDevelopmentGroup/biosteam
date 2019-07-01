@@ -62,13 +62,6 @@ class metaHX(metaUnit):
 class HX(Unit, metaclass=metaHX):
     """Abstract class for counter current heat exchanger.
 
-    **Parameters**
-
-        **U:** Should be one of the following
-            * [float] Overall heat transfer coefficent (kW/m^2/K)
-            * [str] 'Tabulated'
-            * [str] 'Concentric tubes'
-
     **Abstract methods**
     
         **_get_streams()** Should return two input streams and two output streams that exchange heat.
@@ -76,6 +69,8 @@ class HX(Unit, metaclass=metaHX):
     **Abstract attributes**
     
         **_duty:** [float] The heat transfer requirement (kJ/hr)
+        
+        **U:** [float] Enforced overall heat transfer coefficent (kW/m^2/K)
 
     """
     line = 'Heat Exchanger'
@@ -112,7 +107,7 @@ class HX(Unit, metaclass=metaHX):
     # Correction factor
     _ft = None
     
-    _kwargs = {'U': 'Tabulated'} # Overall heat transfer coefficient
+    _kwargs = {'U': None} # Overall heat transfer coefficient
 
     @property
     def N_shells(self):
@@ -163,7 +158,7 @@ class HX(Unit, metaclass=metaHX):
         phases = cip + hip + cop + hop
         if 'g' in phases:
             if ('g' in hip and 'l' in hop) and ('l' in cip and 'g' in cop):
-                return 1
+                return 1.0
             else:
                 return 0.5
         else:
@@ -389,19 +384,7 @@ class HX(Unit, metaclass=metaHX):
         Q = abs(self._duty) / 3600
         
         # Get overall heat transfer coefficient
-        U = self._kwargs['U']
-        if isinstance(U, float): pass
-        elif U == 'Tabulated':
-            # Look up tabulated values
-            U = self._U_table(ci, hi, co, ho)
-        elif U == 'Concentric tubes':
-            raise NotImplementedError("'Concentric tubes' not yet implemented")
-            Re_i = 30000 # Arbitrary, but turbulent ??
-            Re_o = 30000 # Arbitrary, but turbulent ??
-            s_tube, s_shell = self._shellntube_streams(ci, hi, co, ho, inside_heating)
-            U = self._concentric_tubes(s_tube, s_shell, Re_i, Re_o, inside_heating)
-        else:
-            raise ValueError("overall heat transfer coefficient, 'U', should be one of the following: value (kW/m^2/K), 'Tabulated', or 'Concentric tubes'")
+        U = self.U or self._U_table(ci, hi, co, ho)
         Dp_s, Dp_t = self._Dp_table(ci, hi, co, ho, inside_heating)
         
         # TODO: Complete design of heat exchanger to find L
@@ -464,10 +447,7 @@ class HXutility(HX):
         
         **rigorous:** [bool] If true, calculate vapor liquid equilibrium
         
-        **U:** Should be one of the following:
-            * [float] Overall heat transfer coefficent (kW/m^2/K)
-            * [str] 'Tabulated'
-            * [str] 'Concentric tubes'
+        **U:** Enforced overall heat transfer coefficent (kW/m^2/K)
 
     **ins**
     
@@ -486,25 +466,35 @@ class HXutility(HX):
     _kwargs = {'T': None,
               'V': None,
               'rigorous': False,
-              'U': 'Tabulated'}
+              'U': None}
     
+    def _init(self):
+        kw = self._kwargs
+        self.T = kw['T'] #: Temperature of output stream (K).
+        self.V = kw['V'] #: Vapor fraction of output stream.
+        
+        #: [bool] If true, calculate vapor liquid equilibrium
+        self.rigorous = kw['rigorous']
+        
+        #: [float] Enforced overall heat transfer coefficent (kW/m^2/K)
+        self.U = kw['U']
+        
     def _run(self):
         feed = self.ins[0]
         s = self.outs[0]
         s.copylike(feed)
-        kwargs = self._kwargs
-        T = kwargs['T']
-        V = kwargs['V']
-        V_given = V is not None 
+        T = self.T
+        V = self.V
+        V_given = V is not None
         if not (T or V_given):
             raise ValueError("must pass at least one of the following kwargs: 'T', 'V'")
-        if kwargs['rigorous']:
+        if self.rigorous:
             if T and V_given:
                 raise ValueError("may only pass either temperature, 'T', or vapor fraction 'V', in a rigorous simulation")
             if V_given:
-                s.VLE(V=V)
+                s.VLE(V=V, P=s.P)
             else:
-                s.VLE(T=T)
+                s.VLE(T=T, P=s.P)
         else:
             if V_given:
                 if V == 0:
@@ -554,24 +544,21 @@ class HXprocess(HX):
     
     **Parameters**
         
-        **U:** Should be one of the following:
-            * [float] Overall heat transfer coefficent (kW/m^2/K)
-            * [str] 'Tabulated'
-            * [str] 'Concentric tubes'
+        **U:** Enforced overall heat transfer coefficent (kW/m^2/K)
     
-        **Type:** [str] Must be one of the following:
+        **fluid_type:** [str] Must be one of the following:
             * **None:** Rigorously transfers heat until pinch temperature **-not implemented yet-**
-            * **'ss':** Sensible-sensible fluids heat exchanger. Heat is exchanged until the pinch temperature is reached.
-            * **'ll':** Latent-latent fluids heat exchanger. Heat is exchanged until one fluid completely changes phase.
-            * **'ls':** Latent-sensible fluids heat exchanger. Heat is exchanged until either the pinch temperature is reached or the latent fluid completely changes phase.
+            * **'ss':** Sensible-sensible fluids. Heat is exchanged until the pinch temperature is reached.
+            * **'ll':** Latent-latent fluids. Heat is exchanged until one fluid completely changes phase.
+            * **'ls':** Latent-sensible fluids. Heat is exchanged until either the pinch temperature is reached or the latent fluid completely changes phase.
     
         **Optional**
         
-            **species_IDs:** tuple[str] IDs of species in equilibrium
+            **species_IDs:** tuple[str] IDs of species in thermodynamic equilibrium
             
-            **LNK:** tuple[str] IDs of light non-keys
+            **LNK:** tuple[str] IDs of light non-keys assumed to remain as a vapor
             
-            **HNK:** tuple[str] IDs of heavy non-keys
+            **HNK:** tuple[str] IDs of heavy non-keys assumed to remain as a liquid
     
     **ins**
         
@@ -594,26 +581,63 @@ class HXprocess(HX):
     _N_ins = 2
     _N_outs = 2
     dT = 5 #: [float] Pinch temperature difference.
-    _kwargs = {'U': 'Tabulated',
-              'Type': 'ss',
-              'species_IDs': None,
-              'LNK': None,
-              'HNK': None}
+    _kwargs = {'U': None,
+              'fluid_type': 'ss',
+              'species_IDs': (),
+              'LNK': (),
+              'HNK': ()}
     
     def _init(self):
-        self._cached_equilibrium_species_index = self._Hvaps = self._not_zero_arr = self._cached_run_args = None
+        self._Hvaps = self._not_zero_arr = self._cached_run_args = None
+        kw = self._kwargs
+        self.species_IDs = tuple(kw['species_IDs'])
+        
+        #: [float] Enforced overall heat transfer coefficent (kW/m^2/K)
+        self.U = kw['U']
+        
+        #: tuple[str] IDs of light non-keys  assumed to remain as a vapor
+        self.LNK = kw['LNK'] 
+        
+        #: tuple[str] IDs of heavy non-keys assumed to remain as a liquid
+        self.HNK = kw['HNK']
+        
+        self.fluid_type = kw['fluid_type']
     
+    @property
+    def species_IDs(self):
+        """IDs of compounds in thermodynamic equilibrium."""
+        return self._species_IDs
+    @species_IDs.setter
+    def species_IDs(self, IDs):
+        if IDs:
+            species = self._outs[0].species if self._outs else Stream.species
+            index = species.indices(IDs)
+            species = tuple(getattr(species, ID) for ID in IDs)
+            self._cached_species_data = species, index, IDs
+        else:
+            self._cached_species_data = None
+        self._species_IDs = IDs
+    
+    @property
+    def fluid_type(self):
+        """
+        [str] Must be one of the following:
+            * **None:** Rigorously transfers heat until pinch temperature **-not implemented yet-**
+            * **'ss':** Sensible-sensible fluids. Heat is exchanged until the pinch temperature is reached.
+            * **'ll':** Latent-latent fluids. Heat is exchanged until one fluid completely changes phase.
+            * **'ls':** Latent-sensible fluids. Heat is exchanged until either the pinch temperature is reached or the latent fluid completely changes phase.
+        """
+        return self._fluid_type
+    @fluid_type.setter
+    def fluid_type(self, fluid_type):
+        if fluid_type not in ('ss', 'ls', 'll'):
+            raise ValueError(f"fluid type must be either 'ss', 'ls', or 'll', not {fluid_type}")
+        self._fluid_type = fluid_type
+        
     def _get_streams(self):
         s_in1, s_in2 = self.ins
         s_out1, s_out2  = self.outs
         return s_in1, s_in2, s_out1, s_out2
-    
-    def _setup(self):
-        species_IDs = self._kwargs['species_IDs']
-        if species_IDs:
-            feed = self.outs[0]
-            _species = feed._species
-            self._species_index = tuple(getattr(_species, ID) for ID in species_IDs), feed.indices(*species_IDs)
     
     def _run(self):
         so0, so1 = self._outs
@@ -625,8 +649,8 @@ class HXprocess(HX):
         elif not s1_molnet:
             so0.copylike(si0)
         else:
-            Type = self._kwargs['Type']
-            if Type != 'ss':
+            fluid_type = self._fluid_type
+            if fluid_type != 'ss':
                 # ll and ls take a lot of time, so approximate using cached data
                 new_ratio = s0_molnet/s1_molnet
                 if self._cached_run_args:
@@ -635,25 +659,21 @@ class HXprocess(HX):
                         and (abs(si0.T - s0_T) < 0.1)
                         and (abs(si1.T - s1_T) < 0.1)
                         and (abs(self.dT-dTc) < 0.1)):
-                            r0 = s0_molnet/so0.molnet
-                            r1 = s1_molnet/si1.molnet
+                            r0 = s0_molnet/so0.molnet    
                             so0._mol[:] *= r0
-                            so1._mol[:] *= r1
-                            self._duty *= s0_molnet/self._s0_molnet
-                            self._s0_molnet = s0_molnet
+                            so1._mol[:] *= s1_molnet/so1.molnet
+                            self._duty *= r0
                             return
                 self._s0_molnet = s0_molnet
                 self._cached_run_args = new_ratio, si0.T, si1.T, self.dT
             so0.copylike(si0)
             so1.copylike(si1)
-            if Type == 'ss':
+            if fluid_type == 'ss':
                 self._run_ss()
-            elif Type == 'ls':
+            elif fluid_type == 'ls':
                 self._run_ls()
-            elif Type == 'll':
+            elif fluid_type == 'll':
                 self._run_ll()
-            else:
-                raise ValueError(f"Type must be either 'ss', 'ls', or 'll', not {Type}")
     
     def _run_ss(self):
         dT = self.dT
@@ -673,13 +693,10 @@ class HXprocess(HX):
     def _run_ls(self):
         s1_in, s2_in = self.ins
         s1_out, s2_out = self.outs
-        kwargs = self._kwargs
         dT = self.dT
-        LNK = kwargs['LNK']
-        HNK = kwargs['HNK']
         
         # Arguments for dew and bubble point
-        species, index, species_IDs = self._get_species_data(s1_out, kwargs['species_IDs'])
+        species, index, species_IDs = self._get_species_data(s1_out, self._species_IDs)
         z = s1_out.mol[index]/s1_out.molnet
         P = s1_out.P
         
@@ -687,13 +704,13 @@ class HXprocess(HX):
             # Stream s1 is boiling
             boiling = True
             s1_out.phase = 'g'
-            s1_out.T = s1_out._dew_point(species, z, P)[0]
+            s1_out.T = s1_out._Tdew(species, z, P)[0]
             T_pinch = s1_in.T + dT # Minimum
         else:
             # Stream s1 is condensing
             boiling = False
             s1_out.phase = 'l'
-            s1_out.T = s1_out._bubble_point(species, z, P)[0]
+            s1_out.T = s1_out._Tbubble(species, z, P)[0]
             T_pinch = s1_in.T - dT # Maximum
         
         # Calculate maximum latent heat and new temperature of sensible stream
@@ -706,13 +723,13 @@ class HXprocess(HX):
             H0 = s2_in.H
             s2_out.T = T_pinch
             delH1 = H0 - s2_out.H
-            s1_out.VLE(species_IDs, LNK, HNK, Qin=delH1)
+            s1_out.VLE(species_IDs, self.LNK, self.HNK, P=s1_out.P, Qin=delH1)
         elif not boiling and T_s2_new > T_pinch:
             # Partial condensation if temperature goes above pinch
             H0 = s2_in.H
             s2_out.T = T_pinch
             delH1 = H0 - s2_out.H
-            s1_out.VLE(species_IDs, LNK, HNK, Qin=delH1)
+            s1_out.VLE(species_IDs, self.LNK, self.HNK, P=s1_out.P, Qin=delH1)
         elif boiling:
             s1_out.phase ='g'
             s2_out.T = T_s2_new
@@ -725,9 +742,8 @@ class HXprocess(HX):
     def _run_ll(self):
         s1_in, s2_in = self.ins
         s1_out, s2_out = self.outs
-        kwargs = self._kwargs
-        LNK = kwargs['LNK']
-        HNK = kwargs['HNK']
+        LNK = self.LNK
+        HNK = self.HNK
         
         for s in self.outs:
             s.enable_phases()
@@ -757,20 +773,20 @@ class HXprocess(HX):
             sp_out = s2_out
         
         # Arguments for dew and bubble point
-        species, index, species_IDs = self._get_species_data(sc_out, kwargs['species_IDs'])
+        species, index, species_IDs = self._get_species_data(sc_out, self._species_IDs)
         z = sc_out.mol[index]/sc_out.molnet
         P = sc_out.P
         
         if sc_out is boiling:
             sc_out.phase = 'g'
-            sc_out.T = sc_out._dew_point(species, z, P)[0]
+            sc_out.T = sc_out._Tdew(species, z, P)[0]
         else:
             sc_out.phase = 'l'
-            sc_out.T = sc_out._bubble_point(species, z, P)[0]
+            sc_out.T = sc_out._Tbubble(species, z, P)[0]
         
         # VLE
         duty = (sc_in.H-sc_out.H)
-        sp_out.VLE(kwargs['species_IDs'], LNK, HNK, Qin=duty)
+        sp_out.VLE(self._species_IDs, LNK, HNK, P=sp_out.P, Qin=duty)
         self._duty = abs(duty)
         
     def _get_Hvaps(self, stream):
@@ -786,7 +802,7 @@ class HXprocess(HX):
     def _get_species_data(self, stream, species_IDs):
         _species = stream._species
         if species_IDs:
-            return (*self._species_index, species_IDs)
+            return self._cached_species_data
         else:
             not_zero_arr = (stream.mol >= 0.001)
             if (self._not_zero_arr == not_zero_arr).all():
@@ -795,6 +811,15 @@ class HXprocess(HX):
                 species, index = _species._equilibrium_species(stream.mol)
                 species = tuple(species)
                 species_IDs = tuple([s.ID for s in species])
-                self._cached_equilibrium_species_index = out = species, index, species_IDs
+                self._cached_species_data = out = species, index, species_IDs
                 self._not_zero_arr = not_zero_arr
                 return out
+            
+# elif U == 'Concentric tubes':
+#     raise NotImplementedError("'Concentric tubes' not yet implemented")
+#     Re_i = 30000 # Arbitrary, but turbulent ??
+#     Re_o = 30000 # Arbitrary, but turbulent ??
+#     s_tube, s_shell = self._shellntube_streams(ci, hi, co, ho, inside_heating)
+#     U = self._concentric_tubes(s_tube, s_shell, Re_i, Re_o, inside_heating)
+# else:
+#     raise ValueError("overall heat transfer coefficient, 'U', should be one of the following: value (kW/m^2/K), 'Tabulated', or 'Concentric tubes'")

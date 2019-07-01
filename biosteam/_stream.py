@@ -464,7 +464,7 @@ class Stream(metaclass=metaStream):
         """Set `flow` rates according to the `species` order and `flow_pairs`. `inplace` can be any operation that can be performed in place (e.g. +, -, *, /, |, **, etc.)."""
         species = (*species, *flow_pairs.keys())
         flow = (*flow, *flow_pairs.values())
-        index = self.indices(*species) if species else ... 
+        index = self.indices(species) if species else ... 
         if units == 'kmol/hr': exec(f"self._mol[index] {inplace}= flow", locals())
         elif units == 'kg/hr': exec(f"self._mass[index] {inplace}= flow", locals())
         elif units == 'm3/hr': exec(f"self._vol[index] {inplace}= flow", locals())
@@ -482,7 +482,7 @@ class Stream(metaclass=metaStream):
     
     def getflow(self, *species, units='kmol/hr'):
         """Get flow rates of species in given units."""
-        index = self.indices(*species) if species else ...
+        index = self.indices(species) if species else ...
         if units=='kmol/hr': return self._mol[index]    
         q = _Q(1, units)
         dim = q.dimensionality
@@ -511,13 +511,13 @@ class Stream(metaclass=metaStream):
                 raise ValueError('cannot specify flow pairs when species is passed')
             if species:
                 if lenflow == len(species):
-                    self._mol[self.indices(*species)] = flow
+                    self._mol[self.indices(species)] = flow
                 else:
                     raise ValueError('length of flow rates must be equal to length of species')
         elif lenflow:
             raise ValueError('length of flow must be equal to length of species')
         elif flow_pairs:
-            self._mol[self.indices(*flow_pairs.keys())] = (*flow_pairs.values(),)
+            self._mol[self.indices(flow_pairs.keys())] = (*flow_pairs.values(),)
                 
 
     # Forward pipping
@@ -656,7 +656,7 @@ class Stream(metaclass=metaStream):
 
         **Parameters**
 
-             ***IDs:** [iterable] species IDs or CAS numbers.
+             **IDs:** [iterable] species IDs or CAS numbers.
 
         Example
 
@@ -665,12 +665,12 @@ class Stream(metaclass=metaStream):
         >>> from biosteam import *
         >>> Stream.species = Species(['Ethanol', 'Water'])
         >>> s1 = Stream()
-        >>> s1.indices('Water', 'Ethanol')
+        >>> s1.indices(['Water', 'Ethanol'])
         [1, 0]
 
         Indices by CAS number:
         
-        >>> s1.indices('7732-18-5', '64-17-5'):
+        >>> s1.indices(['7732-18-5', '64-17-5']):
         [1, 0]
 
         """
@@ -1087,7 +1087,7 @@ class Stream(metaclass=metaStream):
         >>> s1 = Stream(Ethanol=2)
         25272.75671868146
         """
-        species, x, P = self._equilibrium_args()
+        species, x = self._equilibrium_args()
         T = self.T
         
         # Remove species that account for less than 1 percent
@@ -1259,9 +1259,9 @@ class Stream(metaclass=metaStream):
         mol = self._mol[index]
         z = mol/mol.sum()
 
-        return tuple(species), z, self.P
+        return tuple(species), z
     
-    def bubble_point(self):
+    def Tbubble(self):
         """Bubble point at current composition and Pressure.
 
         **Returns**
@@ -1275,30 +1275,30 @@ class Stream(metaclass=metaStream):
         >>> from biosteam import *
         >>> stream = Stream(flow=(0.6, 0.4),
         ...                 species=Species('Ethanol', 'Water'))
-        >>> stream.bubble_point()
+        >>> stream.Tbubble()
         (352.2820850833474, array([0.703, 0.297]), (<Chemical: Ethanol>, <Chemical: Water>))
 
         """
         # If just one specie in equilibrium, return Tsat
-        species, x, P = self._equilibrium_args()
+        species, x = self._equilibrium_args()
         N_species = len(species)
         if N_species == 1:
-            return species[0].Tsat(P), 1, species
+            return species[0].Tsat(self.P), 1, species
         elif N_species == 0:
             raise EquilibriumError('no species available for phase equilibrium')
         
         # Solve and return bubble point
-        x, P = self._bubble_point(species, x, P)
+        x, P = self._Tbubble(species, x, self.P)
         return x, P, species
     
-    def _bubble_point_error(self, T, species, x, P):
+    def _Tbubble_error(self, T, species, x, P):
         """Bubble point given x and P"""
         gamma = self.activity_coefficients(species, x, T)
         Psat = [s.VaporPressure(T) for s in species]
         self._yP =  x * Psat * gamma
         return 1 - self._yP.sum()/P
     
-    def _bubble_point(self, species, x, P):
+    def _Tbubble(self, species, x, P):
         """Bubble point at given composition and Pressure
 
         **Parameters**
@@ -1320,7 +1320,7 @@ class Stream(metaclass=metaStream):
         >>> from biosteam import *
         >>> Stream.species = Species('Ethanol', 'Water')
         >>> s1 = Stream()
-        >>> s1._bubble_point(species=Species('Ethanol', 'Water'),
+        >>> s1._Tbubble(species=Species('Ethanol', 'Water'),
         ...                  x=(0.6, 0.4), P=101325)
         (352.2820850833474, array([0.703, 0.297]))
         
@@ -1341,14 +1341,14 @@ class Stream(metaclass=metaStream):
             T_bubble = (x * [s.Tb for s in species]).sum()
 
         # Solve and return
-        T_bubble = newton(self._bubble_point_error, T_bubble,
+        T_bubble = newton(self._Tbubble_error, T_bubble,
                           args=(species, x, P), tol= 1e-7)
         y_bubble = self._yP / P
         y_bubble /= y_bubble.sum()
         self._bubble_cached = (species, P, T_bubble, y_bubble, x)
         return T_bubble, y_bubble
 
-    def dew_point(self):
+    def Tdew(self):
         """Dew point at current composition and Pressure.
         
         **Returns**
@@ -1366,32 +1366,32 @@ class Stream(metaclass=metaStream):
         
         """
         # If just one specie in equilibrium, return Tsat
-        species, y, P = self._equilibrium_args()
+        species, y = self._equilibrium_args()
         N_species = len(species)
         if N_species == 1:
-            return species[0].Tsat(P), 1, species
+            return species[0].Tsat(self.P), 1, species
         elif N_species == 0:
             raise EquilibriumError('no species available for phase equilibrium')
         
         # Solve and return dew point
-        y, P = self._dew_point(species, y, P)
+        y, P = self._Tdew(species, y, self.P)
         return y, P, species
     
-    def _dew_point_error_T(self, T, x, y, P, species):
-            """Error for dew point temperature, constant x and P."""
-            Psat = np.array([s.VaporPressure(T) for s in species])
-            gamma = self.activity_coefficients(species, x, T)
-            self._y_over_Psat_gamma = y/(Psat*gamma)
-            return 1 - self._y_over_Psat_gamma.sum() * P
+    def _Tdew_error_T(self, T, x, y, P, species):
+        """Error for dew point temperature, constant x and P."""
+        Psat = np.array([s.VaporPressure(T) for s in species])
+        gamma = self.activity_coefficients(species, x, T)
+        self._y_over_Psat_gamma = y/(Psat*gamma)
+        return 1 - self._y_over_Psat_gamma.sum() * P
     
-    def _dew_point_error_x(self, x, y, P, species):
+    def _Tdew_error_x(self, x, y, P, species):
         """Error function for dew point composition with constant y and P."""
         x_dew = x/x.sum()
-        self._T_dew = newton(self._dew_point_error_T, self._T_dew,
+        self._T_dew = newton(self._Tdew_error_T, self._T_dew,
                              args=(x, y, P, species), tol= 1e-7)
         return abs(x_dew - self._y_over_Psat_gamma*P)
     
-    def _dew_point(self, species, y, P):
+    def _Tdew(self, species, y, P):
         """Dew point given y and P.
 
         **Parameters**
@@ -1438,7 +1438,7 @@ class Stream(metaclass=metaStream):
         max_ = np.ones(Nspecies)
 
         # Find x by least squares
-        try: x_dew = least_squares(self._dew_point_error_x, x_dew,
+        try: x_dew = least_squares(self._Tdew_error_x, x_dew,
                                    bounds=(min_, max_),
                                    args=(y, P, species),
                                    xtol= 1e-6).x
@@ -1683,12 +1683,12 @@ class Stream(metaclass=metaStream):
         """
         self._phase = phase
             
-    def VLE(self, species_IDs=None, LNK=None, HNK=None, P=None,
+    def VLE(self, species_IDs=(), LNK=(), HNK=(), P=None,
             Qin=None, T=None, V=None, x=None, y=None):
         self.enable_phases()
         self.VLE(species_IDs, LNK, HNK, P, Qin, T, V, x, y)
         
-    def LLE(self, species_IDs=None, split=None, lNK=(), LNK=(),
+    def LLE(self, species_IDs=(), split=None, lNK=(), LNK=(),
             solvents=(), solvent_split=(),
             P=None, T=None, Qin=None):
         self.enable_phases()

@@ -16,13 +16,11 @@ class EnzymeTreatment(MixTank):
     _tau = 1
     
     def _init(self):
-        self._heat_exchanger = he = HXutility(None, None) 
+        self.T = self._kwargs['T']
+        self._heat_exchanger = he = HXutility(None, None, T=self.T) 
         self._heat_utilities = he._heat_utilities
         he._ins = self._ins
         he._outs = self._outs
-    
-    def _setup(self):
-        self.outs[0].T = self._kwargs['T']
     
     def _run(self):
         feed = self.ins[0]
@@ -30,6 +28,7 @@ class EnzymeTreatment(MixTank):
         out._mol[:] = self._mol_in
         out.phase = feed.phase
         out.P = feed.P
+        out.T = self.T
         
     def _design(self):
         super()._design()

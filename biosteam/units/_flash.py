@@ -93,11 +93,11 @@ class Flash(Unit):
     
         **Optional**
     
-            **species_IDs:** tuple[str] IDs of equilibrium species
+            **species_IDs:** tuple[str] IDs of species in thermodynamic equilibrium
             
-            **LNK**: tuple[str] Light non-keys
+            **LNK**: tuple[str] Light non-keys assumed to remain as a vapor
         
-            **HNK**: tuple[str] Heavy non-keys
+            **HNK**: tuple[str] Heavy non-keys assumed to remain as a liquid
 
     **ins**
     
@@ -168,8 +168,8 @@ class Flash(Unit):
     Mist = False
     
     _kwargs = {'species_IDs': None,  # Equilibrium species
-               'LNK': None,   # light non-keys
-               'HNK': None,   # heavy non-keys
+               'LNK': (),   # light non-keys
+               'HNK': (),   # heavy non-keys
                'V': None,   # Vapor fraction
                'T': None,   # Operating temperature
                'Qin': None, # Energy input
@@ -197,16 +197,59 @@ class Flash(Unit):
     def _init(self):
         vap, liq = self.outs
         vap._phase = 'g'
-        self._heat_exchanger = he = HXutility(None, outs=None) 
-        self._heat_utilities = he._heat_utilities
-        he._ins = self._ins
-        self._mixedstream = ms = MixedStream(None)
-        he._outs[0] = ms
-
-    def _setup(self):
-        self._has_hx = self._kwargs['Qin'] != 0
-        if self._kwargs['P'] < 101325 and not self._power_utility:
+        self._mixedstream = MixedStream(None)
+        self._heat_exchanger = None
+        kw = self._kwargs
+        
+        #: tuple[str] IDs of species in thermodynamic equilibrium
+        self.species_IDs = kw['species_IDs']
+        
+        #: tuple[str] Light non-keys assumed to remain as a vapor
+        self.LNK = kw['LNK']
+        
+        #: tuple[str] Heavy non-keys assumed to remain as a liquid
+        self.HNK = kw['HNK']
+        
+        #: Enforced molar vapor fraction
+        self.V = kw['V']
+        
+        #: Enforced operating temperature (K)
+        self.T = kw['T']
+        
+        #: [array_like] Molar composition of vapor (for binary mixture)
+        self.y = kw['y']
+        
+        #: [array_like] Molar composition of liquid (for binary mixture)
+        self.x = kw['x']
+        
+        self.Qin = kw['Qin']
+        self.P = kw['P']
+        
+        
+    @property
+    def P(self):
+        """Operating pressure (Pa)."""
+        return self._P
+    @P.setter
+    def P(self, P):
+        if P < 101325 and not self._power_utility:
             self._power_utility = PowerUtility()
+        self._P = P
+    
+    @property
+    def Qin(self):
+        """Enforced duty (kJ/hr)."""
+        return self._Qin
+    @Qin.setter
+    def Qin(self, Qin):
+        if Qin == 0:
+            self._heat_exchanger = None
+        elif not self._heat_exchanger:
+            self._heat_exchanger = he = HXutility(None, outs=None) 
+            self._heat_utilities = he._heat_utilities
+            he._ins = self._ins
+            he._outs[0] = self._mixedstream
+        self._Qin = Qin
 
     def _run(self):
         # Unpack
@@ -218,7 +261,8 @@ class Flash(Unit):
         ms.empty()
         ms.liquid_mol[:] = feed.mol
         ms.T = feed.T
-        ms.VLE(**self._kwargs)
+        ms.VLE(self.species_IDs, self.LNK, self.HNK, self.P,
+               self.Qin, self.T, self.V, self.x, self.y)
 
         # Set Values
         vap._mol[:] = ms.vapor_mol
@@ -245,7 +289,7 @@ class Flash(Unit):
         # Run vertical or horizontal design
         if isVertical: self._vertical()
         else: self._horizontal()
-        if self._has_hx: self._heat_exchanger._design()
+        if self._heat_exchanger: self._heat_exchanger._design()
         self._Design['Material'] = self._material
 
     def _cost(self):
@@ -265,7 +309,7 @@ class Flash(Unit):
             C_pl = 2275*D**0.20294
             
         self._Cost['Flash'] = CE/567*(self._F_material*C_v+C_pl)
-        if self._has_hx:
+        if self._heat_exchanger:
             hx = self._heat_exchanger
             hx._cost()
             self._Cost.update(hx._Cost)
@@ -532,31 +576,31 @@ class Flash(Unit):
 class SplitFlash(Flash, metaclass=splitter):
     line = 'Flash'
     
-    _kwargs = {'T': 298.15,  # operating temperature (K)
+    _kwargs = {'T': 298.15,
                'P': 101325,
-               'Qin': None}  # operating pressure (Pa)
+               'Qin': None}  
+    
+    def _init(self):
+        self._mixedstream = MixedStream(None)
+        self._heat_exchanger = None
+        kw = self._kwargs
+        self.T = kw['T'] #: Operating temperature (K)
+        self.P = kw['P'] #: Operating pressure (Pa)
+        self.Qin = kw['Qin'] #: Duty (kJ/hr)
         
-    def _setup(self):
-        top, bot = self.outs
-        kwargs = self._kwargs
-        T = kwargs['T']
-        P = kwargs['P']
-        Qin = kwargs['Qin']
-        self._has_hx = Qin != 0
-        if P < 101325 and not self._power_utility:
-            self._power_utility = PowerUtility()
-        top.phase = 'g'
-        bot.T = top.T = T
-        bot.P = top.P = P
-
+    V = None
+    
     def _run(self):
         top, bot = self.outs
         net_mol = self._ins[0].mol
         top._mol[:] = net_mol * self._split
         bot._mol[:] = net_mol - top._mol
+        top.phase = 'g'
+        bot.T = top.T = self.T
+        bot.P = top.P = self.P
 
     def _design(self):
-        if self._has_hx:
+        if self._heat_exchanger:
             self._heat_exchanger.outs[0] = ms = self._mixedstream
             ms = MixedStream.sum(ms, self.outs)
         super()._design()
@@ -572,9 +616,7 @@ class PartitionFlash(Flash):
                'P': None,            # Operating Pressure
                'T': None}            # Operating temperature
     
-    _has_hx = True
-    
-    def _setup(self):
+    def _init(self):
         top, bot = self.outs
         species_IDs, Ks, LNK, HNK, P, T = self._kwargs.values()
         index = top._species._IDs.index
@@ -654,7 +696,7 @@ class Evaporator_PQin(Unit):
                'Qin': 0,
                'P': 101325}
 
-    def _setup(self):
+    def _init(self):
         component, P = (self._kwargs[i] for i in ('component', 'P'))
         vapor, liquid = self.outs[:2]
         self._cached = cached = {}
@@ -727,7 +769,7 @@ class Evaporator_PV(Unit):
                'V': 0.5,
                'P': 101325}
 
-    def _setup(self):
+    def _init(self):
         vapor, liquid = self.outs
         component, P = (self._kwargs[i] for i in ('component', 'P'))
         self._index = vapor._species._IDs.index(component)

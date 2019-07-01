@@ -138,7 +138,7 @@ class metaUnit(type):
 
 
 class Unit(metaclass=metaUnit):
-    """Abstract parent class for Unit objects. Child objects must contain _setup, _run, _design and _cost methods to setup internal objects, estimate stream outputs of a Unit and find design and cost information.  
+    """Abstract parent class for Unit objects. Child objects must contain _init, _run, _design and _cost methods to setup internal objects, estimate stream outputs of a Unit and find design and cost information.  
 
     **Parameters**
 
@@ -148,7 +148,7 @@ class Unit(metaclass=metaUnit):
         
         **ins:** tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.
 
-        ****kwargs:** Keyword arguments that are stored to instance attribute `_kwargs` and later accessed by _setup, _run, _design, and _cost methods.
+        ****kwargs:** Keyword arguments that are stored to instance attribute `_kwargs` and later accessed by _run, _design, and _cost methods.
 
     **Class Definitions** 
     
@@ -161,9 +161,6 @@ class Unit(metaclass=metaUnit):
         **_init():**
             Initialize components.
         
-        **_setup()**
-            Create cached data from kwargs. 
-
         **_run()**
             Run simulation and update output streams.
 
@@ -175,7 +172,7 @@ class Unit(metaclass=metaUnit):
             
         .. Note::
            
-           Class argument `_init` is called only once when a Unit object is initialized. `_setup` is run after `_init` as well as in the `reset` method to update cached data. The `_run` method is called during recycle loop convergence. The rest of the methods are called in the given order for generating results.
+           Class argument `_init` is called only once when a Unit object is initialized. The `_run` method is called during recycle loop convergence. The rest of the methods are called in the given order for generating results.
         
         **_units** = {}: [dict] Default units for results Operation and Design
         
@@ -265,13 +262,7 @@ class Unit(metaclass=metaUnit):
         self._init_heat_utils()
         self._init_power_util()
         self._init()
-        self._setup()
         self.ID = ID
-
-    def reset(self, **kwargs):
-        """Reset unit with new key word arguments."""
-        self._kwargs.update(kwargs)
-        self._setup()
 
     def _init_ins(self, ins):
         """Initialize input streams."""
@@ -361,7 +352,6 @@ class Unit(metaclass=metaUnit):
     
     # Abstract methods
     _init     = _do_nothing
-    _setup    = _do_nothing
     _run      = _do_nothing
     _design   = _do_nothing
     _cost     = _do_nothing

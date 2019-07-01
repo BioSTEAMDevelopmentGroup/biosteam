@@ -8,6 +8,7 @@ Created on Sat Jun 29 20:47:24 2019
 __all__ = ('str2dct', 'dct2str', 'dct2arr', 'arr2dct',  'str2arr', 'arr2str')
 
 def str2dct(reaction) -> dict:
+    reaction = reaction.replace(' ', '')
     left, right = reaction.split('->')
     reactants = left.split('+')
     products = right.split('+')

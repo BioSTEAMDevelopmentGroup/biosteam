@@ -556,26 +556,25 @@ class MixedStream(Stream):
     def enable_phases(self):
         """Cast stream into a MixedStream object."""
 
-    def VLE(self, species_IDs=None, LNK=None, HNK=None, P=None,
+    def VLE(self, species_IDs=(), LNK=(), HNK=(), P=None,
             Qin=None, T=None, V=None, x=None, y=None):
         """Perform vapor-liquid equilibrium. Pressure defaults to current pressure.
 
-        **Optional parameters**
+        **Parameters**
+        
+            **User must define two:**
+                * **P:** [float] Operating pressure (Pa)
+                * **Qin:** [float] Energy input (kJ/hr)
+                * **T:** [float] Operating temperature (K)
+                * **V:** [float] Overall molar vapor fraction
+                * **x:** [numpy array] Molar composition of liquid (for binary mixture)
+                * **y:** [numpy array] Molar composition of vapor (for binary mixture)
 
-            **P:** [float] Operating pressure (Pa)
-                
             **species_IDs:** [tuple] IDs of equilibrium species
                  
             **LNK:** tuple[str] Light non-keys
     
             **HNK:** tuple[str] Heavy non-keys
-
-            **User may define one:**
-                * **Qin:** [float] Energy input (kJ/hr)
-                * **T:** [float] Operating temperature (K)
-                * **V:** [float] Overall molar vapor fraction
-                * **x:** [numpy array] Molar composition of liquid (for binary mixture)
-                * **y:** [numpy array] Molar composition of vapor (for binary mixture)     
 
         .. Note:
            LNK and HNK are not taken into account for equilibrium. Assumes constant pressure if no pressure is provided.
@@ -587,45 +586,69 @@ class MixedStream(Stream):
         for i in (P, T, x, y, V, Qin):
             Nspecs += (i is not None)
             
-        raise_error = False
         if Nspecs == 0:
             Qin = 0
-        elif Nspecs == 2 and not P:
-            raise_error = True
-        elif Nspecs > 2:
-            raise_error = True
-        
-        if T is not None:
-            self.T = T
-            eq = 'TP'
-        elif x is not None:
-            x = np.asarray(x)
-            eq = 'xP'
-        elif y is not None:
-            y = np.asarray(y)
-            eq = 'yP'
-        elif V is not None:
-            eq = 'VP'
-        elif Qin is not None:
-            eq = 'QinP'
-            Hin = self.H + Qin
-        else:
-            raise_error = True
-        
-        if raise_error:
-            raise ValueError("invalid specification. Must pass one and only one of the following specifications: T, x, y, V, or Qin")
+        elif Nspecs != 2:
+            raise ValueError("must pass two of the following specifications: P, T, x, y, V, or Qin")
         
         if P:
             self.P = P
+            if T is not None:
+                self.T = T
+                eq = 'TP'
+            elif x is not None:
+                x = np.asarray(x)
+                eq = 'xP'
+            elif y is not None:
+                y = np.asarray(y)
+                eq = 'yP'
+            elif V is not None:
+                eq = 'VP'
+            elif Qin is not None:
+                eq = 'QinP'
+                Hin = self.H + Qin
+        elif T:
+            self.T = T
+            if x is not None:
+                x = np.asarray(x)
+                eq = 'xT'
+            elif y is not None:
+                y = np.asarray(y)
+                eq = 'yT'
+            elif V is not None:
+                eq = 'VT'
+            elif Qin is not None:
+                eq = 'QinT'
+                Hin = self.H + Qin
+        elif V:
+            if x is not None:
+                x = np.asarray(x)
+                eq = 'xV'
+            elif y is not None:
+                y = np.asarray(y)
+                eq = 'yV'
+            elif Qin is not None:
+                eq = 'QinV'
+                Hin = self.H + Qin
+        elif Qin:
+            if x is not None:
+                x = np.asarray(x)
+                eq = 'xQin'
+            elif y is not None:
+                y = np.asarray(y)
+                eq = 'yQin'
         else:
-            P = self.P
+            raise ValueError("can only pass either 'x' or 'y' arguments, not both")
             
+        if eq[0] in ('x', 'y') and len(species_IDs) != 2:
+            raise ValueError("species_IDs must be of length 2 to specify '{eq[0]}'")    
+        
         ### Set Up Arguments ###
         
         # Reused attributes
         _species = self._species
         sp_dict = _species.__dict__
-        sp_index = _species._IDs2index
+        sp_index = _species._indexdct
 
         # Get flow rates
         liquid_mol = self._mol[1]
@@ -633,18 +656,18 @@ class MixedStream(Stream):
         all_mol = liquid_mol + vapor_mol
 
         # Set up indices for both equilibrium and non-equilibrium species
-        if species_IDs is None:
+        if species_IDs:
+            index = [sp_index[specie] for specie in species_IDs]
+            species = tuple([sp_dict[ID] for ID in species_IDs])
+        else:
             species, index = _species._equilibrium_species(all_mol)
             species = tuple(species)
-        else:
-            index = [sp_index(specie) for specie in species_IDs]
-            species = tuple([sp_dict[ID] for ID in species_IDs])
         if LNK:
-            LNK_index = [sp_index(specie) for specie in LNK]
+            LNK_index = [sp_index[specie] for specie in LNK]
         else:
             LNK, LNK_index = _species._light_species(all_mol)
         if HNK:
-            HNK_index = [sp_index(specie) for specie in HNK]
+            HNK_index = [sp_index[specie] for specie in HNK]
         else:
             HNK, HNK_index = _species._heavy_species(all_mol)
         mol = all_mol[index]
@@ -705,9 +728,39 @@ class MixedStream(Stream):
                 vapor_mol[index] = mol*V
                 liquid_mol[index] = mol - vapor_mol[index]
                 return
+            
+            elif eq == 'VT':
+                # Set vapor fraction
+                self.P = s.VaporPressure(T)
+                vapor_mol[index] = mol*V
+                liquid_mol[index] = mol - vapor_mol[index]
+                return
+            
+            elif eq == 'QinT': 
+                # Set Pressure in equilibrium
+                self.P = s.VaporPressure(P)
                 
-            else:
-                ValueError("Invalid specification. Pure component equilibrium requires one and only one of the following specifications: T, V, or Qin.")
+                # Check if super heated vapor
+                vapor_mol[index] = mol
+                liquid_mol[index] = 0
+                H_dew = self.H
+                if Hin >= H_dew:
+                    self.H = Hin
+                    return
+    
+                # Check if subcooled liquid
+                vapor_mol[index] = 0
+                liquid_mol[index] = mol
+                H_bubble = self.H
+                if Hin <= H_bubble:
+                    self.H = Hin
+                    return
+                
+                # Adjust vapor fraction accordingly
+                V = (Hin - H_bubble)/(H_dew - H_bubble)
+                vapor_mol[index] = mol*V
+                liquid_mol[index] = mol - vapor_mol[index]
+                return
                 
         ### Begin multi-component equilibrium ###
         
@@ -725,9 +778,9 @@ class MixedStream(Stream):
         if eq == 'xP' or eq == 'yP':
             # Get temperature based on phase composition
             if eq == 'xP':
-                self.T, y = self._bubble_point(species, x, P)
+                self.T, y = self._Tbubble(species, x, P)
             else:
-                self.T, x = self._dew_point(species, y, P)
+                self.T, x = self._Tdew(species, y, P)
                 
             if Nspecies > 2:
                 raise ValueError(f'more than two components in equilibrium. Only binary component equilibrium can be solved for specification, {eq}')
@@ -745,8 +798,8 @@ class MixedStream(Stream):
             return
 
         # Need to find these for remainding equilibrium types
-        T_dew, x_dew = self._dew_point(species, zf, P)
-        T_bubble, y_bubble = self._bubble_point(species, zf, P)
+        T_dew, x_dew = self._Tdew(species, zf, P)
+        T_bubble, y_bubble = self._Tbubble(species, zf, P)
 
         # Guestimate vapor composition for 'VP', 'TP', 'QinP' equilibrium
         y = self._y_cached[1] if self._y_cached[0] == species else None
@@ -910,12 +963,12 @@ class MixedStream(Stream):
         # Set up indices for both equilibrium and non-equilibrium species
         _species = self._species
         sp_dict = _species.__dict__
-        sp_index = _species._IDs2index
+        sp_index = _species._indexdct
         if species_IDs is None:
             species, index = _species._equilibrium_species(all_mol)
         else:
             species = [sp_dict[ID] for ID in species_IDs]
-            index = [sp_index(ID) for ID in species_IDs]
+            index = [sp_index[ID] for ID in species_IDs]
         
         for s, i in zip(species, index):
             ID = s.ID
@@ -924,9 +977,9 @@ class MixedStream(Stream):
                 index.remove(i)
 
         species = tuple(species)
-        lNK_index = [sp_index(s) for s in lNK]
-        LNK_index = [sp_index(s) for s in LNK]
-        solvent_index = [sp_index(s) for s in solvents]
+        lNK_index = [sp_index[s] for s in lNK]
+        LNK_index = [sp_index[s] for s in LNK]
+        solvent_index = [sp_index[s] for s in solvents]
 
         # Get min and max splits
         Nspecies = len(species)

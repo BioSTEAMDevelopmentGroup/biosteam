@@ -5,6 +5,7 @@ Created on Thu Aug 23 22:15:20 2018
 @author: yoelr
 """
 from .. import Unit
+from .._exceptions import UndefinedCompound
 from .metaclasses import splitter, run_split_with_mixing
 from .designtools import vacuum_system
 import numpy as np
@@ -57,8 +58,11 @@ class RotaryVacuumFilter(Unit, metaclass=splitter):
     power_efficiency = 0.9
     
     def _init(self):
-        self._water_index = wi = bst.Stream.indices('7732-18-5')
-        if float(self._split[wi]) != 0:
+        try:
+            self._water_index = wi = bst.Stream.species._indexdct['7732-18-5']
+        except KeyError:
+            raise UndefinedCompound('7732-18-5')
+        if self._split[wi] != 0:
             raise ValueError('cannot define water split, only moisture content')
     
     def _run(self):

@@ -136,8 +136,8 @@ class Junction(Unit, metaclass=final):
     def species(self, IDs):
         upstream, downstream = _getstreams(self)
         self._species = tuple(IDs)
-        self._upindex = upstream.indices(*IDs)
-        self._downindex = downstream.indices(*IDs)
+        self._upindex = upstream.indices(IDs)
+        self._downindex = downstream.indices(IDs)
     
     def _info(self, T, P, flow, fraction):
         info = super()._info(T, P, flow, fraction)

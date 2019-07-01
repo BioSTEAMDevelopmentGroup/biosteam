@@ -5,7 +5,7 @@ Created on Thu Aug 23 22:18:36 2018
 @author: yoelr
 """
 import numpy as np
-from .. import Unit
+from .. import Unit, Stream
 from .decorators import cost
 from .metaclasses import splitter
 
@@ -37,11 +37,13 @@ class SolidsCentrifuge(Unit, metaclass=splitter):
     _kwargs = {'solids': None}
     _units = {'Solids loading': 'tonn/hr'}
     _minimum_solids_loading = 2
+
+    def _init(self):
+        self._solids_index = Stream.indices(self._kwargs['solids'])
     
     def _design(self):
-        solids = self._kwargs['solids']
-        index = self.outs[0].indices(*solids)
         mass_solids = 0
+        index = self._solids_index
         for s in self.ins:
             mass_solids += s.mass[index]
         ts = np.asarray(mass_solids).sum() # Total solids

@@ -116,7 +116,6 @@ def __init__(self, ID='', outs=(), ins=None, order=None, *, split):
     self._init_heat_utils()
     self._init_power_util()
     self._init()
-    self._setup()
     
 def run_split(self):
     """Splitter mass and energy balance function based on one input stream."""

@@ -86,7 +86,7 @@ class MultiEffectEvaporator(Unit):
             raise ValueError(f"Type must be one of the following: {dummy}")
         self._Type = evap_type
 
-    def _setup(self):
+    def _init(self):
         # Unpack
         component, P, V, P_liq = (self._kwargs[i]
                                   for i in ('component', 'P', 'V', 'P_liq'))
