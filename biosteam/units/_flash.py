@@ -85,7 +85,7 @@ class Flash(Unit):
         **P:** [float] Operating pressure (Pa)
 
         **User defines one:**
-            * **Qin:** [float] Energy input (kJ/hr)
+            * **Q:** [float] Energy input (kJ/hr)
             * **V:** [float] Overall molar vapor fraction
             * **T:** [float] Operating temperature (K)
             * **x:** [array_like] Molar composition of liquid (for binary mixture)
@@ -172,7 +172,7 @@ class Flash(Unit):
                'HNK': (),   # heavy non-keys
                'V': None,   # Vapor fraction
                'T': None,   # Operating temperature
-               'Qin': None, # Energy input
+               'Q': None, # Energy input
                'P': None,   # Operating Pressure
                'y': None,   # Vapor composition (of working species)
                'x': None}   # Liquid composition (of working species)
@@ -222,7 +222,7 @@ class Flash(Unit):
         #: [array_like] Molar composition of liquid (for binary mixture)
         self.x = kw['x']
         
-        self.Qin = kw['Qin']
+        self.Q = kw['Q']
         self.P = kw['P']
         
         
@@ -237,19 +237,19 @@ class Flash(Unit):
         self._P = P
     
     @property
-    def Qin(self):
+    def Q(self):
         """Enforced duty (kJ/hr)."""
-        return self._Qin
-    @Qin.setter
-    def Qin(self, Qin):
-        if Qin == 0:
+        return self._Q
+    @Q.setter
+    def Q(self, Q):
+        if Q == 0:
             self._heat_exchanger = None
         elif not self._heat_exchanger:
             self._heat_exchanger = he = HXutility(None, outs=None) 
             self._heat_utilities = he._heat_utilities
             he._ins = self._ins
             he._outs[0] = self._mixedstream
-        self._Qin = Qin
+        self._Q = Q
 
     def _run(self):
         # Unpack
@@ -262,7 +262,7 @@ class Flash(Unit):
         ms.liquid_mol[:] = feed.mol
         ms.T = feed.T
         ms.VLE(self.species_IDs, self.LNK, self.HNK, self.P,
-               self.Qin, self.T, self.V, self.x, self.y)
+               self.Q, self.T, self.V, self.x, self.y)
 
         # Set Values
         vap._mol[:] = ms.vapor_mol
@@ -578,7 +578,7 @@ class SplitFlash(Flash, metaclass=splitter):
     
     _kwargs = {'T': 298.15,
                'P': 101325,
-               'Qin': None}  
+               'Q': None}  
     
     def _init(self):
         self._mixedstream = MixedStream(None)
@@ -586,7 +586,7 @@ class SplitFlash(Flash, metaclass=splitter):
         kw = self._kwargs
         self.T = kw['T'] #: Operating temperature (K)
         self.P = kw['P'] #: Operating pressure (Pa)
-        self.Qin = kw['Qin'] #: Duty (kJ/hr)
+        self.Q = kw['Q'] #: Duty (kJ/hr)
         
     V = None
     
@@ -690,10 +690,10 @@ class RatioFlash(Flash):
 
 # %% Single Component
 
-class Evaporator_PQin(Unit):
+class Evaporator_PQ(Unit):
 
     _kwargs = {'component': 'Water',  # ID of specie
-               'Qin': 0,
+               'Q': 0,
                'P': 101325}
 
     def _init(self):
@@ -722,7 +722,7 @@ class Evaporator_PQin(Unit):
 
     def _run(self):
         feed = self.ins[0]
-        component, Qin = (self._kwargs[i] for i in ('component', 'Qin'))
+        component, Q = (self._kwargs[i] for i in ('component', 'Q'))
         vapor, liquid = self.outs[:2]
         cached = self._cached
 
@@ -736,19 +736,19 @@ class Evaporator_PQin(Unit):
 
         no_ph_ch_H = no_ph_ch.H
         feed_H = feed.H
-        # Optional if Qin also comes from condensing a side stream
+        # Optional if Q also comes from condensing a side stream
         if len(self.ins) == 2:
             boiler_liq = self.outs[2]
             boiler_vap = self.ins[1]
             boiler_liq.copylike(boiler_vap)
             boiler_liq.phase = 'l'
-            Qin = Qin + boiler_vap.H - boiler_liq.H
+            Q = Q + boiler_vap.H - boiler_liq.H
 
         # Energy balance to find vapor fraction
         def f(v):
             vapor_Hf = vapor_H*(v*feed.mol[index])
             liquid_Hf = liquid_H*((1-v)*feed.mol[index])
-            return (vapor_Hf + liquid_Hf + no_ph_ch_H) - feed_H - Qin
+            return (vapor_Hf + liquid_Hf + no_ph_ch_H) - feed_H - Q
 
         # Final vapor fraction
         v = newton(f, 0.5, tol=0.001)
@@ -759,7 +759,7 @@ class Evaporator_PQin(Unit):
             v = 1
         vapor.mol[index] = v*feed.mol[index]
         liquid.mol[index] = (1-v)*feed.mol[index]
-        self._Qin = Qin
+        self._Q = Q
         self._V = v
 
 

@@ -30,22 +30,22 @@ class Reaction:
         
     **Examples**
     
-        >>> import biosteam as bst    
-        >>> import biosteam.reaction as rn
-        >>> bst.Stream.species = sp = bst.Species('H2O', 'H2', 'O2')
-        >>> srn = rn.Reaction('2H2O -> 2H2 + O2', reactant='H2O', X=0.7)
-        >>> srn
-        Reaction('H2O -> H2 + 0.5 O2', reactant='H2O', X=0.7)
-        >>> feed = bst.Stream('feed', H2O=200)
-        >>> feed.mol[:] += srn(feed.mol) # Call to run reaction on molar flow
-        >>> feed
-        Stream: feed
-         phase: 'l', T: 298.15 K, P: 101325 Pa
-         flow (kmol/hr): H2O  60
-                         H2   140
-                         O2   70
-        
-        Notice how 70% of water was converted to product.
+    >>> import biosteam as bst    
+    >>> import biosteam.reaction as rn
+    >>> bst.Stream.species = sp = bst.Species('H2O', 'H2', 'O2')
+    >>> srn = rn.Reaction('2H2O -> 2H2 + O2', reactant='H2O', X=0.7)
+    >>> srn
+    Reaction('H2O -> H2 + 0.5 O2', reactant='H2O', X=0.7)
+    >>> feed = bst.Stream('feed', H2O=200)
+    >>> feed.mol[:] += srn(feed.mol) # Call to run reaction on molar flow
+    >>> feed
+    Stream: feed
+     phase: 'l', T: 298.15 K, P: 101325 Pa
+     flow (kmol/hr): H2O  60
+                     H2   140
+                     O2   70
+    
+    Notice how 70% of water was converted to product.
     
     """
     __slots__ = ('_species', '_Xindex', '_stoi', 'X')
@@ -81,12 +81,12 @@ class Reaction:
     def __repr__(self):
         return f"{type(self).__name__}('{stoi2str(self._stoi, self._species)}', reactant='{self.reactant}', X={self.X:.3g})"
     
-    def show(self):
-        stoichiometry = stoi2str(self._stoi, self._species)
-        print(f"{type(self).__name__}:\n"
-             +f" {stoichiometry}\n"
-             +f" {self.X:.2%} {self.reactant} conversion")
-    _ipython_display_ = show
+    # def show(self):
+    #     stoichiometry = stoi2str(self._stoi, self._species)
+    #     print(f"{type(self).__name__}:\n"
+    #          +f" {stoichiometry}\n"
+    #          +f" {self.X:.2%} {self.reactant} conversion")
+    # _ipython_display_ = show
 
 Rxn = Reaction
 
@@ -142,7 +142,7 @@ class ParallelReaction(ReactionSet):
     __slots__ = ()
     
     def __call__(self, material):
-        return (material[self._Xindex]*self.X*self._stoi).sum()
+        return material[self._Xindex]*self.X @ self._stoi
 
     @property
     def X_net(self):
@@ -159,8 +159,8 @@ class SeriesReaction(ReactionSet):
     __slots__ = ()
     
     def __call__(self, material):
-        for i, j, k in (self._Xindex, self.X, self._stoi):
-            material = material + material[self._Xindex]*self.X*self._stoi
+        for i, j, k in zip(self._Xindex, self.X, self._stoi):
+            material = material + material[i]*j*k
         return material
 
     @property

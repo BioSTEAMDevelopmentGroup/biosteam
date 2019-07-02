@@ -704,13 +704,13 @@ class HXprocess(HX):
             # Stream s1 is boiling
             boiling = True
             s1_out.phase = 'g'
-            s1_out.T = s1_out._Tdew(species, z, P)[0]
+            s1_out.T = s1_out._dew_T(species, z, P)[0]
             T_pinch = s1_in.T + dT # Minimum
         else:
             # Stream s1 is condensing
             boiling = False
             s1_out.phase = 'l'
-            s1_out.T = s1_out._Tbubble(species, z, P)[0]
+            s1_out.T = s1_out._bubble_T(species, z, P)[0]
             T_pinch = s1_in.T - dT # Maximum
         
         # Calculate maximum latent heat and new temperature of sensible stream
@@ -723,13 +723,13 @@ class HXprocess(HX):
             H0 = s2_in.H
             s2_out.T = T_pinch
             delH1 = H0 - s2_out.H
-            s1_out.VLE(species_IDs, self.LNK, self.HNK, P=s1_out.P, Qin=delH1)
+            s1_out.VLE(species_IDs, self.LNK, self.HNK, P=s1_out.P, Q=delH1)
         elif not boiling and T_s2_new > T_pinch:
             # Partial condensation if temperature goes above pinch
             H0 = s2_in.H
             s2_out.T = T_pinch
             delH1 = H0 - s2_out.H
-            s1_out.VLE(species_IDs, self.LNK, self.HNK, P=s1_out.P, Qin=delH1)
+            s1_out.VLE(species_IDs, self.LNK, self.HNK, P=s1_out.P, Q=delH1)
         elif boiling:
             s1_out.phase ='g'
             s2_out.T = T_s2_new
@@ -779,14 +779,14 @@ class HXprocess(HX):
         
         if sc_out is boiling:
             sc_out.phase = 'g'
-            sc_out.T = sc_out._Tdew(species, z, P)[0]
+            sc_out.T = sc_out._dew_T(species, z, P)[0]
         else:
             sc_out.phase = 'l'
-            sc_out.T = sc_out._Tbubble(species, z, P)[0]
+            sc_out.T = sc_out._bubble_T(species, z, P)[0]
         
         # VLE
         duty = (sc_in.H-sc_out.H)
-        sp_out.VLE(self._species_IDs, LNK, HNK, P=sp_out.P, Qin=duty)
+        sp_out.VLE(self._species_IDs, LNK, HNK, P=sp_out.P, Q=duty)
         self._duty = abs(duty)
         
     def _get_Hvaps(self, stream):

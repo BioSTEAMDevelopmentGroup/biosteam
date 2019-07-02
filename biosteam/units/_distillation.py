@@ -326,12 +326,12 @@ class Dist(Unit):
         x = liq_mol/liq_mol.sum()
 
         # Run top equilibrium to find temperature and composition of condensate
-        T, y = vap._Tdew(species=(*vle_top,), y=y, P=vap.P)
+        T, y = vap._dew_T(species=(*vle_top,), y=y, P=vap.P)
         cached['condensate_molfrac'] = y
         vap.T = T
 
         # Run bottoms equilibrium to find temperature
-        T, y = liq._Tbubble(species=(*vle_bot,), x=x, P=liq.P)
+        T, y = liq._bubble_T(species=(*vle_bot,), x=x, P=liq.P)
         cached['boilup_molfrac'] = y
         liq.T = T
 
@@ -352,7 +352,7 @@ class Dist(Unit):
         """
         species = self._LHK_species
         P = self._kwargs['P']
-        Tbubble = self.outs[1]._Tbubble
+        bubble_T = self.outs[1]._bubble_T
         i = 0
         yi = y_stairs[-1]
         xi = x_stairs[-1]
@@ -362,7 +362,7 @@ class Dist(Unit):
                 return
             i += 1
             # Go Up
-            T_guess, y = Tbubble(species, array((xi, 1-xi)), P)
+            T_guess, y = bubble_T(species, array((xi, 1-xi)), P)
             yi = y[0]
             y_stairs.append(yi)
             T_stairs.append(T_guess)
@@ -393,9 +393,9 @@ class Dist(Unit):
         T = np.zeros(100)
         n = 0
         
-        Tbubble = vap._Tbubble
+        bubble_T = vap._bubble_T
         for xi in x_eq:
-            T[n], y = Tbubble(self._LHK_species,
+            T[n], y = bubble_T(self._LHK_species,
                                    array([xi, 1-xi]), P)
             y_eq[n] = y[0]
             n += 1
@@ -911,8 +911,8 @@ class Distillation(Dist):
             q = 1 - 1e-5
         self._q_line = q_line = lambda x: q*x/(q-1) - zf/(q-1)
         
-        Tbubble = bottoms._Tbubble
-        Rmin_intersection = lambda x: q_line(x) - Tbubble(LHK_species, array((x, 1-x)), P)[1][0]
+        bubble_T = bottoms._bubble_T
+        Rmin_intersection = lambda x: q_line(x) - bubble_T(LHK_species, array((x, 1-x)), P)[1][0]
         x_Rmin = brentq(Rmin_intersection, 0, 1)
         y_Rmin = q_line(x_Rmin)
         m = (y_Rmin-y_top)/(x_Rmin-y_top)
@@ -1201,7 +1201,7 @@ class Stripper(Dist):
         
         # Get B_min (Boil up ratio)
         y_Rmin = y_top
-        T_guess, x = distillate._Tdew(species, [y_Rmin, 1-y_Rmin], P)
+        T_guess, x = distillate._dew_T(species, [y_Rmin, 1-y_Rmin], P)
         x_Rmin = x[0]
         m = (y_Rmin-x_bot)/(x_Rmin-x_bot)
         Bmin = 1/(m-1)

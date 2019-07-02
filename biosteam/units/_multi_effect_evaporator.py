@@ -9,7 +9,7 @@ import biosteam as bst
 from .. import Unit, Stream
 from scipy.optimize import brentq
 from . import Mixer, HXutility
-from ._flash import Evaporator_PV, Evaporator_PQin
+from ._flash import Evaporator_PV, Evaporator_PQ
 from .designtools import vacuum_system
 import ht
 log = np.log
@@ -100,9 +100,9 @@ class MultiEffectEvaporator(Unit):
         
         evaporators = [evap0]
         for i in range(1, n):
-            evap = Evaporator_PQin(None,
+            evap = Evaporator_PQ(None,
                                    outs=(None, None, None),
-                                   component=component, P=P[i], Qin=0)
+                                   component=component, P=P[i], Q=0)
             evaporators.append(evap)
         condenser = HXutility(None, outs=Stream(None), V=0)
         evap0._heat_utilities[0], condenser._heat_utilities[0] = self._heat_utilities
@@ -194,7 +194,7 @@ class MultiEffectEvaporator(Unit):
         # Find area and cost of evaporators
         As = [A]
         for evap in evaporators[1:]:
-            Q = evap._Qin
+            Q = evap._Q
             Tc = evap.outs[0].T
             Th = evap.outs[2].T
             LMTD = Th - Tc

@@ -91,7 +91,7 @@ class Species:
             array([2., 0.])
         
         """
-        return self.array(data.keys(), [*data.values()])
+        return self.array(data, [*data.values()])
     
     def array(self, IDs, data):
         """Return an array with entries that correspond to species IDs.

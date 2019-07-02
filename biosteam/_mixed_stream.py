@@ -9,7 +9,7 @@ from ._species import Species
 from ._stream import Stream, nonzero_species, MassFlow, \
                             mol_flow_dim, mass_flow_dim, vol_flow_dim, \
                             phases, phase_index, flow
-from ._utils import fraction, tuple_array, missing_stream, \
+from ._utils import fraction, tuple_array, \
                     PropertyFactory, property_array
 from ._exceptions import EquilibriumError, DimensionError
 from . import _Q
@@ -90,7 +90,7 @@ class MixedStream(Stream):
         else:
             raise TypeError(f"species must be a Species object, not '{type(species).__name__}'")
         self._source_link = self
-        self._T_QinP = self._T_VP = self._link = self._source = self._sink = self._ID = None
+        self._link = self._source = self._sink = self._ID = None
         self.ID = ID
         self.T = T  #: [float] Temperature (K)
         self.P = P  #: [float] Pressure (Pa)
@@ -101,7 +101,6 @@ class MixedStream(Stream):
         """Get flow rates of species in given units."""
         index = self.indices(*species) if species else ...
         p = phase_index[phase]
-        if units == 'kmol/hr': return self._mol[p, index]
         q = _Q(1, units)
         dim = q.dimensionality
         if dim == mol_flow_dim:
@@ -122,9 +121,6 @@ class MixedStream(Stream):
         flow = (*flow, *flow_pairs.values())
         p = phase_index[phase]
         index = self.indices(*species) if species else ... 
-        if units == 'kmol/hr':
-            exec(f"self._mol[p, index] {inplace}= flow", locals())
-            return
         q = _Q(flow, units)
         dim = q.dimensionality
         if dim == mol_flow_dim:
@@ -557,14 +553,14 @@ class MixedStream(Stream):
         """Cast stream into a MixedStream object."""
 
     def VLE(self, species_IDs=(), LNK=(), HNK=(), P=None,
-            Qin=None, T=None, V=None, x=None, y=None):
+            Q=None, T=None, V=None, x=None, y=None):
         """Perform vapor-liquid equilibrium. Pressure defaults to current pressure.
 
         **Parameters**
         
             **User must define two:**
                 * **P:** [float] Operating pressure (Pa)
-                * **Qin:** [float] Energy input (kJ/hr)
+                * **Q:** [float] Energy input (kJ/hr)
                 * **T:** [float] Operating temperature (K)
                 * **V:** [float] Overall molar vapor fraction
                 * **x:** [numpy array] Molar composition of liquid (for binary mixture)
@@ -577,19 +573,17 @@ class MixedStream(Stream):
             **HNK:** tuple[str] Heavy non-keys
 
         .. Note:
-           LNK and HNK are not taken into account for equilibrium. Assumes constant pressure if no pressure is provided.
+           LNK and HNK are not taken into account for equilibrium. Assumes changes in pressure does not change heat capacities.
 
         """
         ### Decide what kind of equilibrium to run ###
         
         Nspecs = 0
-        for i in (P, T, x, y, V, Qin):
+        for i in (P, T, x, y, V, Q):
             Nspecs += (i is not None)
             
-        if Nspecs == 0:
-            Qin = 0
-        elif Nspecs != 2:
-            raise ValueError("must pass two of the following specifications: P, T, x, y, V, or Qin")
+        if Nspecs != 2:
+            raise ValueError("must pass two of the following specifications: P, T, x, y, V, or Q")
         
         if P:
             self.P = P
@@ -604,9 +598,9 @@ class MixedStream(Stream):
                 eq = 'yP'
             elif V is not None:
                 eq = 'VP'
-            elif Qin is not None:
-                eq = 'QinP'
-                Hin = self.H + Qin
+            elif Q is not None:
+                eq = 'QP'
+                Hin = self.H + Q
         elif T:
             self.T = T
             if x is not None:
@@ -617,9 +611,9 @@ class MixedStream(Stream):
                 eq = 'yT'
             elif V is not None:
                 eq = 'VT'
-            elif Qin is not None:
-                eq = 'QinT'
-                Hin = self.H + Qin
+            elif Q is not None:
+                eq = 'QT'
+                Hin = self.H + Q
         elif V:
             if x is not None:
                 x = np.asarray(x)
@@ -627,16 +621,17 @@ class MixedStream(Stream):
             elif y is not None:
                 y = np.asarray(y)
                 eq = 'yV'
-            elif Qin is not None:
-                eq = 'QinV'
-                Hin = self.H + Qin
-        elif Qin:
+            elif Q is not None:
+                eq = 'VQ'
+                raise NotImplementedError('specification V and Q not implemented yet')
+        elif Q:
             if x is not None:
                 x = np.asarray(x)
-                eq = 'xQin'
+                eq = 'xQ'
             elif y is not None:
                 y = np.asarray(y)
-                eq = 'yQin'
+                eq = 'yQ'
+            raise NotImplementedError('specification {eq[1]} and Q not implemented yet')
         else:
             raise ValueError("can only pass either 'x' or 'y' arguments, not both")
             
@@ -703,7 +698,7 @@ class MixedStream(Stream):
                 liquid_mol[index] = mol - vapor_mol[index]
                 return
             
-            elif eq == 'QinP': 
+            elif eq == 'QP': 
                 # Set temperature in equilibrium
                 self.T = s.Tsat(P)
                 
@@ -736,7 +731,7 @@ class MixedStream(Stream):
                 liquid_mol[index] = mol - vapor_mol[index]
                 return
             
-            elif eq == 'QinT': 
+            elif eq == 'QT': 
                 # Set Pressure in equilibrium
                 self.P = s.VaporPressure(P)
                 
@@ -770,20 +765,23 @@ class MixedStream(Stream):
             return  # No equilibrium necessary
         else:
             zf = mol/molnet
-        
         min_ = np.zeros(Nspecies)
 
         ### Get Equilibrium ###
 
-        if eq == 'xP' or eq == 'yP':
+        if eq[0] in ('x', 'y'):
             # Get temperature based on phase composition
-            if eq == 'xP':
-                self.T, y = self._Tbubble(species, x, P)
-            else:
-                self.T, x = self._Tdew(species, y, P)
-                
-            if Nspecies > 2:
-                raise ValueError(f'more than two components in equilibrium. Only binary component equilibrium can be solved for specification, {eq}')
+            if eq[1] == 'P':
+                if eq[0] == 'x':
+                    self.T, y = self._bubble_T(species, x, P)
+                else:
+                    self.T, x = self._dew_T(species, y, P)
+            elif eq[1] == 'T':
+                if eq[0] == 'x':
+                    self.P, y = self._bubble_P(species, x, T)
+                else:
+                    self.P, x = self._dew_P(species, y, T)
+            
             # Get flow rates based on lever rule
             split_frac = (zf[0]-x[0])/(y[0]-x[0])
             if split_frac > 1.0001 or split_frac < -0.0001:
@@ -797,11 +795,15 @@ class MixedStream(Stream):
             liquid_mol[index] = mol - vapor_mol[index]
             return
 
-        # Need to find these for remainding equilibrium types
-        T_dew, x_dew = self._Tdew(species, zf, P)
-        T_bubble, y_bubble = self._Tbubble(species, zf, P)
+        # Bounderies for remainding equilibrium types
+        if eq[1] == 'P':
+            T_dew, x_dew = self._dew_T(species, zf, P)
+            T_bubble, y_bubble = self._bubble_T(species, zf, P)
+        elif eq[1] == 'T':
+            P_dew, x_dew = self._dew_P(species, zf, T)
+            P_bubble, y_bubble = self._bubble_P(species, zf, T)
 
-        # Guestimate vapor composition for 'VP', 'TP', 'QinP' equilibrium
+        # Guestimate vapor composition for 'VP', 'TP', 'QP' equilibrium
         y = self._y_cached[1] if self._y_cached[0] == species else None
 
         def v_given_TPmol(v_guess, T, P, mol):
@@ -823,31 +825,41 @@ class MixedStream(Stream):
         if eq == 'VP':
             def V_error(T):
                 nonlocal v
-                if T >= T_dew:
-                    return V - 1 - (T - T_dew)
-                elif T <= T_bubble:
-                    return V + (T - T_bubble)
                 v = v_given_TPmol(v, T, P, mol)
-                return (V - sum(v)/molnet)
+                return (V - v.sum()/molnet)
             
             # Guess vapor flow rates
-            pos = np.where(mol <= 0)
-            mol[pos] = 10**-9
             if y is None: y = V*zf + (1-V)*y_bubble
             v = y*V*molnet
             
             # Solve
-            T_VP = self._T_VP or (1-V)*T_bubble + V*T_dew
+            T_VP = (1-V)*T_bubble + V*T_dew
             try:
-                self._T_VP = self.T = newton(V_error, T_VP)
+                self.T = newton(V_error, T_VP)
             except:
-                self._T_VP = self.T = brentq(V_error, T_bubble, T_dew)
+                self.T = brentq(V_error, T_bubble, T_dew)
             
-            v[pos] = 0
             vapor_mol[index] = v
             liquid_mol[index] = mol - vapor_mol[index]
-            return
-        
+        elif eq == 'VT':
+            def V_error(P):
+                nonlocal v
+                v = v_given_TPmol(v, T, P, mol)
+                return (V - v.sum()/molnet)
+            
+            # Guess vapor flow rates
+            if y is None: y = V*zf + (1-V)*y_bubble
+            v = y*V*molnet
+            
+            # Solve
+            P = (1-V)*P_bubble + V*P_dew
+            try:
+                self.P = newton(V_error, P)
+            except:
+                self.P = brentq(V_error, P_bubble, P_dew)
+            
+            vapor_mol[index] = v
+            liquid_mol[index] = mol - vapor_mol[index]        
         elif eq == 'TP':
             if y is None:
                 # Guess composition in the vapor is a weighted average of bubble/dew points
@@ -856,9 +868,13 @@ class MixedStream(Stream):
             
             # Check if there is equilibrium
             if T > T_dew:
-                vapor_mol[index] = v = mol
+                vapor_mol[index] = mol
+                liquid_mol[index] = min_
+                return
             elif T < T_bubble:
-                vapor_mol[index] = v = min_
+                vapor_mol[index] = min_
+                liquid_mol[index] = mol
+                return
             else:
                 # Guess overall vapor fraction
                 V_guess = (T - T_bubble)/(T_dew - T_bubble)
@@ -868,11 +884,8 @@ class MixedStream(Stream):
 
                 # Solve
                 vapor_mol[index] = v = v_given_TPmol(v_guess, T, P, mol)
-                self._y = v/sum(v)
             liquid_mol[index] = mol - v
-            return
-        
-        elif eq == 'QinP':
+        elif eq == 'QP':
             # Check if super heated vapor
             vapor_mol[index] = mol
             liquid_mol[index] = 0
@@ -899,34 +912,85 @@ class MixedStream(Stream):
                 return abs(Hin - (self.H))
 
             # Guess T, overall vapor fraction, and vapor flow rates
-            T_QinP = self._T_QinP or T_bubble + (Hin - H_bubble)/(H_dew - H_bubble) * (T_dew - T_bubble)
-            V_guess = (T_QinP - T_bubble)/(T_dew - T_bubble)
+            T = T_bubble + (Hin - H_bubble)/(H_dew - H_bubble) * (T_dew - T_bubble)
+            V_guess = (T - T_bubble)/(T_dew - T_bubble)
             if y is None:
                 # Guess composition in the vapor is a weighted average of boiling points
-                f = (T_QinP - T_dew)/(T_bubble - T_dew)
+                f = (T - T_dew)/(T_bubble - T_dew)
                 y = f*zf + (1-f)*y_bubble
             v = y * V_guess * mol
             
             # Solve
             try:
                 try:
-                    self._T_QinP = self.T = newton(H_error_T, T_QinP)
+                    self.T = newton(H_error_T, T)
                 except:
-                    T_QinP = T_bubble + (Hin - H_bubble)/(H_dew - H_bubble) * (T_dew - T_bubble)
-                    V_guess = (T_QinP - T_bubble)/(T_dew - T_bubble)
-                    f = (T_QinP - T_dew)/(T_bubble - T_dew)
+                    T = T_bubble + (Hin - H_bubble)/(H_dew - H_bubble) * (T_dew - T_bubble)
+                    V_guess = (T - T_bubble)/(T_dew - T_bubble)
+                    f = (T - T_dew)/(T_bubble - T_dew)
                     y = f*zf + (1-f)*y_bubble
                     v = y * V_guess * mol
-                    self._T_QinP = self.T = newton(H_error_T, T_QinP)
+                    self.T = newton(H_error_T, T)
             except:
-                self._T_QinP = self.T = minimize_scalar(H_error_T,
-                                                        bounds=(T_bubble, T_dew),
-                                                        method='bounded').x
-            self._y_cached = (species, v/v.sum())
+                self.T = minimize_scalar(H_error_T,
+                                         bounds=(T_bubble, T_dew),
+                                         method='bounded').x
+        elif eq == 'QT':
+            # Check if super heated vapor
+            vapor_mol[index] = mol
+            liquid_mol[index] = 0
+            self.P = P_dew
+            H_dew = self.H
+            if Hin >= 1.01*H_dew:
+                self.H = Hin
+                return
+
+            # Check if subcooled liquid
+            vapor_mol[index] = 0
+            liquid_mol[index] = mol
+            self.P = P_bubble
+            H_bubble = self.H
+            if Hin <= 0.99*H_bubble:
+                self.H = Hin
+                return
+
+            def H_error_P(P):
+                nonlocal v
+                self.P = P
+                vapor_mol[index] = v = v_given_TPmol(v, T, P, mol)
+                liquid_mol[index] = mol - v
+                return abs(Hin - (self.H))
+
+            # Guess P, overall vapor fraction, and vapor flow rates
+            P = P_bubble + (Hin - H_bubble)/(H_dew - H_bubble) * (P_dew - P_bubble)
+            V_guess = (P - P_bubble)/(P_dew - P_bubble)
+            if y is None:
+                # Guess composition in the vapor is a weighted average of boiling points
+                f = (P - P_dew)/(P_bubble - P_dew)
+                y = f*zf + (1-f)*y_bubble
+            v = y * V_guess * mol
+            
+            # Solve
+            try:
+                try:
+                    self.P = newton(H_error_P, P)
+                except:
+                    P = P_bubble + (Hin - H_bubble)/(H_dew - H_bubble) * (P_dew - P_bubble)
+                    V_guess = (P - P_bubble)/(P_dew - P_bubble)
+                    f = (P - P_dew)/(P_bubble - P_dew)
+                    y = f*zf + (1-f)*y_bubble
+                    v = y * V_guess * mol
+                    self.P = newton(H_error_P, P)
+            except:
+                self.P = minimize_scalar(H_error_P,
+                                         bounds=(P_bubble, P_dew),
+                                         method='bounded').x
+        
+        self._y_cached = (species, v/v.sum())
 
     def LLE(self, species_IDs=None, split=None, lNK=(), LNK=(),
             solvents=(), solvent_split=(),
-            P=None, T=None, Qin=0):
+            P=None, T=None, Q=0):
         """Perform LIQUID-liquid equilibrium.
 
         **Optional Parameters**
@@ -943,7 +1007,7 @@ class MixedStream(Stream):
 
             **solvent_split:** *tuple[float]* Split fractions of each specie to the 'liquid' phase.                
             
-            **Qin:** *[float]* Energy input (kJ/hr)
+            **Q:** *[float]* Energy input (kJ/hr)
             
             **T:** *[float]* Operating temperature (K)
             
@@ -1012,8 +1076,8 @@ class MixedStream(Stream):
         # Equilibrium by constant temperature or with duty
         if T:
             self.T = T
-        elif Qin:
-            self.H += Qin
+        elif Q:
+            self.H += Q
             T = self.T
         else:
             T = self.T
