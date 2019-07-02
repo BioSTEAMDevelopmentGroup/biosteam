@@ -228,7 +228,7 @@
                         <span class="s1">&#39;streams&#39;</span><span class="p">:</span> <span class="n">streams</span><span class="p">,</span>
                         <span class="s1">&#39;exact&#39;</span><span class="p">:</span> <span class="n">exact</span><span class="p">,</span>
                         <span class="s1">&#39;balance&#39;</span><span class="p">:</span> <span class="n">balance</span><span class="p">}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_setup</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_init_ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ins</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize input streams.&quot;&quot;&quot;</span>
@@ -256,7 +256,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="p">[</span><span class="n">Stream</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">else</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">outs</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">exact</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="s1">&#39;exact&#39;</span><span class="p">]</span>
         <span class="n">balance</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="s1">&#39;balance&#39;</span><span class="p">]</span>
         

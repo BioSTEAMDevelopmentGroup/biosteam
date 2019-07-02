@@ -227,7 +227,7 @@
     "\n",
     "$cost\\text{: Free on board purchase cost at size S}$\n",
     "\n",
-    "$kW\\text{: Electricity rate in (kW) at size S}$\n",
+    "$kW\\text{: Electricity rate in kW at size S}$\n",
     "\n",
     "$n\\text{: Exponential factor}$\n"
    ]

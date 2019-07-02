@@ -189,8 +189,9 @@
 <span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">Stream</span>
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">brentq</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">Mixer</span><span class="p">,</span> <span class="n">HXutility</span>
-<span class="kn">from</span> <span class="nn">._flash</span> <span class="k">import</span> <span class="n">Evaporator_PV</span><span class="p">,</span> <span class="n">Evaporator_PQin</span>
+<span class="kn">from</span> <span class="nn">._flash</span> <span class="k">import</span> <span class="n">Evaporator_PV</span><span class="p">,</span> <span class="n">Evaporator_PQ</span>
 <span class="kn">from</span> <span class="nn">.designtools</span> <span class="k">import</span> <span class="n">vacuum_system</span>
+<span class="kn">from</span> <span class="nn">warnings</span> <span class="k">import</span> <span class="n">warn</span>
 <span class="kn">import</span> <span class="nn">ht</span>
 <span class="n">log</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span>
 <span class="n">exp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span>
@@ -266,7 +267,7 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Type must be one of the following: </span><span class="si">{dummy}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_Type</span> <span class="o">=</span> <span class="n">evap_type</span>
 
-    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Unpack</span>
         <span class="n">component</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">P_liq</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
                                   <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;component&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;V&#39;</span><span class="p">,</span> <span class="s1">&#39;P_liq&#39;</span><span class="p">))</span>
@@ -280,9 +281,9 @@
         
         <span class="n">evaporators</span> <span class="o">=</span> <span class="p">[</span><span class="n">evap0</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
-            <span class="n">evap</span> <span class="o">=</span> <span class="n">Evaporator_PQin</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">evap</span> <span class="o">=</span> <span class="n">Evaporator_PQ</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span>
                                    <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-                                   <span class="n">component</span><span class="o">=</span><span class="n">component</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Qin</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                                   <span class="n">component</span><span class="o">=</span><span class="n">component</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">P</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">Q</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
             <span class="n">evaporators</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">evap</span><span class="p">)</span>
         <span class="n">condenser</span> <span class="o">=</span> <span class="n">HXutility</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="n">V</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">evap0</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">condenser</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span>
@@ -374,14 +375,14 @@
         <span class="c1"># Find area and cost of evaporators</span>
         <span class="n">As</span> <span class="o">=</span> <span class="p">[</span><span class="n">A</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">evap</span> <span class="ow">in</span> <span class="n">evaporators</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
-            <span class="n">Q</span> <span class="o">=</span> <span class="n">evap</span><span class="o">.</span><span class="n">_Qin</span>
+            <span class="n">Q</span> <span class="o">=</span> <span class="n">evap</span><span class="o">.</span><span class="n">_Q</span>
             <span class="n">Tc</span> <span class="o">=</span> <span class="n">evap</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
             <span class="n">Th</span> <span class="o">=</span> <span class="n">evap</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
             <span class="n">LMTD</span> <span class="o">=</span> <span class="n">Th</span> <span class="o">-</span> <span class="n">Tc</span>
             <span class="n">A</span> <span class="o">=</span> <span class="n">HXutility</span><span class="o">.</span><span class="n">_calc_area</span><span class="p">(</span><span class="n">LMTD</span><span class="p">,</span> <span class="n">U</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">ft</span><span class="p">)</span>
             <span class="n">As</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">A_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">A</span> <span class="o">&lt;</span> <span class="n">A_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;WARNING, area requirement (</span><span class="si">{A}</span><span class="s1">) is out of range, </span><span class="si">{A_range}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="n">warn</span><span class="p">(</span><span class="s1">&#39;area requirement (</span><span class="si">{A}</span><span class="s1">) is out of range, </span><span class="si">{A_range}</span><span class="s1">&#39;</span><span class="p">)</span>
             <span class="n">evap_costs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">C_func</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">CE</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_As</span> <span class="o">=</span> <span class="n">As</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Area&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">A</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">As</span><span class="p">)</span>

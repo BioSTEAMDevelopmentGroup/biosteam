@@ -191,7 +191,7 @@
 
 <span class="c1">#: TODO add reference of NREL</span>
 
-<div class="viewcode-block" id="BoilerTurbogenerator"><a class="viewcode-back" href="../../../../facilities.html#biosteam.units.facilities.BoilerTurbogenerator">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">567.3</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mf">36e6</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mi">129000</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<div class="viewcode-block" id="BoilerTurbogenerator"><a class="viewcode-back" href="../../../../facilities.html#biosteam.units.facilities.BoilerTurbogenerator">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Heat&#39;</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">567.3</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mf">36e6</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mf">103e7</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.93</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">BoilerTurbogenerator</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a Boiler_TurboGenerator object that will calculate electricity generation from burning the feed. It also takes into account how much steam is being produced, and the required cooling utility of the turbo generator. No emissions or mass balances are taken into account.</span>
 <span class="sd">    </span>
@@ -215,7 +215,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">:</span> <span class="s1">&#39;kg/hr&#39;</span><span class="p">}</span>
+    <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Heat&#39;</span><span class="p">:</span> <span class="s1">&#39;kJ/hr&#39;</span><span class="p">}</span>
     <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;boiler_efficiency&#39;</span><span class="p">:</span> <span class="mf">0.80</span><span class="p">,</span>
                <span class="s1">&#39;turbo_generator_efficiency&#39;</span><span class="p">:</span> <span class="mf">0.85</span><span class="p">,</span>
                <span class="s1">&#39;steam&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
@@ -227,22 +227,15 @@
         <span class="n">hu_cooling</span><span class="p">,</span> <span class="n">hu_steam</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span>
         <span class="n">lps</span> <span class="o">=</span> <span class="n">hu_steam</span><span class="o">.</span><span class="n">heating_agents</span><span class="p">[</span><span class="s1">&#39;Low pressure steam&#39;</span><span class="p">]</span>
         <span class="n">H_steam</span> <span class="o">=</span> <span class="n">steam</span><span class="o">.</span><span class="n">H</span>
-        <span class="c1"># Simulation of ethanol production from sugarcane</span>
-        <span class="c1"># in Brazil: economic study of an autonomous</span>
-        <span class="c1"># distillery</span>
-        <span class="c1"># Marina O.S. Diasa,b, Marcelo P. Cunhaa, Charles D.F. Jesusa, Mirna I.G.</span>
-        <span class="c1"># Scandiffioa, Carlos E.V. Rossella,b, Rubens Maciel Filhob, Antonio Bonomia</span>
-        <span class="c1"># a CTBE – Bioethanol Science and Technology National Laboratory, PO Box 6170 –</span>
-        <span class="c1"># CEP 13083-970, Campinas – SP, Brazil, marina.dias@bioetanol.org.br</span>
-        <span class="c1"># b School of Chemical Engineering, University of Campinas, PO Box 6066 – CEP</span>
-        <span class="c1"># 13083-970, Campinas – SP, Brazil</span>
-        <span class="c1">#LHV = 7565 # Bagasse lower heating value (kJ/kg)</span>
-        <span class="n">feed_Hc</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">Hc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;Heat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">feed_Hc</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">Hc</span>
+        
+        <span class="c1"># This is simply for the mass balance (no special purpose)</span>
         <span class="n">emission</span><span class="o">.</span><span class="n">mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span> <span class="c1"># TODO: In reality, this should be CO2</span>
         <span class="n">emission</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">steam</span><span class="o">.</span><span class="n">T</span>
         <span class="n">emission</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span>
-        <span class="n">H_content</span> <span class="o">=</span> <span class="n">feed_Hc</span><span class="o">*</span><span class="n">B_eff</span>
+        
         <span class="n">feed_massnet</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">massnet</span>
+        <span class="n">H_content</span> <span class="o">=</span> <span class="n">feed_Hc</span><span class="o">*</span><span class="n">B_eff</span>
         <span class="n">H_electricity</span> <span class="o">=</span> <span class="n">H_content</span> <span class="o">-</span> <span class="n">H_steam</span> <span class="o">-</span> <span class="n">feed_massnet</span><span class="o">*</span><span class="mi">1130</span> <span class="c1"># 50 percent of bagasse is water, so remove latent heat of vaporization</span>
         <span class="k">if</span> <span class="n">H_electricity</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">H_steam</span> <span class="o">=</span> <span class="n">H_content</span>
@@ -254,11 +247,20 @@
         <span class="n">hu_steam</span><span class="o">.</span><span class="n">duty</span> <span class="o">=</span> <span class="o">-</span><span class="n">H_steam</span>
         <span class="n">hu_steam</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="s1">&#39;Low pressure steam&#39;</span>
         <span class="n">hu_steam</span><span class="o">.</span><span class="n">flow</span> <span class="o">=</span> <span class="n">molnet</span> <span class="o">=</span> <span class="o">-</span><span class="n">steam</span><span class="o">.</span><span class="n">molnet</span>
-        <span class="n">hu_steam</span><span class="o">.</span><span class="n">cost</span> <span class="o">=</span> <span class="n">molnet</span><span class="o">*</span><span class="n">lps</span><span class="p">[</span><span class="s1">&#39;Price (USD/kmol)&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">H_steam</span><span class="o">*</span><span class="n">lps</span><span class="p">[</span><span class="s1">&#39;Price (USD/kJ)&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span><span class="p">(</span><span class="o">-</span><span class="n">electricity</span><span class="o">/</span><span class="mi">3600</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">feed_massnet</span></div>
+        <span class="n">hu_steam</span><span class="o">.</span><span class="n">cost</span> <span class="o">=</span> <span class="n">molnet</span><span class="o">*</span><span class="n">lps</span><span class="o">.</span><span class="n">price_kmol</span> <span class="o">+</span> <span class="n">H_steam</span><span class="o">*</span><span class="n">lps</span><span class="o">.</span><span class="n">price_kJ</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span><span class="p">(</span><span class="o">-</span><span class="n">electricity</span><span class="o">/</span><span class="mi">3600</span><span class="p">)</span></div>
         
-    
+
+<span class="c1"># Simulation of ethanol production from sugarcane</span>
+<span class="c1"># in Brazil: economic study of an autonomous</span>
+<span class="c1"># distillery</span>
+<span class="c1"># Marina O.S. Diasa,b, Marcelo P. Cunhaa, Charles D.F. Jesusa, Mirna I.G.</span>
+<span class="c1"># Scandiffioa, Carlos E.V. Rossella,b, Rubens Maciel Filhob, Antonio Bonomia</span>
+<span class="c1"># a CTBE – Bioethanol Science and Technology National Laboratory, PO Box 6170 –</span>
+<span class="c1"># CEP 13083-970, Campinas – SP, Brazil, marina.dias@bioetanol.org.br</span>
+<span class="c1"># b School of Chemical Engineering, University of Campinas, PO Box 6066 – CEP</span>
+<span class="c1"># 13083-970, Campinas – SP, Brazil</span>
+<span class="c1"># LHV = 7565 # Bagasse lower heating value (kJ/kg)</span>
 </pre></div>
 
            </div>

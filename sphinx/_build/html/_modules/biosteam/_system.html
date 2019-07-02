@@ -187,7 +187,7 @@
 <span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">copy</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">newton</span>
-<span class="kn">from</span> <span class="nn">._exceptions</span> <span class="k">import</span> <span class="n">Stop</span><span class="p">,</span> <span class="n">SolverError</span><span class="p">,</span> <span class="n">_try_method</span>
+<span class="kn">from</span> <span class="nn">._exceptions</span> <span class="k">import</span> <span class="n">SolverError</span><span class="p">,</span> <span class="n">_try_method</span>
 <span class="kn">from</span> <span class="nn">._flowsheet</span> <span class="k">import</span> <span class="n">find</span><span class="p">,</span> <span class="n">make_digraph</span><span class="p">,</span> <span class="n">save_digraph</span>
 <span class="kn">from</span> <span class="nn">._stream</span> <span class="k">import</span> <span class="n">Stream</span>
 <span class="kn">from</span> <span class="nn">._unit</span> <span class="k">import</span> <span class="n">Unit</span>
@@ -208,7 +208,7 @@
         <span class="n">info</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Enter to continue or type to evaluate:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">command</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="n">Next</span> <span class="o">+</span> <span class="n">info</span> <span class="o">+</span> <span class="s2">&quot;&gt;&gt;&gt; &quot;</span><span class="p">)</span>
     
-    <span class="k">if</span> <span class="n">command</span> <span class="o">==</span> <span class="s1">&#39;exit&#39;</span><span class="p">:</span> <span class="k">raise</span> <span class="n">Stop</span>
+    <span class="k">if</span> <span class="n">command</span> <span class="o">==</span> <span class="s1">&#39;exit&#39;</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">KeyboardInterrupt</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">command</span><span class="p">:</span>
         <span class="c1"># Build locals dictionary for evaluating command</span>
         <span class="n">lcs</span> <span class="o">=</span> <span class="p">{}</span> 
@@ -804,8 +804,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_debug_on</span><span class="p">()</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_converge_method</span><span class="p">()</span>
-        <span class="k">except</span> <span class="n">Stop</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_debug_off</span><span class="p">()</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_debug_off</span><span class="p">()</span>
             <span class="k">raise</span> <span class="n">error</span>

@@ -228,35 +228,29 @@
 <span id="hxprocess"></span><h1>HXprocess<a class="headerlink" href="#module-biosteam.units" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.units.HXprocess">
-<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">HXprocess</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>U='Tabulated'</em>, <em>Type='ss'</em>, <em>species_IDs=None</em>, <em>LNK=None</em>, <em>HNK=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_hx.html#HXprocess"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.HXprocess" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">HXprocess</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>U=None</em>, <em>fluid_type='ss'</em>, <em>species_IDs=()</em>, <em>LNK=()</em>, <em>HNK=()</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_hx.html#HXprocess"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.HXprocess" title="Permalink to this definition">¶</a></dt>
 <dd><p>Counter current heat exchanger for process fluids. Condenses/boils latent fluid until sensible fluid reaches pinch temperature.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>ID:</strong> [str] Unique identification. If set as ‘’, a default ID will be chosen.</p>
 <p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
 <p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+<p><strong>U:</strong> Enforced overall heat transfer coefficent (kW/m^2/K)</p>
 <dl class="docutils">
-<dt><strong>U:</strong> Should be one of the following:</dt>
-<dd><ul class="first last simple">
-<li>[float] Overall heat transfer coefficent (kW/m^2/K)</li>
-<li>[str] ‘Tabulated’</li>
-<li>[str] ‘Concentric tubes’</li>
-</ul>
-</dd>
-<dt><strong>Type:</strong> [str] Must be one of the following:</dt>
+<dt><strong>fluid_type:</strong> [str] Must be one of the following:</dt>
 <dd><ul class="first last simple">
 <li><strong>None:</strong> Rigorously transfers heat until pinch temperature <strong>-not implemented yet-</strong></li>
-<li><strong>‘ss’:</strong> Sensible-sensible fluids heat exchanger. Heat is exchanged until the pinch temperature is reached.</li>
-<li><strong>‘ll’:</strong> Latent-latent fluids heat exchanger. Heat is exchanged until one fluid completely changes phase.</li>
-<li><strong>‘ls’:</strong> Latent-sensible fluids heat exchanger. Heat is exchanged until either the pinch temperature is reached or the latent fluid completely changes phase.</li>
+<li><strong>‘ss’:</strong> Sensible-sensible fluids. Heat is exchanged until the pinch temperature is reached.</li>
+<li><strong>‘ll’:</strong> Latent-latent fluids. Heat is exchanged until one fluid completely changes phase.</li>
+<li><strong>‘ls’:</strong> Latent-sensible fluids. Heat is exchanged until either the pinch temperature is reached or the latent fluid completely changes phase.</li>
 </ul>
 </dd>
 </dl>
 <p><strong>Optional</strong></p>
 <blockquote>
-<div><p><strong>species_IDs:</strong> tuple[str] IDs of species in equilibrium</p>
-<p><strong>LNK:</strong> tuple[str] IDs of light non-keys</p>
-<p><strong>HNK:</strong> tuple[str] IDs of heavy non-keys</p>
+<div><p><strong>species_IDs:</strong> tuple[str] IDs of species in thermodynamic equilibrium</p>
+<p><strong>LNK:</strong> tuple[str] IDs of light non-keys assumed to remain as a vapor</p>
+<p><strong>HNK:</strong> tuple[str] IDs of heavy non-keys assumed to remain as a liquid</p>
 </div></blockquote>
 </div></blockquote>
 <p><strong>ins</strong></p>
@@ -276,6 +270,27 @@
 <dt id="biosteam.units.HXprocess.dT">
 <code class="descname">dT</code><em class="property"> = 5</em><a class="headerlink" href="#biosteam.units.HXprocess.dT" title="Permalink to this definition">¶</a></dt>
 <dd><p>[float] Pinch temperature difference.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.HXprocess.species_IDs">
+<code class="descname">species_IDs</code><a class="headerlink" href="#biosteam.units.HXprocess.species_IDs" title="Permalink to this definition">¶</a></dt>
+<dd><p>IDs of compounds in thermodynamic equilibrium.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.HXprocess.fluid_type">
+<code class="descname">fluid_type</code><a class="headerlink" href="#biosteam.units.HXprocess.fluid_type" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>[str] Must be one of the following:</dt>
+<dd><ul class="first last simple">
+<li><strong>None:</strong> Rigorously transfers heat until pinch temperature <strong>-not implemented yet-</strong></li>
+<li><strong>‘ss’:</strong> Sensible-sensible fluids. Heat is exchanged until the pinch temperature is reached.</li>
+<li><strong>‘ll’:</strong> Latent-latent fluids. Heat is exchanged until one fluid completely changes phase.</li>
+<li><strong>‘ls’:</strong> Latent-sensible fluids. Heat is exchanged until either the pinch temperature is reached or the latent fluid completely changes phase.</li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>

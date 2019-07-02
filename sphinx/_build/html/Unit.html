@@ -205,13 +205,13 @@
 <dl class="class">
 <dt id="biosteam.Unit">
 <em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Unit</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Abstract parent class for Unit objects. Child objects must contain _setup, _run, _design and _cost methods to setup internal objects, estimate stream outputs of a Unit and find design and cost information.</p>
+<dd><p>Abstract parent class for Unit objects. Child objects must contain _init, _run, _design and _cost methods to setup internal objects, estimate stream outputs of a Unit and find design and cost information.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>ID:</strong> [str] A unique identification. If ID is an empty string (i.e. ‘’ ), a default ID will be chosen. If ID is None, unit will not be registered in flowsheet.</p>
 <p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
 <p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
-<p><strong>**kwargs:</strong> Keyword arguments that are stored to instance attribute <cite>_kwargs</cite> and later accessed by _setup, _run, _design, and _cost methods.</p>
+<p><strong>**kwargs:</strong> Keyword arguments that are stored to instance attribute <cite>_kwargs</cite> and later accessed by _run, _design, and _cost methods.</p>
 </div></blockquote>
 <p><strong>Class Definitions</strong></p>
 <blockquote>
@@ -221,8 +221,6 @@
 <dl class="docutils">
 <dt><strong>_init():</strong></dt>
 <dd>Initialize components.</dd>
-<dt><strong>_setup()</strong></dt>
-<dd>Create cached data from kwargs.</dd>
 <dt><strong>_run()</strong></dt>
 <dd>Run simulation and update output streams.</dd>
 <dt><strong>_design()</strong></dt>
@@ -232,7 +230,7 @@
 </dl>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Class argument <cite>_init</cite> is called only once when a Unit object is initialized. <cite>_setup</cite> is run after <cite>_init</cite> as well as in the <cite>reset</cite> method to update cached data. The <cite>_run</cite> method is called during recycle loop convergence. The rest of the methods are called in the given order for generating results.</p>
+<p class="last">Class argument <cite>_init</cite> is called only once when a Unit object is initialized. The <cite>_run</cite> method is called during recycle loop convergence. The rest of the methods are called in the given order for generating results.</p>
 </div>
 <p><strong>_units</strong> = {}: [dict] Default units for results Operation and Design</p>
 <p><strong>_N_ins</strong> = 1: [int] Expected number of input streams</p>
@@ -259,12 +257,6 @@
 <dt id="biosteam.Unit.BM">
 <code class="descname">BM</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.Unit.BM" title="Permalink to this definition">¶</a></dt>
 <dd><p>[float] Bare module factor (installation factor).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.Unit.reset">
-<code class="descname">reset</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.reset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reset unit with new key word arguments.</p>
 </dd></dl>
 
 <dl class="attribute">

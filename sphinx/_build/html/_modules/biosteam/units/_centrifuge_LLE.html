@@ -244,7 +244,7 @@
                <span class="s1">&#39;solvent_split&#39;</span><span class="p">:</span> <span class="p">()}</span>
     <span class="n">_bounds</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mi">100</span><span class="p">)}</span>
 
-    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mixedstream</span> <span class="o">=</span>  <span class="n">MixedStream</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -278,7 +278,6 @@
                <span class="s1">&#39;top_split&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of splits for top_solvents</span>
                <span class="s1">&#39;bot_solvents&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of species that correspond to bot_split</span>
                <span class="s1">&#39;bot_split&#39;</span><span class="p">:</span> <span class="p">[]}</span>  <span class="c1"># list of splits for bot_solvents</span>
-    <span class="n">_setup</span> <span class="o">=</span> <span class="n">Unit</span><span class="o">.</span><span class="n">_setup</span>
     <span class="n">_run</span> <span class="o">=</span> <span class="n">RatioFlash</span><span class="o">.</span><span class="n">_run</span>
     
 <span class="k">class</span> <span class="nc">SplitCentrifuge_LLE</span><span class="p">(</span><span class="n">Centrifuge_LLE</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">splitter</span><span class="p">):</span> <span class="k">pass</span>

@@ -188,7 +188,6 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">MixedStream</span><span class="p">,</span> <span class="n">Stream</span>
 <span class="kn">from</span> <span class="nn">.._utils</span> <span class="k">import</span> <span class="n">approx2step</span>
-<span class="kn">from</span> <span class="nn">.._exceptions</span> <span class="k">import</span> <span class="n">biosteamError</span>
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">brentq</span>
 <span class="kn">from</span> <span class="nn">._hx</span> <span class="k">import</span> <span class="n">HXutility</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
@@ -243,7 +242,7 @@
 <span class="c1"># %% Distillation</span>
 
 <span class="c1"># Abstract doc string for columns</span>
-<span class="n">column_doc</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;Create a {Column Type} column that assumes all light and heavy non keys separate to the top and bottoms product respectively. McCabe-Thiele analysis is used to find both the number of stages and the reflux ratio given a ratio of actual reflux to minimum reflux [1]. This assumption is good for both binary distillation of highly polar compounds and ternary distillation assuming complete separation of light non-keys and heavy non-keys with large differences in boiling points. Preliminary analysis showed that the theoretical number of stages using this method on Methanol/Glycerol/Water systems is off by less than +-1 stage. Other methods, such as the Fenske-Underwood-Gilliland method, are more suitable for hydrocarbons. The Murphree efficiency is based on the modified O&#39;Connell correlation [2]. The diameter is based on tray separation and flooding velocity [1].</span>
+<span class="n">column_doc</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;Create a {Column Type} column that assumes all light and heavy non keys separate to the top and bottoms product respectively. McCabe-Thiele analysis is used to find both the number of stages and the reflux ratio given a ratio of actual reflux to minimum reflux [1]. This assumption is good for both binary distillation of highly polar compounds and ternary distillation assuming complete separation of light non-keys and heavy non-keys with large differences in boiling points. Preliminary analysis showed that the theoretical number of stages using this method on Methanol/Glycerol/Water systems is off by less than +-1 stage. Other methods, such as the Fenske-Underwood-Gilliland method, are more suitable for hydrocarbons. The Murphree efficiency is based on the modified O&#39;Connell correlation [2]. The diameter is based on tray separation and flooding velocity [1]. Purchase costs are based on correlations by Mulet et al. [3, 4] as compiled by Warren et. al. [5].</span>
 
 <span class="s2">    **Parameters**</span>
 
@@ -272,7 +271,13 @@
 <span class="s2">        [1] J.D. Seader, E.J. Henley, D.K. Roper. Separation Process Principles 3rd Edition. John Wiley &amp; Sons, Inc. (2011)</span>
 <span class="s2">    </span>
 <span class="s2">        [2] M. Duss, R. Taylor. Predict Distillation Tray Efficiency. AICHE (2018)</span>
-<span class="s2">    </span>
+<span class="s2">        </span>
+<span class="s2">        [3] Mulet, A., A. B. Corripio, and L. B. Evans, “Estimate Costs of Pressure Vessels via Correlations,” Chem. Eng., 88(20), 145–150 (1981a).</span>
+
+<span class="s2">        [4] Mulet, A., A.B. Corripio, and L.B.Evans, “Estimate Costs of Distillation and Absorption Towers via Correlations,” Chem. Eng., 88(26), 77–82 (1981b).</span>
+
+<span class="s2">        [5] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R., &amp; Ng, M. K. (2017). Product and Process Design Principles. Wiley. Cost Accounting and Capital Cost Estimation (Chapter 16)    </span>
+
 <span class="s2">    **Examples**</span>
 <span class="s2">    </span>
 <span class="s2">        :doc:`{Column Type} Example`</span>
@@ -414,10 +419,10 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;vessel_material must be one of the following: </span><span class="si">{dummy}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_F_Mstr</span> <span class="o">=</span> <span class="n">vessel_material</span>  
 
-    <span class="k">def</span> <span class="nf">_setup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">vap</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span>
-        <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span>
+        <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span> <span class="c1"># abstract attribute</span>
         <span class="n">species</span> <span class="o">=</span> <span class="n">vap</span><span class="o">.</span><span class="n">species</span>
         <span class="n">getattr_</span> <span class="o">=</span> <span class="nb">getattr</span>
 
@@ -507,12 +512,12 @@
         <span class="n">x</span> <span class="o">=</span> <span class="n">liq_mol</span><span class="o">/</span><span class="n">liq_mol</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 
         <span class="c1"># Run top equilibrium to find temperature and composition of condensate</span>
-        <span class="n">T</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">vap</span><span class="o">.</span><span class="n">_dew_point</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="p">(</span><span class="o">*</span><span class="n">vle_top</span><span class="p">,),</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">vap</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
+        <span class="n">T</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">vap</span><span class="o">.</span><span class="n">_dew_T</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="p">(</span><span class="o">*</span><span class="n">vle_top</span><span class="p">,),</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">vap</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
         <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;condensate_molfrac&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span>
         <span class="n">vap</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span>
 
         <span class="c1"># Run bottoms equilibrium to find temperature</span>
-        <span class="n">T</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">_bubble_point</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="p">(</span><span class="o">*</span><span class="n">vle_bot</span><span class="p">,),</span> <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">liq</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
+        <span class="n">T</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">liq</span><span class="o">.</span><span class="n">_bubble_T</span><span class="p">(</span><span class="n">species</span><span class="o">=</span><span class="p">(</span><span class="o">*</span><span class="n">vle_bot</span><span class="p">,),</span> <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">liq</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
         <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;boilup_molfrac&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span>
         <span class="n">liq</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span>
 
@@ -533,7 +538,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LHK_species</span>
         <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="s1">&#39;P&#39;</span><span class="p">]</span>
-        <span class="n">bubble_point</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">_bubble_point</span>
+        <span class="n">bubble_T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">_bubble_T</span>
         <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">yi</span> <span class="o">=</span> <span class="n">y_stairs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="n">xi</span> <span class="o">=</span> <span class="n">x_stairs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
@@ -543,7 +548,7 @@
                 <span class="k">return</span>
             <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="c1"># Go Up</span>
-            <span class="n">T_guess</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">bubble_point</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">array</span><span class="p">((</span><span class="n">xi</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span><span class="n">xi</span><span class="p">)),</span> <span class="n">P</span><span class="p">)</span>
+            <span class="n">T_guess</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">bubble_T</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">array</span><span class="p">((</span><span class="n">xi</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span><span class="n">xi</span><span class="p">)),</span> <span class="n">P</span><span class="p">)</span>
             <span class="n">yi</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">y_stairs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">yi</span><span class="p">)</span>
             <span class="n">T_stairs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">T_guess</span><span class="p">)</span>
@@ -574,9 +579,9 @@
         <span class="n">T</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
         <span class="n">n</span> <span class="o">=</span> <span class="mi">0</span>
         
-        <span class="n">bubble_point</span> <span class="o">=</span> <span class="n">vap</span><span class="o">.</span><span class="n">_bubble_point</span>
+        <span class="n">bubble_T</span> <span class="o">=</span> <span class="n">vap</span><span class="o">.</span><span class="n">_bubble_T</span>
         <span class="k">for</span> <span class="n">xi</span> <span class="ow">in</span> <span class="n">x_eq</span><span class="p">:</span>
-            <span class="n">T</span><span class="p">[</span><span class="n">n</span><span class="p">],</span> <span class="n">y</span> <span class="o">=</span> <span class="n">bubble_point</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_LHK_species</span><span class="p">,</span>
+            <span class="n">T</span><span class="p">[</span><span class="n">n</span><span class="p">],</span> <span class="n">y</span> <span class="o">=</span> <span class="n">bubble_T</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_LHK_species</span><span class="p">,</span>
                                    <span class="n">array</span><span class="p">([</span><span class="n">xi</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span><span class="n">xi</span><span class="p">]),</span> <span class="n">P</span><span class="p">)</span>
             <span class="n">y_eq</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
             <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -981,6 +986,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;condensate&#39;</span><span class="p">:</span> <span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span>
                         <span class="s1">&#39;boil_up&#39;</span><span class="p">:</span> <span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">),</span>
                         <span class="s1">&#39;vapor stream&#39;</span><span class="p">:</span> <span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">)}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_McCabeThiele_args</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_init</span><span class="p">()</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">is_divided</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1041,19 +1048,12 @@
             <span class="n">N_stripper</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span> <span class="p">(</span><span class="n">N_stages</span><span class="o">-</span><span class="n">mid_stage</span><span class="p">)</span><span class="o">/</span><span class="n">E_stripper</span> <span class="p">)</span>
         <span class="k">return</span> <span class="n">N_rectifier</span><span class="p">,</span> <span class="n">N_stripper</span>
 
-    <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_McCabeThiele</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span>
         <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span>
-        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
-        <span class="n">bubble_point</span> <span class="o">=</span> <span class="n">bottoms</span><span class="o">.</span><span class="n">_bubble_point</span>
-
-        <span class="c1"># Some important info</span>
         <span class="n">LHK_index</span> <span class="o">=</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;LHK_index&#39;</span><span class="p">]</span>
         <span class="n">LHK_species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_LHK_species</span>
-        <span class="n">P</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;P&#39;</span><span class="p">]</span>
-        <span class="n">k</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">]</span>
-        <span class="n">y_top</span><span class="p">,</span> <span class="n">x_bot</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;y_top&#39;</span><span class="p">],</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;x_bot&#39;</span><span class="p">]</span>
 
         <span class="c1"># Feed light key mol fraction</span>
         <span class="n">species</span> <span class="o">=</span> <span class="n">bottoms</span><span class="o">.</span><span class="n">_species</span>
@@ -1071,7 +1071,7 @@
                 <span class="n">liq_mol</span> <span class="o">+=</span> <span class="n">s</span><span class="o">.</span><span class="n">liquid_mol</span>
                 <span class="n">vap_mol</span> <span class="o">+=</span> <span class="n">s</span><span class="o">.</span><span class="n">vapor_mol</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">biosteamError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;invalid phase encountered in stream </span><span class="si">{s.ID}</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;invalid phase encountered in {repr(s)}&#39;</span><span class="p">)</span>
         <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;feed_liqmol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">liq_mol</span>
         <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;feed_vapmol&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vap_mol</span>
         <span class="n">LHK_mol</span> <span class="o">=</span> <span class="n">liq_mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span> <span class="o">+</span> <span class="n">vap_mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span>
@@ -1081,12 +1081,24 @@
         <span class="c1"># Get feed quality</span>
         <span class="n">q</span> <span class="o">=</span> <span class="n">liq_mol</span><span class="p">[</span><span class="n">LHK_index</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">/</span><span class="n">LHK_molnet</span>
         
+        <span class="c1"># Main arguments</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;P&#39;</span><span class="p">]</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">]</span>
+        <span class="n">y_top</span><span class="p">,</span> <span class="n">x_bot</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;y_top&#39;</span><span class="p">],</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;x_bot&#39;</span><span class="p">]</span>
+        
+        <span class="c1"># Cache</span>
+        <span class="n">old_args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_McCabeThiele_args</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">P</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">y_top</span><span class="p">,</span> <span class="n">x_bot</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">zf</span><span class="p">])</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">old_args</span> <span class="o">-</span> <span class="n">args</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">50</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.00001</span><span class="p">,</span> <span class="mf">0.00001</span><span class="p">,</span> <span class="mf">0.005</span><span class="p">,</span> <span class="mf">0.005</span><span class="p">],</span> <span class="nb">float</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">():</span> <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_McCabeThiele_args</span> <span class="o">=</span> <span class="n">args</span>
+        
         <span class="c1"># Get R_min and the q_line </span>
         <span class="k">if</span> <span class="n">q</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">q</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="mf">1e-5</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_q_line</span> <span class="o">=</span> <span class="n">q_line</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">q</span><span class="o">*</span><span class="n">x</span><span class="o">/</span><span class="p">(</span><span class="n">q</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">zf</span><span class="o">/</span><span class="p">(</span><span class="n">q</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         
-        <span class="n">Rmin_intersection</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">q_line</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="n">bubble_point</span><span class="p">(</span><span class="n">LHK_species</span><span class="p">,</span> <span class="n">array</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span><span class="n">x</span><span class="p">)),</span> <span class="n">P</span><span class="p">)[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">bubble_T</span> <span class="o">=</span> <span class="n">bottoms</span><span class="o">.</span><span class="n">_bubble_T</span>
+        <span class="n">Rmin_intersection</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">q_line</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="n">bubble_T</span><span class="p">(</span><span class="n">LHK_species</span><span class="p">,</span> <span class="n">array</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span><span class="n">x</span><span class="p">)),</span> <span class="n">P</span><span class="p">)[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">x_Rmin</span> <span class="o">=</span> <span class="n">brentq</span><span class="p">(</span><span class="n">Rmin_intersection</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">y_Rmin</span> <span class="o">=</span> <span class="n">q_line</span><span class="p">(</span><span class="n">x_Rmin</span><span class="p">)</span>
         <span class="n">m</span> <span class="o">=</span> <span class="p">(</span><span class="n">y_Rmin</span><span class="o">-</span><span class="n">y_top</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">x_Rmin</span><span class="o">-</span><span class="n">y_top</span><span class="p">)</span>
@@ -1128,10 +1140,19 @@
         <span class="n">stages</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_stages</span><span class="p">)</span>
         
         <span class="c1"># Results</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Theoretical feed stage&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">feed_stage</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Theoretical stages&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stages</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Minimum reflux&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Rmin</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Reflux&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">R</span>
+        
+
+    <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_McCabeThiele</span><span class="p">()</span>
+        <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span>
+        <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Reflux&#39;</span><span class="p">]</span>
         <span class="n">Rstages</span><span class="p">,</span> <span class="n">Sstages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_Nstages</span><span class="p">()</span>
         <span class="n">calc_Height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_Height</span>
         <span class="n">is_divided</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_divided</span>
@@ -1167,7 +1188,7 @@
         <span class="n">boil_up_flow</span> <span class="o">=</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;boilup_molfrac&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">V_mol</span>
         <span class="n">boil_up</span> <span class="o">=</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;boil_up&#39;</span><span class="p">]</span>
         <span class="n">boil_up</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">bottoms</span><span class="o">.</span><span class="n">T</span><span class="p">;</span> <span class="n">boil_up</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">bottoms</span><span class="o">.</span><span class="n">P</span>
-        <span class="n">lookup</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">_compounds</span><span class="o">.</span><span class="n">index</span>
+        <span class="n">lookup</span> <span class="o">=</span> <span class="n">bottoms</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_compounds</span><span class="o">.</span><span class="n">index</span>
         <span class="n">index_</span> <span class="o">=</span> <span class="p">[</span><span class="n">lookup</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;vle_bot&#39;</span><span class="p">]]</span>
         <span class="n">boil_up</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index_</span><span class="p">]</span> <span class="o">=</span> <span class="n">boil_up_flow</span>
         <span class="n">V</span> <span class="o">=</span> <span class="n">boil_up</span><span class="o">.</span><span class="n">massnet</span>
@@ -1182,7 +1203,7 @@
         <span class="k">if</span> <span class="n">A_dn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">A_dn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_DowncomerAreaRatio</span><span class="p">(</span><span class="n">F_LV</span><span class="p">)</span>
         <span class="n">S_diameter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_Diameter</span><span class="p">(</span><span class="n">V_vol</span><span class="p">,</span> <span class="n">U_f</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">A_dn</span><span class="p">)</span>
-        <span class="n">Po</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;P&#39;</span><span class="p">]</span><span class="o">*</span><span class="mf">0.000145078</span> <span class="c1"># to psi</span>
+        <span class="n">Po</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="s1">&#39;P&#39;</span><span class="p">]</span><span class="o">*</span><span class="mf">0.000145078</span> <span class="c1"># to psi</span>
         <span class="n">rho_M</span> <span class="o">=</span> <span class="n">rho_Mdict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_F_Mstr</span><span class="p">]</span>
         
         <span class="k">if</span> <span class="n">is_divided</span><span class="p">:</span>
@@ -1290,6 +1311,8 @@
                                  <span class="n">outs</span><span class="o">=</span><span class="n">MixedStream</span><span class="p">(</span><span class="kc">None</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_boiler</span><span class="o">.</span><span class="n">_heat_utilities</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;boil_up&#39;</span><span class="p">:</span> <span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">)}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_McCabeThiele_args</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_init</span><span class="p">()</span>
     
     <span class="k">def</span> <span class="nf">plot_stages</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Plot stages, graphical aid and equilibrium curve</span>
@@ -1345,7 +1368,7 @@
             <span class="n">cached</span><span class="p">[</span><span class="s1">&#39;Stripping Section Efficiency&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">E_stripper</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_MurphreeEfficiency</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">L_mol</span><span class="p">,</span> <span class="n">V_mol</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">N_stages</span><span class="o">/</span><span class="n">E_stripper</span><span class="p">)</span>
     
-    <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_McCabeThiele</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span>
         <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
@@ -1356,9 +1379,15 @@
         <span class="n">P</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;P&#39;</span><span class="p">]</span>
         <span class="n">k</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;k&#39;</span><span class="p">]</span>
         <span class="n">y_top</span><span class="p">,</span> <span class="n">x_bot</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;y_top&#39;</span><span class="p">],</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;x_bot&#39;</span><span class="p">]</span>
+        
+        <span class="n">old_args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_McCabeThiele_args</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">y_top</span><span class="p">,</span> <span class="n">x_bot</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">P</span><span class="p">])</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">old_args</span> <span class="o">-</span> <span class="n">args</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.00001</span><span class="p">,</span> <span class="mf">0.00001</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mi">50</span><span class="p">],</span> <span class="nb">float</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">():</span> <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_McCabeThiele_args</span> <span class="o">=</span> <span class="n">args</span>
+        
         <span class="c1"># Get B_min (Boil up ratio)</span>
         <span class="n">y_Rmin</span> <span class="o">=</span> <span class="n">y_top</span>
-        <span class="n">T_guess</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">_dew_point</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="p">[</span><span class="n">y_Rmin</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span><span class="n">y_Rmin</span><span class="p">],</span> <span class="n">P</span><span class="p">)</span>
+        <span class="n">T_guess</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="n">distillate</span><span class="o">.</span><span class="n">_dew_T</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="p">[</span><span class="n">y_Rmin</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span><span class="n">y_Rmin</span><span class="p">],</span> <span class="n">P</span><span class="p">)</span>
         <span class="n">x_Rmin</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">m</span> <span class="o">=</span> <span class="p">(</span><span class="n">y_Rmin</span><span class="o">-</span><span class="n">x_bot</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">x_Rmin</span><span class="o">-</span><span class="n">x_bot</span><span class="p">)</span>
         <span class="n">Bmin</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">m</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
@@ -1381,9 +1410,16 @@
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Theoretical stages&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stages</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Minimum boil up&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Bmin</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Boil up&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">B</span>
+    
+    <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">distillate</span><span class="p">,</span> <span class="n">bottoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
+        <span class="n">cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached</span>
         
         <span class="c1">### Get number of stages and height ###</span>
         
+        <span class="bp">self</span><span class="o">.</span><span class="n">_McCabeThiele</span><span class="p">()</span>
         <span class="n">TS</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_TS</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Actual stages&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Nstages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_Nstages</span><span class="p">()</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Height&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">H</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_Height</span><span class="p">(</span><span class="n">TS</span><span class="p">,</span> <span class="n">Nstages</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>

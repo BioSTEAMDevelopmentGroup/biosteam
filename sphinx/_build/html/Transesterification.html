@@ -228,26 +228,50 @@
 <span id="transesterification"></span><h1>Transesterification<a class="headerlink" href="#module-biosteam.units" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.units.Transesterification">
-<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">Transesterification</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>efficiency=None</em>, <em>r=None</em>, <em>T=None</em>, <em>catalyst_molfrac=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_transesterification.html#Transesterification"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Transesterification" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a transesterification reactor that converts ‘Lipid’ and ‘Methanol’ to ‘Biodiesel’ and ‘Glycerol’. Finds the amount of catalyist ‘NaOCH3’ required and consumes it to ‘NaOH’ and ‘Methanol’.</p>
+<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">Transesterification</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>efficiency=None</em>, <em>methanol2lipid=None</em>, <em>T=None</em>, <em>catalyst_molfrac=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_transesterification.html#Transesterification"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Transesterification" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a transesterification reactor that converts ‘Lipid’ and ‘Methanol’ to ‘Biodiesel’ and ‘Glycerol’. Finds the amount of catalyst ‘NaOCH3’ required and consumes it to ‘NaOH’ and ‘Methanol’.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>ID:</strong> [str] Unique identification. If set as ‘’, a default ID will be chosen.</p>
 <p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
 <p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
 <p><strong>efficiency:</strong> Efficiency of conversion (on a ‘Lipid’ basis)</p>
-<p><strong>r:</strong> Methanol to lipid molar ratio</p>
-<p><strong>catalyst_molfrac:</strong> Molar fraction of catalyst in methanol feed</p>
+<p><strong>methanol2lipid:</strong> Methanol feed to lipid molar ratio</p>
+<p><strong>catalyst_molfrac:</strong> Catalyst to methanol molar ratio</p>
 <p><strong>T:</strong> Operating temperature (K)</p>
 </div></blockquote>
 <p><strong>ins</strong></p>
 <blockquote>
 <div><p>[0] Lipid feed</p>
-<p>[1] Fresh methanol and catalyst</p>
+<p>[1] Methanol feed (includes catalyst)</p>
 </div></blockquote>
 <p><strong>outs</strong></p>
 <blockquote>
 <div>[0] Product</div></blockquote>
+<dl class="attribute">
+<dt id="biosteam.units.Transesterification.efficiency">
+<code class="descname">efficiency</code><a class="headerlink" href="#biosteam.units.Transesterification.efficiency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transesterification efficiency on a ‘Lipid’ basis.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Transesterification.T">
+<code class="descname">T</code><a class="headerlink" href="#biosteam.units.Transesterification.T" title="Permalink to this definition">¶</a></dt>
+<dd><p>Operation temperature (K).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Transesterification.methanol2lipid">
+<code class="descname">methanol2lipid</code><a class="headerlink" href="#biosteam.units.Transesterification.methanol2lipid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Methanol feed to lipid molar ratio.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Transesterification.catalyst_molfrac">
+<code class="descname">catalyst_molfrac</code><a class="headerlink" href="#biosteam.units.Transesterification.catalyst_molfrac" title="Permalink to this definition">¶</a></dt>
+<dd><p>Catalyst molar fraction in methanol feed.</p>
+</dd></dl>
+
 </dd></dl>
 
 </div>

@@ -287,14 +287,6 @@
 <div class="viewcode-block" id="cost"><a class="viewcode-back" href="../../../../decorators.html#biosteam.units.decorators.cost">[docs]</a><span class="k">def</span> <span class="nf">cost</span><span class="p">(</span><span class="n">basis</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">CE</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ub</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fsize</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>    
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Add item (free-on-board) purchase cost based on exponential scale up:</span>
 <span class="sd">    </span>
-<span class="sd">    :math:`C_{f.o.b.} = N \cdot CE \cdot cost \big(\frac{basis}{S}\big)^{exp}` </span>
-<span class="sd">    </span>
-<span class="sd">    :math:`Electricity\ rate = N \cdot kW \big(\frac{basis}{S}\big)`</span>
-<span class="sd">    </span>
-<span class="sd">    Where `N` corresponds to the minimum number of parallel units given the size limit, `lim`:</span>
-<span class="sd">        </span>
-<span class="sd">    $N = ceil \big( \frac{basis}{lim} \big)$</span>
-<span class="sd">    </span>
 <span class="sd">    **Parameters**</span>
 <span class="sd">    </span>
 <span class="sd">        **basis:** Name of size parameter used for scaling.</span>

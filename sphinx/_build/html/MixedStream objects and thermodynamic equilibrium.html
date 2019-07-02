@@ -939,7 +939,7 @@ MixedStream: ms1
 </div>
 <div class="section" id="Vapor-liquid-equilibrium">
 <h2>2.6. Vapor-liquid equilibrium<a class="headerlink" href="#Vapor-liquid-equilibrium" title="Permalink to this headline">¶</a></h2>
-<p>Adiabatic and isobaric conditions:</p>
+<p>Set pressure and duty:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [25]:
@@ -947,10 +947,9 @@ MixedStream: ms1
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">ms2</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">MixedStream</span><span class="p">(</span><span class="s1">&#39;ms2&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">370</span><span class="p">)</span>
-<span class="c1"># Set flows in same order as in Species object</span>
-<span class="n">ms2</span><span class="o">.</span><span class="n">setflow</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
-<span class="n">ms2</span><span class="o">.</span><span class="n">setflow</span><span class="p">(</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-<span class="n">ms2</span><span class="o">.</span><span class="n">VLE</span><span class="p">()</span>
+<span class="n">ms2</span><span class="o">.</span><span class="n">setflow</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">ms2</span><span class="o">.</span><span class="n">setflow</span><span class="p">(</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">ms2</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">Q</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 <span class="n">ms2</span>
 </pre></div>
 </div>
@@ -970,14 +969,14 @@ MixedStream: ms2
          Ethanol  2.06
 </pre></div></div>
 </div>
-<p>Isothermal and isobaric conditions:</p>
+<p>Set temperature and pressure:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [26]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">ms2</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="mi">355</span><span class="p">)</span>
+<span></span><span class="n">ms2</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="mi">355</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
 <span class="n">ms2</span>
 </pre></div>
 </div>
@@ -997,19 +996,19 @@ MixedStream: ms2
          Ethanol  2.08
 </pre></div></div>
 </div>
-<p>Contant vapor fraction and isobaric conditions:</p>
+<p>Set vapor fraction and pressure:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [27]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">ms2</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">V</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span></span><span class="n">ms2</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">V</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
 <span class="n">ms2</span>
 </pre></div>
 </div>
 </div>
-<div class="nboutput docutils container">
+<div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
@@ -1024,12 +1023,66 @@ MixedStream: ms2
          Ethanol  1.9
 </pre></div></div>
 </div>
+<p>Set vapor fraction and temperature:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [28]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">ms2</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">V</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">350</span><span class="p">)</span>
+<span class="n">ms2</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+MixedStream: ms2
+ phase: &#39;lg&#39;, T: 350 K, P: 83660.7 Pa
+         species  kmol/hr
+ liquid: Water    1.91
+         Ethanol  1.09
+
+ vapor:  Water    1.09
+         Ethanol  1.91
+</pre></div></div>
+</div>
+<p>Set temperature and duty:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [29]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">ms2</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">Q</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">350</span><span class="p">)</span>
+<span class="n">ms2</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+MixedStream: ms2
+ phase: &#39;lg&#39;, T: 350 K, P: -2.75074e+23 Pa
+         species  kmol/hr
+ liquid: Water    2.98
+         Ethanol  2.98
+
+ vapor:  Water    0.0201
+         Ethanol  0.0201
+</pre></div></div>
+</div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
 </div>
 <div class="stderr output_area docutils container">
 <div class="highlight"><pre>
-C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of 1.1165063824591925e-06 reached
+C:\ProgramData\Anaconda3\lib\site-packages\scipy\optimize\zeros.py:195: RuntimeWarning: Tolerance of -5.49662618790574e+23 reached
   warnings.warn(msg, RuntimeWarning)
 </pre></div></div>
 </div>
@@ -1041,7 +1094,7 @@ calculate equilibrium using the <code class="docutils literal notranslate"><span
 <p>Initialize with MixedStream object with water and octane:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [28]:
+<span></span>In [30]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1067,7 +1120,7 @@ MixedStream: ms3
 <p>Adiabatic and isobaric conditions:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [29]:
+<span></span>In [31]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -1097,7 +1150,7 @@ partitioning, resulting in constant temperature.</p>
 <p>Isothermal and isobaric conditions:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [30]:
+<span></span>In [32]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>

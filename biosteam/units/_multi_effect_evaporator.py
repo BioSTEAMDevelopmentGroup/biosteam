@@ -11,6 +11,7 @@ from scipy.optimize import brentq
 from . import Mixer, HXutility
 from ._flash import Evaporator_PV, Evaporator_PQ
 from .designtools import vacuum_system
+from warnings import warn
 import ht
 log = np.log
 exp = np.exp
@@ -201,7 +202,7 @@ class MultiEffectEvaporator(Unit):
             A = HXutility._calc_area(LMTD, U, Q, ft)
             As.append(A)
             if not A_range[0] < A < A_range[1]:
-                print(f'WARNING, area requirement ({A}) is out of range, {A_range}')
+                warn('area requirement ({A}) is out of range, {A_range}')
             evap_costs.append(C_func(A, CE))
         self._As = As
         Design['Area'] = A = sum(As)

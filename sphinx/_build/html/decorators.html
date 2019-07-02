@@ -232,10 +232,6 @@
 <dt id="biosteam.units.decorators.cost">
 <code class="descclassname">biosteam.units.decorators.</code><code class="descname">cost</code><span class="sig-paren">(</span><em>basis</em>, <em>ID=None</em>, <em>*</em>, <em>CE</em>, <em>cost</em>, <em>n</em>, <em>S=1</em>, <em>ub=0</em>, <em>kW=0</em>, <em>BM=1</em>, <em>units=None</em>, <em>fsize=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/decorators/_cost.html#cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.decorators.cost" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add item (free-on-board) purchase cost based on exponential scale up:</p>
-<p><img class="math" src="_images/math/330f4f2f9f5d3d57d6f6943aca786a07af6ed17c.png" alt="C_{f.o.b.} = N \cdot CE \cdot cost \big(\frac{basis}{S}\big)^{exp}"/></p>
-<p><img class="math" src="_images/math/698243d070eaeebcad94d29ef1f1467322776a7c.png" alt="Electricity\ rate = N \cdot kW \big(\frac{basis}{S}\big)"/></p>
-<p>Where <cite>N</cite> corresponds to the minimum number of parallel units given the size limit, <cite>lim</cite>:</p>
-<p>$N = ceil big( frac{basis}{lim} big)$</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>basis:</strong> Name of size parameter used for scaling.</p>

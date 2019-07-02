@@ -1500,7 +1500,7 @@ class Stream(metaclass=metaStream):
                                    bounds=(min_, max_),
                                    args=(lambda T, x: self._dew_error_sum(T, x, y , P, species),),
                                    xtol= 1e-6).x
-        except Exception as Error: raise Error
+        except: return self._dew, x_dew
         self._dew_cached = (species, P, self._dew, y, x_dew)
         return self._dew, x_dew
     

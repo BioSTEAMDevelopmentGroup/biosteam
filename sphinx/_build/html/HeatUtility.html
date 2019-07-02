@@ -212,8 +212,8 @@
 <div><strong>efficiency:</strong> [float] Fraction of heat transfered after accounting for heat loss.</div></blockquote>
 <p><strong>Class Attributes</strong></p>
 <blockquote>
-<div><p><strong>cooling_agents:</strong> [DataFrame] All cooling utilities available</p>
-<p><strong>heating_agents:</strong> [DataFrame] All heating utilities available</p>
+<div><p><strong>cooling_agents:</strong> dict[str: UtilityAgent] All cooling utilities available</p>
+<p><strong>heating_agents:</strong> dict[str: UtilityAgent] All heating utilities available</p>
 </div></blockquote>
 <p><strong>Examples</strong></p>
 <blockquote>
@@ -254,6 +254,23 @@
 <dt id="biosteam.HeatUtility.display_units">
 <code class="descname">display_units</code><em class="property"> = DisplayUnits(duty='kJ/hr', flow='kmol/hr', cost='USD/hr')</em><a class="headerlink" href="#biosteam.HeatUtility.display_units" title="Permalink to this definition">¶</a></dt>
 <dd><p>[DisplayUnits] Units of measure for IPython display</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="biosteam.HeatUtility.UtilityAgent">
+<em class="property">class </em><code class="descname">UtilityAgent</code><span class="sig-paren">(</span><em>species</em>, <em>molfrac</em>, <em>T</em>, <em>P</em>, <em>phase</em>, <em>Hvap</em>, <em>T_limit</em>, <em>price_kJ</em>, <em>price_kmol</em>, <em>efficiency</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_heat_utility.html#HeatUtility.UtilityAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.HeatUtility.UtilityAgent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a UtilityAgent object that defines a utility option.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><p>species: [Species]</p>
+<p>molfrac: [tuple] Molar fraction of species</p>
+<p>phase: [str] {‘g’, ‘l’}</p>
+<p>Hvap: [float] Latent heat of vaporization (kJ/kmol)</p>
+<p>T_limit: [float] Temperature limit (K)</p>
+<p>price_kJ: [float] Price (USD/kJ)</p>
+<p>price_kmol: [float] Price (USD/kmol)</p>
+<p>efficiency: [float] Heat transfer efficiency (between 0 to 1)</p>
+</div></blockquote>
 </dd></dl>
 
 <dl class="method">

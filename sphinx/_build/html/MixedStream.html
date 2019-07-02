@@ -507,31 +507,31 @@
 
 <dl class="method">
 <dt id="biosteam.MixedStream.VLE">
-<code class="descname">VLE</code><span class="sig-paren">(</span><em>species_IDs=None</em>, <em>LNK=None</em>, <em>HNK=None</em>, <em>P=None</em>, <em>Qin=None</em>, <em>T=None</em>, <em>V=None</em>, <em>x=None</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_mixed_stream.html#MixedStream.VLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.MixedStream.VLE" title="Permalink to this definition">¶</a></dt>
-<dd><p>Perform vapor-liquid equilibrium. Pressure defaults to current pressure.</p>
-<p><strong>Optional parameters</strong></p>
+<code class="descname">VLE</code><span class="sig-paren">(</span><em>species_IDs=()</em>, <em>LNK=()</em>, <em>HNK=()</em>, <em>P=None</em>, <em>Q=None</em>, <em>T=None</em>, <em>V=None</em>, <em>x=None</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_mixed_stream.html#MixedStream.VLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.MixedStream.VLE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform vapor-liquid equilibrium.</p>
+<p><strong>Parameters</strong></p>
 <blockquote>
-<div><p><strong>P:</strong> [float] Operating pressure (Pa)</p>
-<p><strong>species_IDs:</strong> [tuple] IDs of equilibrium species</p>
-<p><strong>LNK:</strong> tuple[str] Light non-keys</p>
-<p><strong>HNK:</strong> tuple[str] Heavy non-keys</p>
-<dl class="docutils">
-<dt><strong>User may define one:</strong></dt>
+<div><dl class="docutils">
+<dt><strong>Specify two:</strong></dt>
 <dd><ul class="first last simple">
-<li><strong>Qin:</strong> [float] Energy input (kJ/hr)</li>
+<li><strong>P:</strong> [float] Operating pressure (Pa)</li>
+<li><strong>Q:</strong> [float] Energy input (kJ/hr)</li>
 <li><strong>T:</strong> [float] Operating temperature (K)</li>
-<li><strong>V:</strong> [float] Overall molar vapor fraction</li>
+<li><strong>V:</strong> [float] Molar vapor fraction</li>
 <li><strong>x:</strong> [numpy array] Molar composition of liquid (for binary mixture)</li>
 <li><strong>y:</strong> [numpy array] Molar composition of vapor (for binary mixture)</li>
 </ul>
 </dd>
 </dl>
+<p><strong>species_IDs:</strong> [tuple] IDs of species in equilibrium.</p>
+<p><strong>LNK:</strong> tuple[str] Light non-keys that remain as a vapor.</p>
+<p><strong>HNK:</strong> tuple[str] Heavy non-keys that remain as a liquid.</p>
 </div></blockquote>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.MixedStream.LLE">
-<code class="descname">LLE</code><span class="sig-paren">(</span><em>species_IDs=None</em>, <em>split=None</em>, <em>lNK=()</em>, <em>LNK=()</em>, <em>solvents=()</em>, <em>solvent_split=()</em>, <em>P=None</em>, <em>T=None</em>, <em>Qin=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_mixed_stream.html#MixedStream.LLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.MixedStream.LLE" title="Permalink to this definition">¶</a></dt>
+<code class="descname">LLE</code><span class="sig-paren">(</span><em>species_IDs=None</em>, <em>split=None</em>, <em>lNK=()</em>, <em>LNK=()</em>, <em>solvents=()</em>, <em>solvent_split=()</em>, <em>P=None</em>, <em>T=None</em>, <em>Q=0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_mixed_stream.html#MixedStream.LLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.MixedStream.LLE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform LIQUID-liquid equilibrium.</p>
 <p><strong>Optional Parameters</strong></p>
 <blockquote>
@@ -541,7 +541,7 @@
 <p><strong>LNK:</strong> <em>tuple[str]</em> Species assumed to completely remain in the ‘LIQUID’ phase.</p>
 <p><strong>solvents:</strong> <em>tuple[str]</em> Species corresponding to specified solvent_split</p>
 <p><strong>solvent_split:</strong> <em>tuple[float]</em> Split fractions of each specie to the ‘liquid’ phase.</p>
-<p><strong>Qin:</strong> <em>[float]</em> Energy input (kJ/hr)</p>
+<p><strong>Q:</strong> <em>[float]</em> Energy input (kJ/hr)</p>
 <p><strong>T:</strong> <em>[float]</em> Operating temperature (K)</p>
 <p><strong>P:</strong> <em>[float]</em> Operating pressure (Pa)</p>
 </div></blockquote>

@@ -195,6 +195,7 @@
 <span class="kn">from</span> <span class="nn">._exceptions</span> <span class="k">import</span> <span class="n">SolverError</span><span class="p">,</span> <span class="n">EquilibriumError</span><span class="p">,</span> <span class="n">DimensionError</span>
 <span class="kn">from</span> <span class="nn">._equilibrium</span> <span class="k">import</span> <span class="n">DORTMUND</span>
 
+
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Stream&#39;</span><span class="p">,)</span>
 
 
@@ -204,10 +205,10 @@
 
 <span class="c1"># %% Functions</span>
 
-<span class="k">def</span> <span class="nf">nonzero_species</span><span class="p">(</span><span class="n">num_IDs</span><span class="p">,</span> <span class="n">flow</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">nonzero_species</span><span class="p">(</span><span class="n">numIDs</span><span class="p">,</span> <span class="n">flow</span><span class="p">):</span>
     <span class="n">index</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">species</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ID</span> <span class="ow">in</span> <span class="n">num_IDs</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ID</span> <span class="ow">in</span> <span class="n">numIDs</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">flow</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">index</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
             <span class="n">species</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span>
@@ -317,6 +318,20 @@
 
 <span class="c1"># %% Stream classes</span>
 
+<span class="k">class</span> <span class="nc">MissingSpecies</span><span class="p">:</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">()</span>
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">missing_species</span>
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">yield from</span> <span class="p">()</span>
+    <span class="k">def</span> <span class="nf">__bool__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;must set Stream.species first&#39;</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;&lt;MissingSpecies&gt;&#39;</span>
+<span class="n">missing_species</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">MissingSpecies</span><span class="p">)</span>
+
 <span class="k">class</span> <span class="nc">metaStream</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Metaclass for Stream.&quot;&quot;&quot;</span>
     <span class="nd">@property</span>
@@ -330,9 +345,14 @@
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">Species</span><span class="p">):</span>
             <span class="k">for</span> <span class="n">cl</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Stream</span><span class="p">,</span> <span class="n">MS</span><span class="o">.</span><span class="n">MixedStream</span><span class="p">):</span>
                 <span class="n">cl</span><span class="o">.</span><span class="n">_cls_species</span> <span class="o">=</span> <span class="n">species</span>
-            <span class="n">species</span><span class="o">.</span><span class="n">_read_only</span><span class="p">()</span>
+            <span class="n">species</span><span class="o">.</span><span class="n">read_only</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;must pass a Species object&#39;</span><span class="p">)</span>
     <span class="n">_species</span> <span class="o">=</span> <span class="n">species</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">indices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cls_species</span><span class="o">.</span><span class="n">indices</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;must set Stream.species first&#39;</span><span class="p">)</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">MW</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
@@ -552,11 +572,13 @@
 
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;_mol&#39;</span><span class="p">,</span> <span class="s1">&#39;_mass&#39;</span><span class="p">,</span> <span class="s1">&#39;_vol&#39;</span><span class="p">,</span> <span class="s1">&#39;price&#39;</span><span class="p">,</span> <span class="s1">&#39;_ID&#39;</span><span class="p">,</span> <span class="s1">&#39;_link&#39;</span><span class="p">,</span>
                  <span class="s1">&#39;_species&#39;</span><span class="p">,</span> <span class="s1">&#39;_sink&#39;</span><span class="p">,</span> <span class="s1">&#39;_source&#39;</span><span class="p">,</span> <span class="s1">&#39;_dew_cached&#39;</span><span class="p">,</span> <span class="s1">&#39;_bubble_cached&#39;</span><span class="p">,</span>
-                 <span class="s1">&#39;_phase&#39;</span><span class="p">,</span> <span class="s1">&#39;_y_cached&#39;</span><span class="p">,</span> <span class="s1">&#39;_lL_split_cached&#39;</span><span class="p">,</span> <span class="s1">&#39;_y&#39;</span><span class="p">,</span> <span class="s1">&#39;_T_VP&#39;</span><span class="p">,</span> <span class="s1">&#39;_T_QinP&#39;</span><span class="p">,</span>
-                 <span class="s1">&#39;_yP&#39;</span><span class="p">,</span> <span class="s1">&#39;_T_dew&#39;</span><span class="p">,</span> <span class="s1">&#39;_y_over_Psat_gamma&#39;</span><span class="p">,</span> <span class="s1">&#39;__weakref__&#39;</span><span class="p">,</span> <span class="s1">&#39;_source_link&#39;</span><span class="p">)</span>
+                 <span class="s1">&#39;_phase&#39;</span><span class="p">,</span> <span class="s1">&#39;_y_cached&#39;</span><span class="p">,</span> <span class="s1">&#39;_lL_split_cached&#39;</span><span class="p">,</span> <span class="s1">&#39;_y&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;_yP&#39;</span><span class="p">,</span> <span class="s1">&#39;_dew&#39;</span><span class="p">,</span> <span class="s1">&#39;_Py_over_gammaPsat&#39;</span><span class="p">,</span> <span class="s1">&#39;__weakref__&#39;</span><span class="p">,</span> <span class="s1">&#39;_source_link&#39;</span><span class="p">)</span>
 
     <span class="c1">### Class attributes for working species ###</span>
-    <span class="n">_cls_species</span> <span class="o">=</span> <span class="n">_MW</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_cls_species</span> <span class="o">=</span> <span class="n">missing_species</span>
+    
+    <span class="n">_MW</span> <span class="o">=</span> <span class="kc">None</span>
     
     <span class="c1"># [list] Default starting letter and current number for ID (class attribute)</span>
     <span class="n">_default_ID</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
@@ -574,7 +596,8 @@
         <span class="c1"># Get species and set species information</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">Species</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="o">=</span> <span class="n">species</span>
-            <span class="n">species</span><span class="o">.</span><span class="n">_read_only</span><span class="p">()</span>
+            <span class="n">species</span><span class="o">.</span><span class="n">read_only</span><span class="p">()</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="p">()</span>
         <span class="k">else</span><span class="p">:</span> 
             <span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cls_species</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_link</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sink</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span> <span class="o">=</span> <span class="kc">None</span>
@@ -587,19 +610,15 @@
         <span class="c1"># (species, pressure, temperature, vapor composition, liquid composition)</span>
         <span class="c1"># Bubble point cached:</span>
         <span class="c1"># (species, pressure, temperature, vapor composition, liquid composition)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_dew_cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bubble_cached</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dew_cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bubble_cached</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,)</span> 
         
         <span class="c1"># Initialize flows</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_setflows</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">flow_pairs</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">Error</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;must specify Stream.species first&#39;</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="n">Error</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setflows</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">flow_pairs</span><span class="p">)</span>
         <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span>
         <span class="n">MW</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_MW</span>
         <span class="n">mass</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># Mass flow rates</span>
         <span class="n">vol</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># Volumetric flow rates    </span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_num_compounds</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_numcompounds</span><span class="p">:</span>
             <span class="n">mol_i</span> <span class="o">=</span> <span class="n">mol</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
             <span class="n">mass</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MassFlow</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="p">(</span><span class="n">mol_i</span><span class="p">,</span> <span class="n">MW</span><span class="p">[</span><span class="n">i</span><span class="p">])))</span>
             <span class="n">vol</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">VolumetricFlow</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol_i</span><span class="p">)))</span>
@@ -626,26 +645,21 @@
         <span class="sd">&quot;&quot;&quot;Set `flow` rates according to the `species` order and `flow_pairs`. `inplace` can be any operation that can be performed in place (e.g. +, -, *, /, |, **, etc.).&quot;&quot;&quot;</span>
         <span class="n">species</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="n">species</span><span class="p">,</span> <span class="o">*</span><span class="n">flow_pairs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
         <span class="n">flow</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="n">flow</span><span class="p">,</span> <span class="o">*</span><span class="n">flow_pairs</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="o">*</span><span class="n">species</span><span class="p">)</span> <span class="k">if</span> <span class="n">species</span> <span class="k">else</span> <span class="o">...</span> 
-        <span class="k">if</span> <span class="n">units</span> <span class="o">==</span> <span class="s1">&#39;kmol/hr&#39;</span><span class="p">:</span> <span class="n">exec</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;self._mol[index] </span><span class="si">{inplace}</span><span class="s2">= flow&quot;</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
-        <span class="k">elif</span> <span class="n">units</span> <span class="o">==</span> <span class="s1">&#39;kg/hr&#39;</span><span class="p">:</span> <span class="n">exec</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;self._mass[index] </span><span class="si">{inplace}</span><span class="s2">= flow&quot;</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
-        <span class="k">elif</span> <span class="n">units</span> <span class="o">==</span> <span class="s1">&#39;m3/hr&#39;</span><span class="p">:</span> <span class="n">exec</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;self._vol[index] </span><span class="si">{inplace}</span><span class="s2">= flow&quot;</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="n">species</span><span class="p">)</span> <span class="k">if</span> <span class="n">species</span> <span class="k">else</span> <span class="o">...</span> 
+        <span class="n">q</span> <span class="o">=</span> <span class="n">_Q</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+        <span class="n">dim</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">dimensionality</span>
+        <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="n">mol_flow_dim</span><span class="p">:</span>
+            <span class="n">exec</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;self._mol[index] </span><span class="si">{inplace}</span><span class="s2">= q.to(&#39;kmol/hr&#39;).magnitude&quot;</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
+        <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="n">mass_flow_dim</span><span class="p">:</span>
+            <span class="n">exec</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;self._mass[index] </span><span class="si">{inplace}</span><span class="s2">= q.to(&#39;kg/hr&#39;).magnitude&quot;</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
+        <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="n">vol_flow_dim</span><span class="p">:</span>
+            <span class="n">exec</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;self._vol[index] </span><span class="si">{inplace}</span><span class="s2">= q.to(&#39;m3/hr&#39;).magnitude&quot;</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">q</span> <span class="o">=</span> <span class="n">_Q</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
-            <span class="n">dim</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">dimensionality</span>
-            <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="n">mol_flow_dim</span><span class="p">:</span>
-                <span class="n">exec</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;self._mol[index] </span><span class="si">{inplace}</span><span class="s2">= q.to(&#39;kmol/hr&#39;).magnitude&quot;</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
-            <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="n">mass_flow_dim</span><span class="p">:</span>
-                <span class="n">exec</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;self._mass[index] </span><span class="si">{inplace}</span><span class="s2">= q.to(&#39;kg/hr&#39;).magnitude&quot;</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
-            <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="n">vol_flow_dim</span><span class="p">:</span>
-                <span class="n">exec</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;self._vol[index] </span><span class="si">{inplace}</span><span class="s2">= q.to(&#39;m3/hr&#39;).magnitude&quot;</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">DimensionError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;dimensions for flow units must be in molar, mass or volumetric flow rates, not &#39;</span><span class="si">{dim}</span><span class="s2">&#39;&quot;</span><span class="p">)</span></div>
+            <span class="k">raise</span> <span class="n">DimensionError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;dimensions for flow units must be in molar, mass or volumetric flow rates, not &#39;</span><span class="si">{dim}</span><span class="s2">&#39;&quot;</span><span class="p">)</span></div>
     
 <div class="viewcode-block" id="Stream.getflow"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.getflow">[docs]</a>    <span class="k">def</span> <span class="nf">getflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">species</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get flow rates of species in given units.&quot;&quot;&quot;</span>
-        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="o">*</span><span class="n">species</span><span class="p">)</span> <span class="k">if</span> <span class="n">species</span> <span class="k">else</span> <span class="o">...</span>
-        <span class="k">if</span> <span class="n">units</span><span class="o">==</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>    
+        <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="n">species</span><span class="p">)</span> <span class="k">if</span> <span class="n">species</span> <span class="k">else</span> <span class="o">...</span>
         <span class="n">q</span> <span class="o">=</span> <span class="n">_Q</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
         <span class="n">dim</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">dimensionality</span>
         <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="n">mol_flow_dim</span><span class="p">:</span>
@@ -659,33 +673,22 @@
     
     <span class="k">def</span> <span class="nf">_setflows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">flow_pairs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize molar flow rates accoring the species order, and flow_pairs. Instance species do not change.&quot;&quot;&quot;</span>
-        <span class="n">lenflow</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">flow</span><span class="p">)</span>
-        <span class="n">empty_flow</span> <span class="o">=</span> <span class="n">lenflow</span> <span class="o">==</span> <span class="mi">0</span>
-        <span class="k">if</span> <span class="n">species</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="p">:</span>
+        <span class="n">flowlen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">flow</span><span class="p">)</span>
+        <span class="n">specieslen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">flowlen</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">flow_pairs</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;cannot specify flow pairs when a Species object is passed&#39;</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">empty_flow</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">species</span><span class="o">.</span><span class="n">_Nspecies</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">lenflow</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_Nspecies</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;cannot specify flow pairs when species is passed&#39;</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">flowlen</span> <span class="o">==</span> <span class="n">specieslen</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">flow</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="ow">not</span> <span class="n">specieslen</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">flowlen</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_Nspecies</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;if flow is not empty, length of flow must be equal to length of Species object&#39;</span><span class="p">)</span>
+                <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;length of flow rates must be equal to length of species&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">flow_pairs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">flow_pairs</span><span class="p">,</span> <span class="p">[</span><span class="o">*</span><span class="n">flow_pairs</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">lenspecies</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
-            <span class="n">empty_species</span> <span class="o">=</span> <span class="n">lenspecies</span> <span class="o">==</span> <span class="mi">0</span>
-            <span class="n">N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_Nspecies</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">flow_pairs</span> <span class="ow">and</span> <span class="n">empty_flow</span> <span class="ow">and</span> <span class="n">empty_species</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="o">*</span><span class="n">flow_pairs</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="n">flow_pairs</span><span class="o">.</span><span class="n">values</span><span class="p">(),)</span>
-            <span class="k">elif</span> <span class="n">lenspecies</span> <span class="o">==</span> <span class="n">lenflow</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">flow_pairs</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="o">*</span><span class="n">species</span><span class="p">,</span> <span class="o">*</span><span class="n">flow_pairs</span><span class="o">.</span><span class="n">keys</span><span class="p">())]</span> <span class="o">=</span> <span class="p">(</span><span class="o">*</span><span class="n">flow</span><span class="p">,</span> <span class="o">*</span><span class="n">flow_pairs</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-                <span class="k">elif</span> <span class="ow">not</span> <span class="n">empty_flow</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="o">*</span><span class="n">species</span><span class="p">)]</span> <span class="o">=</span> <span class="n">flow</span>
-            <span class="k">elif</span> <span class="n">empty_species</span> <span class="ow">and</span> <span class="n">lenflow</span> <span class="o">==</span> <span class="n">N</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;length of flow rates must be equal to length of species&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">_Nspecies</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
+                
 
     <span class="c1"># Forward pipping</span>
     <span class="k">def</span> <span class="nf">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
@@ -817,14 +820,13 @@
 
     <span class="c1">### Flow properties ###</span>
     
-<div class="viewcode-block" id="Stream.indices"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.indices">[docs]</a>    <span class="k">def</span> <span class="nf">indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">species</span><span class="p">,</span> <span class="n">CAS</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">indices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return flow indices of specified species.</span>
 
 <span class="sd">        **Parameters**</span>
 
-<span class="sd">             ***species:** [iterable] species IDs or CAS numbers.</span>
-<span class="sd">             </span>
-<span class="sd">             **CAS:** [bool] True if species are CAS numbers.</span>
+<span class="sd">             **IDs:** [iterable] species IDs or CAS numbers.</span>
 
 <span class="sd">        Example</span>
 
@@ -833,33 +835,16 @@
 <span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
 <span class="sd">        &gt;&gt;&gt; Stream.species = Species([&#39;Ethanol&#39;, &#39;Water&#39;])</span>
 <span class="sd">        &gt;&gt;&gt; s1 = Stream()</span>
-<span class="sd">        &gt;&gt;&gt; s1.indices(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1.indices([&#39;Water&#39;, &#39;Ethanol&#39;])</span>
 <span class="sd">        [1, 0]</span>
 
 <span class="sd">        Indices by CAS number:</span>
 <span class="sd">        </span>
-<span class="sd">        &gt;&gt;&gt; s1.indices(&#39;7732-18-5&#39;, &#39;64-17-5&#39;, CAS=True):</span>
+<span class="sd">        &gt;&gt;&gt; s1.indices([&#39;7732-18-5&#39;, &#39;64-17-5&#39;]):</span>
 <span class="sd">        [1, 0]</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">lookup</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_CAS</span><span class="o">.</span><span class="n">index</span> <span class="k">if</span> <span class="n">CAS</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_IDs</span><span class="o">.</span><span class="n">index</span>
-            <span class="k">return</span> <span class="p">[</span><span class="n">lookup</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">species</span><span class="p">]</span>
-        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">VE</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;no species defined in stream&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">all</span><span class="p">([</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">species</span><span class="p">]):</span>
-                <span class="k">if</span> <span class="n">CAS</span><span class="p">:</span>
-                    <span class="n">stream_species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_CAS</span>
-                    <span class="n">start</span> <span class="o">=</span> <span class="s1">&#39;CAS numbers &#39;</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">stream_species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_IDs</span>
-                    <span class="n">start</span> <span class="o">=</span> <span class="s1">&#39;IDs &#39;</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;species must all be str objects&#39;</span><span class="p">)</span>
-            <span class="n">not_included</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">species</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">stream_species</span><span class="p">])</span>
-            <span class="k">if</span> <span class="n">not_included</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{start}{not_included}</span><span class="s1"> not defined in stream species&#39;</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="n">VE</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">indices</span>
                 
     <span class="c1"># Molar flow</span>
     <span class="nd">@flow</span>
@@ -1272,7 +1257,7 @@
 <span class="sd">        &gt;&gt;&gt; s1 = Stream(Ethanol=2)</span>
 <span class="sd">        25272.75671868146</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">species</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_equilibrium_args</span><span class="p">()</span>
+        <span class="n">species</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_equilibrium_args</span><span class="p">()</span>
         <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span>
         
         <span class="c1"># Remove species that account for less than 1 percent</span>
@@ -1307,7 +1292,7 @@
 <span class="sd">        &gt;&gt;&gt; s1.nonzero_species</span>
 <span class="sd">        [1], [&#39;Water&#39;]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">nonzero_species</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_num_IDs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mol</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">nonzero_species</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_numIDs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mol</span><span class="p">)</span>
     
 <div class="viewcode-block" id="Stream.quantity"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.quantity">[docs]</a>    <span class="k">def</span> <span class="nf">quantity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a property as a Quantity object as described in the `pint package &lt;https://pint.readthedocs.io/en/latest/&gt;`__ </span>
@@ -1387,7 +1372,7 @@
         <span class="k">return</span> <span class="n">out</span></div>
     
 <div class="viewcode-block" id="Stream.copylike"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.copylike">[docs]</a>    <span class="k">def</span> <span class="nf">copylike</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Copy mol, T, P, and phase of stream to self.</span>
+        <span class="sd">&quot;&quot;&quot;Copy flow rates, T, P, and phase of stream to self.</span>
 
 <span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
 <span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
@@ -1411,6 +1396,17 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">phase</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">T</span></div>
 
+<div class="viewcode-block" id="Stream.copyflow"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.copyflow">[docs]</a>    <span class="k">def</span> <span class="nf">copyflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Copy flow rates and phase of stream to self.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stream</span><span class="p">,</span> <span class="n">MS</span><span class="o">.</span><span class="n">MixedStream</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">enable_phases</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">copyflow</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="ow">is</span> <span class="n">stream</span><span class="o">.</span><span class="n">_species</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;species must be the same to copy stream specifications&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">_mol</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="n">stream</span><span class="o">.</span><span class="n">phase</span></div>
+
 <div class="viewcode-block" id="Stream.empty"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.empty">[docs]</a>    <span class="k">def</span> <span class="nf">empty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set flow rates to zero</span>
 
@@ -1426,76 +1422,71 @@
     <span class="c1"># Equilibrium</span>
     <span class="k">def</span> <span class="nf">_equilibrium_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return default arguments for equilibrium calculations.&quot;&quot;&quot;</span>        
+        <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mol</span>
+        
         <span class="c1"># Choose species that have UNIFAC groups</span>
-        <span class="n">species</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_equilibrium_species</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mol</span><span class="p">)</span>
+        <span class="n">species</span><span class="p">,</span> <span class="n">index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_equilibrium_species</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
         
         <span class="c1"># Get the molar fraction for those species that are not zero</span>
-        <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">mol</span> <span class="o">=</span> <span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
         <span class="n">z</span> <span class="o">=</span> <span class="n">mol</span><span class="o">/</span><span class="n">mol</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 
-        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">species</span><span class="p">),</span> <span class="n">z</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">species</span><span class="p">),</span> <span class="n">z</span>
     
-<div class="viewcode-block" id="Stream.bubble_point"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.bubble_point">[docs]</a>    <span class="k">def</span> <span class="nf">bubble_point</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Bubble point at current composition and Pressure.</span>
+<div class="viewcode-block" id="Stream.bubble_T"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.bubble_T">[docs]</a>    <span class="k">def</span> <span class="nf">bubble_T</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Bubble point at current composition and pressure.</span>
 
 <span class="sd">        **Returns**</span>
 
-<span class="sd">            **T_bubble:** [float] The bubble point temperature</span>
+<span class="sd">            **T:** [float] Bubble point temperature (T).</span>
 
-<span class="sd">            **y:** [numpy ndarray] The composition of the vapor phase considering only the equilibrium species.</span>
+<span class="sd">            **y:** [numpy ndarray] Vapor phase composition.</span>
 <span class="sd">             </span>
-<span class="sd">            **eq_species:** tuple[str] Species in equilibrium.</span>
+<span class="sd">            **species:** tuple[str] Species in equilibrium.</span>
 
 <span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
 <span class="sd">        &gt;&gt;&gt; stream = Stream(flow=(0.6, 0.4),</span>
 <span class="sd">        ...                 species=Species(&#39;Ethanol&#39;, &#39;Water&#39;))</span>
-<span class="sd">        &gt;&gt;&gt; stream.bubble_point()</span>
-<span class="sd">        (352.2820850833474, array([0.703, 0.297]), (&lt;Chemical: Ethanol&gt;, &lt;Chemical: Water&gt;))</span>
+<span class="sd">        &gt;&gt;&gt; stream.bubble_T()</span>
+<span class="sd">        (352.2820850833474,</span>
+<span class="sd">         array([0.703, 0.297]),</span>
+<span class="sd">         (&lt;Chemical: Ethanol&gt;, &lt;Chemical: Water&gt;))</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># If just one specie in equilibrium, return Tsat</span>
-        <span class="n">species</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_equilibrium_args</span><span class="p">()</span>
+        <span class="n">species</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_equilibrium_args</span><span class="p">()</span>
         <span class="n">N_species</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">N_species</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">species</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">Tsat</span><span class="p">(</span><span class="n">P</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">species</span>
+            <span class="k">return</span> <span class="n">species</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">Tsat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">species</span>
         <span class="k">elif</span> <span class="n">N_species</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">EquilibriumError</span><span class="p">(</span><span class="s1">&#39;no species available for phase equilibrium&#39;</span><span class="p">)</span>
         
         <span class="c1"># Solve and return bubble point</span>
-        <span class="n">x</span><span class="p">,</span> <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bubble_point</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">species</span></div>
+        <span class="n">T</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bubble_T</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">T</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">species</span></div>
     
-    <span class="k">def</span> <span class="nf">_bubble_point_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">P</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Bubble point given x and P&quot;&quot;&quot;</span>
-        <span class="n">gamma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">activity_coefficients</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
-        <span class="n">Psat</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">VaporPressure</span><span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">species</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_yP</span> <span class="o">=</span>  <span class="n">x</span> <span class="o">*</span> <span class="n">Psat</span> <span class="o">*</span> <span class="n">gamma</span>
-        <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_yP</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">/</span><span class="n">P</span>
-    
-    <span class="k">def</span> <span class="nf">_bubble_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">P</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Bubble point at given composition and Pressure</span>
+    <span class="k">def</span> <span class="nf">_bubble_T</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">P</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Bubble point at given composition and pressure</span>
 
 <span class="sd">        **Parameters**</span>
 
 <span class="sd">            **species:** tuple[Compound] Species corresponding to x.</span>
 
-<span class="sd">            **x:** [array_like] The composition of the liquid phase.</span>
+<span class="sd">            **x:** [array_like] Liquid phase composition.</span>
 
-<span class="sd">            **P:** [float] The pressure in Pascals.</span>
+<span class="sd">            **P:** [float] Pressure (Pa).</span>
 <span class="sd">        </span>
 <span class="sd">        **Returns**</span>
 
-<span class="sd">            **T_bubble:** [float] The bubble point temperature</span>
+<span class="sd">            **T:** [float] Bubble point temperature (K)</span>
 
-<span class="sd">            **y:** [numpy ndarray] The composition of the vapor phase considering only the equilibrium species.</span>
-<span class="sd">             </span>
-<span class="sd">            **eq_species:** tuple[str] Species in equilibrium.</span>
+<span class="sd">            **y:** [numpy ndarray] Composition of the vapor phase.</span>
 
 <span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
 <span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; s1 = Stream()</span>
-<span class="sd">        &gt;&gt;&gt; s1._bubble_point(species=Species(&#39;Ethanol&#39;, &#39;Water&#39;),</span>
-<span class="sd">        ...                  x=(0.6, 0.4), P=101325)</span>
+<span class="sd">        &gt;&gt;&gt; s1._bubble_T(species=Stream.species,</span>
+<span class="sd">        ...              x=(0.6, 0.4), P=101325)</span>
 <span class="sd">        (352.2820850833474, array([0.703, 0.297]))</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -1512,83 +1503,156 @@
                 <span class="k">return</span> <span class="n">T_bubble</span><span class="p">,</span> <span class="n">y_bubble</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Initial temperature guess</span>
-            <span class="n">T_bubble</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">Tb</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">species</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="n">T_bubble</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">Tsat</span><span class="p">(</span><span class="n">P</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">species</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 
         <span class="c1"># Solve and return</span>
-        <span class="n">T_bubble</span> <span class="o">=</span> <span class="n">newton</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bubble_point_error</span><span class="p">,</span> <span class="n">T_bubble</span><span class="p">,</span>
+        <span class="n">T_bubble</span> <span class="o">=</span> <span class="n">newton</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bubble_error</span><span class="p">,</span> <span class="n">T_bubble</span><span class="p">,</span>
                           <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">P</span><span class="p">),</span> <span class="n">tol</span><span class="o">=</span> <span class="mf">1e-7</span><span class="p">)</span>
         <span class="n">y_bubble</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_yP</span> <span class="o">/</span> <span class="n">P</span>
         <span class="n">y_bubble</span> <span class="o">/=</span> <span class="n">y_bubble</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_bubble_cached</span> <span class="o">=</span> <span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T_bubble</span><span class="p">,</span> <span class="n">y_bubble</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">T_bubble</span><span class="p">,</span> <span class="n">y_bubble</span>
 
-<div class="viewcode-block" id="Stream.dew_point"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.dew_point">[docs]</a>    <span class="k">def</span> <span class="nf">dew_point</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Dew point at current composition and Pressure.</span>
-<span class="sd">        </span>
+<div class="viewcode-block" id="Stream.bubble_P"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.bubble_P">[docs]</a>    <span class="k">def</span> <span class="nf">bubble_P</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Bubble point at current composition and temperature.</span>
+
 <span class="sd">        **Returns**</span>
 
-<span class="sd">            **T_dew:** [float] The dew point temperature</span>
+<span class="sd">            **P:** [float] Bubble point pressure (Pa).</span>
 
-<span class="sd">            **x:** [numpy array] The composition of the liquid phase considering only the equilibrium species.</span>
+<span class="sd">            **y:** [numpy ndarray] Vapor phase composition.</span>
 <span class="sd">             </span>
-<span class="sd">            **eq_species:** tuple[str] Species in equilibrium.</span>
+<span class="sd">            **species:** tuple[str] Species in equilibrium.</span>
 
-<span class="sd">        &gt;&gt;&gt; stream = Stream(flow=(0.5, 0.5),</span>
-<span class="sd">        ...                 species=Species(&#39;Ethanol&#39;, &#39;Water&#39;))</span>
-<span class="sd">        &gt;&gt;&gt; stream.dew_point()</span>
-<span class="sd">        (353.7420742149825, array([0.556, 0.444]), (&lt;Chemical: Ethanol&gt;, &lt;Chemical: Water&gt;))</span>
-<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream(flow=(0.703, 0.297), T=352.28,</span>
+<span class="sd">                        species=Species(&#39;Ethanol&#39;, &#39;Water&#39;))</span>
+<span class="sd">        &gt;&gt;&gt; s1.bubble_P()</span>
+<span class="sd">        (103494.17209657285,</span>
+<span class="sd">         array([0.757, 0.243]),</span>
+<span class="sd">         (&lt;Chemical: Ethanol&gt;, &lt;Chemical: Water&gt;))</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># If just one specie in equilibrium, return Tsat</span>
-        <span class="n">species</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_equilibrium_args</span><span class="p">()</span>
+        <span class="n">species</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_equilibrium_args</span><span class="p">()</span>
         <span class="n">N_species</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">N_species</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">species</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">Tsat</span><span class="p">(</span><span class="n">P</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">species</span>
+            <span class="k">return</span> <span class="n">species</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">VaporPressure</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">species</span>
         <span class="k">elif</span> <span class="n">N_species</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">EquilibriumError</span><span class="p">(</span><span class="s1">&#39;no species available for phase equilibrium&#39;</span><span class="p">)</span>
         
-        <span class="c1"># Solve and return dew point</span>
-        <span class="n">y</span><span class="p">,</span> <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dew_point</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">y</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">species</span></div>
-    
-    <span class="k">def</span> <span class="nf">_dew_point_error_T</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot;Error for dew point temperature, constant x and P.&quot;&quot;&quot;</span>
-            <span class="n">Psat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">VaporPressure</span><span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">species</span><span class="p">])</span>
-            <span class="n">gamma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">activity_coefficients</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_y_over_Psat_gamma</span> <span class="o">=</span> <span class="n">y</span><span class="o">/</span><span class="p">(</span><span class="n">Psat</span><span class="o">*</span><span class="n">gamma</span><span class="p">)</span>
-            <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_over_Psat_gamma</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">*</span> <span class="n">P</span>
-    
-    <span class="k">def</span> <span class="nf">_dew_point_error_x</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Error function for dew point composition with constant y and P.&quot;&quot;&quot;</span>
-        <span class="n">x_dew</span> <span class="o">=</span> <span class="n">x</span><span class="o">/</span><span class="n">x</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_T_dew</span> <span class="o">=</span> <span class="n">newton</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dew_point_error_T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_T_dew</span><span class="p">,</span>
-                             <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">species</span><span class="p">),</span> <span class="n">tol</span><span class="o">=</span> <span class="mf">1e-7</span><span class="p">)</span>
-        <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x_dew</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_over_Psat_gamma</span><span class="o">*</span><span class="n">P</span><span class="p">)</span>
-    
-    <span class="k">def</span> <span class="nf">_dew_point</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">P</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Dew point given y and P.</span>
+        <span class="c1"># Solve and return bubble point</span>
+        <span class="n">P</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bubble_P</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">P</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">species</span>        </div>
+
+    <span class="k">def</span> <span class="nf">_bubble_P</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Bubble point at given composition and temperature.</span>
 
 <span class="sd">        **Parameters**</span>
 
 <span class="sd">            **species:** tuple[Compound] Species corresponding to x.</span>
 
-<span class="sd">            **y:** [array_like] The composition of the vapor phase.</span>
+<span class="sd">            **x:** [array_like] Liquid phase composotion.</span>
 
-<span class="sd">            **P:** [float] The pressure in Pascals.</span>
-
+<span class="sd">            **T:** [float] Temperature (K).</span>
+<span class="sd">        </span>
 <span class="sd">        **Returns**</span>
 
-<span class="sd">            **T_dew:** [float] The dew point temperature</span>
+<span class="sd">            **P:** [float] Bubble point pressure (Pa).</span>
 
-<span class="sd">            **x:** [numpy array] The composition of the liquid phase considering only the equilibrium species.</span>
-<span class="sd">             </span>
-<span class="sd">            **eq_species:** tuple[str] Species in equilibrium.</span>
+<span class="sd">            **y:** [numpy ndarray] Vapor phase composition.</span>
 
 <span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
 <span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; s1 = Stream()</span>
-<span class="sd">        &gt;&gt;&gt; s1.dew_point(species=Species(&#39;Ethanol&#39;, &#39;Water&#39;),</span>
-<span class="sd">        ...              y=(0.5, 0.5), P=101325)</span>
+<span class="sd">        &gt;&gt;&gt; s1._bubble_P(species=Stream.species,</span>
+<span class="sd">        ...              x=(0.703, 0.297), T=352.28)</span>
+<span class="sd">        (103494.17209657285, array([0.757, 0.243]))</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Setup functions to calculate vapor pressure and activity coefficients</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">/=</span> <span class="n">x</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        
+        <span class="c1"># Retrive cached info</span>
+        <span class="c1"># Even if different composition, use previous bubble point as guess</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bubble_cached</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">species</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">P_bubble</span><span class="p">,</span> <span class="n">cT</span><span class="p">,</span> <span class="n">y_bubble</span><span class="p">,</span> <span class="n">cx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bubble_cached</span> <span class="c1"># c means cached</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">cx</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">1e-6</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">cT</span> <span class="o">-</span> <span class="n">T</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">0.01</span><span class="p">:</span>
+                <span class="c1"># Return cached data</span>
+                <span class="k">return</span> <span class="n">P_bubble</span><span class="p">,</span> <span class="n">y_bubble</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Initial temperature guess</span>
+            <span class="n">P_bubble</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">VaporPressure</span><span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">species</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+        <span class="c1"># Solve and return</span>
+        <span class="n">P_bubble</span> <span class="o">=</span> <span class="n">newton</span><span class="p">(</span><span class="k">lambda</span> <span class="n">P</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bubble_error</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">P</span><span class="p">),</span>
+                          <span class="n">P_bubble</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span> <span class="mf">1e-7</span><span class="p">)</span>
+        <span class="n">y_bubble</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_yP</span> <span class="o">/</span> <span class="n">P_bubble</span>
+        <span class="n">y_bubble</span> <span class="o">/=</span> <span class="n">y_bubble</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_bubble_cached</span> <span class="o">=</span> <span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">P_bubble</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">y_bubble</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">P_bubble</span><span class="p">,</span> <span class="n">y_bubble</span>
+
+    <span class="k">def</span> <span class="nf">_bubble_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">P</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Bubble point given T, x and P&quot;&quot;&quot;</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">activity_coefficients</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+        <span class="n">Psat</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">VaporPressure</span><span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">species</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_yP</span> <span class="o">=</span>  <span class="n">x</span> <span class="o">*</span> <span class="n">Psat</span> <span class="o">*</span> <span class="n">gamma</span>
+        <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_yP</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">/</span><span class="n">P</span>
+
+<div class="viewcode-block" id="Stream.dew_T"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.dew_T">[docs]</a>    <span class="k">def</span> <span class="nf">dew_T</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dew point at current composition and pressure.</span>
+<span class="sd">        </span>
+<span class="sd">        **Returns**</span>
+
+<span class="sd">            **T:** [float] Dew point temperature (K).</span>
+
+<span class="sd">            **x:** [numpy array] Liquid phase composition.</span>
+<span class="sd">             </span>
+<span class="sd">            **species:** tuple[str] Species in equilibrium.</span>
+
+<span class="sd">        &gt;&gt;&gt; stream = Stream(flow=(0.5, 0.5),</span>
+<span class="sd">        ...                 species=Species(&#39;Ethanol&#39;, &#39;Water&#39;))</span>
+<span class="sd">        &gt;&gt;&gt; stream.dew_T()</span>
+<span class="sd">        (353.7420742149825,</span>
+<span class="sd">         array([0.556, 0.444]),</span>
+<span class="sd">         (&lt;Chemical: Ethanol&gt;, &lt;Chemical: Water&gt;))</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># If just one specie in equilibrium, return Tsat</span>
+        <span class="n">species</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_equilibrium_args</span><span class="p">()</span>
+        <span class="n">N_species</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">N_species</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">species</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">Tsat</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">species</span>
+        <span class="k">elif</span> <span class="n">N_species</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">EquilibriumError</span><span class="p">(</span><span class="s1">&#39;no species available for phase equilibrium&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Solve and return dew point</span>
+        <span class="n">T</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dew_T</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">T</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">species</span></div>
+    
+    <span class="k">def</span> <span class="nf">_dew_T</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">P</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dew point given composition and pressure.</span>
+
+<span class="sd">        **Parameters**</span>
+
+<span class="sd">            **species:** tuple[Compound] Species corresponding to x.</span>
+
+<span class="sd">            **y:** [array_like] Vapor phase composition.</span>
+
+<span class="sd">            **P:** [float] Pressure (Pa).</span>
+
+<span class="sd">        **Returns**</span>
+
+<span class="sd">            **T:** [float] Dew point temperature (K).</span>
+
+<span class="sd">            **x:** [numpy array] Liquid phase composition.</span>
+
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream()</span>
+<span class="sd">        &gt;&gt;&gt; s1._dew_T(species=Species(&#39;Ethanol&#39;, &#39;Water&#39;),</span>
+<span class="sd">        ...           y=(0.5, 0.5), P=101325)</span>
 <span class="sd">        (353.7420742149825, array([0.556, 0.444]))</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
@@ -1597,13 +1661,13 @@
         <span class="c1"># Retrive cached info</span>
         <span class="c1"># Even if different composition, use previous bubble point as guess</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dew_cached</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">species</span><span class="p">:</span>
-            <span class="n">_</span><span class="p">,</span> <span class="n">cP</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_T_dew</span><span class="p">,</span> <span class="n">cy</span><span class="p">,</span> <span class="n">x_dew</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dew_cached</span> <span class="c1"># c means cached</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">cP</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dew</span><span class="p">,</span> <span class="n">cy</span><span class="p">,</span> <span class="n">x_dew</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dew_cached</span> <span class="c1"># c means cached</span>
             <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">cy</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">1e-6</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">cP</span> <span class="o">-</span> <span class="n">P</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="c1"># Return cached data</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_T_dew</span><span class="p">,</span> <span class="n">x_dew</span> 
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dew</span><span class="p">,</span> <span class="n">x_dew</span> 
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Initial temperature guess</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_T_dew</span> <span class="o">=</span> <span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">Tb</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">species</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dew</span> <span class="o">=</span> <span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">Tsat</span><span class="p">(</span><span class="n">P</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">species</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
             <span class="n">x_dew</span> <span class="o">=</span> <span class="n">y</span>
 
         <span class="c1"># Get min and max splits</span>
@@ -1612,13 +1676,110 @@
         <span class="n">max_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">Nspecies</span><span class="p">)</span>
 
         <span class="c1"># Find x by least squares</span>
-        <span class="k">try</span><span class="p">:</span> <span class="n">x_dew</span> <span class="o">=</span> <span class="n">least_squares</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dew_point_error_x</span><span class="p">,</span> <span class="n">x_dew</span><span class="p">,</span>
+        <span class="k">try</span><span class="p">:</span> <span class="n">x_dew</span> <span class="o">=</span> <span class="n">least_squares</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dew_error</span><span class="p">,</span> <span class="n">x_dew</span><span class="p">,</span>
                                    <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="n">min_</span><span class="p">,</span> <span class="n">max_</span><span class="p">),</span>
-                                   <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">species</span><span class="p">),</span>
+                                   <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="k">lambda</span> <span class="n">T</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dew_error_sum</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">species</span><span class="p">),),</span>
+                                   <span class="n">xtol</span><span class="o">=</span> <span class="mf">1e-6</span><span class="p">)</span><span class="o">.</span><span class="n">x</span>
+        <span class="k">except</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dew</span><span class="p">,</span> <span class="n">x_dew</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dew_cached</span> <span class="o">=</span> <span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dew</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x_dew</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dew</span><span class="p">,</span> <span class="n">x_dew</span>
+    
+<div class="viewcode-block" id="Stream.dew_P"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.dew_P">[docs]</a>    <span class="k">def</span> <span class="nf">dew_P</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dew point at current composition and temperature.</span>
+<span class="sd">        </span>
+<span class="sd">        **Returns**</span>
+
+<span class="sd">            **P:** [float] Dew point pressure (Pa).</span>
+
+<span class="sd">            **x:** [numpy array] Liquid phase composition.</span>
+<span class="sd">             </span>
+<span class="sd">            **species:** tuple[str] Species in equilibrium.</span>
+
+<span class="sd">        from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; stream = Stream(flow=(0.703, 0.297), T=352.28,</span>
+<span class="sd">        ...                 species=Species(&#39;Ethanol&#39;, &#39;Water&#39;))</span>
+<span class="sd">        &gt;&gt;&gt; stream.dew_P()</span>
+<span class="sd">        (101328.47030327446,</span>
+<span class="sd">         array([0.6, 0.4]),</span>
+<span class="sd">         (&lt;Chemical: Ethanol&gt;, &lt;Chemical: Water&gt;))</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># If just one specie in equilibrium, return Tsat</span>
+        <span class="n">species</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_equilibrium_args</span><span class="p">()</span>
+        <span class="n">N_species</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">N_species</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">species</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">VaporPressure</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">species</span>
+        <span class="k">elif</span> <span class="n">N_species</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">EquilibriumError</span><span class="p">(</span><span class="s1">&#39;no species available for phase equilibrium&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Solve and return dew point</span>
+        <span class="n">P</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dew_P</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">P</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">species</span></div>
+    
+    <span class="k">def</span> <span class="nf">_dew_P</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">T</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Dew point given composition and temperature.</span>
+
+<span class="sd">        **Parameters**</span>
+
+<span class="sd">            **species:** tuple[Compound] Species in equilibrium.</span>
+
+<span class="sd">            **y:** [array_like] Vapor phase composition.</span>
+
+<span class="sd">            **T:** [float] Temperature (K).</span>
+
+<span class="sd">        **Returns**</span>
+
+<span class="sd">            **P:** [float] Dew point pressure (Pa).</span>
+
+<span class="sd">            **x:** [numpy array] Liquid phase composition.</span>
+
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; s1 = Stream()</span>
+<span class="sd">        &gt;&gt;&gt; s1._bubble_P(x=(0.703, 0.297), T=352.28,</span>
+<span class="sd">        ...              species=Species(&#39;Ethanol&#39;, &#39;Water&#39;))</span>
+<span class="sd">        (101328.47030327446, array([0.6, 0.4]))</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">/=</span> <span class="n">y</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        
+        <span class="c1"># Retrive cached info</span>
+        <span class="c1"># Even if different composition, use previous bubble point as guess</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dew_cached</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">species</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dew</span><span class="p">,</span> <span class="n">cT</span><span class="p">,</span> <span class="n">cy</span><span class="p">,</span> <span class="n">x_dew</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dew_cached</span> <span class="c1"># c means cached</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">cy</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">1e-6</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">cT</span> <span class="o">-</span> <span class="n">T</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="c1"># Return cached data</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dew</span><span class="p">,</span> <span class="n">x_dew</span> 
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Initial temperature guess</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dew</span> <span class="o">=</span> <span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">VaporPressure</span><span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">species</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="n">x_dew</span> <span class="o">=</span> <span class="n">y</span>
+
+        <span class="c1"># Get min and max splits</span>
+        <span class="n">Nspecies</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+        <span class="n">min_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">Nspecies</span><span class="p">)</span>
+        <span class="n">max_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">Nspecies</span><span class="p">)</span>
+
+        <span class="c1"># Find x by least squares</span>
+        <span class="k">try</span><span class="p">:</span> <span class="n">x_dew</span> <span class="o">=</span> <span class="n">least_squares</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dew_error</span><span class="p">,</span> <span class="n">x_dew</span><span class="p">,</span>
+                                   <span class="n">bounds</span><span class="o">=</span><span class="p">(</span><span class="n">min_</span><span class="p">,</span> <span class="n">max_</span><span class="p">),</span>
+                                   <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="k">lambda</span> <span class="n">P</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dew_error_sum</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">species</span><span class="p">),),</span>
                                    <span class="n">xtol</span><span class="o">=</span> <span class="mf">1e-6</span><span class="p">)</span><span class="o">.</span><span class="n">x</span>
         <span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_dew_cached</span> <span class="o">=</span> <span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_T_dew</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x_dew</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_T_dew</span><span class="p">,</span> <span class="n">x_dew</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dew_cached</span> <span class="o">=</span> <span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dew</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x_dew</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dew</span><span class="p">,</span> <span class="n">x_dew</span>
+    
+    <span class="k">def</span> <span class="nf">_dew_error_sum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Error for dew point temperature, x, y, and P.&quot;&quot;&quot;</span>
+        <span class="n">Psat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">s</span><span class="o">.</span><span class="n">VaporPressure</span><span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">species</span><span class="p">])</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">activity_coefficients</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Py_over_gammaPsat</span> <span class="o">=</span> <span class="n">P</span><span class="o">*</span><span class="n">y</span><span class="o">/</span><span class="p">(</span><span class="n">Psat</span><span class="o">*</span><span class="n">gamma</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Py_over_gammaPsat</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    
+    <span class="k">def</span> <span class="nf">_dew_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">f_error</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Error function for dew point composition.&quot;&quot;&quot;</span>
+        <span class="n">x_dew</span> <span class="o">=</span> <span class="n">x</span><span class="o">/</span><span class="n">x</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dew</span> <span class="o">=</span> <span class="n">newton</span><span class="p">(</span><span class="n">f_error</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dew</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">x_dew</span><span class="p">,),</span> <span class="n">tol</span><span class="o">=</span> <span class="mf">1e-7</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="n">x_dew</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Py_over_gammaPsat</span><span class="p">)</span>
 
     <span class="c1"># Dimensionless number methods</span>
 <div class="viewcode-block" id="Stream.Re"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.Re">[docs]</a>    <span class="k">def</span> <span class="nf">Re</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">A</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -1819,7 +1980,7 @@
                 <span class="c1"># For MixedStream objects</span>
                 <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">other_streams</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">inst</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">MStream</span><span class="p">):</span>
-                        <span class="n">s_sum</span><span class="o">.</span><span class="n">_mol</span> <span class="o">+=</span> <span class="n">s</span><span class="o">.</span><span class="n">_mol</span>
+                        <span class="n">s_sum</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">+=</span> <span class="n">s</span><span class="o">.</span><span class="n">_mol</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">s_sum</span><span class="o">.</span><span class="n">_mol</span><span class="p">[</span><span class="n">phase_index</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">_phase</span><span class="p">]]</span> <span class="o">+=</span> <span class="n">s</span><span class="o">.</span><span class="n">_mol</span>
             <span class="k">else</span><span class="p">:</span>
@@ -1844,7 +2005,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">=</span> <span class="n">MS</span><span class="o">.</span><span class="n">MixedStream</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_setflows</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_Nspecies</span><span class="p">)))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span><span class="p">[</span><span class="n">phase_index</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_phase</span><span class="p">]]</span> <span class="o">=</span> <span class="n">mol</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_T_QinP</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_T_VP</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_lL_split_cached</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_cached</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,)</span></div>
 
 <div class="viewcode-block" id="Stream.disable_phases"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.disable_phases">[docs]</a>    <span class="k">def</span> <span class="nf">disable_phases</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase</span><span class="p">):</span>
@@ -1857,17 +2017,17 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="n">phase</span></div>
             
-<div class="viewcode-block" id="Stream.VLE"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.VLE">[docs]</a>    <span class="k">def</span> <span class="nf">VLE</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species_IDs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">LNK</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">HNK</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-            <span class="n">Qin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">V</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Stream.VLE"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.VLE">[docs]</a>    <span class="k">def</span> <span class="nf">VLE</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species_IDs</span><span class="o">=</span><span class="p">(),</span> <span class="n">LNK</span><span class="o">=</span><span class="p">(),</span> <span class="n">HNK</span><span class="o">=</span><span class="p">(),</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">Q</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">V</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">enable_phases</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">species_IDs</span><span class="p">,</span> <span class="n">LNK</span><span class="p">,</span> <span class="n">HNK</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">Qin</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">species_IDs</span><span class="p">,</span> <span class="n">LNK</span><span class="p">,</span> <span class="n">HNK</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span></div>
         
-<div class="viewcode-block" id="Stream.LLE"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.LLE">[docs]</a>    <span class="k">def</span> <span class="nf">LLE</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species_IDs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lNK</span><span class="o">=</span><span class="p">(),</span> <span class="n">LNK</span><span class="o">=</span><span class="p">(),</span>
+<div class="viewcode-block" id="Stream.LLE"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.LLE">[docs]</a>    <span class="k">def</span> <span class="nf">LLE</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species_IDs</span><span class="o">=</span><span class="p">(),</span> <span class="n">split</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lNK</span><span class="o">=</span><span class="p">(),</span> <span class="n">LNK</span><span class="o">=</span><span class="p">(),</span>
             <span class="n">solvents</span><span class="o">=</span><span class="p">(),</span> <span class="n">solvent_split</span><span class="o">=</span><span class="p">(),</span>
-            <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Qin</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Q</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">enable_phases</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">LLE</span><span class="p">(</span><span class="n">species_IDs</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">lNK</span><span class="p">,</span> <span class="n">LNK</span><span class="p">,</span>
-                 <span class="n">solvents</span><span class="p">,</span> <span class="n">solvent_split</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">Qin</span><span class="p">)</span></div>
+                 <span class="n">solvents</span><span class="p">,</span> <span class="n">solvent_split</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">Q</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_info_header</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return stream information header.&quot;&quot;&quot;</span>
@@ -1955,10 +2115,10 @@
               <span class="o">+</span> <span class="n">flowrates</span>
               <span class="o">+</span> <span class="n">end</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="n">new_line_spaces</span> <span class="o">+</span> <span class="s1">&#39;net&#39;</span> <span class="o">+</span> <span class="p">(</span><span class="n">maxlen</span><span class="o">-</span><span class="mi">4</span><span class="p">)</span><span class="o">*</span><span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="s1">&#39;  &#39;</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">_ipython_display_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Stream.show"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Print all specifications.&quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">fraction</span><span class="p">))</span>
-    <span class="n">show</span> <span class="o">=</span> <span class="n">_ipython_display_</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">fraction</span><span class="p">))</span></div>
+    <span class="n">_ipython_display_</span> <span class="o">=</span> <span class="n">show</span>
 
     <span class="k">def</span> <span class="nf">_disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">outs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_source</span><span class="o">.</span><span class="n">_outs</span>

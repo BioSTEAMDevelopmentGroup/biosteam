@@ -76,28 +76,25 @@ material_factor = {'Carbon steel': 1.0,
 # %% Flash
 
 class Flash(Unit):
-    """Create an equlibrium based flash drum with the option of having light non-keys and heavy non-keys completly separate into their respective phases. Design procedure is based on heuristics by Wayne D. Monnery & William Y. Svrcek [1]. The f.o.b cost is based on classical Guthrie's correlation [2]:
-
-    :math:`C_{fob}^{2007} = 6500 V^{0.62} (0.1 < V < 70 m^3)`
+    """Create an equlibrium based flash drum with the option of having light non-keys and heavy non-keys completly separate into their respective phases. Design procedure is based on heuristics by Wayne D. Monnery & William Y. Svrcek [1]. Purchase costs are based on correlations by Mulet et al. [2, 3] as compiled by Warren et. al. [4].
 
     **Parameters**
 
-        **P:** [float] Operating pressure (Pa)
-
-        **User defines one:**
+        **Specify two:**
+            * **P:** [float] Operating pressure (Pa)
             * **Q:** [float] Energy input (kJ/hr)
-            * **V:** [float] Overall molar vapor fraction
+            * **V:** [float] Molar vapor fraction
             * **T:** [float] Operating temperature (K)
             * **x:** [array_like] Molar composition of liquid (for binary mixture)
             * **y:** [array_like] Molar composition of vapor (for binary mixture)     
     
         **Optional**
     
-            **species_IDs:** tuple[str] IDs of species in thermodynamic equilibrium
+            **species_IDs:** tuple[str] IDs of species in equilibrium.
             
-            **LNK**: tuple[str] Light non-keys assumed to remain as a vapor
+            **LNK**: tuple[str] Light non-keys assumed to remain as a vapor.
         
-            **HNK**: tuple[str] Heavy non-keys assumed to remain as a liquid
+            **HNK**: tuple[str] Heavy non-keys assumed to remain as a liquid.
 
     **ins**
     
@@ -111,9 +108,13 @@ class Flash(Unit):
 
     **References**
 
-        [1] Design Two-Phase Separators Within the Right Limits, Chemical Engineering Progress Oct, 1993
+        [1] "Design Two-Phase Separators Within the Right Limits", Chemical Engineering Progress Oct, 1993.
     
-        [2] I.K. Kookos, Preliminary Chemical Process Synthesis and Design, Tziolas Publishing, Thessalonika, Greece, 2008 (book in Greek).
+        [2] Mulet, A., A. B. Corripio, and L. B. Evans, “Estimate Costs of Pressure Vessels via Correlations,” Chem. Eng., 88(20), 145–150 (1981a).
+
+        [3] Mulet, A., A.B. Corripio, and L.B.Evans, “Estimate Costs of Distillation and Absorption Towers via Correlations,” Chem. Eng., 88(26), 77–82 (1981b).
+
+        [4] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R., & Ng, M. K. (2017). Product and Process Design Principles. Wiley. Cost Accounting and Capital Cost Estimation (Chapter 16)    
     
     **Examples**
     

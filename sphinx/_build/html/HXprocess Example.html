@@ -399,7 +399,8 @@ div.nboutput div.output_area.stderr {
 <span class="c1"># Simulate counter-current heat exchanger</span>
 <span class="n">in1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;in1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">350</span><span class="p">)</span>
 <span class="n">in2</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;in2&#39;</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
-<span class="n">hx</span> <span class="o">=</span> <span class="n">HXprocess</span><span class="p">(</span><span class="s1">&#39;hx&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="p">(</span><span class="n">in1</span><span class="p">,</span> <span class="n">in2</span><span class="p">),</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;out1&#39;</span><span class="p">,</span> <span class="s1">&#39;out2&#39;</span><span class="p">),</span> <span class="n">Type</span><span class="o">=</span><span class="s1">&#39;ss&#39;</span><span class="p">)</span>
+<span class="n">hx</span> <span class="o">=</span> <span class="n">HXprocess</span><span class="p">(</span><span class="s1">&#39;hx&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="p">(</span><span class="n">in1</span><span class="p">,</span> <span class="n">in2</span><span class="p">),</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;out1&#39;</span><span class="p">,</span> <span class="s1">&#39;out2&#39;</span><span class="p">),</span>
+               <span class="n">fluid_type</span><span class="o">=</span><span class="s1">&#39;ss&#39;</span><span class="p">)</span>
 <span class="n">hx</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
 
 <span class="c1"># Show results</span>
@@ -420,14 +421,14 @@ div.nboutput div.output_area.stderr {
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 HXprocess: hx
-<span class="ansi-white-fg">ins...</span>
+ins...
 [0] in1
     phase: &#39;l&#39;, T: 350 K, P: 101325 Pa
     flow (kmol/hr): Water  200
 [1] in2
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow (kmol/hr): Ethanol  200
-<span class="ansi-white-fg">outs...</span>
+outs...
 [0] out1
     phase: &#39;l&#39;, T: 303.15 K, P: 101325 Pa
     flow (kmol/hr): Water  200
@@ -516,13 +517,13 @@ HXprocess: hx
       <th>Cost</th>
       <th>Heat exchanger</th>
       <td>USD</td>
-      <td>1.74e+04</td>
+      <td>2.2e+04</td>
     </tr>
     <tr>
       <th>Purchase cost</th>
       <th></th>
       <td>USD</td>
-      <td>1.74e+04</td>
+      <td>2.2e+04</td>
     </tr>
     <tr>
       <th>Utility cost</th>
@@ -546,7 +547,8 @@ HXprocess: hx
 <span></span><span class="c1"># Simulate counter-current heat exchanger</span>
 <span class="n">in1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;in1&#39;</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">351.43</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">)</span>
 <span class="n">in2</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;in2&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
-<span class="n">hx</span> <span class="o">=</span> <span class="n">HXprocess</span><span class="p">(</span><span class="s1">&#39;hx&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="p">(</span><span class="n">in1</span><span class="p">,</span> <span class="n">in2</span><span class="p">),</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;out1&#39;</span><span class="p">,</span> <span class="s1">&#39;out2&#39;</span><span class="p">),</span> <span class="n">Type</span><span class="o">=</span><span class="s1">&#39;ls&#39;</span><span class="p">)</span>
+<span class="n">hx</span> <span class="o">=</span> <span class="n">HXprocess</span><span class="p">(</span><span class="s1">&#39;hx&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="p">(</span><span class="n">in1</span><span class="p">,</span> <span class="n">in2</span><span class="p">),</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;out1&#39;</span><span class="p">,</span> <span class="s1">&#39;out2&#39;</span><span class="p">),</span>
+               <span class="n">fluid_type</span><span class="o">=</span><span class="s1">&#39;ls&#39;</span><span class="p">)</span>
 <span class="n">hx</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
 
 <span class="c1"># Show results</span>
@@ -567,17 +569,17 @@ HXprocess: hx
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 HXprocess: hx
-<span class="ansi-white-fg">ins...</span>
+ins...
 [0] in1
     phase: &#39;g&#39;, T: 351.43 K, P: 101325 Pa
     flow (kmol/hr): Ethanol  50
 [1] in2
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow (kmol/hr): Water  200
-<span class="ansi-white-fg">outs...</span>
+outs...
 [0] out1
     phase: &#39;lg&#39;, T: 351.43 K, P: 101325 Pa
-           <span class="ansi-white-fg"> species  kmol/hr</span>
+            species  kmol/hr
     liquid: Ethanol  18.7
 
     vapor:  Ethanol  31.3
@@ -666,13 +668,13 @@ HXprocess: hx
       <th>Cost</th>
       <th>Heat exchanger</th>
       <td>USD</td>
-      <td>1.95e+04</td>
+      <td>2.47e+04</td>
     </tr>
     <tr>
       <th>Purchase cost</th>
       <th></th>
       <td>USD</td>
-      <td>1.95e+04</td>
+      <td>2.47e+04</td>
     </tr>
     <tr>
       <th>Utility cost</th>
@@ -696,7 +698,8 @@ HXprocess: hx
 <span></span><span class="c1"># Simulate counter-current heat exchanger</span>
 <span class="n">in1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;in1&#39;</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">351.43</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;l&#39;</span><span class="p">)</span>
 <span class="n">in2</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;in2&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">373.15</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">)</span>
-<span class="n">hx</span> <span class="o">=</span> <span class="n">HXprocess</span><span class="p">(</span><span class="s1">&#39;hx&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="p">(</span><span class="n">in1</span><span class="p">,</span> <span class="n">in2</span><span class="p">),</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;out1&#39;</span><span class="p">,</span> <span class="s1">&#39;out2&#39;</span><span class="p">),</span> <span class="n">Type</span><span class="o">=</span><span class="s1">&#39;ll&#39;</span><span class="p">)</span>
+<span class="n">hx</span> <span class="o">=</span> <span class="n">HXprocess</span><span class="p">(</span><span class="s1">&#39;hx&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="p">(</span><span class="n">in1</span><span class="p">,</span> <span class="n">in2</span><span class="p">),</span> <span class="n">outs</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;out1&#39;</span><span class="p">,</span> <span class="s1">&#39;out2&#39;</span><span class="p">),</span>
+               <span class="n">fluid_type</span><span class="o">=</span><span class="s1">&#39;ll&#39;</span><span class="p">)</span>
 <span class="n">hx</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
 
 <span class="c1"># Show results</span>
@@ -717,21 +720,21 @@ HXprocess: hx
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 HXprocess: hx
-<span class="ansi-white-fg">ins...</span>
+ins...
 [0] in1
     phase: &#39;l&#39;, T: 351.43 K, P: 101325 Pa
     flow (kmol/hr): Ethanol  50
 [1] in2
     phase: &#39;g&#39;, T: 373.15 K, P: 101325 Pa
     flow (kmol/hr): Water  200
-<span class="ansi-white-fg">outs...</span>
+outs...
 [0] out1
     phase: &#39;g&#39;, T: 351.43 K, P: 101325 Pa
-           <span class="ansi-white-fg"> species  kmol/hr</span>
+            species  kmol/hr
     vapor:  Ethanol  50
 [1] out2
     phase: &#39;lg&#39;, T: 373.16 K, P: 101325 Pa
-           <span class="ansi-white-fg"> species  kmol/hr</span>
+            species  kmol/hr
     liquid: Water    47.7
 
     vapor:  Water    152
@@ -817,13 +820,13 @@ HXprocess: hx
       <th>Cost</th>
       <th>Heat exchanger</th>
       <td>USD</td>
-      <td>1.67e+04</td>
+      <td>2.11e+04</td>
     </tr>
     <tr>
       <th>Purchase cost</th>
       <th></th>
       <td>USD</td>
-      <td>1.67e+04</td>
+      <td>2.11e+04</td>
     </tr>
     <tr>
       <th>Utility cost</th>

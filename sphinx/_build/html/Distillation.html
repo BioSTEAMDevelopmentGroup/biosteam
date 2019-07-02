@@ -229,7 +229,7 @@
 <dl class="class">
 <dt id="biosteam.units.Distillation">
 <em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">Distillation</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>P=101325</em>, <em>LHK=None</em>, <em>y_top=None</em>, <em>x_bot=None</em>, <em>k=1.25</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_distillation.html#Distillation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Distillation" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a Distillation column that assumes all light and heavy non keys separate to the top and bottoms product respectively. McCabe-Thiele analysis is used to find both the number of stages and the reflux ratio given a ratio of actual reflux to minimum reflux [1]. This assumption is good for both binary distillation of highly polar compounds and ternary distillation assuming complete separation of light non-keys and heavy non-keys with large differences in boiling points. Preliminary analysis showed that the theoretical number of stages using this method on Methanol/Glycerol/Water systems is off by less than +-1 stage. Other methods, such as the Fenske-Underwood-Gilliland method, are more suitable for hydrocarbons. The Murphree efficiency is based on the modified O’Connell correlation [2]. The diameter is based on tray separation and flooding velocity [1].</p>
+<dd><p>Create a Distillation column that assumes all light and heavy non keys separate to the top and bottoms product respectively. McCabe-Thiele analysis is used to find both the number of stages and the reflux ratio given a ratio of actual reflux to minimum reflux [1]. This assumption is good for both binary distillation of highly polar compounds and ternary distillation assuming complete separation of light non-keys and heavy non-keys with large differences in boiling points. Preliminary analysis showed that the theoretical number of stages using this method on Methanol/Glycerol/Water systems is off by less than +-1 stage. Other methods, such as the Fenske-Underwood-Gilliland method, are more suitable for hydrocarbons. The Murphree efficiency is based on the modified O’Connell correlation [2]. The diameter is based on tray separation and flooding velocity [1]. Purchase costs are based on correlations by Mulet et al. [3, 4] as compiled by Warren et. al. [5].</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>ID:</strong> [str] Unique identification. If set as ‘’, a default ID will be chosen.</p>
@@ -253,6 +253,9 @@
 <blockquote>
 <div><p>[1] J.D. Seader, E.J. Henley, D.K. Roper. Separation Process Principles 3rd Edition. John Wiley &amp; Sons, Inc. (2011)</p>
 <p>[2] M. Duss, R. Taylor. Predict Distillation Tray Efficiency. AICHE (2018)</p>
+<p>[3] Mulet, A., A. B. Corripio, and L. B. Evans, “Estimate Costs of Pressure Vessels via Correlations,” Chem. Eng., 88(20), 145–150 (1981a).</p>
+<p>[4] Mulet, A., A.B. Corripio, and L.B.Evans, “Estimate Costs of Distillation and Absorption Towers via Correlations,” Chem. Eng., 88(26), 77–82 (1981b).</p>
+<p>[5] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R., &amp; Ng, M. K. (2017). Product and Process Design Principles. Wiley. Cost Accounting and Capital Cost Estimation (Chapter 16)</p>
 </div></blockquote>
 <p><strong>Examples</strong></p>
 <blockquote>
@@ -322,12 +325,6 @@
 <dt id="biosteam.units.Distillation.purchase_cost">
 <code class="descname">purchase_cost</code><a class="headerlink" href="#biosteam.units.Distillation.purchase_cost" title="Permalink to this definition">¶</a></dt>
 <dd><p>Total purchase cost (USD).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.reset">
-<code class="descname">reset</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.reset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reset unit with new key word arguments.</p>
 </dd></dl>
 
 <dl class="method">

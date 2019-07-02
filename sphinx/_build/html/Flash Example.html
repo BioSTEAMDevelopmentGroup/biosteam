@@ -381,8 +381,7 @@ div.nboutput div.output_area.stderr {
 <h1>4.4. Flash<a class="headerlink" href="#Flash" title="Permalink to this headline">¶</a></h1>
 <p><strong>Flash drum simulation is based on vapor-liquid equilibrium using
 Dortmund modified UNIFAC activity coefficients and modified Raoult’s
-law. Design procedure based on heuristics by Wayne D. Monnery &amp; William
-Y. Svrcek.</strong></p>
+law.</strong></p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [1]:
@@ -393,8 +392,8 @@ Y. Svrcek.</strong></p>
 <span class="kn">from</span> <span class="nn">biosteam.units</span> <span class="k">import</span> <span class="n">Flash</span>
 <span class="c1"># Set up feed</span>
 <span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Glycerol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
-<span class="n">feed</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="mi">600</span><span class="p">))</span>
-<span class="n">feed</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">bubble_point</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">feed</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">1000</span><span class="p">))</span>
+<span class="n">feed</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">bubble_T</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># Feed at bubble point T</span>
 
 <span class="c1"># Simulate flash drum</span>
 <span class="n">F1</span> <span class="o">=</span> <span class="n">Flash</span><span class="p">(</span><span class="s1">&#39;F1&#39;</span><span class="p">,</span>
@@ -425,18 +424,18 @@ Y. Svrcek.</strong></p>
 Flash: F1
 ins...
 [0] feed
-    phase: &#39;l&#39;, T: 100.97 degC, P: 1 atm
-    flow (kmol/hr): Glycerol  100
-                    Water     600
+    phase: &#39;l&#39;, T: 100.7 degC, P: 1 atm
+    flow (kmol/hr): Glycerol  300
+                    Water     1e+03
 outs...
 [0] vapor
     phase: &#39;g&#39;, T: 137 degC, P: 1 atm
-    flow (kmol/hr): Glycerol  1.42
-                    Water     586
+    flow (kmol/hr): Glycerol  2.32
+                    Water     958
 [1] crude_glycerin
     phase: &#39;l&#39;, T: 137 degC, P: 1 atm
-    flow (kmol/hr): Glycerol  98.6
-                    Water     14.1
+    flow (kmol/hr): Glycerol  298
+                    Water     42.4
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -484,17 +483,17 @@ outs...
       <th rowspan="3" valign="top">Medium pressure steam</th>
       <th>Duty</th>
       <td>kJ/hr</td>
-      <td>2.86e+07</td>
+      <td>4.82e+07</td>
     </tr>
     <tr>
       <th>Flow</th>
       <td>kmol/hr</td>
-      <td>787</td>
+      <td>1.33e+03</td>
     </tr>
     <tr>
       <th>Cost</th>
       <td>USD/hr</td>
-      <td>217</td>
+      <td>366</td>
     </tr>
     <tr>
       <th rowspan="6" valign="top">Design</th>
@@ -505,22 +504,22 @@ outs...
     <tr>
       <th>Length</th>
       <td>ft</td>
-      <td>11.5</td>
+      <td>21.5</td>
     </tr>
     <tr>
       <th>Diameter</th>
       <td>ft</td>
-      <td>7.5</td>
+      <td>5.5</td>
     </tr>
     <tr>
       <th>Weight</th>
       <td>lb</td>
-      <td>5.6e+03</td>
+      <td>5.39e+03</td>
     </tr>
     <tr>
       <th>Wall thickness</th>
       <td>in</td>
-      <td>0.375</td>
+      <td>0.312</td>
     </tr>
     <tr>
       <th>Material</th>
@@ -531,24 +530,24 @@ outs...
       <th rowspan="2" valign="top">Cost</th>
       <th>Flash</th>
       <td>USD</td>
-      <td>4.4e+04</td>
+      <td>4.57e+04</td>
     </tr>
     <tr>
       <th>Heat exchanger</th>
       <td>USD</td>
-      <td>3.34e+04</td>
+      <td>4.25e+04</td>
     </tr>
     <tr>
       <th>Purchase cost</th>
       <th></th>
       <td>USD</td>
-      <td>7.74e+04</td>
+      <td>8.82e+04</td>
     </tr>
     <tr>
       <th>Utility cost</th>
       <th></th>
       <td>USD/hr</td>
-      <td>217</td>
+      <td>366</td>
     </tr>
   </tbody>
 </table>

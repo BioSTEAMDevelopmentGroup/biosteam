@@ -228,20 +228,19 @@
 <span id="flash"></span><h1>Flash<a class="headerlink" href="#module-biosteam.units" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.units.Flash">
-<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">Flash</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>species_IDs=None</em>, <em>LNK=None</em>, <em>HNK=None</em>, <em>V=None</em>, <em>T=None</em>, <em>Qin=None</em>, <em>P=None</em>, <em>y=None</em>, <em>x=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_flash.html#Flash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Flash" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create an equlibrium based flash drum with the option of having light non-keys and heavy non-keys completly separate into their respective phases. Design procedure is based on heuristics by Wayne D. Monnery &amp; William Y. Svrcek [1]. The f.o.b cost is based on classical Guthrie’s correlation [2]:</p>
-<p><img class="math" src="_images/math/27bb75df2c377947d51bbc7b01e35c51231b1118.png" alt="C_{fob}^{2007} = 6500 V^{0.62} (0.1 &lt; V &lt; 70 m^3)"/></p>
+<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">Flash</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>species_IDs=None</em>, <em>LNK=()</em>, <em>HNK=()</em>, <em>V=None</em>, <em>T=None</em>, <em>Q=None</em>, <em>P=None</em>, <em>y=None</em>, <em>x=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_flash.html#Flash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Flash" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an equlibrium based flash drum with the option of having light non-keys and heavy non-keys completly separate into their respective phases. Design procedure is based on heuristics by Wayne D. Monnery &amp; William Y. Svrcek [1]. Purchase costs are based on correlations by Mulet et al. [2, 3] as compiled by Warren et. al. [4].</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>ID:</strong> [str] Unique identification. If set as ‘’, a default ID will be chosen.</p>
 <p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
 <p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
-<p><strong>P:</strong> [float] Operating pressure (Pa)</p>
 <dl class="docutils">
-<dt><strong>User defines one:</strong></dt>
+<dt><strong>Specify two:</strong></dt>
 <dd><ul class="first last simple">
-<li><strong>Qin:</strong> [float] Energy input (kJ/hr)</li>
-<li><strong>V:</strong> [float] Overall molar vapor fraction</li>
+<li><strong>P:</strong> [float] Operating pressure (Pa)</li>
+<li><strong>Q:</strong> [float] Energy input (kJ/hr)</li>
+<li><strong>V:</strong> [float] Molar vapor fraction</li>
 <li><strong>T:</strong> [float] Operating temperature (K)</li>
 <li><strong>x:</strong> [array_like] Molar composition of liquid (for binary mixture)</li>
 <li><strong>y:</strong> [array_like] Molar composition of vapor (for binary mixture)</li>
@@ -250,9 +249,9 @@
 </dl>
 <p><strong>Optional</strong></p>
 <blockquote>
-<div><p><strong>species_IDs:</strong> tuple[str] IDs of equilibrium species</p>
-<p><strong>LNK</strong>: tuple[str] Light non-keys</p>
-<p><strong>HNK</strong>: tuple[str] Heavy non-keys</p>
+<div><p><strong>species_IDs:</strong> tuple[str] IDs of species in equilibrium.</p>
+<p><strong>LNK</strong>: tuple[str] Light non-keys assumed to remain as a vapor.</p>
+<p><strong>HNK</strong>: tuple[str] Heavy non-keys assumed to remain as a liquid.</p>
 </div></blockquote>
 </div></blockquote>
 <p><strong>ins</strong></p>
@@ -265,8 +264,10 @@
 </div></blockquote>
 <p><strong>References</strong></p>
 <blockquote>
-<div><p>[1] Design Two-Phase Separators Within the Right Limits, Chemical Engineering Progress Oct, 1993</p>
-<p>[2] I.K. Kookos, Preliminary Chemical Process Synthesis and Design, Tziolas Publishing, Thessalonika, Greece, 2008 (book in Greek).</p>
+<div><p>[1] “Design Two-Phase Separators Within the Right Limits”, Chemical Engineering Progress Oct, 1993.</p>
+<p>[2] Mulet, A., A. B. Corripio, and L. B. Evans, “Estimate Costs of Pressure Vessels via Correlations,” Chem. Eng., 88(20), 145–150 (1981a).</p>
+<p>[3] Mulet, A., A.B. Corripio, and L.B.Evans, “Estimate Costs of Distillation and Absorption Towers via Correlations,” Chem. Eng., 88(26), 77–82 (1981b).</p>
+<p>[4] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R., &amp; Ng, M. K. (2017). Product and Process Design Principles. Wiley. Cost Accounting and Capital Cost Estimation (Chapter 16)</p>
 </div></blockquote>
 <p><strong>Examples</strong></p>
 <blockquote>
@@ -275,6 +276,18 @@
 <dt id="biosteam.units.Flash.vacuum_system_preference">
 <code class="descname">vacuum_system_preference</code><em class="property"> = 'Liquid-ring pump'</em><a class="headerlink" href="#biosteam.units.Flash.vacuum_system_preference" title="Permalink to this definition">¶</a></dt>
 <dd><p>If a vacuum system is needed, it will choose one according to this preference.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Flash.HasGlycolGroups">
+<code class="descname">HasGlycolGroups</code><em class="property"> = False</em><a class="headerlink" href="#biosteam.units.Flash.HasGlycolGroups" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if glycol groups are present in the mixture</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Flash.HasAmineGroups">
+<code class="descname">HasAmineGroups</code><em class="property"> = False</em><a class="headerlink" href="#biosteam.units.Flash.HasAmineGroups" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if amine groups are present in the mixture</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -305,6 +318,18 @@
 <dt id="biosteam.units.Flash.material">
 <code class="descname">material</code><a class="headerlink" href="#biosteam.units.Flash.material" title="Permalink to this definition">¶</a></dt>
 <dd><p>Vessel construction material.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Flash.P">
+<code class="descname">P</code><a class="headerlink" href="#biosteam.units.Flash.P" title="Permalink to this definition">¶</a></dt>
+<dd><p>Operating pressure (Pa).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Flash.Q">
+<code class="descname">Q</code><a class="headerlink" href="#biosteam.units.Flash.Q" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enforced duty (kJ/hr).</p>
 </dd></dl>
 
 </dd></dl>

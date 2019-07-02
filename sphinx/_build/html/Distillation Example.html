@@ -396,7 +396,7 @@ div.nboutput div.output_area.stderr {
 <span class="c1"># Set up stream</span>
 <span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Methanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Glycerol&#39;</span><span class="p">)</span>
 <span class="n">feed</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">25</span><span class="p">))</span>
-<span class="n">feed</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">bubble_point</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># For better operation</span>
+<span class="n">feed</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">bubble_T</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># Feed at bubble point T</span>
 
 <span class="c1"># Set up column</span>
 <span class="n">D1</span> <span class="o">=</span> <span class="n">Distillation</span><span class="p">(</span><span class="s1">&#39;D1&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">feed</span><span class="p">,</span>
@@ -415,8 +415,7 @@ div.nboutput div.output_area.stderr {
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/Distillation_Example_2_0.png" src="_images/Distillation_Example_2_0.png" />
-</div>
+<img alt="_images/Distillation_Example_2_0.svg" src="_images/Distillation_Example_2_0.svg" /></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
