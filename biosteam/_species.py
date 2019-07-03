@@ -115,7 +115,7 @@ class WorkingSpecies:
         me = self.__dict__
         tup = tuple
         compounds = tup(me.values())
-        IDs = tup(i for i in compounds)
+        IDs = tup(i for i in me)
         CAS = tup(i.CAS for i in compounds)
         Nspecies = len(IDs)
         index = tup(range(Nspecies))
