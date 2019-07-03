@@ -5,11 +5,12 @@ Created on Fri Jun 28 19:23:52 2019
 @author: yoelr
 """
 from . import _parse as prs
+from .._species import WorkingSpecies, Species
 from .. import Stream
 from .._exceptions import UndefinedCompound
 import numpy as np
 
-__all__ = ('Reaction', 'ParallelReaction', 'SeriesReaction', 'Rxn', 'SRxn', 'PRxn')
+__all__ = ('Reaction', 'ParallelReaction', 'SeriesReaction')
 
 def stoi2str(stoi, species):
     return f"{prs.arr2str(stoi, species)}"
@@ -48,16 +49,34 @@ class Reaction:
     Notice how 70% of water was converted to product.
     
     """
-    __slots__ = ('_species', '_Xindex', '_stoi', 'X')
+    __slots__ = ('_species', '_Xindex', '_stoi', '_X')
     def __init__(self, reaction, reactant, X, species=None):
-        if not species: species = Stream.species
+        if not species:
+            species = Stream.species            
+        elif isinstance(species, Species):
+            species = WorkingSpecies(species)
+        elif isinstance(species, WorkingSpecies):
+            self._species = species
+        else:
+            raise ValueError('species must be a Species object')
         self._species = species
         self._stoi = prs.str2arr(reaction, species)
-        self.reactant = reactant
-        self.X = X #: [float] Reactant conversion
+        try: self._Xindex = self._species._indexdct[reactant]
+        except KeyError: raise UndefinedCompound(reactant)
+        self._stoi *= 1/-(self._stoi[self._Xindex])
+        self._X = X #: [float] Reactant conversion
     
     def __call__(self, material):
         return material[self._Xindex]*self.X*self._stoi
+    
+    @property
+    def X(self):
+        """[float] Reaction converion."""
+        return self._X
+    @X.setter
+    def X(self, X):
+        assert 0 <= X <= 1, 'reaction conversion, X, must be a fraction'
+        self._X = X
     
     @property
     def species(self):
@@ -67,32 +86,51 @@ class Reaction:
     def stoichiometry(self):
         """[array] Stoichiometry coefficients."""
         return self._stoi
-    
     @property
     def reactant(self):
         """[str] Reactant associated to conversion."""
         return self._species._IDs[self._Xindex]
-    @reactant.setter
-    def reactant(self, ID):
-        try: self._Xindex = self._species._indexdct[ID]
-        except KeyError: raise UndefinedCompound(ID)
-        self._stoi *= 1/-(self._stoi[self._Xindex])
     
     def __repr__(self):
         return f"{type(self).__name__}('{stoi2str(self._stoi, self._species)}', reactant='{self.reactant}', X={self.X:.3g})"
     
-    # def show(self):
-    #     stoichiometry = stoi2str(self._stoi, self._species)
-    #     print(f"{type(self).__name__}:\n"
-    #          +f" {stoichiometry}\n"
-    #          +f" {self.X:.2%} {self.reactant} conversion")
-    # _ipython_display_ = show
+    def show(self):
+        outs = f"{type(self).__name__}:"
+        rxn = stoi2str(self._stoi, self._species)
+        cmp = self.reactant
+        lrxn = len(rxn)
+        lcmp = len(cmp)
+        maxrxnlen = max([13, lrxn]) + 2
+        maxcmplen = max([8, lcmp]) + 2
+        X = self.X
+        outs += "\n stoichiometry" + " "*(maxrxnlen - 13) + "reactant" + " "*(maxcmplen - 8) + '  X[%]'
+        rxn_spaces = " "*(maxrxnlen - lrxn)
+        cmp_spaces = " "*(maxcmplen - lcmp)
+        outs += f"\n {rxn}{rxn_spaces}{cmp}{cmp_spaces}{X*100: >6.2f}"
+        print(outs)
+    _ipython_display_ = show
 
-Rxn = Reaction
+class ReactionItem(Reaction):
+    __slots__ = ('_index')
+    def __init__(self, rxnset, index):
+        self._stoi = rxnset._stoi[index]
+        self._X = rxnset._X
+        self._species = rxnset._species
+        self._Xindex = rxnset._Xindex[index]
+        self._index = index
+    
+    @property
+    def X(self):
+        return self._X[self._index]
+    @X.setter
+    def X(self, X):
+        assert 0 <= X <= 1, 'reaction conversion, X, must be a fraction'
+        self._X[self._index] = X
+        
 
 class ReactionSet:
     """Abstract class for a set of reactions."""
-    __slots__ = ('_stoi', 'X', '_Xindex', '_species')
+    __slots__ = ('_stoi', '_X', '_Xindex', '_species')
     def __init__(self, reactions):
         if not reactions:
             raise ValueError('reactions must not be empty')
@@ -100,13 +138,30 @@ class ReactionSet:
         if len(species) != 1:
             raise ValueError('all reactions must have the same species')
         self._stoi = np.array([i._stoi for i in reactions])
-        self.X = np.array([i.X for i in reactions])
+        self._X = np.array([i.X for i in reactions])
         self._Xindex = np.array([i._Xindex for i in reactions])
         self._species = reactions[0]._species
     
+    def __getitem__(self, index):
+        stoi = self._stoi[index]
+        if len(stoi.shape) == 1:
+            return ReactionItem(self, index)
+        else:
+            rxnset = object.__new__(type(self))
+            rxnset._stoi = stoi
+            rxnset._X = self._X[index]
+            rxnset._Xindex = self._Xindex[index]
+            rxnset._species = self._species
+            return rxnset
+    
+    @property
+    def X(self):
+        """[float] Reaction converions."""
+        return self._X
+    
     @property
     def species(self):
-        """Species corresponing to each entry in the stoichiometry array."""
+        """[Species] Species corresponing to each entry in the stoichiometry array."""
         return self._species
     @property
     def stoichiometry(self):
@@ -114,20 +169,20 @@ class ReactionSet:
         return self._stoi
     
     @property
-    def reactant(self):
-        """[str] Reactant associated to conversion."""
+    def reactants(self):
+        """[str] Reactants associated to conversion."""
         IDs = self._species._IDs
         return tuple(IDs[i] for i in self._Xindex)
     
     def __repr__(self):
-        return f"<{type(self).__name__}: {', '.join(set(self.reactant))}>"
+        return f"<{type(self).__name__}: {', '.join(set(self.reactants))}>"
     
     def show(self):
         outs = f"{type(self).__name__}:"
         species = self._species
         rxns = [stoi2str(i, species) for i in self._stoi]
         maxrxnlen = max([13, *[len(i) for i in rxns]]) + 2
-        cmps = self.reactant
+        cmps = self.reactants
         maxcmplen = max([8, *[len(i) for i in cmps]]) + 2
         Xs = self.X
         outs += "\n stoichiometry" + " "*(maxrxnlen - 13) + "reactant" + " "*(maxcmplen - 8) + '  X[%]'
@@ -153,7 +208,6 @@ class ParallelReaction(ReactionSet):
             else:
                 X_net[i] = j
         return prs.dct2arr(X_net, self.species)
-    
 
 class SeriesReaction(ReactionSet):
     __slots__ = ()
@@ -173,10 +227,24 @@ class SeriesReaction(ReactionSet):
                 X_net[i] = j
         return prs.dct2arr(X_net, self.species)
 
+Rxn = Reaction
+RxnI = ReactionItem
+RxnS = ReactionSet
 PRxn = ParallelReaction
 SRxn = SeriesReaction
 
 
 
+# @reactant.setter
+# def reactant(self, ID):
+#     try: self._Xindex = self._species._indexdct[ID]
+#     except KeyError: raise UndefinedCompound(ID)
+#     self._stoi *= 1/-(self._stoi[self._Xindex])
 
-    
+
+# def show(self):
+#     stoichiometry = stoi2str(self._stoi, self._species)
+#     print(f"{type(self).__name__}:\n"
+#          +f" {stoichiometry}\n"
+#          +f" {self.X:.2%} {self.reactant} conversion")
+# _ipython_display_ = show

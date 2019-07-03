@@ -11,7 +11,7 @@ from scipy.optimize import newton, least_squares
 from ._utils import property_array, PropertyFactory, DisplayUnits, \
                     tuple_array, fraction, Sink, Source, missing_stream
 from ._flowsheet import find
-from ._species import Species
+from ._species import Species, WorkingSpecies
 from ._exceptions import SolverError, EquilibriumError, DimensionError
 from ._equilibrium import DORTMUND
 
@@ -25,14 +25,15 @@ __all__ = ('Stream',)
 
 # %% Functions
 
-def nonzero_species(numIDs, flow):
-    index = []
-    species = []
-    for i, ID in numIDs:
+def nonzero_species(species, flow):
+    index_ = []
+    IDs_ = []
+    IDs = species._IDs
+    for i in species._index:
         if flow[i] != 0:
-            index.append(i)
-            species.append(ID)
-    return index, species
+            index_.append(i)
+            IDs_.append(IDs[i])
+    return index_, IDs_
 
 def _print_helpdata(helpdata):
     """Print help data."""
@@ -163,9 +164,9 @@ class metaStream(type):
         # Set Species object and related parameters
         if species is cls._cls_species: pass
         elif isinstance(species, Species):
-            for cl in (Stream, MS.MixedStream):
-                cl._cls_species = species
-            species.read_only()
+            Stream._cls_species = WorkingSpecies(species)
+        elif isinstance(species, WorkingSpecies):
+            Stream._cls_species = species
         else: raise ValueError('must pass a Species object')
     _species = species
     
@@ -415,8 +416,10 @@ class Stream(metaclass=metaStream):
                  phase='l', T=298.15, P=101325, *, price=0, **flow_pairs):
         # Get species and set species information
         if isinstance(species, Species):
+            self._species = WorkingSpecies(species)
+            species = ()
+        elif isinstance(species, WorkingSpecies):
             self._species = species
-            species.read_only()
             species = ()
         else: 
             self._species = self._cls_species
@@ -438,8 +441,10 @@ class Stream(metaclass=metaStream):
         MW = self._species._MW
         mass = [] # Mass flow rates
         vol = [] # Volumetric flow rates    
-        for i, s in self._species._numcompounds:
+        cmps = self._species._compounds
+        for i in self._species._index:
             mol_i = mol[i:i+1]
+            s = cmps[i]
             mass.append(MassFlow(s.ID, (mol_i, MW[i])))
             vol.append(VolumetricFlow(s, (self, mol_i)))
         self._mass = property_array(mass)
@@ -838,7 +843,7 @@ class Stream(metaclass=metaStream):
         >>> s1.Hf
         -483640.0
         """
-        return (self.mol * [i.Hfm or 0 for i in self._species._compounds]).sum()
+        return (self.mol * [i.Hf or 0 for i in self._species._compounds]).sum()
 
     @property
     def Hc(self):
@@ -1112,7 +1117,7 @@ class Stream(metaclass=metaStream):
         >>> s1.nonzero_species
         [1], ['Water']
         """
-        return nonzero_species(self._species._numIDs, self.mol)
+        return nonzero_species(self._species, self.mol)
     
     def quantity(self, prop_ID):
         """Return a property as a Quantity object as described in the `pint package <https://pint.readthedocs.io/en/latest/>`__ 

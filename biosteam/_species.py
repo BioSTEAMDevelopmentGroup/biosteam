@@ -9,12 +9,13 @@ from ._exceptions import UndefinedCompound
 import numpy as np
 
 inf = np.inf
-__all__ = ('Species',)
+__all__ = ('Species', 'WorkingSpecies')
+
 
 # TODO: Fix how Dortmund groups are selected in thermo.Chemical. Glycerol defaults to wrong value.
 
 # %% Managing ChEDL thermodynamic properties
-setattr_ = object.__setattr__
+_setattr = object.__setattr__
 
 class Species:
     """Create Species object that contains Compound objects as attributes.
@@ -34,21 +35,14 @@ class Species:
         **cls:** [type Compound] The type of objects that will be created and stored as attributes. Defaults to biosteam.Chemical
         
     """
-    _immutable = False
-    _compounds = _IDs = _Nspecies = None
-    
     @classmethod
-    def tospecies(cls, compounds, copy=True):
+    def tospecies(cls, compounds):
         """Return a Species object from an iterable of Compound objects."""
-        if not copy and isinstance(compounds, Species): return compounds
         self = cls.__new__(cls)
         for c in compounds: 
-            if isinstance(c, cmps.Compound): setattr_(self, c.ID, c)
+            if isinstance(c, cmps.Compound): _setattr(self, c.ID, c)
             else: raise ValueError('compounds must be an iterable of Compound objects')
         return self
-    
-    def __dir__(self):
-        return [i for i in super().__dir__() if i.isalnum()]
     
     def __init__(self, *IDs, cls=None):
         # Sphinx docs look ugly if a class is in the default argument
@@ -61,7 +55,81 @@ class Species:
                 compound = cls(n)
             except:
                 raise LookupError(f"'{n}', not defined in data bank")
-            setattr_(self, n, compound)
+            _setattr(self, n, compound)
+    
+    @property
+    def IDs(self):
+        return tuple(self.__dict__)
+    
+    def __len__(self):
+        return len(self.__dict__)
+    
+    def __iter__(self):
+        yield from self.__dict__.values()
+    
+    def __setattr__(self, ID, compound):
+        if isinstance(compound, cmps.Compound):
+            if compound in self.__dict__.values():
+                raise AttributeError(f'compound {repr(compound)} already defined')
+            compound.ID = ID
+            _setattr(self, ID, compound)
+        elif ID == 'IDs':
+            _setattr(self, '__dict__', {i: getattr(self, i) for i in compound})
+        else:
+            raise TypeError('can only set Compound objects as attributes')
+      
+    def extend(self, compounds):
+        """Extend species object with more compounds."""
+        for c in compounds: 
+            if isinstance(c, cmps.Compound): _setattr(self, c.ID, c)
+            else: raise ValueError('compounds must be an iterable of Compound objects')
+            
+    def getprops(self, IDs, prop_ID, T, P, phase):
+        """Return list of the desired property, prop_ID, for each compound in IDz."""
+        props = []; getattr_ = getattr
+        for ID in IDs:
+            s = getattr_(self, ID)
+            s.T = T
+            s.P = P
+            s.phase = phase
+            props.append(getattr_(s, prop_ID))
+        return props
+    
+    def setprops(self, IDs, prop_ID, new_values):
+        """Set new values to compound property, prop_ID, for given IDs."""
+        getattr_ = getattr
+        for ID in IDs: 
+            _setattr(getattr_(self, ID), prop_ID, new_values)
+    
+    def __repr__(self):
+        return f'<{type(self).__name__}: {", ".join(self.IDs)}>'
+
+
+class WorkingSpecies:
+    """Cast a Species object to a WorkingSpecies object that represents the working species of a process."""
+    
+    def __new__(cls, self):
+        if self.__class__ is cls: return self
+        _setattr(self, '__class__', cls)
+        me = self.__dict__
+        tup = tuple
+        compounds = tup(me.values())
+        IDs = tup(i for i in me)
+        CAS = tup(i.CAS for i in compounds)
+        Nspecies = len(IDs)
+        index = tup(range(Nspecies))
+        for i in compounds: me[i.CAS] = i
+        me['_indexdct'] = dict((*zip(CAS, index), *zip(IDs, index)))
+        me['_immutable'] = True
+        me['_index'] = index
+        me['_compounds'] = compounds
+        me['_IDs'] = IDs
+        me['_Nspecies'] = Nspecies
+        me['_MW'] = np.array([i.MW for i in compounds])
+        return self
+    
+    def __dir__(self):
+        return [i for i in super().__dir__() if i.isalnum()]
 
     def set_synonym(self, ID, synonym):
         compound = getattr(self, ID)
@@ -69,13 +137,9 @@ class Species:
         if synonym in dct and dct[synonym] is not compound:
             raise ValueError(f"synonym '{synonym}' already in use by {repr(dct[synonym])}")
         else:
-            try:
-                self._indexdct[synonym] = self._indexdct[ID]
-            except AttributeError:
-                raise RuntimeError("'{type(self).__name__}' object must be read-only to set synonyms")
+            self._indexdct[synonym] = self._indexdct[ID]
             dct[synonym] = compound
             
-
     def kwarray(self, **data):
         """Return an array with entries that correspond to compound IDs.
         
@@ -139,93 +203,44 @@ class Species:
         try:
             dct = self._indexdct
             return [dct[i] for i in IDs]
-        except AttributeError:
-            raise RuntimeError("'{type(self).__name__}' object must be read-only to get indices")
         except KeyError:
             for i in IDs:
-                if i not in dct: raise UndefinedCompound(i)
-                
-
-    def read_only(self):
-        """Make object read-only (attributes will be immutable)."""
-        if self._immutable: return
-        tup = tuple
-        compounds = tup(self.__dict__.values())
-        IDs = tup(i for i in self.__dict__)
-        CAS = tup(i.CAS for i in compounds)
-        Nspecies = len(IDs)
-        index = tup(range(Nspecies))
-        me = self.__dict__
-        for i in compounds: me[i.CAS] = i
-        me['_indexdct'] = dict((*zip(CAS, index), *zip(IDs, index)))
-        me['_immutable'] = True
-        me['_numcompounds'] = tup(zip(index, compounds))
-        me['_numIDs'] = tup(zip(index, IDs))
-        me['_compounds'] = compounds
-        me['_IDs'] = IDs
-        me['_Nspecies'] = Nspecies
-        me['_MW'] = np.array([i.MW for i in compounds])
-    
-    def __setattr__(self, ID, compound):
-        if self._immutable:
-            raise AttributeError("object is read-only")
-        elif isinstance(compound, cmps.Compound):
-            compound.ID = ID
-            setattr_(self, ID, compound)
-        elif ID == 'IDs':
-            setattr_(self, '__dict__', {i: getattr(self, i) for i in compound})
-        else:
-            raise TypeError('can only set Compound objects as attributes')
+                if i not in dct: raise UndefinedCompound(i)       
     
     def __delattr__(self, ID):
-        if self._immutable:
-            raise AttributeError("object is read-only")
-        else:
-            super().__delattr__(ID)
+        AttributeError("'{type(self).__name__} object is read-only")
+    
+    def __setattr__(self, ID, name):
+        AttributeError("'{type(self).__name__} object is read-only")
     
     def __len__(self):
-        return self._Nspecies or len(self.__dict__)
+        return self._Nspecies
     
     def __iter__(self):
-        yield from self._compounds or self.__dict__.values()
+        yield from self._compounds
     
     @property
     def IDs(self):
-        return self._IDs or tuple(self.__dict__.keys())
-
-    def getprops(self, IDs, prop_ID, T, P, phase):
-        """Return list of the desired property, prop_ID, for each compound in IDz."""
-        props = []; getattr_ = getattr
-        for ID in IDs:
-            s = getattr_(self, ID)
-            s.T = T
-            s.P = P
-            s.phase = phase
-            props.append(getattr_(s, prop_ID))
-        return props
-    def setprops(self, IDs, prop_ID, new_values):
-        """Set new values to compound property, prop_ID, for given IDs."""
-        getattr_ = getattr
-        for ID in IDs: 
-            setattr_(getattr_(self, ID), prop_ID, new_values)
+        """[tuple] IDs of Species object."""
+        return self._IDs
 
     ### Material Properties ###
+    getprops = Species.getprops
+    setprops = Species.setprops
 
     # General methods for getting ideal mixture properties
     def _props(self, ID, mol, T, P, phase):
         """Return component property list."""
         out = np.zeros(self._Nspecies)
         getattr_ = getattr
-        ic = self._numcompounds.__iter__().__next__
-        for m in mol:
-            if m: 
-                i, c = ic()
+        cmps = self._compounds
+        for i in self._index:
+            if mol[i]: 
+                c = cmps[i]
                 c.P = P
                 c.T = T
                 c.phase = phase
-                prop = getattr_(c, ID)
-                out[i] = prop if prop else 0
-            else: ic()
+                out[i] = getattr_(c, ID)
         return out
 
     def _propflows(self, ID, mol, T, P, phase):
@@ -238,7 +253,27 @@ class Species:
 
     def _prop(self, ID, mol, T, P, phase):
         """Return molar weighted average property."""
-        return (self._props(ID, mol, T, P, phase)*mol).sum().sum()
+        try:
+            return (self._props(ID, mol, T, P, phase)*mol).sum()/mol.sum()
+        except:
+            # This usually fails due to a missing property.
+            # Avoid this problem by ignoring the property.
+            # TODO: Maybe include a warning.
+            propflow = 0
+            molnet = 0
+            getattr_ = getattr
+            cmps = self._compounds
+            for i in self._index:
+                if mol[i]:
+                    c = cmps[i]
+                    c.P = P
+                    c.T = T
+                    c.phase = phase
+                    prop = getattr_(c, ID)
+                    if prop:
+                        molnet += mol[i]
+                        propflow += prop*mol[i]
+            return propflow/molnet
 
     def _mixedpropflows(self, ID, molarray, T, P):
         """Return array of component properties * kmol/hr."""
@@ -260,39 +295,34 @@ class Species:
     
     def _equilibrium_species(self, mol):
         """Return species and indexes of species in equilibrium."""
-        species = []; index = []; ic = self._numcompounds.__iter__().__next__
-        for m in mol:
-            if m:
-                i, c = ic()
+        species = []; index = []; cmps = self._compounds
+        for i in self._index:
+            if mol[i]:
+                c = cmps[i]
                 if c.UNIFAC_Dortmund_groups and c.Tb not in (inf, None):
                     species.append(c); index.append(i)
-            else: ic()
         return species, index
 
     def _heavy_species(self, mol):
         """Return species and indexes of heavy species not in equilibrium."""
-        species = []; index = []; ic = self._numcompounds.__iter__().__next__
-        for m in mol:
-            if m:
-                i, c = ic()
+        species = []; index = []; cmps = self._compounds
+        for i in self._index:
+            if mol[i]:
+                c = cmps[i]
                 if c.Tb in (inf, None) or not c.UNIFAC_Dortmund_groups:
                     species.append(c); index.append(i)
-            else: ic()
         return species, index
 
     def _light_species(self, mol):
         """Return species and indexes of light species not in equilibrium."""
-        species = []; index = []; ic = self._numcompounds.__iter__().__next__
-        for m in mol:
-            if m:
-                i, c = ic()
+        species = []; index = []; cmps = self._compounds
+        for i in self._index:
+            if mol[i]:
+                c = cmps[i]
                 if c.Tb is -inf:
                     species.append(c); index.append(i)
-            else: ic()
         return species, index
     
-    # Representation
-    def __repr__(self):
-        return f'<Species: {", ".join(self.IDs)}>'
+    __repr__ = Species.__repr__
 
     

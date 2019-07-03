@@ -5,7 +5,7 @@ Created on Tue Sep 18 10:28:29 2018
 @author: Guest Group
 """
 from scipy.optimize import least_squares, brentq, minimize_scalar, newton
-from ._species import Species
+from ._species import Species, WorkingSpecies
 from ._stream import Stream, nonzero_species, MassFlow, \
                             mol_flow_dim, mass_flow_dim, vol_flow_dim, \
                             phases, phase_index, flow
@@ -83,10 +83,13 @@ class MixedStream(Stream):
     __slots__ = ()
     def __init__(self, ID='', species=None, T=298.15, P=101325):
         # Get species and set species information
-        if species is None: self._species = self._cls_species
+        if species is None:
+            self._species = self._cls_species
         elif isinstance(species, Species):
+            self._species = WorkingSpecies(species)
+            species = ()
+        elif isinstance(species, WorkingSpecies):
             self._species = species
-            species.read_only()
         else:
             raise TypeError(f"species must be a Species object, not '{type(species).__name__}'")
         self._source_link = self
@@ -142,13 +145,15 @@ class MixedStream(Stream):
         """
         species = self._species
         MW = species._MW
-        numcompounds = species._numcompounds
+        cmps = species._compounds
+        index = species._index
         massflows = [] # Mass flow rates    
         volflows = [] # Volumetric flow rates    
         for phase, m in zip(phases, mol):
             vol = []
             mass = []
-            for i, s in numcompounds:
+            for i in index:
+                s = cmps[i]
                 mi = m[i:i+1]
                 mass.append(MassFlow(s.ID, (mi, MW[i])))
                 vol.append(VolumetricFlow(s, (self, mi, phase.lower())))
@@ -587,7 +592,7 @@ class MixedStream(Stream):
         
         if P:
             self.P = P
-            if T is not None:
+            if T:
                 self.T = T
                 eq = 'TP'
             elif x is not None:
@@ -614,7 +619,7 @@ class MixedStream(Stream):
             elif Q is not None:
                 eq = 'QT'
                 Hin = self.H + Q
-        elif V:
+        elif V is not None:
             if x is not None:
                 x = np.asarray(x)
                 eq = 'xV'
@@ -1230,13 +1235,12 @@ class MixedStream(Stream):
         # Set up flow rate information for all phases
         first_phase = True
         phases_flowrates_info = ''
-        numIDs = self._species._numIDs
         for phase in phases:
             # Get flow rates of phase in nice structure
             flow_attr = letter_phases[phase] + '_' + flow_type
             if fraction: flow_attr += 'frac'
             flow = getattr(self, flow_attr)
-            nonzero, species = nonzero_species(numIDs, flow)
+            nonzero, species = nonzero_species(species, flow)
             if fraction:
                 flow_nonzero = flow[nonzero]
             else:

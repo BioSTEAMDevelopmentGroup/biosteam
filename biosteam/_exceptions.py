@@ -25,7 +25,7 @@ class EquilibriumError(RuntimeError):
 class DimensionError(ValueError):
     """ValueError regarding wrong dimensions."""
 
-class UndefinedCompound(LookupError):
+class UndefinedCompound(AttributeError):
     """LookupError regarding undefined compounds."""
     def __init__(self, ID): super().__init__(f"'{ID}'")
 

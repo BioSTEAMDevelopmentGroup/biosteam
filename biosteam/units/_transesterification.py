@@ -6,7 +6,7 @@ Created on Thu Aug 23 22:49:58 2018
 """
 from .. import Unit, Stream
 from .decorators import cost
-from ..reaction import Reaction
+from ..reaction import Reaction, ParallelReaction
 
 @cost('Volume', 'Reactor', units='m^3',
       CE=525.4, cost=15000, n=0.55, kW=1.5, BM=4.3,
@@ -47,35 +47,19 @@ class Transesterification(Unit):
 
     def _init(self):
         kw = self._kwargs
-        self._transesterification = Reaction(
-                'Lipid + 3Methanol -> 3Biodiesel + Glycerol',
-                reactant='Lipid', X=kw['efficiency'])
-        self._catalyst_consumption = Reaction(
-                'NaOCH3 -> NaOH + Methanol',
-                reactant='NaOCH3', X=1)
+        #: [ParallelReaction] Transesterification and catalyst consumption reaction
+        self.reaction = ParallelReaction([
+          Reaction('Lipid + 3Methanol -> 3Biodiesel + Glycerol',
+                   reactant='Lipid',  X=kw['efficiency']),
+          Reaction('NaOCH3 -> NaOH + Methanol',
+                   reactant='NaOCH3', X=1)])
         self._methanol_composition = Stream.species.kwarray(
                 Methanol=1-kw['catalyst_molfrac'],
                 NaOCH3=kw['catalyst_molfrac'])
         self._lipid_index, self._methanol_index, self._catalyst_index = \
                 Stream.indices(['Lipid', 'Methanol', 'NaOCH3'])
         self._methanol2lipid = kw['methanol2lipid']
-        self._T = kw['T']
-        
-    @property
-    def efficiency(self):
-        """Transesterification efficiency on a 'Lipid' basis."""
-        return self._transesterification.X
-    @efficiency.setter
-    def efficiency(self, X):
-        self._transesterification.X = X
-    
-    @property
-    def T(self):
-        """Operation temperature (K)."""
-        return self._T
-    @T.setter
-    def T(self, T):
-        self._T = T
+        self.T = kw['T'] #: Operation temperature (K).
     
     @property
     def methanol2lipid(self):
@@ -102,10 +86,8 @@ class Transesterification(Unit):
                          * feed.mol[self._lipid_index]
                          * self._methanol2lipid)
         total_mol = feed.mol + methanol.mol
-        product.mol[:] = (total_mol
-                        + self._catalyst_consumption(total_mol)
-                        + self._transesterification(total_mol))
-        product.T = self._T
+        product.mol[:] = total_mol + self.reaction(total_mol)
+        product.T = self.T
 
     def _end(self):
         self._heat_utilities[0](self._Hnet, self.outs[0].T)

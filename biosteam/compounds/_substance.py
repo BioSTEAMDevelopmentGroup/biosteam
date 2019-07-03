@@ -54,6 +54,8 @@ class Substance(Compound):
         
         **default_phase:** {'l', 's', 'g'} Phase of substance
         
+        ****properties:** Additional properties to set
+        
     **Examples**
     
         Create a 'Yeast' substance with the same properties as water:
@@ -66,10 +68,11 @@ class Substance(Compound):
             997
             
     """
-    def __init__(self, ID, CAS='', obj=None, MW=1, T=298.15, P=101325,
-                 Cp=None, rho=None, k=None, mu=None, sigma=None,
-                 Pr=None, Hfm=None, Hc=None, obj_state = None,
-                 default_phase='l'):
+    def __init__(self, ID, CAS='', obj=None, *,
+                 MW=1, T=298.15, P=101325, Cp=None,
+                 rho=None, k=None, mu=None, sigma=None,
+                 Pr=None, Hf=None, Hc=None, obj_state = None,
+                 default_phase='l', **properties):
         if obj:
             obj.T = T
             obj.P = P
@@ -78,21 +81,23 @@ class Substance(Compound):
                 for i, j in obj_state.items():
                     setattr(obj, i, j)
         
-        self.ID = ID
+        self.ID = ID.replace(' ', '_')
         self.T = T
         self.P = P
         self.Hvapm = 0
         
         # Set property values (defaults to Water property values)
-        self.MW = select_value(obj, MW, 'MW', 1)
+        self.MW = MW = select_value(obj, MW, 'MW', 1)
         self.CAS = select_value(obj, CAS, 'CAS', ID)
         self.Cp = select_value(obj, Cp, 'Cp', 4.18)
         self.sigma = select_value(obj, sigma, 'mu', 0.072055)
         self.rho = select_value(obj, rho, 'rho', 997)
         self.mu = select_value(obj, mu, 'mu', 0.00091272)
         self.k = select_value(obj, k, 'k', 0.5942)
-        self.Hfm = select_value(obj, Hfm, 'Hfm', 0)
+        self.Hf = select_value(obj, Hf, 'Hf', 0)
         self.Hc = select_value(obj, Hc, 'Hc', 0)
+        self.Hfm = self.Hf*MW
+        self.Hcm = self.Hc*MW
         self.rhom = self.rho/MW*1000
         self.Vm = 1/self.rhom
         self.Cpm = self.Cp * MW
@@ -108,6 +113,7 @@ class Substance(Compound):
         # Phase change temperature consitent with phase
         self.Tb = 0 if default_phase=='g' else np.inf 
         self.Tm = np.inf if default_phase=='s' else 0
+        for i in properties: setattr(self, i, properties[i])
         
     @property
     def Cplm(self):
