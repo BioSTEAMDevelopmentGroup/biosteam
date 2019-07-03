@@ -39,9 +39,7 @@ class Species:
     def tospecies(cls, compounds):
         """Return a Species object from an iterable of Compound objects."""
         self = cls.__new__(cls)
-        for c in compounds: 
-            if isinstance(c, cmps.Compound): _setattr(self, c.ID, c)
-            else: raise ValueError('compounds must be an iterable of Compound objects')
+        for c in compounds: setattr(self, c.ID, c)
         return self
     
     def __init__(self, *IDs, cls=None):
@@ -64,12 +62,15 @@ class Species:
     def __len__(self):
         return len(self.__dict__)
     
+    def __contains__(self, compound):
+        return compound in self.__dict__.values()
+    
     def __iter__(self):
         yield from self.__dict__.values()
     
     def __setattr__(self, ID, compound):
         if isinstance(compound, cmps.Compound):
-            if compound in self.__dict__.values():
+            if compound in self:
                 raise AttributeError(f'compound {repr(compound)} already defined')
             compound.ID = ID
             _setattr(self, ID, compound)
@@ -106,14 +107,14 @@ class Species:
 
 
 class WorkingSpecies:
-    """Cast a Species object to a WorkingSpecies object that represents the working species of a process."""
+    """Cast a Species object as a WorkingSpecies object that represents the working species of a process."""
     
     def __new__(cls, self):
         if self.__class__ is cls: return self
         _setattr(self, '__class__', cls)
         me = self.__dict__
         tup = tuple
-        compounds = tup(me.values())
+        compounds = tup(me)
         IDs = tup(i for i in me)
         CAS = tup(i.CAS for i in compounds)
         Nspecies = len(IDs)
@@ -215,6 +216,9 @@ class WorkingSpecies:
     
     def __len__(self):
         return self._Nspecies
+    
+    def __contains__(self, compound):
+        return compound in self._compounds
     
     def __iter__(self):
         yield from self._compounds
