@@ -114,8 +114,8 @@ class WorkingSpecies:
         _setattr(self, '__class__', cls)
         me = self.__dict__
         tup = tuple
-        compounds = tup(me)
-        IDs = tup(i for i in me.values())
+        compounds = tup(me.values())
+        IDs = tup(i for i in compounds)
         CAS = tup(i.CAS for i in compounds)
         Nspecies = len(IDs)
         index = tup(range(Nspecies))
