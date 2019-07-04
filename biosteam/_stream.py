@@ -139,23 +139,6 @@ def flow(fget):
 
 # %% Stream classes
 
-class MissingSpecies:
-    __slots__ = ()
-    def __new__(self):
-        return missing_species
-    def __iter__(self):
-        yield from ()
-    def __bool__(self):
-        return False
-    def __get__(self, instance, owner):
-        raise AttributeError('must define Stream.species first')
-    def __getattr__(self, ID):
-        raise AttributeError('missing species')
-    def __repr__(self):
-        return '<MissingSpecies>'
-missing_species = object.__new__(MissingSpecies)
-
-
 class metaStream(type):
     """Metaclass for Stream."""
     @property
@@ -395,10 +378,8 @@ class Stream(metaclass=metaStream):
                  '_phase', '_y_cached', '_lL_split_cached', '_y',
                  '_yP', '_dew', '_Py_over_gammaPsat', '__weakref__', '_source_link')
 
-    ### Class attributes for working species ###
-    _cls_species = missing_species
-    
-    _MW = None
+    ### Class attributes for working species ###    
+    _cls_species = _MW = None
     
     # [list] Default starting letter and current number for ID (class attribute)
     _default_ID = ['d', 1]
@@ -422,6 +403,7 @@ class Stream(metaclass=metaStream):
             species = ()
         else: 
             self._species = self._cls_species
+            if not self._species: raise RuntimeError('must define Stream.species first')
         self._link = self._ID = self._sink = self._source = None
         self._source_link = self
         self.phase = phase
@@ -585,8 +567,8 @@ class Stream(metaclass=metaStream):
             else: raise TypeError(f"link must be a Stream object, not a '{type(stream).__name__}' object.")
     
     def __getattr__(self, key):
-        if key is 'line': return 'Stream'
-        if self._link is missing_stream:
+        if key == 'line': return 'Stream'
+        elif self._link is missing_stream:
             if self.source and self.source._ins[0] is not missing_stream:
                 self.source._link_streams()
                 try: return object.__getattribute__(self, key)
@@ -1013,7 +995,7 @@ class Stream(metaclass=metaStream):
         >>> Stream.species = Species('Ethanol', 'Water')
         >>> s1 = Stream(Ethanol=2)
         >>> s1.mu
-        0.0043908232257628245
+        0.0010780252844121937
         """
         # Katti, P.K.; Chaudhri, M.M. (1964). "Viscosities of Binary Mixtures of Benzyl Acetate with Dioxane, Aniline, and m-Cresol". Journal of Chemical and Engineering Data. 9 (1964): 442–443.
         # molfrac = self.molfrac
@@ -1032,7 +1014,7 @@ class Stream(metaclass=metaStream):
         >>> Stream.species = Species('Ethanol', 'Water')
         >>> s1 = Stream(Ethanol=2)
         >>> s1.k
-        0.3182327138341469
+        0.16476716002011285
         """
         return self._species._prop('k', self._mol, self.T, self.P, self._phase)
 
@@ -1044,7 +1026,7 @@ class Stream(metaclass=metaStream):
         >>> Stream.species = Species('Ethanol', 'Water')
         >>> s1 = Stream(Ethanol=2)
         >>> s1.alpha
-        1.5727689011218135e-07
+        8.614274122585474e-08
         """
         return self._species._prop('alpha', self._mol, self.T, self.P, self._phase)
 
@@ -1056,7 +1038,7 @@ class Stream(metaclass=metaStream):
         >>> Stream.species = Species('Ethanol', 'Water')
         >>> s1 = Stream(Ethanol=2)
         >>> s1.sigma
-        0.039538267032201244
+        0.02188440412824106
         """
         return self._species._prop('sigma', self._mol, self.T, self.P, self._phase)
 
@@ -1068,7 +1050,7 @@ class Stream(metaclass=metaStream):
         >>> Stream.species = Species('Ethanol', 'Water')
         >>> s1 = Stream(Ethanol=2)
         >>> s1.Pr
-        24.13465846907633
+        15.923321696004477
         """
         return self._species._prop('Pr', self._mol, self.T, self.P, self._phase)
 
@@ -1079,7 +1061,8 @@ class Stream(metaclass=metaStream):
         >>> from biosteam import *
         >>> Stream.species = Species('Ethanol', 'Water')
         >>> s1 = Stream(Ethanol=2)
-        25272.75671868146
+        >>> s1.P_vapor
+        7872.1566667784855
         """
         species, x = self._equilibrium_args()
         T = self.T
@@ -1131,7 +1114,7 @@ class Stream(metaclass=metaStream):
         >>> Stream.species = Species('Ethanol', 'Water')
         >>> s1 = Stream(Ethanol=2)
         >>> s1.quantity('Cp')
-        2.641906706110962 J/K/g
+        2.4337467143619698 J/K/g
 
         """
         attr = getattr(self, prop_ID)
@@ -1157,7 +1140,7 @@ class Stream(metaclass=metaStream):
         >>> Stream.species = Species('Ethanol', 'Water')
         >>> s1 = Stream(Ethanol=2)
         >>> s1.derivative('rho', 'T')
-        -0.943576312801604
+        -0.8917376157800969
 
         """
         if index is not None:

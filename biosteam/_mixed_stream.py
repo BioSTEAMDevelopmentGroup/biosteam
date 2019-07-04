@@ -85,6 +85,7 @@ class MixedStream(Stream):
         # Get species and set species information
         if species is None:
             self._species = self._cls_species
+            if not self._species: raise RuntimeError('must define Stream.species first')
         elif isinstance(species, Species):
             self._species = WorkingSpecies(species)
             species = ()

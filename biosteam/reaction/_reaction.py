@@ -53,6 +53,7 @@ class Reaction:
     def __init__(self, reaction, reactant, X, species=None):
         if not species:
             species = Stream.species            
+            if not species: raise RuntimeError('must define Stream.species first')
         elif isinstance(species, Species):
             species = WorkingSpecies(species)
         elif isinstance(species, WorkingSpecies):
