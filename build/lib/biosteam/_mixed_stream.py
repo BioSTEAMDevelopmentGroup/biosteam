@@ -898,9 +898,9 @@ class MixedStream(Stream):
                     try:
                         self.P = newton(V_error, P)
                     except:
-                        self.P = brentq(V_error, P_bubble+1, P_dew-1)
+                        self.P = brentq(V_error, P_dew-1, P_bubble+1)
                 else:
-                    self.P = brentq(V_error, P_bubble+1, P_dew-1)
+                    self.P = brentq(V_error, P_dew-1, P_bubble+1)
                     
                 vapor_mol[index] = v
                 liquid_mol[index] = mol - vapor_mol[index]        
@@ -968,9 +968,9 @@ class MixedStream(Stream):
             v = y * V_guess * mol
             
             # Solve
-            try:
+            if T_bubble < self.T < T_dew:
                 try:
-                    self.T = newton(H_error_T, T)
+                    T = newton(H_error_T, T)
                 except:
                     T = T_bubble + (Hin - H_bubble)/(H_dew - H_bubble) * (T_dew - T_bubble)
                     V_guess = (T - T_bubble)/(T_dew - T_bubble)
@@ -978,7 +978,14 @@ class MixedStream(Stream):
                     y = f*zf + (1-f)*y_bubble
                     v = y * V_guess * mol
                     self.T = newton(H_error_T, T)
-            except:
+                else:
+                    if T_bubble < T < T_dew:
+                        self.T = T
+                    else:
+                        self.T = minimize_scalar(H_error_T,
+                                         bounds=(T_bubble, T_dew),
+                                         method='bounded').x
+            else:
                 self.T = minimize_scalar(H_error_T,
                                          bounds=(T_bubble, T_dew),
                                          method='bounded').x
@@ -1020,21 +1027,24 @@ class MixedStream(Stream):
             v = y * V_guess * mol
             
             # Solve
-            try:
+            if P_dew < self.P < P_bubble:
                 try:
-                    self.P = newton(H_error_P, P)
+                    P = newton(H_error_P, self.P)
                 except:
-                    P = P_bubble + (Hin - H_bubble)/(H_dew - H_bubble) * (P_dew - P_bubble)
-                    V_guess = (P - P_bubble)/(P_dew - P_bubble)
-                    f = (P - P_dew)/(P_bubble - P_dew)
-                    y = f*zf + (1-f)*y_bubble
-                    v = y * V_guess * mol
-                    self.P = newton(H_error_P, P)
-            except:
+                    self.P = minimize_scalar(H_error_P,
+                                             bounds=(P_dew, P_bubble),
+                                             method='bounded').x
+                else:
+                    if P_dew < self.P < P_bubble:
+                        self.P = P
+                    else:
+                        self.P = minimize_scalar(H_error_P,
+                                                 bounds=(P_dew, P_bubble),
+                                                 method='bounded').x
+            else:
                 self.P = minimize_scalar(H_error_P,
-                                         bounds=(P_bubble, P_dew),
+                                         bounds=(P_dew, P_bubble),
                                          method='bounded').x
-        
         self._y_cached = (species, v/v.sum())
 
     def LLE(self, species_IDs=None, split=None, lNK=(), LNK=(),
