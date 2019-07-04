@@ -13,9 +13,9 @@ from .decorators import cost
 from ._tank import MixTank
 
 @cost('Reactor volume', 'Agitators', CE=521.9, cost=52500,
-      S=3785, n=0.6, kW=22.371, BM=1.5)
+      S=3785, n=0.5, kW=22.371, BM=1.5)
 @cost('Reactor volume', 'Reactors', CE=521.9, cost=844000,
-      S=3785, n=0.6, BM=1.5)
+      S=3785, n=0.5, BM=1.5)
 class Fermentation(BatchReactor):
     """Create a Fermentation object which models large-scale batch fermentation for the production of 1st generation ethanol using yeast [1, 2, 3, 4]. Only sucrose and glucose are taken into account. Conversion is based on reaction time, `tau`. Cleaning and unloading time, `tau_0`, fraction of working volume, `V_wf`, and number of reactors, `N_reactors`, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3].
     
@@ -92,28 +92,29 @@ class Fermentation(BatchReactor):
         self._heat_utilities = hx._heat_utilities
         # Species involved in fermentation
         try:
-            self._species_index = Stream.indices(Stream,
-                '64-17-5', '492-61-5', '57-50-1', '7732-18-5', '124-38-9', CAS=True)
+            self._species_index = Stream.indices(
+                ['64-17-5', '492-61-5', '57-50-1', '7732-18-5', '124-38-9'])
         except:
             self._species_index = None
         hx._ins = hx._outs
         hx._outs[0].T = 32 + 273.15
-    
-    def _setup(self):
+        
         if not self._kwargs['tau']:
             raise ValueError(f"reaction time must be larger than 0, not '{self._kwargs['tau']}'")
+        
         if not self._kwargs['N'] or self._kwargs['N'] <= 1:
             raise ValueError(f"number of reactors must be greater than 1, value {self._kwargs['N']} is infeasible")
+        
         out, CO2 = self.outs
         out.T = CO2.T = 32 + 273.15
         CO2.phase = 'g'
 
     def _calc_efficiency(self, feed, tau):
         # Get initial concentrations
-        y, e, s, w = feed.indices('Yeast',
-                                  '64-17-5',
-                                  '492-61-5',
-                                  '7732-18-5', CAS=True)
+        y, e, s, w = feed.indices(['Yeast',
+                                   '64-17-5',
+                                   '492-61-5',
+                                   '7732-18-5'])
         mass = feed.mass
         volnet = feed.volnet
         concentration_in = mass/volnet
@@ -203,8 +204,8 @@ class Fermentation(BatchReactor):
         kwargs = self._kwargs
         out, CO2 = self._outs
         out.sum(out, self._ins)
-        e, g, s, w, co2 = self._species_index or out.indices(Stream,
-                '64-17-5', '492-61-5', '57-50-1', '7732-18-5', '124-38-9', CAS=True)
+        e, g, s, w, co2 = self._species_index or out.indices(
+                ['64-17-5', '50-99-7', '57-50-1', '7732-18-5', '124-38-9'])
         glucose = out.mol[g]
         sucrose = out.mol[s]
         
@@ -261,6 +262,5 @@ class Fermentation(BatchReactor):
     def _end(self):
         N = self._Design['Number of reactors']
         Cost = self._Cost
-        Cost['Agitators'] *= N
-        Cost['Reactors'] *= N
-        Cost['Coolers'] = N*self._cooler._Cost['Heat exchanger']
+        Cost['Coolers'] = self._cooler._Cost['Heat exchanger']
+        for i in Cost: Cost[i] *= N

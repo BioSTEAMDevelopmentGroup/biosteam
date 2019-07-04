@@ -12,4 +12,3 @@ numpy
 graphviz
 matplotlib
 nbsphinx
-lipidcane

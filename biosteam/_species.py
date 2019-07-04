@@ -39,7 +39,11 @@ class Species:
     def tospecies(cls, compounds):
         """Return a Species object from an iterable of Compound objects."""
         self = cls.__new__(cls)
-        for c in compounds: setattr(self, c.ID, c)
+        for c in compounds: 
+            if isinstance(c, cmps.Compound):
+                _setattr(self, c.ID, c)
+            else:
+                raise TypeError('can only set Compound objects as attributes')
         return self
     
     def __init__(self, *IDs, cls=None):
@@ -48,12 +52,7 @@ class Species:
         if cls is None: cls = cmps.Chemical
         
         # Set Compound object attributes
-        for n in IDs:
-            try:
-                compound = cls(n)
-            except:
-                raise LookupError(f"'{n}', not defined in data bank")
-            _setattr(self, n, compound)
+        for n in IDs: _setattr(self, n, cls(n))
     
     @property
     def IDs(self):
@@ -70,8 +69,6 @@ class Species:
     
     def __setattr__(self, ID, compound):
         if isinstance(compound, cmps.Compound):
-            if compound in self:
-                raise AttributeError(f'compound {repr(compound)} already defined')
             compound.ID = ID
             _setattr(self, ID, compound)
         elif ID == 'IDs':

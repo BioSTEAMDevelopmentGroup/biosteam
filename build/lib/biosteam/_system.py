@@ -7,7 +7,7 @@ Created on Sat Aug 18 15:04:55 2018
 from copy import copy
 import numpy as np
 from scipy.optimize import newton
-from ._exceptions import Stop, SolverError, _try_method
+from ._exceptions import SolverError, _try_method
 from ._flowsheet import find, make_digraph, save_digraph
 from ._stream import Stream
 from ._unit import Unit
@@ -28,7 +28,7 @@ def _evaluate(self, command=None):
         info = CS.info("Enter to continue or type to evaluate:\n")
         command = input(Next + info + ">>> ")
     
-    if command == 'exit': raise Stop
+    if command == 'exit': raise KeyboardInterrupt()
     if command:
         # Build locals dictionary for evaluating command
         lcs = {} 
@@ -624,8 +624,6 @@ class System:
         self._debug_on()
         try:
             self._converge_method()
-        except Stop:
-            self._debug_off()
         except Exception as error:
             self._debug_off()
             raise error

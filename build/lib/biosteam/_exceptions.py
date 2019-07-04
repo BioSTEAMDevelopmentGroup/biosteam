@@ -9,30 +9,28 @@ This module includes classes and functions relating exception handling.
 """
 import sys as _sys
 
-__all__ = ('biosteamError', 'Stop', 'DesignError', 'SolverError', 'EquilibriumError','DimensionError', 'DesignWarning')
+__all__ = ('DesignError', 'SolverError', 'EquilibriumError','DimensionError', 'DesignWarning')
 
 # %% Biosteam errors
 
-class biosteamError(Exception):
-    """General exception in biosteam."""
+class DesignError(RuntimeError):
+    """RuntimeError regarding unit design."""
 
-class Stop(biosteamError):
-    """Exception to Stop code."""
+class SolverError(RuntimeError):
+    """RuntimeError regarding solvers."""
 
-class DesignError(biosteamError):
-    """Exception regarding unit design."""
+class EquilibriumError(RuntimeError):
+    """RuntimeError regarding equilibrium."""
 
-class SolverError(biosteamError):
-    """Exception regarding solvers."""
+class DimensionError(ValueError):
+    """ValueError regarding wrong dimensions."""
 
-class EquilibriumError(biosteamError):
-    """Exception regarding equilibrium."""
-
-class DimensionError(biosteamError):
-    """Exception regarding wrong dimensions."""
+class UndefinedCompound(AttributeError):
+    """LookupError regarding undefined compounds."""
+    def __init__(self, ID): super().__init__(f"'{ID}'")
 
 # Python's built in KeyError quotes the message, used as a by-pass for the debbuger
-_KE = type('KeyError', (biosteamError, ), {})
+_KE = type('KeyError', (Exception, ), {})
 
 
 # %% Biosteam Warnings
@@ -88,6 +86,8 @@ def _try_method(method):
         # Raise exception with same traceback but new message
         if type(e) is KeyError:
             raise _KE(msg).with_traceback(_sys.exc_info()[2])
+        elif type(e) is UndefinedCompound:
+             raise e
         else:
             raise type(e)(msg).with_traceback(_sys.exc_info()[2])
 

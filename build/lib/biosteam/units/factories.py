@@ -39,9 +39,7 @@ def df2unit(clsname, cost_items, *, supercls=None, metacls=None):
         _add_cost(cls, ID, *cost_items[ID], None)
     return cls
 
-def xl2dct(file, sheet_name=0):
-    """Return dictionary of unit subclasses from excel file."""
-    df = pd.read_excel(file, header=[0, 1])
+def df2dct(df):
     dct = {}
     for name_sim in df.columns.levels[0]:
         cost_items = df[name_sim]
@@ -67,6 +65,10 @@ def xl2dct(file, sheet_name=0):
             new = df2unit(name, cost_items, superclass=superclass)
         dct[name] = new
     return dct
+
+def xl2dct(file, sheet_name=0):
+    """Return dictionary of unit subclasses from excel file."""
+    return df2dct(pd.read_excel(file, header=[0, 1]))
 
 def xl2mod(file, module, sheet_name=0):
     dct = xl2dct(file, sheet_name)

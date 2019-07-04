@@ -205,7 +205,7 @@ class Fermentation(BatchReactor):
         out, CO2 = self._outs
         out.sum(out, self._ins)
         e, g, s, w, co2 = self._species_index or out.indices(
-                ['64-17-5', '492-61-5', '57-50-1', '7732-18-5', '124-38-9'])
+                ['64-17-5', '50-99-7', '57-50-1', '7732-18-5', '124-38-9'])
         glucose = out.mol[g]
         sucrose = out.mol[s]
         

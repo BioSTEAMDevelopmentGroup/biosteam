@@ -192,7 +192,7 @@ class Pump(Unit, metaclass=metaPump):
         if Type == 'Default':
             if (0.00278 < q < 5000
                 and 15.24 < head < 3200
-                and nu < 0.00001
+                and nu < 0.00002
                 and NPSH_satisfied):
                 Type = 'Centrifugal'
             elif (q < 1500

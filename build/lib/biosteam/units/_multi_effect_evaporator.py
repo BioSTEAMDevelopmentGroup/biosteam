@@ -9,8 +9,9 @@ import biosteam as bst
 from .. import Unit, Stream
 from scipy.optimize import brentq
 from . import Mixer, HXutility
-from ._flash import Evaporator_PV, Evaporator_PQin
+from ._flash import Evaporator_PV, Evaporator_PQ
 from .designtools import vacuum_system
+from warnings import warn
 import ht
 log = np.log
 exp = np.exp
@@ -86,7 +87,7 @@ class MultiEffectEvaporator(Unit):
             raise ValueError(f"Type must be one of the following: {dummy}")
         self._Type = evap_type
 
-    def _setup(self):
+    def _init(self):
         # Unpack
         component, P, V, P_liq = (self._kwargs[i]
                                   for i in ('component', 'P', 'V', 'P_liq'))
@@ -100,9 +101,9 @@ class MultiEffectEvaporator(Unit):
         
         evaporators = [evap0]
         for i in range(1, n):
-            evap = Evaporator_PQin(None,
+            evap = Evaporator_PQ(None,
                                    outs=(None, None, None),
-                                   component=component, P=P[i], Qin=0)
+                                   component=component, P=P[i], Q=0)
             evaporators.append(evap)
         condenser = HXutility(None, outs=Stream(None), V=0)
         evap0._heat_utilities[0], condenser._heat_utilities[0] = self._heat_utilities
@@ -194,14 +195,14 @@ class MultiEffectEvaporator(Unit):
         # Find area and cost of evaporators
         As = [A]
         for evap in evaporators[1:]:
-            Q = evap._Qin
+            Q = evap._Q
             Tc = evap.outs[0].T
             Th = evap.outs[2].T
             LMTD = Th - Tc
             A = HXutility._calc_area(LMTD, U, Q, ft)
             As.append(A)
             if not A_range[0] < A < A_range[1]:
-                print(f'WARNING, area requirement ({A}) is out of range, {A_range}')
+                warn('area requirement ({A}) is out of range, {A_range}')
             evap_costs.append(C_func(A, CE))
         self._As = As
         Design['Area'] = A = sum(As)

@@ -109,7 +109,7 @@ def split(self):
 def __init__(self, ID='', outs=(), ins=None, order=None, *, split):
     self.ID = ID
     self._split = split = Stream.species.array(order, split) if order else asarray(split)
-    self._split_series =  Series(split, Stream.species)
+    self._split_series =  Series(split, Stream.species.IDs)
     self._init_ins(ins)
     self._init_outs(outs)
     self._init_results()

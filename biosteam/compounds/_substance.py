@@ -4,10 +4,12 @@ Created on Sat Nov 10 19:27:01 2018
 
 @author: yoelr
 """
-from ._compound import Compound
+from ._compound import Compound, _R
+from ._chemical import Chemical
 import numpy as np
+from math import log
 
-__all__ = ('Substance',)
+__all__ = ('Substance', 'StaticChemical')
 
 
 def select_value(obj, user_defined, attr, default):
@@ -52,7 +54,7 @@ class Substance(Compound):
         
         **Hc:** Heat of combustion (J/mol)
         
-        **default_phase:** {'l', 's', 'g'} Phase of substance
+        **phase:** {'l', 's', 'g'} Phase of substance
         
         ****properties:** Additional properties to set
         
@@ -71,15 +73,15 @@ class Substance(Compound):
     def __init__(self, ID, CAS='', obj=None, *,
                  MW=1, T=298.15, P=101325, Cp=None,
                  rho=None, k=None, mu=None, sigma=None,
-                 Pr=None, Hf=None, Hc=None, obj_state = None,
-                 default_phase='l', **properties):
+                 Pr=None, Hf=None, Hc=None, phase=None, **properties):
         if obj:
             obj.T = T
             obj.P = P
-            obj.phase = default_phase
-            if obj_state:
-                for i, j in obj_state.items():
-                    setattr(obj, i, j)
+            if phase:
+                obj.phase = phase
+            else:
+                phase = obj.phase
+        if not phase: phase = 'l'
         
         self.ID = ID.replace(' ', '_')
         self.T = T
@@ -105,22 +107,37 @@ class Substance(Compound):
         self.nu = self.mu/self.rho
         self.Pr = self.nu/self.alpha
         self.UNIFAC_groups = self.UNIFAC_Dortmund_groups = None
-        self.phase_ref = default_phase
+        self.phase_ref = phase
         
-        if default_phase not in 'slg':
-            raise ValueError(f"default phase must be either 's', 'l' or 'g', not '{default_phase}'")
+        if phase not in 'slg':
+            raise ValueError(f"default phase must be either 's', 'l' or 'g', not '{phase}'")
         
         # Phase change temperature consitent with phase
-        self.Tb = 0 if default_phase=='g' else np.inf 
-        self.Tm = np.inf if default_phase=='s' else 0
+        self.Tb = 0 if phase=='g' else np.inf 
+        self.Tm = np.inf if phase=='s' else 0
         for i in properties: setattr(self, i, properties[i])
         
     @property
-    def Cplm(self):
-        return self.Cpm
+    def H(self):
+        return self.Cpm*(self.T-self.T_ref)
+    @property
+    def S(self):
+        return self.Cpm*log(self.T/self.T_ref) + (_R*log(self.P/self.P_ref) if self.phase=='g' else 0)
+    
     @property
     def phase(self):
         """Phase of substance."""
         return self.phase_ref
     @phase.setter
     def phase(self, phase): pass
+
+
+class StaticChemical(Substance):
+    def __init__(self, ID, *, T=298.15, P=101325, MW=None,
+                 Cp=None, rho=None, k=None, mu=None, sigma=None,
+                 Pr=None, Hf=None, Hc=None, phase=None, **properties):
+        obj = Chemical(ID, T, P)
+        super().__init__(obj=obj,
+                 ID=obj.ID, CAS=obj.CAS, MW=obj.MW, T=T, P=P,
+                 Cp=Cp, rho=rho, k=k, mu=mu, sigma=sigma,
+                 Pr=Pr, Hf=Hf, Hc=Hc, phase=phase, **properties)

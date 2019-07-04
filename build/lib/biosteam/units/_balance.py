@@ -48,7 +48,7 @@ class MassBalance(Unit, metaclass=final):
                         'streams': streams,
                         'exact': exact,
                         'balance': balance}
-        self._setup()
+        self._init()
 
     def _init_ins(self, ins):
         """Initialize input streams."""
@@ -76,7 +76,7 @@ class MassBalance(Unit, metaclass=final):
         else:
             self._outs = [Stream(i) if isinstance(i, str) else i for i in outs]
 
-    def _setup(self):
+    def _init(self):
         exact = self._kwargs['exact']
         balance = self._kwargs['balance']
         

@@ -86,6 +86,8 @@ def _try_method(method):
         # Raise exception with same traceback but new message
         if type(e) is KeyError:
             raise _KE(msg).with_traceback(_sys.exc_info()[2])
+        elif type(e) is UndefinedCompound:
+             raise e
         else:
             raise type(e)(msg).with_traceback(_sys.exc_info()[2])
 

@@ -76,28 +76,25 @@ material_factor = {'Carbon steel': 1.0,
 # %% Flash
 
 class Flash(Unit):
-    """Create an equlibrium based flash drum with the option of having light non-keys and heavy non-keys completly separate into their respective phases. Design procedure is based on heuristics by Wayne D. Monnery & William Y. Svrcek [1]. The f.o.b cost is based on classical Guthrie's correlation [2]:
-
-    :math:`C_{fob}^{2007} = 6500 V^{0.62} (0.1 < V < 70 m^3)`
+    """Create an equlibrium based flash drum with the option of having light non-keys and heavy non-keys completly separate into their respective phases. Design procedure is based on heuristics by Wayne D. Monnery & William Y. Svrcek [1]. Purchase costs are based on correlations by Mulet et al. [2, 3] as compiled by Warren et. al. [4].
 
     **Parameters**
 
-        **P:** [float] Operating pressure (Pa)
-
-        **User defines one:**
-            * **Qin:** [float] Energy input (kJ/hr)
-            * **V:** [float] Overall molar vapor fraction
+        **Specify two:**
+            * **P:** [float] Operating pressure (Pa)
+            * **Q:** [float] Energy input (kJ/hr)
+            * **V:** [float] Molar vapor fraction
             * **T:** [float] Operating temperature (K)
             * **x:** [array_like] Molar composition of liquid (for binary mixture)
             * **y:** [array_like] Molar composition of vapor (for binary mixture)     
     
         **Optional**
     
-            **species_IDs:** tuple[str] IDs of equilibrium species
+            **species_IDs:** tuple[str] IDs of species in equilibrium.
             
-            **LNK**: tuple[str] Light non-keys
+            **LNK**: tuple[str] Light non-keys assumed to remain as a vapor.
         
-            **HNK**: tuple[str] Heavy non-keys
+            **HNK**: tuple[str] Heavy non-keys assumed to remain as a liquid.
 
     **ins**
     
@@ -111,9 +108,13 @@ class Flash(Unit):
 
     **References**
 
-        [1] Design Two-Phase Separators Within the Right Limits, Chemical Engineering Progress Oct, 1993
+        [1] "Design Two-Phase Separators Within the Right Limits", Chemical Engineering Progress Oct, 1993.
     
-        [2] I.K. Kookos, Preliminary Chemical Process Synthesis and Design, Tziolas Publishing, Thessalonika, Greece, 2008 (book in Greek).
+        [2] Mulet, A., A. B. Corripio, and L. B. Evans, “Estimate Costs of Pressure Vessels via Correlations,” Chem. Eng., 88(20), 145–150 (1981a).
+
+        [3] Mulet, A., A.B. Corripio, and L.B.Evans, “Estimate Costs of Distillation and Absorption Towers via Correlations,” Chem. Eng., 88(26), 77–82 (1981b).
+
+        [4] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R., & Ng, M. K. (2017). Product and Process Design Principles. Wiley. Cost Accounting and Capital Cost Estimation (Chapter 16)    
     
     **Examples**
     
@@ -149,6 +150,12 @@ class Flash(Unit):
     #: If a vacuum system is needed, it will choose one according to this preference.
     vacuum_system_preference = 'Liquid-ring pump'
     
+    #: True if glycol groups are present in the mixture
+    HasGlycolGroups = False
+    
+    #: True if amine groups are present in the mixture
+    HasAmineGroups = False
+    
     #: [str] 'Horizontal', 'Vertical', or 'Default'
     SepType = 'Default'
     
@@ -162,11 +169,11 @@ class Flash(Unit):
     Mist = False
     
     _kwargs = {'species_IDs': None,  # Equilibrium species
-               'LNK': None,   # light non-keys
-               'HNK': None,   # heavy non-keys
+               'LNK': (),   # light non-keys
+               'HNK': (),   # heavy non-keys
                'V': None,   # Vapor fraction
                'T': None,   # Operating temperature
-               'Qin': None, # Energy input
+               'Q': None, # Energy input
                'P': None,   # Operating Pressure
                'y': None,   # Vapor composition (of working species)
                'x': None}   # Liquid composition (of working species)
@@ -191,16 +198,59 @@ class Flash(Unit):
     def _init(self):
         vap, liq = self.outs
         vap._phase = 'g'
-        self._heat_exchanger = he = HXutility(None, outs=None) 
-        self._heat_utilities = he._heat_utilities
-        he._ins = self._ins
-        self._mixedstream = ms = MixedStream(None)
-        he._outs[0] = ms
-
-    def _setup(self):
-        self._has_hx = self._kwargs['Qin'] != 0
-        if self._kwargs['P'] < 101325 and not self._power_utility:
+        self._mixedstream = MixedStream(None)
+        self._heat_exchanger = None
+        kw = self._kwargs
+        
+        #: tuple[str] IDs of species in thermodynamic equilibrium
+        self.species_IDs = kw['species_IDs']
+        
+        #: tuple[str] Light non-keys assumed to remain as a vapor
+        self.LNK = kw['LNK']
+        
+        #: tuple[str] Heavy non-keys assumed to remain as a liquid
+        self.HNK = kw['HNK']
+        
+        #: Enforced molar vapor fraction
+        self.V = kw['V']
+        
+        #: Enforced operating temperature (K)
+        self.T = kw['T']
+        
+        #: [array_like] Molar composition of vapor (for binary mixture)
+        self.y = kw['y']
+        
+        #: [array_like] Molar composition of liquid (for binary mixture)
+        self.x = kw['x']
+        
+        self.Q = kw['Q']
+        self.P = kw['P']
+        
+        
+    @property
+    def P(self):
+        """Operating pressure (Pa)."""
+        return self._P
+    @P.setter
+    def P(self, P):
+        if P < 101325 and not self._power_utility:
             self._power_utility = PowerUtility()
+        self._P = P
+    
+    @property
+    def Q(self):
+        """Enforced duty (kJ/hr)."""
+        return self._Q
+    @Q.setter
+    def Q(self, Q):
+        if Q == 0:
+            self._heat_exchanger = None
+        elif not self._heat_exchanger:
+            self._heat_exchanger = he = HXutility(None, outs=None) 
+            self._heat_utilities = he._heat_utilities
+            he._ins = self._ins
+            he._outs[0] = self._mixedstream
+        self._Q = Q
 
     def _run(self):
         # Unpack
@@ -212,7 +262,8 @@ class Flash(Unit):
         ms.empty()
         ms.liquid_mol[:] = feed.mol
         ms.T = feed.T
-        ms.VLE(**self._kwargs)
+        ms.VLE(self.species_IDs, self.LNK, self.HNK, self.P,
+               self.Q, self.T, self.V, self.x, self.y)
 
         # Set Values
         vap._mol[:] = ms.vapor_mol
@@ -222,22 +273,25 @@ class Flash(Unit):
 
     def _design(self):
         # Set horizontal or vertical vessel
-        if self.SepType == 'Default':
+        SepType = self.SepType
+        if SepType == 'Default':
             if self.outs[0].massnet/self.outs[1].massnet > 0.2:
-                self.SepType = 'Vertical'
+                isVertical = True
             else:
-                self.SepType = 'Horizontal'
-
-        # Run Vertical or Horizontal:
-        if self.SepType == 'Vertical':
-            out = self._vertical()
-        elif self.SepType == 'Horizontal' or '(USDA) Biodiesel':
-            out = self._horizontal()
+                isVertical = False
+        elif SepType == 'Vertical':
+            isVertical = True
+        elif SepType == 'Horizontal':
+            isVertical = False
         else:
-            raise ValueError( f"SepType must be either 'Horizontal' or 'Vertical', not '{self.SepType}'")
-        if self._has_hx: self._heat_exchanger._design()
+            raise ValueError( f"SepType must be either 'Default', 'Horizontal', 'Vertical', not '{self.SepType}'")
+        self._isVertical = isVertical
+
+        # Run vertical or horizontal design
+        if isVertical: self._vertical()
+        else: self._horizontal()
+        if self._heat_exchanger: self._heat_exchanger._design()
         self._Design['Material'] = self._material
-        return out
 
     def _cost(self):
         Design = self._Design
@@ -245,21 +299,18 @@ class Flash(Unit):
         D = Design['Diameter']
         L = Design['Length']
         CE = bst.CE
-        SepType = self.SepType
         
         # C_v: Vessel cost
         # C_pl: Platforms and ladders cost
-        if SepType == 'Vertical':
+        if self._isVertical:
             C_v = exp(7.1390 + 0.18255*ln(W) + 0.02297*ln(W)**2)
             C_pl = 410*D**0.7396*L**0.70684
-        elif SepType == 'Horizontal':
+        else:
             C_v = exp(5.6336 - 0.4599*ln(W) + 0.00582*ln(W)**2)
             C_pl = 2275*D**0.20294
-        else:
-            ValueError(f"SepType ({SepType}) must be either 'Vertical', 'Horizontal' or 'Default'.")
             
         self._Cost['Flash'] = CE/567*(self._F_material*C_v+C_pl)
-        if self._has_hx:
+        if self._heat_exchanger:
             hx = self._heat_exchanger
             hx._cost()
             self._Cost.update(hx._Cost)
@@ -299,12 +350,10 @@ class Flash(Unit):
 
     def _design_parameters(self):
         # Retrieve run_args and properties
-        vap, liq = self.outs[0:2]
-        v = vap.quantity
-        l = liq.quantity
-        rhov = v('rho').to('lb/ft3').magnitude  # VapDensity
-        rhol = l('rho').to('lb/ft3').magnitude  # LLiqDensity
-        P = l('P').to('psi').magnitude  # Pressure
+        vap, liq = self._outs
+        rhov = vap.rho*0.06243  # VapDensity (lb/ft3)
+        rhol = liq.rho*0.06243  # LLiqDensity (lb/ft3)
+        P = liq.P*0.000145  # Pressure (psi)
 
         # SepType (str), HoldupTime (min), SurgeTime (min), Mist (bool)
         SepType = self.SepType
@@ -313,35 +362,22 @@ class Flash(Unit):
         Mist = self.Mist
 
         # Calculate the volumetric flowrate
-        Qv = v('volnet').to('ft3/s').magnitude
-        Qll = l('volnet').to('ft3/min').magnitude
+        Qv = vap.volnet * 0.0098096 # ft3/s
+        Qll = liq.volnet * 0.58857 # ft3/min
 
         # Calculate Ut and set Uv
         K = Kvalue(P)
 
         # Adjust K value
-        if not Mist and SepType == 'Vertical':
-            K = K/2
+        if not Mist and SepType == 'Vertical': K /= 2
 
-        xs = liq.massfrac
-        for s, x in zip(liq._species, xs):
-            if x > 0.1:
-                # TODO: Verify unifac groups to determine if glycol and/or amine
-                dct = s.UNIFAC_groups
-                keys = dct.keys()
-                if 14 in keys:
-                    OHs = dct[14]
-                else:
-                    OHs = 0
-                if OHs > 1:
-                    K = K*0.6
-                elif any([i in keys for i in (28, 29, 30, 31, 32, 33)]):
-                    K = K*0.8
-                else:
-                    OHs = 0
+        # Adjust for amine or glycol groups:
+        if self.HasGlycolGroups: K *= 0.6
+        elif self.HasAmineGroups: K *= 0.8
 
         Ut = K*((rhol - rhov) / rhov)**0.5
         Uv = 0.75*Ut
+
         # Calculate Holdup and Surge volume
         Vh = Th*Qll
         Vs = Ts*Qll
@@ -366,12 +402,14 @@ class Flash(Unit):
         Hh = Vh/(pi/4.0*Dvd**2)
         if Hh < 1.0:
             Hh = 1.0
+        else:
             Hh = FinalValue(Hh)
 
         # Calculate the height from Hnll to  High liq level, Hhll
         Hs = Vs/(pi/4.0*Dvd**2)
         if Hs < 0.5:
             Hs = 0.5
+        else:
             Hs = FinalValue(Hs)
 
         # Calculate dN
@@ -391,8 +429,7 @@ class Flash(Unit):
         else:
             Hv2 = 3.0 + dN/2.0
 
-        if Hv2 < Hv:
-            Hv = Hv2
+        if Hv2 < Hv: Hv = Hv2
         Hv = ceil(Hv)
 
         # Calculate total height, Ht
@@ -403,18 +440,11 @@ class Flash(Unit):
         Ht = FinalValue(Ht)
 
         # Check if LD is between 1.5 and 6.0
-        converged = False
-        LD = Ht/D
-        while not converged:
-            if (LD < 1.5):
-                D = D - 0.5
-                converged = False
-            elif (LD > 6.0):
-                D = D + 0.5
-                converged = False
-            else:
-                converged = True
+        while True:
             LD = Ht/D
+            if (LD < 1.5): D -= 0.5
+            elif (LD > 6.0): D += 0.5
+            else: break
 
         # Calculate Vessel weight and wall thickness
         rho_M = material_density[self._material]
@@ -445,16 +475,15 @@ class Flash(Unit):
             LD = 5.0
 
         D = (4.0*(Vh+Vs)/(0.6*pi*LD))**(1.0/3.0)
-        D = round(D)
         if D <= 4.0:
             D = 4.0
+        else:
+            D = FinalValue(D)
 
         outerIter = 0
-        converged = False
-        converged1 = False
-        while not converged and outerIter < 50:
+        while outerIter < 50:
             outerIter += 1
-            At = pi*(D**2)/4.0
+            At = pi*(D**2)/4.0 # Total area
 
             # Calculate Lower Liquid Area
             Hlll = round(0.5*D + 7.0)  
@@ -463,17 +492,13 @@ class Flash(Unit):
             Y = HNATable(1, X)
             Alll = Y*At
 
-            # Calculate the Vapor  disengagement area, Av
+            # Calculate the Vapor disengagement area, Av
             Hv = 0.2*D
-            if Mist and Hv <= 2.0:
-                Hv = 2.0
-            else:
-                if Hv <= 1.0:
-                    Hv = 1.0
-            X = Hv/D
-            Y = HNATable(1, X)
-            Av = Y*At
-
+            if Mist and Hv <= 2.0: Hv = 2.0
+            elif Hv <= 1.0: Hv = 1.0
+            else: Hv = FinalValue(Hv)
+            Av = HNATable(1, Hv/D)*At
+            
             # Calculate minimum length for surge and holdup
             L = (Vh + Vs)/(At - Av - Alll)
             # Calculate liquid dropout
@@ -483,90 +508,41 @@ class Flash(Unit):
             # Calculate minimum length for vapor disengagement
             Lmin = Uva*Phi
             Li = L
-
-            if L < Lmin:
-                Li = Lmin
-
-            if L < 0.8*Lmin:
-                sign = 1.0
-                needToIter = True
-            elif L > 1.2*Lmin:
-                if int(Mist) == 1 and Hv <= 2.0:
-                    Hv = 2.0
-                    Li = L
-                elif not int(Mist) == 0 and Hv <= 1.0:
-                    Hv = 1.0
-                    Li = L
-                else:
-                    sign = -1.0
-                    needToIter = True
-            else:
-                sign = -1.0
-                needToIter = False
-
-            if needToIter:
-                innerIter = 0
-                while not converged1 and innerIter < 50:
-                    innerIter += 1
-                    Hv = Hv + sign*0.5
-                    if Mist and Hv <= 2.0:
-                        Hv = 2.0
-                    if Mist and Hv <= 1.0:
-                        Hv = 1.0
-                    X = Hv/D
-                    Y = HNATable(1, X)
-                    Av = Y*At
-
-                    X = Hlll/D
-                    Y = HNATable(1, X)
-                    Alll = Y*At
-
-                    Li = (Vh + Vs)/(At - Av - Alll)
-                    Phi = Hv/Uv
-                    Uva = Qv/Av
-                    Lmin = Uva*Phi
-                    if Li < 0.8*Lmin:
-                        sign = 1.0
-                        converged1 = False
-                    elif Li > 1.2*Lmin:
-                        sign = -1.0
-                        converged1 = False
-                    else:
-                        Li = Li
-                        converged1 = True
+            
+            innerIter = 0
+            while innerIter < 50:
+                if L < 0.8*Lmin: Hv += 0.5
+                elif L > 1.2*Lmin:
+                    if Mist and Hv <= 2.0: Hv = 2.0
+                    elif not Mist and Hv <= 1.0: Hv = 1.0
+                    else: Hv -= 0.5
+                else: break
+                Av = HNATable(1, Hv/D)*At
+                Alll = HNATable(1, Hlll/D)*At
+                Li = (Vh + Vs)/(At - Av - Alll)
+                Phi = Hv/Uv
+                Uva = Qv/Av
+                Lmin = Uva*Phi                
+                innerIter += 1
             
             L = Li
             LD = L/D
             # Check LD
             if LD < 1.2:
-                if D <= 4.0:
-                    D = D
-                    converged = True
-                else:
-                    D = D - 0.5
-                    converged = False
+                if D <= 4.0: break
+                else: D -= 0.5
 
             if LD > 7.2:
-                D = D + 0.5
-                converged = False
-            else:
-                converged = True
+                D += 0.5
+            else: break
 
         # Recalculate LD so it lies between 1.5 - 6.0
-        converged = False
-        while not converged:
+        while True:
             LD = L / D
-            if (LD < 1.5) and D <= 4.0:
-                L = L + 0.5
-                converged = False
-            elif LD < 1.5:
-                D = D - 0.5
-                converged = False
-            elif (LD > 6.0):
-                D = D + 0.5
-                converged = False
-            else:
-                converged = True
+            if (LD < 1.5) and D <= 4.0: L += 0.5
+            elif LD < 1.5: D -= 0.5
+            elif (LD > 6.0): D += 0.5
+            else: break
 
         # Calculate vessel weight and wall thickness
         rho_M = material_density[self._material]
@@ -601,34 +577,35 @@ class Flash(Unit):
 class SplitFlash(Flash, metaclass=splitter):
     line = 'Flash'
     
-    _kwargs = {'T': 298.15,  # operating temperature (K)
+    _kwargs = {'T': 298.15,
                'P': 101325,
-               'Qin': None}  # operating pressure (Pa)
+               'Q': None}  
+    
+    def _init(self):
+        self._mixedstream = MixedStream(None)
+        self._heat_exchanger = None
+        kw = self._kwargs
+        self.T = kw['T'] #: Operating temperature (K)
+        self.P = kw['P'] #: Operating pressure (Pa)
+        self.Q = kw['Q'] #: Duty (kJ/hr)
         
-    def _setup(self):
-        top, bot = self.outs
-        kwargs = self._kwargs
-        T = kwargs['T']
-        P = kwargs['P']
-        Qin = kwargs['Qin']
-        self._has_hx = Qin != 0
-        if P < 101325 and not self._power_utility:
-            self._power_utility = PowerUtility()
-        top.phase = 'g'
-        bot.T = top.T = T
-        bot.P = top.P = P
-
+    V = None
+    
     def _run(self):
         top, bot = self.outs
         net_mol = self._ins[0].mol
         top._mol[:] = net_mol * self._split
         bot._mol[:] = net_mol - top._mol
+        top.phase = 'g'
+        bot.T = top.T = self.T
+        bot.P = top.P = self.P
 
     def _design(self):
-        if self._has_hx:
+        if self._heat_exchanger:
             self._heat_exchanger.outs[0] = ms = self._mixedstream
             ms = MixedStream.sum(ms, self.outs)
         super()._design()
+
 
 class PartitionFlash(Flash):
     """Create a PartitionFlash Unit that approximates outputs based on molar partition coefficients."""
@@ -640,9 +617,7 @@ class PartitionFlash(Flash):
                'P': None,            # Operating Pressure
                'T': None}            # Operating temperature
     
-    _has_hx = True
-    
-    def _setup(self):
+    def _init(self):
         top, bot = self.outs
         species_IDs, Ks, LNK, HNK, P, T = self._kwargs.values()
         index = top._species._IDs.index
@@ -716,13 +691,13 @@ class RatioFlash(Flash):
 
 # %% Single Component
 
-class Evaporator_PQin(Unit):
+class Evaporator_PQ(Unit):
 
     _kwargs = {'component': 'Water',  # ID of specie
-               'Qin': 0,
+               'Q': 0,
                'P': 101325}
 
-    def _setup(self):
+    def _init(self):
         component, P = (self._kwargs[i] for i in ('component', 'P'))
         vapor, liquid = self.outs[:2]
         self._cached = cached = {}
@@ -748,7 +723,7 @@ class Evaporator_PQin(Unit):
 
     def _run(self):
         feed = self.ins[0]
-        component, Qin = (self._kwargs[i] for i in ('component', 'Qin'))
+        component, Q = (self._kwargs[i] for i in ('component', 'Q'))
         vapor, liquid = self.outs[:2]
         cached = self._cached
 
@@ -762,19 +737,19 @@ class Evaporator_PQin(Unit):
 
         no_ph_ch_H = no_ph_ch.H
         feed_H = feed.H
-        # Optional if Qin also comes from condensing a side stream
+        # Optional if Q also comes from condensing a side stream
         if len(self.ins) == 2:
             boiler_liq = self.outs[2]
             boiler_vap = self.ins[1]
             boiler_liq.copylike(boiler_vap)
             boiler_liq.phase = 'l'
-            Qin = Qin + boiler_vap.H - boiler_liq.H
+            Q = Q + boiler_vap.H - boiler_liq.H
 
         # Energy balance to find vapor fraction
         def f(v):
             vapor_Hf = vapor_H*(v*feed.mol[index])
             liquid_Hf = liquid_H*((1-v)*feed.mol[index])
-            return (vapor_Hf + liquid_Hf + no_ph_ch_H) - feed_H - Qin
+            return (vapor_Hf + liquid_Hf + no_ph_ch_H) - feed_H - Q
 
         # Final vapor fraction
         v = newton(f, 0.5, tol=0.001)
@@ -785,7 +760,7 @@ class Evaporator_PQin(Unit):
             v = 1
         vapor.mol[index] = v*feed.mol[index]
         liquid.mol[index] = (1-v)*feed.mol[index]
-        self._Qin = Qin
+        self._Q = Q
         self._V = v
 
 
@@ -795,7 +770,7 @@ class Evaporator_PV(Unit):
                'V': 0.5,
                'P': 101325}
 
-    def _setup(self):
+    def _init(self):
         vapor, liquid = self.outs
         component, P = (self._kwargs[i] for i in ('component', 'P'))
         self._index = vapor._species._IDs.index(component)

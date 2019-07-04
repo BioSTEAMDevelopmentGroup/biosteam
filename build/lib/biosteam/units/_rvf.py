@@ -5,6 +5,7 @@ Created on Thu Aug 23 22:15:20 2018
 @author: yoelr
 """
 from .. import Unit
+from .._exceptions import UndefinedCompound
 from .metaclasses import splitter, run_split_with_mixing
 from .designtools import vacuum_system
 import numpy as np
@@ -43,10 +44,12 @@ class RotaryVacuumFilter(Unit, metaclass=splitter):
     #: Radius of the vessel (m)
     radius = 1
     
+    #: Suction pressure (Pa)
+    P_suction = 100
+    
     #: For crystals (lb/day-ft^2)
     filter_rate = 6000
-    _kwargs = {'P_suction': 100, # Pa
-               'moisture_content': 0.80} # fraction
+    _kwargs = {'moisture_content': 0.80} # fraction
     _bounds = {'Individual area': (10, 800)}
     _units = {'Area': 'ft^2',
               'Individual area': 'ft^2'}
@@ -55,9 +58,11 @@ class RotaryVacuumFilter(Unit, metaclass=splitter):
     power_efficiency = 0.9
     
     def _init(self):
-        self._water_index = wi = bst.Stream.indices(bst.Stream,
-                                                    '7732-18-5', CAS=True)
-        if float(self._split[wi]) != 0:
+        try:
+            self._water_index = wi = bst.Stream.species._indexdct['7732-18-5']
+        except KeyError:
+            raise UndefinedCompound('7732-18-5')
+        if self._split[wi] != 0:
             raise ValueError('cannot define water split, only moisture content')
     
     def _run(self):
@@ -91,26 +96,25 @@ class RotaryVacuumFilter(Unit, metaclass=splitter):
     
     def _power(self, area, N_vessels):
         s_cake, s_vacuumed = self.outs
-        P_suction = self._kwargs['P_suction'] # Max allowable pressure drop
         
-        # Weight of empty plate
-        mass_plates = 10*N_vessels
+        # # Weight of empty plate
+        # mass_plates = 10*N_vessels
         
-        # Revolutions per s
-        rps = self.rps
+        # # Revolutions per s
+        # rps = self.rps
         
-        # Cake volumetric flow meter per sec
-        Volcake = s_cake.volnet / 3600
+        # # Cake volumetric flow meter per sec
+        # Volcake = s_cake.volnet / 3600
         
-        # Thickness of cake layer, assumed uniform and constant
-        thCake = Volcake / rps;
+        # # Thickness of cake layer, assumed uniform and constant
+        # thCake = Volcake / rps;
         
-        # Mass of Cake
-        mass_cake = thCake * s_cake.rho
+        # # Mass of Cake
+        # mass_cake = thCake * s_cake.rho
         radius = self.radius
-        cent_a = (2*np.pi*rps)**2*radius
-        cent_F = (mass_cake + mass_plates)*cent_a
-        work_rot = rps*2*np.pi*radius*cent_F
+        # cent_a = (2*np.pi*rps)**2*radius
+        # cent_F = (mass_cake + mass_plates)*cent_a
+        # work_rot = rps*2*np.pi*radius*cent_F
         Area = self._Design['Area']
         vol = radius*Area*0.0929/2 # m3
         
@@ -118,9 +122,9 @@ class RotaryVacuumFilter(Unit, metaclass=splitter):
         volflow = s_vacuumed.volnet
         massflow = volflow*1.2041 # multiply by density of air kg/m3 
         work_vacuum, self._Cost['Liquid-ring pump'] = vacuum_system(
-                massflow, volflow, P_suction, vol)
-        power = work_rot/self.power_efficiency/1000 + work_vacuum # kW
-        self._power_utility(power)
+                massflow, volflow, self.P_suction, vol)
+        #power = work_rot/self.power_efficiency/1000 + work_vacuum # kW
+        self._power_utility(work_vacuum)
     
     @staticmethod
     def _calc_Area(flow, filter_rate):

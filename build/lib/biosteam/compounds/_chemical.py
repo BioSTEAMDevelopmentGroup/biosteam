@@ -6,6 +6,8 @@ Created on Sat Aug 18 13:50:03 2018
 """
 from thermo.chemical import Chemical as TChem
 from ._compound import Compound
+import numpy as np
+import re
 
 __all__ = ('Chemical', 'Solid', 'Liquid', 'Gas')
 
@@ -15,8 +17,12 @@ class Chemical(Compound, TChem):
 `Read the docs for thermo.Chemical for accurate documentation. <http://thermo.readthedocs.io/en/latest/thermo.chemical.html>`__"""
 
     def __init__(self, ID, T=298.15, P=101325):
-        ID = ID.replace('_', ' ')
-        TChem.__init__(self, ID, T, P)
+        try:
+            TChem.__init__(self,
+                           re.sub(r"\B([A-Z])", r" \1", ID).capitalize().replace('_', ' '),
+                           T, P)
+        except:
+            raise LookupError(f"chemical '{ID}' not found in data bank, try chemical's CAS")
         self.ID = ID.replace(' ', '_')
         if self.CAS == '56-81-5':
             self.__UNIFAC_Dortmund_groups = {2: 2, 3: 1, 14: 2, 81: 1}
@@ -36,51 +42,55 @@ class Chemical(Compound, TChem):
 
     # Baseline equation of state set at atmospheric pressure
     def set_thermo(self):
-        try:
-            self._eos_T_101325 = self.eos.to_TP(self.T, 101325)
-        except:
-            pass
+        try: self._eos_T_101325 = self.eos.to_TP(self.T, 101325)
+        except: pass
 
 
 class Solid(Chemical):
     """Create a :doc:`Chemical` such that its phase remains as solid."""
-    
     def __init__(self, ID, T=298.15, P=101325):
         super().__init__(ID, T, P)
+        # Phase change temperature consitent with phase
+        self.Tb = np.inf 
+        self.Tm = np.inf
+        self.phase_ref = 's'
     
     @property
-    def phase(self):
-        return 's'
+    def phase(self): return 's'
     @phase.setter
     def phase(self, phase): pass
 
 
 class Liquid(Chemical):
     """Create a :doc:`Chemical` such that its phase remains as liquid."""
-    
+    phase_ref = 'l'
     def __init__(self, ID, T=298.15, P=101325):
         super().__init__(ID, T, P)
+        # Phase change temperature consitent with phase
+        self.Tb = np.inf 
+        self.Tm = 0
+        self.phase_ref = 'l'
     
     @property
-    def phase(self):
-        return 'l'
+    def phase(self): return 'l'
     @phase.setter
     def phase(self, phase): pass
 
 
 class Gas(Chemical):
     """Create a :doc:`Chemical` such that its phase remains as gas."""
-    
+    phase_ref = 'g'
     def __init__(self, ID, T=298.15, P=101325):
         super().__init__(ID, T, P)
+        # Phase change temperature consitent with phase
+        self.Tb = 0
+        self.Tm = 0
+        self.phase_ref = 'g'
     
     @property
-    def phase(self):
-        return 'g'
+    def phase(self): return 'g'
     @phase.setter
     def phase(self, phase): pass
-
-
 
 
 

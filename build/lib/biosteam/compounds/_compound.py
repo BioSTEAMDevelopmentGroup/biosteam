@@ -173,7 +173,7 @@ class Compound:
                     'g': self._delSg_delT}
 
         # Add Pressure Entropy
-        if self.phase in 'lg':
+        if self.phase == 'g':
             S += -_R*log(self.P/self.P_ref)
 
         # Add Temperature Entropy

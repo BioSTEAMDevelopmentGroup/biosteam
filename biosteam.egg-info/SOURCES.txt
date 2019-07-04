@@ -46,6 +46,9 @@ biosteam/inspect/__init__.py
 biosteam/inspect/_separation.py
 biosteam/price/__init__.py
 biosteam/price/utilities.py
+biosteam/reaction/__init__.py
+biosteam/reaction/_parse.py
+biosteam/reaction/_reaction.py
 biosteam/units/__init__.py
 biosteam/units/_balance.py
 biosteam/units/_centrifuge_LLE.py
@@ -59,6 +62,7 @@ biosteam/units/_flash.py
 biosteam/units/_humbird2011.xlsx
 biosteam/units/_hx.py
 biosteam/units/_junction.py
+biosteam/units/_lignocellulosic_pretreatment.py
 biosteam/units/_magnetic_separator.py
 biosteam/units/_mixer.py
 biosteam/units/_molecular_sieve.py
@@ -67,6 +71,7 @@ biosteam/units/_pump.py
 biosteam/units/_reactor.py
 biosteam/units/_rvf.py
 biosteam/units/_screw_feeder.py
+biosteam/units/_seed_train.py
 biosteam/units/_shredder.py
 biosteam/units/_solids_centrifuge.py
 biosteam/units/_splitter.py
