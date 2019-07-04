@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>4.2. Distillation &mdash; BioSTEAM 0.1 documentation</title>
+  <title>Stoichiometric reactions &mdash; BioSTEAM 0.1 documentation</title>
   
 
   
@@ -43,9 +43,7 @@
   <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="4.3. Fermentation" href="Fermentation Example.html" />
-    <link rel="prev" title="4.1. Centrifuge_LLE" href="Centrifuge_LLE Example.html" /> 
+    <link rel="search" title="Search" href="search.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -90,25 +88,11 @@
             
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="Getting started.html">1. Getting started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">3. Creating a Unit</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="Unit operation examples.html">4. Unit operation examples</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="Centrifuge_LLE Example.html">4.1. Centrifuge_LLE</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">4.2. Distillation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#Binary-distillation-assuming-100%-separation-on-non-keys">4.2.1. Binary distillation assuming 100% separation on non-keys</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="Fermentation Example.html">4.3. Fermentation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Flash Example.html">4.4. Flash</a></li>
-<li class="toctree-l2"><a class="reference internal" href="HXprocess Example.html">4.5. HXprocess</a></li>
-<li class="toctree-l2"><a class="reference internal" href="HXutility Example.html">4.6. HXutility</a></li>
-<li class="toctree-l2"><a class="reference internal" href="MassBalance Example.html">4.7. MassBalance</a></li>
-<li class="toctree-l2"><a class="reference internal" href="MolecularSieve Example.html">4.8. MolecularSieve</a></li>
-<li class="toctree-l2"><a class="reference internal" href="Pump Example.html">4.9. Pump</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="Unit operation examples.html">4. Unit operation examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
@@ -176,15 +160,13 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-          <li><a href="Unit operation examples.html">4. Unit operation examples</a> &raquo;</li>
-        
-      <li>4.2. Distillation</li>
+      <li>Stoichiometric reactions</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/Distillation Example.ipynb.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/Stoichiometric reactions.ipynb.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -380,42 +362,113 @@ div.nboutput div.output_area.stderr {
     margin-right: 4px;  /* make room for the exclamation icon */
 }
 </style>
-<div class="section" id="Distillation">
-<h1>4.2. Distillation<a class="headerlink" href="#Distillation" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="Binary-distillation-assuming-100%-separation-on-non-keys">
-<h2>4.2.1. Binary distillation assuming 100% separation on non-keys<a class="headerlink" href="#Binary-distillation-assuming-100%-separation-on-non-keys" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="Stoichiometric-reactions">
+<h1>Stoichiometric reactions<a class="headerlink" href="#Stoichiometric-reactions" title="Permalink to this headline">¶</a></h1>
+<p>This exaple model the fpretreatment hydrolysis reactions and assumed
+conversions from Humbird et. al. as shown in the follwing table
+<a class="reference external" href="#References">[1]</a>:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="61%" />
+<col width="17%" />
+<col width="21%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Reaction</th>
+<th class="head">Reactant</th>
+<th class="head">% Converted</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>(Glucan)n + n H2O→ n Glucose</td>
+<td>Glucan</td>
+<td>9.9</td>
+</tr>
+<tr class="row-odd"><td>(Glucan)n + n H2O → n Glucose Oligomera</td>
+<td>Glucan</td>
+<td>0.3</td>
+</tr>
+<tr class="row-even"><td>(Glucan)n → n HMF + 2n H2O</td>
+<td>Glucan</td>
+<td>0.3</td>
+</tr>
+<tr class="row-odd"><td>Sucrose → HMF + Glucose + 2 H2O</td>
+<td>Sucrose</td>
+<td>100.0</td>
+</tr>
+<tr class="row-even"><td>(Xylan)n + n H2O→ n Xylose</td>
+<td>Xylan</td>
+<td>90.0</td>
+</tr>
+<tr class="row-odd"><td>(Xylan)n + m H2O → m Xylose Oligomer</td>
+<td>Xylan</td>
+<td>2.4</td>
+</tr>
+<tr class="row-even"><td>(Xylan)n → n Furfural + 2n H2O</td>
+<td>Xylan</td>
+<td>5.0</td>
+</tr>
+<tr class="row-odd"><td>Acetate → Acetic Acid</td>
+<td>Acetate</td>
+<td>100.0</td>
+</tr>
+<tr class="row-even"><td>(Lignin)n → n Soluble Lignin</td>
+<td>Lignin</td>
+<td>5.0</td>
+</tr>
+</tbody>
+</table>
+<p>First set the species for Stream.species:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [1]:
+<span></span>In [3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Species</span><span class="p">,</span> <span class="n">Stream</span>
-<span class="kn">from</span> <span class="nn">biosteam.units</span> <span class="k">import</span> <span class="n">Distillation</span>
+<span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
+<span class="kn">import</span> <span class="nn">biosteam.compounds</span> <span class="k">as</span> <span class="nn">cp</span>
 
-<span class="c1"># Set up stream</span>
-<span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Methanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Glycerol&#39;</span><span class="p">)</span>
-<span class="n">feed</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">25</span><span class="p">))</span>
-<span class="n">feed</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">bubble_T</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span> <span class="c1"># Feed at bubble point T</span>
+<span class="c1"># Create species as defined in data back</span>
+<span class="n">sp</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;H2O&#39;</span><span class="p">,</span> <span class="s1">&#39;AceticAcid&#39;</span><span class="p">,</span> <span class="s1">&#39;Furfural&#39;</span><span class="p">)</span>
 
-<span class="c1"># Set up column</span>
-<span class="n">D1</span> <span class="o">=</span> <span class="n">Distillation</span><span class="p">(</span><span class="s1">&#39;D1&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">feed</span><span class="p">,</span>
-                  <span class="n">LHK</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Methanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">),</span>
-                  <span class="n">y_top</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span> <span class="n">x_bot</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<span class="n">D1</span><span class="o">.</span><span class="n">is_divided</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="n">D1</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+<span class="c1"># Create species that will remain in liquid phase</span>
+<span class="n">sp</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">bst</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Glucose&#39;</span><span class="p">,</span> <span class="s1">&#39;Xylose&#39;</span><span class="p">,</span> <span class="s1">&#39;Sucrose&#39;</span><span class="p">,</span>
+                      <span class="bp">cls</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">Liquid</span><span class="p">))</span>
 
-<span class="c1"># See all results</span>
-<span class="n">D1</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
-<span class="n">D1</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="s1">&#39;degC&#39;</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="s1">&#39;atm&#39;</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="c1"># Create new species with properties compied from water</span>
+<span class="n">sp</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">bst</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Lignin&#39;</span><span class="p">,</span> <span class="s1">&#39;Glucan&#39;</span><span class="p">,</span> <span class="s1">&#39;Xylan&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;GlucoseOligomer&#39;</span><span class="p">,</span><span class="s1">&#39;XyloseOligomer&#39;</span><span class="p">,</span>
+                      <span class="s1">&#39;Acetate&#39;</span><span class="p">,</span> <span class="s1">&#39;SolubleLignin&#39;</span><span class="p">,</span>
+                      <span class="bp">cls</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">Substance</span><span class="p">))</span>
+
+<span class="c1"># Fix structural carbohydrates properties</span>
+
+<span class="c1"># Assume heat capacity of lignin, cellulose, and hemicellulose</span>
+<span class="c1"># and all components at 350 K are about the same [2,2].</span>
+<span class="n">Cp</span> <span class="o">=</span> <span class="mf">1.364</span> <span class="c1"># (J/g/K)</span>
+
+<span class="c1"># Heat of combustions of lignocellulosic material are</span>
+<span class="c1"># based on wood as an approximiation [4]. Also, assume</span>
+<span class="c1"># structural carbohydrates have the same heat of combustion</span>
+<span class="c1"># as cellulose.</span>
+<span class="n">Hc</span> <span class="o">=</span> <span class="mi">17000</span> <span class="c1"># (J/g)</span>
+
+<span class="k">def</span> <span class="nf">setCpHc</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">Cp</span><span class="p">,</span> <span class="n">Hc</span><span class="p">):</span>
+    <span class="nb">cmp</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">sp</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="nb">cmp</span><span class="o">.</span><span class="n">Cp</span> <span class="o">=</span> <span class="n">Cp</span>
+    <span class="nb">cmp</span><span class="o">.</span><span class="n">Hc</span> <span class="o">=</span> <span class="n">Hc</span>
+
+<span class="n">setCpHc</span><span class="p">(</span><span class="n">Lignin</span><span class="p">,</span> <span class="n">Cp</span><span class="p">,</span> <span class="mf">21e3</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;Glucan&#39;</span><span class="p">,</span> <span class="s1">&#39;Xylan&#39;</span><span class="p">,</span> <span class="s1">&#39;GlycoseOligomer&#39;</span><span class="p">,</span> <span class="s1">&#39;XylanOligomer&#39;</span><span class="p">):</span>
+    <span class="n">setCpHc</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">Cp</span><span class="p">,</span> <span class="n">Hc</span><span class="p">)</span>
+
+
+
+<span class="c1"># Fix sugar properties</span>
+
+
+
 </pre></div>
-</div>
-</div>
-<div class="nboutput docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<img alt="_images/Distillation_Example_2_0.png" src="_images/Distillation_Example_2_0.png" />
 </div>
 </div>
 <div class="nboutput nblast docutils container">
@@ -423,218 +476,32 @@ div.nboutput div.output_area.stderr {
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Distillation: D1
-ins...
-[0] feed
-    phase: &#39;l&#39;, T: 76.129 degC, P: 1 atm
-    flow: Water     0.39
-          Methanol  0.488
-          Glycerol  0.122
-          net       205 kmol/hr
-outs...
-[0] d1
-    phase: &#39;g&#39;, T: 64.91 degC, P: 1 atm
-    flow: Water     0.01
-          Methanol  0.99
-          net       100 kmol/hr
-[1] d2
-    phase: &#39;l&#39;, T: 100.06 degC, P: 1 atm
-    flow: Water     0.754
-          Methanol  0.00761
-          Glycerol  0.239
-          net       105 kmol/hr
+<span class="ansi-cyan-intense-fg ansi-bold">  File </span><span class="ansi-green-intense-fg ansi-bold">&#34;&lt;ipython-input-3-5d196d337f13&gt;&#34;</span><span class="ansi-cyan-intense-fg ansi-bold">, line </span><span class="ansi-green-intense-fg ansi-bold">28</span>
+<span class="ansi-yellow-intense-fg ansi-bold">    set_Cp_Hc = lambda cmp, Cp, Hc: cmp.Cp = Cp; cmp.Hc = Hc</span>
+<span class="ansi-white-intense-fg ansi-bold">               ^</span>
+<span class="ansi-red-intense-fg ansi-bold">SyntaxError</span><span class="ansi-red-intense-fg ansi-bold">:</span> can&#39;t assign to lambda
+
 </pre></div></div>
 </div>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [2]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">D1</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[2]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>Distillation</th>
-      <th>Units</th>
-      <th>D1</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th rowspan="3" valign="top">Cooling water</th>
-      <th>Duty</th>
-      <td>kJ/hr</td>
-      <td>-4.87e+06</td>
-    </tr>
-    <tr>
-      <th>Flow</th>
-      <td>kmol/hr</td>
-      <td>3.33e+03</td>
-    </tr>
-    <tr>
-      <th>Cost</th>
-      <td>USD/hr</td>
-      <td>1.62</td>
-    </tr>
-    <tr>
-      <th rowspan="3" valign="top">Low pressure steam</th>
-      <th>Duty</th>
-      <td>kJ/hr</td>
-      <td>9.04e+06</td>
-    </tr>
-    <tr>
-      <th>Flow</th>
-      <td>kmol/hr</td>
-      <td>232</td>
-    </tr>
-    <tr>
-      <th>Cost</th>
-      <td>USD/hr</td>
-      <td>55.2</td>
-    </tr>
-    <tr>
-      <th rowspan="14" valign="top">Design</th>
-      <th>Theoretical feed stage</th>
-      <td></td>
-      <td>4</td>
-    </tr>
-    <tr>
-      <th>Theoretical stages</th>
-      <td></td>
-      <td>13</td>
-    </tr>
-    <tr>
-      <th>Minimum reflux</th>
-      <td>Ratio</td>
-      <td>0.687</td>
-    </tr>
-    <tr>
-      <th>Reflux</th>
-      <td>Ratio</td>
-      <td>1.37</td>
-    </tr>
-    <tr>
-      <th>Rectifier stages</th>
-      <td></td>
-      <td>10</td>
-    </tr>
-    <tr>
-      <th>Stripper stages</th>
-      <td></td>
-      <td>37</td>
-    </tr>
-    <tr>
-      <th>Rectifier height</th>
-      <td>ft</td>
-      <td>27.3</td>
-    </tr>
-    <tr>
-      <th>Stripper height</th>
-      <td>ft</td>
-      <td>67.1</td>
-    </tr>
-    <tr>
-      <th>Rectifier diameter</th>
-      <td>ft</td>
-      <td>7.84</td>
-    </tr>
-    <tr>
-      <th>Stripper diameter</th>
-      <td>ft</td>
-      <td>3</td>
-    </tr>
-    <tr>
-      <th>Rectifier wall thickness</th>
-      <td>in</td>
-      <td>0.312</td>
-    </tr>
-    <tr>
-      <th>Stripper wall thickness</th>
-      <td>in</td>
-      <td>0.438</td>
-    </tr>
-    <tr>
-      <th>Rectifier weight</th>
-      <td>lb</td>
-      <td>1.49e+04</td>
-    </tr>
-    <tr>
-      <th>Stripper weight</th>
-      <td>lb</td>
-      <td>1.19e+04</td>
-    </tr>
-    <tr>
-      <th rowspan="6" valign="top">Cost</th>
-      <th>Rectifier trays</th>
-      <td>USD</td>
-      <td>2.1e+04</td>
-    </tr>
-    <tr>
-      <th>Stripper trays</th>
-      <td>USD</td>
-      <td>2.63e+04</td>
-    </tr>
-    <tr>
-      <th>Rectifier tower</th>
-      <td>USD</td>
-      <td>1.25e+05</td>
-    </tr>
-    <tr>
-      <th>Stripper tower</th>
-      <td>USD</td>
-      <td>1.2e+05</td>
-    </tr>
-    <tr>
-      <th>Condenser</th>
-      <td>USD</td>
-      <td>3.34e+04</td>
-    </tr>
-    <tr>
-      <th>Boiler</th>
-      <td>USD</td>
-      <td>2.6e+04</td>
-    </tr>
-    <tr>
-      <th>Purchase cost</th>
-      <th></th>
-      <td>USD</td>
-      <td>3.52e+05</td>
-    </tr>
-    <tr>
-      <th>Utility cost</th>
-      <th></th>
-      <td>USD/hr</td>
-      <td>56.9</td>
-    </tr>
-  </tbody>
-</table>
-</div></div>
-</div>
+<div class="section" id="References">
+<h2>References<a class="headerlink" href="#References" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic simple">
+<li>Humbird, D., Davis, R., Tao, L., Kinchin, C., Hsu, D., Aden, A.,
+Dudgeon, D. (2011). Process Design and Economics for Biochemical
+Conversion of Lignocellulosic Biomass to Ethanol: Dilute-Acid
+Pretreatment and Enzymatic Hydrolysis of Corn Stover (No.
+NREL/TP-5100-47764, 1013269). <a class="reference external" href="https://doi.org/10.2172/1013269">https://doi.org/10.2172/1013269</a></li>
+<li>Hatakeyama, T., Nakamura, K., &amp; Hatakeyama, H. (1982). Studies on
+heat capacity of cellulose and lignin by differential scanning
+calorimetry. Polymer, 23(12), 1801–1804.
+<a class="reference external" href="https://doi.org/10.1016/0032-3861(82)90125-2">https://doi.org/10.1016/0032-3861(82)90125-2</a></li>
+<li>Thybring, E. E. (2014). Explaining the heat capacity of wood
+constituents by molecular vibrations. Journal of Materials Science,
+49(3), 1317–1327. <a class="reference external" href="https://doi.org/10.1007/s10853-013-7815-6">https://doi.org/10.1007/s10853-013-7815-6</a></li>
+<li>Murphy W. K., and K. R. Masters. (1978). Gross heat of combustion of
+northern red oak (Quercus rubra) chemical components. Wood Sci.
+10:139-141.</li>
+</ol>
 </div>
 </div>
 
@@ -643,15 +510,6 @@ outs...
            
           </div>
           <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="Fermentation Example.html" class="btn btn-neutral float-right" title="4.3. Fermentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="Centrifuge_LLE Example.html" class="btn btn-neutral float-left" title="4.1. Centrifuge_LLE" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
   
 
   <hr/>

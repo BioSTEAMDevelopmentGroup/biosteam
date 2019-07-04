@@ -147,11 +147,14 @@ class MissingSpecies:
         yield from ()
     def __bool__(self):
         return False
+    def __get__(self, instance, owner):
+        raise AttributeError('must define Stream.species first')
     def __getattr__(self, ID):
-        raise RuntimeError('must set Stream.species first')
+        raise AttributeError('missing species')
     def __repr__(self):
         return '<MissingSpecies>'
 missing_species = object.__new__(MissingSpecies)
+
 
 class metaStream(type):
     """Metaclass for Stream."""
@@ -162,19 +165,15 @@ class metaStream(type):
     @species.setter
     def species(cls, species):
         # Set Species object and related parameters
-        if species is cls._cls_species: pass
-        elif isinstance(species, Species):
+        if isinstance(species, Species):
             Stream._cls_species = WorkingSpecies(species)
         elif isinstance(species, WorkingSpecies):
             Stream._cls_species = species
         else: raise ValueError('must pass a Species object')
     _species = species
-    
     @property
     def indices(self):
-        try: return self._cls_species.indices
-        except AttributeError: RuntimeError('must set Stream.species first')
-    
+        return self._cls_species.indices
     @property
     def MW(cls):
         return cls._MW
@@ -514,7 +513,6 @@ class Stream(metaclass=metaStream):
         else:
             self._mol = np.zeros(self.species._Nspecies, float)
                 
-
     # Forward pipping
     def __sub__(self, index):
         if isinstance(index, int):
@@ -1018,12 +1016,13 @@ class Stream(metaclass=metaStream):
         0.0043908232257628245
         """
         # Katti, P.K.; Chaudhri, M.M. (1964). "Viscosities of Binary Mixtures of Benzyl Acetate with Dioxane, Aniline, and m-Cresol". Journal of Chemical and Engineering Data. 9 (1964): 442–443.
-        molfrac = self.molfrac
-        props = self._species._props
-        mus = np.array(props('mu', self._mol, self.T, self.P, self._phase))
-        Vms = np.array(props('mu', self._mol, self.T, self.P, self._phase))
-        pos = np.where(molfrac != 0)
-        return np.exp((molfrac[pos]*np.log(mus[pos]*Vms[pos])).sum())/self.Vm
+        # molfrac = self.molfrac
+        # props = self._species._props
+        # mus = np.array(props('mu', self._mol, self.T, self.P, self._phase))
+        # Vms = np.array(props('mu', self._mol, self.T, self.P, self._phase))
+        # pos = np.where(molfrac != 0)
+        # return np.exp((molfrac[pos]*np.log(mus[pos]*Vms[pos])).sum())/self.Vm
+        return self._species._prop('mu', self._mol, self.T, self.P, self._phase)
 
     @property
     def k(self):
@@ -1520,7 +1519,7 @@ class Stream(metaclass=metaStream):
              
             **species:** tuple[str] Species in equilibrium.
 
-        from biosteam import *
+        >>> from biosteam import *
         >>> stream = Stream(flow=(0.703, 0.297), T=352.28,
         ...                 species=Species('Ethanol', 'Water'))
         >>> stream.dew_P()
@@ -1716,7 +1715,7 @@ class Stream(metaclass=metaStream):
 
         **Example**
 
-        from biosteam import *
+        >>> from biosteam import *
         >>> Stream.species = Species('Water', 'Ethanol')
         >>> s1 = Stream(Water=2, T=300)
         >>> s2 = Stream(Ethanol=1, Water=2, T=340)

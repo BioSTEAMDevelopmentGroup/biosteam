@@ -377,7 +377,8 @@ Either an iterable of Stream objects, or a Stream object work for
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">Stream</span>
+<span></span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">Species</span>
+<span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">)</span>
 <span class="n">ins</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;in0&#39;</span><span class="p">)</span>
 <span class="n">outs</span> <span class="o">=</span> <span class="p">(</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;out0&#39;</span><span class="p">),</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;out1&#39;</span><span class="p">))</span>
 <span class="n">P1</span> <span class="o">=</span> <span class="n">Unit</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;P1&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="n">outs</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">ins</span><span class="p">)</span>

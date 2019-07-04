@@ -432,6 +432,12 @@
 </dd></dl>
 
 <dl class="attribute">
+<dt id="biosteam.Stream.species">
+<code class="descname">species</code><a class="headerlink" href="#biosteam.Stream.species" title="Permalink to this definition">¶</a></dt>
+<dd><p>[Species] Contains pure component thermodynamic properties for computing overall properties of Stream instances.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="biosteam.Stream.ID">
 <code class="descname">ID</code><a class="headerlink" href="#biosteam.Stream.ID" title="Permalink to this definition">¶</a></dt>
 <dd><p>Unique identification (str). If set as ‘’, it will choose a default ID.</p>
@@ -1042,14 +1048,15 @@
 <p><strong>x:</strong> [numpy array] Liquid phase composition.</p>
 <p><strong>species:</strong> tuple[str] Species in equilibrium.</p>
 </div></blockquote>
-<p>from biosteam import *
-&gt;&gt;&gt; stream = Stream(flow=(0.703, 0.297), T=352.28,
-…                 species=Species(‘Ethanol’, ‘Water’))
-&gt;&gt;&gt; stream.dew_P()
-(101328.47030327446,</p>
-<blockquote>
-<div>array([0.6, 0.4]),
-(&lt;Chemical: Ethanol&gt;, &lt;Chemical: Water&gt;))</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stream</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mf">0.703</span><span class="p">,</span> <span class="mf">0.297</span><span class="p">),</span> <span class="n">T</span><span class="o">=</span><span class="mf">352.28</span><span class="p">,</span>
+<span class="gp">... </span>                <span class="n">species</span><span class="o">=</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stream</span><span class="o">.</span><span class="n">dew_P</span><span class="p">()</span>
+<span class="go">(101328.47030327446,</span>
+<span class="go"> array([0.6, 0.4]),</span>
+<span class="go"> (&lt;Chemical: Ethanol&gt;, &lt;Chemical: Water&gt;))</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1102,13 +1109,15 @@
 <blockquote>
 <div><strong>T:</strong> [float] New temperature (K)</div></blockquote>
 <p><strong>Example</strong></p>
-<p>from biosteam import *
-&gt;&gt;&gt; Stream.species = Species(‘Water’, ‘Ethanol’)
-&gt;&gt;&gt; s1 = Stream(Water=2, T=300)
-&gt;&gt;&gt; s2 = Stream(Ethanol=1, Water=2, T=340)
-&gt;&gt;&gt; Stream.eqT([s1, s2])
-&gt;&gt;&gt; (s1.T, s2.T)
-(325.8281231556553, 325.8281231556553)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">340</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">eqT</span><span class="p">([</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">s1</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">s2</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+<span class="go">(325.8281231556553, 325.8281231556553)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="staticmethod">

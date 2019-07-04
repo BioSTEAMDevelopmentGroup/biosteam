@@ -413,27 +413,28 @@ class MixedStream(Stream):
     @property
     def mu(self):
         # Katti, P.K.; Chaudhri, M.M. (1964). "Viscosities of Binary Mixtures of Benzyl Acetate with Dioxane, Aniline, and m-Cresol". Journal of Chemical and Engineering Data. 9 (1964): 442–443.
-        molnet = self.molnet
-        if self.molnet == 0: return 0
-        N = self._Nspecies
-        mol = self._mol
-        mus = np.zeros(4, N)
-        Vms = np.zeros(4, N)
-        props = self._species._props
-        T = self._T
-        P = self._P
-        mus[0] = props('mu', mol[0], T, P, 's')
-        Vms[0] = props('Vm', mol[0], T, P, 's')
-        mus[1] = props('mu', mol[1], T, P, 'l')
-        Vms[1] = props('Vm', mol[1], T, P, 'l')
-        mus[2] = props('mu', mol[2], T, P, 'l')
-        Vms[2] = props('Vm', mol[2], T, P, 'l')
-        mus[3] = props('mu', mol[3], T, P, 'g')
-        Vms[3] = props('Vm', mol[3], T, P, 'g')
-        pos = np.where(mol != 0)
-        mol = mol[pos]
-        molfrac = mol/molnet
-        return np.exp((molfrac*np.log(mus[pos]*Vms[pos])).sum())/self.Vm
+        # molnet = self.molnet
+        # if self.molnet == 0: return 0
+        # N = self._Nspecies
+        # mol = self._mol
+        # mus = np.zeros(4, N)
+        # Vms = np.zeros(4, N)
+        # props = self._species._props
+        # T = self._T
+        # P = self._P
+        # mus[0] = props('mu', mol[0], T, P, 's')
+        # Vms[0] = props('Vm', mol[0], T, P, 's')
+        # mus[1] = props('mu', mol[1], T, P, 'l')
+        # Vms[1] = props('Vm', mol[1], T, P, 'l')
+        # mus[2] = props('mu', mol[2], T, P, 'l')
+        # Vms[2] = props('Vm', mol[2], T, P, 'l')
+        # mus[3] = props('mu', mol[3], T, P, 'g')
+        # Vms[3] = props('Vm', mol[3], T, P, 'g')
+        # pos = np.where(mol != 0)
+        # mol = mol[pos]
+        # molfrac = mol/molnet
+        # return np.exp((molfrac*np.log(mus[pos]*Vms[pos])).sum())/self.Vm
+        return self._species._mixedprop('mu', self._mol, self.T, self.P)
     mu.__doc__ = Stream.mu.__doc__
     
     ### Energy flows ###
@@ -1240,7 +1241,7 @@ class MixedStream(Stream):
             flow_attr = letter_phases[phase] + '_' + flow_type
             if fraction: flow_attr += 'frac'
             flow = getattr(self, flow_attr)
-            nonzero, species = nonzero_species(species, flow)
+            nonzero, species = nonzero_species(self._species, flow)
             if fraction:
                 flow_nonzero = flow[nonzero]
             else:

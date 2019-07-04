@@ -191,7 +191,7 @@
 <span class="kn">from</span> <span class="nn">._utils</span> <span class="k">import</span> <span class="n">property_array</span><span class="p">,</span> <span class="n">PropertyFactory</span><span class="p">,</span> <span class="n">DisplayUnits</span><span class="p">,</span> \
                     <span class="n">tuple_array</span><span class="p">,</span> <span class="n">fraction</span><span class="p">,</span> <span class="n">Sink</span><span class="p">,</span> <span class="n">Source</span><span class="p">,</span> <span class="n">missing_stream</span>
 <span class="kn">from</span> <span class="nn">._flowsheet</span> <span class="k">import</span> <span class="n">find</span>
-<span class="kn">from</span> <span class="nn">._species</span> <span class="k">import</span> <span class="n">Species</span>
+<span class="kn">from</span> <span class="nn">._species</span> <span class="k">import</span> <span class="n">Species</span><span class="p">,</span> <span class="n">WorkingSpecies</span>
 <span class="kn">from</span> <span class="nn">._exceptions</span> <span class="k">import</span> <span class="n">SolverError</span><span class="p">,</span> <span class="n">EquilibriumError</span><span class="p">,</span> <span class="n">DimensionError</span>
 <span class="kn">from</span> <span class="nn">._equilibrium</span> <span class="k">import</span> <span class="n">DORTMUND</span>
 
@@ -205,14 +205,15 @@
 
 <span class="c1"># %% Functions</span>
 
-<span class="k">def</span> <span class="nf">nonzero_species</span><span class="p">(</span><span class="n">numIDs</span><span class="p">,</span> <span class="n">flow</span><span class="p">):</span>
-    <span class="n">index</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">species</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">ID</span> <span class="ow">in</span> <span class="n">numIDs</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">nonzero_species</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">flow</span><span class="p">):</span>
+    <span class="n">index_</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">IDs_</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">IDs</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">_IDs</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">species</span><span class="o">.</span><span class="n">_index</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">flow</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">index</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-            <span class="n">species</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">index</span><span class="p">,</span> <span class="n">species</span>
+            <span class="n">index_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">IDs_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">IDs</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">index_</span><span class="p">,</span> <span class="n">IDs_</span>
 
 <span class="k">def</span> <span class="nf">_print_helpdata</span><span class="p">(</span><span class="n">helpdata</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Print help data.&quot;&quot;&quot;</span>
@@ -326,11 +327,14 @@
         <span class="k">yield from</span> <span class="p">()</span>
     <span class="k">def</span> <span class="nf">__bool__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">def</span> <span class="nf">__get__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">,</span> <span class="n">owner</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;must define Stream.species first&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;must set Stream.species first&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;missing species&#39;</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s1">&#39;&lt;MissingSpecies&gt;&#39;</span>
 <span class="n">missing_species</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">MissingSpecies</span><span class="p">)</span>
+
 
 <span class="k">class</span> <span class="nc">metaStream</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Metaclass for Stream.&quot;&quot;&quot;</span>
@@ -341,19 +345,15 @@
     <span class="nd">@species</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">species</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
         <span class="c1"># Set Species object and related parameters</span>
-        <span class="k">if</span> <span class="n">species</span> <span class="ow">is</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_cls_species</span><span class="p">:</span> <span class="k">pass</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">Species</span><span class="p">):</span>
-            <span class="k">for</span> <span class="n">cl</span> <span class="ow">in</span> <span class="p">(</span><span class="n">Stream</span><span class="p">,</span> <span class="n">MS</span><span class="o">.</span><span class="n">MixedStream</span><span class="p">):</span>
-                <span class="n">cl</span><span class="o">.</span><span class="n">_cls_species</span> <span class="o">=</span> <span class="n">species</span>
-            <span class="n">species</span><span class="o">.</span><span class="n">read_only</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">Species</span><span class="p">):</span>
+            <span class="n">Stream</span><span class="o">.</span><span class="n">_cls_species</span> <span class="o">=</span> <span class="n">WorkingSpecies</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">WorkingSpecies</span><span class="p">):</span>
+            <span class="n">Stream</span><span class="o">.</span><span class="n">_cls_species</span> <span class="o">=</span> <span class="n">species</span>
         <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;must pass a Species object&#39;</span><span class="p">)</span>
     <span class="n">_species</span> <span class="o">=</span> <span class="n">species</span>
-    
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">indices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">try</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cls_species</span><span class="o">.</span><span class="n">indices</span>
-        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;must set Stream.species first&#39;</span><span class="p">)</span>
-    
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cls_species</span><span class="o">.</span><span class="n">indices</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">MW</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_MW</span>
@@ -595,8 +595,10 @@
                  <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">298.15</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">price</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">flow_pairs</span><span class="p">):</span>
         <span class="c1"># Get species and set species information</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">Species</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="o">=</span> <span class="n">WorkingSpecies</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="p">()</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">WorkingSpecies</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="o">=</span> <span class="n">species</span>
-            <span class="n">species</span><span class="o">.</span><span class="n">read_only</span><span class="p">()</span>
             <span class="n">species</span> <span class="o">=</span> <span class="p">()</span>
         <span class="k">else</span><span class="p">:</span> 
             <span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cls_species</span>
@@ -618,8 +620,10 @@
         <span class="n">MW</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_MW</span>
         <span class="n">mass</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># Mass flow rates</span>
         <span class="n">vol</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># Volumetric flow rates    </span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_numcompounds</span><span class="p">:</span>
+        <span class="n">cmps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_compounds</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_index</span><span class="p">:</span>
             <span class="n">mol_i</span> <span class="o">=</span> <span class="n">mol</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">cmps</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
             <span class="n">mass</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MassFlow</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="p">(</span><span class="n">mol_i</span><span class="p">,</span> <span class="n">MW</span><span class="p">[</span><span class="n">i</span><span class="p">])))</span>
             <span class="n">vol</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">VolumetricFlow</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol_i</span><span class="p">)))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mass</span> <span class="o">=</span> <span class="n">property_array</span><span class="p">(</span><span class="n">mass</span><span class="p">)</span>
@@ -689,7 +693,6 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">_Nspecies</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
                 
-
     <span class="c1"># Forward pipping</span>
     <span class="k">def</span> <span class="nf">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
@@ -1018,7 +1021,7 @@
 <span class="sd">        &gt;&gt;&gt; s1.Hf</span>
 <span class="sd">        -483640.0</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mol</span> <span class="o">*</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">Hfm</span> <span class="ow">or</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_compounds</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mol</span> <span class="o">*</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">Hf</span> <span class="ow">or</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_compounds</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">Hc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1292,7 +1295,7 @@
 <span class="sd">        &gt;&gt;&gt; s1.nonzero_species</span>
 <span class="sd">        [1], [&#39;Water&#39;]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">nonzero_species</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_numIDs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mol</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">nonzero_species</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mol</span><span class="p">)</span>
     
 <div class="viewcode-block" id="Stream.quantity"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.quantity">[docs]</a>    <span class="k">def</span> <span class="nf">quantity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a property as a Quantity object as described in the `pint package &lt;https://pint.readthedocs.io/en/latest/&gt;`__ </span>
@@ -1695,7 +1698,7 @@
 <span class="sd">             </span>
 <span class="sd">            **species:** tuple[str] Species in equilibrium.</span>
 
-<span class="sd">        from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
 <span class="sd">        &gt;&gt;&gt; stream = Stream(flow=(0.703, 0.297), T=352.28,</span>
 <span class="sd">        ...                 species=Species(&#39;Ethanol&#39;, &#39;Water&#39;))</span>
 <span class="sd">        &gt;&gt;&gt; stream.dew_P()</span>
@@ -1891,7 +1894,7 @@
 
 <span class="sd">        **Example**</span>
 
-<span class="sd">        from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
 <span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; s1 = Stream(Water=2, T=300)</span>
 <span class="sd">        &gt;&gt;&gt; s2 = Stream(Ethanol=1, Water=2, T=340)</span>

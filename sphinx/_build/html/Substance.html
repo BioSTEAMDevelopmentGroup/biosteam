@@ -211,7 +211,7 @@
 <span id="substance"></span><h1>Substance<a class="headerlink" href="#module-biosteam.compounds" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.compounds.Substance">
-<em class="property">class </em><code class="descclassname">biosteam.compounds.</code><code class="descname">Substance</code><span class="sig-paren">(</span><em>ID</em>, <em>CAS=''</em>, <em>obj=None</em>, <em>MW=1</em>, <em>T=298.15</em>, <em>P=101325</em>, <em>Cp=None</em>, <em>rho=None</em>, <em>k=None</em>, <em>mu=None</em>, <em>sigma=None</em>, <em>Pr=None</em>, <em>Hfm=None</em>, <em>Hc=None</em>, <em>obj_state=None</em>, <em>default_phase='l'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/compounds/_substance.html#Substance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.compounds.Substance" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.compounds.</code><code class="descname">Substance</code><span class="sig-paren">(</span><em>ID</em>, <em>CAS=''</em>, <em>obj=None</em>, <em>*</em>, <em>MW=1</em>, <em>T=298.15</em>, <em>P=101325</em>, <em>Cp=None</em>, <em>rho=None</em>, <em>k=None</em>, <em>mu=None</em>, <em>sigma=None</em>, <em>Pr=None</em>, <em>Hf=None</em>, <em>Hc=None</em>, <em>obj_state=None</em>, <em>default_phase='l'</em>, <em>**properties</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/compounds/_substance.html#Substance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.compounds.Substance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Substance object with the same material properties as “obj” argument for simplified modeling purposes. The phase stays constant as the specified <cite>default_phase</cite>.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -228,6 +228,7 @@
 <p><strong>Hfm:</strong> Heat of formation (J/mol)</p>
 <p><strong>Hc:</strong> Heat of combustion (J/mol)</p>
 <p><strong>default_phase:</strong> {‘l’, ‘s’, ‘g’} Phase of substance</p>
+<p><strong>**properties:</strong> Additional properties to set</p>
 </div></blockquote>
 <p><strong>Examples</strong></p>
 <blockquote>

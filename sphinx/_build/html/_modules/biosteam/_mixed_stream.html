@@ -185,7 +185,7 @@
 <span class="sd">@author: Guest Group</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">least_squares</span><span class="p">,</span> <span class="n">brentq</span><span class="p">,</span> <span class="n">minimize_scalar</span><span class="p">,</span> <span class="n">newton</span>
-<span class="kn">from</span> <span class="nn">._species</span> <span class="k">import</span> <span class="n">Species</span>
+<span class="kn">from</span> <span class="nn">._species</span> <span class="k">import</span> <span class="n">Species</span><span class="p">,</span> <span class="n">WorkingSpecies</span>
 <span class="kn">from</span> <span class="nn">._stream</span> <span class="k">import</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">nonzero_species</span><span class="p">,</span> <span class="n">MassFlow</span><span class="p">,</span> \
                             <span class="n">mol_flow_dim</span><span class="p">,</span> <span class="n">mass_flow_dim</span><span class="p">,</span> <span class="n">vol_flow_dim</span><span class="p">,</span> \
                             <span class="n">phases</span><span class="p">,</span> <span class="n">phase_index</span><span class="p">,</span> <span class="n">flow</span>
@@ -263,10 +263,13 @@
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">()</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">298.15</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">):</span>
         <span class="c1"># Get species and set species information</span>
-        <span class="k">if</span> <span class="n">species</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cls_species</span>
+        <span class="k">if</span> <span class="n">species</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cls_species</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">Species</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="o">=</span> <span class="n">WorkingSpecies</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="p">()</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">WorkingSpecies</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="o">=</span> <span class="n">species</span>
-            <span class="n">species</span><span class="o">.</span><span class="n">read_only</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;species must be a Species object, not &#39;{type(species).__name__}&#39;&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_source_link</span> <span class="o">=</span> <span class="bp">self</span>
@@ -322,13 +325,15 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span>
         <span class="n">MW</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">_MW</span>
-        <span class="n">numcompounds</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">_numcompounds</span>
+        <span class="n">cmps</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">_compounds</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">_index</span>
         <span class="n">massflows</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># Mass flow rates    </span>
         <span class="n">volflows</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># Volumetric flow rates    </span>
         <span class="k">for</span> <span class="n">phase</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">phases</span><span class="p">,</span> <span class="n">mol</span><span class="p">):</span>
             <span class="n">vol</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">mass</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">numcompounds</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">index</span><span class="p">:</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="n">cmps</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
                 <span class="n">mi</span> <span class="o">=</span> <span class="n">m</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
                 <span class="n">mass</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">MassFlow</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="p">(</span><span class="n">mi</span><span class="p">,</span> <span class="n">MW</span><span class="p">[</span><span class="n">i</span><span class="p">])))</span>
                 <span class="n">vol</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">VolumetricFlow</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mi</span><span class="p">,</span> <span class="n">phase</span><span class="o">.</span><span class="n">lower</span><span class="p">())))</span>
@@ -767,7 +772,7 @@
         
         <span class="k">if</span> <span class="n">P</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span>
-            <span class="k">if</span> <span class="n">T</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">T</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span>
                 <span class="n">eq</span> <span class="o">=</span> <span class="s1">&#39;TP&#39;</span>
             <span class="k">elif</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -794,7 +799,7 @@
             <span class="k">elif</span> <span class="n">Q</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">eq</span> <span class="o">=</span> <span class="s1">&#39;QT&#39;</span>
                 <span class="n">Hin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span> <span class="o">+</span> <span class="n">Q</span>
-        <span class="k">elif</span> <span class="n">V</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">V</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
                 <span class="n">eq</span> <span class="o">=</span> <span class="s1">&#39;xV&#39;</span>
@@ -1028,8 +1033,15 @@
                 <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">y</span> <span class="o">=</span> <span class="n">V</span><span class="o">*</span><span class="n">zf</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">V</span><span class="p">)</span><span class="o">*</span><span class="n">y_bubble</span>
                 <span class="n">v</span> <span class="o">=</span> <span class="n">y</span><span class="o">*</span><span class="n">V</span><span class="o">*</span><span class="n">molnet</span>
                 
-                <span class="c1"># Solve</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">brentq</span><span class="p">(</span><span class="n">V_error</span><span class="p">,</span> <span class="n">T_bubble</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">T_dew</span><span class="o">+</span><span class="mf">0.1</span><span class="p">)</span>
+                <span class="c1"># Guess</span>
+                <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">T_dew</span> <span class="o">&lt;</span> <span class="n">T</span> <span class="o">&lt;</span> <span class="n">T_dew</span><span class="p">):</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">newton</span><span class="p">(</span><span class="n">V_error</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">brentq</span><span class="p">(</span><span class="n">V_error</span><span class="p">,</span> <span class="n">T_bubble</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">T_dew</span><span class="o">+</span><span class="mf">0.1</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">brentq</span><span class="p">(</span><span class="n">V_error</span><span class="p">,</span> <span class="n">T_bubble</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">T_dew</span><span class="o">+</span><span class="mf">0.1</span><span class="p">)</span>                    
                 
                 <span class="n">vapor_mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
                 <span class="n">liquid_mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">mol</span> <span class="o">-</span> <span class="n">vapor_mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
@@ -1059,13 +1071,21 @@
                 <span class="n">v</span> <span class="o">=</span> <span class="n">y</span><span class="o">*</span><span class="n">V</span><span class="o">*</span><span class="n">molnet</span>
                 
                 <span class="c1"># Solve</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">brentq</span><span class="p">(</span><span class="n">V_error</span><span class="p">,</span> <span class="n">P_bubble</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">P_dew</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-                
+                <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">P_dew</span> <span class="o">&lt;</span> <span class="n">P</span> <span class="o">&lt;</span> <span class="n">P_bubble</span><span class="p">):</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">newton</span><span class="p">(</span><span class="n">V_error</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">brentq</span><span class="p">(</span><span class="n">V_error</span><span class="p">,</span> <span class="n">P_bubble</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">P_dew</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">brentq</span><span class="p">(</span><span class="n">V_error</span><span class="p">,</span> <span class="n">P_bubble</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">P_dew</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                    
                 <span class="n">vapor_mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
                 <span class="n">liquid_mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">mol</span> <span class="o">-</span> <span class="n">vapor_mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>        
         <span class="k">elif</span> <span class="n">eq</span> <span class="o">==</span> <span class="s1">&#39;TP&#39;</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="c1"># Guess composition in the vapor is a weighted average of bubble/dew points</span>
+                <span class="c1"># Guess composition in the vapor is a</span>
+                <span class="c1"># weighted average of bubble/dew points</span>
                 <span class="n">f</span> <span class="o">=</span> <span class="p">(</span><span class="n">T</span> <span class="o">-</span> <span class="n">T_dew</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">T_bubble</span> <span class="o">-</span> <span class="n">T_dew</span><span class="p">)</span>
                 <span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="o">*</span><span class="n">zf</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">f</span><span class="p">)</span><span class="o">*</span><span class="n">y_bubble</span>
             
@@ -1081,7 +1101,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># Guess overall vapor fraction</span>
                 <span class="n">V_guess</span> <span class="o">=</span> <span class="p">(</span><span class="n">T</span> <span class="o">-</span> <span class="n">T_bubble</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">T_dew</span> <span class="o">-</span> <span class="n">T_bubble</span><span class="p">)</span>
-
+                
                 <span class="c1"># Guess vapor flow rates</span>
                 <span class="n">v_guess</span> <span class="o">=</span> <span class="n">y</span> <span class="o">*</span> <span class="n">V_guess</span> <span class="o">*</span> <span class="n">mol</span>
 
@@ -1094,7 +1114,7 @@
             <span class="n">liquid_mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T_dew</span>
             <span class="n">H_dew</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span>
-            <span class="k">if</span> <span class="n">Hin</span> <span class="o">&gt;=</span> <span class="mf">0.999</span><span class="o">*</span><span class="n">H_dew</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">Hin</span> <span class="o">&gt;=</span> <span class="mf">0.9999</span><span class="o">*</span><span class="n">H_dew</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">H</span> <span class="o">=</span> <span class="n">Hin</span>
                 <span class="k">return</span>
 
@@ -1103,7 +1123,7 @@
             <span class="n">liquid_mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">mol</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T_bubble</span>
             <span class="n">H_bubble</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span>
-            <span class="k">if</span> <span class="n">Hin</span> <span class="o">&lt;=</span> <span class="mf">0.999</span><span class="o">*</span><span class="n">H_bubble</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">Hin</span> <span class="o">&lt;=</span> <span class="mf">1.0001</span><span class="o">*</span><span class="n">H_bubble</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">H</span> <span class="o">=</span> <span class="n">Hin</span>
                 <span class="k">return</span>
 
@@ -1115,7 +1135,9 @@
                 <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="n">Hin</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">))</span>
 
             <span class="c1"># Guess T, overall vapor fraction, and vapor flow rates</span>
-            <span class="n">T</span> <span class="o">=</span> <span class="n">T_bubble</span> <span class="o">+</span> <span class="p">(</span><span class="n">Hin</span> <span class="o">-</span> <span class="n">H_bubble</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">H_dew</span> <span class="o">-</span> <span class="n">H_bubble</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">T_dew</span> <span class="o">-</span> <span class="n">T_bubble</span><span class="p">)</span>
+            <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">T_bubble</span> <span class="o">&lt;</span> <span class="n">T</span> <span class="o">&lt;</span> <span class="n">T_dew</span><span class="p">):</span>
+                <span class="n">T</span> <span class="o">=</span> <span class="n">T_bubble</span> <span class="o">+</span> <span class="p">(</span><span class="n">Hin</span> <span class="o">-</span> <span class="n">H_bubble</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">H_dew</span> <span class="o">-</span> <span class="n">H_bubble</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">T_dew</span> <span class="o">-</span> <span class="n">T_bubble</span><span class="p">)</span>
             <span class="n">V_guess</span> <span class="o">=</span> <span class="p">(</span><span class="n">T</span> <span class="o">-</span> <span class="n">T_bubble</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">T_dew</span> <span class="o">-</span> <span class="n">T_bubble</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="c1"># Guess composition in the vapor is a weighted average of boiling points</span>
@@ -1144,7 +1166,7 @@
             <span class="n">liquid_mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P_dew</span>
             <span class="n">H_dew</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span>
-            <span class="k">if</span> <span class="n">Hin</span> <span class="o">&gt;=</span> <span class="mf">1.01</span><span class="o">*</span><span class="n">H_dew</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">Hin</span> <span class="o">&gt;=</span> <span class="mf">0.9999</span><span class="o">*</span><span class="n">H_dew</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">H</span> <span class="o">=</span> <span class="n">Hin</span>
                 <span class="k">return</span>
 
@@ -1153,7 +1175,7 @@
             <span class="n">liquid_mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">mol</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P_bubble</span>
             <span class="n">H_bubble</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H</span>
-            <span class="k">if</span> <span class="n">Hin</span> <span class="o">&lt;=</span> <span class="mf">0.99</span><span class="o">*</span><span class="n">H_bubble</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">Hin</span> <span class="o">&lt;=</span> <span class="mf">1.0001</span><span class="o">*</span><span class="n">H_bubble</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">H</span> <span class="o">=</span> <span class="n">Hin</span>
                 <span class="k">return</span>
 
@@ -1165,7 +1187,9 @@
                 <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="n">Hin</span> <span class="o">-</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">H</span><span class="p">))</span>
 
             <span class="c1"># Guess P, overall vapor fraction, and vapor flow rates</span>
-            <span class="n">P</span> <span class="o">=</span> <span class="n">P_bubble</span> <span class="o">+</span> <span class="p">(</span><span class="n">Hin</span> <span class="o">-</span> <span class="n">H_bubble</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">H_dew</span> <span class="o">-</span> <span class="n">H_bubble</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">P_dew</span> <span class="o">-</span> <span class="n">P_bubble</span><span class="p">)</span>
+            <span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">P_dew</span> <span class="o">&lt;</span> <span class="n">P</span> <span class="o">&lt;</span> <span class="n">P_bubble</span><span class="p">):</span>
+                <span class="n">P</span> <span class="o">=</span> <span class="n">P_bubble</span> <span class="o">+</span> <span class="p">(</span><span class="n">Hin</span> <span class="o">-</span> <span class="n">H_bubble</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">H_dew</span> <span class="o">-</span> <span class="n">H_bubble</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">P_dew</span> <span class="o">-</span> <span class="n">P_bubble</span><span class="p">)</span>
             <span class="n">V_guess</span> <span class="o">=</span> <span class="p">(</span><span class="n">P</span> <span class="o">-</span> <span class="n">P_bubble</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">P_dew</span> <span class="o">-</span> <span class="n">P_bubble</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="c1"># Guess composition in the vapor is a weighted average of boiling points</span>
@@ -1391,13 +1415,12 @@
         <span class="c1"># Set up flow rate information for all phases</span>
         <span class="n">first_phase</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">phases_flowrates_info</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-        <span class="n">numIDs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_numIDs</span>
         <span class="k">for</span> <span class="n">phase</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
             <span class="c1"># Get flow rates of phase in nice structure</span>
             <span class="n">flow_attr</span> <span class="o">=</span> <span class="n">letter_phases</span><span class="p">[</span><span class="n">phase</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">flow_type</span>
             <span class="k">if</span> <span class="n">fraction</span><span class="p">:</span> <span class="n">flow_attr</span> <span class="o">+=</span> <span class="s1">&#39;frac&#39;</span>
             <span class="n">flow</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flow_attr</span><span class="p">)</span>
-            <span class="n">nonzero</span><span class="p">,</span> <span class="n">species</span> <span class="o">=</span> <span class="n">nonzero_species</span><span class="p">(</span><span class="n">numIDs</span><span class="p">,</span> <span class="n">flow</span><span class="p">)</span>
+            <span class="n">nonzero</span><span class="p">,</span> <span class="n">species</span> <span class="o">=</span> <span class="n">nonzero_species</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">flow</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">fraction</span><span class="p">:</span>
                 <span class="n">flow_nonzero</span> <span class="o">=</span> <span class="n">flow</span><span class="p">[</span><span class="n">nonzero</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>

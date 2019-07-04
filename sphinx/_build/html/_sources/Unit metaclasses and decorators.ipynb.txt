@@ -418,7 +418,7 @@
       " cost  2.5e+06\n",
       " n     0.6\n",
       " kW    3e+03\n",
-      " BM    1\n"
+      " BM    1.39\n"
      ]
     }
    ],
@@ -636,13 +636,8 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "### References"
-   ]
-  },
-  {
-   "cell_type": "markdown",
-   "metadata": {},
-   "source": [
+    "### References\n",
+    "\n",
     "<a id='References'></a>\n",
     "\n",
     "1. Huang, H., Long, S., & Singh, V. (2016) \"Techno-economic analysis of biodiesel and ethanol co-production from lipid-producing sugarcane\" Biofuels, Bioproducts and Biorefining, 10(3), 299–315. https://doi.org/10.1002/bbb.1640\n",

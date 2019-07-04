@@ -226,70 +226,14 @@
 </div></blockquote>
 <dl class="classmethod">
 <dt id="biosteam.Species.tospecies">
-<em class="property">classmethod </em><code class="descname">tospecies</code><span class="sig-paren">(</span><em>compounds</em>, <em>copy=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_species.html#Species.tospecies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species.tospecies" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="descname">tospecies</code><span class="sig-paren">(</span><em>compounds</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_species.html#Species.tospecies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species.tospecies" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a Species object from an iterable of Compound objects.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="biosteam.Species.kwarray">
-<code class="descname">kwarray</code><span class="sig-paren">(</span><em>**data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_species.html#Species.kwarray"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species.kwarray" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return an array with entries that correspond to compound IDs.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><strong>**data:</strong> ID-value pair.</div></blockquote>
-<p><strong>Examples</strong></p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">kwarray</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<span class="go">array([2., 0.])</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.Species.array">
-<code class="descname">array</code><span class="sig-paren">(</span><em>IDs</em>, <em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_species.html#Species.array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species.array" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return an array with entries that correspond to species IDs.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><p><strong>IDs:</strong> [iterable] compound IDs.</p>
-<p><strong>data:</strong> [array_like] Data corresponding to IDs.</p>
-</div></blockquote>
-<p><strong>Examples</strong></p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-<span class="go">array([2., 0.])</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.Species.indices">
-<code class="descname">indices</code><span class="sig-paren">(</span><em>IDs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_species.html#Species.indices"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species.indices" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return flow indices of specified species.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><strong>IDs:</strong> [iterable] species IDs or CAS numbers.</div></blockquote>
-<p>Example</p>
-<p>Indices by ID:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">([</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">indices</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
-<span class="go">[1, 0]</span>
-</pre></div>
-</div>
-<p>Indices by CAS number:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">indices</span><span class="p">([</span><span class="s1">&#39;7732-18-5&#39;</span><span class="p">,</span> <span class="s1">&#39;64-17-5&#39;</span><span class="p">]):</span>
-<span class="go">[1, 0]</span>
-</pre></div>
-</div>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.Species.read_only">
-<code class="descname">read_only</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_species.html#Species.read_only"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species.read_only" title="Permalink to this definition">¶</a></dt>
-<dd><p>Make object read-only (attributes will be immutable).</p>
+<dt id="biosteam.Species.extend">
+<code class="descname">extend</code><span class="sig-paren">(</span><em>compounds</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_species.html#Species.extend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species.extend" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extend species object with more compounds.</p>
 </dd></dl>
 
 <dl class="method">
