@@ -11,7 +11,7 @@ __all__ = ('BoilerTurbogenerator',)
 
 #: TODO add reference of NREL
 
-@cost('Heat', CE=567.3, cost=36e6, S=103e7, n=0.93)
+@cost('Heat', CE=567.3, cost=36e6, S=104e7, n=0.95)
 class BoilerTurbogenerator(Unit):
     """Create a Boiler_TurboGenerator object that will calculate electricity generation from burning the feed. It also takes into account how much steam is being produced, and the required cooling utility of the turbo generator. No emissions or mass balances are taken into account.
     
