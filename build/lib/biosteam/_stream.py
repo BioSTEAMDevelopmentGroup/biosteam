@@ -378,6 +378,8 @@ class Stream(metaclass=metaStream):
                  '_phase', '_y_cached', '_lL_split_cached', '_y',
                  '_yP', '_dew', '_Py_over_gammaPsat', '__weakref__', '_source_link')
 
+    line = 'Stream'
+
     ### Class attributes for working species ###    
     _cls_species = _MW = None
     
@@ -566,18 +568,17 @@ class Stream(metaclass=metaStream):
             if isinstance(stream, Stream): raise Error
             else: raise TypeError(f"link must be a Stream object, not a '{type(stream).__name__}' object.")
     
-    # def __getattr__(self, key):
-    #     if key == 'line': return 'Stream'
-    #     elif self._link is missing_stream:
-    #         if self.source and self.source._ins[0] is not missing_stream:
-    #             self.source._link_streams()
-    #             try: return object.__getattribute__(self, key)
-    #             except: raise AttributeError(f'{repr(self.source)}.ins[0] is missing stream')
-    #         raise AttributeError(f'{self}.link is missing stream')
-    #     elif not self._source_link:
-    #         raise AttributeError(f'{repr(self.link.source)} must be simulated first')
-    #     else:
-    #         raise AttributeError(f"'{type(self).__name__}' has no attribute '{key}'")
+    def __getattr__(self, key):
+        if self._link is missing_stream:
+            if self.source and self.source._ins[0] is not missing_stream:
+                self.source._link_streams()
+                try: return object.__getattribute__(self, key)
+                except: raise AttributeError(f'{repr(self.source)}.ins[0] is missing stream')
+            raise AttributeError(f'{self}.link is missing stream')
+        elif not self._source_link:
+            raise AttributeError(f'{repr(self.link.source)} must be simulated first')
+        else:
+            raise AttributeError(f"'{type(self).__name__}' has no attribute '{key}'")
     
     @property
     def species(self):

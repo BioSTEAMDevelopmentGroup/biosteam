@@ -405,7 +405,7 @@ class Stream(metaclass=metaStream):
             species = ()
         else: 
             self._species = self._cls_species
-            if not self._species: raise RuntimeError('must define Stream.species first')
+            assert self._species, 'must define Stream.species first'
         self._link = self._ID = self._sink = self._source = None
         self._source_link = self
         self.phase = phase

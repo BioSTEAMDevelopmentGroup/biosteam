@@ -53,7 +53,7 @@ class Reaction:
     def __init__(self, reaction, reactant, X, species=None):
         if not species:
             species = Stream.species            
-            if not species: raise RuntimeError('must define Stream.species first')
+            assert species, 'must define Stream.species first'
         elif isinstance(species, Species):
             species = WorkingSpecies(species)
         elif isinstance(species, WorkingSpecies):
@@ -112,6 +112,7 @@ class Reaction:
     _ipython_display_ = show
 
 class ReactionItem(Reaction):
+    """Create a ReactionItem object from a ReactionSet and index."""
     __slots__ = ('_index')
     def __init__(self, rxnset, index):
         self._stoi = rxnset._stoi[index]
@@ -130,18 +131,14 @@ class ReactionItem(Reaction):
         
 
 class ReactionSet:
-    """Abstract class for a set of reactions."""
+    """Create a ReactionSet that contains all reactions and conversions as an array."""
     __slots__ = ('_stoi', '_X', '_Xindex', '_species')
     def __init__(self, reactions):
-        if not reactions:
-            raise ValueError('reactions must not be empty')
-        species = {i._species for i in reactions}
-        if len(species) != 1:
-            raise ValueError('all reactions must have the same species')
+        assert len({i.species for i in reactions})==1, 'all reactions must have the same species'
         self._stoi = np.array([i._stoi for i in reactions])
         self._X = np.array([i.X for i in reactions])
         self._Xindex = np.array([i._Xindex for i in reactions])
-        self._species = reactions[0]._species
+        self._species = reactions[0].species
     
     def __getitem__(self, index):
         stoi = self._stoi[index]
