@@ -13,10 +13,11 @@ import numpy as np
 __all__ = ('Reaction', 'ParallelReaction', 'SeriesReaction')
 
 def stoi2str(stoi, species):
+    """Parse a stoichiometric array and species to a reaction definition."""
     return f"{prs.arr2str(stoi, species)}"
 
 class Reaction:
-    """Create a Reaction object which defines a stoichiometric reaction and conversion.
+    """Create a Reaction object which defines a stoichiometric reaction and conversion. When called, it returns the change in material due to the reaction.
     
     **Parameters**
     
@@ -192,6 +193,7 @@ class ReactionSet:
     _ipython_display_ = show
         
 class ParallelReaction(ReactionSet):
+    """Create a ParallelReaction object from Reaction objects. When called, it returns the change in material due to all parallel reactions."""
     __slots__ = ()
     
     def __call__(self, material):
@@ -208,6 +210,7 @@ class ParallelReaction(ReactionSet):
         return prs.dct2arr(X_net, self.species)
 
 class SeriesReaction(ReactionSet):
+    """Create a ParallelReaction object from Reaction objects. When called, it returns the change in material due to all reactions in series."""
     __slots__ = ()
     
     def __call__(self, material):
