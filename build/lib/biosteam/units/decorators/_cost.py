@@ -5,7 +5,7 @@ Created on Wed May  1 19:05:53 2019
 @author: yoelr
 """
 import biosteam as bst
-from copy import copy
+import copy
 from ._extend import extend_summary
 from ._design import design
 from math import ceil

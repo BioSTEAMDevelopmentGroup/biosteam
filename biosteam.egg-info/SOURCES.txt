@@ -59,7 +59,6 @@ biosteam/units/_distillation.py
 biosteam/units/_enzyme_treatment.py
 biosteam/units/_fermentation.py
 biosteam/units/_flash.py
-biosteam/units/_humbird2011.xlsx
 biosteam/units/_hx.py
 biosteam/units/_junction.py
 biosteam/units/_lignocellulosic_pretreatment.py
@@ -79,7 +78,6 @@ biosteam/units/_tank.py
 biosteam/units/_transesterification.py
 biosteam/units/_vibrating_screen.py
 biosteam/units/factories.py
-biosteam/units/humbird2011.py
 biosteam/units/decorators/__init__.py
 biosteam/units/decorators/_attach_heat_exchanger.py
 biosteam/units/decorators/_cost.py

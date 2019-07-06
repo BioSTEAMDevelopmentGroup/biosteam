@@ -24,9 +24,9 @@ class ThermoSolver:
     __slots__ = ('T', 'P', 'Q', 'V')
     
     tolerance = {'T': 0.001,
-                 'P': 100,
-                 'Q': 0.2,
-                 'V': 0.001}
+                 'P': 10,
+                 'Q': 0.05,
+                 'V': 0.0005}
     
     def __init__(self):
         self.T = self.P = self.Q = self.V = None

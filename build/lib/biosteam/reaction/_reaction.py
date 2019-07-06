@@ -13,10 +13,11 @@ import numpy as np
 __all__ = ('Reaction', 'ParallelReaction', 'SeriesReaction')
 
 def stoi2str(stoi, species):
+    """Parse a stoichiometric array and species to a reaction definition."""
     return f"{prs.arr2str(stoi, species)}"
 
 class Reaction:
-    """Create a Reaction object which defines a stoichiometric reaction and conversion.
+    """Create a Reaction object which defines a stoichiometric reaction and conversion. When called, it returns the change in material due to the reaction.
     
     **Parameters**
     
@@ -53,7 +54,7 @@ class Reaction:
     def __init__(self, reaction, reactant, X, species=None):
         if not species:
             species = Stream.species            
-            if not species: raise RuntimeError('must define Stream.species first')
+            assert species, 'must define Stream.species first'
         elif isinstance(species, Species):
             species = WorkingSpecies(species)
         elif isinstance(species, WorkingSpecies):
@@ -112,6 +113,7 @@ class Reaction:
     _ipython_display_ = show
 
 class ReactionItem(Reaction):
+    """Create a ReactionItem object from a ReactionSet and index."""
     __slots__ = ('_index')
     def __init__(self, rxnset, index):
         self._stoi = rxnset._stoi[index]
@@ -130,18 +132,14 @@ class ReactionItem(Reaction):
         
 
 class ReactionSet:
-    """Abstract class for a set of reactions."""
+    """Create a ReactionSet that contains all reactions and conversions as an array."""
     __slots__ = ('_stoi', '_X', '_Xindex', '_species')
     def __init__(self, reactions):
-        if not reactions:
-            raise ValueError('reactions must not be empty')
-        species = {i._species for i in reactions}
-        if len(species) != 1:
-            raise ValueError('all reactions must have the same species')
+        assert len({i.species for i in reactions})==1, 'all reactions must have the same species'
         self._stoi = np.array([i._stoi for i in reactions])
         self._X = np.array([i.X for i in reactions])
         self._Xindex = np.array([i._Xindex for i in reactions])
-        self._species = reactions[0]._species
+        self._species = reactions[0].species
     
     def __getitem__(self, index):
         stoi = self._stoi[index]
@@ -195,6 +193,7 @@ class ReactionSet:
     _ipython_display_ = show
         
 class ParallelReaction(ReactionSet):
+    """Create a ParallelReaction object from Reaction objects. When called, it returns the change in material due to all parallel reactions."""
     __slots__ = ()
     
     def __call__(self, material):
@@ -203,14 +202,15 @@ class ParallelReaction(ReactionSet):
     @property
     def X_net(self):
         X_net = {}
-        for i, j in zip(self.reactant, self.X):
+        for i, j in zip(self.reactants, self.X):
             if i in X_net:
                 X_net[i] += j
             else:
                 X_net[i] = j
-        return prs.dct2arr(X_net, self.species)
+        return X_net
 
 class SeriesReaction(ReactionSet):
+    """Create a ParallelReaction object from Reaction objects. When called, it returns the change in material due to all reactions in series."""
     __slots__ = ()
     
     def __call__(self, material):
@@ -221,12 +221,12 @@ class SeriesReaction(ReactionSet):
     @property
     def X_net(self):
         X_net = {}
-        for i, j in zip(self.reactant, self.X):
+        for i, j in zip(self.reactants, self.X):
             if i in X_net:
                 X_net[i] *= j
             else:
                 X_net[i] = j
-        return prs.dct2arr(X_net, self.species)
+        return X_net
 
 Rxn = Reaction
 RxnI = ReactionItem
