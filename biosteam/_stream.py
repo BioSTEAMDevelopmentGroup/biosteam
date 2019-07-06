@@ -9,7 +9,8 @@ from . import _Q
 import numpy as np
 from scipy.optimize import newton, least_squares
 from ._utils import property_array, PropertyFactory, DisplayUnits, \
-                    tuple_array, fraction, Sink, Source, missing_stream
+                    tuple_array, fraction, Sink, Source, missing_stream, \
+                    ThermoSolver
 from ._flowsheet import find
 from ._species import Species, WorkingSpecies
 from ._exceptions import SolverError, EquilibriumError, DimensionError
@@ -377,7 +378,7 @@ class Stream(metaclass=metaStream):
                  '_species', '_sink', '_source', '_dew_cached', '_bubble_cached',
                  '_phase', '_y_cached', '_lL_split_cached', '_y',
                  '_yP', '_dew', '_Py_over_gammaPsat', '__weakref__',
-                 '_source_link', '_P_VT', '_P_QT', '_T_QP', '_T_VP')
+                 '_source_link', '_solve_thermo')
 
     line = 'Stream'
 
@@ -1815,7 +1816,7 @@ class Stream(metaclass=metaStream):
         self._setflows(np.zeros((4, self._species._Nspecies)))
         self._mol[phase_index[self._phase]] = mol
         self._lL_split_cached = self._y_cached = (None,)
-        self._P_QT = self._T_QP = 0
+        self._solve_thermo = ThermoSolver()
 
     def disable_phases(self, phase):
         """Cast stream into a Stream object.

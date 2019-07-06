@@ -9,47 +9,54 @@ This module includes arbitrary classes and functions.
 from biosteam import _Q
 
 __all__ = ('factor', 'checkbounds', 'approx2step', 'strtuple', 'function',
-           'golden_ratio')
+           'ThermoSolver')
+
+def count():
+    i = 0
+    while True:
+        i += 1
+        print(i)
+        yield
 
 # %% Solvers
+        
+class ThermoSolver:
+    __slots__ = ('T', 'P', 'Q', 'V')
+    
+    tolerance = {'T': 0.001,
+                 'P': 100,
+                 'Q': 0.2,
+                 'V': 0.001}
+    
+    def __init__(self):
+        self.T = self.P = self.Q = self.V = None
+    
+    def __call__(self, xvar, yvar, f, x0, x1, y0, y1, yval):
+        xtol = self.tolerance[xvar]
+        ytol = self.tolerance[yvar]
+        x = getattr(self, xvar)
+        if y1 < 0: x0, y0, x1, y1 = x1, y1, x0, y0
+        if x is None or not (x0 < x < x1 ):
+            x = x0 + (yval-y0)*(x1-x0)/(y1-y0)
+        dx = xtol+1
+        y = ytol+1
+        while abs(dx) > xtol and abs(yval-y) > ytol:
+            y = f(x)
+            if y > yval:
+                dx = x1 - x
+                x1 = x
+                y1 = y
+            else:
+                dx = x - x0
+                x0 = x
+                y0 = y
+            x = x0 + (yval-y0)*(x1-x0)/(y1-y0)
+        setattr(self, xvar, x)
+        setattr(self, yvar, y)
+        return x
 
-def golden_ratio(f, x0, xf, xtol, guess):
-    e0 = f(x0)
-    ef = f(xf)
-    guesses = (guess-xtol, guess+xtol)
-    for x in guesses:
-        e = f(x)
-        if e > 0:
-            xf = x
-            ef = e
-        else:
-            x0 = x
-            e0 = e
-    if x0 in guesses and xf in guesses: return guess
-    elif ef < 0: raise ValueError('f(xf) must be positive')
-    elif e0 > 0: raise ValueError('f(x0) must be negative')
-    gr_v = 0.618
-    gr_h = 0.382
-    if abs(ef) > abs(e0):
-        x = gr_v*xf + gr_h*x0
-    else:
-        x = gr_v*x0 + gr_h*xf
-    dx = xtol+1
-    while dx > xtol:
-        e = f(x)
-        if e > 0:
-            dx = xf - x
-            xf = x
-            ef = e
-        else:
-            dx = x - x0
-            x0 = x
-            e0 = e
-        if ef > -e0:
-            x = gr_v*xf + gr_h*x0
-        else:
-            x = gr_v*x0 + gr_h*xf
-    return x
+    def __repr__(self):
+        return f"<{type(self).__name__}: T={self.T}, P={self.P}, Q={self.T}, V={self.V}>"
 
 
 # %% Number functions

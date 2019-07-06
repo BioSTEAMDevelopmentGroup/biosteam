@@ -57,12 +57,15 @@ def df2dct(df):
             metacls = getattr(metaclasses, metaname)
             new = df2unit(name, cost_items, metacls=metacls)
         else:
-            supername = ''.join([i.capitalize() for i in sim.split(' ')])
-            if supername in units.__dict__:
-                superclass = getattr(units, supername)
-            else:
-                raise ValueError(f"invalid simulation option '{sim}'")
-            new = df2unit(name, cost_items, superclass=superclass)
+            try:
+                supercls = getattr(units, sim)
+            except:
+                supername = ''.join([i.capitalize() for i in sim.split(' ')])
+                if supername in units.__dict__:
+                    supercls = getattr(units, supername)
+                else:
+                    raise ValueError(f"invalid simulation option '{sim}'")
+            new = df2unit(name, cost_items, supercls=supercls)
         dct[name] = new
     return dct
 

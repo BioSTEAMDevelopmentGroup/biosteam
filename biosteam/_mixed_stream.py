@@ -4,12 +4,12 @@ Created on Tue Sep 18 10:28:29 2018
 
 @author: Guest Group
 """
-from scipy.optimize import least_squares, minimize_scalar, brentq
+from scipy.optimize import least_squares, minimize
 from ._species import Species, WorkingSpecies
 from ._stream import Stream, nonzero_species, MassFlow, \
                             mol_flow_dim, mass_flow_dim, vol_flow_dim, \
                             phases, phase_index, flow
-from ._utils import fraction, tuple_array, \
+from ._utils import fraction, tuple_array, ThermoSolver, \
                     PropertyFactory, property_array
 from ._exceptions import EquilibriumError, DimensionError
 from . import _Q
@@ -52,7 +52,6 @@ def VolumetricFlow(self, value):
         mol[0] = value/(c.Vm * 1000)
     else:
         mol[0] = 0.
-
 
 # %% MixedStream (4 phase flow)
 
@@ -99,7 +98,7 @@ class MixedStream(Stream):
         self.T = T  #: [float] Temperature (K)
         self.P = P  #: [float] Pressure (Pa)
         self._lL_split_cached = self._y_cached = self._bubble_cached = self._dew_cached = (None,)
-        self._P_QT = self._T_QP = 0
+        self._solve_thermo = ThermoSolver()
         self._setflows(np.zeros((4, self._species._Nspecies), dtype=np.float64))
 
     def getflow(self, phase, *species, units='kmol/hr'):
@@ -810,6 +809,7 @@ class MixedStream(Stream):
             P_dew, x_dew = self._dew_P(species, zf, T)
             P_bubble, y_bubble = self._bubble_P(species, zf, T)
 
+        bounds = (np.zeros(Nspecies), mol)
         def v_given_TPmol(v_guess, T, P, mol):
             # Return equilibrium vapor flow rates
             # given T, P and molar flow rates.
@@ -820,13 +820,16 @@ class MixedStream(Stream):
                 # where v represents vapor flow rates.
                 l = mol - v
                 x = l/l.sum()
-                y = v/v.sum()
-                err = x*Psat_P * actcoef(species, x, T) - y
-                return abs(err)
+                return abs(x*Psat_P * actcoef(species, x, T) - v/v.sum())
             
-            return least_squares(v_error, v_guess,
-                                 bounds=(np.zeros(Nspecies), mol),
-                                 ftol=0.001).x
+            try:
+                return least_squares(v_error, v_guess,
+                                     bounds=bounds,
+                                     ftol=0.001).x
+            except:
+                return minimize(lambda v: v_error(v).sum(),
+                                v_guess, method='SLSQP',
+                                bounds=(*zip(*bounds),)).x
 
         if eq == 'VP':
             if V == 1:
@@ -840,23 +843,18 @@ class MixedStream(Stream):
                 liquid_mol[index] = mol
                 return
             else:
-                def V_error(T):
-                    nonlocal v
-                    if T > T_dew:
-                        return V - (1 + T - T_dew)
-                    elif T < T_bubble:
-                        return V - (T - T_bubble)
-                    v = v_given_TPmol(v, T, P, mol)
-                    return (V - v.sum()/molnet)
-                
                 y = y or V*zf + (1-V)*y_bubble
                 v = y*V*molnet
                 
+                def V_error(T):
+                    v[:] = v_given_TPmol(v, T, P, mol)
+                    return v.sum()/molnet
+                
                 # Guess
-                self.T = brentq(V_error, T_bubble-0.1, T_dew+0.1)
+                self.T = self._solve_thermo('T', 'V', V_error, T_bubble, T_dew, 0, 1, V)
                 
                 vapor_mol[index] = v
-                liquid_mol[index] = mol - vapor_mol[index]
+                liquid_mol[index] = mol - v
         elif eq == 'VT':
             if V == 1:
                 self.P = P_dew
@@ -870,19 +868,14 @@ class MixedStream(Stream):
                 return
             else:
                 def V_error(P):
-                    nonlocal v
-                    if P < P_dew:
-                        return V - (1 + P_dew - P)
-                    elif P > P_bubble:
-                        return V - (P_bubble - P)
-                    v = v_given_TPmol(v, T, P, mol)
-                    return (V - v.sum()/molnet)
+                    v[:] = v_given_TPmol(v, T, P, mol)
+                    return v.sum()/molnet
                 
                 y = y or (V*zf + (1-V)*y_bubble)
                 v = y*V*molnet
-                self.P = brentq(V_error, P_dew-1, P_bubble+1)
+                self.P = self._solve_thermo('P', 'V', V_error, P_bubble, P_dew, 0, 1, V)
                 vapor_mol[index] = v
-                liquid_mol[index] = mol - vapor_mol[index]        
+                liquid_mol[index] = mol - v
         elif eq == 'TP':
             if y is None:
                 # Guess composition in the vapor is a
@@ -915,7 +908,8 @@ class MixedStream(Stream):
             liquid_mol[index] = 0
             self.T = T_dew
             H_dew = self.H
-            if Hin >= 0.9999*H_dew:
+            dH_dew = Hin - H_dew
+            if dH_dew >= 0:
                 self.H = Hin
                 return
 
@@ -924,38 +918,36 @@ class MixedStream(Stream):
             liquid_mol[index] = mol
             self.T = T_bubble
             H_bubble = self.H
-            if Hin <= 1.0001*H_bubble:
+            dH_bubble = Hin - H_bubble
+            if dH_bubble <= 0:
                 self.H = Hin
                 return
             
             # Guess T, overall vapor fraction, and vapor flow rates
-            T_QP = self._T_QP
-            if not (T_bubble < T_QP < T_dew):
-                T_QP = T_bubble + (Hin - H_bubble)/(H_dew - H_bubble) * (T_dew - T_bubble)
-            V = (T_QP - T_bubble)/(T_dew - T_bubble)
+            V = dH_bubble/(H_dew - H_bubble)
             if y is None:
-                # Guess composition in the vapor is a weighted average of boiling points
-                f = (T_QP - T_dew)/(T_bubble - T_dew)
-                y = f*zf + (1-f)*y_bubble
-            
-            # Solve
-            def H_error(T):
-                nonlocal v
-                self.T = T
-                vapor_mol[index] = v = v_given_TPmol(v, T, P, mol)
-                liquid_mol[index] = mol - v
-                return abs(Hin - self.H)
+                y = V*zf + (1-V)*y_bubble
             v = y*V*molnet
-            self._T_QP = self.T = minimize_scalar(H_error,
-                                                  bounds=(T_bubble, T_dew),
-                                                  method='bounded').x
+            mass = self.massnet
+            
+            def Q_error(T):
+                self.T = T
+                v[:] = v_given_TPmol(v, T, P, mol)
+                vapor_mol[index] = v
+                liquid_mol[index] = mol - v
+                return self.H/mass
+            
+            self.T = self._solve_thermo('T', 'Q', Q_error, T_bubble, T_dew, 
+                                        H_bubble/mass, H_dew/mass, Hin/mass)
+
         elif eq == 'QT':
             # Check if super heated vapor
             vapor_mol[index] = mol
             liquid_mol[index] = 0
             self.P = P_dew
             H_dew = self.H
-            if Hin >= 0.9999*H_dew:
+            dH_dew = (Hin - H_dew)
+            if dH_dew >= 0:
                 self.H = Hin
                 return
 
@@ -964,31 +956,29 @@ class MixedStream(Stream):
             liquid_mol[index] = mol
             self.P = P_bubble
             H_bubble = self.H
-            if Hin <= 1.0001*H_bubble:
+            dH_bubble = (Hin - H_bubble)
+            if dH_bubble <= 0:
                 self.H = Hin
                 return
 
-            # Guess P, overall vapor fraction, and vapor flow rates
-            P_QT = self._P_QT
-            if not (P_dew < P_QT < P_bubble):
-                P_QT = P_bubble + (Hin - H_bubble)/(H_dew - H_bubble) * (P_dew - P_bubble)
-            V = (P_QT - P_bubble)/(P_dew - P_bubble)
+            # Guess overall vapor fraction, and vapor flow rates
+            V = dH_bubble/(H_dew - H_bubble)
             if y is None:
                 # Guess composition in the vapor is a weighted average of boiling points
-                f = (P_QT - P_dew)/(P_bubble - P_dew)
-                y = f*zf + (1-f)*y_bubble
+                y = V*zf + (1-V)*y_bubble
+            v = y*V*molnet
             
             # Solve
-            def H_error(P):
-                nonlocal v
+            mass = self.massnet
+            def Q_error(P):
                 self.P = P
-                vapor_mol[index] = v = v_given_TPmol(v, T, P, mol)
+                v[:] = v_given_TPmol(v, T, P, mol)
+                vapor_mol[index] = v
                 liquid_mol[index] = mol - v
-                return abs(Hin - self.H)
-            v = y*V*molnet
-            self._P_QT = self.P = minimize_scalar(H_error,
-                                                  bounds=(P_dew, P_bubble),
-                                                  method='bounded').x
+                return self.H/mass
+            
+            self.P = self._solve_thermo('P', 'Q', Q_error, P_bubble, P_dew,
+                                        H_bubble/mass, H_dew/mass, Hin/mass)
 
             self._y_cached = (species, v/v.sum())
 

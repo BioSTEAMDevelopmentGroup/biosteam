@@ -202,12 +202,12 @@ class ParallelReaction(ReactionSet):
     @property
     def X_net(self):
         X_net = {}
-        for i, j in zip(self.reactant, self.X):
+        for i, j in zip(self.reactants, self.X):
             if i in X_net:
                 X_net[i] += j
             else:
                 X_net[i] = j
-        return prs.dct2arr(X_net, self.species)
+        return X_net
 
 class SeriesReaction(ReactionSet):
     """Create a ParallelReaction object from Reaction objects. When called, it returns the change in material due to all reactions in series."""
@@ -221,12 +221,12 @@ class SeriesReaction(ReactionSet):
     @property
     def X_net(self):
         X_net = {}
-        for i, j in zip(self.reactant, self.X):
+        for i, j in zip(self.reactants, self.X):
             if i in X_net:
                 X_net[i] *= j
             else:
                 X_net[i] = j
-        return prs.dct2arr(X_net, self.species)
+        return X_net
 
 Rxn = Reaction
 RxnI = ReactionItem
