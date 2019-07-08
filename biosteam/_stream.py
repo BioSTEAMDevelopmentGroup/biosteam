@@ -9,12 +9,11 @@ from . import _Q
 import numpy as np
 from scipy.optimize import newton, least_squares
 from ._utils import property_array, PropertyFactory, DisplayUnits, \
-                    tuple_array, fraction, Sink, Source, missing_stream, \
-                    ThermoSolver
+                    tuple_array, fraction, Sink, Source, missing_stream
 from ._flowsheet import find
 from ._species import Species, WorkingSpecies
 from ._exceptions import SolverError, EquilibriumError, DimensionError
-from ._equilibrium import DORTMUND
+from ._equilibrium import DORTMUND, VLEsolver
 
 
 __all__ = ('Stream',)
@@ -378,7 +377,7 @@ class Stream(metaclass=metaStream):
                  '_species', '_sink', '_source', '_dew_cached', '_bubble_cached',
                  '_phase', '_y_cached', '_lL_split_cached', '_y',
                  '_yP', '_dew', '_Py_over_gammaPsat', '__weakref__',
-                 '_source_link', '_solve_thermo')
+                 '_source_link', '_VLEsolver')
 
     line = 'Stream'
 
@@ -1816,7 +1815,7 @@ class Stream(metaclass=metaStream):
         self._setflows(np.zeros((4, self._species._Nspecies)))
         self._mol[phase_index[self._phase]] = mol
         self._lL_split_cached = self._y_cached = (None,)
-        self._solve_thermo = ThermoSolver()
+        self._VLEsolver = VLEsolver()
 
     def disable_phases(self, phase):
         """Cast stream into a Stream object.

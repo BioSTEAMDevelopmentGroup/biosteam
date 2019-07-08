@@ -650,22 +650,22 @@ class HXprocess(HX):
             so0.copylike(si0)
         else:
             fluid_type = self._fluid_type
-            if fluid_type != 'ss':
-                # ll and ls take a lot of time, so approximate using cached data
-                new_ratio = s0_molnet/s1_molnet
-                if self._cached_run_args:
-                    old_ratio, s0_T, s1_T, dTc = self._cached_run_args
-                    if ((abs(new_ratio - old_ratio) < 0.001)
-                        and (abs(si0.T - s0_T) < 0.1)
-                        and (abs(si1.T - s1_T) < 0.1)
-                        and (abs(self.dT-dTc) < 0.1)):
-                            r0 = s0_molnet/so0.molnet    
-                            so0._mol[:] *= r0
-                            so1._mol[:] *= s1_molnet/so1.molnet
-                            self._duty *= r0
-                            return
-                self._s0_molnet = s0_molnet
-                self._cached_run_args = new_ratio, si0.T, si1.T, self.dT
+            # if fluid_type != 'ss':
+            #     # ll and ls take a lot of time, so approximate using cached data
+            #     new_ratio = s0_molnet/s1_molnet
+            #     if self._cached_run_args:
+            #         old_ratio, s0_T, s1_T, dTc = self._cached_run_args
+            #         if ((abs(new_ratio - old_ratio) < 0.001)
+            #             and (abs(si0.T - s0_T) < 0.1)
+            #             and (abs(si1.T - s1_T) < 0.1)
+            #             and (abs(self.dT-dTc) < 0.1)):
+            #                 r0 = s0_molnet/so0.molnet    
+            #                 so0._mol[:] *= r0
+            #                 so1._mol[:] *= s1_molnet/so1.molnet
+            #                 self._duty *= r0
+            #                 return
+            #     self._s0_molnet = s0_molnet
+            #     self._cached_run_args = new_ratio, si0.T, si1.T, self.dT
             so0.copylike(si0)
             so1.copylike(si1)
             if fluid_type == 'ss':

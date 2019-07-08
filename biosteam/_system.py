@@ -12,7 +12,7 @@ from ._flowsheet import find, make_digraph, save_digraph
 from ._stream import Stream
 from ._unit import Unit
 from ._report import save_report
-from ._utils import color_scheme, missing_stream, strtuple, function
+from ._utils import color_scheme, missing_stream, strtuple
 import biosteam as bst
 
 __all__ = ('System',)
@@ -603,7 +603,7 @@ class System:
                 item._run = _method_debug(item, item._run)
             elif isinstance(item, System):
                 item._converge = _method_debug(item, item._converge)
-            elif isinstance(item, function):
+            elif callable(item):
                 network[i] = _method_debug(item, item)
 
     def _debug_off(self):
@@ -615,7 +615,7 @@ class System:
                 item._run = item._run._original
             elif isinstance(item, System):
                 item._converge = item._converge._original
-            elif isinstance(item, function):
+            elif callable(item):
                 network[i] = item._original
         self.network = tuple(network)
     

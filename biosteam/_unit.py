@@ -120,18 +120,7 @@ class metaUnit(type):
                 locs = {}
                 exec(str2exec, globs, locs)
                 cls.__init__ = locs['__init__']
-        return cls
-    
-    def __repr__(cls):
-        if cls is Unit:
-            return f'biosteam.Unit'
-        elif cls.__name__ in bst.units.__all__:
-            return f'biosteam.units.{cls.__name__}'
-        elif cls.__name__ in bst.units.facilities.__all__:
-            return f'biosteam.units.facilities.{cls.__name__}'
-        else:
-            return cls.__module__ + '.' + cls.__name__
-            
+        return cls        
 
 
 # %% Unit Operation
@@ -851,7 +840,8 @@ class Unit(metaclass=metaUnit):
             if i:
                 if i._sink: i._source = None
                 else: object.__delattr__(find.stream, i._ID)
-        self._outs[:] = self._ins[:] = (missing_stream,)
+        self._outs.clear()
+        self._ins.clear()
     
     def __str__(self):
         if self.ID:
