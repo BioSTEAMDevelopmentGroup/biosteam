@@ -1,0 +1,1265 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Stream &mdash; BioSTEAM 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'./',
+              VERSION:'0.1',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="MixedStream" href="MixedStream.html" />
+    <link rel="prev" title="Species" href="Species.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> BioSTEAM
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit operation examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">11. Advanced simulation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">BioSTEAM API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="Species.html">Species</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Stream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MixedStream.html">MixedStream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit.html">Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="HeatUtility.html">HeatUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="System.html">System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="TEA.html">TEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="inspect.html">inspect</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reaction.html">reaction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluation.html">evaluation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">BioSTEAM</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Stream</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/Stream.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+</style>
+<div class="section" id="stream">
+<h1>Stream<a class="headerlink" href="#stream" title="Permalink to this headline">¶</a></h1>
+<p>A Stream object represents a material flow in a chemical process.</p>
+<span class="target" id="module-biosteam"></span><dl class="class">
+<dt id="biosteam.Stream">
+<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Stream</code><span class="sig-paren">(</span><em>ID=''</em>, <em>flow=()</em>, <em>species=()</em>, <em>units='kmol/hr'</em>, <em>phase='l'</em>, <em>T=298.15</em>, <em>P=101325</em>, <em>*</em>, <em>price=0</em>, <em>**flow_pairs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a Stream object that defines material flow rates along its thermodynamic state. Thermodynamic and transport properties of a stream are readily available. Ideal mixture is assumed for stream properties and excess thermodynamic energies are neglected as a simplifying assumption for low pressure processes.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><p><strong>ID:</strong> [str] A unique identification. If ID is an empty string (i.e. ‘’ ), a default ID will be chosen. If ID is None, stream will not be registered in flowsheet.</p>
+<p><strong>flow:</strong> [tuple] All flow rates corresponding to <cite>species</cite>.</p>
+<p><strong>species:</strong> tuple[str] or [Species] Species corresponding to <cite>flow</cite>. If empty, assume same species as class.</p>
+<p><strong>units:</strong> [str] The units of the flow rates (only mass, molar, and volumetric flow rates are valid)</p>
+<p><strong>phase:</strong> [str] ‘l’ for liquid, ‘g’ for gas, or ‘s’ for solid.</p>
+<p><strong>T:</strong> [float] Temperature (K).</p>
+<p><strong>P:</strong> [float] Pressure (Pa).</p>
+<p><strong>price:</strong> [float] (USD/kg).</p>
+<p><strong>**flow_pairs:</strong> Compound-flow pairs</p>
+</div></blockquote>
+<p><strong>Class Properties</strong></p>
+<blockquote>
+<div><strong>species</strong> = Species(): [Species] Contains pure component thermodynamic properties for computing overall properties of Stream instances.</div></blockquote>
+<p><strong>Examples</strong></p>
+<blockquote>
+<div><p>Before making a stream, set the species using a Species object:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Set Species object</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span> 
+</pre></div>
+</div>
+<p>Stream objects may be created a variety of ways:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a stream specifying compound and flow rate pairs:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;s1&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="go">Stream: s1</span>
+<span class="go"> phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
+<span class="go"> flow (kmol/hr): Water  2</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a stream assuming same order as given in species:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;s2&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="go">Stream: s2</span>
+<span class="go"> phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
+<span class="go"> flow (kmol/hr): Ethanol  1</span>
+<span class="go">                 Water    2</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Create a stream passing flow rate units, phase, temperature and pressure:</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s3</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">ID</span><span class="o">=</span><span class="s1">&#39;s3&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mf">0.278</span><span class="p">,</span> <span class="mf">0.556</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;mol/s&#39;</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s3</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="go">Stream: s3</span>
+<span class="go"> phase: &#39;g&#39;, T: 400 K, P: 101325 Pa</span>
+<span class="go"> flow (kmol/hr): Ethanol  1.</span>
+<span class="go">                 Water    2.</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># The working units do not change</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s3</span><span class="o">.</span><span class="n">mol</span> 
+<span class="go">array([1., 2.])</span>
+</pre></div>
+</div>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Stream objects do not automatically calculate thermodynamic equilibrium. They simply assume the given phase, temperature and pressure are correct. To find equilibrium, use the VLE or LLE method.</p>
+</div>
+<p>Use the <cite>show</cite> method to print all specifications with desired units:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Temperature in degree Celsius</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="s1">&#39;degC&#39;</span><span class="p">)</span>
+<span class="go">Stream: s2 </span>
+<span class="go"> phase: &#39;l&#39;, T: 25. degC, P: 101325 Pa</span>
+<span class="go"> flow (kmol/hr): Ethanol  1</span>
+<span class="go">                 Water    2</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Flow in kg/hr</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">)</span>
+<span class="go">Stream: s2 </span>
+<span class="go"> phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
+<span class="go"> flow (kg/hr): Ethanol  46.1</span>
+<span class="go">               Water    36</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Flow in fractions</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">fraction</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="go">Stream: s2</span>
+<span class="go"> phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa</span>
+<span class="go"> flow: Ethanol  0.333</span>
+<span class="go">       Water    0.667</span>
+<span class="go">       net      3 kmol/hr</span>
+</pre></div>
+</div>
+<p>Flow rates are stored internally as an array in the ‘mol’ attribute.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Set Water flow rate</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">18</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">mol</span> <span class="c1"># kmol/hr</span>
+<span class="go">array([1, 18])</span>
+</pre></div>
+</div>
+<p>Mass and volumetric flow rates are also available as property_arrays of the molar flow rate. As such, they are always up to date with the molar flow rate and altering them also alters the molar flow rate:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Altering mass or volumetric flows alters the molar flow</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">vol</span> <span class="c1"># m^3/hr</span>
+<span class="go">property_array([0.059, 0.036])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">vol</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">mol</span>
+<span class="go">array([17.06 , 55.343])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Values are always up to date with the molar flow</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">vol</span>
+<span class="go">property_array([0.059, 0.036])</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">property_array objects are significantly slower than array objects. This is because flow rate data is internally stored as molar flow rates. Also, property_array objects are arrays of python objects, which add overhead over the C implementation of numpy. Whenever possible, use the array to manage flow rates.</p>
+</div>
+<p>Some thermodynamic/material properties, including enthalpy and heat capacity, are dependent only on temperature:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Enthalpy (kJ/hr) and heat capacity (kJ/(kg-K))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="mf">298.15</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">Cp</span>
+<span class="go">3.200382054794244</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">H</span> 
+<span class="go">0.0</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Change of temperature</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="mi">310</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">H</span>
+<span class="go">3140.9389548625936</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">Cp</span>
+<span class="go">3.2590872180092956</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Thermodynamic energies are relative to 25 degC and 1 atm.</p>
+</div>
+<p>Some thermodynamic/material properties, including volume and density, are dependent on both temperature and pressure:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Volumetric flow rate (m^3/hr) and density (kg/m^3)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">volnet</span>
+<span class="go">0.036138079740245625</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">rho</span>
+<span class="go">997.0247522552814</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Change of pressure</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">P</span> <span class="o">*=</span> <span class="mi">4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">volnet</span>
+<span class="go">0.036136231155141196</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">rho</span>
+<span class="go">997.0757560552587</span>
+
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Change of temperature</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">T</span> <span class="o">+=</span> <span class="mi">30</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">volnet</span>
+<span class="go">0.03663597700908213</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">rho</span>
+<span class="go">983.4747955832584</span>
+</pre></div>
+</div>
+<p>A dictionary of available stream properties is available in <cite>Stream.units</cite>. You may also find it useful to use the <cite>help</cite> method to search for a property:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">help</span><span class="p">(</span><span class="s1">&#39;conductivity&#39;</span><span class="p">)</span>
+<span class="go">k: [float] Thermal conductivity as a function of T and P (W/m/K).</span>
+</pre></div>
+</div>
+</div></blockquote>
+<dl class="staticmethod">
+<dt id="biosteam.Stream.activity_coefficients">
+<em class="property">static </em><code class="descname">activity_coefficients</code><span class="sig-paren">(</span><em>species</em>, <em>xs</em>, <em>T</em>, <em>cached={}</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.Stream.activity_coefficients" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list of Dortmund modified UNIFAC coefficients.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><p>species: tuple[Compound] Species corresponding to molar fractions</p>
+<p>xs: [array_like] Molar fractions</p>
+<p>T: [float] Temperature (K)</p>
+<p>cached: {species: (chemgroups, rs, qs, group_counts)} Cached UNIFAC parameters</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.lazy_energy_balance">
+<code class="descname">lazy_energy_balance</code><em class="property"> = True</em><a class="headerlink" href="#biosteam.Stream.lazy_energy_balance" title="Permalink to this definition">¶</a></dt>
+<dd><p>[bool] If True, approximate energy balance. False otherwise.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.display_units">
+<code class="descname">display_units</code><em class="property"> = DisplayUnits(T='K', P='Pa', flow='kmol/hr', fraction=False)</em><a class="headerlink" href="#biosteam.Stream.display_units" title="Permalink to this definition">¶</a></dt>
+<dd><p>[DisplayUnits] Units of measure for IPython display</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.T">
+<code class="descname">T</code><a class="headerlink" href="#biosteam.Stream.T" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Temperature (K)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.P">
+<code class="descname">P</code><a class="headerlink" href="#biosteam.Stream.P" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Pressure (Pa)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.price">
+<code class="descname">price</code><a class="headerlink" href="#biosteam.Stream.price" title="Permalink to this definition">¶</a></dt>
+<dd><p>Price of stream (USD/kg)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Stream.setflow">
+<code class="descname">setflow</code><span class="sig-paren">(</span><em>flow=()</em>, <em>species=()</em>, <em>units='kmol/hr'</em>, <em>inplace=''</em>, <em>**flow_pairs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.setflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.setflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set <cite>flow</cite> rates according to the <cite>species</cite> order and <cite>flow_pairs</cite>. <cite>inplace</cite> can be any operation that can be performed in place (e.g. +, -, <em>, /, |, *</em>, etc.).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Stream.getflow">
+<code class="descname">getflow</code><span class="sig-paren">(</span><em>*species</em>, <em>units='kmol/hr'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.getflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.getflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get flow rates of species in given units.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.phase">
+<code class="descname">phase</code><a class="headerlink" href="#biosteam.Stream.phase" title="Permalink to this definition">¶</a></dt>
+<dd><p>[str] ‘l’ for liquid, ‘g’ for gas, or ‘s’ for solid.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="biosteam.Stream.proxy">
+<em class="property">static </em><code class="descname">proxy</code><span class="sig-paren">(</span><em>ID</em>, <em>link=&lt;MissingStream&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.proxy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.proxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a Stream object that serves as a proxy for its <cite>link</cite> stream.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.link">
+<code class="descname">link</code><a class="headerlink" href="#biosteam.Stream.link" title="Permalink to this definition">¶</a></dt>
+<dd><p>When another Stream object is set as a link, it will share data with that object.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.ID">
+<code class="descname">ID</code><a class="headerlink" href="#biosteam.Stream.ID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unique identification (str). If set as ‘’, it will choose a default ID.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.cost">
+<code class="descname">cost</code><a class="headerlink" href="#biosteam.Stream.cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cost of stream (USD/hr)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.indices">
+<code class="descname">indices</code><a class="headerlink" href="#biosteam.Stream.indices" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return flow indices of specified species.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><strong>IDs:</strong> [iterable] species IDs or CAS numbers.</div></blockquote>
+<p>Example</p>
+<p>Indices by ID:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">([</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">indices</span><span class="p">([</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">])</span>
+<span class="go">[1, 0]</span>
+</pre></div>
+</div>
+<p>Indices by CAS number:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">indices</span><span class="p">([</span><span class="s1">&#39;7732-18-5&#39;</span><span class="p">,</span> <span class="s1">&#39;64-17-5&#39;</span><span class="p">]):</span>
+<span class="go">[1, 0]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.mol">
+<code class="descname">mol</code><a class="headerlink" href="#biosteam.Stream.mol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Array of molar flow rates (kmol/hr):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">mol</span>
+<span class="go">array([0, 2])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">mol</span>
+<span class="go">array([1, 2])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.molfrac">
+<code class="descname">molfrac</code><a class="headerlink" href="#biosteam.Stream.molfrac" title="Permalink to this definition">¶</a></dt>
+<dd><p>Array of molar fractions.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">molfrac</span>
+<span class="go">tuple_array([0., 1.])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.molnet">
+<code class="descname">molnet</code><a class="headerlink" href="#biosteam.Stream.molnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net molar flow rate (kmol/hr)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">molnet</span>
+<span class="go">3</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.mass">
+<code class="descname">mass</code><a class="headerlink" href="#biosteam.Stream.mass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Array of mass flow rates (kg/hr)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">mass</span>
+<span class="go">property_array([ 0.   , 36.031])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.massfrac">
+<code class="descname">massfrac</code><a class="headerlink" href="#biosteam.Stream.massfrac" title="Permalink to this definition">¶</a></dt>
+<dd><p>Array of mass fractions.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">massfrac</span>
+<span class="go">tuple_array([0, 1])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.massnet">
+<code class="descname">massnet</code><a class="headerlink" href="#biosteam.Stream.massnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net mass flow rate (kg/hr)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">mass</span>
+<span class="go">36.031</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.vol">
+<code class="descname">vol</code><a class="headerlink" href="#biosteam.Stream.vol" title="Permalink to this definition">¶</a></dt>
+<dd><p>Array of volumetric flow rates as a function of T and P (m^3/hr).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">vol</span>
+<span class="go">property_array([0.   , 0.036])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.volfrac">
+<code class="descname">volfrac</code><a class="headerlink" href="#biosteam.Stream.volfrac" title="Permalink to this definition">¶</a></dt>
+<dd><p>Array of volumetric fractions as a function of T and P.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">volfrac</span>
+<span class="go">tuple_array([0.0, 1.0], dtype=object)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.volnet">
+<code class="descname">volnet</code><a class="headerlink" href="#biosteam.Stream.volnet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net volumetric flow rate as a function of T and P (m^3/hr).</p>
+<p>from biosteam import *
+&gt;&gt;&gt; Stream.species = Species(‘Ethanol’, ‘Water’)
+&gt;&gt;&gt; s1 = Stream(Water=2)
+&gt;&gt;&gt; s1.volnet
+0.036138079740245625</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.H">
+<code class="descname">H</code><a class="headerlink" href="#biosteam.Stream.H" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enthalpy flow rate as a function of T, excluding formation energies (kJ/hr).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">H</span> <span class="c1"># The stream is at the reference state</span>
+<span class="go">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">H</span> <span class="o">=</span> <span class="mi">1000</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">T</span>
+<span class="go">304.7888167493753</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">H</span>
+<span class="go">999.5728716085112</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The solver reaches a level of tolerance and the new temperature is an approximation.</p>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.Hf">
+<code class="descname">Hf</code><a class="headerlink" href="#biosteam.Stream.Hf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Heat of formation flow rate (kJ/hr).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">Hf</span>
+<span class="go">-483640.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.Hc">
+<code class="descname">Hc</code><a class="headerlink" href="#biosteam.Stream.Hc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Heat of combustion flow rate (kJ/hr).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">Hc</span>
+<span class="go">-2819966.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.S">
+<code class="descname">S</code><a class="headerlink" href="#biosteam.Stream.S" title="Permalink to this definition">¶</a></dt>
+<dd><p>Entropy flow rate as a function of T and P, excluding formation energies (kJ/hr).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">S</span> <span class="c1"># The stream is at the reference state</span>
+<span class="go">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="mi">320</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">S</span>
+<span class="go">16.503899351682694</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.G">
+<code class="descname">G</code><a class="headerlink" href="#biosteam.Stream.G" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gibbs free energy flow rate as a function of T and P, excluding formation energies (kJ/hr).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">G</span> <span class="c1"># The stream is at the reference state</span>
+<span class="go">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="mi">320</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">G</span>
+<span class="go">-182.43024800100193</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.U">
+<code class="descname">U</code><a class="headerlink" href="#biosteam.Stream.U" title="Permalink to this definition">¶</a></dt>
+<dd><p>Internal energy flow rate as a function of T and P, excluding formation energies (kJ/hr).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">U</span> <span class="c1"># The stream is at the reference state</span>
+<span class="go">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="mi">320</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">U</span>
+<span class="go">-7090.732710112934</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.A">
+<code class="descname">A</code><a class="headerlink" href="#biosteam.Stream.A" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helmholtz energy flow rate as a function of T and P, excluding formation energies (kJ/hr).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">A</span> <span class="c1"># The stream is at the reference state</span>
+<span class="go">0.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="mi">320</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">A</span>
+<span class="go">-12371.980502651397</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.C">
+<code class="descname">C</code><a class="headerlink" href="#biosteam.Stream.C" title="Permalink to this definition">¶</a></dt>
+<dd><p>Heat capacity flow rate as a function of T (kJ/K/hr).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">C</span>
+<span class="go">243.41704115214097</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.Cp">
+<code class="descname">Cp</code><a class="headerlink" href="#biosteam.Stream.Cp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specific heat capacity as a function of T (kJ/kg/K).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">Cp</span>
+<span class="go">2.641906706110962</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.Cpm">
+<code class="descname">Cpm</code><a class="headerlink" href="#biosteam.Stream.Cpm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Molar heat capacity as a function of T (kJ/kmol/K).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">Cpm</span> <span class="c1"># (J/mol/K)</span>
+<span class="go">121.70852057607048</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.Vm">
+<code class="descname">Vm</code><a class="headerlink" href="#biosteam.Stream.Vm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Molar volume as a function of T and P (m^3/mol).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">Vm</span>
+<span class="go">0.00012030150757118572</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.rho">
+<code class="descname">rho</code><a class="headerlink" href="#biosteam.Stream.rho" title="Permalink to this definition">¶</a></dt>
+<dd><p>Density as a function of T (kg/m^3).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">rho</span>
+<span class="go">765.8830039638536</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.rhom">
+<code class="descname">rhom</code><a class="headerlink" href="#biosteam.Stream.rhom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Molar density as a function of T and P (mol/m^3).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">rhom</span>
+<span class="go">16.624895567634884</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.nu">
+<code class="descname">nu</code><a class="headerlink" href="#biosteam.Stream.nu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Kinematic viscosity as a function of T and P (m^2/s).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">nu</span>
+<span class="go">5.733020843964377e-06</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.mu">
+<code class="descname">mu</code><a class="headerlink" href="#biosteam.Stream.mu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Hydraulic viscosity as a function of T and P (Pa*s).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">mu</span>
+<span class="go">0.0010780252844121937</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.k">
+<code class="descname">k</code><a class="headerlink" href="#biosteam.Stream.k" title="Permalink to this definition">¶</a></dt>
+<dd><p>Thermal conductivity as a function of T and P (W/m/k).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">k</span>
+<span class="go">0.16476716002011285</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.alpha">
+<code class="descname">alpha</code><a class="headerlink" href="#biosteam.Stream.alpha" title="Permalink to this definition">¶</a></dt>
+<dd><p>Thermal diffusivity as a function of T and P (m^2/s).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">alpha</span>
+<span class="go">8.614274122585474e-08</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.sigma">
+<code class="descname">sigma</code><a class="headerlink" href="#biosteam.Stream.sigma" title="Permalink to this definition">¶</a></dt>
+<dd><p>Surface tension as a function of T (N/m).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">sigma</span>
+<span class="go">0.02188440412824106</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.Pr">
+<code class="descname">Pr</code><a class="headerlink" href="#biosteam.Stream.Pr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prandtl number as a function of T and P (non-dimensional).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">Pr</span>
+<span class="go">15.923321696004477</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.P_vapor">
+<code class="descname">P_vapor</code><a class="headerlink" href="#biosteam.Stream.P_vapor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Vapor pressure (Pa).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">P_vapor</span>
+<span class="go">7872.1566667784855</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.source">
+<code class="descname">source</code><a class="headerlink" href="#biosteam.Stream.source" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unit source.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.sink">
+<code class="descname">sink</code><a class="headerlink" href="#biosteam.Stream.sink" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unit sink.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.Stream.nonzero_species">
+<code class="descname">nonzero_species</code><a class="headerlink" href="#biosteam.Stream.nonzero_species" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flow indices and species that have a non-zero flow rate.</p>
+<p>from biosteam import *
+&gt;&gt;&gt; Stream.species = Species(‘Ethanol’, ‘Water’)
+&gt;&gt;&gt; s1 = Stream(Water=2)
+&gt;&gt;&gt; s1.nonzero_species
+[1], [‘Water’]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Stream.quantity">
+<code class="descname">quantity</code><span class="sig-paren">(</span><em>prop_ID</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.quantity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.quantity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a property as a Quantity object as described in the <a class="reference external" href="https://pint.readthedocs.io/en/latest/">pint package</a></p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><strong>prop_ID:</strong> [str] name of the property (e.g. ‘mol’, ‘H’, ‘k’ …)</div></blockquote>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">quantity</span><span class="p">(</span><span class="s1">&#39;Cp&#39;</span><span class="p">)</span>
+<span class="go">2.4337467143619698 J/K/g</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Stream.derivative">
+<code class="descname">derivative</code><span class="sig-paren">(</span><em>prop_ID</em>, <em>var_ID</em>, <em>index=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.derivative"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.derivative" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the derivative of property ‘prop_ID’ and variable ‘var_ID’. If the property given by var_ID is an array, use index to specify which element.</p>
+<blockquote>
+<div><p><strong>Parameters</strong></p>
+<blockquote>
+<div><p><strong>prop_ID:</strong> [str] Name of the property (e.g. ‘rho’, ‘Cp’, ‘H’, ‘volnet’ …)</p>
+<p><strong>var_ID:</strong> [str] Name of the variable (e.g ‘T’, ‘P’, ‘molnet’ …)</p>
+<p><strong>index:</strong> [array_like or None] Optional indices if the variable is an array</p>
+</div></blockquote>
+</div></blockquote>
+<p><strong>Example</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">derivative</span><span class="p">(</span><span class="s1">&#39;rho&#39;</span><span class="p">,</span> <span class="s1">&#39;T&#39;</span><span class="p">)</span>
+<span class="go">-0.8917376157800969</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="biosteam.Stream.like">
+<em class="property">static </em><code class="descname">like</code><span class="sig-paren">(</span><em>stream</em>, <em>ID=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.like"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.like" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create either a Stream or MixedStream object just like the given stream, depending on whether multiple phases are present.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Stream.copylike">
+<code class="descname">copylike</code><span class="sig-paren">(</span><em>stream</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.copylike"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.copylike" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy flow rates, T, P, and phase of stream to self.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">copylike</span><span class="p">(</span><span class="n">s2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="go">Stream: s1</span>
+<span class="go"> phase: &#39;g&#39;, T: 400.00 K, P: 101325 Pa</span>
+<span class="go"> flow (kmol/hr): Ethanol  1</span>
+<span class="go">                 Water    2</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Stream.copyflow">
+<code class="descname">copyflow</code><span class="sig-paren">(</span><em>stream</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.copyflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.copyflow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copy flow rates and phase of stream to self.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Stream.empty">
+<code class="descname">empty</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.empty"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.empty" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set flow rates to zero</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">mol</span>
+<span class="go">array([0, 0])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Stream.bubble_T">
+<code class="descname">bubble_T</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.bubble_T"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.bubble_T" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bubble point at current composition and pressure.</p>
+<p><strong>Returns</strong></p>
+<blockquote>
+<div><p><strong>T:</strong> [float] Bubble point temperature (T).</p>
+<p><strong>y:</strong> [numpy ndarray] Vapor phase composition.</p>
+<p><strong>species:</strong> tuple[str] Species in equilibrium.</p>
+</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stream</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">),</span>
+<span class="gp">... </span>                <span class="n">species</span><span class="o">=</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stream</span><span class="o">.</span><span class="n">bubble_T</span><span class="p">()</span>
+<span class="go">(352.2820850833474,</span>
+<span class="go"> array([0.703, 0.297]),</span>
+<span class="go"> (&lt;Chemical: Ethanol&gt;, &lt;Chemical: Water&gt;))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Stream.bubble_P">
+<code class="descname">bubble_P</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.bubble_P"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.bubble_P" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bubble point at current composition and temperature.</p>
+<p><strong>Returns</strong></p>
+<blockquote>
+<div><p><strong>P:</strong> [float] Bubble point pressure (Pa).</p>
+<p><strong>y:</strong> [numpy ndarray] Vapor phase composition.</p>
+<p><strong>species:</strong> tuple[str] Species in equilibrium.</p>
+</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mf">0.703</span><span class="p">,</span> <span class="mf">0.297</span><span class="p">),</span> <span class="n">T</span><span class="o">=</span><span class="mf">352.28</span><span class="p">,</span>
+<span class="go">                species=Species(&#39;Ethanol&#39;, &#39;Water&#39;))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">bubble_P</span><span class="p">()</span>
+<span class="go">(103494.17209657285,</span>
+<span class="go"> array([0.757, 0.243]),</span>
+<span class="go"> (&lt;Chemical: Ethanol&gt;, &lt;Chemical: Water&gt;))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Stream.dew_T">
+<code class="descname">dew_T</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.dew_T"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.dew_T" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dew point at current composition and pressure.</p>
+<p><strong>Returns</strong></p>
+<blockquote>
+<div><p><strong>T:</strong> [float] Dew point temperature (K).</p>
+<p><strong>x:</strong> [numpy array] Liquid phase composition.</p>
+<p><strong>species:</strong> tuple[str] Species in equilibrium.</p>
+</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">stream</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span>
+<span class="gp">... </span>                <span class="n">species</span><span class="o">=</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stream</span><span class="o">.</span><span class="n">dew_T</span><span class="p">()</span>
+<span class="go">(353.7420742149825,</span>
+<span class="go"> array([0.556, 0.444]),</span>
+<span class="go"> (&lt;Chemical: Ethanol&gt;, &lt;Chemical: Water&gt;))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Stream.dew_P">
+<code class="descname">dew_P</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.dew_P"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.dew_P" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dew point at current composition and temperature.</p>
+<p><strong>Returns</strong></p>
+<blockquote>
+<div><p><strong>P:</strong> [float] Dew point pressure (Pa).</p>
+<p><strong>x:</strong> [numpy array] Liquid phase composition.</p>
+<p><strong>species:</strong> tuple[str] Species in equilibrium.</p>
+</div></blockquote>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stream</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mf">0.703</span><span class="p">,</span> <span class="mf">0.297</span><span class="p">),</span> <span class="n">T</span><span class="o">=</span><span class="mf">352.28</span><span class="p">,</span>
+<span class="gp">... </span>                <span class="n">species</span><span class="o">=</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stream</span><span class="o">.</span><span class="n">dew_P</span><span class="p">()</span>
+<span class="go">(101328.47030327446,</span>
+<span class="go"> array([0.6, 0.4]),</span>
+<span class="go"> (&lt;Chemical: Ethanol&gt;, &lt;Chemical: Water&gt;))</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Stream.Re">
+<code class="descname">Re</code><span class="sig-paren">(</span><em>L</em>, <em>A=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.Re"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.Re" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return Reynolds number.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><p><strong>L:</strong> [float] Characteristic lenght (m)</p>
+<p><strong>A:</strong> [float] Cross-sectional area (m^2). If A is None, assume flow through a cylindrical pipe.</p>
+</div></blockquote>
+<p>Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">Re</span><span class="p">(</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.031416</span><span class="p">)</span>
+<span class="go">27639.956372923512</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="biosteam.Stream.help">
+<em class="property">classmethod </em><code class="descname">help</code><span class="sig-paren">(</span><em>prop</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.help"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.help" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print information related to a property.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><strong>prop:</strong> [str] name or description of a property</div></blockquote>
+<p>Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">help</span><span class="p">(</span><span class="s1">&#39;rho&#39;</span><span class="p">)</span>
+<span class="go">rho: [float] Density as a function of T and P (kg/m^3).</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">help</span><span class="p">(</span><span class="s1">&#39;density&#39;</span><span class="p">)</span>
+<span class="go">rho: [float] Density as a function of T and P (kg/m^3).</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="biosteam.Stream.eqT">
+<em class="property">static </em><code class="descname">eqT</code><span class="sig-paren">(</span><em>streams</em>, <em>T_guess=None</em>, <em>Q_in=0</em>, <em>approximate=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.eqT"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.eqT" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bring all streams to temperature equilibrium.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><p><strong>streams:</strong> [Stream] All streams</p>
+<p><strong>T_guess:</strong> [float] Equilibrium temperature guess (K)</p>
+<p><strong>Q_in:</strong> [float] Heat addition to streams (kJ/hr)</p>
+<p><strong>approximate:</strong> [bool] If True, approximate energy balance with constant heat capacity</p>
+</div></blockquote>
+<p><strong>Return</strong></p>
+<blockquote>
+<div><strong>T:</strong> [float] New temperature (K)</div></blockquote>
+<p><strong>Example</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">340</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">eqT</span><span class="p">([</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="n">s1</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">s2</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+<span class="go">(325.8281231556553, 325.8281231556553)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="biosteam.Stream.sum">
+<em class="property">static </em><code class="descname">sum</code><span class="sig-paren">(</span><em>s_sum</em>, <em>streams</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.sum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.sum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mixes streams and sets resulting mass and energy in ‘s_sum’. Assumes the same pressure as streams[0], and no phase equilibrium. If ‘s_sum’ is a Stream object, it assumes the phase does not change.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><p><strong>s_sum:</strong> [Stream] Container for the resulting mixture of streams</p>
+<p><strong>streams:</strong> [tuple] Stream objects to be mixed</p>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Ignores contents of <cite>s_sum</cite> as if it was empty</p>
+</div>
+<p><strong>Example</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">340</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s_sum</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;s_sum&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">s_sum</span><span class="p">,</span> <span class="p">[</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s_sum</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="go">Stream: s_sum</span>
+<span class="go"> phase: &#39;l&#39;, T: 326.29 K, P: 101325 Pa</span>
+<span class="go"> flow (kmol/hr): Ethanol  1</span>
+<span class="go">                 Water    4</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Stream.enable_phases">
+<code class="descname">enable_phases</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.enable_phases"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.enable_phases" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cast stream into a MixedStream object.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Stream.disable_phases">
+<code class="descname">disable_phases</code><span class="sig-paren">(</span><em>phase</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.disable_phases"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.disable_phases" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cast stream into a Stream object.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><strong>phase:</strong> {‘s’, ‘l’, ‘g’} desired phase of stream</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Stream.VLE">
+<code class="descname">VLE</code><span class="sig-paren">(</span><em>species_IDs=()</em>, <em>LNK=()</em>, <em>HNK=()</em>, <em>P=None</em>, <em>Q=None</em>, <em>T=None</em>, <em>V=None</em>, <em>x=None</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.VLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.VLE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform vapor-liquid equilibrium.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><dl class="docutils">
+<dt><strong>Specify two:</strong></dt>
+<dd><ul class="first last simple">
+<li><strong>P:</strong> [float] Operating pressure (Pa)</li>
+<li><strong>Q:</strong> [float] Energy input (kJ/hr)</li>
+<li><strong>T:</strong> [float] Operating temperature (K)</li>
+<li><strong>V:</strong> [float] Molar vapor fraction</li>
+<li><strong>x:</strong> [numpy array] Molar composition of liquid (for binary mixture)</li>
+<li><strong>y:</strong> [numpy array] Molar composition of vapor (for binary mixture)</li>
+</ul>
+</dd>
+</dl>
+<p><strong>species_IDs:</strong> [tuple] IDs of species in equilibrium.</p>
+<p><strong>LNK:</strong> tuple[str] Light non-keys that remain as a vapor.</p>
+<p><strong>HNK:</strong> tuple[str] Heavy non-keys that remain as a liquid.</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Stream.LLE">
+<code class="descname">LLE</code><span class="sig-paren">(</span><em>species_IDs=()</em>, <em>split=None</em>, <em>lNK=()</em>, <em>LNK=()</em>, <em>solvents=()</em>, <em>solvent_split=()</em>, <em>P=None</em>, <em>T=None</em>, <em>Q=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.LLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.LLE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform LIQUID-liquid equilibrium.</p>
+<p><strong>Optional Parameters</strong></p>
+<blockquote>
+<div><p><strong>species_IDs:</strong> <em>tuple[str]</em> IDs of equilibrium species</p>
+<p><strong>split:</strong> <em>tuple[float]</em> Initial guess split fractions of each specie to the ‘liquid’</p>
+<p><strong>lNK:</strong> <em>tuple[str]</em> Species assumed to completely remain in the ‘liquid’ phase.</p>
+<p><strong>LNK:</strong> <em>tuple[str]</em> Species assumed to completely remain in the ‘LIQUID’ phase.</p>
+<p><strong>solvents:</strong> <em>tuple[str]</em> Species corresponding to specified solvent_split</p>
+<p><strong>solvent_split:</strong> <em>tuple[float]</em> Split fractions of each specie to the ‘liquid’ phase.</p>
+<p><strong>Q:</strong> <em>[float]</em> Energy input (kJ/hr)</p>
+<p><strong>T:</strong> <em>[float]</em> Operating temperature (K)</p>
+<p><strong>P:</strong> <em>[float]</em> Operating pressure (Pa)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Stream.show">
+<code class="descname">show</code><span class="sig-paren">(</span><em>T=None</em>, <em>P=None</em>, <em>flow=None</em>, <em>fraction=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print all specifications.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="MixedStream.html" class="btn btn-neutral float-right" title="MixedStream" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Species.html" class="btn btn-neutral float-left" title="Species" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Yoel Cortes-Pena and Jeremy Guest
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

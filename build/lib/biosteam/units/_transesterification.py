@@ -85,8 +85,8 @@ class Transesterification(Unit):
         methanol.mol[:] = (self._methanol_composition
                          * feed.mol[self._lipid_index]
                          * self._methanol2lipid)
-        total_mol = feed.mol + methanol.mol
-        product.mol[:] = total_mol + self.reaction(total_mol)
+        product.mol[:] = feed.mol + methanol.mol
+        self.reaction(product.mol)
         product.T = self.T
 
     def _end(self):

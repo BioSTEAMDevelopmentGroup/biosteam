@@ -82,15 +82,7 @@ class metaUnit(type):
             if cls.__doc__ is Unit.__doc__:
                 # Do not inherit docstring from Unit
                 cls.__doc__ = None
-            if "__doc__" in dct:
-                cls.__doc__ = cls.__doc__.replace('**Parameters**', 
-       "**Parameters**"
-+"\n"    
-+"\n        **ID:** [str] Unique identification. If set as '', a default ID will be chosen."
-+"\n"
-+"\n        **outs:** tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given."
-+"\n"
-+"\n        **ins:** tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.")
+            
             # Set line
             # default_line constitutes a new Unit class
             line = cls.line
@@ -104,6 +96,16 @@ class metaUnit(type):
             
             cls.line = line = re.sub(r"\B([A-Z])", r" \1", line).capitalize()
             if '_kwargs' in dct and '__init__' not in dct:
+                if "__doc__" in dct:
+                    cls.__doc__ = cls.__doc__.replace('**Parameters**', 
+           "**Parameters**"
+    +"\n"    
+    +"\n        **ID:** [str] Unique identification. If set as '', a default ID will be chosen."
+    +"\n"
+    +"\n        **outs:** tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given."
+    +"\n"
+    +"\n        **ins:** tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.")
+                
                 kwargs = dct['_kwargs']
                 
                 # Key word arguments to replace

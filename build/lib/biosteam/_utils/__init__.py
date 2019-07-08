@@ -5,6 +5,7 @@ Created on Mon Apr 16 11:49:52 2018
 
 @author: Yoel Rene Cortes-Pena
 """
+from . import lazy_pkg
 from . import array_utils
 from . import color_utils
 from . import other_utils
@@ -12,6 +13,7 @@ from . import stream_utils
 from . import display_units
 from . import register
 
+from .lazy_pkg import *
 from .array_utils import *
 from .color_utils import *
 from .other_utils import *
@@ -20,6 +22,7 @@ from .display_units import *
 from .register import *
 
 __all__ = []
+__all__.extend(lazy_pkg.__all__)
 __all__.extend(display_units.__all__)
 __all__.extend(array_utils.__all__)
 __all__.extend(color_utils.__all__)

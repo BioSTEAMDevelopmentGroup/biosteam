@@ -5,11 +5,12 @@ Created on Tue Sep 18 10:28:29 2018
 @author: Guest Group
 """
 from scipy.optimize import least_squares, minimize
+from ._equilibrium import VLEsolver
 from ._species import Species, WorkingSpecies
 from ._stream import Stream, nonzero_species, MassFlow, \
                             mol_flow_dim, mass_flow_dim, vol_flow_dim, \
                             phases, phase_index, flow
-from ._utils import fraction, tuple_array, ThermoSolver, \
+from ._utils import fraction, tuple_array, \
                     PropertyFactory, property_array
 from ._exceptions import EquilibriumError, DimensionError
 from . import _Q
@@ -98,7 +99,7 @@ class MixedStream(Stream):
         self.T = T  #: [float] Temperature (K)
         self.P = P  #: [float] Pressure (Pa)
         self._lL_split_cached = self._y_cached = self._bubble_cached = self._dew_cached = (None,)
-        self._solve_thermo = ThermoSolver()
+        self._VLEsolver = VLEsolver()
         self._setflows(np.zeros((4, self._species._Nspecies), dtype=np.float64))
 
     def getflow(self, phase, *species, units='kmol/hr'):
@@ -830,7 +831,7 @@ class MixedStream(Stream):
                 return minimize(lambda v: v_error(v).sum(),
                                 v_guess, method='SLSQP',
                                 bounds=(*zip(*bounds),)).x
-
+        solver = self._VLEsolver
         if eq == 'VP':
             if V == 1:
                 self.T = T_dew
@@ -851,10 +852,11 @@ class MixedStream(Stream):
                     return v.sum()/molnet
                 
                 # Guess
-                self.T = self._solve_thermo('T', 'V', V_error, T_bubble, T_dew, 0, 1, V)
-                
+                self.T = solver('T', 'V', V_error, T_bubble, T_dew, 0, 1, V)
                 vapor_mol[index] = v
                 liquid_mol[index] = mol - v
+                solver.P = self.P
+                solver.Q = self.H/self.massnet
         elif eq == 'VT':
             if V == 1:
                 self.P = P_dew
@@ -873,9 +875,11 @@ class MixedStream(Stream):
                 
                 y = y or (V*zf + (1-V)*y_bubble)
                 v = y*V*molnet
-                self.P = self._solve_thermo('P', 'V', V_error, P_bubble, P_dew, 0, 1, V)
+                self.P = solver('P', 'V', V_error, P_bubble, P_dew, 0, 1, V)
                 vapor_mol[index] = v
                 liquid_mol[index] = mol - v
+                solver.T = self.T
+                solver.Q = self.H/self.massnet
         elif eq == 'TP':
             if y is None:
                 # Guess composition in the vapor is a
@@ -902,6 +906,10 @@ class MixedStream(Stream):
                 # Solve
                 vapor_mol[index] = v = v_given_TPmol(v_guess, T, P, mol)
             liquid_mol[index] = mol - v
+            solver.T = T
+            solver.P = P
+            solver.Q = self.H/self.massnet
+            solver.V = v.sum()/molnet
         elif eq == 'QP':
             # Check if super heated vapor
             vapor_mol[index] = mol
@@ -937,8 +945,10 @@ class MixedStream(Stream):
                 liquid_mol[index] = mol - v
                 return self.H/mass
             
-            self.T = self._solve_thermo('T', 'Q', Q_error, T_bubble, T_dew, 
-                                        H_bubble/mass, H_dew/mass, Hin/mass)
+            self.T = solver('T', 'Q', Q_error, T_bubble, T_dew, 
+                            H_bubble/mass, H_dew/mass, Hin/mass)
+            solver.P = self.P
+            solver.V = v.sum()/molnet
 
         elif eq == 'QT':
             # Check if super heated vapor
@@ -977,10 +987,11 @@ class MixedStream(Stream):
                 liquid_mol[index] = mol - v
                 return self.H/mass
             
-            self.P = self._solve_thermo('P', 'Q', Q_error, P_bubble, P_dew,
-                                        H_bubble/mass, H_dew/mass, Hin/mass)
-
-            self._y_cached = (species, v/v.sum())
+            self.P = solver('P', 'Q', Q_error, P_bubble, P_dew,
+                            H_bubble/mass, H_dew/mass, Hin/mass)
+            solver.T = self.T
+            solver.V = v.sum()/molnet
+        self._y_cached = (species, v/v.sum())
 
     def LLE(self, species_IDs=None, split=None, lNK=(), LNK=(),
             solvents=(), solvent_split=(),

@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Jun 28 19:22:16 2019
-
-@author: yoelr
+The biosteam.reaction packages features objects to manage stoichiometric reactions and conversions. For a complete example, check out :doc:`stoichiometric reactions <Stoichiometric reactions>`.
 """
 
 __all__ = []

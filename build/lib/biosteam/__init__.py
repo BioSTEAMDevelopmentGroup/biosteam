@@ -5,10 +5,11 @@ Created on Sat Oct 28 17:28:09 2017
 
 @author: Yoel Rene Cortes-Pena
 """
+__all__ = ['Species', 'Stream', 'MixedStream', 'Unit', 'System', 'TEA',
+           'PowerUtility', 'HeatUtility', 'find', 'Flowsheet', 'CE']
 
-__all__ = ['units', 'evaluation', 'inspect', 'find', 'compounds', 'reaction']
-
-CE = 567.5 #: Chemical engineering plant cost index (defaults to 567.5 at 2017)
+#: Chemical engineering plant cost index (defaults to 567.5 at 2017)
+CE = 567.5 
 
 # %% Import base utils
 
@@ -35,37 +36,15 @@ del np, pd, os, UnitRegistry
 
 # %% Import biosteam classes
 
-from ._species import *
-from ._stream import *
-from ._mixed_stream import *
-from ._heat_utility import *
-from ._power_utility import *
-from ._unit import *
-from ._system import *
-from ._tea import *
-from ._flowsheet import *
+from ._species import Species
+from ._stream import Stream
+from ._mixed_stream import MixedStream
+from ._heat_utility import HeatUtility
+from ._power_utility import PowerUtility
+from ._unit import Unit
+from ._system import System
+from ._tea import TEA
+from ._flowsheet import Flowsheet, find
+from ._utils import LazyPkg
 
-from . import reaction
-from . import inspect
-from . import compounds
-from . import _species 
-from . import _stream
-from . import _mixed_stream
-from . import _unit
-from . import _heat_utility
-from . import _power_utility
-from . import evaluation
-from . import _system 
-from . import _tea
-from . import _flowsheet
-from . import units
-
-__all__.extend(_species.__all__)
-__all__.extend(_stream.__all__)
-__all__.extend(_mixed_stream.__all__)
-__all__.extend(_heat_utility.__all__)
-__all__.extend(_power_utility.__all__)
-__all__.extend(_unit.__all__)
-__all__.extend(_system.__all__)
-__all__.extend(_tea.__all__)
-__all__.extend(_flowsheet.__all__)
+LazyPkg(__name__, ['units', 'evaluation', 'inspect', 'compounds', 'reaction'])

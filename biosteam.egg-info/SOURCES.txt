@@ -20,6 +20,7 @@ biosteam.egg-info/requires.txt
 biosteam.egg-info/top_level.txt
 biosteam/_equilibrium/__init__.py
 biosteam/_equilibrium/_unifac.pyx
+biosteam/_equilibrium/solvers.py
 biosteam/_equilibrium/unifac.py
 biosteam/_report/__init__.py
 biosteam/_report/plot.py
@@ -28,6 +29,7 @@ biosteam/_utils/__init__.py
 biosteam/_utils/array_utils.py
 biosteam/_utils/color_utils.py
 biosteam/_utils/display_units.py
+biosteam/_utils/lazy_pkg.py
 biosteam/_utils/other_utils.py
 biosteam/_utils/register.py
 biosteam/_utils/stream_utils.py

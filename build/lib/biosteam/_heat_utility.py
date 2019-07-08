@@ -51,7 +51,7 @@ class HeatUtility:
             flow: 0
             cost: 0
         
-        Calculate utility requirement by calling it with a duty (kJ/hr) and temperature (K):
+        Calculate utility requirement by calling it with a duty (kJ/hr), and enter and exit temperature (K):
             
         .. code-block:: python
         

@@ -21,7 +21,7 @@ class Reaction:
     
     **Parameters**
     
-        **reaction:** [str] Stoichiometric equation and conversion of a reactant written as:
+        **reaction:** [str] Stoichiometric equation written as:
             i1 R1 + ... + in Rn -> j1 P1 + ... + jm Pm
 
         **reactant:** [str] ID of reactant compound.
@@ -39,15 +39,13 @@ class Reaction:
     >>> srn
     Reaction('H2O -> H2 + 0.5 O2', reactant='H2O', X=0.7)
     >>> feed = bst.Stream('feed', H2O=200)
-    >>> feed.mol[:] += srn(feed.mol) # Call to run reaction on molar flow
-    >>> feed
+    >>> srn(feed.mol) # Call to run reaction on molar flow
+    >>> feed # Notice how 70% of water was converted to product
     Stream: feed
      phase: 'l', T: 298.15 K, P: 101325 Pa
      flow (kmol/hr): H2O  60
                      H2   140
                      O2   70
-    
-    Notice how 70% of water was converted to product.
     
     """
     __slots__ = ('_species', '_Xindex', '_stoi', '_X')
@@ -69,7 +67,7 @@ class Reaction:
         self._X = X #: [float] Reactant conversion
     
     def __call__(self, material):
-        return material[self._Xindex]*self.X*self._stoi
+        material += material[self._Xindex]*self.X*self._stoi
     
     @property
     def X(self):
@@ -197,7 +195,7 @@ class ParallelReaction(ReactionSet):
     __slots__ = ()
     
     def __call__(self, material):
-        return material[self._Xindex]*self.X @ self._stoi
+        material += material[self._Xindex]*self.X @ self._stoi
 
     @property
     def X_net(self):
@@ -215,8 +213,7 @@ class SeriesReaction(ReactionSet):
     
     def __call__(self, material):
         for i, j, k in zip(self._Xindex, self.X, self._stoi):
-            material = material + material[i]*j*k
-        return material
+            material += material[i]*j*k
 
     @property
     def X_net(self):

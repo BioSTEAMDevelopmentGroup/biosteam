@@ -79,6 +79,7 @@ def make_digraph(units, streams):
 
 def save_digraph(digraph, file, format):
     if not file:
+        format = 'png'
         if format == 'svg':
             x = display.SVG(digraph.pipe(format=format))
         else:
@@ -113,6 +114,7 @@ class Flowsheets:
     
     def __repr__(self):
         return f'Register:\n ' + '\n '.join([repr(i) for i in self])
+    
     
 class Flowsheet:
     """Create a Flowsheet object which stores references to all stream, unit, and system objects."""
@@ -249,7 +251,7 @@ class Flowsheet:
         obj = (search_register(self.stream, ID)
                or search_register(self.unit, ID)
                or search_register(self.system, ID))
-        if not obj: raise ValueError(f"no registered item '{ID}'")
+        if not obj: raise LookupError(f"no registered item '{ID}'")
         return obj
     
     def __str__(self):

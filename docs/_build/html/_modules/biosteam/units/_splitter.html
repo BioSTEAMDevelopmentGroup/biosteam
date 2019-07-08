@@ -1,0 +1,394 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>biosteam.units._splitter &mdash; BioSTEAM 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../../../',
+              VERSION:'0.1',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> BioSTEAM
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Unit operation examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">11. Advanced simulation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">BioSTEAM API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Species.html">Species</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Stream.html">Stream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../MixedStream.html">MixedStream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Unit.html">Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../HeatUtility.html">HeatUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../System.html">System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../inspect.html">inspect</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reaction.html">reaction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../evaluation.html">evaluation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">BioSTEAM</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>biosteam.units._splitter</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for biosteam.units._splitter</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Thu Aug 23 14:34:07 2018</span>
+
+<span class="sd">@author: yoelr</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">Stream</span>
+<span class="kn">from</span> <span class="nn">.metaclasses</span> <span class="k">import</span> <span class="n">final</span>
+<span class="kn">from</span> <span class="nn">numpy</span> <span class="k">import</span> <span class="n">asarray</span>
+<span class="kn">from</span> <span class="nn">pandas</span> <span class="k">import</span> <span class="n">Series</span>
+<span class="kn">from</span> <span class="nn">.metaclasses._splitter</span> <span class="k">import</span> <span class="n">split</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">Mixer</span>
+
+<div class="viewcode-block" id="Splitter"><a class="viewcode-back" href="../../../Splitter.html#biosteam.units.Splitter">[docs]</a><span class="k">class</span> <span class="nc">Splitter</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">final</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a splitter that separates mixed streams based on splits.</span>
+
+<span class="sd">    **Parameters**</span>
+
+<span class="sd">        **split:** Should be one of the following</span>
+<span class="sd">            * [float] The fraction of net feed in the 0th output stream</span>
+<span class="sd">            * [array_like] Componentwise split of feed to 0th output stream</span>
+<span class="sd">            </span>
+<span class="sd">        **order:** Iterable[str] Species order of split</span>
+<span class="sd">    </span>
+<span class="sd">    **ins**</span>
+<span class="sd">    </span>
+<span class="sd">        [0] Feed stream</span>
+<span class="sd">        </span>
+<span class="sd">    **outs**</span>
+<span class="sd">    </span>
+<span class="sd">        [0] Split stream</span>
+<span class="sd">        </span>
+<span class="sd">        [1] Remainder stream</span>
+<span class="sd">    </span>
+<span class="sd">    **Examples**</span>
+<span class="sd">    </span>
+<span class="sd">        Create a Splitter object with an ID, a feed stream, two output streams, and an overall split:</span>
+<span class="sd">            </span>
+<span class="sd">        .. code-block:: python</span>
+<span class="sd">        </span>
+<span class="sd">           &gt;&gt;&gt; from biosteam import Species, Stream, units</span>
+<span class="sd">           &gt;&gt;&gt; Stream.species = Species(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
+<span class="sd">           &gt;&gt;&gt; feed = Stream(&#39;feed&#39;, Water=20, Ethanol=10, T=340)</span>
+<span class="sd">           &gt;&gt;&gt; S1 = units.Splitter(&#39;S1&#39;, ins=feed, outs=(&#39;top&#39;, &#39;bot&#39;), split=0.1)</span>
+<span class="sd">           &gt;&gt;&gt; S1.simulate()</span>
+<span class="sd">           &gt;&gt;&gt; S1.show()</span>
+<span class="sd">           Splitter: S1</span>
+<span class="sd">           ins...</span>
+<span class="sd">           [0] feed</span>
+<span class="sd">               phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
+<span class="sd">               flow (kmol/hr): Water    20</span>
+<span class="sd">                               Ethanol  10</span>
+<span class="sd">           outs...</span>
+<span class="sd">           [0] top</span>
+<span class="sd">               phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
+<span class="sd">               flow (kmol/hr): Water    2</span>
+<span class="sd">                               Ethanol  1</span>
+<span class="sd">           [1] bot</span>
+<span class="sd">               phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
+<span class="sd">               flow (kmol/hr): Water    18</span>
+<span class="sd">                               Ethanol  9</span>
+<span class="sd">          </span>
+<span class="sd">        Create a Splitter object, but this time with a componentwise split:</span>
+<span class="sd">            </span>
+<span class="sd">        .. code-block:: python</span>
+<span class="sd">        </span>
+<span class="sd">           &gt;&gt;&gt; from biosteam import Species, Stream, units</span>
+<span class="sd">           &gt;&gt;&gt; Stream.species = Species(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
+<span class="sd">           &gt;&gt;&gt; feed = Stream(&#39;feed&#39;, Water=20, Ethanol=10, T=340)</span>
+<span class="sd">           &gt;&gt;&gt; S1 = units.Splitter(&#39;S1&#39;, ins=feed, outs=(&#39;top&#39;, &#39;bot&#39;),</span>
+<span class="sd">           ...                     split=(0.1, 0.99))</span>
+<span class="sd">           &gt;&gt;&gt; S1.simulate()</span>
+<span class="sd">           &gt;&gt;&gt; S1.show()</span>
+<span class="sd">           Splitter: S1</span>
+<span class="sd">           ins...</span>
+<span class="sd">           [0] feed</span>
+<span class="sd">               phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
+<span class="sd">               flow (kmol/hr): Water    20</span>
+<span class="sd">                               Ethanol  10</span>
+<span class="sd">           outs...</span>
+<span class="sd">           [0] top</span>
+<span class="sd">               phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
+<span class="sd">               flow (kmol/hr): Water    2</span>
+<span class="sd">                               Ethanol  9.9</span>
+<span class="sd">           [1] bot</span>
+<span class="sd">               phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
+<span class="sd">               flow (kmol/hr): Water    18</span>
+<span class="sd">                               Ethanol  0.1</span>
+<span class="sd">                               </span>
+<span class="sd">        Create a Splitter object using componentwise split, but this time specify the order:</span>
+<span class="sd">            </span>
+<span class="sd">        .. code-block:: python</span>
+<span class="sd">        </span>
+<span class="sd">           &gt;&gt;&gt; from biosteam import Species, Stream, units</span>
+<span class="sd">           &gt;&gt;&gt; Stream.species = Species(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
+<span class="sd">           &gt;&gt;&gt; feed = Stream(&#39;feed&#39;, Water=20, Ethanol=10, T=340)</span>
+<span class="sd">           &gt;&gt;&gt; S1 = units.Splitter(&#39;S1&#39;, ins=feed, outs=(&#39;top&#39;, &#39;bot&#39;),</span>
+<span class="sd">           ...                     split=(0.99, 0.01), order=(&#39;Ethanol&#39;, &#39;Water&#39;))</span>
+<span class="sd">           &gt;&gt;&gt; S1.simulate()</span>
+<span class="sd">           &gt;&gt;&gt; S1.show()</span>
+<span class="sd">           Splitter: S1</span>
+<span class="sd">           ins...</span>
+<span class="sd">           [0] feed</span>
+<span class="sd">               phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
+<span class="sd">               flow (kmol/hr): Water    20</span>
+<span class="sd">                               Ethanol  10</span>
+<span class="sd">           outs...</span>
+<span class="sd">           [0] top</span>
+<span class="sd">               phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
+<span class="sd">               flow (kmol/hr): Water    2</span>
+<span class="sd">                               Ethanol  9.9</span>
+<span class="sd">           [1] bot</span>
+<span class="sd">               phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
+<span class="sd">               flow (kmol/hr): Water    18</span>
+<span class="sd">                               Ethanol  0.1</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_has_cost</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">2</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_split</span> <span class="o">=</span> <span class="n">split</span> <span class="o">=</span> <span class="n">Stream</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="n">split</span><span class="p">)</span> <span class="k">if</span> <span class="n">order</span> <span class="k">else</span> <span class="n">asarray</span><span class="p">(</span><span class="n">split</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_split_series</span> <span class="o">=</span>  <span class="n">Series</span><span class="p">(</span><span class="n">split</span><span class="p">,</span> <span class="n">Stream</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">IDs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_ins</span><span class="p">(</span><span class="n">ins</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_outs</span><span class="p">(</span><span class="n">outs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">top</span><span class="p">,</span> <span class="n">bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span>
+        <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">net_mol</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span>
+        <span class="n">bot</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">bot</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">P</span>
+        <span class="n">bot</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">_phase</span>
+        <span class="n">top</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">net_mol</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split</span>
+        <span class="n">bot</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">net_mol</span> <span class="o">-</span> <span class="n">top</span><span class="o">.</span><span class="n">_mol</span>
+    
+    <span class="n">split</span> <span class="o">=</span> <span class="n">split</span>
+    <span class="n">simulate</span> <span class="o">=</span> <span class="n">_run</span>
+    <span class="n">installation_cost</span> <span class="o">=</span> <span class="n">purchase_cost</span> <span class="o">=</span> <span class="n">utility_cost</span> <span class="o">=</span> <span class="n">Mixer</span><span class="o">.</span><span class="n">purchase_cost</span></div>
+
+
+<span class="k">class</span> <span class="nc">InvSplitter</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">final</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a splitter that sets the input stream based on output streams. Must have only one input stream. The output streams will become the same temperature, pressure and phase as the input.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Splitter&#39;</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_graphics</span> <span class="o">=</span> <span class="n">Splitter</span><span class="o">.</span><span class="n">_graphics</span>
+    <span class="n">_has_cost</span> <span class="o">=</span> <span class="kc">False</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_ins</span><span class="p">(</span><span class="n">ins</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_outs</span><span class="p">(</span><span class="n">outs</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">feed</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol_out</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">P</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">phase</span>
+        <span class="k">for</span> <span class="n">out</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">:</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span>
+            <span class="n">out</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="n">phase</span> 
+            
+    <span class="n">simulate</span> <span class="o">=</span> <span class="n">_run</span>
+
+
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Yoel Cortes-Pena and Jeremy Guest
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

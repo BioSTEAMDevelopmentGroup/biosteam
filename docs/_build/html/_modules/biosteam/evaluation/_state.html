@@ -1,0 +1,409 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>biosteam.evaluation._state &mdash; BioSTEAM 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../../../',
+              VERSION:'0.1',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> BioSTEAM
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Unit operation examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">11. Advanced simulation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">BioSTEAM API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../Species.html">Species</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Stream.html">Stream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../MixedStream.html">MixedStream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Unit.html">Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../HeatUtility.html">HeatUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../System.html">System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../inspect.html">inspect</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../reaction.html">reaction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../evaluation.html">evaluation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">BioSTEAM</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>biosteam.evaluation._state</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for biosteam.evaluation._state</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Thu May  9 13:38:57 2019</span>
+
+<span class="sd">@author: Guest Group</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">._block</span> <span class="k">import</span> <span class="n">Block</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">Stream</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;State&#39;</span><span class="p">,)</span>
+
+<span class="c1"># %% functions</span>
+
+<span class="k">def</span> <span class="nf">param_unit</span><span class="p">(</span><span class="n">param</span><span class="p">):</span>
+    <span class="n">element</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">element</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">Unit</span><span class="p">):</span> <span class="k">return</span> <span class="n">element</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span> <span class="k">return</span> <span class="n">element</span><span class="o">.</span><span class="n">_sink</span>
+
+<span class="k">def</span> <span class="nf">parameter</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">setter</span><span class="p">,</span> <span class="n">kind</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">distribution</span><span class="p">,</span> <span class="n">units</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">kind</span> <span class="ow">is</span> <span class="s1">&#39;coupled&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Block</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">system</span><span class="p">)</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">setter</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">distribution</span><span class="o">=</span><span class="n">distribution</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">kind</span> <span class="ow">is</span> <span class="s1">&#39;isolated&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Block</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">setter</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">distribution</span><span class="o">=</span><span class="n">distribution</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">kind</span> <span class="ow">is</span> <span class="s1">&#39;design&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Block</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">setter</span><span class="p">,</span> <span class="n">element</span><span class="o">.</span><span class="n">_summary</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">distribution</span><span class="o">=</span><span class="n">distribution</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">kind</span> <span class="ow">is</span> <span class="s1">&#39;cost&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="s1">&#39;_end&#39;</span><span class="p">):</span>
+            <span class="k">def</span> <span class="nf">simulate</span><span class="p">():</span>
+                <span class="n">element</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
+                <span class="n">element</span><span class="o">.</span><span class="n">_end</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">simulate</span> <span class="o">=</span> <span class="n">element</span><span class="o">.</span><span class="n">_cost</span>
+        <span class="k">return</span> <span class="n">Block</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">setter</span><span class="p">,</span> <span class="n">simulate</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">distribution</span><span class="o">=</span><span class="n">distribution</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="n">units</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;kind must be either &#39;coupled&#39;, &#39;isolated&#39;, &#39;design&#39;, or &#39;cost&#39; (not </span><span class="si">{kind}</span><span class="s2">).&quot;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">modelfunction_with_skipping</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+    <span class="n">cached</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">zip_</span><span class="o">=</span> <span class="nb">zip</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">model</span><span class="p">(</span><span class="n">sample</span><span class="p">):</span> 
+        <span class="k">nonlocal</span> <span class="n">cached</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">sim</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">same</span> <span class="ow">in</span> <span class="n">zip_</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">sample</span><span class="p">,</span> <span class="n">cached</span><span class="o">==</span><span class="n">sample</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">same</span><span class="p">:</span> <span class="k">continue</span>
+                <span class="n">p</span><span class="o">.</span><span class="n">setter</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">sim</span><span class="p">:</span> <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">system</span><span class="p">:</span> <span class="n">sim</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">simulate</span> 
+                <span class="k">else</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">sim</span><span class="p">:</span> <span class="n">sim</span><span class="p">()</span>
+            <span class="n">cached</span> <span class="o">=</span> <span class="n">sample</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">Error</span><span class="p">:</span>
+            <span class="n">cached</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">raise</span> <span class="n">Error</span>
+    <span class="k">return</span> <span class="n">model</span>
+
+<span class="k">def</span> <span class="nf">modelfunction</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+    <span class="n">zip_</span><span class="o">=</span> <span class="nb">zip</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">model</span><span class="p">(</span><span class="n">sample</span><span class="p">):</span> 
+        <span class="n">sim</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">zip_</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">sample</span><span class="p">):</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">setter</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">sim</span><span class="p">:</span> <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">system</span><span class="p">:</span> <span class="n">sim</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">simulate</span> 
+            <span class="k">else</span><span class="p">:</span> <span class="n">p</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">sim</span><span class="p">:</span> <span class="n">sim</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">model</span>
+
+
+<span class="c1"># %%</span>
+    
+<div class="viewcode-block" id="State"><a class="viewcode-back" href="../../../State.html#biosteam.evaluation.State">[docs]</a><span class="k">class</span> <span class="nc">State</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Create a State object that can update the `system` state given a sample of parameter states.</span>
+<span class="sd">    </span>
+<span class="sd">    **Parameters**</span>
+<span class="sd">    </span>
+<span class="sd">        **system:** [System] Reflects the model state.</span>
+<span class="sd">        </span>
+<span class="sd">        **skip:** [bool] If True, skip simulation for repeated states</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;_system&#39;</span><span class="p">,</span> <span class="c1"># [System] Reflects the model state.</span>
+                 <span class="s1">&#39;_params&#39;</span><span class="p">,</span> <span class="c1"># list[Parameter] All parameters.</span>
+                 <span class="s1">&#39;_model&#39;</span><span class="p">,</span> <span class="c1"># [function] Model function.</span>
+                 <span class="s1">&#39;_skip&#39;</span><span class="p">)</span> <span class="c1"># [bool] If True, skip simulation for repeated states</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_system</span> <span class="o">=</span> <span class="n">system</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_skip</span> <span class="o">=</span> <span class="n">skip</span>
+    
+    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">get_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadmodel</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="State.parameter"><a class="viewcode-back" href="../../../State.html#biosteam.evaluation.State.parameter">[docs]</a>    <span class="k">def</span> <span class="nf">parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">element</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;isolated&#39;</span><span class="p">,</span>
+                  <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">distribution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Define parameter and add to model.</span>
+<span class="sd">        </span>
+<span class="sd">        **Parameters**</span>
+<span class="sd">            </span>
+<span class="sd">            **setter:** [function] Should set parameter in the element.</span>
+<span class="sd">            </span>
+<span class="sd">            **element:** [Unit or Stream] Element in the system being altered.</span>
+<span class="sd">            </span>
+<span class="sd">            **kind:** {&#39;isolated&#39;, &#39;design&#39;, &#39;cost&#39;}</span>
+<span class="sd">                * &#39;coupled&#39;: parameter is coupled to the system.</span>
+<span class="sd">                * &#39;isolated&#39;: parameter does not affect the system but does affect the element (if any).</span>
+<span class="sd">                * &#39;design&#39;: parameter only affects design and cost of the element.</span>
+<span class="sd">                * &#39;cost&#39;: parameter only affects cost of the element.</span>
+<span class="sd">                </span>
+<span class="sd">            **name:** [str] Name of parameter. If None, default to argument name of setter.</span>
+<span class="sd">            </span>
+<span class="sd">            **distribution:** [chaospy.Dist] Parameter distribution.</span>
+<span class="sd">            </span>
+<span class="sd">            **units:** [str] Parameter units</span>
+<span class="sd">            </span>
+<span class="sd">        .. Note::</span>
+<span class="sd">            </span>
+<span class="sd">            If kind is &#39;coupled&#39;, account for downstream operations. Otherwise, only account for given element. If kind is &#39;design&#39; or &#39;cost&#39;, element must be a Unit object.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">setter</span><span class="p">:</span> <span class="k">return</span> <span class="k">lambda</span> <span class="n">setter</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">setter</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">kind</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">distribution</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+        <span class="n">param</span> <span class="o">=</span> <span class="n">parameter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">setter</span><span class="p">,</span> <span class="n">kind</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">distribution</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_erase</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">param</span></div>
+    
+    <span class="k">def</span> <span class="nf">_erase</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Erase cached data.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="kc">None</span>
+    
+    <span class="k">def</span> <span class="nf">_loadmodel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span> <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">_unitnetwork</span><span class="p">)</span>
+        <span class="n">index</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">_system</span><span class="o">.</span><span class="n">_unitnetwork</span><span class="o">.</span><span class="n">index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">index</span><span class="p">(</span><span class="n">param_unit</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+                                        <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">system</span> <span class="k">else</span> <span class="n">length</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_skip</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="n">modelfunction_with_skipping</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="n">modelfunction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="State.__call__"><a class="viewcode-back" href="../../../State.html#biosteam.evaluation.State.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update state given sample of parameters.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadmodel</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">sample</span><span class="p">))</span></div>
+    
+    <span class="k">def</span> <span class="nf">_repr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;{type(self).__name__}: </span><span class="si">{self._system}</span><span class="s1">&#39;</span>
+    
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;&lt;&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_repr</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;&gt;&#39;</span>
+    
+    <span class="k">def</span> <span class="nf">_info</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadmodel</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">:</span> <span class="k">return</span> <span class="n">f</span><span class="s1">&#39;{self._repr()}</span><span class="se">\n</span><span class="s1"> (No parameters)&#39;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">lenghts_block</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">lastblk</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">:</span>
+            <span class="n">blk</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">element_name</span>
+            <span class="n">element</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">blk</span><span class="p">)</span><span class="o">*</span><span class="s1">&#39; &#39;</span> <span class="k">if</span> <span class="n">blk</span><span class="o">==</span><span class="n">lastblk</span> <span class="k">else</span> <span class="n">blk</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot; </span><span class="si">{element}</span><span class="s2">$</span><span class="si">{i.name}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">lastblk</span> <span class="o">=</span> <span class="n">blk</span>
+            <span class="n">lenghts_block</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">blk</span><span class="p">))</span>
+        <span class="n">maxlen_block</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">lenghts_block</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;{self._repr()}</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">maxlen_block</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">maxlen_block</span><span class="p">,</span> <span class="mi">7</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">+=</span> <span class="s1">&#39; Element:&#39;</span> <span class="o">+</span> <span class="p">(</span><span class="n">maxlen_block</span> <span class="o">-</span> <span class="mi">7</span><span class="p">)</span><span class="o">*</span><span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="s1">&#39; Parameter:</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="k">for</span> <span class="n">newline</span><span class="p">,</span> <span class="n">len_</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lines</span><span class="p">,</span> <span class="n">lenghts_block</span><span class="p">):</span>
+            <span class="n">newline</span> <span class="o">=</span> <span class="n">newline</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;$&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="o">*</span><span class="p">(</span><span class="n">maxlen_block</span><span class="o">-</span><span class="n">len_</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;  &#39;</span><span class="p">)</span>
+            <span class="n">out</span> <span class="o">+=</span> <span class="n">newline</span>
+        <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> &#39;</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="State.show"><a class="viewcode-back" href="../../../State.html#biosteam.evaluation.State.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return information on metric parameters.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">())</span></div>
+    <span class="n">_ipython_display_</span> <span class="o">=</span> <span class="n">show</span></div>
+    
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Yoel Cortes-Pena and Jeremy Guest
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
