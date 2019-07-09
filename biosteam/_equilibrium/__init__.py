@@ -7,10 +7,11 @@ Created on Wed Mar 20 18:40:05 2019
 
 __all__ = []
 
-from .solvers import *
+from ._VLEsolver import *
 from .unifac import *
+
 from . import unifac
-from . import solvers
+from . import _VLEsolver
 
 __all__.extend(unifac.__all__)
-__all__.extend(solvers.__all__)
+__all__.extend(_VLEsolver.__all__)

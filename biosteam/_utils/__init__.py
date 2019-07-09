@@ -12,6 +12,7 @@ from . import other_utils
 from . import stream_utils
 from . import display_units
 from . import register
+from . import solvers
 
 from .lazy_pkg import *
 from .array_utils import *
@@ -20,8 +21,10 @@ from .other_utils import *
 from .stream_utils import *
 from .display_units import *
 from .register import *
+from .solvers import *
 
 __all__ = []
+__all__.extend(solvers.__all__)
 __all__.extend(lazy_pkg.__all__)
 __all__.extend(display_units.__all__)
 __all__.extend(array_utils.__all__)
