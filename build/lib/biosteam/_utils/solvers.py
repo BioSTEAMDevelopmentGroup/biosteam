@@ -13,7 +13,7 @@ def boundsolve(f, x0, x, x1, xtol, ytol, args=(), maxiter=50):
     y0 = f(x0, *args)
     y1 = f(x1, *args)
     if y1 < 0: x0, y0, x1, y1 = x1, y1, x0, y0
-    y = f(x, *args)
+    y = f(x)
     x_ = x0
     it = 0
     while abs(x-x_) > xtol:
@@ -31,7 +31,7 @@ def boundsolve(f, x0, x, x1, xtol, ytol, args=(), maxiter=50):
         dx = x1-x0
         x = x0 + - y0*(dx)/(y1-y0)
         y = f(x, *args)
-    return x
+    return x, y
 
 def wegstein(f, x, xtol, args=(), maxiter=50):
     # Prepare variables

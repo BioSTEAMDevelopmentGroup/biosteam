@@ -11,6 +11,7 @@ from scipy.optimize import brentq, newton
 from thermo import activity
 from .designtools import vacuum_system, HNATable, FinalValue, \
                           VesselWeightAndWallThickness, Kvalue
+from .._equilibrium import V_3N, V_2N, V_error
 from .metaclasses import splitter
 from ._hx import HX, HXutility
 import biosteam as bst
@@ -25,26 +26,6 @@ ln = np.log
 #lambda V, CE: CE*13*V**0.62 # V (m3)
 __all__ = ('Flash', 'SplitFlash', 'PartitionFlash', 'RatioFlash')
 
-
-# %% Flash solutions
-
-flash_error = activity.Rachford_Rice_flash_error
-
-def analytical_flash_solution(zs, Ks):
-    """Solution for 2 or 3 component flash vessel."""
-    # Not currently in use
-    len_ = len(zs)
-    if len_ == 2:
-        z1, z2 = zs
-        K1, K2 = Ks
-        V_over_F = (-K1*z1 - K2*z2 + z1 + z2)/(K1*K2*z1 + K1*K2 *
-                                               z2 - K1*z1 - K1*z2 - K2*z1 - K2*z2 + z1 + z2)
-    elif len_ == 3:
-        z1, z2, z3 = zs
-        K1, K2, K3 = Ks
-        V_over_F = (-K1*K2*z1/2 - K1*K2*z2/2 - K1*K3*z1/2 - K1*K3*z3/2 + K1*z1 + K1*z2/2 + K1*z3/2 - K2*K3*z2/2 - K2*K3*z3/2 + K2*z1/2 + K2*z2 + K2*z3/2 + K3*z1/2 + K3*z2/2 + K3*z3 - z1 - z2 - z3 - (K1**2*K2**2*z1**2 + 2*K1**2*K2**2*z1*z2 + K1**2*K2**2*z2**2 - 2*K1**2*K2*K3*z1**2 - 2*K1**2*K2*K3*z1*z2 - 2*K1**2*K2*K3*z1*z3 + 2*K1**2*K2*K3*z2*z3 - 2*K1**2*K2*z1*z2 + 2*K1**2*K2*z1*z3 - 2*K1**2*K2*z2**2 - 2*K1**2*K2*z2*z3 + K1**2*K3**2*z1**2 + 2*K1**2*K3**2*z1*z3 + K1**2*K3**2*z3**2 + 2*K1**2*K3*z1*z2 - 2*K1**2*K3*z1*z3 - 2*K1**2*K3*z2*z3 - 2*K1**2*K3*z3**2 + K1**2*z2**2 + 2*K1**2*z2*z3 + K1**2*z3**2 - 2*K1*K2**2*K3*z1*z2 + 2*K1*K2**2*K3*z1*z3 - 2*K1*K2**2*K3*z2**2 - 2*K1*K2**2*K3*z2*z3 - 2*K1*K2**2*z1**2 - 2*K1*K2**2*z1*z2 - 2*K1*K2**2*z1*z3 + 2*K1*K2**2*z2*z3 + 2*K1*K2*K3**2*z1*z2 - 2*K1*K2*K3**2*z1*z3 - 2*K1*K2*K3**2*z2*z3 - 2*K1*K2*K3**2*z3**2 + 4*K1*K2*K3*z1**2 + 4*K1*K2*K3*z1 *
-                                                                                                                                                                                                       z2 + 4*K1*K2*K3*z1*z3 + 4*K1*K2*K3*z2**2 + 4*K1*K2*K3*z2*z3 + 4*K1*K2*K3*z3**2 + 2*K1*K2*z1*z2 - 2*K1*K2*z1*z3 - 2*K1*K2*z2*z3 - 2*K1*K2*z3**2 - 2*K1*K3**2*z1**2 - 2*K1*K3**2*z1*z2 - 2*K1*K3**2*z1*z3 + 2*K1*K3**2*z2*z3 - 2*K1*K3*z1*z2 + 2*K1*K3*z1*z3 - 2*K1*K3*z2**2 - 2*K1*K3*z2*z3 + K2**2*K3**2*z2**2 + 2*K2**2*K3**2*z2*z3 + K2**2*K3**2*z3**2 + 2*K2**2*K3*z1*z2 - 2*K2**2*K3*z1*z3 - 2*K2**2*K3*z2*z3 - 2*K2**2*K3*z3**2 + K2**2*z1**2 + 2*K2**2*z1*z3 + K2**2*z3**2 - 2*K2*K3**2*z1*z2 + 2*K2*K3**2*z1*z3 - 2*K2*K3**2*z2**2 - 2*K2*K3**2*z2*z3 - 2*K2*K3*z1**2 - 2*K2*K3*z1*z2 - 2*K2*K3*z1*z3 + 2*K2*K3*z2*z3 + K3**2*z1**2 + 2*K3**2*z1*z2 + K3**2*z2**2)**0.5/2)/(K1*K2*K3*z1 + K1*K2*K3*z2 + K1*K2*K3*z3 - K1*K2*z1 - K1*K2*z2 - K1*K2*z3 - K1*K3*z1 - K1*K3*z2 - K1*K3*z3 + K1*z1 + K1*z2 + K1*z3 - K2*K3*z1 - K2*K3*z2 - K2*K3*z3 + K2*z1 + K2*z2 + K2*z3 + K3*z1 + K3*z2 + K3*z3 - z1 - z2 - z3)
-    return V_over_F
 
 # %% Data
     
@@ -570,6 +551,10 @@ class Flash(Unit):
         Design['Diameter'] = D  # ft
         Design['Weight'] = VW  # lb
         Design['Wall thickness'] = VWT  # in    
+        
+    def _end(self):
+        # For cost decorators
+        if self._heat_utilities: self._heat_utilities[0](self._Hnet, self.T)
     
 
 # %% Special
@@ -641,12 +626,16 @@ class PartitionFlash(Flash):
         # Get zs and Ks to solve rashford rice equation
         molnet = sum(mol_in)
         zs = mol_in/molnet
+        lenzs = len(zs)
         if hasattr(self, '_V'):
-            self._V = V = newton(flash_error, self._V, args=(zs, Ks))
-        elif len(zs) > 3:
-            self._V = V = brentq(flash_error, 0, 1, (zs, Ks))
-        else:
-            V = analytical_flash_solution(zs, Ks)
+            self._V = V = newton(V_error, self._V, args=(zs, Ks))
+        elif lenzs > 3:
+            self._V = V = brentq(V_error, 0, 1, (zs, Ks))
+        elif lenzs == 2:
+            self._V = V = V_2N(V, zs, Ks)
+        elif lenzs == 3:
+            self._V = V = V_3N(V, zs, Ks)
+            
         x = zs/(1 + V*(Ks-1))
         y = x*Ks
         ph1.mol[pos] = molnet*V*y

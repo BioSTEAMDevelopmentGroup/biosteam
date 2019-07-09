@@ -234,7 +234,7 @@ def flow_rate(units, N_ins, N_outs):
 def duty(units, N_ins, N_outs):
     if not (N_ins == N_outs == 1):
         raise ValueError(f"number of input and output streams must be 1 for selected basis")
-    factor = _Q(1, 'kJ/hr').to(units)
+    factor = _Q(1, 'kJ/hr').to(units).magnitude
     if factor == 1:
         return lambda self: self._outs[0].H - self._ins[0].H
     else:

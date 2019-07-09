@@ -13,7 +13,7 @@ from ._utils import property_array, PropertyFactory, DisplayUnits, \
 from ._flowsheet import find
 from ._species import Species, WorkingSpecies
 from ._exceptions import SolverError, EquilibriumError, DimensionError
-from ._equilibrium import DORTMUND, VLEsolver
+from ._equilibrium import DORTMUND, VLEsolver, wegstein
 
 
 __all__ = ('Stream',)
@@ -376,8 +376,7 @@ class Stream(metaclass=metaStream):
     __slots__ = ('T', 'P', '_mol', '_mass', '_vol', 'price', '_ID', '_link',
                  '_species', '_sink', '_source', '_dew_cached', '_bubble_cached',
                  '_phase', '_y_cached', '_lL_split_cached', '_y',
-                 '_yP', '_dew', '_Py_over_gammaPsat', '__weakref__',
-                 '_source_link', '_VLEsolver')
+                 '__weakref__', '_source_link', '_VLEsolver')
 
     line = 'Stream'
 
@@ -1301,7 +1300,6 @@ class Stream(metaclass=metaStream):
         """
         # Setup functions to calculate vapor pressure and activity coefficients
         x = np.array(x)
-        x /= x.sum()
         
         # Retrive cached info
         # Even if different composition, use previous bubble point as guess
@@ -1313,12 +1311,19 @@ class Stream(metaclass=metaStream):
         else:
             # Initial temperature guess
             T_bubble = (x * [s.Tsat(P) for s in species]).sum()
+            y_bubble = np.zeros(len(species))
+        
+        def bubble_error(T):
+            # Bubble point given T, x and P
+            gamma = self.activity_coefficients(species, x, T)
+            Psat = [s.VaporPressure(T) for s in species]
+            y_bubble[:] =  x * Psat * gamma / P
+            return 1 - y_bubble.sum()
 
         # Solve and return
-        T_bubble = newton(self._bubble_error, T_bubble,
-                          args=(species, x, P), tol= 1e-7)
-        y_bubble = self._yP / P
+        T_bubble = newton(bubble_error, T_bubble, tol= 1e-7)
         y_bubble /= y_bubble.sum()
+        
         self._bubble_cached = (species, P, T_bubble, y_bubble, x)
         return T_bubble, y_bubble
 
@@ -1379,9 +1384,7 @@ class Stream(metaclass=metaStream):
         (103494.17209657285, array([0.757, 0.243]))
         
         """
-        # Setup functions to calculate vapor pressure and activity coefficients
         x = np.array(x)
-        x /= x.sum()
         
         # Retrive cached info
         # Even if different composition, use previous bubble point as guess
@@ -1393,21 +1396,21 @@ class Stream(metaclass=metaStream):
         else:
             # Initial temperature guess
             P_bubble = (x * [s.VaporPressure(T) for s in species]).sum()
+            y_bubble = np.zeros(len(species))
+
+        gamma = self.activity_coefficients(species, x, T)
+        Psat = np.array([s.VaporPressure(T) for s in species])
+        Psat_gamma = Psat * gamma
+        def bubble_error(P):
+            # Bubble point given T, x and P
+            y_bubble[:] =  x * Psat_gamma / P
+            return 1 - y_bubble.sum()
 
         # Solve and return
-        P_bubble = newton(lambda P: self._bubble_error(T, species, x, P),
-                          P_bubble, tol= 1e-7)
-        y_bubble = self._yP / P_bubble
+        P_bubble = newton(bubble_error, P_bubble, tol= 1e-7)
         y_bubble /= y_bubble.sum()
         self._bubble_cached = (species, P_bubble, T, y_bubble, x)
         return P_bubble, y_bubble
-
-    def _bubble_error(self, T, species, x, P):
-        """Bubble point given T, x and P"""
-        gamma = self.activity_coefficients(species, x, T)
-        Psat = [s.VaporPressure(T) for s in species]
-        self._yP =  x * Psat * gamma
-        return 1 - self._yP.sum()/P
 
     def dew_T(self):
         """Dew point at current composition and pressure.
@@ -1423,8 +1426,8 @@ class Stream(metaclass=metaStream):
         >>> stream = Stream(flow=(0.5, 0.5),
         ...                 species=Species('Ethanol', 'Water'))
         >>> stream.dew_T()
-        (353.7420742149825,
-         array([0.556, 0.444]),
+        (357.45184742263075,
+         array([0.151, 0.849])
          (<Chemical: Ethanol>, <Chemical: Water>))
         
         """
@@ -1462,36 +1465,36 @@ class Stream(metaclass=metaStream):
         >>> s1 = Stream()
         >>> s1._dew_T(species=Species('Ethanol', 'Water'),
         ...           y=(0.5, 0.5), P=101325)
-        (353.7420742149825, array([0.556, 0.444]))
+        (357.45184742263075, array([0.151, 0.849]))
         """
         y = np.array(y)
-        y /= y.sum()
         
         # Retrive cached info
         # Even if different composition, use previous bubble point as guess
         if self._dew_cached[0] == species:
-            _, cP, self._dew, cy, x_dew = self._dew_cached # c means cached
+            _, cP, T_dew, cy, x_dew = self._dew_cached # c means cached
             if abs(y - cy).sum() < 1e-6 and abs(cP - P) < 1:
                 # Return cached data
-                return self._dew, x_dew 
+                return T_dew, x_dew 
         else:
             # Initial temperature guess
-            self._dew = (y * [s.Tsat(P) for s in species]).sum()
-            x_dew = y
+            T_dew = (y * [s.Tsat(P) for s in species]).sum()
+            x_dew = np.array(y)
+        
+        VPs = [s.VaporPressure for s in species]
+        gamma = self.activity_coefficients
+        f = lambda x, T: (y*P/(np.array([i(T) for i in VPs])
+                               *gamma(species, x/x.sum(), T)))
+        
+        def dew_error(T):
+            x_dew[:] = wegstein(f, x_dew, 0.001, args=(T,))
+            return 1 - x_dew.sum()
 
-        # Get min and max splits
-        Nspecies = len(species)
-        min_ = np.zeros(Nspecies)
-        max_ = np.ones(Nspecies)
-
-        # Find x by least squares
-        try: x_dew = least_squares(self._dew_error, x_dew,
-                                   bounds=(min_, max_),
-                                   args=(lambda T, x: self._dew_error_sum(T, x, y , P, species),),
-                                   xtol= 1e-6).x
-        except: return self._dew, x_dew
-        self._dew_cached = (species, P, self._dew, y, x_dew)
-        return self._dew, x_dew
+        # Solve
+        T_dew = newton(dew_error, T_dew, tol=1e-7)
+        x_dew /= x_dew.sum()
+        self._dew_cached = (species, P, T_dew, y, x_dew)
+        return T_dew, x_dew
     
     def dew_P(self):
         """Dew point at current composition and temperature.
@@ -1515,10 +1518,10 @@ class Stream(metaclass=metaStream):
         """
         # If just one specie in equilibrium, return Tsat
         species, y = self._equilibrium_args()
-        N_species = len(species)
-        if N_species == 1:
+        N = len(species)
+        if N == 1:
             return species[0].VaporPressure(self.T), 1, species
-        elif N_species == 0:
+        elif N == 0:
             raise EquilibriumError('no species available for phase equilibrium')
         
         # Solve and return dew point
@@ -1543,52 +1546,41 @@ class Stream(metaclass=metaStream):
             **x:** [numpy array] Liquid phase composition.
 
         >>> from biosteam import *
-        >>> s1 = Stream()
+        >>> s1 = Stream(species=Species('Ethanol', 'Water'))
         >>> s1._bubble_P(x=(0.703, 0.297), T=352.28,
         ...              species=Species('Ethanol', 'Water'))
-        (101328.47030327446, array([0.6, 0.4]))
-        """
+        (101328.4703032754,
+         array([0.6, 0.4]),
+         (<Chemical: Ethanol>, <Chemical: Water>))
+ 
+       """
         y = np.array(y)
-        y /= y.sum()
         
         # Retrive cached info
         # Even if different composition, use previous bubble point as guess
         if self._dew_cached[0] == species:
-            _, self._dew, cT, cy, x_dew = self._dew_cached # c means cached
+            _, P_dew, cT, cy, x_dew = self._dew_cached # c means cached
             if abs(y - cy).sum() < 1e-6 and abs(cT - T) < 1:
                 # Return cached data
-                return self._dew, x_dew 
+                return P_dew, x_dew
         else:
             # Initial temperature guess
-            self._dew = (y * [s.VaporPressure(T) for s in species]).sum()
-            x_dew = y
+            P_dew = (y * [s.VaporPressure(T) for s in species]).sum()
+            x_dew = np.array(y)
 
-        # Get min and max splits
-        Nspecies = len(species)
-        min_ = np.zeros(Nspecies)
-        max_ = np.ones(Nspecies)
-
-        # Find x by least squares
-        try: x_dew = least_squares(self._dew_error, x_dew,
-                                   bounds=(min_, max_),
-                                   args=(lambda P, x: self._dew_error_sum(T, x, y, P, species),),
-                                   xtol= 1e-6).x
-        except: pass
-        self._dew_cached = (species, self._dew, T, y, x_dew)
-        return self._dew, x_dew
-    
-    def _dew_error_sum(self, T, x, y, P, species):
-        """Error for dew point temperature, x, y, and P."""
         Psat = np.array([s.VaporPressure(T) for s in species])
-        gamma = self.activity_coefficients(species, x, T)
-        self._Py_over_gammaPsat = P*y/(Psat*gamma)
-        return 1 - self._Py_over_gammaPsat.sum()
-    
-    def _dew_error(self, x, f_error):
-        """Error function for dew point composition."""
-        x_dew = x/x.sum()
-        self._dew = newton(f_error, self._dew, args=(x_dew,), tol= 1e-7)
-        return abs(x_dew - self._Py_over_gammaPsat)
+        gamma = self.activity_coefficients
+        f = lambda x, P: y*P/(Psat*gamma(species, x/x.sum(), T))
+        
+        def dew_error(P):
+            x_dew[:] = wegstein(f, x_dew, 0.001, args=(P,))
+            return 1 - x_dew.sum()
+        
+        # Solve
+        P_dew = newton(dew_error, P_dew, tol= 1e-7)
+        x_dew /= x_dew.sum()
+        self._dew_cached = (species, P_dew, T, y, x_dew)
+        return P_dew, x_dew
 
     # Dimensionless number methods
     def Re(self, L, A=None):

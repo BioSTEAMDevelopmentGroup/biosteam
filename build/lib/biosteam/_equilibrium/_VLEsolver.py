@@ -8,7 +8,7 @@ from .._utils import isbetween, boundsolve, wegstein
 from .._exceptions import SolverError
 import numpy as np
 
-__all__ = ('VLEsolver', 'solve_v', 'V_2N', 'V_3N', 'V_error')
+__all__ = ('VLEsolver', 'solve_v', 'V_2N', 'V_3N', 'V_error', 'wegstein')
 
 def V_2N(zs, Ks):
     """Solution for 2 component flash vessel."""
@@ -56,7 +56,6 @@ class VLEsolver:
     """Create a VLEsolver object for solving VLE."""
     __slots__ = ('T', 'P', 'Q', 'V')
     
-    maxiter = 30
     tolerance = {'T': 0.005,
                  'P': 10,
                  'Q': 1,
@@ -76,10 +75,9 @@ class VLEsolver:
         y = f(x)
         x_ = x0
         it = 0
-        maxiter = self.maxiter
         while abs(x-x_) > xtol and abs(yval-y) > ytol:
             it += 1
-            if it > maxiter:
+            if it > 30:
                 raise SolverError('failed to converge')
             elif y > yval:
                 x_ = x1 = x
