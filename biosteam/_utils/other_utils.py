@@ -8,7 +8,7 @@ This module includes arbitrary classes and functions.
 """
 from biosteam import _Q
 
-__all__ = ('factor', 'checkbounds', 'approx2step', 'strtuple', 'isbetween')
+__all__ = ('factor', 'checkbounds', 'approx2step', 'strtuple', 'isbetween', 'count')
 
 def count():
     i = 0

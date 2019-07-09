@@ -5,7 +5,7 @@ Created on Tue Sep 18 10:28:29 2018
 @author: Guest Group
 """
 from scipy.optimize import least_squares, minimize
-from ._equilibrium import VLEsolver
+from ._equilibrium import VLEsolver, solve_v
 from ._species import Species, WorkingSpecies
 from ._stream import Stream, nonzero_species, MassFlow, \
                             mol_flow_dim, mass_flow_dim, vol_flow_dim, \
@@ -683,8 +683,8 @@ class MixedStream(Stream):
 
         ### Single component equilibrium case ###
         
-        Nspecies = len(species)
-        if Nspecies == 1:
+        N = len(species)
+        if N == 1:
             # Equilibrium based on one specie
             s = species[0]
             
@@ -810,28 +810,9 @@ class MixedStream(Stream):
             P_dew, x_dew = self._dew_P(species, zf, T)
             P_bubble, y_bubble = self._bubble_P(species, zf, T)
 
-        bounds = (np.zeros(Nspecies), mol)
-        def v_given_TPmol(v_guess, T, P, mol):
-            # Return equilibrium vapor flow rates
-            # given T, P and molar flow rates.
-            Psat_P = np.array([s.VaporPressure(T) for s in species])/P
-            actcoef = self.activity_coefficients
-            def v_error(v):
-                # Error function for constant T and P,
-                # where v represents vapor flow rates.
-                l = mol - v
-                x = l/l.sum()
-                return abs(x*Psat_P * actcoef(species, x, T) - v/v.sum())
-            
-            try:
-                return least_squares(v_error, v_guess,
-                                     bounds=bounds,
-                                     ftol=0.001).x
-            except:
-                return minimize(lambda v: v_error(v).sum(),
-                                v_guess, method='SLSQP',
-                                bounds=(*zip(*bounds),)).x
         solver = self._VLEsolver
+        f_activity = self.activity_coefficients
+        zs = mol/molnet
         if eq == 'VP':
             if V == 1:
                 self.T = T_dew
@@ -848,7 +829,7 @@ class MixedStream(Stream):
                 v = y*V*molnet
                 
                 def V_error(T):
-                    v[:] = v_given_TPmol(v, T, P, mol)
+                    v[:] = solve_v(v, T, P, mol, molnet, zs, N, species, f_activity)
                     return v.sum()/molnet
                 
                 # Guess
@@ -870,7 +851,7 @@ class MixedStream(Stream):
                 return
             else:
                 def V_error(P):
-                    v[:] = v_given_TPmol(v, T, P, mol)
+                    v[:] = solve_v(v, T, P, mol, molnet, zs, N, species, f_activity)
                     return v.sum()/molnet
                 
                 y = y or (V*zf + (1-V)*y_bubble)
@@ -898,13 +879,13 @@ class MixedStream(Stream):
                 return
             else:
                 # Guess overall vapor fraction
-                V_guess = (T - T_bubble)/(T_dew - T_bubble)
+                V_guess = solver.V or (T - T_bubble)/(T_dew - T_bubble)
                 
                 # Guess vapor flow rates
-                v_guess = y * V_guess * mol
+                v = y * V_guess * mol
 
                 # Solve
-                vapor_mol[index] = v = v_given_TPmol(v_guess, T, P, mol)
+                vapor_mol[index] = v = solve_v(v, T, P, mol, molnet, zs, N, species, f_activity)
             liquid_mol[index] = mol - v
             solver.T = T
             solver.P = P
@@ -940,7 +921,7 @@ class MixedStream(Stream):
             
             def Q_error(T):
                 self.T = T
-                v[:] = v_given_TPmol(v, T, P, mol)
+                v[:] = solve_v(v, T, P, mol, molnet, zs, N, species, f_activity)
                 vapor_mol[index] = v
                 liquid_mol[index] = mol - v
                 return self.H/mass
@@ -982,7 +963,7 @@ class MixedStream(Stream):
             mass = self.massnet
             def Q_error(P):
                 self.P = P
-                v[:] = v_given_TPmol(v, T, P, mol)
+                v[:] = solve_v(v, T, P, mol, molnet, zs, N, species, f_activity)
                 vapor_mol[index] = v
                 liquid_mol[index] = mol - v
                 return self.H/mass
