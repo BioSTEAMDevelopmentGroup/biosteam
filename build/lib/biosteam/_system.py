@@ -12,7 +12,7 @@ from ._flowsheet import find, make_digraph, save_digraph
 from ._stream import Stream
 from ._unit import Unit
 from ._report import save_report
-from ._utils import color_scheme, missing_stream, strtuple
+from ._utils import color_scheme, missing_stream, strtuple, conditional_wegstein
 import biosteam as bst
 
 __all__ = ('System',)
@@ -72,8 +72,7 @@ def _notify_run_wrapper(self, func):
     def wrapper(*args, **kwargs):
         if self.recycle:
             func(*args, **kwargs)
-            x = self._solver_error['iter']
-            input(f'        Finished loop #{x}\n')
+            input(f'        Finished loop #{self._iter}\n')
         else:
             func(*args, **kwargs)
     wrapper.__name__ = func.__name__
@@ -127,20 +126,31 @@ class System:
     """
     ### Class attributes ###
     
-    #: [dict] Dictionary of convergence options regarding maximum number of iterations and molar flow rate and temperature tolerances
-    options = {'Maximum iteration': 100,
-               'Molar tolerance (kmol/hr)': 0.01,
-               'Temperature tolerance (K)': 0.10}
+    #: Maximum number of iterations
+    maxiter = 100
+
+    #: Molar tolerance (kmol/hr)
+    molar_tolerance = 0.01
+    
+    #: Temperature tolerance (K)
+    T_tolerance = 0.10
 
     # [dict] Cached downstream systems by (system, unit, with_facilities) keys
     _cached_downstream_systems = {} 
 
     def __init__(self, ID, network, recycle=None, facilities=()):
-        #: [dict] Current molar flow and temperature errors and number of iterations made
-        self._solver_error = {'mol_error': 0,
-                              'T_error': 0,
-                              'spec_error': 0,
-                              'iter': 0}
+        
+        #: Molar flow rate error (kmol/hr)
+        self._mol_error = 0
+        
+        #: Temperature error (K)
+        self._T_error = 0
+        
+        #: Specification error
+        self._spec_error = 0
+        
+        #: Number of iterations
+        self._iter = 0
          
         #: set[Stream] All streams within the system
         self.streams = streams = set()
@@ -201,7 +211,14 @@ class System:
         
         #: [TEA] System object for Techno-Economic Analysis.
         self._TEA = None
-        self.recycle = recycle
+        
+        if recycle is None:
+            self._converge_method = self._run
+        elif isinstance(recycle, Stream):
+            self._run = self._iter_run
+        else:
+            raise ValueError(f"recycle must be a Stream instance or None, not {type(recycle).__name__}")
+        self._recycle = recycle
         
         if ID:
             ID = ID.replace(' ', '_')
@@ -227,14 +244,6 @@ class System:
     def recycle(self):
         """A tear stream for the recycle loop"""
         return self._recycle
-
-    @recycle.setter
-    def recycle(self, stream):
-        if stream is None:
-            self._converge_method = self._run
-        elif not isinstance(stream, Stream):
-            raise ValueError(f"recycle must be a Stream instance or None, not {type(stream).__name__}")
-        self._recycle = stream
 
     @property
     def converge_method(self):
@@ -411,6 +420,37 @@ class System:
             
 
     # Methods for running one iteration of a loop
+    def _iter_run(self, x):
+        """Run the system at specified recycle molar flow rate and temperature.
+        
+        **Parameters**
+        
+            **x:** [array] Molar flow rates and temperature.
+            
+        **Returns**
+        
+            **x:** [array] New molar flow rates and temperature.
+            
+            **unconverged:** [bool] True if recycle has not converged.
+            
+        """
+        recycle = self.recycle
+        recycle_mol = recycle.mol
+        mol = recycle_mol.copy()
+        T = recycle.T
+        System._run(self)
+        self._iter += 1
+        self._mol_error = abs(mol - recycle_mol).sum()
+        self._T_error = abs(T - recycle.T)
+        
+        if self._iter > self.maxiter:
+            raise SolverError(f'could not converge' + self._error_info())
+        elif self._mol_error < self.molar_tolerance and self._T_error < self.T_tolerance:
+            return np.array([*recycle_mol, T]), False
+        else:
+            return np.array([*recycle_mol, T]), True
+        
+    
     def _run(self):
         """Rigorous run each element of the system."""
         inst = isinstance
@@ -419,95 +459,17 @@ class System:
             if inst(a, Unit): _try(a._run)
             elif inst(a, System): a._converge()
             else: a() # Assume it is a function
-        self._solver_error['iter'] += 1
     
     # Methods for convering the recycle stream
     def _fixed_point(self):
         """Converge system recycle using inner and outer loops with fixed-point iteration."""
-        # Reused attributes
-        recycle = self.recycle
-        run = self._run
-        solver_error = self._solver_error
-        maxiter, mol_tol, T_tol = self.options.values()
-
-        # Outer loop
-        abs_ = abs
-        while True:
-            mol_old = copy(recycle.mol)
-            T_old = recycle.T
-            run()
-            mol_error = abs_(recycle.mol - mol_old).sum()
-            T_error = abs_(recycle.T - T_old)
-            if T_error < T_tol and mol_error < mol_tol: break
-            if solver_error['iter'] > maxiter:
-                solver_error['mol_error'] = mol_error
-                solver_error['T_error'] = T_error
-                raise SolverError(f'could not converge'
-                                  + self._error_info())
-
-        solver_error['mol_error'] = mol_error
-        solver_error['T_error'] = T_error
+        while self._iter_run()[1]: pass
 
     def _Wegstein(self):
         """Converge the system recycle iteratively using Wegstein's method."""
-        # Reused attributes
-        recycle = self.recycle
-        run = self._run
-        maxiter, mol_tol, T_tol = self.options.values()
-        solver_error = self._solver_error
-
-        # Prepare variables
-        len_ = recycle._species._Nspecies + 1
-        x0 = np.zeros(len_)
-        gx0 = np.zeros(len_)
-        x1 = np.zeros(len_)
-        gx1 = np.zeros(len_)
-        ones = np.ones(len_)
-        s = np.zeros(len_)
-
-        # First run
-        x0[:-1] = recycle.mol
-        x0[-1] = recycle.T
-        run()
-        x1[:-1] = gx0[:-1] = recycle.mol
-        x1[-1] = gx0[-1] = recycle.T
-
-        # Check convergence
-        abs_ = abs
-        mol_error = abs_(gx0[:-1] - x0[:-1]).sum()
-        T_error = abs_(gx0[-1] - x0[-1])
-        converged = mol_error < mol_tol and T_error < T_tol
-
-        # Outer loop
-        while not converged:
-            run()
-            gx1[:-1] = recycle.mol
-            gx1[-1] = recycle.T
-
-            # Check if converged
-            mol_error = abs_(gx1[:-1] - x1[:-1]).sum()
-            T_error = abs_(gx1[-1] - x1[-1])
-            converged = mol_error < mol_tol and T_error < T_tol
-
-            if solver_error['iter'] > maxiter:
-                solver_error['mol_error'] = mol_error
-                solver_error['T_error'] = T_error
-                raise SolverError(f'{self} could not converge'
-                                  + self._error_info())
-
-            # Get relaxation factor and set next iteration
-            x_diff = x1 - x0
-            pos = x_diff != 0
-            s[pos] = (gx1[pos] - gx0[pos])/x_diff[pos]
-            x0 = x1
-            gx0 = gx1
-            s[s > 0.9] = 0.9
-            w = ones/(ones-s)
-            x1 = w*gx1 + (1-w)*x1
-            recycle._mol[:] = x1[:-1]
-            recycle.T = x1[-1]
-        solver_error['mol_error'] = mol_error
-        solver_error['T_error'] = T_error
+        r = self.recycle
+        mol = r.mol
+        *mol[:], r.T = conditional_wegstein(self._iter_run, np.array([*mol, r.T]))
     
     # Default converge method
     _converge_method = _Wegstein
@@ -535,12 +497,11 @@ class System:
 
         """
         converge = self._converge_method
-        solver_error = self._solver_error
 
         def error(val):
             setter(val)
             converge()
-            solver_error['spec_error'] = e = getter()
+            self._spec_error = e = getter()
             return e
 
         def converge_spec():
@@ -550,7 +511,7 @@ class System:
         self._converge_method = converge_spec
 
     def _reset_iter(self):
-        self._solver_error['iter'] = 0
+        self._iter = 0
         for system in self.subsystems: system._reset_iter()
     
     def reset_names(self, unit_format=None, stream_format=None):
@@ -573,10 +534,11 @@ class System:
     
     def reset_flows(self):
         """Reset all process streams to zero flow."""
-        self._solver_error = {'mol_error': 0,
-                              'T_error': 0,
-                              'spec_error': 0,
-                              'iter': 0}
+        self._iter = 0
+        self._spec_error = 0
+        self._mol_error = 0
+        self._T_error = 0
+        
         feeds = self.feeds
         for stream in self.streams:
             if stream._link: continue
@@ -655,17 +617,15 @@ class System:
 
     def _error_info(self):
         """Return information on convergence."""
-        x = self._solver_error
         recycle = self.recycle
         error_info = ''
-        spec = x['spec_error']
-        if spec:
-            error_info += f'\n specification error: {spec:.3g}'
+        if self._spec_error:
+            error_info += f'\n specification error: {self._spec_error:.3g}'
         if recycle:
-            error_info += f"\n convergence error: Flow rate   {x['mol_error']:.2e} kmol/hr"
-            error_info += f"\n                    Temperature {x['T_error']:.2e} K"
-        if spec or recycle:
-            error_info += f"\n iterations: {x['iter']}"
+            error_info += f"\n convergence error: Flow rate   {self._mol_error:.2e} kmol/hr"
+            error_info += f"\n                    Temperature {self._T_error:.2e} K"
+        if self._spec_error or recycle:
+            error_info += f"\n iterations: {self._iter}"
         return error_info
 
     def _info(self):

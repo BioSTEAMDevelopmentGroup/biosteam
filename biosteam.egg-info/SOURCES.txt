@@ -70,7 +70,6 @@ biosteam/units/_mixer.py
 biosteam/units/_molecular_sieve.py
 biosteam/units/_multi_effect_evaporator.py
 biosteam/units/_pump.py
-biosteam/units/_reactor.py
 biosteam/units/_rvf.py
 biosteam/units/_screw_feeder.py
 biosteam/units/_seed_train.py
@@ -88,6 +87,7 @@ biosteam/units/decorators/_design.py
 biosteam/units/decorators/_extend.py
 biosteam/units/decorators/_spec.py
 biosteam/units/designtools/__init__.py
+biosteam/units/designtools/_batch.py
 biosteam/units/designtools/_cost_index.py
 biosteam/units/designtools/_tables.py
 biosteam/units/designtools/_vacuum.py

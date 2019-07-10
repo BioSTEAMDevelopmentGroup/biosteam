@@ -6,7 +6,7 @@ Created on Sat Aug 18 15:04:55 2018
 """
 from copy import copy
 import numpy as np
-from scipy.optimize import newton
+from scipy.optimize import newton, broyden2
 from ._exceptions import SolverError, _try_method
 from ._flowsheet import find, make_digraph, save_digraph
 from ._stream import Stream
@@ -214,9 +214,7 @@ class System:
         
         if recycle is None:
             self._converge_method = self._run
-        elif isinstance(recycle, Stream):
-            self._run = self._iter_run
-        else:
+        elif not isinstance(recycle, Stream):
             raise ValueError(f"recycle must be a Stream instance or None, not {type(recycle).__name__}")
         self._recycle = recycle
         
@@ -247,7 +245,7 @@ class System:
 
     @property
     def converge_method(self):
-        """Iterative convergence method ('Wegstein', or 'fixed point')."""
+        """Iterative convergence method ('wegstein', 'broyden', or 'fixed point')."""
         return self._converge_method.__name__[1:]
 
     @converge_method.setter
@@ -256,11 +254,13 @@ class System:
             raise ValueError("cannot set converge method when no recyle is specified")
         method = method.lower().replace('-', '').replace(' ', '')
         if 'wegstein' in method:
-            self._converge_method = self._Wegstein
+            self._converge_method = self._wegstein
         elif 'fixedpoint' in method:
             self._converge_method = self._fixed_point
+        elif 'broyden' in method:
+            self._converge_method = self._broyden
         else:
-            raise ValueError(f"only 'Wegstein' and 'fixed point' methods are valid, not '{method}'")
+            raise ValueError(f"only 'wegstein' and 'fixed point' methods are valid, not '{method}'")
 
     
     def _downstream_network(self, unit):
@@ -420,37 +420,34 @@ class System:
             
 
     # Methods for running one iteration of a loop
-    def _iter_run(self, x):
-        """Run the system at specified recycle molar flow rate and temperature.
+    def _iter_run(self, mol):
+        """Run the system at specified recycle molar flow rate.
         
         **Parameters**
         
-            **x:** [array] Molar flow rates and temperature.
+            **mol:** [array] Recycle molar flow rates.
             
         **Returns**
         
-            **x:** [array] New molar flow rates and temperature.
+            **rmol:** [array] New recycle molar flow rates.
             
             **unconverged:** [bool] True if recycle has not converged.
             
         """
         recycle = self.recycle
-        recycle_mol = recycle.mol
-        mol = recycle_mol.copy()
+        recycle.mol[:] = mol
         T = recycle.T
-        System._run(self)
+        self._run()
         self._iter += 1
-        self._mol_error = abs(mol - recycle_mol).sum()
+        self._mol_error = abs(mol - recycle.mol).sum()
         self._T_error = abs(T - recycle.T)
-        
         if self._iter > self.maxiter:
-            raise SolverError(f'could not converge' + self._error_info())
+            raise SolverError(f'{repr(self)} could not converge' + self._error_info())
         elif self._mol_error < self.molar_tolerance and self._T_error < self.T_tolerance:
-            return np.array([*recycle_mol, T]), False
+            return recycle.mol, False
         else:
-            return np.array([*recycle_mol, T]), True
+            return recycle.mol, True
         
-    
     def _run(self):
         """Rigorous run each element of the system."""
         inst = isinstance
@@ -463,24 +460,43 @@ class System:
     # Methods for convering the recycle stream
     def _fixed_point(self):
         """Converge system recycle using inner and outer loops with fixed-point iteration."""
-        while self._iter_run()[1]: pass
-
-    def _Wegstein(self):
-        """Converge the system recycle iteratively using Wegstein's method."""
         r = self.recycle
-        mol = r.mol
-        *mol[:], r.T = conditional_wegstein(self._iter_run, np.array([*mol, r.T]))
+        rmol = r.mol
+        while True:
+            mol = rmol.copy()
+            T = r.T
+            self._run()
+            self._mol_error = abs(mol - rmol).sum()
+            self._T_error = abs(T - r.T)
+            if (self._mol_error < self.molar_tolerance
+                and self._T_error < self.T_tolerance): break
+            self._iter += 1
+            if self._iter > self.maxiter:
+                raise SolverError(f'{repr(self)} could not converge' + self._error_info())
+            
+    def _wegstein(self):
+        """Converge the system recycle iteratively using wegstein's method."""
+        self.recycle.mol[:] = conditional_wegstein(self._iter_run, self.recycle.mol.copy())
+    
+    def _broyden(self):
+        """Converge the system recycle iteratively using broyden's bad method."""
+        self.recycle.mol[:] = broyden2((lambda x: self._iter_run(x)[0] - x),
+                                       self.recycle.mol.copy(),
+                                       x_tol=self.molar_tolerance,
+                                       f_tol=self.molar_tolerance)
     
     # Default converge method
-    _converge_method = _Wegstein
+    _converge_method = _wegstein
     
     def _converge(self):
-        """Converge the system recycle using an iterative solver (Wegstein by default)."""
-        try:
-            return self._converge_method()
-        except Exception as e:
-            if self._recycle: self._recycle.empty()
-            self._converge_method()
+        """Converge the system recycle using an iterative solver (wegstein by default)."""
+        try: return self._converge_method()
+        except Exception as error:
+            if self._recycle:
+                self._recycle.empty()
+                self._converge_method()
+            else:
+                raise error
 
     def set_spec(self, getter, setter, solver=newton, **kwargs):
         """Wrap a solver around the converge method.

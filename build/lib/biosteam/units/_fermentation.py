@@ -5,18 +5,18 @@ Created on Thu Aug 23 22:45:47 2018
 @author: yoelr
 """
 import numpy as np
-from ._reactor import BatchReactor
 from ._hx import HXutility
-from .. import Stream
+from .. import Stream, Unit
 from scipy.integrate import odeint
 from .decorators import cost
 from ._tank import MixTank
+from .designtools import size_batch
 
 @cost('Reactor volume', 'Agitators', CE=521.9, cost=52500,
       S=3785, n=0.5, kW=22.371, BM=1.5)
 @cost('Reactor volume', 'Reactors', CE=521.9, cost=844000,
       S=3785, n=0.5, BM=1.5)
-class Fermentation(BatchReactor):
+class Fermentation(Unit):
     """Create a Fermentation object which models large-scale batch fermentation for the production of 1st generation ethanol using yeast [1, 2, 3, 4]. Only sucrose and glucose are taken into account. Conversion is based on reaction time, `tau`. Cleaning and unloading time, `tau_0`, fraction of working volume, `V_wf`, and number of reactors, `N_reactors`, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3].
     
     **Parameters**
@@ -70,11 +70,11 @@ class Fermentation(BatchReactor):
     line = 'Fermentation'    
     
     #: Cleaning and unloading time (hr)
-    tau_0 = 12 
+    tau_0 = 3
     
     #: Fraction of filled tank to total tank volume
     working_volume_fraction = MixTank.working_volume_fraction
-    _V_wf = 0.8
+    _V_wf = 0.9
     
     #: tuple of kinetic parameters for the kinetic model. Default constants are fitted for Oliveria's model (mu_m1, mu_m2, Ks1, Ks2, Pm1, Pm2, Xm, Y_PS, a)
     kinetic_constants = (0.31,  # mu_m1
@@ -248,7 +248,7 @@ class Fermentation(BatchReactor):
         tau_0 = self.tau_0
         Design = self._Design
         Design['Number of reactors'] = N = self._kwargs['N']
-        Design.update(self._solve(v_0, tau, tau_0, N, self._V_wf))
+        Design.update(size_batch(v_0, tau, tau_0, N, self._V_wf))
         hx = self._cooler
         hx.outs[0]._mol[:] = self.outs[0].mol/N 
         hu = hx._heat_utilities[0]

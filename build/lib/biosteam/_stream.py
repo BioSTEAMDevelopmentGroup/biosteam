@@ -7,13 +7,14 @@ Created on Sat Aug 18 14:05:10 2018
 """
 from . import _Q
 import numpy as np
-from scipy.optimize import newton, least_squares
+from scipy.optimize import newton
 from ._utils import property_array, PropertyFactory, DisplayUnits, \
-                    tuple_array, fraction, Sink, Source, missing_stream
+                    tuple_array, fraction, Sink, Source, missing_stream, \
+                    wegstein
 from ._flowsheet import find
 from ._species import Species, WorkingSpecies
 from ._exceptions import SolverError, EquilibriumError, DimensionError
-from ._equilibrium import DORTMUND, VLEsolver, wegstein
+from ._equilibrium import DORTMUND, VLEsolver
 
 
 __all__ = ('Stream',)
@@ -801,13 +802,18 @@ class Stream(metaclass=metaStream):
                 self.T += (H - self.H)/C
             
                 # Solve enthalpy by iteration
-                it = 1
+                it = 0
+                it2 = 0
                 while abs(self.T - T_old) > 0.01:
                     T_old = self.T
                     self.T += (H - self.H)/C
                     it += 1
-                    if it > 40:
-                        raise SolverError(f"could not solve temperature given enthalpy")
+                    if it > 5:
+                        it = 0
+                        it2 += 1
+                        C = self.C
+                        if it2 > 20:
+                            raise SolverError(f"could not solve temperature given enthalpy")
         except Exception as Error:
             if (self._mol == 0).all():
                 raise ValueError(f"cannot set enthalpy to empty stream")
@@ -1270,8 +1276,7 @@ class Stream(metaclass=metaStream):
             raise EquilibriumError('no species available for phase equilibrium')
         
         # Solve and return bubble point
-        T, y = self._bubble_T(species, x, self.P)
-        return T, y, species
+        return (*self._bubble_T(species, x, self.P), species)
     
     def _bubble_T(self, species, x, P):
         """Bubble point at given composition and pressure
@@ -1356,8 +1361,7 @@ class Stream(metaclass=metaStream):
             raise EquilibriumError('no species available for phase equilibrium')
         
         # Solve and return bubble point
-        P, y = self._bubble_P(species, x, self.T)
-        return P, y, species        
+        return (*self._bubble_P(species, x, self.T), species)
 
     def _bubble_P(self, species, x, T):
         """Bubble point at given composition and temperature.
@@ -1440,8 +1444,7 @@ class Stream(metaclass=metaStream):
             raise EquilibriumError('no species available for phase equilibrium')
         
         # Solve and return dew point
-        T, x = self._dew_T(species, y, self.P)
-        return T, x, species
+        return (*self._dew_T(species, y, self.P), species)
     
     def _dew_T(self, species, y, P):
         """Dew point given composition and pressure.
@@ -1525,8 +1528,7 @@ class Stream(metaclass=metaStream):
             raise EquilibriumError('no species available for phase equilibrium')
         
         # Solve and return dew point
-        P, x = self._dew_P(species, y, self.T)
-        return P, x, species
+        return (*self._dew_P(species, y, self.T), species)
     
     def _dew_P(self, species, y, T):
         """Dew point given composition and temperature.

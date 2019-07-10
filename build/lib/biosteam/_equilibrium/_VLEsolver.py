@@ -8,7 +8,7 @@ from .._utils import isbetween, boundsolve, wegstein
 from .._exceptions import SolverError
 import numpy as np
 
-__all__ = ('VLEsolver', 'solve_v', 'V_2N', 'V_3N', 'V_error', 'wegstein')
+__all__ = ('VLEsolver', 'solve_v', 'V_2N', 'V_3N', 'V_error')
 
 def V_2N(zs, Ks):
     """Solution for 2 component flash vessel."""
@@ -43,19 +43,17 @@ def solve_v(v, T, P, mol, molnet, zs, N, species, f_activity):
     Ks = None
     def f(x):
         nonlocal Ks, V
-        Ks = Psat_P * f_activity(species, x, T)
+        Ks = Psat_P * f_activity(species, x/x.sum(), T)
         V = solve_V(zs, Ks)
-        x = zs/(1. + V*(Ks-1.))
-        return x/x.sum()
-    
+        return zs/(1. + V*(Ks-1.))
     x = wegstein(f, x, 0.001)
-        
-    return molnet*V*x*Ks
+    return molnet*V*x/x.sum()*Ks
 
 class VLEsolver:
     """Create a VLEsolver object for solving VLE."""
     __slots__ = ('T', 'P', 'Q', 'V')
     
+    maxiter = 30
     tolerance = {'T': 0.005,
                  'P': 10,
                  'Q': 1,
@@ -75,9 +73,10 @@ class VLEsolver:
         y = f(x)
         x_ = x0
         it = 0
+        maxiter = self.maxiter
         while abs(x-x_) > xtol and abs(yval-y) > ytol:
             it += 1
-            if it > 30:
+            if it > maxiter:
                 raise SolverError('failed to converge')
             elif y > yval:
                 x_ = x1 = x

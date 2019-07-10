@@ -799,6 +799,9 @@ class HXprocess(HX):
                 self._not_zero_arr = not_zero_arr
                 return out
             
+    def _end(self):
+        self._heat_utilities[0](self._Design['Duty'],
+                                self.outs[0].T, self.outs[1].T)
 # elif U == 'Concentric tubes':
 #     raise NotImplementedError("'Concentric tubes' not yet implemented")
 #     Re_i = 30000 # Arbitrary, but turbulent ??
