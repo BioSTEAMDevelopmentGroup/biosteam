@@ -32,7 +32,6 @@ from ._solids_centrifuge import SolidsCentrifuge
 from ._crushing_mill import CrushingMill
 from ._rvf import RVF
 from ._molecular_sieve import MolecularSieve
-from ._reactor import BatchReactor
 from ._balance import MassBalance, EnergyBalance
 from ._conveying_belt import ConveyingBelt
 from ._shredder import Shredder
@@ -43,7 +42,7 @@ from ._junction import Junction
 
 # %% All units
 
-__all__ = ['Mixer', 'Splitter', 'InvSplitter', 'MixTank', 'StorageTank', 'HXutility', 'HXprocess', 'Pump', 'Distillation', 'Stripper', 'Transesterification', 'Fermentation', 'Centrifuge_LLE', 'MultiEffectEvaporator', 'EnzymeTreatment', 'CrushingMill', 'RVF', 'MolecularSieve', 'SolidsCentrifuge', 'Clarifier', 'BatchReactor', 'MassBalance', 'EnergyBalance', 'ConveyingBelt', 'Shredder', 'MagneticSeparator', 'ScrewFeeder', 'VibratingScreen', 'Junction', 'decorators', 'facilities', 'designtools', 'metaclasses']
+__all__ = ['Mixer', 'Splitter', 'InvSplitter', 'MixTank', 'StorageTank', 'HXutility', 'HXprocess', 'Pump', 'Distillation', 'Stripper', 'Transesterification', 'Fermentation', 'Centrifuge_LLE', 'MultiEffectEvaporator', 'EnzymeTreatment', 'CrushingMill', 'RVF', 'MolecularSieve', 'SolidsCentrifuge', 'Clarifier', 'MassBalance', 'EnergyBalance', 'ConveyingBelt', 'Shredder', 'MagneticSeparator', 'ScrewFeeder', 'VibratingScreen', 'Junction', 'decorators', 'facilities', 'designtools', 'metaclasses']
 
 __all__.extend(_flash.__all__)
 __all__.extend(_centrifuge_LLE.__all__)

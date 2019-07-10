@@ -4,16 +4,10 @@ Created on Thu Aug 23 22:56:55 2018
 
 @author: yoelr
 """
-from .. import Unit
 
+__all__ = ('size_batch',)
 
-# %% Reactor classes
-    
-class BatchReactor(Unit):
-    line = 'Batch reactor'
-    _N_heat_utilities = 1
-    @classmethod
-    def _solve(cls, v_0, tau, tau_0, N_reactors, V_wf) -> dict:
+def size_batch(v_0, tau, tau_0, N_reactors, V_wf) -> dict:
         """Solve for batch reactor volume, cycle time, and loading time
         
         **Parameters**
@@ -42,6 +36,5 @@ class BatchReactor(Unit):
         return {'Reactor volume': V_i,
                 'Cycle time': t_B, 
                 'Loading time': t_L}
-    
-    
-# %%    
+        
+        

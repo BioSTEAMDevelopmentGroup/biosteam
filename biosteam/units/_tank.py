@@ -95,5 +95,5 @@ class MixTank(Tank):
     
     def _design(self):
         self._Design['Total volume'] = V = self._tau * self.outs[0].volnet / self._V_wf
-        if V < self._minimum_volume: self._lb_warning('Volume', V, self._minimum_volume)
+        if V < self._minimum_volume: self._lb_warning('Volume', V, 'm^3', self._minimum_volume)
 

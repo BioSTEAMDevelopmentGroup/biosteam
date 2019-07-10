@@ -10,7 +10,7 @@ from ._extend import extend_summary
 from ._design import design
 from math import ceil
 
-__all__ = ('cost', 'add_cost')
+__all__ = ('cost', 'add_cost', 'CostItem')
 
 class CostItem:
     """Create a CostItem object which defines exponential scaling factors for an item's purchase cost.

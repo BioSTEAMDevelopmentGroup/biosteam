@@ -43,14 +43,11 @@ def solve_v(v, T, P, mol, molnet, zs, N, species, f_activity):
     Ks = None
     def f(x):
         nonlocal Ks, V
-        Ks = Psat_P * f_activity(species, x, T)
+        Ks = Psat_P * f_activity(species, x/x.sum(), T)
         V = solve_V(zs, Ks)
-        x = zs/(1. + V*(Ks-1.))
-        return x/x.sum()
-    
+        return zs/(1. + V*(Ks-1.))
     x = wegstein(f, x, 0.001)
-        
-    return molnet*V*x*Ks
+    return molnet*V*x/x.sum()*Ks
 
 class VLEsolver:
     """Create a VLEsolver object for solving VLE."""
