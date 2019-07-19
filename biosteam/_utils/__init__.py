@@ -13,7 +13,9 @@ from . import stream_utils
 from . import display_units
 from . import register
 from . import solvers
+from . import not_implemented_method
 
+from .not_implemented_method import *
 from .lazy_pkg import *
 from .array_utils import *
 from .color_utils import *
@@ -24,6 +26,7 @@ from .register import *
 from .solvers import *
 
 __all__ = []
+__all__.extend(not_implemented_method.__all__)
 __all__.extend(solvers.__all__)
 __all__.extend(lazy_pkg.__all__)
 __all__.extend(display_units.__all__)

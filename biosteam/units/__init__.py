@@ -8,12 +8,12 @@ Created on Sun Apr 15 20:39:46 2018
 from . import decorators
 from . import designtools
 from . import facilities
-from . import metaclasses
 
 from . import _flash
 from . import _centrifuge_LLE
 
 from .._graphics import Graphics
+from ._static import Static
 from ._mixer import Mixer
 from ._splitter import Splitter, InvSplitter
 from ._pump import Pump
@@ -22,7 +22,7 @@ from ._flash import *
 from ._flash import Flash
 from ._multi_effect_evaporator import MultiEffectEvaporator
 from ._centrifuge_LLE import *
-from ._distillation import Dist, Distillation, Stripper
+from ._distillation import Dist, Distillation
 from ._tank import StorageTank, MixTank
 from ._transesterification import Transesterification
 from ._fermentation import Fermentation
@@ -32,17 +32,19 @@ from ._solids_centrifuge import SolidsCentrifuge
 from ._crushing_mill import CrushingMill
 from ._rvf import RVF
 from ._molecular_sieve import MolecularSieve
-from ._balance import MassBalance, EnergyBalance
+from ._balance import MassBalance
 from ._conveying_belt import ConveyingBelt
 from ._shredder import Shredder
 from ._magnetic_separator import MagneticSeparator
 from ._screw_feeder import ScrewFeeder
 from ._vibrating_screen import VibratingScreen
 from ._junction import Junction
+from ._solids_separator import SolidsSeparator
+from ._vent_scrubber import VentScrubber
 
 # %% All units
 
-__all__ = ['Mixer', 'Splitter', 'InvSplitter', 'MixTank', 'StorageTank', 'HXutility', 'HXprocess', 'Pump', 'Distillation', 'Stripper', 'Transesterification', 'Fermentation', 'Centrifuge_LLE', 'MultiEffectEvaporator', 'EnzymeTreatment', 'CrushingMill', 'RVF', 'MolecularSieve', 'SolidsCentrifuge', 'Clarifier', 'MassBalance', 'EnergyBalance', 'ConveyingBelt', 'Shredder', 'MagneticSeparator', 'ScrewFeeder', 'VibratingScreen', 'Junction', 'decorators', 'facilities', 'designtools', 'metaclasses']
+__all__ = ['Mixer', 'Splitter', 'InvSplitter', 'MixTank', 'StorageTank', 'HXutility', 'HXprocess', 'Pump', 'Distillation', 'Transesterification', 'Fermentation', 'Centrifuge_LLE', 'MultiEffectEvaporator', 'EnzymeTreatment', 'CrushingMill', 'RVF', 'MolecularSieve', 'SolidsCentrifuge', 'Clarifier', 'MassBalance', 'ConveyingBelt', 'Shredder', 'MagneticSeparator', 'ScrewFeeder', 'VibratingScreen', 'Junction', 'SolidsSeparator', 'VentScrubber', 'Static', 'decorators', 'facilities', 'designtools']
 
 __all__.extend(_flash.__all__)
 __all__.extend(_centrifuge_LLE.__all__)

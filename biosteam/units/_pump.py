@@ -5,10 +5,9 @@ Created on Thu Aug 23 15:53:14 2018
 @author: yoelr
 """
 import numpy as np
-from .._unit import Unit, metaUnit
 from fluids.pump import nema_sizes_hp
 from .designtools._vacuum import _calc_MotorEfficiency, _calc_BreakEfficiency
-from .metaclasses import static
+from ._static import Static
 import biosteam as bst
 
 ln = np.log
@@ -57,24 +56,8 @@ def calc_NPSH(P_suction, P_vapor, rho_liq):
 
 # %% Classes
 
-class metaPump(static):
-    
-    @property
-    def material(cls):
-        """Pump material"""
-        return Pump._material
-    @material.setter    
-    def material(cls, material):
-        try:
-            Pump._F_M = F_Mdict[material]
-        except KeyError:
-            dummy = str(F_Mdict.keys())[11:-2]
-            raise ValueError(f"material must be one of the following: {dummy}")
-        Pump._F_Mstr = material   
-
-
 # TODO: Fix pump selection to include NPSH available and required.
-class Pump(Unit, metaclass=metaPump):
+class Pump(Static):
     """Create a pump that sets the pressure of the 0th output stream.
 
     **Parameters**
@@ -104,7 +87,6 @@ class Pump(Unit, metaclass=metaPump):
               'NPSH': 'ft',
               'Flow rate': 'gpm'}
     _has_power_utility = True
-    _kwargs = {'P': None}
     BM = 3.3
     
     # Pump type
@@ -148,10 +130,14 @@ class Pump(Unit, metaclass=metaPump):
             raise ValueError(f"material must be one of the following: {dummy}")
         self._F_Mstr = material  
         
+    def __init__(self, ID='', ins=None, outs=(), P=None):
+        super().__init__(ID, ins, outs)
+        self.P = P
+        
     def _run(self):
         out = self._outs[0]
         feed = self._ins[0]
-        out.P = self._kwargs['P'] or feed.P
+        out.P = self.P or feed.P
         out.T = feed.T
         out._phase = feed._phase
     

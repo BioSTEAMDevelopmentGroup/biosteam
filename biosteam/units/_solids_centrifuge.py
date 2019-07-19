@@ -5,12 +5,12 @@ Created on Thu Aug 23 22:18:36 2018
 @author: yoelr
 """
 import numpy as np
-from .. import Unit, Stream
+from .. import Stream
 from .decorators import cost
-from .metaclasses import splitter
+from ._splitter import Splitter
 
 @cost('Solids loading', cost=68040, CE=567, n=0.50, ub=40, BM=2.03)
-class SolidsCentrifuge(Unit, metaclass=splitter):
+class SolidsCentrifuge(Splitter):
     """Create a solids centrifuge that separates out solids according to user defined split. Assume a continuous scroll solid bowl. 
     
     **Parameters**
@@ -34,12 +34,13 @@ class SolidsCentrifuge(Unit, metaclass=splitter):
         .. [0] Seider, Warren D., et al. (2017). "Cost Accounting and Capital Cost Estimation". In Product and Process Design Principles: Synthesis, Analysis, and Evaluation (pp. 481-485). New York: Wiley.
     
     """
-    _kwargs = {'solids': None}
     _units = {'Solids loading': 'tonn/hr'}
     _minimum_solids_loading = 2
 
-    def _init(self):
-        self._solids_index = Stream.indices(self._kwargs['solids'])
+    def __init__(self, ID='', ins=None, outs=(), *,
+                 split, order=None, solids=None):
+        super().__init__(ID, ins, outs, split=split, order=order)
+        self._solids_index = Stream.indices(solids)
     
     def _design(self):
         mass_solids = 0

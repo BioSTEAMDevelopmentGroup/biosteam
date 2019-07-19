@@ -13,7 +13,7 @@ __all__ = ('Graphics',)
 
 _node_function = lambda unit: None
 _edge_in = [{'headport': 'c'} for i in range(3)]
-_edge_out = [{'tailport': 'c'} for i in range(2)]
+_edge_out = [{'tailport': 'c'} for i in range(3)]
 _node = {'shape': 'box',
          'fillcolor': "white:#CDCDCD",
          'style': 'filled',
@@ -50,6 +50,6 @@ class Graphics:
         self.in_system = in_system
 
     def __repr__(self):
-        return 'f<{type(self).__name__}>'
+        return f'<{type(self).__name__}>'
 
 default_graphics = Graphics()

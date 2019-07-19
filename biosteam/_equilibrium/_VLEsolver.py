@@ -4,8 +4,7 @@ Created on Wed Mar 20 18:40:05 2019
 
 @author: yoelr
 """
-from .._utils import isbetween, boundsolve, wegstein
-from .._exceptions import SolverError
+from .._utils import isbetween, bounded_secant, wegstein#, count
 import numpy as np
 
 __all__ = ('VLEsolver', 'solve_v', 'V_2N', 'V_3N', 'V_error')
@@ -28,7 +27,7 @@ def V_error(V, zs, Ks):
     """Vapor fraction error"""
     return (zs*(Ks-1.)/(1.+V*(Ks-1.))).sum()
 
-def solve_v(v, T, P, mol, molnet, zs, N, species, f_activity):
+def solve_v(v, T, P, mol, molnet, zs, N, species, gamma):
     """Solve for vapor mol"""
     Psat_P = np.array([s.VaporPressure(T) for s in species])/P
     V = v.sum()/molnet
@@ -39,25 +38,27 @@ def solve_v(v, T, P, mol, molnet, zs, N, species, f_activity):
     elif N == 3:
         solve_V = V_3N
     else:
-        solve_V = lambda zs, Ks: boundsolve(V_error, 0, V, 1, 0.0001, 0.001, args=(zs, Ks))
+        solve_V = lambda zs, Ks: bounded_secant(V_error, 0, V, 1,
+                                                V_error(0, zs, Ks),
+                                                V_error(1, zs, Ks),
+                                                0.0001, 0.001, args=(zs, Ks))
     Ks = None
     def f(x):
         nonlocal Ks, V
-        Ks = Psat_P * f_activity(species, x/x.sum(), T)
+        Ks = Psat_P * gamma(species, x/x.sum(), T)
         V = solve_V(zs, Ks)
         return zs/(1. + V*(Ks-1.))
-    x = wegstein(f, x, 0.001)
+    x = wegstein(f, x, 0.0001)
     return molnet*V*x/x.sum()*Ks
 
 class VLEsolver:
     """Create a VLEsolver object for solving VLE."""
     __slots__ = ('T', 'P', 'Q', 'V')
     
-    maxiter = 30
-    tolerance = {'T': 0.005,
+    tolerance = {'T': 0.001,
                  'P': 10,
                  'Q': 1,
-                 'V': 0.0005}
+                 'V': 0.0001}
     
     def __init__(self):
         self.T = self.P = self.Q = self.V = 0
@@ -67,25 +68,23 @@ class VLEsolver:
         ytol = self.tolerance[yvar]
         x = getattr(self, xvar)
         y = getattr(self, yvar)
-        if y1 < 0: x0, y0, x1, y1 = x1, y1, x0, y0
+        if y1 < yval: x0, y0, x1, y1 = x1, y1, x0, y0
         if not (isbetween(x0, x, x1) and (yval-10*ytol < y < yval+10*ytol)):
             x = x0 + (yval-y0)*(x1-x0)/(y1-y0)
         y = f(x)
         x_ = x0
-        it = 0
-        maxiter = self.maxiter
-        while abs(x-x_) > xtol and abs(yval-y) > ytol:
-            it += 1
-            if it > maxiter:
-                raise SolverError('failed to converge')
-            elif y > yval:
+        yval_ub = yval + ytol
+        yval_lb = yval - ytol
+        while True:
+            if abs(x-x_) < xtol: break
+            elif y > yval_ub:
                 x_ = x1 = x
                 y1 = y
-            else:
+            elif y < yval_lb:
                 x_ = x0 = x
                 y0 = y
-            dx = x1-x0
-            x = x0 + (yval-y0)*(dx)/(y1-y0)
+            else: break
+            x = x0 + (yval-y0)*(x1-x0)/(y1-y0)
             y = f(x)
         setattr(self, xvar, x)
         setattr(self, yvar, y)

@@ -5,10 +5,9 @@ Created on Sat Jun  8 23:29:37 2019
 @author: yoelr
 """
 from .._unit import Unit
-from .metaclasses import final
 from .._stream import Stream
 from .._mixed_stream import MixedStream
-from .._utils import missing_stream, Ins, Outs
+from .._utils import MissingStream, Ins, Outs
 from .._flowsheet import find
 
 __all__ = ('Junction',)
@@ -33,7 +32,7 @@ def _getstreams(self):
 default_species = lambda upstream, downstream: \
         set(upstream.species._IDs).intersection(downstream.species._IDs)
 
-class Junction(Unit, metaclass=final):
+class Junction(Unit):
     """Create a Junction object that copies specifications from `upstream`
     to `downstream`. This serves to connect streams with different
     Species object.
@@ -80,7 +79,7 @@ class Junction(Unit, metaclass=final):
     def __init__(self, upstream=None, downstream='', species=None):
         # Init upstream
         if upstream is None:
-            self._ins = Ins(self, (missing_stream,))
+            self._ins = Ins(self, (MissingStream,))
         elif isinstance(upstream, Stream):
             self._ins = Ins(self, (upstream,))
         elif isinstance(upstream, str):
@@ -88,7 +87,7 @@ class Junction(Unit, metaclass=final):
         
         # Init downstream
         if downstream is None:
-            self._outs = Outs(self, (missing_stream,))
+            self._outs = Outs(self, (MissingStream,))
         elif isinstance(downstream, Stream):
             self._outs = Outs(self, (downstream,))
         elif isinstance(downstream, str):

@@ -5,8 +5,9 @@ Created on Sat Oct 28 17:28:09 2017
 
 @author: Yoel Rene Cortes-Pena
 """
-__all__ = ['Species', 'Stream', 'MixedStream', 'Unit', 'System', 'TEA',
-           'PowerUtility', 'HeatUtility', 'find', 'Flowsheet', 'CE']
+__all__ = ['Species', 'WorkingSpecies', 'Stream', 'MixedStream',
+           'Unit', 'System', 'TEA', 'PowerUtility', 'HeatUtility',
+           'find', 'Flowsheet', 'CE']
 
 #: Chemical engineering plant cost index (defaults to 567.5 at 2017)
 CE = 567.5 
@@ -36,7 +37,7 @@ del np, pd, os, UnitRegistry
 
 # %% Import biosteam classes
 
-from ._species import Species
+from ._species import Species, WorkingSpecies
 from ._stream import Stream
 from ._mixed_stream import MixedStream
 from ._heat_utility import HeatUtility

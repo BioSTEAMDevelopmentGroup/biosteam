@@ -106,6 +106,17 @@ class Species:
 class WorkingSpecies:
     """Cast a Species object as a WorkingSpecies object that represents the working species of a process."""
     
+    @classmethod
+    def subgroup(cls, working_species, IDs):
+        assert isinstance(working_species, cls), f"working_species must be a '{cls.__name__}' object"
+        self = Species()
+        for i in IDs: setattr(self, i, getattr(working_species, i))
+        WorkingSpecies(self)
+        for i in self.IDs:
+            for j in working_species.get_synonyms(i):
+                self.set_synonym(i, j)
+        return self
+    
     def __new__(cls, self):
         if self.__class__ is cls: return self
         _setattr(self, '__class__', cls)
@@ -118,7 +129,6 @@ class WorkingSpecies:
         index = tup(range(Nspecies))
         for i in compounds: me[i.CAS] = i
         me['_indexdct'] = dict((*zip(CAS, index), *zip(IDs, index)))
-        me['_immutable'] = True
         me['_index'] = index
         me['_compounds'] = compounds
         me['_IDs'] = IDs
@@ -128,6 +138,11 @@ class WorkingSpecies:
     
     def __dir__(self):
         return [i for i in super().__dir__() if i.isalnum()]
+
+    def get_synonyms(self, ID):
+        dct = self._indexdct
+        index = dct[ID]
+        return [i for i, j in dct.items() if j==index] 
 
     def set_synonym(self, ID, synonym):
         compound = getattr(self, ID)
@@ -176,8 +191,34 @@ class WorkingSpecies:
         array[self.indices(IDs)] = data
         return array
 
+    def index(self, ID):
+        """Return index of specified compound.
+
+        **Parameters**
+
+             **ID:** [str] compound ID
+
+        Example
+
+        Index by ID:
+        
+        >>> from biosteam import *
+        >>> Stream.species = Species(['Ethanol', 'Water'])
+        >>> Stream.species.index('Water')
+        1
+
+        Indices by CAS number:
+        
+        >>> Stream.species.index('7732-18-5'):
+        1
+
+        """
+        try: return self._indexdct[ID]
+        except KeyError:
+            if ID not in self._indexdct: raise UndefinedCompound(ID)
+
     def indices(self, IDs):
-        """Return flow indices of specified species.
+        """Return indices of specified species.
 
         **Parameters**
 

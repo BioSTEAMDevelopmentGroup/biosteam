@@ -4,12 +4,11 @@ Created on Mon Mar  4 11:10:49 2019
 
 @author: yoelr
 """
-from .. import Unit
 from .decorators import cost
-from .metaclasses import static
+from ._static import Static
 
 @cost('Flow rate', CE=567, cost=813, ub=500, n=0.38)
-class ConveyingBelt(Unit, metaclass=static):
+class ConveyingBelt(Static):
     length = 40 #: ft
     height = 20 #: ft
     _N_outs = 1

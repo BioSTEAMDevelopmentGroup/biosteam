@@ -6,7 +6,6 @@ Created on Wed May  1 19:05:53 2019
 """
 import biosteam as bst
 import copy
-from ._extend import extend_summary
 from ._design import design
 from math import ceil
 
@@ -140,7 +139,7 @@ def cost(basis, ID=None, *, CE, cost, n, S=1, ub=0, kW=0, BM=1, units=None, fsiz
     return lambda cls: add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, fsize)
 
 def add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, fsize):
-    extend_summary(cls) # Include abstract `_end` method
+    if hasattr(cls, '_end'): raise NotImplementedError()
     if kW: cls._has_power_utility = True
     if basis in cls._units:
         if fsize:

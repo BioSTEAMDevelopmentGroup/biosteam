@@ -33,8 +33,8 @@ def dct2str(dct):
         if N_int == N: N = N_int
         if N == -1: left.append(ID)
         elif N == 1: right.append(ID)
-        elif N < 0: left.append(f"{-N} {ID}")
-        else: right.append(f"{N} {ID}")
+        elif N < 0: left.append(f"{-N:.3g} {ID}")
+        else: right.append(f"{N:.3g} {ID}")
     left = ' + '.join(left)
     right = ' + '.join(right)
     reaction = left + ' -> ' + right

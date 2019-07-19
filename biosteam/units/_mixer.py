@@ -4,11 +4,11 @@ Created on Thu Aug 23 14:26:41 2018
 
 @author: yoelr
 """
-from .. import Unit
-from .metaclasses import final
-from .metaclasses._mixer import run_mixer
+from .. import Stream, Unit
 
-class Mixer(Unit, metaclass=final):
+__all__ = ('Mixer',)
+
+class Mixer(Unit):
     """Create a mixer that mixes any number of streams together.
     
     **Parameters**
@@ -54,16 +54,9 @@ class Mixer(Unit, metaclass=final):
                                Ethanol  14
            
     """
-    results = None
-    _N_ins = 2
-    _N_outs = 1
     _has_cost = False
-    
-    def __init__(self, ID='', outs=(), ins=None):
-        self.ID = ID
-        self._init_ins(ins)
-        self._init_outs(outs)
-
-    simulate = _run = run_mixer
-    installation_cost = purchase_cost = utility_cost = property(lambda: 0)
+    _N_outs = 1
+    _N_ins = 2
+    def _run(self): Stream.sum(self.outs[0], self.ins)
+    _design = _cost = None
 

@@ -10,9 +10,11 @@ from scipy.optimize import newton, broyden2
 from ._exceptions import SolverError, _try_method
 from ._flowsheet import find, make_digraph, save_digraph
 from ._stream import Stream
+from ._facility import Facility
 from ._unit import Unit
 from ._report import save_report
-from ._utils import color_scheme, missing_stream, strtuple, conditional_wegstein
+from ._utils import color_scheme, MissingStream, strtuple, \
+                    conditional_wegstein
 import biosteam as bst
 
 __all__ = ('System',)
@@ -82,7 +84,7 @@ def _notify_run_wrapper(self, func):
     
 # %% System node for diagram
 
-class _systemUnit(Unit):
+class _systemUnit(Unit, isabstract=True):
     """Dummy unit for displaying a system."""
     line = 'System'
     ID = None
@@ -93,7 +95,7 @@ _sysgraphics.edge_in = _sysgraphics.edge_in * 10
 _sysgraphics.edge_out = _sysgraphics.edge_out * 15
 _sysgraphics.node['peripheries'] = '2'
 
-class _streamUnit(Unit):
+class _streamUnit(Unit, isabstract=True):
     line = ''
     ID = None
     _ID = _systemUnit._ID
@@ -174,7 +176,7 @@ class System:
                 units.extend(i._unitnetwork)
                 subsystems.add(i)
                 streams.update(i.streams)
-        streams.discard(missing_stream) 
+        streams.discard(MissingStream) 
         
         # link all unit operations with linked streams
         has = hasattr
@@ -185,7 +187,7 @@ class System:
         self.units = units = set(units)
         
         #: set[Unit] All units in the network that have costs
-        self._network_costunits = costunits = {i for i in units if i._has_cost}
+        self._network_costunits = costunits = {i for i in units if i._cost}
         
         #: set[Unit] All units that have costs.
         self._costunits = costunits = costunits.copy()
@@ -196,7 +198,8 @@ class System:
             if inst(i, Unit):
                 units.add(i)
                 streams.update(i._ins + i._outs)
-                if i._has_cost: costunits.add(i)
+                if i._cost: costunits.add(i)
+                if inst(i, Facility): i._system = self
             elif inst(i, System):
                 units.update(i.units)
                 streams.update(i.streams)
@@ -331,10 +334,10 @@ class System:
         feed = Stream(None)
         feed._ID = ''
         _streamUnit('\n'.join([i.ID for i in ins]),
-                    feed)
+                    None, feed)
         _streamUnit('\n'.join([i.ID for i in outs]),
-                    None, product)
-        unit = _systemUnit(self.ID, product, feed)
+                    product, None)
+        unit = _systemUnit(self.ID, feed, product)
         unit.diagram(1, file, format)
 
     def _surface_diagram(self, file, format='svg'):
@@ -365,7 +368,7 @@ class System:
                 if len(feeds) > 1:
                     feed = Stream(None)
                     feed._ID = ''
-                    units.add(_streamUnit('\n'.join([i.ID for i in feeds]), feed))
+                    units.add(_streamUnit('\n'.join([i.ID for i in feeds]), None, feed))
                     ins.append(feed)
                 else: ins += feeds
                 
@@ -373,11 +376,11 @@ class System:
                     product = Stream(None)
                     product._ID = ''
                     units.add(_streamUnit('\n'.join([i.ID for i in products]),
-                                          None, product))
+                                          product, None))
                     outs.append(product)
                 else: outs += products
                 
-                subsystem_unit = _systemUnit(i.ID, outs, ins)
+                subsystem_unit = _systemUnit(i.ID, ins, outs)
                 units.add(subsystem_unit)
                 
         System(None, units)._thorough_diagram(file, format)
@@ -438,9 +441,9 @@ class System:
         recycle.mol[:] = mol
         T = recycle.T
         self._run()
-        self._iter += 1
         self._mol_error = abs(mol - recycle.mol).sum()
         self._T_error = abs(T - recycle.T)
+        self._iter += 1
         if self._iter > self.maxiter:
             raise SolverError(f'{repr(self)} could not converge' + self._error_info())
         elif self._mol_error < self.molar_tolerance and self._T_error < self.T_tolerance:
@@ -541,8 +544,7 @@ class System:
             try: i.ID = ''
             except: continue
             for s in (i._ins + i._outs):
-                if (s is not missing_stream
-                    and s._sink and s._source
+                if (s and s._sink and s._source
                     and s not in streams):
                     s.ID = ''
                     streams.add(s)
