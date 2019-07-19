@@ -32,7 +32,6 @@ def solve_v(v, T, P, mol, molnet, zs, N, species, gamma):
     Psat_P = np.array([s.VaporPressure(T) for s in species])/P
     V = v.sum()/molnet
     l = mol - v
-    x = l/l.sum()
     if N == 2:
         solve_V = V_2N
     elif N == 3:
@@ -41,14 +40,14 @@ def solve_v(v, T, P, mol, molnet, zs, N, species, gamma):
         solve_V = lambda zs, Ks: bounded_secant(V_error, 0, V, 1,
                                                 V_error(0, zs, Ks),
                                                 V_error(1, zs, Ks),
-                                                0.0001, 0.001, args=(zs, Ks))
+                                                1e-4, 1e-4, args=(zs, Ks))
     Ks = None
     def f(x):
         nonlocal Ks, V
         Ks = Psat_P * gamma(species, x/x.sum(), T)
         V = solve_V(zs, Ks)
         return zs/(1. + V*(Ks-1.))
-    x = wegstein(f, x, 0.0001)
+    x = wegstein(f, l/l.sum(), 1e-4)
     return molnet*V*x/x.sum()*Ks
 
 class VLEsolver:
@@ -75,9 +74,8 @@ class VLEsolver:
         x_ = x0
         yval_ub = yval + ytol
         yval_lb = yval - ytol
-        while True:
-            if abs(x-x_) < xtol: break
-            elif y > yval_ub:
+        while abs(x-x_) > xtol:
+            if y > yval_ub:
                 x_ = x1 = x
                 y1 = y
             elif y < yval_lb:

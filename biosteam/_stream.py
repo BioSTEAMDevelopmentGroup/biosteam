@@ -1527,7 +1527,7 @@ class Stream(metaclass=metaStream):
                                *gamma(species, x/x.sum(), T)))
         
         def dew_error(T):
-            x_dew[:] = wegstein(f, x_dew, 0.0001, args=(T,))
+            x_dew[:] = wegstein(f, x_dew, 1e-4, args=(T,))
             return 1 - x_dew.sum()
 
         # Solve
@@ -1611,7 +1611,7 @@ class Stream(metaclass=metaStream):
         f = lambda x, P: y*P/(Psat*gamma(species, x/x.sum(), T))
         
         def dew_error(P):
-            x_dew[:] = wegstein(f, x_dew, 0.0001, args=(P,))
+            x_dew[:] = wegstein(f, x_dew, 1e-4, args=(P,))
             return 1 - x_dew.sum()
         
         # Solve

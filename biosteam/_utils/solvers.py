@@ -29,8 +29,7 @@ def bounded_secant(f, x0, x, x1, y0, y1, xtol, ytol, args=()):
     if y1 < 0: x0, y0, x1, y1 = x1, y1, x0, y0
     y = f(x, *args)
     x_ = x0
-    while True:
-        if abs(x-x_) < xtol: return x
+    while abs(x-x_) > xtol:
         if y > ytol:
             x_ = x1 = x
             y1 = y
@@ -40,6 +39,7 @@ def bounded_secant(f, x0, x, x1, y0, y1, xtol, ytol, args=()):
         else: return x
         x = x0 - y0*(x1-x0)/(y1-y0)
         y = f(x, *args)
+    return x
 
 def accelerated_secant(f, x0, xtol, ytol, args=(), maxiter=50):
     x1 = x0*(1 + 1e-4) + (-1e-4 if x0 < 0 else 1e-4)
@@ -68,9 +68,8 @@ def wegstein(f, x0, xtol, args=(), maxiter=50):
     ones = np.ones(len_)
     s = np.zeros(len_)
     x1 = y0 = f(x0, *args)
-    y1 = x0
     for iter in range(maxiter):
-        if (abs(y1 - x1) < xtol).all(): return x1
+        if (abs(y0 - x0) < xtol).all(): return y0
         y1 = f(x1, *args)
         x_diff = x1 - x0
         pos = x_diff != 0
@@ -98,7 +97,7 @@ def conditional_wegstein(f, x0):
         s[s > 0.9] = 0.9
         w = ones/(ones-s)
         x1 = w*y1 + (1-w)*x1
-    return x1
+    return y1
 
 
     
