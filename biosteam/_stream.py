@@ -508,14 +508,16 @@ class Stream(metaclass=metaStream):
         if isinstance(index, int):
             return Sink(self, index)
         elif isinstance(index, Stream):
-            raise TypeError(f"unsupported operand type(s) for -: '{type(self)}' and '{type(index)}'")
+            raise TypeError("unsupported operand type(s) for -: "
+                            f"'{type(self)}' and '{type(index)}'")
         return index.__rsub__(self)
         
     def __rsub__(self, index):
         if isinstance(index, int):
             return Source(self, index)
         elif isinstance(index, Stream):
-            raise TypeError(f"unsupported operand type(s) for -: '{type(self)}' and '{type(index)}'")
+            raise TypeError("unsupported operand type(s) for -: "
+                            "'{type(self)}' and '{type(index)}'")
         return index.__sub__(self)
 
     # Backward pipping    
@@ -572,7 +574,8 @@ class Stream(metaclass=metaStream):
                 self._phase = stream.phase
         except Exception as Error:
             if isinstance(stream, Stream): raise Error
-            else: raise TypeError(f"link must be a Stream object, not a '{type(stream).__name__}' object.")
+            else: raise TypeError(f"link must be a Stream object, not a "
+                                  "'{type(stream).__name__}' object.")
     
     # def __getattr__(self, key):
     #     if self._link is MissingStream:
@@ -844,7 +847,8 @@ class Stream(metaclass=metaStream):
                         it2 += 1
                         C = self.C
                         if it2 > 20:
-                            raise SolverError(f"could not solve temperature given enthalpy")
+                            raise SolverError("could not solve temperature "
+                                              "given enthalpy")
         except Exception as Error:
             if (self._mol == 0).all():
                 raise ValueError(f"cannot set enthalpy to empty stream")
@@ -1274,8 +1278,8 @@ class Stream(metaclass=metaStream):
                             stream._mol[phase_index[self.phase], indices] = 0
                         else:
                             stream._mol[indices] = 0
-        else:
-            raise ValueError('species must be the same to copy stream specifications')
+        else: raise ValueError('species must be the same '
+                               'to copy stream specifications')
 
     def empty(self):
         """Set flow rates to zero
@@ -1830,10 +1834,12 @@ class Stream(metaclass=metaStream):
                     s_sum._mol[:] += s.mol
         except Exception as Error:
             if not inst(s_sum, Stream):
-                raise TypeError(f's_sum must be a Stream object, not {type(s_sum).__name__}')
+                raise TypeError('s_sum must be a Stream object, not '
+                                "'{type(s_sum).__name__}'")
             for s in streams:
                 if not inst(s, Stream):
-                    raise TypeError('streams must only contain Stream objects, not {type(s).__name__} objects')
+                    raise TypeError('streams must only contain Stream '
+                                    f'objects, not {type(s).__name__} objects')
             raise Error
 
         # Energy Balance
