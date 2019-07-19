@@ -99,7 +99,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
@@ -117,7 +117,6 @@
 <li class="toctree-l1"><a class="reference internal" href="compounds.html">compounds</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="metaclasses.html">metaclasses</a></li>
 <li class="toctree-l2"><a class="reference internal" href="designtools.html">designtools</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">facilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Centrifuge_LLE.html">Centrifuge_LLE</a></li>
@@ -231,8 +230,37 @@
 <p>Created on Tue May 28 11:32:33 2019</p>
 <p>&#64;author: yoelr</p>
 <dl class="class">
+<dt id="biosteam.units.facilities.Facility">
+<em class="property">class </em><code class="descclassname">biosteam.units.facilities.</code><code class="descname">Facility</code><span class="sig-paren">(</span><em>ID=''</em>, <em>ins=None</em>, <em>outs=()</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_facility.html#Facility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.Facility" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="class">
+<dt id="biosteam.units.facilities.ProcessWaterCenter">
+<em class="property">class </em><code class="descclassname">biosteam.units.facilities.</code><code class="descname">ProcessWaterCenter</code><span class="sig-paren">(</span><em>ID</em>, <em>ins=None</em>, <em>outs=()</em>, <em>*</em>, <em>BT</em>, <em>CT</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/facilities/_process_water_center.html#ProcessWaterCenter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.ProcessWaterCenter" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="biosteam.units.facilities.ProcessWaterCenter.makeup_water_price">
+<code class="descname">makeup_water_price</code><em class="property"> = 0.0002113</em><a class="headerlink" href="#biosteam.units.facilities.ProcessWaterCenter.makeup_water_price" title="Permalink to this definition">¶</a></dt>
+<dd><p>(USD/kg)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="biosteam.units.facilities.ChilledWaterPackage">
+<em class="property">class </em><code class="descclassname">biosteam.units.facilities.</code><code class="descname">ChilledWaterPackage</code><span class="sig-paren">(</span><em>ID=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/facilities/_chilled_water_package.html#ChilledWaterPackage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.ChilledWaterPackage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a chilled water package that is cost based on flow rate of chilled water.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><p><strong>ID:</strong> [str] Unique identification. If set as ‘’, a default ID will be chosen.</p>
+<p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+<p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+<p><strong>Duty:</strong> Chilled water duty (kJ/hr)</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="class">
 <dt id="biosteam.units.facilities.BoilerTurbogenerator">
-<em class="property">class </em><code class="descclassname">biosteam.units.facilities.</code><code class="descname">BoilerTurbogenerator</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>boiler_efficiency=0.8</em>, <em>turbo_generator_efficiency=0.85</em>, <em>steam=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/facilities/_boiler_turbogenerator.html#BoilerTurbogenerator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.BoilerTurbogenerator" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.units.facilities.</code><code class="descname">BoilerTurbogenerator</code><span class="sig-paren">(</span><em>ID=''</em>, <em>ins=None</em>, <em>outs=()</em>, <em>*</em>, <em>boiler_efficiency=0.8</em>, <em>turbo_generator_efficiency=0.85</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/facilities/_boiler_turbogenerator.html#BoilerTurbogenerator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.BoilerTurbogenerator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Boiler_TurboGenerator object that will calculate electricity generation from burning the feed. It also takes into account how much steam is being produced, and the required cooling utility of the turbo generator. No emissions or mass balances are taken into account.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -241,7 +269,6 @@
 <p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
 <p><strong>boiler_efficiency:</strong> [float] Fraction of heat transfered to steam.</p>
 <p><strong>turbo_generator_efficiency:</strong> [float] Fraction of steam heat converted to electricity.</p>
-<p><strong>steam:</strong> [Stream] Steam product from the boiler.</p>
 </div></blockquote>
 <p><strong>ins</strong></p>
 <blockquote>
@@ -253,26 +280,9 @@
 
 <dl class="class">
 <dt id="biosteam.units.facilities.CoolingTower">
-<em class="property">class </em><code class="descclassname">biosteam.units.facilities.</code><code class="descname">CoolingTower</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/facilities/_cooling_tower.html#CoolingTower"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.CoolingTower" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.units.facilities.</code><code class="descname">CoolingTower</code><span class="sig-paren">(</span><em>ID=''</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/facilities/_cooling_tower.html#CoolingTower"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.CoolingTower" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a cooling tower that is cost based on flow rate of cooling water.</p>
-<p><strong>ins</strong></p>
-<blockquote>
-<div>[0] Cooling water</div></blockquote>
-<p><strong>outs</strong></p>
-<blockquote>
-<div>[0] Cooling water</div></blockquote>
-<dl class="method">
-<dt id="biosteam.units.facilities.CoolingTower.simulate">
-<code class="descname">simulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.facilities.CoolingTower.simulate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Run rigourous simulation and determine all design requirements and costs.</p>
 </dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="biosteam.units.facilities.CoolingTowerWithPowerDemand">
-<em class="property">class </em><code class="descclassname">biosteam.units.facilities.</code><code class="descname">CoolingTowerWithPowerDemand</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/facilities/_cooling_tower.html#CoolingTowerWithPowerDemand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.CoolingTowerWithPowerDemand" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 </div>
 

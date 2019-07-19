@@ -58,5 +58,4 @@ class Mixer(Unit):
     _N_outs = 1
     _N_ins = 2
     def _run(self): Stream.sum(self.outs[0], self.ins)
-    _design = _cost = None
 

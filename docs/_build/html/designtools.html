@@ -45,7 +45,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="facilities" href="facilities.html" />
-    <link rel="prev" title="metaclasses" href="metaclasses.html" /> 
+    <link rel="prev" title="decorators" href="decorators.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -99,7 +99,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
@@ -117,7 +117,6 @@
 <li class="toctree-l1"><a class="reference internal" href="compounds.html">compounds</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="metaclasses.html">metaclasses</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">designtools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Centrifuge_LLE.html">Centrifuge_LLE</a></li>
@@ -300,6 +299,29 @@
 <div>P: [float] Pressure (psia)</div></blockquote>
 </dd></dl>
 
+<dl class="function">
+<dt id="biosteam.units.designtools.size_batch">
+<code class="descclassname">biosteam.units.designtools.</code><code class="descname">size_batch</code><span class="sig-paren">(</span><em>v_0</em>, <em>tau</em>, <em>tau_0</em>, <em>N_reactors</em>, <em>V_wf</em><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="_modules/biosteam/units/designtools/_batch.html#size_batch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.designtools.size_batch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solve for batch reactor volume, cycle time, and loading time</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><p><strong>v_0:</strong> Flow rate</p>
+<p><strong>tau:</strong> Reaction time</p>
+<p><strong>tau_0:</strong> Turnaround time</p>
+<p><strong>N_reactors:</strong> Number of reactors</p>
+<p><strong>V_wf:</strong> Fraction of working volume</p>
+</div></blockquote>
+<dl class="docutils">
+<dt><strong>Returns:</strong> dict[str: float]</dt>
+<dd><ul class="first last simple">
+<li>‘Reactor volume’</li>
+<li>‘Cycle time’</li>
+<li>‘Loading time’</li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 
 
@@ -313,7 +335,7 @@
         <a href="facilities.html" class="btn btn-neutral float-right" title="facilities" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="metaclasses.html" class="btn btn-neutral float-left" title="metaclasses" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="decorators.html" class="btn btn-neutral float-left" title="decorators" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

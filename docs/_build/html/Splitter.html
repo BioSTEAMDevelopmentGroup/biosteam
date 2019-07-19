@@ -99,7 +99,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
@@ -117,7 +117,6 @@
 <li class="toctree-l1"><a class="reference internal" href="compounds.html">compounds</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="metaclasses.html">metaclasses</a></li>
 <li class="toctree-l2"><a class="reference internal" href="designtools.html">designtools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Centrifuge_LLE.html">Centrifuge_LLE</a></li>
@@ -230,11 +229,14 @@
 <span id="splitter"></span><h1>Splitter<a class="headerlink" href="#module-biosteam.units" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.units.Splitter">
-<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">Splitter</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>split=None</em>, <em>order=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_splitter.html#Splitter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Splitter" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">Splitter</code><span class="sig-paren">(</span><em>ID=''</em>, <em>ins=None</em>, <em>outs=()</em>, <em>*</em>, <em>split</em>, <em>order=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_splitter.html#Splitter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Splitter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a splitter that separates mixed streams based on splits.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
-<div><dl class="docutils">
+<div><p><strong>ID:</strong> [str] Unique identification. If set as ‘’, a default ID will be chosen.</p>
+<p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+<p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+<dl class="docutils">
 <dt><strong>split:</strong> Should be one of the following</dt>
 <dd><ul class="first last simple">
 <li>[float] The fraction of net feed in the 0th output stream</li>

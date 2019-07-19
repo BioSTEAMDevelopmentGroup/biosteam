@@ -99,7 +99,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
@@ -117,7 +117,6 @@
 <li class="toctree-l1"><a class="reference internal" href="compounds.html">compounds</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="metaclasses.html">metaclasses</a></li>
 <li class="toctree-l2"><a class="reference internal" href="designtools.html">designtools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Centrifuge_LLE.html">Centrifuge_LLE</a></li>
@@ -230,7 +229,7 @@
 <span id="fermentation"></span><h1>Fermentation<a class="headerlink" href="#module-biosteam.units" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.units.Fermentation">
-<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">Fermentation</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>tau=None</em>, <em>efficiency=None</em>, <em>N=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_fermentation.html#Fermentation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Fermentation" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">Fermentation</code><span class="sig-paren">(</span><em>ID=''</em>, <em>ins=None</em>, <em>outs=()</em>, <em>*</em>, <em>tau</em>, <em>N</em>, <em>efficiency=0.9</em>, <em>iskinetic=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_fermentation.html#Fermentation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Fermentation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Fermentation object which models large-scale batch fermentation for the production of 1st generation ethanol using yeast [1, 2, 3, 4]. Only sucrose and glucose are taken into account. Conversion is based on reaction time, <cite>tau</cite>. Cleaning and unloading time, <cite>tau_0</cite>, fraction of working volume, <cite>V_wf</cite>, and number of reactors, <cite>N_reactors</cite>, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3].</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -266,7 +265,7 @@
 <div><a class="reference internal" href="Fermentation Example.html"><span class="doc">Fermentation</span></a></div></blockquote>
 <dl class="attribute">
 <dt id="biosteam.units.Fermentation.tau_0">
-<code class="descname">tau_0</code><em class="property"> = 12</em><a class="headerlink" href="#biosteam.units.Fermentation.tau_0" title="Permalink to this definition">¶</a></dt>
+<code class="descname">tau_0</code><em class="property"> = 3</em><a class="headerlink" href="#biosteam.units.Fermentation.tau_0" title="Permalink to this definition">¶</a></dt>
 <dd><p>Cleaning and unloading time (hr)</p>
 </dd></dl>
 

@@ -89,6 +89,10 @@ def _cost(self):
             kW += x.kW*F
     if kW: self._power_utility(kW)
 
+def _extended_cost(self):
+    _cost(self)
+    self._end_decorated_cost_
+
 @property
 def BM(self):
     raise AttributeError("can only get installation factor 'BM' through 'cost_items'")
@@ -132,14 +136,13 @@ def cost(basis, ID=None, *, CE, cost, n, S=1, ub=0, kW=0, BM=1, units=None, fsiz
         
     **Examples**
     
-        :doc:`Unit metaclasses and decorators`
+        :doc:`Unit decorators`
     
     """
     
     return lambda cls: add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, fsize)
 
 def add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, fsize):
-    if hasattr(cls, '_end'): raise NotImplementedError()
     if kW: cls._has_power_utility = True
     if basis in cls._units:
         if fsize:
@@ -165,7 +168,10 @@ def add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, fsize):
             raise RuntimeError("'_cost' method is already implemented, cannot decorate class")
         ID = ID or cls.line
         cls.cost_items = {ID: CostItem(basis, units, S, ub, CE, cost, n, kW, BM)}
-        cls._cost = _cost
+        if hasattr(cls, '_end_decorated_cost_'):
+            cls._cost = _extended_cost
+        else:
+            cls._cost = _cost
         cls.BM = BM_property
         cls.installation_cost = installation_cost
     return cls

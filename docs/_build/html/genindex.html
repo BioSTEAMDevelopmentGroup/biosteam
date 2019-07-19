@@ -98,7 +98,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
@@ -209,6 +209,7 @@
  | <a href="#V"><strong>V</strong></a>
  | <a href="#W"><strong>W</strong></a>
  | <a href="#X"><strong>X</strong></a>
+ | <a href="#Y"><strong>Y</strong></a>
  
 </div>
 <h2 id="_">_</h2>
@@ -262,8 +263,6 @@
 </li>
       <li><a href="facilities.html#module-biosteam.units.facilities">biosteam.units.facilities (module)</a>
 </li>
-      <li><a href="metaclasses.html#module-biosteam.units.metaclasses">biosteam.units.metaclasses (module)</a>
-</li>
       <li><a href="Block.html#biosteam.evaluation.Block">Block (class in biosteam.evaluation)</a>
 </li>
       <li><a href="Unit.html#biosteam.Unit.BM">BM (biosteam.Unit attribute)</a>
@@ -288,17 +287,17 @@
 </li>
       <li><a href="Chemical.html#biosteam.compounds.Chemical">Chemical (class in biosteam.compounds)</a>
 </li>
+      <li><a href="facilities.html#biosteam.units.facilities.ChilledWaterPackage">ChilledWaterPackage (class in biosteam.units.facilities)</a>
+</li>
       <li><a href="Compound.html#biosteam.compounds.Compound">Compound (class in biosteam.compounds)</a>
 </li>
       <li><a href="inspect.html#biosteam.inspect.compound_split">compound_split() (in module biosteam.inspect)</a>
 </li>
       <li><a href="System.html#biosteam.System.converge_method">converge_method (biosteam.System attribute)</a>
 </li>
-      <li><a href="facilities.html#biosteam.units.facilities.CoolingTower">CoolingTower (class in biosteam.units.facilities)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="facilities.html#biosteam.units.facilities.CoolingTowerWithPowerDemand">CoolingTowerWithPowerDemand (class in biosteam.units.facilities)</a>
+      <li><a href="facilities.html#biosteam.units.facilities.CoolingTower">CoolingTower (class in biosteam.units.facilities)</a>
 </li>
       <li><a href="Stream.html#biosteam.Stream.copyflow">copyflow() (biosteam.Stream method)</a>
 </li>
@@ -307,6 +306,8 @@
       <li><a href="Stream.html#biosteam.Stream.cost">cost (biosteam.Stream attribute)</a>
 </li>
       <li><a href="decorators.html#biosteam.units.decorators.cost">cost() (in module biosteam.units.decorators)</a>
+</li>
+      <li><a href="decorators.html#biosteam.units.decorators.CostItem">CostItem (class in biosteam.units.decorators)</a>
 </li>
       <li><a href="Chemical.html#biosteam.compounds.Chemical.Cp">Cp (biosteam.compounds.Chemical attribute)</a>
 
@@ -378,11 +379,9 @@
 </li>
       <li><a href="Stream.html#biosteam.Stream.empty">empty() (biosteam.Stream method)</a>
 </li>
-      <li><a href="Stream.html#biosteam.Stream.enable_phases">enable_phases() (biosteam.Stream method)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="Stream.html#biosteam.Stream.eqT">eqT() (biosteam.Stream static method)</a>
+      <li><a href="Stream.html#biosteam.Stream.enable_phases">enable_phases() (biosteam.Stream method)</a>
 </li>
       <li><a href="Model.html#biosteam.evaluation.Model.evaluate">evaluate() (biosteam.evaluation.Model method)</a>
 </li>
@@ -396,13 +395,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="System.html#biosteam.System.facilities">facilities (biosteam.System attribute)</a>
 </li>
+      <li><a href="facilities.html#biosteam.units.facilities.Facility">Facility (class in biosteam.units.facilities)</a>
+</li>
       <li><a href="Compound.html#biosteam.compounds.Compound.Factory">Factory() (biosteam.compounds.Compound class method)</a>
 </li>
       <li><a href="System.html#biosteam.System.feeds">feeds (biosteam.System attribute)</a>
 </li>
       <li><a href="Fermentation.html#biosteam.units.Fermentation">Fermentation (class in biosteam.units)</a>
-</li>
-      <li><a href="metaclasses.html#biosteam.units.metaclasses.final">final (class in biosteam.units.metaclasses)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -458,16 +457,24 @@
 </li>
       <li><a href="HeatUtility.html#biosteam.HeatUtility">HeatUtility (class in biosteam)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="HeatUtility.html#biosteam.HeatUtility.UtilityAgent">HeatUtility.UtilityAgent (class in biosteam)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="Stream.html#biosteam.Stream.help">help() (biosteam.Stream class method)</a>
 </li>
       <li><a href="Stream.html#biosteam.Stream.Hf">Hf (biosteam.Stream attribute)</a>
 </li>
       <li><a href="designtools.html#biosteam.units.designtools.HNATable">HNATable() (in module biosteam.units.designtools)</a>
 </li>
+      <li><a href="Stream.html#biosteam.Stream.Hnet">Hnet (biosteam.Stream attribute)</a>
+</li>
+      <li><a href="Flash.html#biosteam.units.Flash.HNK">HNK (biosteam.units.Flash attribute)</a>
+
+      <ul>
+        <li><a href="HXprocess.html#biosteam.units.HXprocess.HNK">(biosteam.units.HXprocess attribute)</a>
+</li>
+      </ul></li>
       <li><a href="Flash.html#biosteam.units.Flash.HoldupTime">HoldupTime (biosteam.units.Flash attribute)</a>
 </li>
       <li><a href="HXprocess.html#biosteam.units.HXprocess">HXprocess (class in biosteam.units)</a>
@@ -496,9 +503,11 @@
         <li><a href="StorageTank.html#biosteam.units.StorageTank.ID">(biosteam.units.StorageTank attribute)</a>
 </li>
       </ul></li>
+      <li><a href="Pump.html#biosteam.units.Pump.ignore_NPSH">ignore_NPSH (biosteam.units.Pump attribute)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="Pump.html#biosteam.units.Pump.ignore_NPSH">ignore_NPSH (biosteam.units.Pump attribute)</a>
+      <li><a href="Stream.html#biosteam.Stream.index">index (biosteam.Stream attribute)</a>
 </li>
       <li><a href="Stream.html#biosteam.Stream.indices">indices (biosteam.Stream attribute)</a>
 </li>
@@ -570,10 +579,10 @@
 </li>
       <li><a href="MixedStream.html#biosteam.MixedStream.LIQUID_molfrac">LIQUID_molfrac (biosteam.MixedStream attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="MixedStream.html#biosteam.MixedStream.liquid_molfrac">liquid_molfrac (biosteam.MixedStream attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="MixedStream.html#biosteam.MixedStream.LIQUID_molnet">LIQUID_molnet (biosteam.MixedStream attribute)</a>
 </li>
       <li><a href="MixedStream.html#biosteam.MixedStream.liquid_molnet">liquid_molnet (biosteam.MixedStream attribute)</a>
@@ -596,6 +605,12 @@
         <li><a href="Stream.html#biosteam.Stream.LLE">(biosteam.Stream method)</a>
 </li>
       </ul></li>
+      <li><a href="Flash.html#biosteam.units.Flash.LNK">LNK (biosteam.units.Flash attribute)</a>
+
+      <ul>
+        <li><a href="HXprocess.html#biosteam.units.HXprocess.LNK">(biosteam.units.HXprocess attribute)</a>
+</li>
+      </ul></li>
       <li><a href="Model.html#biosteam.evaluation.Model.load_samples">load_samples() (biosteam.evaluation.Model method)</a>
 </li>
   </ul></td>
@@ -604,6 +619,8 @@
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="facilities.html#biosteam.units.facilities.ProcessWaterCenter.makeup_water_price">makeup_water_price (biosteam.units.facilities.ProcessWaterCenter attribute)</a>
+</li>
       <li><a href="MixedStream.html#biosteam.MixedStream.mass">mass (biosteam.MixedStream attribute)</a>
 
       <ul>
@@ -630,17 +647,17 @@
         <li><a href="Pump.html#biosteam.units.Pump.material">(biosteam.units.Pump attribute)</a>
 </li>
       </ul></li>
+      <li><a href="System.html#biosteam.System.maxiter">maxiter (biosteam.System attribute)</a>
+</li>
       <li><a href="Transesterification.html#biosteam.units.Transesterification.methanol2lipid">methanol2lipid (biosteam.units.Transesterification attribute)</a>
 </li>
       <li><a href="Flash.html#biosteam.units.Flash.Mist">Mist (biosteam.units.Flash attribute)</a>
 </li>
-      <li><a href="MixedStream.html#biosteam.MixedStream">MixedStream (class in biosteam)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="Mixer.html#biosteam.units.Mixer">Mixer (class in biosteam.units)</a>
+      <li><a href="MixedStream.html#biosteam.MixedStream">MixedStream (class in biosteam)</a>
 </li>
-      <li><a href="metaclasses.html#biosteam.units.metaclasses.mixer">mixer (class in biosteam.units.metaclasses)</a>
+      <li><a href="Mixer.html#biosteam.units.Mixer">Mixer (class in biosteam.units)</a>
 </li>
       <li><a href="MixTank.html#biosteam.units.MixTank">MixTank (class in biosteam.units)</a>
 </li>
@@ -652,6 +669,8 @@
         <li><a href="Stream.html#biosteam.Stream.mol">(biosteam.Stream attribute)</a>
 </li>
       </ul></li>
+      <li><a href="System.html#biosteam.System.molar_tolerance">molar_tolerance (biosteam.System attribute)</a>
+</li>
       <li><a href="MolecularSieve.html#biosteam.units.MolecularSieve">MolecularSieve (class in biosteam.units)</a>
 </li>
       <li><a href="MixedStream.html#biosteam.MixedStream.molfrac">molfrac (biosteam.MixedStream attribute)</a>
@@ -696,14 +715,10 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="Distillation.html#biosteam.units.Distillation.open_area_factor">open_area_factor (biosteam.units.Distillation attribute)</a>
 </li>
-      <li><a href="System.html#biosteam.System.options">options (biosteam.System attribute)</a>
-
-      <ul>
-        <li><a href="TEA.html#biosteam.TEA.options">(biosteam.TEA attribute)</a>
-</li>
-      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="TEA.html#biosteam.TEA.options">options (biosteam.TEA attribute)</a>
+</li>
       <li><a href="MassBalance.html#biosteam.units.MassBalance.outs">outs (biosteam.units.MassBalance attribute)</a>
 </li>
   </ul></td>
@@ -760,6 +775,8 @@
         <li><a href="Stream.html#biosteam.Stream.price">(biosteam.Stream attribute)</a>
 </li>
       </ul></li>
+      <li><a href="facilities.html#biosteam.units.facilities.ProcessWaterCenter">ProcessWaterCenter (class in biosteam.units.facilities)</a>
+</li>
       <li><a href="TEA.html#biosteam.TEA.production_cost">production_cost() (biosteam.TEA method)</a>
 </li>
       <li><a href="System.html#biosteam.System.products">products (biosteam.System attribute)</a>
@@ -806,6 +823,8 @@
 </li>
       <li><a href="reaction.html#biosteam.reaction.Reaction.reactant">reactant (biosteam.reaction.Reaction attribute)</a>
 </li>
+      <li><a href="Transesterification.html#biosteam.units.Transesterification.reaction">reaction (biosteam.units.Transesterification attribute)</a>
+</li>
       <li><a href="reaction.html#biosteam.reaction.Reaction">Reaction (class in biosteam.reaction)</a>
 </li>
       <li><a href="System.html#biosteam.System.recycle">recycle (biosteam.System attribute)</a>
@@ -814,6 +833,8 @@
 </li>
       <li><a href="System.html#biosteam.System.reset_names">reset_names() (biosteam.System method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="TEA.html#biosteam.TEA.results">results() (biosteam.TEA method)</a>
 
       <ul>
@@ -826,15 +847,11 @@
         <li><a href="StorageTank.html#biosteam.units.StorageTank.results">(biosteam.units.StorageTank method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="Stream.html#biosteam.Stream.rho">rho (biosteam.Stream attribute)</a>
 </li>
       <li><a href="Stream.html#biosteam.Stream.rhom">rhom (biosteam.Stream attribute)</a>
 </li>
-      <li><a href="metaclasses.html#biosteam.units.metaclasses.run_split">run_split() (in module biosteam.units.metaclasses)</a>
-</li>
-      <li><a href="metaclasses.html#biosteam.units.metaclasses.run_split_with_mixing">run_split_with_mixing() (in module biosteam.units.metaclasses)</a>
+      <li><a href="HXutility.html#biosteam.units.HXutility.rigorous">rigorous (biosteam.units.HXutility attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -901,14 +918,12 @@
 </li>
         <li><a href="MixTank.html#biosteam.units.MixTank.simulate">(biosteam.units.MixTank method)</a>
 </li>
-        <li><a href="Pump.html#biosteam.units.Pump.simulate">(biosteam.units.Pump method)</a>
-</li>
         <li><a href="StorageTank.html#biosteam.units.StorageTank.simulate">(biosteam.units.StorageTank method)</a>
-</li>
-        <li><a href="facilities.html#biosteam.units.facilities.CoolingTower.simulate">(biosteam.units.facilities.CoolingTower method)</a>
 </li>
       </ul></li>
       <li><a href="Stream.html#biosteam.Stream.sink">sink (biosteam.Stream attribute)</a>
+</li>
+      <li><a href="designtools.html#biosteam.units.designtools.size_batch">size_batch() (in module biosteam.units.designtools)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -940,23 +955,19 @@
 </li>
       <li><a href="Species.html#biosteam.Species">Species (class in biosteam)</a>
 </li>
-      <li><a href="HXprocess.html#biosteam.units.HXprocess.species_IDs">species_IDs (biosteam.units.HXprocess attribute)</a>
-</li>
-      <li><a href="MolecularSieve.html#biosteam.units.MolecularSieve.split">split (biosteam.units.MolecularSieve attribute)</a>
+      <li><a href="Flash.html#biosteam.units.Flash.species_IDs">species_IDs (biosteam.units.Flash attribute)</a>
 
       <ul>
-        <li><a href="Splitter.html#biosteam.units.Splitter.split">(biosteam.units.Splitter attribute)</a>
+        <li><a href="HXprocess.html#biosteam.units.HXprocess.species_IDs">(biosteam.units.HXprocess attribute)</a>
 </li>
       </ul></li>
-      <li><a href="Splitter.html#biosteam.units.Splitter">Splitter (class in biosteam.units)</a>
+      <li><a href="Splitter.html#biosteam.units.Splitter.split">split (biosteam.units.Splitter attribute)</a>
 </li>
-      <li><a href="metaclasses.html#biosteam.units.metaclasses.splitter">splitter (class in biosteam.units.metaclasses)</a>
+      <li><a href="Splitter.html#biosteam.units.Splitter">Splitter (class in biosteam.units)</a>
 </li>
       <li><a href="Distillation.html#biosteam.units.Distillation.stage_efficiency">stage_efficiency (biosteam.units.Distillation attribute)</a>
 </li>
       <li><a href="State.html#biosteam.evaluation.State">State (class in biosteam.evaluation)</a>
-</li>
-      <li><a href="metaclasses.html#biosteam.units.metaclasses.static">static (class in biosteam.units.metaclasses)</a>
 </li>
       <li><a href="reaction.html#biosteam.reaction.Reaction.stoichiometry">stoichiometry (biosteam.reaction.Reaction attribute)</a>
 </li>
@@ -991,7 +1002,17 @@
       <ul>
         <li><a href="Stream.html#biosteam.Stream.T">(biosteam.Stream attribute)</a>
 </li>
+        <li><a href="Flash.html#biosteam.units.Flash.T">(biosteam.units.Flash attribute)</a>
+</li>
+        <li><a href="HXutility.html#biosteam.units.HXutility.T">(biosteam.units.HXutility attribute)</a>
+</li>
+        <li><a href="Transesterification.html#biosteam.units.Transesterification.T">(biosteam.units.Transesterification attribute)</a>
+</li>
       </ul></li>
+      <li><a href="Stream.html#biosteam.Stream.T_equilibrium">T_equilibrium() (biosteam.Stream static method)</a>
+</li>
+      <li><a href="System.html#biosteam.System.T_tolerance">T_tolerance (biosteam.System attribute)</a>
+</li>
       <li><a href="Model.html#biosteam.evaluation.Model.table">table (biosteam.evaluation.Model attribute)</a>
 </li>
       <li><a href="MixTank.html#biosteam.units.MixTank.tau">tau (biosteam.units.MixTank attribute)</a>
@@ -1002,10 +1023,10 @@
         <li><a href="StorageTank.html#biosteam.units.StorageTank.tau">(biosteam.units.StorageTank attribute)</a>
 </li>
       </ul></li>
-      <li><a href="Fermentation.html#biosteam.units.Fermentation.tau_0">tau_0 (biosteam.units.Fermentation attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="Fermentation.html#biosteam.units.Fermentation.tau_0">tau_0 (biosteam.units.Fermentation attribute)</a>
+</li>
       <li><a href="System.html#biosteam.System.TEA">TEA (biosteam.System attribute)</a>
 
       <ul>
@@ -1033,15 +1054,21 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="Stream.html#biosteam.Stream.U">U (biosteam.Stream attribute)</a>
+
+      <ul>
+        <li><a href="HXprocess.html#biosteam.units.HXprocess.U">(biosteam.units.HXprocess attribute)</a>
 </li>
+        <li><a href="HXutility.html#biosteam.units.HXutility.U">(biosteam.units.HXutility attribute)</a>
+</li>
+      </ul></li>
       <li><a href="Flowsheet.html#biosteam.Flowsheet.unit">unit (biosteam.Flowsheet attribute)</a>
 </li>
       <li><a href="Unit.html#biosteam.Unit">Unit (class in biosteam)</a>
 </li>
-      <li><a href="Compound.html#biosteam.compounds.Compound.units">units (biosteam.compounds.Compound attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="Compound.html#biosteam.compounds.Compound.units">units (biosteam.compounds.Compound attribute)</a>
+</li>
       <li><a href="TEA.html#biosteam.TEA.utility_cost">utility_cost (biosteam.TEA attribute)</a>
 
       <ul>
@@ -1060,6 +1087,12 @@
 <h2 id="V">V</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="Flash.html#biosteam.units.Flash.V">V (biosteam.units.Flash attribute)</a>
+
+      <ul>
+        <li><a href="HXutility.html#biosteam.units.HXutility.V">(biosteam.units.HXutility attribute)</a>
+</li>
+      </ul></li>
       <li><a href="designtools.html#biosteam.units.designtools.vacuum_system">vacuum_system() (in module biosteam.units.designtools)</a>
 </li>
       <li><a href="Flash.html#biosteam.units.Flash.vacuum_system_preference">vacuum_system_preference (biosteam.units.Flash attribute)</a>
@@ -1080,10 +1113,10 @@
 </li>
       <li><a href="MixedStream.html#biosteam.MixedStream.vapor_volfrac">vapor_volfrac (biosteam.MixedStream attribute)</a>
 </li>
-      <li><a href="MixedStream.html#biosteam.MixedStream.vapor_volnet">vapor_volnet (biosteam.MixedStream attribute)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="MixedStream.html#biosteam.MixedStream.vapor_volnet">vapor_volnet (biosteam.MixedStream attribute)</a>
+</li>
       <li><a href="Distillation.html#biosteam.units.Distillation.velocity_factor">velocity_factor (biosteam.units.Distillation attribute)</a>
 </li>
       <li><a href="Distillation.html#biosteam.units.Distillation.vessel_material">vessel_material (biosteam.units.Distillation attribute)</a>
@@ -1135,6 +1168,18 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="reaction.html#biosteam.reaction.Reaction.X">X (biosteam.reaction.Reaction attribute)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="Flash.html#biosteam.units.Flash.x">x (biosteam.units.Flash attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="Y">Y</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="Flash.html#biosteam.units.Flash.y">y (biosteam.units.Flash attribute)</a>
 </li>
   </ul></td>
 </tr></table>

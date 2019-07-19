@@ -97,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Unit decorators.html">9. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
@@ -188,13 +188,12 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
 <span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">from</span> <span class="nn">._extend</span> <span class="k">import</span> <span class="n">extend_summary</span>
 <span class="kn">from</span> <span class="nn">._design</span> <span class="k">import</span> <span class="n">design</span>
 <span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">ceil</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;cost&#39;</span><span class="p">,</span> <span class="s1">&#39;add_cost&#39;</span><span class="p">)</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;cost&#39;</span><span class="p">,</span> <span class="s1">&#39;add_cost&#39;</span><span class="p">,</span> <span class="s1">&#39;CostItem&#39;</span><span class="p">)</span>
 
-<span class="k">class</span> <span class="nc">CostItem</span><span class="p">:</span>
+<div class="viewcode-block" id="CostItem"><a class="viewcode-back" href="../../../../decorators.html#biosteam.units.decorators.CostItem">[docs]</a><span class="k">class</span> <span class="nc">CostItem</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Create a CostItem object which defines exponential scaling factors for an item&#39;s purchase cost.</span>
 <span class="sd">    </span>
 <span class="sd">    **Parameters**</span>
@@ -252,7 +251,7 @@
              <span class="o">+</span><span class="n">f</span><span class="s2">&quot; n     </span><span class="si">{self.n:.3g}</span><span class="se">\n</span><span class="s2">&quot;</span>
              <span class="o">+</span><span class="n">f</span><span class="s2">&quot; kW    </span><span class="si">{self.kW:.3g}</span><span class="se">\n</span><span class="s2">&quot;</span>
              <span class="o">+</span><span class="n">f</span><span class="s2">&quot; BM    </span><span class="si">{self.BM:.3g}</span><span class="s2">&quot;</span><span class="p">)</span>
-    <span class="n">show</span> <span class="o">=</span> <span class="n">_ipython_display_</span>
+    <span class="n">show</span> <span class="o">=</span> <span class="n">_ipython_display_</span></div>
 
 <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="n">D</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
@@ -271,6 +270,10 @@
             <span class="n">C</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">CE</span><span class="o">/</span><span class="n">x</span><span class="o">.</span><span class="n">CE</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">cost</span><span class="o">*</span><span class="n">F</span><span class="o">**</span><span class="n">x</span><span class="o">.</span><span class="n">n</span>
             <span class="n">kW</span> <span class="o">+=</span> <span class="n">x</span><span class="o">.</span><span class="n">kW</span><span class="o">*</span><span class="n">F</span>
     <span class="k">if</span> <span class="n">kW</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span><span class="p">(</span><span class="n">kW</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_extended_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_end_decorated_cost_</span>
 
 <span class="nd">@property</span>
 <span class="k">def</span> <span class="nf">BM</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -315,14 +318,13 @@
 <span class="sd">        </span>
 <span class="sd">    **Examples**</span>
 <span class="sd">    </span>
-<span class="sd">        :doc:`Unit metaclasses and decorators`</span>
+<span class="sd">        :doc:`Unit decorators`</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
     <span class="k">return</span> <span class="k">lambda</span> <span class="bp">cls</span><span class="p">:</span> <span class="n">add_cost</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">basis</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">ub</span><span class="p">,</span> <span class="n">CE</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">kW</span><span class="p">,</span> <span class="n">BM</span><span class="p">,</span> <span class="n">fsize</span><span class="p">)</span></div>
 
 <span class="k">def</span> <span class="nf">add_cost</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">basis</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">ub</span><span class="p">,</span> <span class="n">CE</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">kW</span><span class="p">,</span> <span class="n">BM</span><span class="p">,</span> <span class="n">fsize</span><span class="p">):</span>
-    <span class="n">extend_summary</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="c1"># Include abstract `_end` method</span>
     <span class="k">if</span> <span class="n">kW</span><span class="p">:</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="k">if</span> <span class="n">basis</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_units</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">fsize</span><span class="p">:</span>
@@ -348,7 +350,10 @@
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;&#39;_cost&#39; method is already implemented, cannot decorate class&quot;</span><span class="p">)</span>
         <span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span> <span class="ow">or</span> <span class="bp">cls</span><span class="o">.</span><span class="n">line</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">cost_items</span> <span class="o">=</span> <span class="p">{</span><span class="n">ID</span><span class="p">:</span> <span class="n">CostItem</span><span class="p">(</span><span class="n">basis</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">ub</span><span class="p">,</span> <span class="n">CE</span><span class="p">,</span> <span class="n">cost</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">kW</span><span class="p">,</span> <span class="n">BM</span><span class="p">)}</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">_cost</span> <span class="o">=</span> <span class="n">_cost</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s1">&#39;_end_decorated_cost_&#39;</span><span class="p">):</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_cost</span> <span class="o">=</span> <span class="n">_extended_cost</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_cost</span> <span class="o">=</span> <span class="n">_cost</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">BM</span> <span class="o">=</span> <span class="n">BM_property</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">installation_cost</span> <span class="o">=</span> <span class="n">installation_cost</span>
     <span class="k">return</span> <span class="bp">cls</span>

@@ -548,8 +548,7 @@ class Flash(Unit):
         Design['Weight'] = VW  # lb
         Design['Wall thickness'] = VWT  # in    
         
-    def _end(self):
-        # For cost decorators
+    def _end_decorated_cost_(self):
         if self._heat_utilities: self._heat_utilities[0](self._Hnet, self.T)
     
 

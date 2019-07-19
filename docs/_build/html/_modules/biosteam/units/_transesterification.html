@@ -97,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Unit decorators.html">9. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
@@ -190,9 +190,8 @@
 <span class="kn">from</span> <span class="nn">.decorators</span> <span class="k">import</span> <span class="n">cost</span>
 <span class="kn">from</span> <span class="nn">..reaction</span> <span class="k">import</span> <span class="n">Reaction</span><span class="p">,</span> <span class="n">ParallelReaction</span>
 
-<div class="viewcode-block" id="Transesterification"><a class="viewcode-back" href="../../../Transesterification.html#biosteam.units.Transesterification">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Volume&#39;</span><span class="p">,</span> <span class="s1">&#39;Reactor&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;m^3&#39;</span><span class="p">,</span>
-      <span class="n">CE</span><span class="o">=</span><span class="mf">525.4</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mi">15000</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.55</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">4.3</span><span class="p">,</span>
-      <span class="n">fsize</span><span class="o">=</span><span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tau</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">volnet</span><span class="o">/</span><span class="mf">0.8</span><span class="p">)</span>
+<div class="viewcode-block" id="Transesterification"><a class="viewcode-back" href="../../../Transesterification.html#biosteam.units.Transesterification">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Volume&#39;</span><span class="p">,</span> <span class="s1">&#39;Reactor&#39;</span><span class="p">,</span>
+      <span class="n">CE</span><span class="o">=</span><span class="mf">525.4</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mi">15000</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.55</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">4.3</span><span class="p">,)</span>
 <span class="k">class</span> <span class="nc">Transesterification</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a transesterification reactor that converts &#39;Lipid&#39; and &#39;Methanol&#39; to &#39;Biodiesel&#39; and &#39;Glycerol&#39;. Finds the amount of catalyst &#39;NaOCH3&#39; required and consumes it to &#39;NaOH&#39; and &#39;Methanol&#39;.</span>
 <span class="sd">    </span>
@@ -217,31 +216,36 @@
 <span class="sd">        [0] Product</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;efficiency&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># fraction of theoretical conversion</span>
-               <span class="s1">&#39;methanol2lipid&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Methanol to lipid molar ratio</span>
-               <span class="s1">&#39;T&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="c1"># operating temperature (K)    </span>
-               <span class="s1">&#39;catalyst_molfrac&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>  <span class="c1"># Catalyst molar fraction in methanol</span>
     <span class="n">_bounds</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Volume&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mi">20</span><span class="p">)}</span>
+    <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Volume&#39;</span><span class="p">:</span> <span class="s1">&#39;m3&#39;</span><span class="p">}</span>
     <span class="n">_tau</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">1</span>
 
-    <span class="k">def</span> <span class="nf">_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">kw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="o">*</span><span class="p">,</span>
+                 <span class="n">efficiency</span><span class="p">,</span> <span class="n">methanol2lipid</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">catalyst_molfrac</span><span class="p">):</span>
+        <span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">)</span>
         <span class="c1">#: [ParallelReaction] Transesterification and catalyst consumption reaction</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reaction</span> <span class="o">=</span> <span class="n">ParallelReaction</span><span class="p">([</span>
           <span class="n">Reaction</span><span class="p">(</span><span class="s1">&#39;Lipid + 3Methanol -&gt; 3Biodiesel + Glycerol&#39;</span><span class="p">,</span>
-                   <span class="n">reactant</span><span class="o">=</span><span class="s1">&#39;Lipid&#39;</span><span class="p">,</span>  <span class="n">X</span><span class="o">=</span><span class="n">kw</span><span class="p">[</span><span class="s1">&#39;efficiency&#39;</span><span class="p">]),</span>
+                   <span class="n">reactant</span><span class="o">=</span><span class="s1">&#39;Lipid&#39;</span><span class="p">,</span>  <span class="n">X</span><span class="o">=</span><span class="n">efficiency</span><span class="p">),</span>
           <span class="n">Reaction</span><span class="p">(</span><span class="s1">&#39;NaOCH3 -&gt; NaOH + Methanol&#39;</span><span class="p">,</span>
                    <span class="n">reactant</span><span class="o">=</span><span class="s1">&#39;NaOCH3&#39;</span><span class="p">,</span> <span class="n">X</span><span class="o">=</span><span class="mi">1</span><span class="p">)])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_methanol_composition</span> <span class="o">=</span> <span class="n">Stream</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">kwarray</span><span class="p">(</span>
-                <span class="n">Methanol</span><span class="o">=</span><span class="mi">1</span><span class="o">-</span><span class="n">kw</span><span class="p">[</span><span class="s1">&#39;catalyst_molfrac&#39;</span><span class="p">],</span>
-                <span class="n">NaOCH3</span><span class="o">=</span><span class="n">kw</span><span class="p">[</span><span class="s1">&#39;catalyst_molfrac&#39;</span><span class="p">])</span>
+                <span class="n">Methanol</span><span class="o">=</span><span class="mi">1</span><span class="o">-</span><span class="n">catalyst_molfrac</span><span class="p">,</span>
+                <span class="n">NaOCH3</span><span class="o">=</span><span class="n">catalyst_molfrac</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_lipid_index</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_methanol_index</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_catalyst_index</span> <span class="o">=</span> \
                 <span class="n">Stream</span><span class="o">.</span><span class="n">indices</span><span class="p">([</span><span class="s1">&#39;Lipid&#39;</span><span class="p">,</span> <span class="s1">&#39;Methanol&#39;</span><span class="p">,</span> <span class="s1">&#39;NaOCH3&#39;</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_methanol2lipid</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s1">&#39;methanol2lipid&#39;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s1">&#39;T&#39;</span><span class="p">]</span> <span class="c1">#: Operation temperature (K).</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_methanol2lipid</span> <span class="o">=</span> <span class="n">methanol2lipid</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span> <span class="c1">#: Operation temperature (K).</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">efficiency</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">reaction</span><span class="o">.</span><span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="nd">@efficiency</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">efficiency</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">efficiency</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reaction</span><span class="o">.</span><span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">efficiency</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">methanol2lipid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -270,9 +274,12 @@
         <span class="n">product</span><span class="o">.</span><span class="n">mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span> <span class="o">+</span> <span class="n">methanol</span><span class="o">.</span><span class="n">mol</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reaction</span><span class="p">(</span><span class="n">product</span><span class="o">.</span><span class="n">mol</span><span class="p">)</span>
         <span class="n">product</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span>
+        
+    <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">effluent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;Volume&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tau</span><span class="o">*</span><span class="n">effluent</span><span class="o">.</span><span class="n">volnet</span><span class="o">/</span><span class="mf">0.8</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">_Hnet</span><span class="p">,</span> <span class="n">effluent</span><span class="o">.</span><span class="n">T</span><span class="p">)</span></div>
 
-    <span class="k">def</span> <span class="nf">_end</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">_Hnet</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span></div>
         
     
         

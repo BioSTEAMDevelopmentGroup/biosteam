@@ -99,7 +99,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
@@ -206,23 +206,19 @@
 <span id="unit"></span><h1>Unit<a class="headerlink" href="#module-biosteam" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.Unit">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Unit</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Abstract parent class for Unit objects. Child objects must contain _init, _run, _design and _cost methods to setup internal objects, estimate stream outputs of a Unit and find design and cost information.</p>
+<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Unit</code><span class="sig-paren">(</span><em>ID=''</em>, <em>ins=None</em>, <em>outs=()</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract parent class for Unit objects. Child objects must contain _run, _design and _cost methods to estimate stream outputs of a Unit and find design and cost information.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><p><strong>ID:</strong> [str] A unique identification. If ID is an empty string (i.e. ‘’ ), a default ID will be chosen. If ID is None, unit will not be registered in flowsheet.</p>
-<p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
 <p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
-<p><strong>**kwargs:</strong> Keyword arguments that are stored to instance attribute <cite>_kwargs</cite> and later accessed by _run, _design, and _cost methods.</p>
+<p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
 </div></blockquote>
 <p><strong>Class Definitions</strong></p>
 <blockquote>
 <div><p><strong>line</strong> = [Defaults to the class name of the first child class]: [str] Name denoting the type of Unit class</p>
 <p><strong>BM</strong> = None: [float] Bare module factor (installation factor)</p>
-<p><strong>_kwargs</strong> = {}: [dict] Default keyword arguments</p>
 <dl class="docutils">
-<dt><strong>_init():</strong></dt>
-<dd>Initialize components.</dd>
 <dt><strong>_run()</strong></dt>
 <dd>Run simulation and update output streams.</dd>
 <dt><strong>_design()</strong></dt>
@@ -232,7 +228,7 @@
 </dl>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">Class argument <cite>_init</cite> is called only once when a Unit object is initialized. The <cite>_run</cite> method is called during recycle loop convergence. The rest of the methods are called in the given order for generating results.</p>
+<p class="last">The <cite>_run</cite> method is called during recycle loop convergence. The <cite>_design</cite> and <cite>_cost</cite> methods are called in the given order for generating results.</p>
 </div>
 <p><strong>_units</strong> = {}: [dict] Default units for results Operation and Design</p>
 <p><strong>_N_ins</strong> = 1: [int] Expected number of input streams</p>
@@ -253,7 +249,7 @@
 <div><p><a class="reference internal" href="Creating a Unit.html"><span class="doc">Creating a Unit</span></a></p>
 <p><a class="reference internal" href="Using -pipe- notation.html"><span class="doc">Using -pipe- notation</span></a></p>
 <p><a class="reference internal" href="Inheriting from Unit.html"><span class="doc">Inheriting from Unit</span></a></p>
-<p><a class="reference internal" href="Unit metaclasses and decorators.html"><span class="doc">Unit metaclasses and decorators</span></a></p>
+<p><a class="reference internal" href="Unit decorators.html"><span class="doc">Unit decorators</span></a></p>
 </div></blockquote>
 <dl class="attribute">
 <dt id="biosteam.Unit.BM">

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>biosteam.units.metaclasses._mixer &mdash; BioSTEAM 0.1 documentation</title>
+  <title>biosteam.units.designtools._batch &mdash; BioSTEAM 0.1 documentation</title>
   
 
   
@@ -97,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Unit decorators.html">9. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
@@ -164,7 +164,7 @@
         
           <li><a href="../../../index.html">Module code</a> &raquo;</li>
         
-      <li>biosteam.units.metaclasses._mixer</li>
+      <li>biosteam.units.designtools._batch</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -179,31 +179,47 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for biosteam.units.metaclasses._mixer</h1><div class="highlight"><pre>
+  <h1>Source code for biosteam.units.designtools._batch</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Created on Thu Aug 23 14:26:41 2018</span>
+<span class="sd">Created on Thu Aug 23 22:56:55 2018</span>
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">...</span> <span class="k">import</span> <span class="n">Stream</span>
-<span class="kn">from</span> <span class="nn">..._unit</span> <span class="k">import</span> <span class="n">metaUnit</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;mixer&#39;</span><span class="p">,</span> <span class="s1">&#39;run_mixer&#39;</span><span class="p">)</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;size_batch&#39;</span><span class="p">,)</span>
 
-<div class="viewcode-block" id="mixer"><a class="viewcode-back" href="../../../../metaclasses.html#biosteam.units.metaclasses.mixer">[docs]</a><span class="k">class</span> <span class="nc">mixer</span><span class="p">(</span><span class="n">metaUnit</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Create a mixer Unit class which behaves like a mixer regarding mass and energy balances.&quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
-        <span class="k">if</span> <span class="s1">&#39;_run&#39;</span> <span class="ow">in</span> <span class="n">dct</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;cannot use </span><span class="si">{mcl.__name__}</span><span class="s2"> metaclass with an implemented &#39;_run&#39; method&quot;</span><span class="p">)</span>
-        <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;_run&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">run_mixer</span>
-        <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;_N_ins&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
-        <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;_N_outs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span></div>
-
-<span class="n">run_mixer</span> <span class="o">=</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="n">Stream</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">)</span>
-    
-    
+<div class="viewcode-block" id="size_batch"><a class="viewcode-back" href="../../../../designtools.html#biosteam.units.designtools.size_batch">[docs]</a><span class="k">def</span> <span class="nf">size_batch</span><span class="p">(</span><span class="n">v_0</span><span class="p">,</span> <span class="n">tau</span><span class="p">,</span> <span class="n">tau_0</span><span class="p">,</span> <span class="n">N_reactors</span><span class="p">,</span> <span class="n">V_wf</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Solve for batch reactor volume, cycle time, and loading time</span>
+<span class="sd">        </span>
+<span class="sd">        **Parameters**</span>
+<span class="sd">        </span>
+<span class="sd">            **v_0:** Flow rate</span>
+<span class="sd">            </span>
+<span class="sd">            **tau:** Reaction time</span>
+<span class="sd">            </span>
+<span class="sd">            **tau_0:** Turnaround time</span>
+<span class="sd">            </span>
+<span class="sd">            **N_reactors:** Number of reactors</span>
+<span class="sd">            </span>
+<span class="sd">            **V_wf:** Fraction of working volume</span>
+<span class="sd">        </span>
+<span class="sd">        **Returns:** dict[str: float]</span>
+<span class="sd">            * &#39;Reactor volume&#39;</span>
+<span class="sd">            * &#39;Cycle time&#39;</span>
+<span class="sd">            * &#39;Loading time&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">V_T</span> <span class="o">=</span> <span class="n">v_0</span><span class="o">*</span><span class="p">(</span><span class="n">tau</span> <span class="o">+</span> <span class="n">tau_0</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="n">N_reactors</span><span class="p">)</span> <span class="c1"># Reacting volume</span>
+        <span class="n">V_i</span> <span class="o">=</span> <span class="n">V_T</span><span class="o">/</span><span class="n">N_reactors</span>
+        <span class="n">t_L</span> <span class="o">=</span> <span class="n">V_i</span><span class="o">/</span><span class="n">v_0</span>
+        <span class="n">t_B</span> <span class="o">=</span> <span class="n">tau</span> <span class="o">+</span> <span class="n">tau_0</span> <span class="o">+</span> <span class="n">t_L</span>
+        <span class="n">V_i</span> <span class="o">/=</span> <span class="n">V_wf</span>
+        
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;Reactor volume&#39;</span><span class="p">:</span> <span class="n">V_i</span><span class="p">,</span>
+                <span class="s1">&#39;Cycle time&#39;</span><span class="p">:</span> <span class="n">t_B</span><span class="p">,</span> 
+                <span class="s1">&#39;Loading time&#39;</span><span class="p">:</span> <span class="n">t_L</span><span class="p">}</span></div>
+        
+        
 </pre></div>
 
            </div>

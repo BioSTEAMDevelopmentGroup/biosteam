@@ -97,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Unit decorators.html">9. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
@@ -187,10 +187,9 @@
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">.._unit</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">metaUnit</span>
 <span class="kn">from</span> <span class="nn">fluids.pump</span> <span class="k">import</span> <span class="n">nema_sizes_hp</span>
 <span class="kn">from</span> <span class="nn">.designtools._vacuum</span> <span class="k">import</span> <span class="n">_calc_MotorEfficiency</span><span class="p">,</span> <span class="n">_calc_BreakEfficiency</span>
-<span class="kn">from</span> <span class="nn">.metaclasses</span> <span class="k">import</span> <span class="n">static</span>
+<span class="kn">from</span> <span class="nn">._static</span> <span class="k">import</span> <span class="n">Static</span>
 <span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
 
 <span class="n">ln</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span>
@@ -239,24 +238,8 @@
 
 <span class="c1"># %% Classes</span>
 
-<span class="k">class</span> <span class="nc">metaPump</span><span class="p">(</span><span class="n">static</span><span class="p">):</span>
-    
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">material</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Pump material&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">Pump</span><span class="o">.</span><span class="n">_material</span>
-    <span class="nd">@material</span><span class="o">.</span><span class="n">setter</span>    
-    <span class="k">def</span> <span class="nf">material</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">material</span><span class="p">):</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">Pump</span><span class="o">.</span><span class="n">_F_M</span> <span class="o">=</span> <span class="n">F_Mdict</span><span class="p">[</span><span class="n">material</span><span class="p">]</span>
-        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-            <span class="n">dummy</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">F_Mdict</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">11</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;material must be one of the following: </span><span class="si">{dummy}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">Pump</span><span class="o">.</span><span class="n">_F_Mstr</span> <span class="o">=</span> <span class="n">material</span>   
-
-
 <span class="c1"># TODO: Fix pump selection to include NPSH available and required.</span>
-<div class="viewcode-block" id="Pump"><a class="viewcode-back" href="../../../Pump.html#biosteam.units.Pump">[docs]</a><span class="k">class</span> <span class="nc">Pump</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">metaPump</span><span class="p">):</span>
+<div class="viewcode-block" id="Pump"><a class="viewcode-back" href="../../../Pump.html#biosteam.units.Pump">[docs]</a><span class="k">class</span> <span class="nc">Pump</span><span class="p">(</span><span class="n">Static</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a pump that sets the pressure of the 0th output stream.</span>
 
 <span class="sd">    **Parameters**</span>
@@ -286,7 +269,6 @@
               <span class="s1">&#39;NPSH&#39;</span><span class="p">:</span> <span class="s1">&#39;ft&#39;</span><span class="p">,</span>
               <span class="s1">&#39;Flow rate&#39;</span><span class="p">:</span> <span class="s1">&#39;gpm&#39;</span><span class="p">}</span>
     <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;P&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
     <span class="n">BM</span> <span class="o">=</span> <span class="mf">3.3</span>
     
     <span class="c1"># Pump type</span>
@@ -330,10 +312,14 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;material must be one of the following: </span><span class="si">{dummy}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_F_Mstr</span> <span class="o">=</span> <span class="n">material</span>  
         
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span>
+        
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">out</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">[</span><span class="s1">&#39;P&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">feed</span><span class="o">.</span><span class="n">P</span>
+        <span class="n">out</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="ow">or</span> <span class="n">feed</span><span class="o">.</span><span class="n">P</span>
         <span class="n">out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">T</span>
         <span class="n">out</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">_phase</span>
     

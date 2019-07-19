@@ -97,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Unit decorators.html">9. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
@@ -186,8 +186,7 @@
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">.._unit</span> <span class="k">import</span> <span class="n">metaUnit</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">MixedStream</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">Stream</span>
 <span class="kn">from</span> <span class="nn">fluids</span> <span class="k">import</span> <span class="n">nearest_pipe</span>
 <span class="kn">import</span> <span class="nn">ht</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -224,24 +223,9 @@
             <span class="k">lambda</span> <span class="n">A</span><span class="p">,</span> <span class="n">CE</span><span class="p">:</span> <span class="n">exp</span><span class="p">(</span><span class="mf">12.3310</span> <span class="o">-</span> <span class="mf">0.8709</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.09005</span> <span class="o">*</span> <span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">CE</span><span class="o">/</span><span class="mi">567</span><span class="p">,</span>
            <span class="s1">&#39;Double pipe&#39;</span><span class="p">:</span>
             <span class="k">lambda</span> <span class="n">A</span><span class="p">,</span> <span class="n">CE</span><span class="p">:</span> <span class="n">exp</span><span class="p">(</span> <span class="mf">7.2718</span> <span class="o">+</span> <span class="mf">0.16</span><span class="o">*</span><span class="n">ln</span><span class="p">(</span><span class="n">A</span><span class="p">))</span><span class="o">*</span><span class="n">CE</span><span class="o">/</span><span class="mi">567</span><span class="p">}</span>
-
-
-<span class="k">class</span> <span class="nc">metaHX</span><span class="p">(</span><span class="n">metaUnit</span><span class="p">):</span>
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">material</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Default &#39;Carbon steel/carbon steel&#39;&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">HX</span><span class="o">.</span><span class="n">_F_Mstr</span>
-    <span class="nd">@material</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">material</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">material</span><span class="p">):</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">HX</span><span class="o">.</span><span class="n">_F_Mab</span> <span class="o">=</span> <span class="n">F_Mdict</span><span class="p">[</span><span class="n">material</span><span class="p">]</span>
-        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-            <span class="n">dummy</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">F_Mdict</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">11</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;material must be one of the following: </span><span class="si">{dummy}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">HX</span><span class="o">.</span><span class="n">_F_Mstr</span> <span class="o">=</span> <span class="n">material</span>  
         
         
-<span class="k">class</span> <span class="nc">HX</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">metaHX</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">HX</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">isabstract</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Abstract class for counter current heat exchanger.</span>
 
 <span class="sd">    **Abstract methods**</span>
@@ -288,8 +272,6 @@
     
     <span class="c1"># Correction factor</span>
     <span class="n">_ft</span> <span class="o">=</span> <span class="kc">None</span>
-    
-    <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;U&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span> <span class="c1"># Overall heat transfer coefficient</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">N_shells</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -645,21 +627,17 @@
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
-    <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;T&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-              <span class="s1">&#39;V&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-              <span class="s1">&#39;rigorous&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-              <span class="s1">&#39;U&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
-    
-    <span class="k">def</span> <span class="nf">_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">kw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s1">&#39;T&#39;</span><span class="p">]</span> <span class="c1">#: Temperature of output stream (K).</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">V</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s1">&#39;V&#39;</span><span class="p">]</span> <span class="c1">#: Vapor fraction of output stream.</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="o">*</span><span class="p">,</span>
+                 <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">V</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rigorous</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">U</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span> <span class="c1">#: Temperature of output stream (K).</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">V</span> <span class="o">=</span> <span class="n">V</span> <span class="c1">#: Vapor fraction of output stream.</span>
         
         <span class="c1">#: [bool] If true, calculate vapor liquid equilibrium</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">rigorous</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s1">&#39;rigorous&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rigorous</span> <span class="o">=</span> <span class="n">rigorous</span>
         
         <span class="c1">#: [float] Enforced overall heat transfer coefficent (kW/m^2/K)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">U</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">U</span> <span class="o">=</span> <span class="n">U</span>
         
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -669,10 +647,10 @@
         <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">V</span>
         <span class="n">V_given</span> <span class="o">=</span> <span class="n">V</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">T</span> <span class="ow">or</span> <span class="n">V_given</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;must pass at least one of the following kwargs: &#39;T&#39;, &#39;V&#39;&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;must define at least one of the following: &#39;T&#39;, &#39;V&#39;&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rigorous</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">T</span> <span class="ow">and</span> <span class="n">V_given</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;may only pass either temperature, &#39;T&#39;, or vapor fraction &#39;V&#39;, in a rigorous simulation&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;may only define either temperature, &#39;T&#39;, or vapor fraction &#39;V&#39;, in a rigorous simulation&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">V_given</span><span class="p">:</span>
                 <span class="n">s</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">V</span><span class="o">=</span><span class="n">V</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -719,7 +697,11 @@
         <span class="k">if</span> <span class="n">duty</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">duty</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_H_out</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_H_in</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_duty</span> <span class="o">=</span> <span class="n">duty</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">duty</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span></div>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_design</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_end_decorated_cost_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;Duty&#39;</span><span class="p">],</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="HXprocess"><a class="viewcode-back" href="../../../HXprocess.html#biosteam.units.HXprocess">[docs]</a><span class="k">class</span> <span class="nc">HXprocess</span><span class="p">(</span><span class="n">HX</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Counter current heat exchanger for process fluids. Condenses/boils latent fluid until sensible fluid reaches pinch temperature.</span>
@@ -763,27 +745,24 @@
     <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">dT</span> <span class="o">=</span> <span class="mi">5</span> <span class="c1">#: [float] Pinch temperature difference.</span>
-    <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;U&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-              <span class="s1">&#39;fluid_type&#39;</span><span class="p">:</span> <span class="s1">&#39;ss&#39;</span><span class="p">,</span>
-              <span class="s1">&#39;species_IDs&#39;</span><span class="p">:</span> <span class="p">(),</span>
-              <span class="s1">&#39;LNK&#39;</span><span class="p">:</span> <span class="p">(),</span>
-              <span class="s1">&#39;HNK&#39;</span><span class="p">:</span> <span class="p">()}</span>
     
-    <span class="k">def</span> <span class="nf">_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="o">*</span><span class="p">,</span>
+                 <span class="n">U</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fluid_type</span><span class="o">=</span><span class="s1">&#39;ss&#39;</span><span class="p">,</span> <span class="n">species_IDs</span><span class="o">=</span><span class="p">(),</span>
+                 <span class="n">LNK</span><span class="o">=</span><span class="p">(),</span> <span class="n">HNK</span><span class="o">=</span><span class="p">()):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_Hvaps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_not_zero_arr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_run_args</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="n">kw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">species_IDs</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">kw</span><span class="p">[</span><span class="s1">&#39;species_IDs&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">species_IDs</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">species_IDs</span><span class="p">)</span>
         
         <span class="c1">#: [float] Enforced overall heat transfer coefficent (kW/m^2/K)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">U</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s1">&#39;U&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">U</span> <span class="o">=</span> <span class="n">U</span>
         
         <span class="c1">#: tuple[str] IDs of light non-keys  assumed to remain as a vapor</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">LNK</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s1">&#39;LNK&#39;</span><span class="p">]</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">LNK</span> <span class="o">=</span> <span class="n">LNK</span>
         
         <span class="c1">#: tuple[str] IDs of heavy non-keys assumed to remain as a liquid</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">HNK</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s1">&#39;HNK&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">HNK</span> <span class="o">=</span> <span class="n">HNK</span>
         
-        <span class="bp">self</span><span class="o">.</span><span class="n">fluid_type</span> <span class="o">=</span> <span class="n">kw</span><span class="p">[</span><span class="s1">&#39;fluid_type&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fluid_type</span> <span class="o">=</span> <span class="n">fluid_type</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">species_IDs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -832,22 +811,6 @@
             <span class="n">so0</span><span class="o">.</span><span class="n">copylike</span><span class="p">(</span><span class="n">si0</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">fluid_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fluid_type</span>
-            <span class="c1"># if fluid_type != &#39;ss&#39;:</span>
-            <span class="c1">#     # ll and ls take a lot of time, so approximate using cached data</span>
-            <span class="c1">#     new_ratio = s0_molnet/s1_molnet</span>
-            <span class="c1">#     if self._cached_run_args:</span>
-            <span class="c1">#         old_ratio, s0_T, s1_T, dTc = self._cached_run_args</span>
-            <span class="c1">#         if ((abs(new_ratio - old_ratio) &lt; 0.001)</span>
-            <span class="c1">#             and (abs(si0.T - s0_T) &lt; 0.1)</span>
-            <span class="c1">#             and (abs(si1.T - s1_T) &lt; 0.1)</span>
-            <span class="c1">#             and (abs(self.dT-dTc) &lt; 0.1)):</span>
-            <span class="c1">#                 r0 = s0_molnet/so0.molnet    </span>
-            <span class="c1">#                 so0._mol[:] *= r0</span>
-            <span class="c1">#                 so1._mol[:] *= s1_molnet/so1.molnet</span>
-            <span class="c1">#                 self._duty *= r0</span>
-            <span class="c1">#                 return</span>
-            <span class="c1">#     self._s0_molnet = s0_molnet</span>
-            <span class="c1">#     self._cached_run_args = new_ratio, si0.T, si1.T, self.dT</span>
             <span class="n">so0</span><span class="o">.</span><span class="n">copylike</span><span class="p">(</span><span class="n">si0</span><span class="p">)</span>
             <span class="n">so1</span><span class="o">.</span><span class="n">copylike</span><span class="p">(</span><span class="n">si1</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">fluid_type</span> <span class="o">==</span> <span class="s1">&#39;ss&#39;</span><span class="p">:</span>
@@ -996,7 +959,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_cached_species_data</span> <span class="o">=</span> <span class="n">out</span> <span class="o">=</span> <span class="n">species</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">species_IDs</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_not_zero_arr</span> <span class="o">=</span> <span class="n">not_zero_arr</span>
                 <span class="k">return</span> <span class="n">out</span></div>
-            
+    
 <span class="c1"># elif U == &#39;Concentric tubes&#39;:</span>
 <span class="c1">#     raise NotImplementedError(&quot;&#39;Concentric tubes&#39; not yet implemented&quot;)</span>
 <span class="c1">#     Re_i = 30000 # Arbitrary, but turbulent ??</span>

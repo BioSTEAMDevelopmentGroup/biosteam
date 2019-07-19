@@ -97,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Unit decorators.html">9. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
@@ -186,44 +186,56 @@
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">...</span> <span class="k">import</span> <span class="n">Unit</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">Facility</span>
 <span class="kn">from</span> <span class="nn">..decorators</span> <span class="k">import</span> <span class="n">cost</span>
-<span class="kn">from</span> <span class="nn">..metaclasses</span> <span class="k">import</span> <span class="n">static</span>
-<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">copy</span>
+<span class="c1"># from copy import copy</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;CoolingTower&#39;</span><span class="p">,</span> <span class="s1">&#39;CoolingTowerWithPowerDemand&#39;</span><span class="p">)</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;CoolingTower&#39;</span><span class="p">,)</span> <span class="c1">#&#39;CoolingTowerWithPowerDemand&#39;)</span>
 
-<div class="viewcode-block" id="CoolingTower"><a class="viewcode-back" href="../../../../facilities.html#biosteam.units.facilities.CoolingTower">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;Cooling tower&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mi">1100</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mi">567</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">CoolingTower</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">static</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Create a cooling tower that is cost based on flow rate of cooling water.</span>
-<span class="sd">    </span>
-<span class="sd">    **ins**</span>
-<span class="sd">    </span>
-<span class="sd">        [0] Cooling water</span>
-<span class="sd">        </span>
-<span class="sd">    **outs**</span>
-<span class="sd">    </span>
-<span class="sd">        [0] Cooling water</span>
-<span class="sd">    </span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="CoolingTower"><a class="viewcode-back" href="../../../../facilities.html#biosteam.units.facilities.CoolingTower">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;Cooling water pump&#39;</span><span class="p">,</span>
+      <span class="n">S</span><span class="o">=</span><span class="mi">44200</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mi">1021</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mi">283671</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mi">551</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.8</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">3.1</span><span class="p">)</span>
+<span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;Cooling tower&#39;</span><span class="p">,</span>
+      <span class="n">S</span><span class="o">=</span><span class="mi">44200</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mi">1598</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mf">1375e3</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mi">551</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">CoolingTower</span><span class="p">(</span><span class="n">Facility</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a cooling tower that is cost based on flow rate of cooling water.&quot;&quot;&quot;</span>
     <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">:</span> <span class="s1">&#39;gpm&#39;</span><span class="p">}</span>
-    <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">molnet</span><span class="o">*</span><span class="mf">0.07932</span></div>
-
-   
-<div class="viewcode-block" id="CoolingTowerWithPowerDemand"><a class="viewcode-back" href="../../../../facilities.html#biosteam.units.facilities.CoolingTowerWithPowerDemand">[docs]</a><span class="k">class</span> <span class="nc">CoolingTowerWithPowerDemand</span><span class="p">(</span><span class="n">CoolingTower</span><span class="p">):</span>
-    <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">cost_options</span> <span class="o">=</span> <span class="n">copy</span><span class="p">(</span><span class="n">CoolingTower</span><span class="o">.</span><span class="n">cost_items</span><span class="p">)</span>
-    <span class="n">cost_options</span><span class="p">[</span><span class="s1">&#39;Cooling tower&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">kW</span> <span class="o">=</span> <span class="mf">0.25215</span>
-    <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_cost</span><span class="p">()</span>
-        <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">molnet</span> <span class="c1"># kmol/hr</span>
+    <span class="n">_N_outs</span> <span class="o">=</span> <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="n">Facility</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cooling_water_utilities</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        
+    <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">cwu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cooling_water_utilities</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">cwu</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">units</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">u</span> <span class="ow">is</span> <span class="bp">self</span><span class="p">:</span> <span class="k">continue</span>
+                <span class="k">for</span> <span class="n">hu</span> <span class="ow">in</span> <span class="n">u</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">hu</span><span class="o">.</span><span class="n">ID</span> <span class="o">==</span> <span class="s1">&#39;Cooling water&#39;</span><span class="p">:</span>
+                        <span class="n">cwu</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">hu</span><span class="p">)</span>
+        <span class="c1">#: Cooling water flow rate (kmol/hr)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cooling_water</span> <span class="o">=</span> <span class="n">q</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">flow</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cwu</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.07932</span><span class="o">*</span><span class="n">q</span>
         <span class="n">hu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">cw</span> <span class="o">=</span> <span class="n">hu</span><span class="o">.</span><span class="n">cooling_agents</span><span class="p">[</span><span class="s1">&#39;Cooling water&#39;</span><span class="p">]</span>
         <span class="n">hu</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="s1">&#39;Cooling water&#39;</span>
-        <span class="n">hu</span><span class="o">.</span><span class="n">flow</span> <span class="o">=</span> <span class="o">-</span><span class="n">q</span>
         <span class="n">hu</span><span class="o">.</span><span class="n">cost</span> <span class="o">=</span> <span class="o">-</span><span class="n">q</span><span class="o">*</span><span class="n">cw</span><span class="o">.</span><span class="n">price_kmol</span></div>
+        
+
+   
+<span class="c1"># class CoolingTowerWithPowerDemand(CoolingTower):</span>
+<span class="c1">#     _has_power_utility = True</span>
+<span class="c1">#     _N_heat_utilities = 1</span>
+<span class="c1">#     cost_options = copy(CoolingTower.cost_items)</span>
+<span class="c1">#     cost_options[&#39;Cooling tower&#39;].kW = 0.1</span>
+<span class="c1">#     def _cost(self):</span>
+<span class="c1">#         super()._cost()</span>
+<span class="c1">#         q = self._molar_flow # kmol/hr</span>
+<span class="c1">#         hu = self._heat_utilities[0]</span>
+<span class="c1">#         cw = hu.cooling_agents[&#39;Cooling water&#39;]</span>
+<span class="c1">#         hu.ID = &#39;Cooling water&#39;</span>
+<span class="c1">#         hu.flow = -q</span>
+<span class="c1">#         hu.cost = -q*cw.price_kmol</span>
 </pre></div>
 
            </div>

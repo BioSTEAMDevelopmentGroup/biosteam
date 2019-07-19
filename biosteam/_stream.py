@@ -7,9 +7,10 @@ Created on Sat Aug 18 14:05:10 2018
 """
 from . import _Q
 import numpy as np
+from scipy.optimize import newton
 from ._utils import property_array, PropertyFactory, DisplayUnits, \
                     tuple_array, fraction, Sink, Source, MissingStream, \
-                    wegstein, secant
+                    wegstein
 from ._flowsheet import find
 from ._species import Species, WorkingSpecies
 from ._exceptions import SolverError, EquilibriumError, DimensionError
@@ -46,7 +47,8 @@ def _print_helpdata(helpdata):
             dependency = 'as a function of T '
         elif dependency == 'P':
             dependency = 'as a function of P '
-        print(f"{propID}: [{datatype}] {description.capitalize()} {dependency}({units}).")
+        print(f"{propID}: [{datatype}] {description.capitalize()} "
+              "{dependency}({units}).")
 
     # Many helpdata, print all the nice strings
     else:
@@ -480,7 +482,8 @@ class Stream(metaclass=metaStream):
         elif dim == vol_flow_dim:
             return self._vol[index]*q.to('m3/hr').magnitude
         else:
-            raise DimensionError(f"dimensions for flow units must be in molar, mass or volumetric flow rates, not '{dim}'")
+            raise DimensionError(f"dimensions for flow units must be in molar, "
+                                 f"mass or volumetric flow rates, not '{dim}'")
     
     def _setflows(self, flow, species, flow_pairs):
         """Initialize molar flow rates accoring the species order, and flow_pairs. Instance species do not change."""
@@ -1364,7 +1367,7 @@ class Stream(metaclass=metaStream):
             return 1 - y_bubble.sum()
 
         # Solve and return
-        T_bubble = secant(bubble_error, T_bubble, xtol=1e-5, ytol=1e-7)
+        T_bubble = newton(bubble_error, T_bubble)
         y_bubble = y_bubble/y_bubble.sum()
         
         self._bubble_cached = (species, P, T_bubble, y_bubble, x)
@@ -1449,7 +1452,7 @@ class Stream(metaclass=metaStream):
             return 1 - y_bubble.sum()
 
         # Solve and return
-        P_bubble = secant(bubble_error, P_bubble, xtol=1, ytol=1e-7)
+        P_bubble = newton(bubble_error, P_bubble)
         y_bubble = y_bubble/y_bubble.sum()
         self._bubble_cached = (species, P_bubble, T, y_bubble, x)
         return P_bubble, y_bubble
@@ -1527,11 +1530,11 @@ class Stream(metaclass=metaStream):
                                *gamma(species, x/x.sum(), T)))
         
         def dew_error(T):
-            x_dew[:] = wegstein(f, x_dew, 1e-4, args=(T,))
+            x_dew[:] = wegstein(f, x_dew, 1e-5, args=(T,))
             return 1 - x_dew.sum()
 
         # Solve
-        T_dew = secant(dew_error, T_dew, xtol=1e-5, ytol=1e-7)
+        T_dew = newton(dew_error, T_dew)
         x_dew = x_dew/x_dew.sum()
         self._dew_cached = (species, P, T_dew, y, x_dew)
         return T_dew, x_dew
@@ -1611,11 +1614,11 @@ class Stream(metaclass=metaStream):
         f = lambda x, P: y*P/(Psat*gamma(species, x/x.sum(), T))
         
         def dew_error(P):
-            x_dew[:] = wegstein(f, x_dew, 1e-4, args=(P,))
+            x_dew[:] = wegstein(f, x_dew, 1e-5, args=(P,))
             return 1 - x_dew.sum()
         
         # Solve
-        P_dew = secant(dew_error, P_dew, xtol=1, ytol=1e-7)
+        P_dew = newton(dew_error, P_dew)
         x_dew = x_dew/x_dew.sum()
         self._dew_cached = (species, P_dew, T, y, x_dew)
         return P_dew, x_dew

@@ -113,7 +113,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
@@ -398,7 +398,7 @@ div.nboutput div.output_area.stderr {
 <span class="c1"># Set up stream</span>
 <span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">)</span>
 <span class="n">feed</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mf">75.7</span><span class="p">,</span> <span class="mi">286</span><span class="p">),</span> <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">)</span>
-<span class="n">feed</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">bubble_point</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">feed</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">bubble_T</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
 
 <span class="c1"># Set up column</span>
 <span class="n">MS1</span> <span class="o">=</span> <span class="n">MolecularSieve</span><span class="p">(</span><span class="s1">&#39;MS1&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">feed</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="p">(</span><span class="mf">0.160</span><span class="p">,</span> <span class="mf">0.925</span><span class="p">))</span>
@@ -408,7 +408,7 @@ div.nboutput div.output_area.stderr {
 
 <span class="c1"># See all results</span>
 <span class="n">MS1</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
-<span class="n">MS1</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="s1">&#39;degC&#39;</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="s1">&#39;atm&#39;</span><span class="p">,</span> <span class="n">in_fractions</span><span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
+<span class="n">MS1</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="s1">&#39;degC&#39;</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="s1">&#39;atm&#39;</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span> <span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -424,20 +424,23 @@ div.nboutput div.output_area.stderr {
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 MolecularSieve: MS1
-<span class="ansi-white-fg">ins...</span>
+ins...
 [0] d1
     phase: &#39;g&#39;, T: 78.28 degC, P: 1 atm
-    flow (kmol/hr): Water    75.7
-                    Ethanol  286
-<span class="ansi-white-fg">outs...</span>
+    flow: Water    0.209
+          Ethanol  0.791
+          net      362 kmol/hr
+outs...
 [0] d2
     phase: &#39;g&#39;, T: 78.28 degC, P: 1 atm
-    flow (kmol/hr): Water    12.1
-                    Ethanol  265
+    flow: Water    0.0438
+          Ethanol  0.956
+          net      277 kmol/hr
 [1] d3
     phase: &#39;g&#39;, T: 78.28 degC, P: 1 atm
-    flow (kmol/hr): Water    63.6
-                    Ethanol  21.4
+    flow: Water    0.748
+          Ethanol  0.252
+          net      85 kmol/hr
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -484,40 +487,68 @@ MolecularSieve: MS1
       <th rowspan="2" valign="top">Power</th>
       <th>Rate</th>
       <td>kW</td>
-      <td>741</td>
+      <td>96.8</td>
     </tr>
     <tr>
       <th>Cost</th>
-      <td>kW</td>
-      <td>57.9</td>
+      <td>USD/hr</td>
+      <td>7.57</td>
     </tr>
     <tr>
-      <th rowspan="3" valign="top">Cost</th>
-      <th>Molecular Sieve Cost</th>
+      <th rowspan="3" valign="top">Low pressure steam</th>
+      <th>Duty</th>
+      <td>kJ/hr</td>
+      <td>2.19e+07</td>
+    </tr>
+    <tr>
+      <th>Flow</th>
+      <td>kmol/hr</td>
+      <td>562</td>
+    </tr>
+    <tr>
+      <th>Cost</th>
+      <td>USD/hr</td>
+      <td>134</td>
+    </tr>
+    <tr>
+      <th rowspan="3" valign="top">Cooling water</th>
+      <th>Duty</th>
+      <td>kJ/hr</td>
+      <td>-8.07e+05</td>
+    </tr>
+    <tr>
+      <th>Flow</th>
+      <td>kmol/hr</td>
+      <td>552</td>
+    </tr>
+    <tr>
+      <th>Cost</th>
+      <td>USD/hr</td>
+      <td>0.269</td>
+    </tr>
+    <tr>
+      <th>Design</th>
+      <th>Flow rate</th>
+      <td>kg/hr</td>
+      <td>1.45e+04</td>
+    </tr>
+    <tr>
+      <th>Cost</th>
+      <th>Column</th>
       <td>USD</td>
       <td>2.17e+06</td>
-    </tr>
-    <tr>
-      <th>Pressure Filter Pressing</th>
-      <td>USD</td>
-      <td>6.26e+04</td>
-    </tr>
-    <tr>
-      <th>Pressure Filter Drying (2)</th>
-      <td>USD</td>
-      <td>6.74e+05</td>
     </tr>
     <tr>
       <th>Purchase cost</th>
       <th></th>
       <td>USD</td>
-      <td>2.9e+06</td>
+      <td>2.17e+06</td>
     </tr>
     <tr>
       <th>Utility cost</th>
       <th></th>
       <td>USD/hr</td>
-      <td>57.9</td>
+      <td>142</td>
     </tr>
   </tbody>
 </table>

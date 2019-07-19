@@ -97,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Unit decorators.html">9. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
@@ -195,13 +195,12 @@
 <span class="kn">from</span> <span class="nn">._graphics</span> <span class="k">import</span> <span class="n">Graphics</span><span class="p">,</span> <span class="n">default_graphics</span>
 <span class="kn">from</span> <span class="nn">._stream</span> <span class="k">import</span> <span class="n">Stream</span>
 <span class="kn">from</span> <span class="nn">._heat_utility</span> <span class="k">import</span> <span class="n">HeatUtility</span>
-<span class="kn">from</span> <span class="nn">._utils</span> <span class="k">import</span> <span class="n">Ins</span><span class="p">,</span> <span class="n">Outs</span><span class="p">,</span> <span class="n">missing_stream</span>
+<span class="kn">from</span> <span class="nn">._utils</span> <span class="k">import</span> <span class="n">Ins</span><span class="p">,</span> <span class="n">Outs</span><span class="p">,</span> <span class="n">MissingStream</span><span class="p">,</span> <span class="n">NotImplementedMethod</span>
 <span class="kn">from</span> <span class="nn">._power_utility</span> <span class="k">import</span> <span class="n">PowerUtility</span>
 <span class="kn">from</span> <span class="nn">warnings</span> <span class="k">import</span> <span class="n">warn</span>
 <span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Unit&#39;</span><span class="p">,)</span>
-<span class="n">_do_nothing</span> <span class="o">=</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="kc">None</span>
 
 <span class="c1"># %% Unit neighbors</span>
 
@@ -246,93 +245,67 @@
     
     <span class="n">warn</span><span class="p">(</span><span class="n">_warning</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">msg</span><span class="p">,</span> <span class="n">DesignWarning</span><span class="p">),</span> <span class="n">stacklevel</span><span class="o">=</span><span class="n">stacklevel</span><span class="p">)</span>
 
-
-<span class="c1"># %% Unit metaclass</span>
-
-<span class="n">_Unit_is_done</span> <span class="o">=</span> <span class="kc">False</span>
-
-<span class="k">class</span> <span class="nc">metaUnit</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Unit metaclass for extending the documentation, adding key word arguments, and keeping track for Unit lines and inheritance.&quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">_Unit_is_done</span><span class="p">:</span>
-            <span class="c1"># Abstract Unit class</span>
-            <span class="bp">cls</span> <span class="o">=</span> <span class="nb">type</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># Make new Unit class</span>
-            <span class="bp">cls</span> <span class="o">=</span> <span class="nb">type</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
-            
-            <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__doc__</span> <span class="ow">is</span> <span class="n">Unit</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">:</span>
-                <span class="c1"># Do not inherit docstring from Unit</span>
-                <span class="bp">cls</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="kc">None</span>
-            
-            <span class="c1"># Set line</span>
-            <span class="c1"># default_line constitutes a new Unit class</span>
-            <span class="n">line</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">line</span>
-            <span class="k">if</span> <span class="n">line</span> <span class="ow">is</span> <span class="s1">&#39;Unit&#39;</span><span class="p">:</span>
-                <span class="n">line</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span>
-                <span class="c1"># Set new graphics object for new line</span>
-                <span class="k">if</span> <span class="s1">&#39;_graphics&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dct</span><span class="p">:</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_graphics</span> <span class="o">=</span> <span class="n">Graphics</span><span class="p">()</span>
-            <span class="k">elif</span> <span class="s1">&#39;line&#39;</span> <span class="ow">in</span> <span class="n">dct</span> <span class="ow">and</span> <span class="s1">&#39;_graphics&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dct</span><span class="p">:</span>
-                <span class="c1"># Set new graphics for specified line</span>
-                <span class="bp">cls</span><span class="o">.</span><span class="n">_graphics</span> <span class="o">=</span> <span class="n">Graphics</span><span class="p">()</span>
-            
-            <span class="bp">cls</span><span class="o">.</span><span class="n">line</span> <span class="o">=</span> <span class="n">line</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\B([A-Z])&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot; \1&quot;</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span>
-            <span class="k">if</span> <span class="s1">&#39;_kwargs&#39;</span> <span class="ow">in</span> <span class="n">dct</span> <span class="ow">and</span> <span class="s1">&#39;__init__&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dct</span><span class="p">:</span>
-                <span class="k">if</span> <span class="s2">&quot;__doc__&quot;</span> <span class="ow">in</span> <span class="n">dct</span><span class="p">:</span>
-                    <span class="bp">cls</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__doc__</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;**Parameters**&#39;</span><span class="p">,</span> 
-           <span class="s2">&quot;**Parameters**&quot;</span>
-    <span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>    
-    <span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">        **ID:** [str] Unique identification. If set as &#39;&#39;, a default ID will be chosen.&quot;</span>
-    <span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
-    <span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">        **outs:** tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.&quot;</span>
-    <span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
-    <span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">        **ins:** tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.&quot;</span><span class="p">)</span>
-                
-                <span class="n">kwargs</span> <span class="o">=</span> <span class="n">dct</span><span class="p">[</span><span class="s1">&#39;_kwargs&#39;</span><span class="p">]</span>
-                
-                <span class="c1"># Key word arguments to replace</span>
-                <span class="n">inputs</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;=&#39;</span> <span class="o">+</span> <span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">])</span>
+<span class="c1"># %% Metaclass for Unit operations</span>
+    
+<span class="k">class</span> <span class="nc">unit</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Unit metaclass for keeping track for Unit lines and graphics.&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">,</span> <span class="n">isabstract</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">unitdoc</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="c1"># Make new Unit class</span>
+        <span class="bp">cls</span> <span class="o">=</span> <span class="nb">type</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
         
-                <span class="c1"># Begin changing __init__ to have kwargs by making a string to execute</span>
-                <span class="n">str2exec</span> <span class="o">=</span> <span class="n">f</span><span class="s2">&quot;def __init__(self, ID=&#39;&#39;, outs=(), ins=None, </span><span class="si">{inputs}</span><span class="s2">):</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="n">str2exec</span><span class="o">+=</span> <span class="n">f</span><span class="s2">&quot;    self._kwargs = dict(</span><span class="si">{inputs}</span><span class="s2">)</span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="n">str2exec</span><span class="o">+=</span> <span class="n">f</span><span class="s2">&quot;    _(self, ID, outs, ins)&quot;</span>
+        <span class="k">try</span><span class="p">:</span> <span class="n">Unit</span>
+        <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span> <span class="k">return</span> <span class="bp">cls</span>
         
-                <span class="c1"># Execute string and replace __init__</span>
-                <span class="n">globs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;_&#39;</span><span class="p">:</span> <span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">}</span>
-                <span class="n">globs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
-                <span class="n">locs</span> <span class="o">=</span> <span class="p">{}</span>
-                <span class="n">exec</span><span class="p">(</span><span class="n">str2exec</span><span class="p">,</span> <span class="n">globs</span><span class="p">,</span> <span class="n">locs</span><span class="p">)</span>
-                <span class="bp">cls</span><span class="o">.</span><span class="fm">__init__</span> <span class="o">=</span> <span class="n">locs</span><span class="p">[</span><span class="s1">&#39;__init__&#39;</span><span class="p">]</span>
-        <span class="k">return</span> <span class="bp">cls</span>        
+        <span class="c1"># Set line</span>
+        <span class="c1"># default_line constitutes a new Unit class</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">line</span>
+        <span class="k">if</span> <span class="n">line</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;Unit&#39;</span><span class="p">,</span> <span class="s1">&#39;Mixer&#39;</span><span class="p">,</span> <span class="s1">&#39;Static&#39;</span><span class="p">,</span> <span class="s1">&#39;Splitter&#39;</span><span class="p">,</span> <span class="s1">&#39;Solids separator&#39;</span><span class="p">,</span> <span class="s1">&#39;Facility&#39;</span><span class="p">):</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span>
+            <span class="c1"># Set new graphics object for new line</span>
+            <span class="k">if</span> <span class="s1">&#39;_graphics&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dct</span><span class="p">:</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_graphics</span> <span class="o">=</span> <span class="n">Graphics</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="s1">&#39;line&#39;</span> <span class="ow">in</span> <span class="n">dct</span> <span class="ow">and</span> <span class="s1">&#39;_graphics&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dct</span><span class="p">:</span>
+            <span class="c1"># Set new graphics for specified line</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_graphics</span> <span class="o">=</span> <span class="n">Graphics</span><span class="p">()</span>
+        
+        <span class="bp">cls</span><span class="o">.</span><span class="n">line</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\B([A-Z])&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot; \1&quot;</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="n">unitdoc</span> <span class="ow">and</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">:</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__doc__</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;**Parameters**&#39;</span><span class="p">,</span> 
+   <span class="s2">&quot;**Parameters**&quot;</span>
+<span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>    
+<span class="s2">&quot;</span><span class="se">\n</span><span class="s2">        **ID:** [str] Unique identification. If set as &#39;&#39;, a default ID will be chosen.&quot;</span>
+<span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="s2">&quot;</span><span class="se">\n</span><span class="s2">        **outs:** tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.&quot;</span>
+<span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+<span class="s2">&quot;</span><span class="se">\n</span><span class="s2">        **ins:** tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">isabstract</span><span class="p">:</span> <span class="k">return</span> <span class="bp">cls</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s1">&#39;_run&#39;</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;&#39;Unit&#39; subclass must have a &#39;_run&#39; method. Use the &#39;isabstract&#39; key word argument to disregard this error.&quot;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="bp">cls</span>
 
 
 <span class="c1"># %% Unit Operation</span>
 
-
-<div class="viewcode-block" id="Unit"><a class="viewcode-back" href="../../Unit.html#biosteam.units.Unit">[docs]</a><span class="k">class</span> <span class="nc">Unit</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">metaUnit</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Abstract parent class for Unit objects. Child objects must contain _init, _run, _design and _cost methods to setup internal objects, estimate stream outputs of a Unit and find design and cost information.  </span>
+<div class="viewcode-block" id="Unit"><a class="viewcode-back" href="../../Unit.html#biosteam.units.Unit">[docs]</a><span class="k">class</span> <span class="nc">Unit</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">unit</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract parent class for Unit objects. Child objects must contain _run, _design and _cost methods to estimate stream outputs of a Unit and find design and cost information.  </span>
 
 <span class="sd">    **Parameters**</span>
 
 <span class="sd">        **ID:** [str] A unique identification. If ID is an empty string (i.e. &#39;&#39; ), a default ID will be chosen. If ID is None, unit will not be registered in flowsheet.</span>
 
-<span class="sd">        **outs:** tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</span>
-<span class="sd">        </span>
 <span class="sd">        **ins:** tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</span>
 
-<span class="sd">        ****kwargs:** Keyword arguments that are stored to instance attribute `_kwargs` and later accessed by _run, _design, and _cost methods.</span>
+<span class="sd">        **outs:** tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</span>
+<span class="sd">                </span>
 
 <span class="sd">    **Class Definitions** </span>
 <span class="sd">    </span>
 <span class="sd">        **line** = [Defaults to the class name of the first child class]: [str] Name denoting the type of Unit class    </span>
 <span class="sd">        </span>
 <span class="sd">        **BM** = None: [float] Bare module factor (installation factor)</span>
-
-<span class="sd">        **_kwargs** = {}: [dict] Default keyword arguments</span>
-
-<span class="sd">        **_init():**</span>
-<span class="sd">            Initialize components.</span>
 <span class="sd">        </span>
 <span class="sd">        **_run()**</span>
 <span class="sd">            Run simulation and update output streams.</span>
@@ -345,7 +318,7 @@
 <span class="sd">            </span>
 <span class="sd">        .. Note::</span>
 <span class="sd">           </span>
-<span class="sd">           Class argument `_init` is called only once when a Unit object is initialized. The `_run` method is called during recycle loop convergence. The rest of the methods are called in the given order for generating results.</span>
+<span class="sd">           The `_run` method is called during recycle loop convergence. The `_design` and `_cost` methods are called in the given order for generating results.</span>
 <span class="sd">        </span>
 <span class="sd">        **_units** = {}: [dict] Default units for results Operation and Design</span>
 <span class="sd">        </span>
@@ -377,7 +350,7 @@
 <span class="sd">        </span>
 <span class="sd">        :doc:`Inheriting from Unit`</span>
 <span class="sd">        </span>
-<span class="sd">        :doc:`Unit metaclasses and decorators`</span>
+<span class="sd">        :doc:`Unit decorators`</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span> 
     <span class="c1">### Abstract Attributes ###</span>
@@ -387,9 +360,6 @@
     
     <span class="c1"># [dict] Default units for construction</span>
     <span class="n">_units</span> <span class="o">=</span> <span class="p">{}</span>
-    
-    <span class="c1"># [bool] Should be True if it has any associated cost</span>
-    <span class="n">_has_cost</span> <span class="o">=</span> <span class="kc">True</span>
     
     <span class="c1"># [int] Expected number of input streams</span>
     <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">1</span>  
@@ -405,9 +375,6 @@
     
     <span class="c1"># [bool] If True, a PowerUtility object is created for every instance.</span>
     <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">False</span> 
-    
-    <span class="c1"># [dict] default key word arguments that are accessed by simulation method.</span>
-    <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
     
     <span class="c1"># [biosteam Graphics] a Graphics object for diagram representation.</span>
     <span class="n">_graphics</span> <span class="o">=</span> <span class="n">default_graphics</span>
@@ -425,22 +392,21 @@
     
     <span class="c1">#: [list] HeatUtility objects associated to unit</span>
     <span class="n">_heat_utilities</span> <span class="o">=</span> <span class="p">()</span>
-    
+        
     <span class="c1">### Initialize ###</span>
     
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">()):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_ins</span><span class="p">(</span><span class="n">ins</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_outs</span><span class="p">(</span><span class="n">outs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_results</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_heat_utils</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_init_power_util</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_init</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span>
 
     <span class="k">def</span> <span class="nf">_init_ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ins</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize input streams.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">ins</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="n">Ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">missing_stream</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_N_ins</span><span class="p">)))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="n">Ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">MissingStream</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_N_ins</span><span class="p">)))</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ins</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="n">Ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">ins</span><span class="p">,))</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">ins</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -453,7 +419,7 @@
     <span class="k">def</span> <span class="nf">_init_outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Initialize output streams.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">outs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">missing_stream</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_N_outs</span><span class="p">)))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">MissingStream</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_N_outs</span><span class="p">)))</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="n">outs</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_N_outs</span><span class="p">)))</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outs</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span>
@@ -524,10 +490,8 @@
     <span class="fm">__rpow__</span> <span class="o">=</span> <span class="fm">__rsub__</span>
     
     <span class="c1"># Abstract methods</span>
-    <span class="n">_init</span>     <span class="o">=</span> <span class="n">_do_nothing</span>
-    <span class="n">_run</span>      <span class="o">=</span> <span class="n">_do_nothing</span>
-    <span class="n">_design</span>   <span class="o">=</span> <span class="n">_do_nothing</span>
-    <span class="n">_cost</span>     <span class="o">=</span> <span class="n">_do_nothing</span>
+    <span class="n">_design</span>   <span class="o">=</span> <span class="n">NotImplementedMethod</span>
+    <span class="n">_cost</span>     <span class="o">=</span> <span class="n">NotImplementedMethod</span>
     
     <span class="c1"># Summary</span>
     <span class="k">def</span> <span class="nf">_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -650,20 +614,20 @@
             <span class="n">series</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">ID</span>
             <span class="k">return</span> <span class="n">series</span></div>
 
-    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="s1">&#39;_results&#39;</span><span class="p">:</span>
-            <span class="n">warn</span><span class="p">(</span><span class="ne">DeprecationWarning</span><span class="p">(</span><span class="s2">&quot;&#39;_results&#39; dictionary will be deprecated in favor of attributes &#39;_Design&#39;, &#39;_Cost&#39;, and &#39;_GHGs&#39;&quot;</span><span class="p">))</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_results</span> <span class="o">=</span> <span class="n">results</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Design&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">,</span>
-                                       <span class="s1">&#39;Cost&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span><span class="p">,</span>
-                                       <span class="s1">&#39;GHG&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_GHGs</span><span class="p">}</span>
-            <span class="k">return</span> <span class="n">results</span>
-        <span class="k">elif</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;_Cost&#39;</span><span class="p">,</span> <span class="s1">&#39;_Design&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_results&#39;</span><span class="p">):</span>
-            <span class="n">warn</span><span class="p">(</span><span class="ne">DeprecationWarning</span><span class="p">(</span><span class="s2">&quot;&#39;_results&#39; dictionary will be deprecated in favor of attributes &#39;_Design&#39;, &#39;_Cost&#39;, and &#39;_GHGs&#39;&quot;</span><span class="p">))</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Cost&#39;</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;Design&#39;</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_GHGs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">[</span><span class="s1">&#39;GHG&#39;</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;&#39;{type(self).__name__}&#39; object has no attribute &#39;</span><span class="si">{name}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+    <span class="c1"># def __getattr__(self, name):</span>
+    <span class="c1">#     if name is &#39;_results&#39;:</span>
+    <span class="c1">#         warn(DeprecationWarning(&quot;&#39;_results&#39; dictionary will be deprecated in favor of attributes &#39;_Design&#39;, &#39;_Cost&#39;, and &#39;_GHGs&#39;&quot;))</span>
+    <span class="c1">#         self._results = results = {&#39;Design&#39;: self._Design,</span>
+    <span class="c1">#                                    &#39;Cost&#39;: self._Cost,</span>
+    <span class="c1">#                                    &#39;GHG&#39;: self._GHGs}</span>
+    <span class="c1">#         return results</span>
+    <span class="c1">#     elif name in (&#39;_Cost&#39;, &#39;_Design&#39;) and hasattr(self, &#39;_results&#39;):</span>
+    <span class="c1">#         warn(DeprecationWarning(&quot;&#39;_results&#39; dictionary will be deprecated in favor of attributes &#39;_Design&#39;, &#39;_Cost&#39;, and &#39;_GHGs&#39;&quot;))</span>
+    <span class="c1">#         self._Cost = self._results[&#39;Cost&#39;]</span>
+    <span class="c1">#         self._Design = self._results[&#39;Design&#39;]</span>
+    <span class="c1">#         self._GHGs = self._results[&#39;GHG&#39;]</span>
+    <span class="c1">#     else:</span>
+    <span class="c1">#         raise AttributeError(f&quot;&#39;{type(self).__name__}&#39; object has no attribute &#39;{name}&#39;&quot;)</span>
 
     <span class="k">def</span> <span class="nf">_checkbounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">bounds</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Issue a warning if value is out of bounds.</span>

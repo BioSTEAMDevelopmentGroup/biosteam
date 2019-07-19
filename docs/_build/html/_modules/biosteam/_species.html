@@ -97,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Unit decorators.html">9. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
@@ -288,6 +288,17 @@
 <span class="k">class</span> <span class="nc">WorkingSpecies</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Cast a Species object as a WorkingSpecies object that represents the working species of a process.&quot;&quot;&quot;</span>
     
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">subgroup</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">working_species</span><span class="p">,</span> <span class="n">IDs</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">working_species</span><span class="p">,</span> <span class="bp">cls</span><span class="p">),</span> <span class="n">f</span><span class="s2">&quot;working_species must be a &#39;</span><span class="si">{cls.__name__}</span><span class="s2">&#39; object&quot;</span>
+        <span class="bp">self</span> <span class="o">=</span> <span class="n">Species</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">IDs</span><span class="p">:</span> <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">working_species</span><span class="p">,</span> <span class="n">i</span><span class="p">))</span>
+        <span class="n">WorkingSpecies</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">IDs</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">working_species</span><span class="o">.</span><span class="n">get_synonyms</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_synonym</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span>
+    
     <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span> <span class="ow">is</span> <span class="bp">cls</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span>
         <span class="n">_setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;__class__&#39;</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span>
@@ -300,7 +311,6 @@
         <span class="n">index</span> <span class="o">=</span> <span class="n">tup</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">Nspecies</span><span class="p">))</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">compounds</span><span class="p">:</span> <span class="n">me</span><span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">CAS</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
         <span class="n">me</span><span class="p">[</span><span class="s1">&#39;_indexdct&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="o">*</span><span class="nb">zip</span><span class="p">(</span><span class="n">CAS</span><span class="p">,</span> <span class="n">index</span><span class="p">),</span> <span class="o">*</span><span class="nb">zip</span><span class="p">(</span><span class="n">IDs</span><span class="p">,</span> <span class="n">index</span><span class="p">)))</span>
-        <span class="n">me</span><span class="p">[</span><span class="s1">&#39;_immutable&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">me</span><span class="p">[</span><span class="s1">&#39;_index&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">index</span>
         <span class="n">me</span><span class="p">[</span><span class="s1">&#39;_compounds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">compounds</span>
         <span class="n">me</span><span class="p">[</span><span class="s1">&#39;_IDs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">IDs</span>
@@ -310,6 +320,11 @@
     
     <span class="k">def</span> <span class="nf">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__dir__</span><span class="p">()</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">isalnum</span><span class="p">()]</span>
+
+    <span class="k">def</span> <span class="nf">get_synonyms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
+        <span class="n">dct</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_indexdct</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">dct</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">dct</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">j</span><span class="o">==</span><span class="n">index</span><span class="p">]</span> 
 
     <span class="k">def</span> <span class="nf">set_synonym</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">synonym</span><span class="p">):</span>
         <span class="n">compound</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">)</span>
@@ -358,8 +373,34 @@
         <span class="n">array</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="n">IDs</span><span class="p">)]</span> <span class="o">=</span> <span class="n">data</span>
         <span class="k">return</span> <span class="n">array</span>
 
+    <span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return index of specified compound.</span>
+
+<span class="sd">        **Parameters**</span>
+
+<span class="sd">             **ID:** [str] compound ID</span>
+
+<span class="sd">        Example</span>
+
+<span class="sd">        Index by ID:</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species([&#39;Ethanol&#39;, &#39;Water&#39;])</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species.index(&#39;Water&#39;)</span>
+<span class="sd">        1</span>
+
+<span class="sd">        Indices by CAS number:</span>
+<span class="sd">        </span>
+<span class="sd">        &gt;&gt;&gt; Stream.species.index(&#39;7732-18-5&#39;):</span>
+<span class="sd">        1</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_indexdct</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ID</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_indexdct</span><span class="p">:</span> <span class="k">raise</span> <span class="n">UndefinedCompound</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">IDs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return flow indices of specified species.</span>
+        <span class="sd">&quot;&quot;&quot;Return indices of specified species.</span>
 
 <span class="sd">        **Parameters**</span>
 

@@ -517,7 +517,7 @@ class HXutility(HX):
         self._heat_utilities[0](duty, self.ins[0].T, self.outs[0].T)
         super()._design()
 
-    def _end(self):
+    def _end_decorated_cost_(self):
         self._heat_utilities[0](self._Design['Duty'],
                                 self.ins[0].T, self.outs[0].T)
 

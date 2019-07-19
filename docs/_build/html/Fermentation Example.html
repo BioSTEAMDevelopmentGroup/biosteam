@@ -110,7 +110,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
@@ -415,8 +415,7 @@ production of 1st generation ethanol using yeast.</strong></p>
 <div class="prompt empty docutils container">
 </div>
 <div class="output_area docutils container">
-<img alt="_images/Fermentation_Example_2_0.png" src="_images/Fermentation_Example_2_0.png" />
-</div>
+<img alt="_images/Fermentation_Example_2_0.svg" src="_images/Fermentation_Example_2_0.svg" /></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt empty docutils container">
@@ -433,14 +432,16 @@ ins...
                     DryYeast  1.03e+04
 outs...
 [0] CO2
+    phase: &#39;g&#39;, T: 305.15 K, P: 101325 Pa
+    flow (kmol/hr): CO2      244
+                    Ethanol  0.274
+                    Water    0.736
+[1] product
     phase: &#39;l&#39;, T: 305.15 K, P: 101325 Pa
     flow (kmol/hr): Ethanol   244
                     Water     6.6e+03
                     Glucose   13.6
                     DryYeast  1.03e+04
-[1] product
-    phase: &#39;g&#39;, T: 305.15 K, P: 101325 Pa
-    flow (kmol/hr): CO2  244
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -487,65 +488,65 @@ outs...
       <th rowspan="2" valign="top">Power</th>
       <th>Rate</th>
       <td>kW</td>
-      <td>24.6</td>
+      <td>1.51</td>
     </tr>
     <tr>
       <th>Cost</th>
       <td>USD/hr</td>
-      <td>1.6</td>
+      <td>0.0979</td>
     </tr>
     <tr>
       <th rowspan="3" valign="top">Chilled water</th>
       <th>Duty</th>
       <td>kJ/hr</td>
-      <td>-1.35e+07</td>
+      <td>-1.36e+07</td>
     </tr>
     <tr>
       <th>Flow</th>
       <td>kmol/hr</td>
-      <td>9.06e+03</td>
+      <td>9.09e+03</td>
     </tr>
     <tr>
       <th>Cost</th>
       <td>USD/hr</td>
-      <td>67.6</td>
+      <td>0</td>
     </tr>
     <tr>
-      <th rowspan="5" valign="top">Design</th>
-      <th>Efficiency</th>
-      <td></td>
-      <td>0.9</td>
-    </tr>
-    <tr>
+      <th rowspan="4" valign="top">Design</th>
       <th>Number of reactors</th>
       <td></td>
       <td>8</td>
     </tr>
     <tr>
-      <th>Volume</th>
+      <th>Reactor volume</th>
       <td>m3</td>
-      <td>521</td>
+      <td>255</td>
     </tr>
     <tr>
       <th>Cycle time</th>
       <td>hr</td>
-      <td>22.9</td>
+      <td>12.6</td>
     </tr>
     <tr>
       <th>Loading time</th>
       <td>hr</td>
-      <td>2.86</td>
+      <td>1.57</td>
     </tr>
     <tr>
-      <th rowspan="3" valign="top">Cost</th>
+      <th rowspan="4" valign="top">Cost</th>
       <th>Reactors</th>
       <td>USD</td>
-      <td>2.23e+06</td>
+      <td>1.91e+06</td>
     </tr>
     <tr>
-      <th>Agitator</th>
+      <th>Agitators</th>
       <td>USD</td>
-      <td>1.39e+05</td>
+      <td>1.19e+05</td>
+    </tr>
+    <tr>
+      <th>Cleaning in place</th>
+      <td>USD</td>
+      <td>7.26e+05</td>
     </tr>
     <tr>
       <th>Coolers</th>
@@ -556,13 +557,13 @@ outs...
       <th>Purchase cost</th>
       <th></th>
       <td>USD</td>
-      <td>2.59e+06</td>
+      <td>2.97e+06</td>
     </tr>
     <tr>
       <th>Utility cost</th>
       <th></th>
       <td>USD/hr</td>
-      <td>69.2</td>
+      <td>0.0979</td>
     </tr>
   </tbody>
 </table>

@@ -97,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Unit decorators.html">9. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
@@ -182,18 +182,39 @@
   <h1>Source code for biosteam.units._splitter</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Created on Thu Aug 23 14:34:07 2018</span>
+<span class="sd">Created on Mon May 20 22:04:02 2019</span>
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">Stream</span>
-<span class="kn">from</span> <span class="nn">.metaclasses</span> <span class="k">import</span> <span class="n">final</span>
 <span class="kn">from</span> <span class="nn">numpy</span> <span class="k">import</span> <span class="n">asarray</span>
 <span class="kn">from</span> <span class="nn">pandas</span> <span class="k">import</span> <span class="n">Series</span>
-<span class="kn">from</span> <span class="nn">.metaclasses._splitter</span> <span class="k">import</span> <span class="n">split</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">Mixer</span>
 
-<div class="viewcode-block" id="Splitter"><a class="viewcode-back" href="../../../Splitter.html#biosteam.units.Splitter">[docs]</a><span class="k">class</span> <span class="nc">Splitter</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">final</span><span class="p">):</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;run_split&#39;</span><span class="p">,</span> <span class="s1">&#39;run_split_with_mixing&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">run_split</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Splitter mass and energy balance function based on one input stream.&quot;&quot;&quot;</span>
+    <span class="n">top</span><span class="p">,</span> <span class="n">bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+    <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">net_mol</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span>
+    <span class="n">top</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">net_mol</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split</span>
+    <span class="n">bot</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">net_mol</span> <span class="o">-</span> <span class="n">top</span><span class="o">.</span><span class="n">_mol</span>
+    <span class="n">bot</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">bot</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">P</span>
+
+<span class="k">def</span> <span class="nf">run_split_with_mixing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Splitter mass and energy balance function with mixing all input streams.&quot;&quot;&quot;</span>
+    <span class="n">top</span><span class="p">,</span> <span class="n">bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span>
+    <span class="n">ins</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ins</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span> <span class="n">Stream</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">top</span><span class="p">,</span> <span class="n">ins</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span> <span class="n">top</span><span class="o">.</span><span class="n">copylike</span><span class="p">(</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">bot</span><span class="o">.</span><span class="n">copylike</span><span class="p">(</span><span class="n">top</span><span class="p">)</span>
+    <span class="n">top</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split</span>
+    <span class="n">bot</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">-=</span> <span class="n">top</span><span class="o">.</span><span class="n">_mol</span>
+
+
+<div class="viewcode-block" id="Splitter"><a class="viewcode-back" href="../../../Splitter.html#biosteam.units.Splitter">[docs]</a><span class="k">class</span> <span class="nc">Splitter</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a splitter that separates mixed streams based on splits.</span>
 
 <span class="sd">    **Parameters**</span>
@@ -297,16 +318,17 @@
 <span class="sd">                               Ethanol  0.1</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">results</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">_has_cost</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">2</span>
-
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span>
+    
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">split</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;[array] Componentwise split of feed to 0th output stream.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split_series</span>
+    
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="o">*</span><span class="p">,</span> <span class="n">split</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_split</span> <span class="o">=</span> <span class="n">split</span> <span class="o">=</span> <span class="n">Stream</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">order</span><span class="p">,</span> <span class="n">split</span><span class="p">)</span> <span class="k">if</span> <span class="n">order</span> <span class="k">else</span> <span class="n">asarray</span><span class="p">(</span><span class="n">split</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_split_series</span> <span class="o">=</span>  <span class="n">Series</span><span class="p">(</span><span class="n">split</span><span class="p">,</span> <span class="n">Stream</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">IDs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_init_ins</span><span class="p">(</span><span class="n">ins</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_init_outs</span><span class="p">(</span><span class="n">outs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">top</span><span class="p">,</span> <span class="n">bot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span>
@@ -316,26 +338,15 @@
         <span class="n">bot</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">P</span>
         <span class="n">bot</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="n">top</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">_phase</span>
         <span class="n">top</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">net_mol</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split</span>
-        <span class="n">bot</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">net_mol</span> <span class="o">-</span> <span class="n">top</span><span class="o">.</span><span class="n">_mol</span>
-    
-    <span class="n">split</span> <span class="o">=</span> <span class="n">split</span>
-    <span class="n">simulate</span> <span class="o">=</span> <span class="n">_run</span>
-    <span class="n">installation_cost</span> <span class="o">=</span> <span class="n">purchase_cost</span> <span class="o">=</span> <span class="n">utility_cost</span> <span class="o">=</span> <span class="n">Mixer</span><span class="o">.</span><span class="n">purchase_cost</span></div>
+        <span class="n">bot</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">net_mol</span> <span class="o">-</span> <span class="n">top</span><span class="o">.</span><span class="n">_mol</span></div>
 
 
-<span class="k">class</span> <span class="nc">InvSplitter</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">final</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">InvSplitter</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a splitter that sets the input stream based on output streams. Must have only one input stream. The output streams will become the same temperature, pressure and phase as the input.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Splitter&#39;</span>
-    <span class="n">results</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">_graphics</span> <span class="o">=</span> <span class="n">Splitter</span><span class="o">.</span><span class="n">_graphics</span>
     <span class="n">_has_cost</span> <span class="o">=</span> <span class="kc">False</span>
-    
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_init_ins</span><span class="p">(</span><span class="n">ins</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_init_outs</span><span class="p">(</span><span class="n">outs</span><span class="p">)</span>
-        
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">feed</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol_out</span>
@@ -346,10 +357,11 @@
             <span class="n">out</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span>
             <span class="n">out</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span>
             <span class="n">out</span><span class="o">.</span><span class="n">phase</span> <span class="o">=</span> <span class="n">phase</span> 
-            
-    <span class="n">simulate</span> <span class="o">=</span> <span class="n">_run</span>
+    
 
 
+        
+    
 </pre></div>
 
            </div>

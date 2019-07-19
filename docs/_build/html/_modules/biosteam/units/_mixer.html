@@ -97,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Unit decorators.html">9. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
@@ -186,11 +186,11 @@
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Unit</span>
-<span class="kn">from</span> <span class="nn">.metaclasses</span> <span class="k">import</span> <span class="n">final</span>
-<span class="kn">from</span> <span class="nn">.metaclasses._mixer</span> <span class="k">import</span> <span class="n">run_mixer</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">Unit</span>
 
-<div class="viewcode-block" id="Mixer"><a class="viewcode-back" href="../../../Mixer.html#biosteam.units.Mixer">[docs]</a><span class="k">class</span> <span class="nc">Mixer</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">final</span><span class="p">):</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Mixer&#39;</span><span class="p">,)</span>
+
+<div class="viewcode-block" id="Mixer"><a class="viewcode-back" href="../../../Mixer.html#biosteam.units.Mixer">[docs]</a><span class="k">class</span> <span class="nc">Mixer</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a mixer that mixes any number of streams together.</span>
 <span class="sd">    </span>
 <span class="sd">    **Parameters**</span>
@@ -236,18 +236,10 @@
 <span class="sd">                               Ethanol  14</span>
 <span class="sd">           </span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">results</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">2</span>
-    <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">_has_cost</span> <span class="o">=</span> <span class="kc">False</span>
-    
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_init_ins</span><span class="p">(</span><span class="n">ins</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_init_outs</span><span class="p">(</span><span class="n">outs</span><span class="p">)</span>
-
-    <span class="n">simulate</span> <span class="o">=</span> <span class="n">_run</span> <span class="o">=</span> <span class="n">run_mixer</span>
-    <span class="n">installation_cost</span> <span class="o">=</span> <span class="n">purchase_cost</span> <span class="o">=</span> <span class="n">utility_cost</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="mi">0</span><span class="p">)</span></div>
+    <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="n">Stream</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">)</span></div>
 
 </pre></div>
 

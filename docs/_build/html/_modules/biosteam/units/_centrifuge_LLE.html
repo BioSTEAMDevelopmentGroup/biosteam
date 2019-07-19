@@ -97,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Unit decorators.html">9. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
@@ -188,10 +188,10 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">MixedStream</span>
 <span class="kn">from</span> <span class="nn">._flash</span> <span class="k">import</span> <span class="n">RatioFlash</span>
-<span class="kn">from</span> <span class="nn">.metaclasses</span> <span class="k">import</span> <span class="n">splitter</span>
+<span class="kn">from</span> <span class="nn">._splitter</span> <span class="k">import</span> <span class="n">Splitter</span>
 <span class="kn">from</span> <span class="nn">.decorators</span> <span class="k">import</span> <span class="n">cost</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Centrifuge_LLE&#39;</span><span class="p">,</span> <span class="s1">&#39;RatioCentrifuge_LLE&#39;</span><span class="p">,</span> <span class="s1">&#39;SplitCentrifuge_LLE&#39;</span><span class="p">)</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Centrifuge_LLE&#39;</span><span class="p">,</span> <span class="s1">&#39;SplitCentrifuge_LLE&#39;</span><span class="p">,</span> <span class="s1">&#39;RatioCentrifuge_LLE&#39;</span><span class="p">)</span>
 
 <span class="c1"># electricity kW/(m3/hr) from USDA biosdiesel Super Pro model</span>
 <span class="c1"># Possibly 1.4  kW/(m3/hr)</span>
@@ -238,15 +238,19 @@
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Liquids Centrifuge&#39;</span>
-    <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;species_IDs&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-               <span class="s1">&#39;split&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-               <span class="s1">&#39;lNK&#39;</span><span class="p">:</span> <span class="p">(),</span>
-               <span class="s1">&#39;LNK&#39;</span><span class="p">:</span> <span class="p">(),</span>
-               <span class="s1">&#39;solvents&#39;</span><span class="p">:</span> <span class="p">(),</span>
-               <span class="s1">&#39;solvent_split&#39;</span><span class="p">:</span> <span class="p">()}</span>
     <span class="n">_bounds</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="mi">100</span><span class="p">)}</span>
 
-    <span class="k">def</span> <span class="nf">_init</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span>
+                 <span class="n">species_IDs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">lNK</span><span class="o">=</span><span class="p">(),</span> <span class="n">LNK</span><span class="o">=</span><span class="p">(),</span> <span class="n">solvents</span><span class="o">=</span><span class="p">(),</span>
+                 <span class="n">solvent_split</span><span class="o">=</span><span class="p">()):</span>
+        <span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">split</span> <span class="o">=</span> <span class="n">split</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">species_IDs</span> <span class="o">=</span> <span class="n">species_IDs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lNK</span> <span class="o">=</span> <span class="n">lNK</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">LNK</span> <span class="o">=</span> <span class="n">LNK</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solvents</span> <span class="o">=</span> <span class="n">solvents</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">solvent_split</span> <span class="o">=</span> <span class="n">solvent_split</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mixedstream</span> <span class="o">=</span>  <span class="n">MixedStream</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -255,7 +259,9 @@
         <span class="n">ms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mixedstream</span>
         <span class="n">ms</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
         <span class="n">ms</span><span class="o">.</span><span class="n">liquid_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span>
-        <span class="n">ms</span><span class="o">.</span><span class="n">LLE</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="n">feed</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>  <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_kwargs</span><span class="p">)</span>
+        <span class="n">ms</span><span class="o">.</span><span class="n">LLE</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="n">feed</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>  <span class="n">split</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">split</span><span class="p">,</span> <span class="n">species_IDs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">species_IDs</span><span class="p">,</span>
+               <span class="n">lNK</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lNK</span><span class="p">,</span> <span class="n">LNK</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">LNK</span><span class="p">,</span> <span class="n">solvents</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solvents</span><span class="p">,</span>
+               <span class="n">solvent_split</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">solvent_split</span><span class="p">)</span>
         <span class="n">liq</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">liquid_mol</span>
         <span class="n">LIQ</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">LIQUID_mol</span>
         <span class="n">liq</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">LIQ</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">ms</span><span class="o">.</span><span class="n">T</span>
@@ -273,16 +279,16 @@
 
 <span class="k">class</span> <span class="nc">RatioCentrifuge_LLE</span><span class="p">(</span><span class="n">Centrifuge_LLE</span><span class="p">):</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Kspecies&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of species that correspond to Ks</span>
-               <span class="s1">&#39;Ks&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of molar ratio partition coefficinets,</span>
-               <span class="c1"># Ks = y/x, where y and x are molar ratios of two different phases</span>
-               <span class="s1">&#39;top_solvents&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of species that correspond to top_split</span>
-               <span class="s1">&#39;top_split&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of splits for top_solvents</span>
-               <span class="s1">&#39;bot_solvents&#39;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># list of species that correspond to bot_split</span>
-               <span class="s1">&#39;bot_split&#39;</span><span class="p">:</span> <span class="p">[]}</span>  <span class="c1"># list of splits for bot_solvents</span>
+    <span class="fm">__init__</span> <span class="o">=</span> <span class="n">RatioFlash</span><span class="o">.</span><span class="fm">__init__</span>
     <span class="n">_run</span> <span class="o">=</span> <span class="n">RatioFlash</span><span class="o">.</span><span class="n">_run</span>
-    
-<span class="k">class</span> <span class="nc">SplitCentrifuge_LLE</span><span class="p">(</span><span class="n">Centrifuge_LLE</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">splitter</span><span class="p">):</span> <span class="k">pass</span>
+
+
+<span class="k">class</span> <span class="nc">SplitCentrifuge_LLE</span><span class="p">(</span><span class="n">Centrifuge_LLE</span><span class="p">):</span>
+    <span class="fm">__init__</span> <span class="o">=</span> <span class="n">Splitter</span><span class="o">.</span><span class="fm">__init__</span>
+    <span class="n">_run</span> <span class="o">=</span> <span class="n">Splitter</span><span class="o">.</span><span class="n">_run</span>
+    <span class="n">split</span> <span class="o">=</span> <span class="n">Splitter</span><span class="o">.</span><span class="n">split</span>
+    <span class="c1"># def __init__(self, ID=&#39;&#39;, ins=None, outs=(), *, order=None, split):</span>
+    <span class="c1">#     Splitter.__init__(self, ID, ins, outs, split=split, order=order)</span>
     
     
     

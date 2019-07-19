@@ -7,7 +7,7 @@ Created on Mon Feb  4 19:38:37 2019
 
 import pandas as pd
 import numpy as np
-from ._utils import secant
+from scipy.optimize import newton
 from copy import copy
 
 __all__ = ('TEA',)
@@ -457,9 +457,9 @@ class TEA:
                             parameters[:-3],
                             depreciation_data)
         # Solve
-        IRR = secant(self._calc_NPV, self._IRR_guess,
+        IRR = newton(self._calc_NPV, self._IRR_guess,
                      args=(cashflow_data[-3], duration_array),
-                     xtol=1e-4, ytol=1)
+                     maxiter=200)
         self._IRR_guess = IRR if (0 < IRR < 1) else 0.15
         return IRR
     
@@ -500,9 +500,9 @@ class TEA:
         def break_even_point(cost):
             CF[:] = adjust(cost)
             return calc_NPV(IRR, data_subset, duration_array)
-        self._cost_guess = cost = secant(break_even_point,
-                                                     self._cost_guess,
-                                                     xtol=1e-6, ytol=1)
+        self._cost_guess = cost = newton(break_even_point,
+                                         self._cost_guess,
+                                         maxiter=200)
         return stream.price + cost/cost_factor
     
     def __repr__(self):

@@ -40,7 +40,7 @@ def solve_v(v, T, P, mol, molnet, zs, N, species, gamma):
         solve_V = lambda zs, Ks: bounded_secant(V_error, 0, V, 1,
                                                 V_error(0, zs, Ks),
                                                 V_error(1, zs, Ks),
-                                                1e-4, 1e-4, args=(zs, Ks))
+                                                1e-4, args=(zs, Ks))
     Ks = None
     def f(x):
         nonlocal Ks, V
@@ -54,8 +54,8 @@ class VLEsolver:
     """Create a VLEsolver object for solving VLE."""
     __slots__ = ('T', 'P', 'Q', 'V')
     
-    tolerance = {'T': 0.001,
-                 'P': 10,
+    tolerance = {'T': 0.0001,
+                 'P': 1,
                  'Q': 1,
                  'V': 0.0001}
     

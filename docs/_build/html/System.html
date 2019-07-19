@@ -99,7 +99,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
@@ -217,9 +217,21 @@
 <p><strong>facilities:</strong> tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the network simulation.</p>
 </div></blockquote>
 <dl class="attribute">
-<dt id="biosteam.System.options">
-<code class="descname">options</code><em class="property"> = {'Maximum iteration': 100, 'Molar tolerance (kmol/hr)': 0.01, 'Temperature tolerance (K)': 0.1}</em><a class="headerlink" href="#biosteam.System.options" title="Permalink to this definition">¶</a></dt>
-<dd><p>[dict] Dictionary of convergence options regarding maximum number of iterations and molar flow rate and temperature tolerances</p>
+<dt id="biosteam.System.maxiter">
+<code class="descname">maxiter</code><em class="property"> = 100</em><a class="headerlink" href="#biosteam.System.maxiter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Maximum number of iterations</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.System.molar_tolerance">
+<code class="descname">molar_tolerance</code><em class="property"> = 0.01</em><a class="headerlink" href="#biosteam.System.molar_tolerance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Molar tolerance (kmol/hr)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.System.T_tolerance">
+<code class="descname">T_tolerance</code><em class="property"> = 0.1</em><a class="headerlink" href="#biosteam.System.T_tolerance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Temperature tolerance (K)</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -278,7 +290,7 @@
 <dl class="attribute">
 <dt id="biosteam.System.converge_method">
 <code class="descname">converge_method</code><a class="headerlink" href="#biosteam.System.converge_method" title="Permalink to this definition">¶</a></dt>
-<dd><p>Iterative convergence method (‘Wegstein’, or ‘fixed point’).</p>
+<dd><p>Iterative convergence method (‘wegstein’, ‘broyden’, or ‘fixed point’).</p>
 </dd></dl>
 
 <dl class="method">

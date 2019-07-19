@@ -197,7 +197,7 @@
     "|Reaction|Reactant|% Converted|\n",
     "|---|---|---|\n",
     "|(Glucan)n + n H2O→ n Glucose|Glucan|9.9|\n",
-    "|(Glucan)n + n H2O → n Glucose Oligomera|Glucan|0.3|\n",
+    "|(Glucan)n + n H2O → n Glucose Oligomer|Glucan|0.3|\n",
     "|(Glucan)n → n HMF + 2n H2O|Glucan|0.3|\n",
     "|Sucrose → HMF + Glucose + 2 H2O|Sucrose|100.0|\n",
     "|(Xylan)n + n H2O→ n Xylose|Xylan|90.0|\n",
@@ -418,7 +418,7 @@
     "print('NET CONVERSION IN PARALLEL')\n",
     "print(pd.Series(pretreatment_rxn.X_net))\n",
     "\n",
-    "print('\\nNET CONVERSION IN Series')\n",
+    "print('\\nNET CONVERSION IN SERIES')\n",
     "print(pd.Series(pretreatment_series_rxn.X_net))"
    ]
   },

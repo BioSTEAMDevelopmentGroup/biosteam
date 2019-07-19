@@ -99,7 +99,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
@@ -117,7 +117,6 @@
 <li class="toctree-l1"><a class="reference internal" href="compounds.html">compounds</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="metaclasses.html">metaclasses</a></li>
 <li class="toctree-l2"><a class="reference internal" href="designtools.html">designtools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Centrifuge_LLE.html">Centrifuge_LLE</a></li>
@@ -230,7 +229,7 @@
 <span id="transesterification"></span><h1>Transesterification<a class="headerlink" href="#module-biosteam.units" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.units.Transesterification">
-<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">Transesterification</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>efficiency=None</em>, <em>methanol2lipid=None</em>, <em>T=None</em>, <em>catalyst_molfrac=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_transesterification.html#Transesterification"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Transesterification" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">Transesterification</code><span class="sig-paren">(</span><em>ID=''</em>, <em>ins=None</em>, <em>outs=()</em>, <em>*</em>, <em>efficiency</em>, <em>methanol2lipid</em>, <em>T</em>, <em>catalyst_molfrac</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_transesterification.html#Transesterification"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Transesterification" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a transesterification reactor that converts ‘Lipid’ and ‘Methanol’ to ‘Biodiesel’ and ‘Glycerol’. Finds the amount of catalyst ‘NaOCH3’ required and consumes it to ‘NaOH’ and ‘Methanol’.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -250,6 +249,18 @@
 <p><strong>outs</strong></p>
 <blockquote>
 <div>[0] Product</div></blockquote>
+<dl class="attribute">
+<dt id="biosteam.units.Transesterification.reaction">
+<code class="descname">reaction</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.Transesterification.reaction" title="Permalink to this definition">¶</a></dt>
+<dd><p>[ParallelReaction] Transesterification and catalyst consumption reaction</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Transesterification.T">
+<code class="descname">T</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.Transesterification.T" title="Permalink to this definition">¶</a></dt>
+<dd><p>Operation temperature (K).</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="biosteam.units.Transesterification.methanol2lipid">
 <code class="descname">methanol2lipid</code><a class="headerlink" href="#biosteam.units.Transesterification.methanol2lipid" title="Permalink to this definition">¶</a></dt>

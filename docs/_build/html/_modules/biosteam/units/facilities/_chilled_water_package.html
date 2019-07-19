@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>biosteam.units.metaclasses._final &mdash; BioSTEAM 0.1 documentation</title>
+  <title>biosteam.units.facilities._chilled_water_package &mdash; BioSTEAM 0.1 documentation</title>
   
 
   
@@ -97,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Unit decorators.html">9. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
@@ -164,7 +164,7 @@
         
           <li><a href="../../../index.html">Module code</a> &raquo;</li>
         
-      <li>biosteam.units.metaclasses._final</li>
+      <li>biosteam.units.facilities._chilled_water_package</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -179,30 +179,47 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for biosteam.units.metaclasses._final</h1><div class="highlight"><pre>
+  <h1>Source code for biosteam.units.facilities._chilled_water_package</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Created on Wed Apr 10 11:48:29 2019</span>
+<span class="sd">Created on Mon Apr 29 18:28:55 2019</span>
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">Facility</span>
+<span class="kn">from</span> <span class="nn">..decorators</span> <span class="k">import</span> <span class="n">cost</span>
 
-<span class="kn">from</span> <span class="nn">..._unit</span> <span class="k">import</span> <span class="n">metaUnit</span>
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;ChilledWaterPackage&#39;</span><span class="p">,)</span>
 
-<span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;final&#39;</span><span class="p">,)</span>
-
-<div class="viewcode-block" id="final"><a class="viewcode-back" href="../../../../metaclasses.html#biosteam.units.metaclasses.final">[docs]</a><span class="k">class</span> <span class="nc">final</span><span class="p">(</span><span class="n">metaUnit</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Create final subclass which is unable to be inherited.&quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">base</span><span class="p">,</span> <span class="o">=</span> <span class="n">bases</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;cannot create </span><span class="si">{mcl.__name__}</span><span class="s1"> subclass from more than one super class&#39;</span><span class="p">)</span>
-            
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">mcl</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;cannot inherit from </span><span class="si">{base}</span><span class="s2">. Instances of </span><span class="si">{mcl.__name__}</span><span class="s2"> cannot be inherited&quot;</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span></div>
+<div class="viewcode-block" id="ChilledWaterPackage"><a class="viewcode-back" href="../../../../facilities.html#biosteam.units.facilities.ChilledWaterPackage">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Duty&#39;</span><span class="p">,</span> <span class="s1">&#39;Cooling tower&#39;</span><span class="p">,</span>
+      <span class="n">S</span><span class="o">=-</span><span class="mi">14</span><span class="o">*</span><span class="mi">4184000</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mi">3400</span><span class="o">*</span><span class="mf">0.7457</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mf">1375e3</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mi">551</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">ChilledWaterPackage</span><span class="p">(</span><span class="n">Facility</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a chilled water package that is cost based on flow rate of chilled water.</span>
+<span class="sd">    </span>
+<span class="sd">    **Parameters**</span>
+<span class="sd">    </span>
+<span class="sd">        **Duty:** Chilled water duty (kJ/hr)</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">_N_ins</span> <span class="o">=</span> <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Duty&#39;</span><span class="p">:</span> <span class="s1">&#39;kJ/h4&#39;</span><span class="p">}</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="n">Facility</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chilled_water_utilities</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        
+    <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">cwu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">chilled_water_utilities</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">cwu</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">units</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">u</span> <span class="ow">is</span> <span class="bp">self</span><span class="p">:</span> <span class="k">continue</span>
+                <span class="k">for</span> <span class="n">hu</span> <span class="ow">in</span> <span class="n">u</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">hu</span><span class="o">.</span><span class="n">ID</span> <span class="o">==</span> <span class="s1">&#39;Chilled water&#39;</span><span class="p">:</span>
+                        <span class="n">cwu</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">hu</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;Duty&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">duty</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">duty</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cwu</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">duty</span><span class="p">,</span> <span class="mi">330</span><span class="p">)</span></div>
+        
+        
 </pre></div>
 
            </div>

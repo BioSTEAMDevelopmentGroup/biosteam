@@ -97,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Unit decorators.html">9. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
@@ -191,11 +191,11 @@
 <span class="kn">from</span> <span class="nn">.._exceptions</span> <span class="k">import</span> <span class="n">DesignError</span>
 <span class="kn">from</span> <span class="nn">._mixer</span> <span class="k">import</span> <span class="n">Mixer</span>
 <span class="kn">from</span> <span class="nn">.decorators</span> <span class="k">import</span> <span class="n">cost</span>
-<span class="kn">from</span> <span class="nn">.metaclasses</span> <span class="k">import</span> <span class="n">static</span>
+<span class="kn">from</span> <span class="nn">._static</span> <span class="k">import</span> <span class="n">Static</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
 
-<span class="k">class</span> <span class="nc">Tank</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">Tank</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">isabstract</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Abstract Tank class.&quot;&quot;&quot;</span>
     <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Total volume&#39;</span><span class="p">:</span> <span class="s1">&#39;m^3&#39;</span><span class="p">}</span>
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">1</span>
@@ -207,7 +207,7 @@
     <span class="k">def</span> <span class="nf">tau</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tau</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_tau</span> <span class="o">=</span> <span class="n">tau</span>
 
-<div class="viewcode-block" id="StorageTank"><a class="viewcode-back" href="../../../StorageTank.html#biosteam.units.StorageTank">[docs]</a><span class="k">class</span> <span class="nc">StorageTank</span><span class="p">(</span><span class="n">Tank</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">static</span><span class="p">):</span>
+<div class="viewcode-block" id="StorageTank"><a class="viewcode-back" href="../../../StorageTank.html#biosteam.units.StorageTank">[docs]</a><span class="k">class</span> <span class="nc">StorageTank</span><span class="p">(</span><span class="n">Static</span><span class="p">,</span> <span class="n">Tank</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Create a storage tank with volume based on residence time [1].</span>
 
 <span class="sd">    .. math::</span>
@@ -277,7 +277,7 @@
     
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;Total volume&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tau</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">volnet</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_V_wf</span>
-        <span class="k">if</span> <span class="n">V</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_minimum_volume</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lb_warning</span><span class="p">(</span><span class="s1">&#39;Volume&#39;</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_minimum_volume</span><span class="p">)</span></div>
+        <span class="k">if</span> <span class="n">V</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_minimum_volume</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lb_warning</span><span class="p">(</span><span class="s1">&#39;Volume&#39;</span><span class="p">,</span> <span class="n">V</span><span class="p">,</span> <span class="s1">&#39;m^3&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_minimum_volume</span><span class="p">)</span></div>
 
 </pre></div>
 

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>9. Unit metaclasses and decorators &mdash; BioSTEAM 0.1 documentation</title>
+  <title>9. Unit decorators &mdash; BioSTEAM 0.1 documentation</title>
   
 
   
@@ -99,11 +99,8 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">9. Unit metaclasses and decorators</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#mixer-metaclass">9.1. mixer metaclass</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#splitter-metaclass">9.2. splitter metaclass</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#static-metaclass">9.3. static metaclass</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#cost-decorator">9.4. cost decorator</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">9. Unit decorators</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#cost-decorator">9.1. cost decorator</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
@@ -170,13 +167,13 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>9. Unit metaclasses and decorators</li>
+      <li>9. Unit decorators</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/Unit metaclasses and decorators.ipynb.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/Unit decorators.ipynb.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -372,164 +369,10 @@ div.nboutput div.output_area.stderr {
     margin-right: 4px;  /* make room for the exclamation icon */
 }
 </style>
-<div class="section" id="Unit-metaclasses-and-decorators">
-<h1>9. Unit metaclasses and decorators<a class="headerlink" href="#Unit-metaclasses-and-decorators" title="Permalink to this headline">¶</a></h1>
-<p>Unit metaclasses and decorators extend the behavior of Unit subclasses.</p>
-<div class="section" id="mixer-metaclass">
-<h2>9.1. mixer metaclass<a class="headerlink" href="#mixer-metaclass" title="Permalink to this headline">¶</a></h2>
-<p>Unit subclasses that implement the mixer metaclass behave like mixers
-regarding mass and energy balances:</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [1]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
-<span class="kn">import</span> <span class="nn">biosteam.units.metaclasses</span> <span class="k">as</span> <span class="nn">meta</span>
-
-<span class="c1"># Set up Stream.species</span>
-<span class="n">bst</span><span class="o">.</span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">)</span>
-
-<span class="c1"># Make Unit subclass</span>
-<span class="k">class</span> <span class="nc">MixerUnit</span><span class="p">(</span><span class="n">bst</span><span class="o">.</span><span class="n">Unit</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">meta</span><span class="o">.</span><span class="n">mixer</span><span class="p">):</span> <span class="k">pass</span>
-
-<span class="n">s1</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">320</span><span class="p">)</span>
-<span class="n">s2</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
-<span class="n">unit</span> <span class="o">=</span> <span class="n">MixerUnit</span><span class="p">(</span><span class="n">ins</span><span class="o">=</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span><span class="n">s2</span><span class="p">))</span>
-<span class="n">unit</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
-<span class="n">unit</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-MixerUnit: U1
-ins...
-[0] d1
-    phase: &#39;l&#39;, T: 320 K, P: 101325 Pa
-    flow (kmol/hr): Water    200
-                    Ethanol  100
-[1] d2
-    phase: &#39;l&#39;, T: 300 K, P: 101325 Pa
-    flow (kmol/hr): Water    100
-                    Ethanol  100
-outs...
-[0] d3
-    phase: &#39;l&#39;, T: 311.8 K, P: 101325 Pa
-    flow (kmol/hr): Water    300
-                    Ethanol  200
-</pre></div></div>
-</div>
-</div>
-<div class="section" id="splitter-metaclass">
-<h2>9.2. splitter metaclass<a class="headerlink" href="#splitter-metaclass" title="Permalink to this headline">¶</a></h2>
-<p>Unit subclasses that implement the splitter metaclass behave like
-splitters regarding mass and energy balances.</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [2]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">class</span> <span class="nc">SplitterUnit</span><span class="p">(</span><span class="n">bst</span><span class="o">.</span><span class="n">Unit</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">meta</span><span class="o">.</span><span class="n">splitter</span><span class="p">):</span> <span class="k">pass</span>
-<span class="n">s1</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">320</span><span class="p">)</span>
-<span class="n">unit</span> <span class="o">=</span> <span class="n">SplitterUnit</span><span class="p">(</span><span class="n">ins</span><span class="o">=</span><span class="n">s1</span><span class="p">,</span> <span class="n">split</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">))</span>
-<span class="n">unit</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
-<span class="n">unit</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-SplitterUnit: U2
-ins...
-[0] d4
-    phase: &#39;l&#39;, T: 320 K, P: 101325 Pa
-    flow (kmol/hr): Water    200
-                    Ethanol  100
-outs...
-[0] d5
-    phase: &#39;l&#39;, T: 320 K, P: 101325 Pa
-    flow (kmol/hr): Water    100
-                    Ethanol  20
-[1] d6
-    phase: &#39;l&#39;, T: 320 K, P: 101325 Pa
-    flow (kmol/hr): Water    100
-                    Ethanol  80
-</pre></div></div>
-</div>
-</div>
-<div class="section" id="static-metaclass">
-<h2>9.3. static metaclass<a class="headerlink" href="#static-metaclass" title="Permalink to this headline">¶</a></h2>
-<p>Unit subclasses that implement the static metaclass expect only one
-input stream (the feed) and only one output stream (the product). The
-static metaclass makes the feed and product share material flow rate
-data. Also, the product’s <code class="docutils literal notranslate"><span class="pre">T</span></code>, <code class="docutils literal notranslate"><span class="pre">P</span></code>, and <code class="docutils literal notranslate"><span class="pre">phase</span></code> will be equal to
-the feed’s upon simulation if no <code class="docutils literal notranslate"><span class="pre">_run</span></code> method is implemented:</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [3]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="k">class</span> <span class="nc">StaticUnit</span><span class="p">(</span><span class="n">bst</span><span class="o">.</span><span class="n">Unit</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">meta</span><span class="o">.</span><span class="n">static</span><span class="p">):</span> <span class="k">pass</span>
-<span class="n">feed</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
-<span class="n">unit</span> <span class="o">=</span> <span class="n">StaticUnit</span><span class="p">(</span><span class="n">ins</span><span class="o">=</span><span class="n">feed</span><span class="p">)</span>
-<span class="n">unit</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
-<span class="n">unit</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt empty docutils container">
-</div>
-<div class="output_area docutils container">
-<div class="highlight"><pre>
-StaticUnit: U3
-ins...
-[0] d7
-    phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
-    flow (kmol/hr): Water  1e+03
-outs...
-[0] d8
-    phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
-    flow (kmol/hr): Water  1e+03
-</pre></div></div>
-</div>
-<p>Because material data is shared, the following is True:</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [4]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">product</span> <span class="o">=</span> <span class="n">unit</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="p">(</span><span class="n">feed</span><span class="o">.</span><span class="n">mol</span> <span class="ow">is</span> <span class="n">product</span><span class="o">.</span><span class="n">mol</span> <span class="ow">and</span>
- <span class="n">feed</span><span class="o">.</span><span class="n">mass</span> <span class="ow">is</span> <span class="n">product</span><span class="o">.</span><span class="n">mass</span> <span class="ow">and</span>
- <span class="n">feed</span><span class="o">.</span><span class="n">vol</span> <span class="ow">is</span> <span class="n">product</span><span class="o">.</span><span class="n">vol</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[4]:
-</pre></div>
-</div>
-<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>True
-</pre></div>
-</div>
-</div>
-</div>
+<div class="section" id="Unit-decorators">
+<h1>9. Unit decorators<a class="headerlink" href="#Unit-decorators" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="cost-decorator">
-<h2>9.4. cost decorator<a class="headerlink" href="#cost-decorator" title="Permalink to this headline">¶</a></h2>
+<h2>9.1. cost decorator<a class="headerlink" href="#cost-decorator" title="Permalink to this headline">¶</a></h2>
 <p>The cost decorator adds a free on board purchase cost based on the
 exponential scale up equation:</p>
 <div class="math">
@@ -560,17 +403,25 @@ exponential scale up factors <a class="reference external" href="#References">[1
 for this example <a class="reference external" href="#References">[2]</a>.</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [5]:
+<span></span>In [1]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">biosteam.units.decorators</span> <span class="k">import</span> <span class="n">cost</span>
-<span class="n">bst</span><span class="o">.</span><span class="n">CE</span> <span class="o">=</span> <span class="mf">603.1</span> <span class="c1"># For year 2018</span>
+<span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
+<span class="kn">from</span> <span class="nn">biosteam.units.decorators</span> <span class="k">import</span> <span class="n">cost</span>
+
+<span class="c1"># Set up Stream.species</span>
+<span class="n">bst</span><span class="o">.</span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">)</span>
+
+<span class="c1"># For year 2018</span>
+<span class="n">bst</span><span class="o">.</span><span class="n">CE</span> <span class="o">=</span> <span class="mf">603.1</span>
 
 <span class="c1"># basis will be the total flow rate in kg/hr</span>
 <span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mf">2.5e6</span><span class="p">,</span>
       <span class="n">CE</span><span class="o">=</span><span class="mf">567.3</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mf">500e3</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mi">3000</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">1.39</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">Shredder</span><span class="p">(</span><span class="n">bst</span><span class="o">.</span><span class="n">Unit</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">meta</span><span class="o">.</span><span class="n">static</span><span class="p">):</span> <span class="k">pass</span>
+<span class="k">class</span> <span class="nc">Shredder</span><span class="p">(</span><span class="n">bst</span><span class="o">.</span><span class="n">Static</span><span class="p">):</span> <span class="k">pass</span>
+<span class="c1"># Static subclasses assume one input and output stream</span>
+<span class="c1"># that share the same flow rates and conditions</span>
 
 <span class="c1">### Test a Shreadder object ###</span>
 
@@ -596,20 +447,20 @@ for this example <a class="reference external" href="#References">[2]</a>.</p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Shredder: U4
+Shredder: U1
 ins...
-[0] d9
+[0] d1
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow (kg/hr): SugarCane  1e+06
 outs...
-[0] d10
+[0] d2
     phase: &#39;l&#39;, T: 298.15 K, P: 101325 Pa
     flow (kg/hr): SugarCane  1e+06
 </pre></div></div>
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[5]:
+<span></span>Out[1]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -633,7 +484,7 @@ outs...
       <th></th>
       <th>Shredder</th>
       <th>Units</th>
-      <th>U4</th>
+      <th>U1</th>
     </tr>
   </thead>
   <tbody>
@@ -679,7 +530,7 @@ outs...
 <p>Cost data is stored as CostItem objects in the “cost_items” dictionary:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [6]:
+<span></span>In [2]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -689,7 +540,7 @@ outs...
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[6]:
+<span></span>Out[2]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
@@ -699,7 +550,7 @@ outs...
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [7]:
+<span></span>In [3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -725,7 +576,7 @@ CostItem: Flow rate (kg/hr)
 <p>Any option can be changed:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [8]:
+<span></span>In [4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -739,7 +590,7 @@ CostItem: Flow rate (kg/hr)
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[8]:
+<span></span>Out[4]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -763,7 +614,7 @@ CostItem: Flow rate (kg/hr)
       <th></th>
       <th>Shredder</th>
       <th>Units</th>
-      <th>U4</th>
+      <th>U1</th>
     </tr>
   </thead>
   <tbody>
@@ -808,7 +659,7 @@ CostItem: Flow rate (kg/hr)
 </div>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [9]:
+<span></span>In [5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -820,7 +671,7 @@ CostItem: Flow rate (kg/hr)
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[9]:
+<span></span>Out[5]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -844,7 +695,7 @@ CostItem: Flow rate (kg/hr)
       <th></th>
       <th>Shredder</th>
       <th>Units</th>
-      <th>U4</th>
+      <th>U1</th>
     </tr>
   </thead>
   <tbody>

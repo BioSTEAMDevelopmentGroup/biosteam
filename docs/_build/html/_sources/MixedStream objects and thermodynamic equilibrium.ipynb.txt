@@ -783,7 +783,7 @@
      "output_type": "stream",
      "text": [
       "MixedStream: ms2\n",
-      " phase: 'lg', T: 353.88 K, P: 101329 Pa\n",
+      " phase: 'lg', T: 353.88 K, P: 101332 Pa\n",
       "         species  kmol/hr\n",
       " liquid: Water    1.84\n",
       "         Ethanol  1.16\n",
@@ -815,7 +815,7 @@
      "output_type": "stream",
      "text": [
       "MixedStream: ms2\n",
-      " phase: 'lg', T: 353.88 K, P: 101329 Pa\n",
+      " phase: 'lg', T: 353.88 K, P: 101332 Pa\n",
       "         species  kmol/hr\n",
       " liquid: Water    1.84\n",
       "         Ethanol  1.16\n",
@@ -853,7 +853,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 31,
+   "execution_count": 30,
    "metadata": {},
    "outputs": [
     {
@@ -884,7 +884,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 32,
+   "execution_count": 31,
    "metadata": {
     "scrolled": true
    },
@@ -926,7 +926,7 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 33,
+   "execution_count": 32,
    "metadata": {},
    "outputs": [
     {

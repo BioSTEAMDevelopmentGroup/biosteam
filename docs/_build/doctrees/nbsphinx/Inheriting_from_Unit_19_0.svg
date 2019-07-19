@@ -1,0 +1,53 @@
+<svg height="173pt" viewBox="0.00 0.00 338.00 173.00" width="338pt" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g class="graph" id="graph0" transform="scale(1 1) rotate(0) translate(4 169)">
+<title>unit</title>
+<polygon fill="white" points="-4,4 -4,-169 334,-169 334,4 -4,4" stroke="none"/>
+<!-- B1
+Boiler&#45;&gt;gas -->
+<g class="edge" id="edge2"><title>B1
+Boiler:n-&gt;gas:w</title>
+<path d="M167,-126.5C167,-178.386 230.614,-143.5 282.5,-143.5" fill="none" stroke="black"/>
+</g>
+<!-- B1
+Boiler&#45;&gt;liq -->
+<g class="edge" id="edge3"><title>B1
+Boiler:s-&gt;liq:w</title>
+<path d="M167,-38.5C167,13.3864 230.614,-21.5 282.5,-21.5" fill="none" stroke="black"/>
+</g>
+<!-- water&#45;&gt;B1
+Boiler -->
+<g class="edge" id="edge1"><title>water:e-&gt;B1
+Boiler:c</title>
+<path d="M51.5,-82.5C78.1372,-82.5 108.26,-82.5 130.921,-82.5" fill="none" stroke="black"/>
+</g>
+<!-- B1
+Boiler -->
+<g class="node" id="node1"><title>B1
+Boiler</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_0" x1="131" x2="203" y1="-82.5" y2="-82.5">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_0)" points="203,-125.5 131,-125.5 131,-39.5 203,-39.5 203,-125.5" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="167" y="-86.3">B1</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="167" y="-71.3">Boiler</text>
+</g>
+<!-- water -->
+<g class="node" id="node2"><title>water</title>
+<polygon fill="#79dae8" points="33.5,-98 4.5,-98 4.5,-67 33.5,-67 33.5,-61 51.5,-82.5 33.5,-104 33.5,-98" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="28" y="-78.8">water</text>
+</g>
+<!-- gas -->
+<g class="node" id="node3"><title>gas</title>
+<polygon fill="#79dae8" points="307.5,-159 282.5,-159 282.5,-128 307.5,-128 307.5,-122 325.5,-143.5 307.5,-165 307.5,-159" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="304" y="-139.8">gas</text>
+</g>
+<!-- liq -->
+<g class="node" id="node4"><title>liq</title>
+<polygon fill="#79dae8" points="307.5,-37 282.5,-37 282.5,-6 307.5,-6 307.5,-0 325.5,-21.5 307.5,-43 307.5,-37" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="304" y="-17.8">liq</text>
+</g>
+</g>
+</svg>

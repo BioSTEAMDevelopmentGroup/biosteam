@@ -27,7 +27,7 @@ The :doc:`Species` object defines the working compounds of the biorefinery. When
    Using -pipe- notation
    Techno-economic analysis of a biorefinery
    Inheriting from Unit
-   Unit metaclasses and decorators
+   Unit decorators
    Stoichiometric reactions
    Advanced simulation
 

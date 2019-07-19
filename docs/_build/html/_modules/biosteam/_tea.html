@@ -97,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Unit decorators.html">9. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
@@ -641,7 +641,7 @@
         <span class="c1"># Solve</span>
         <span class="n">IRR</span> <span class="o">=</span> <span class="n">newton</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_calc_NPV</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_IRR_guess</span><span class="p">,</span>
                      <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">cashflow_data</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">],</span> <span class="n">duration_array</span><span class="p">),</span>
-                     <span class="n">tol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">)</span>
+                     <span class="n">maxiter</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_IRR_guess</span> <span class="o">=</span> <span class="n">IRR</span> <span class="k">if</span> <span class="p">(</span><span class="mi">0</span> <span class="o">&lt;</span> <span class="n">IRR</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">)</span> <span class="k">else</span> <span class="mf">0.15</span>
         <span class="k">return</span> <span class="n">IRR</span></div>
     
@@ -682,7 +682,9 @@
         <span class="k">def</span> <span class="nf">break_even_point</span><span class="p">(</span><span class="n">cost</span><span class="p">):</span>
             <span class="n">CF</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">adjust</span><span class="p">(</span><span class="n">cost</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">calc_NPV</span><span class="p">(</span><span class="n">IRR</span><span class="p">,</span> <span class="n">data_subset</span><span class="p">,</span> <span class="n">duration_array</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_cost_guess</span> <span class="o">=</span> <span class="n">cost</span> <span class="o">=</span> <span class="n">newton</span><span class="p">(</span><span class="n">break_even_point</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cost_guess</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cost_guess</span> <span class="o">=</span> <span class="n">cost</span> <span class="o">=</span> <span class="n">newton</span><span class="p">(</span><span class="n">break_even_point</span><span class="p">,</span>
+                                         <span class="bp">self</span><span class="o">.</span><span class="n">_cost_guess</span><span class="p">,</span>
+                                         <span class="n">maxiter</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">stream</span><span class="o">.</span><span class="n">price</span> <span class="o">+</span> <span class="n">cost</span><span class="o">/</span><span class="n">cost_factor</span></div>
     
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

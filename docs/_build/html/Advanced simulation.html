@@ -99,7 +99,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">11. Advanced simulation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#Create-a-model-object">11.1. Create a model object</a></li>
@@ -480,8 +480,8 @@ requirements but does not affect mass and energy balances.</strong></p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Puchase cost at 5 reactors: 2505969.2924118675
-Puchase cost at 8 reactors: 3051396.3676321805
+Puchase cost at 5 reactors: 2280551.033686497
+Puchase cost at 8 reactors: 2743307.107553875
 </pre></div></div>
 </div>
 </div>
@@ -521,8 +521,8 @@ change design requirements.</strong></p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Purchase cost at 10 million USD: 31903404.873634156
-Purchase cost at 844,000 USD: 3051396.3676321805
+Purchase cost at 10 million USD: 21891940.298625156
+Purchase cost at 844,000 USD: 2743307.107553875
 </pre></div></div>
 </div>
 <p>If the name was not defined, it defaults to the setter’s signature:</p>
@@ -597,8 +597,8 @@ Purchase cost at 844,000 USD: 3051396.3676321805
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-IRR at 10% lipid: 0.21259118044458272
-IRR at 5% lipid: 0.17311175524399786
+IRR at 10% lipid: 0.20411406235730115
+IRR at 5% lipid: 0.14360210728640255
 </pre></div></div>
 </div>
 <p>Add fermentation efficiency as a “coupled” parameter:</p>
@@ -686,7 +686,7 @@ Model: IRR
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>{&#39;IRR&#39;: 0.12245101267097534}
+<span></span>{&#39;IRR&#39;: 0.12228739790785803}
 </pre></div>
 </div>
 </div>
@@ -757,7 +757,7 @@ Model: IRR
       <td>8</td>
       <td>1e+05</td>
       <td>0.04</td>
-      <td>0.122</td>
+      <td>0.127</td>
     </tr>
     <tr>
       <th>1</th>
@@ -766,7 +766,7 @@ Model: IRR
       <td>7</td>
       <td>1e+05</td>
       <td>0.04</td>
-      <td>0.139</td>
+      <td>0.14</td>
     </tr>
     <tr>
       <th>2</th>
@@ -775,7 +775,7 @@ Model: IRR
       <td>8</td>
       <td>1e+05</td>
       <td>0.042</td>
-      <td>0.184</td>
+      <td>0.179</td>
     </tr>
   </tbody>
 </table>
@@ -882,8 +882,8 @@ Model: Internal rate of return (%)
       <td>8</td>
       <td>1e+05</td>
       <td>0.04</td>
-      <td>0.122</td>
-      <td>-1.06e+07</td>
+      <td>0.0978</td>
+      <td>-1.77e+07</td>
     </tr>
     <tr>
       <th>1</th>
@@ -892,8 +892,8 @@ Model: Internal rate of return (%)
       <td>7</td>
       <td>1e+05</td>
       <td>0.04</td>
-      <td>0.139</td>
-      <td>-1.05e+07</td>
+      <td>0.131</td>
+      <td>-1.64e+07</td>
     </tr>
     <tr>
       <th>2</th>
@@ -902,8 +902,8 @@ Model: Internal rate of return (%)
       <td>8</td>
       <td>1e+05</td>
       <td>0.042</td>
-      <td>0.184</td>
-      <td>-1.6e+07</td>
+      <td>0.175</td>
+      <td>-2.37e+07</td>
     </tr>
   </tbody>
 </table>

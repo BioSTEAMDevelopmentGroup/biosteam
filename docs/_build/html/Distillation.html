@@ -99,7 +99,7 @@
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
@@ -117,7 +117,6 @@
 <li class="toctree-l1"><a class="reference internal" href="compounds.html">compounds</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
-<li class="toctree-l2"><a class="reference internal" href="metaclasses.html">metaclasses</a></li>
 <li class="toctree-l2"><a class="reference internal" href="designtools.html">designtools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="Centrifuge_LLE.html">Centrifuge_LLE</a></li>
@@ -230,11 +229,14 @@
 <span id="distillation"></span><h1>Distillation<a class="headerlink" href="#module-biosteam.units" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.units.Distillation">
-<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">Distillation</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>P=101325</em>, <em>LHK=None</em>, <em>y_top=None</em>, <em>x_bot=None</em>, <em>k=1.25</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_distillation.html#Distillation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Distillation" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">Distillation</code><span class="sig-paren">(</span><em>ID=''</em>, <em>ins=None</em>, <em>outs=()</em>, <em>P=101325</em>, <em>*</em>, <em>LHK</em>, <em>y_top</em>, <em>x_bot</em>, <em>k</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_distillation.html#Distillation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Distillation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Distillation column that assumes all light and heavy non keys separate to the top and bottoms product respectively. McCabe-Thiele analysis is used to find both the number of stages and the reflux ratio given a ratio of actual reflux to minimum reflux [1]. This assumption is good for both binary distillation of highly polar compounds and ternary distillation assuming complete separation of light non-keys and heavy non-keys with large differences in boiling points. Preliminary analysis showed that the theoretical number of stages using this method on Methanol/Glycerol/Water systems is off by less than +-1 stage. Other methods, such as the Fenske-Underwood-Gilliland method, are more suitable for hydrocarbons. The Murphree efficiency is based on the modified O’Connell correlation [2]. The diameter is based on tray separation and flooding velocity [1]. Purchase costs are based on correlations by Mulet et al. [3, 4] as compiled by Warren et. al. [5].</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
-<div><p><strong>LHK:</strong> <em>tuple[str]</em> Light and heavy keys</p>
+<div><p><strong>ID:</strong> [str] Unique identification. If set as ‘’, a default ID will be chosen.</p>
+<p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+<p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
+<p><strong>LHK:</strong> <em>tuple[str]</em> Light and heavy keys</p>
 <p><strong>P:</strong> <em>[float]</em> Operating pressure (Pa)</p>
 <p><strong>y_top:</strong> <em>[float]</em> Molar fraction of light key in the distillate</p>
 <p><strong>x_bot:</strong> <em>[float]</em> Molar fraction of light key in the bottoms</p>
@@ -259,18 +261,6 @@
 <p><strong>Examples</strong></p>
 <blockquote>
 <div><a class="reference internal" href="Distillation Example.html"><span class="doc">Distillation</span></a></div></blockquote>
-<dl class="attribute">
-<dt id="biosteam.units.Distillation.is_divided">
-<code class="descname">is_divided</code><a class="headerlink" href="#biosteam.units.Distillation.is_divided" title="Permalink to this definition">¶</a></dt>
-<dd><p>[bool] True if the stripper and rectifier are two separate columns.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biosteam.units.Distillation.plot_stages">
-<code class="descname">plot_stages</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_distillation.html#Distillation.plot_stages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Distillation.plot_stages" title="Permalink to this definition">¶</a></dt>
-<dd><p>Plot the McCabe Thiele Diagram.</p>
-</dd></dl>
-
 <dl class="attribute">
 <dt id="biosteam.units.Distillation.ID">
 <code class="descname">ID</code><a class="headerlink" href="#biosteam.units.Distillation.ID" title="Permalink to this definition">¶</a></dt>
@@ -378,6 +368,18 @@
 <dt id="biosteam.units.Distillation.vessel_material">
 <code class="descname">vessel_material</code><a class="headerlink" href="#biosteam.units.Distillation.vessel_material" title="Permalink to this definition">¶</a></dt>
 <dd><p>Default ‘Carbon steel’</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Distillation.is_divided">
+<code class="descname">is_divided</code><a class="headerlink" href="#biosteam.units.Distillation.is_divided" title="Permalink to this definition">¶</a></dt>
+<dd><p>[bool] True if the stripper and rectifier are two separate columns.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.plot_stages">
+<code class="descname">plot_stages</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/units/_distillation.html#Distillation.plot_stages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Distillation.plot_stages" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the McCabe Thiele Diagram.</p>
 </dd></dl>
 
 </dd></dl>

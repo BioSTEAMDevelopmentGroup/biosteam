@@ -97,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit metaclasses and decorators.html">9. Unit metaclasses and decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Unit decorators.html">9. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
@@ -187,10 +187,9 @@
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">.._unit</span> <span class="k">import</span> <span class="n">Unit</span>
-<span class="kn">from</span> <span class="nn">.metaclasses</span> <span class="k">import</span> <span class="n">final</span>
 <span class="kn">from</span> <span class="nn">.._stream</span> <span class="k">import</span> <span class="n">Stream</span>
 <span class="kn">from</span> <span class="nn">.._mixed_stream</span> <span class="k">import</span> <span class="n">MixedStream</span>
-<span class="kn">from</span> <span class="nn">.._utils</span> <span class="k">import</span> <span class="n">missing_stream</span><span class="p">,</span> <span class="n">Ins</span><span class="p">,</span> <span class="n">Outs</span>
+<span class="kn">from</span> <span class="nn">.._utils</span> <span class="k">import</span> <span class="n">MissingStream</span><span class="p">,</span> <span class="n">Ins</span><span class="p">,</span> <span class="n">Outs</span>
 <span class="kn">from</span> <span class="nn">.._flowsheet</span> <span class="k">import</span> <span class="n">find</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Junction&#39;</span><span class="p">,)</span>
@@ -215,7 +214,7 @@
 <span class="n">default_species</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">upstream</span><span class="p">,</span> <span class="n">downstream</span><span class="p">:</span> \
         <span class="nb">set</span><span class="p">(</span><span class="n">upstream</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">_IDs</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">downstream</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">_IDs</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Junction"><a class="viewcode-back" href="../../../Junction.html#biosteam.units.Junction">[docs]</a><span class="k">class</span> <span class="nc">Junction</span><span class="p">(</span><span class="n">Unit</span><span class="p">,</span> <span class="n">metaclass</span><span class="o">=</span><span class="n">final</span><span class="p">):</span>
+<div class="viewcode-block" id="Junction"><a class="viewcode-back" href="../../../Junction.html#biosteam.units.Junction">[docs]</a><span class="k">class</span> <span class="nc">Junction</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a Junction object that copies specifications from `upstream`</span>
 <span class="sd">    to `downstream`. This serves to connect streams with different</span>
 <span class="sd">    Species object.</span>
@@ -262,7 +261,7 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">upstream</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">downstream</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="c1"># Init upstream</span>
         <span class="k">if</span> <span class="n">upstream</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="n">Ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">missing_stream</span><span class="p">,))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="n">Ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">MissingStream</span><span class="p">,))</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">upstream</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span> <span class="o">=</span> <span class="n">Ins</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">upstream</span><span class="p">,))</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">upstream</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
@@ -270,7 +269,7 @@
         
         <span class="c1"># Init downstream</span>
         <span class="k">if</span> <span class="n">downstream</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">missing_stream</span><span class="p">,))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">MissingStream</span><span class="p">,))</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">downstream</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span> <span class="o">=</span> <span class="n">Outs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">downstream</span><span class="p">,))</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">downstream</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
