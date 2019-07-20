@@ -60,10 +60,6 @@ class MultiEffectEvaporator(Unit):
     _N_heat_utilities = 2
     BM = 2.45
     line = 'Multi-Effect Evaporator'
-    _kwargs = {'component': 'Water',
-               'P': (101325,),  
-               'V': 0.5, 
-               'P_liq': 101325}
 
     #: Residence time (hr)
     tau = 0.30
@@ -87,10 +83,10 @@ class MultiEffectEvaporator(Unit):
             raise ValueError(f"Type must be one of the following: {dummy}")
         self._Type = evap_type
 
-    def _init(self):
+    def __init__(self, ID='', ins=None, outs=(), *,
+                 component='Water', P, V):
+        Unit.__init__(self, ID, ins, outs)
         # Unpack
-        component, P, V, P_liq = (self._kwargs[i]
-                                  for i in ('component', 'P', 'V', 'P_liq'))
         out_wt_solids, liq = self.outs
         
         # Create components
@@ -112,7 +108,7 @@ class MultiEffectEvaporator(Unit):
         def V_error(v1):
             # Run first evaporator
             v_test = v1
-            evap0._kwargs['V'] = v1
+            evap0.V = v1
             evap0._run()
             # Put liquid first, then vapor side stream
             ins = [evap0.outs[1], evap0.outs[0]]
@@ -131,8 +127,6 @@ class MultiEffectEvaporator(Unit):
         
 
     def _run(self):
-        component, P, V, P_liq = (self._kwargs[i]
-                                  for i in ('component', 'P', 'V', 'P_liq'))
         out_wt_solids, liq = self.outs
         ins = self.ins
 

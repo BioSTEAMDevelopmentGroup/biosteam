@@ -9,11 +9,11 @@ from .._unit import Unit
 from .._exceptions import DesignError
 from ._mixer import Mixer
 from .decorators import cost
-from .metaclasses import static
+from ._static import Static
 import numpy as np
 import biosteam as bst
 
-class Tank(Unit):
+class Tank(Unit, isabstract=True):
     """Abstract Tank class."""
     _units = {'Total volume': 'm^3'}
     _N_outs = 1
@@ -25,7 +25,7 @@ class Tank(Unit):
     def tau(self, tau):
         self._tau = tau
 
-class StorageTank(Tank, metaclass=static):
+class StorageTank(Static, Tank):
     r"""Create a storage tank with volume based on residence time [1].
 
     .. math::

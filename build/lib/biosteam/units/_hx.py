@@ -4,8 +4,7 @@ Created on Thu Aug 23 14:38:34 2018
 
 @author: yoelr
 """
-from .._unit import metaUnit
-from .. import Unit, Stream, MixedStream
+from .. import Unit, Stream
 from fluids import nearest_pipe
 import ht
 import numpy as np
@@ -42,24 +41,9 @@ Cb_dict = {'Floating head':
             lambda A, CE: exp(12.3310 - 0.8709*ln(A) + 0.09005 * ln(A)**2)*CE/567,
            'Double pipe':
             lambda A, CE: exp( 7.2718 + 0.16*ln(A))*CE/567}
-
-
-class metaHX(metaUnit):
-    @property
-    def material(cls):
-        """Default 'Carbon steel/carbon steel'"""
-        return HX._F_Mstr
-    @material.setter
-    def material(self, material):
-        try:
-            HX._F_Mab = F_Mdict[material]
-        except KeyError:
-            dummy = str(F_Mdict.keys())[11:-2]
-            raise ValueError(f"material must be one of the following: {dummy}")
-        HX._F_Mstr = material  
         
         
-class HX(Unit, metaclass=metaHX):
+class HX(Unit, isabstract=True):
     """Abstract class for counter current heat exchanger.
 
     **Abstract methods**
@@ -106,8 +90,6 @@ class HX(Unit, metaclass=metaHX):
     
     # Correction factor
     _ft = None
-    
-    _kwargs = {'U': None} # Overall heat transfer coefficient
 
     @property
     def N_shells(self):
@@ -463,21 +445,17 @@ class HXutility(HX):
     
     """
     
-    _kwargs = {'T': None,
-              'V': None,
-              'rigorous': False,
-              'U': None}
-    
-    def _init(self):
-        kw = self._kwargs
-        self.T = kw['T'] #: Temperature of output stream (K).
-        self.V = kw['V'] #: Vapor fraction of output stream.
+    def __init__(self, ID='', ins=None, outs=(), *,
+                 T=None, V=None, rigorous=False, U=None):
+        super().__init__(ID, ins, outs)
+        self.T = T #: Temperature of output stream (K).
+        self.V = V #: Vapor fraction of output stream.
         
         #: [bool] If true, calculate vapor liquid equilibrium
-        self.rigorous = kw['rigorous']
+        self.rigorous = rigorous
         
         #: [float] Enforced overall heat transfer coefficent (kW/m^2/K)
-        self.U = kw['U']
+        self.U = U
         
     def _run(self):
         feed = self.ins[0]
@@ -487,10 +465,10 @@ class HXutility(HX):
         V = self.V
         V_given = V is not None
         if not (T or V_given):
-            raise ValueError("must pass at least one of the following kwargs: 'T', 'V'")
+            raise ValueError("must define at least one of the following: 'T', 'V'")
         if self.rigorous:
             if T and V_given:
-                raise ValueError("may only pass either temperature, 'T', or vapor fraction 'V', in a rigorous simulation")
+                raise ValueError("may only define either temperature, 'T', or vapor fraction 'V', in a rigorous simulation")
             if V_given:
                 s.VLE(V=V, P=s.P)
             else:
@@ -539,6 +517,10 @@ class HXutility(HX):
         self._heat_utilities[0](duty, self.ins[0].T, self.outs[0].T)
         super()._design()
 
+    def _end_decorated_cost_(self):
+        self._heat_utilities[0](self._Design['Duty'],
+                                self.ins[0].T, self.outs[0].T)
+
 class HXprocess(HX):
     """Counter current heat exchanger for process fluids. Condenses/boils latent fluid until sensible fluid reaches pinch temperature.
     
@@ -581,27 +563,24 @@ class HXprocess(HX):
     _N_ins = 2
     _N_outs = 2
     dT = 5 #: [float] Pinch temperature difference.
-    _kwargs = {'U': None,
-              'fluid_type': 'ss',
-              'species_IDs': (),
-              'LNK': (),
-              'HNK': ()}
     
-    def _init(self):
+    def __init__(self, ID='', ins=None, outs=(), *,
+                 U=None, fluid_type='ss', species_IDs=(),
+                 LNK=(), HNK=()):
+        super().__init__(ID, ins, outs)
         self._Hvaps = self._not_zero_arr = self._cached_run_args = None
-        kw = self._kwargs
-        self.species_IDs = tuple(kw['species_IDs'])
+        self.species_IDs = tuple(species_IDs)
         
         #: [float] Enforced overall heat transfer coefficent (kW/m^2/K)
-        self.U = kw['U']
+        self.U = U
         
         #: tuple[str] IDs of light non-keys  assumed to remain as a vapor
-        self.LNK = kw['LNK'] 
+        self.LNK = LNK
         
         #: tuple[str] IDs of heavy non-keys assumed to remain as a liquid
-        self.HNK = kw['HNK']
+        self.HNK = HNK
         
-        self.fluid_type = kw['fluid_type']
+        self.fluid_type = fluid_type
     
     @property
     def species_IDs(self):
@@ -798,10 +777,7 @@ class HXprocess(HX):
                 self._cached_species_data = out = species, index, species_IDs
                 self._not_zero_arr = not_zero_arr
                 return out
-            
-    def _end(self):
-        self._heat_utilities[0](self._Design['Duty'],
-                                self.outs[0].T, self.outs[1].T)
+    
 # elif U == 'Concentric tubes':
 #     raise NotImplementedError("'Concentric tubes' not yet implemented")
 #     Re_i = 30000 # Arbitrary, but turbulent ??

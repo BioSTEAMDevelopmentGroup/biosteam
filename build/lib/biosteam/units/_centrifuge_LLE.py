@@ -6,10 +6,10 @@ Created on Thu Aug 23 21:23:56 2018
 """
 from .. import Unit, MixedStream
 from ._flash import RatioFlash
-from .metaclasses import splitter
+from ._splitter import Splitter
 from .decorators import cost
 
-__all__ = ('Centrifuge_LLE', 'RatioCentrifuge_LLE', 'SplitCentrifuge_LLE')
+__all__ = ('Centrifuge_LLE', 'SplitCentrifuge_LLE', 'RatioCentrifuge_LLE')
 
 # electricity kW/(m3/hr) from USDA biosdiesel Super Pro model
 # Possibly 1.4  kW/(m3/hr)
@@ -56,15 +56,19 @@ class Centrifuge_LLE(Unit):
     
     """
     line = 'Liquids Centrifuge'
-    _kwargs = {'species_IDs': None,
-               'split': None,
-               'lNK': (),
-               'LNK': (),
-               'solvents': (),
-               'solvent_split': ()}
     _bounds = {'Flow rate': (0.1, 100)}
 
-    def _init(self):
+    def __init__(self, ID='', ins=None, outs=(),
+                 species_IDs=None, split=None,
+                 lNK=(), LNK=(), solvents=(),
+                 solvent_split=()):
+        Unit.__init__(ID, ins, outs)
+        self.split = split
+        self.species_IDs = species_IDs
+        self.lNK = lNK
+        self.LNK = LNK
+        self.solvents = solvents
+        self.solvent_split = solvent_split
         self._mixedstream =  MixedStream(None)
 
     def _run(self):
@@ -73,7 +77,9 @@ class Centrifuge_LLE(Unit):
         ms = self._mixedstream
         ms.empty()
         ms.liquid_mol[:] = feed.mol
-        ms.LLE(T=feed.T,  **self._kwargs)
+        ms.LLE(T=feed.T,  split=self.split, species_IDs=self.species_IDs,
+               lNK=self.lNK, LNK=self.LNK, solvents=self.solvents,
+               solvent_split=self.solvent_split)
         liq._mol[:] = ms.liquid_mol
         LIQ._mol[:] = ms.LIQUID_mol
         liq.T = LIQ.T = ms.T
@@ -91,16 +97,16 @@ class Centrifuge_LLE(Unit):
 
 class RatioCentrifuge_LLE(Centrifuge_LLE):
     _N_heat_utilities = 0
-    _kwargs = {'Kspecies': [],  # list of species that correspond to Ks
-               'Ks': [],  # list of molar ratio partition coefficinets,
-               # Ks = y/x, where y and x are molar ratios of two different phases
-               'top_solvents': [],  # list of species that correspond to top_split
-               'top_split': [],  # list of splits for top_solvents
-               'bot_solvents': [],  # list of species that correspond to bot_split
-               'bot_split': []}  # list of splits for bot_solvents
+    __init__ = RatioFlash.__init__
     _run = RatioFlash._run
-    
-class SplitCentrifuge_LLE(Centrifuge_LLE, metaclass=splitter): pass
+
+
+class SplitCentrifuge_LLE(Centrifuge_LLE):
+    __init__ = Splitter.__init__
+    _run = Splitter._run
+    split = Splitter.split
+    # def __init__(self, ID='', ins=None, outs=(), *, order=None, split):
+    #     Splitter.__init__(self, ID, ins, outs, split=split, order=order)
     
     
     

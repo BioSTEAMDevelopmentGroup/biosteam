@@ -7,13 +7,12 @@ Created on Sat Sep  1 17:35:28 2018
 import numpy as np
 from .. import Stream, Unit
 from .._utils import MissingStream
-from .metaclasses import final
 
-__all__ = ['MassBalance']
+__all__ = ('MassBalance',)
 
 # %% Mass Balance Unit
 
-class MassBalance(Unit, metaclass=final):
+class MassBalance(Unit):
     """Create a Unit object that changes net input flow rates to satisfy output flow rates. This calculation is based on mass balance equations for specified species. 
 
     **Parameters**
@@ -43,17 +42,34 @@ class MassBalance(Unit, metaclass=final):
         self.ID = ID
         self._init_ins(ins)
         self._init_outs(outs)
-        self._spindex = Stream._species._IDs.index
-        self._kwargs = {'species': species,
-                        'streams': streams,
-                        'exact': exact,
-                        'balance': balance}
-        self._init()
+        self._balance = balance
+        self._streams = streams
+        self._species = species
+        
+        # Make sure balance type is valid
+        if balance not in ('flow', 'fraction'):
+            raise ValueError(
+                "balance type must be one of the following: 'flow', 'fraction'")
+
+        # Cach correct solver and make sure linear system of equations is square to achieve exact solution
+        if exact:
+            solver = np.linalg.solve
+            species_IDs = species
+            sID, s_index = len(species_IDs), len(streams)
+            if sID != s_index:
+                raise ValueError(
+                    f"length of species ({sID}) must be equal to the length of streams_index ({s_index}) when exact solution is needed")
+        else:
+            solver = np.linalg.lstsq
+
+        # Cach indices for species and solver
+        self._bal_index = Stream.indices(species)
+        self._linalg_solver = solver
 
     def _init_ins(self, ins):
         """Initialize input streams."""
         if ins is None:
-            self._ins = [MissingStream() for i in range(self._N_ins)]
+            self._ins = [MissingStream for i in range(self._N_ins)]
         elif isinstance(ins, Stream):
             self._ins = [ins]
         elif isinstance(ins, str):
@@ -70,44 +86,18 @@ class MassBalance(Unit, metaclass=final):
         elif isinstance(outs, Stream):
             self._outs = [outs]
         elif outs is None:
-            self._outs = [MissingStream() for i in range(self._N_outs)]
+            self._outs = [MissingStream for i in range(self._N_outs)]
         elif not outs:
             self._outs = [Stream('') for i in range(self._N_outs)]
         else:
             self._outs = [Stream(i) if isinstance(i, str) else i for i in outs]
 
-    def _init(self):
-        exact = self._kwargs['exact']
-        balance = self._kwargs['balance']
-        
-        # Make sure balance type is valid
-        if balance not in ('flow', 'fraction'):
-            raise ValueError(
-                "balance type must be one of the following: 'flow', 'fraction'")
-
-        # Cach correct solver and make sure linear system of equations is square to achieve exact solution
-        if exact:
-            solver = np.linalg.solve
-            species_IDs = self._kwargs['species']
-            sID, s_index = len(species_IDs), len(self._kwargs['streams'])
-            if sID != s_index:
-                raise ValueError(
-                    f"length of species ({sID}) must be equal to the length of streams_index ({s_index}) when exact solution is needed")
-        else:
-            solver = np.linalg.lstsq
-
-        # Cach indices for species and solver
-        spindex = self._spindex
-        self._bal_index = [spindex(specie) for specie in species_IDs]
-        self._linalg_solver = solver
-
     def _run(self):
         """Solve mass balance by iteration."""
         # SOLVING BY ITERATION TAKES 15 LOOPS FOR 2 STREAMS
         # SOLVING BY LEAST-SQUARES TAKES 40 LOOPS
-        kwargs = self._kwargs
-        stream_index = kwargs['streams']
-        balance = kwargs['balance']
+        stream_index = self._streams
+        balance = self._balance
         solver = self._linalg_solver
 
         # Set up constant and variable streams
@@ -198,62 +188,62 @@ class MassBalance(Unit, metaclass=final):
 
 # %% Energy Balance Unit
 
-class EnergyBalance(Unit, metaclass=final):
-    """Create a Unit object that changes a stream's temperature, flow rate, or vapor fraction to satisfy energy balance.
+# class EnergyBalance(Unit):
+#     """Create a Unit object that changes a stream's temperature, flow rate, or vapor fraction to satisfy energy balance.
 
-    **Parameters**
+#     **Parameters**
 
-        **index:** [int] Index of stream that can vary in temperature, flow rate, or vapor fraction.
+#         **index:** [int] Index of stream that can vary in temperature, flow rate, or vapor fraction.
         
-        **Type:** [str] Should be one of the following
-            * 'T': Vary temperature of output stream
-            * 'F': Vary flow rate of input/output stream
-            * 'V': Vary vapor fraction of output stream
+#         **Type:** [str] Should be one of the following
+#             * 'T': Vary temperature of output stream
+#             * 'F': Vary flow rate of input/output stream
+#             * 'V': Vary vapor fraction of output stream
         
-        **Qin:** *[float]* Additional energy input.
+#         **Qin:** *[float]* Additional energy input.
         
-    .. Note:: This is not a mixer, input streams and output streams should match flow rates.
+#     .. Note:: This is not a mixer, input streams and output streams should match flow rates.
 
-    """
-    _kwargs = {'index': None,
-               'Type': 'T',
-               'Qin': 0}
-    line = 'Balance'
-    _has_cost = False
-    _graphics = MassBalance._graphics
-    _init_ins = MassBalance._init_ins
-    _init_outs = MassBalance._init_outs
+#     """
+#     _kwargs = {'index': None,
+#                'Type': 'T',
+#                'Qin': 0}
+#     line = 'Balance'
+#     _has_cost = False
+#     _graphics = MassBalance._graphics
+#     _init_ins = MassBalance._init_ins
+#     _init_outs = MassBalance._init_outs
     
-    def _run(self):        # Get arguments
-        ins = self.ins.copy()
-        outs = self.outs.copy()
-        kwargs = self._kwargs
-        index = kwargs['index']
-        Type = kwargs['Type']
-        Qin = kwargs['Qin']
+#     def _run(self):        # Get arguments
+#         ins = self.ins.copy()
+#         outs = self.outs.copy()
+#         kwargs = self._kwargs
+#         index = kwargs['index']
+#         Type = kwargs['Type']
+#         Qin = kwargs['Qin']
         
-        # Pop out required streams
-        if Type == 'F':
-            s_in = ins.pop(index)
-            s_out = outs.pop(index)
-        else:
-            s = outs.pop(index)
+#         # Pop out required streams
+#         if Type == 'F':
+#             s_in = ins.pop(index)
+#             s_out = outs.pop(index)
+#         else:
+#             s = outs.pop(index)
         
-        # Find required enthalpy
-        H_in = sum(i.H for i in ins) + Qin
-        H_out = sum(o.H for o in outs)
-        H_s = H_out - H_in
+#         # Find required enthalpy
+#         H_in = sum(i.H for i in ins) + Qin
+#         H_out = sum(o.H for o in outs)
+#         H_s = H_out - H_in
         
-        # Set enthalpy
-        if Type == 'T':
-            s.H = -H_s
-        elif Type == 'V':
-            s.enable_phases()
-            s.VLE(Qin=s.H - H_s)
-        elif Type == 'F':
-            s.mol *= (s_out.H - s_in.H)/H_s
-        else:
-            raise ValueError(f"Type must be 'T', 'V' or 'F', not '{Type}'")
+#         # Set enthalpy
+#         if Type == 'T':
+#             s.H = -H_s
+#         elif Type == 'V':
+#             s.enable_phases()
+#             s.VLE(Qin=s.H - H_s)
+#         elif Type == 'F':
+#             s.mol *= (s_out.H - s_in.H)/H_s
+#         else:
+#             raise ValueError(f"Type must be 'T', 'V' or 'F', not '{Type}'")
             
         
         

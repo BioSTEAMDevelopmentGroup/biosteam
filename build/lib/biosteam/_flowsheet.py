@@ -79,7 +79,6 @@ def make_digraph(units, streams):
 
 def save_digraph(digraph, file, format):
     if not file:
-        format = 'png'
         if format == 'svg':
             x = display.SVG(digraph.pipe(format=format))
         else:
@@ -184,10 +183,10 @@ class Flowsheet:
         feed = Stream(None)
         feed._ID = ''
         _system._streamUnit('\n'.join([i.ID for i in feeds]),
-                           feed)
+                           None, feed)
         _system._streamUnit('\n'.join([i.ID for i in products]),
-                           None, product)
-        unit = _system._systemUnit(self.ID, product, feed)
+                           product, None)
+        unit = _system._systemUnit(self.ID, feed, product)
         unit.line = 'flowsheet'
         unit.diagram(1)
         
@@ -217,7 +216,8 @@ class Flowsheet:
                 if len(feeds) > 1:
                     feed = Stream(None)
                     feed._ID = ''
-                    units.add(StrUnit('\n'.join([i.ID for i in feeds]), feed))
+                    units.add(StrUnit('\n'.join([i.ID for i in feeds]),
+                                      None, feed))
                     ins.append(feed)
                 else: ins += feeds
                 
@@ -225,11 +225,11 @@ class Flowsheet:
                     product = Stream(None)
                     product._ID = ''
                     units.add(StrUnit('\n'.join([i.ID for i in products]),
-                                      None, product))
+                                      product, None))
                     outs.append(product)
                 else: outs += products
                 
-                subsystem_unit = _system._systemUnit(i.ID, outs, ins)
+                subsystem_unit = _system._systemUnit(i.ID, ins, outs)
                 units.difference_update(i.units)
                 units.add(subsystem_unit)
         

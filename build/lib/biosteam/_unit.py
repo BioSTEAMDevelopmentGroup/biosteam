@@ -13,13 +13,12 @@ from ._flowsheet import find, save_digraph
 from ._graphics import Graphics, default_graphics
 from ._stream import Stream
 from ._heat_utility import HeatUtility
-from ._utils import Ins, Outs, missing_stream
+from ._utils import Ins, Outs, MissingStream, NotImplementedMethod
 from ._power_utility import PowerUtility
 from warnings import warn
 import biosteam as bst
 
 __all__ = ('Unit',)
-_do_nothing = lambda self: None
 
 # %% Unit neighbors
 
@@ -64,93 +63,67 @@ def _ub_warning(key, value, units, ub, stacklevel, source):
     
     warn(_warning(source, msg, DesignWarning), stacklevel=stacklevel)
 
-
-# %% Unit metaclass
-
-_Unit_is_done = False
-
-class metaUnit(type):
-    """Unit metaclass for extending the documentation, adding key word arguments, and keeping track for Unit lines and inheritance."""
-    def __new__(mcl, name, bases, dct):
-        if not _Unit_is_done:
-            # Abstract Unit class
-            cls = type.__new__(mcl, name, bases, dct)
-        else:
-            # Make new Unit class
-            cls = type.__new__(mcl, name, bases, dct)
-            
-            if cls.__doc__ is Unit.__doc__:
-                # Do not inherit docstring from Unit
-                cls.__doc__ = None
-            
-            # Set line
-            # default_line constitutes a new Unit class
-            line = cls.line
-            if line is 'Unit':
-                line = cls.__name__.replace('_', ' ')
-                # Set new graphics object for new line
-                if '_graphics' not in dct: cls._graphics = Graphics()
-            elif 'line' in dct and '_graphics' not in dct:
-                # Set new graphics for specified line
-                cls._graphics = Graphics()
-            
-            cls.line = line = re.sub(r"\B([A-Z])", r" \1", line).capitalize()
-            if '_kwargs' in dct and '__init__' not in dct:
-                if "__doc__" in dct:
-                    cls.__doc__ = cls.__doc__.replace('**Parameters**', 
-           "**Parameters**"
-    +"\n"    
-    +"\n        **ID:** [str] Unique identification. If set as '', a default ID will be chosen."
-    +"\n"
-    +"\n        **outs:** tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given."
-    +"\n"
-    +"\n        **ins:** tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.")
-                
-                kwargs = dct['_kwargs']
-                
-                # Key word arguments to replace
-                inputs = ', '.join([key + '=' + key for key in kwargs])
+# %% Metaclass for Unit operations
+    
+class unit(type):
+    """Unit metaclass for keeping track for Unit lines and graphics."""
+    def __new__(mcl, name, bases, dct, isabstract=False, unitdoc=True):
+        # Make new Unit class
+        cls = type.__new__(mcl, name, bases, dct)
         
-                # Begin changing __init__ to have kwargs by making a string to execute
-                str2exec = f"def __init__(self, ID='', outs=(), ins=None, {inputs}):\n"
-                str2exec+= f"    self._kwargs = dict({inputs})\n"
-                str2exec+= f"    _(self, ID, outs, ins)"
+        try: Unit
+        except NameError: return cls
         
-                # Execute string and replace __init__
-                globs = {'_': Unit.__init__}
-                globs.update(kwargs)
-                locs = {}
-                exec(str2exec, globs, locs)
-                cls.__init__ = locs['__init__']
-        return cls        
+        # Set line
+        # default_line constitutes a new Unit class
+        line = cls.line
+        if line in ('Unit', 'Mixer', 'Static', 'Splitter', 'Solids separator', 'Facility'):
+            line = cls.__name__.replace('_', ' ')
+            # Set new graphics object for new line
+            if '_graphics' not in dct: cls._graphics = Graphics()
+        elif 'line' in dct and '_graphics' not in dct:
+            # Set new graphics for specified line
+            cls._graphics = Graphics()
+        
+        cls.line = re.sub(r"\B([A-Z])", r" \1", line).capitalize()
+        
+        if unitdoc and cls.__doc__:
+            cls.__doc__ = cls.__doc__.replace('**Parameters**', 
+   "**Parameters**"
+"\n"    
+"\n        **ID:** [str] Unique identification. If set as '', a default ID will be chosen."
+"\n"
+"\n        **outs:** tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given."
+"\n"
+"\n        **ins:** tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.")
+        
+        if isabstract: return cls
+        
+        if not hasattr(cls, '_run'):
+            raise NotImplementedError("'Unit' subclass must have a '_run' method. Use the 'isabstract' key word argument to disregard this error.")
+        
+        return cls
 
 
 # %% Unit Operation
 
-
-class Unit(metaclass=metaUnit):
-    """Abstract parent class for Unit objects. Child objects must contain _init, _run, _design and _cost methods to setup internal objects, estimate stream outputs of a Unit and find design and cost information.  
+class Unit(metaclass=unit):
+    """Abstract parent class for Unit objects. Child objects must contain _run, _design and _cost methods to estimate stream outputs of a Unit and find design and cost information.  
 
     **Parameters**
 
         **ID:** [str] A unique identification. If ID is an empty string (i.e. '' ), a default ID will be chosen. If ID is None, unit will not be registered in flowsheet.
 
-        **outs:** tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.
-        
         **ins:** tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.
 
-        ****kwargs:** Keyword arguments that are stored to instance attribute `_kwargs` and later accessed by _run, _design, and _cost methods.
+        **outs:** tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.
+                
 
     **Class Definitions** 
     
         **line** = [Defaults to the class name of the first child class]: [str] Name denoting the type of Unit class    
         
         **BM** = None: [float] Bare module factor (installation factor)
-
-        **_kwargs** = {}: [dict] Default keyword arguments
-
-        **_init():**
-            Initialize components.
         
         **_run()**
             Run simulation and update output streams.
@@ -163,7 +136,7 @@ class Unit(metaclass=metaUnit):
             
         .. Note::
            
-           Class argument `_init` is called only once when a Unit object is initialized. The `_run` method is called during recycle loop convergence. The rest of the methods are called in the given order for generating results.
+           The `_run` method is called during recycle loop convergence. The `_design` and `_cost` methods are called in the given order for generating results.
         
         **_units** = {}: [dict] Default units for results Operation and Design
         
@@ -195,7 +168,7 @@ class Unit(metaclass=metaUnit):
         
         :doc:`Inheriting from Unit`
         
-        :doc:`Unit metaclasses and decorators`
+        :doc:`Unit decorators`
     
     """ 
     ### Abstract Attributes ###
@@ -205,9 +178,6 @@ class Unit(metaclass=metaUnit):
     
     # [dict] Default units for construction
     _units = {}
-    
-    # [bool] Should be True if it has any associated cost
-    _has_cost = True
     
     # [int] Expected number of input streams
     _N_ins = 1  
@@ -223,9 +193,6 @@ class Unit(metaclass=metaUnit):
     
     # [bool] If True, a PowerUtility object is created for every instance.
     _has_power_utility = False 
-    
-    # [dict] default key word arguments that are accessed by simulation method.
-    _kwargs = {}
     
     # [biosteam Graphics] a Graphics object for diagram representation.
     _graphics = default_graphics
@@ -243,22 +210,21 @@ class Unit(metaclass=metaUnit):
     
     #: [list] HeatUtility objects associated to unit
     _heat_utilities = ()
-    
+        
     ### Initialize ###
     
-    def __init__(self, ID='', outs=(), ins=None):
+    def __init__(self, ID='', ins=None, outs=()):
         self._init_ins(ins)
         self._init_outs(outs)
         self._init_results()
         self._init_heat_utils()
         self._init_power_util()
-        self._init()
         self.ID = ID
 
     def _init_ins(self, ins):
         """Initialize input streams."""
         if ins is None:
-            self._ins = Ins(self, (missing_stream for i in range(self._N_ins)))
+            self._ins = Ins(self, (MissingStream for i in range(self._N_ins)))
         elif isinstance(ins, Stream):
             self._ins = Ins(self, (ins,))
         elif isinstance(ins, str):
@@ -271,7 +237,7 @@ class Unit(metaclass=metaUnit):
     def _init_outs(self, outs):
         """Initialize output streams."""
         if outs is None:
-            self._outs = Outs(self, (missing_stream for i in range(self._N_outs)))
+            self._outs = Outs(self, (MissingStream for i in range(self._N_outs)))
         elif not outs:
             self._outs = Outs(self, (Stream('') for i in range(self._N_outs)))
         elif isinstance(outs, Stream):
@@ -342,10 +308,8 @@ class Unit(metaclass=metaUnit):
     __rpow__ = __rsub__
     
     # Abstract methods
-    _init     = _do_nothing
-    _run      = _do_nothing
-    _design   = _do_nothing
-    _cost     = _do_nothing
+    _design   = NotImplementedMethod
+    _cost     = NotImplementedMethod
     
     # Summary
     def _summary(self):
@@ -468,20 +432,20 @@ class Unit(metaclass=metaUnit):
             series.name = ID
             return series
 
-    def __getattr__(self, name):
-        if name is '_results':
-            warn(DeprecationWarning("'_results' dictionary will be deprecated in favor of attributes '_Design', '_Cost', and '_GHGs'"))
-            self._results = results = {'Design': self._Design,
-                                       'Cost': self._Cost,
-                                       'GHG': self._GHGs}
-            return results
-        elif name in ('_Cost', '_Design') and hasattr(self, '_results'):
-            warn(DeprecationWarning("'_results' dictionary will be deprecated in favor of attributes '_Design', '_Cost', and '_GHGs'"))
-            self._Cost = self._results['Cost']
-            self._Design = self._results['Design']
-            self._GHGs = self._results['GHG']
-        else:
-            raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+    # def __getattr__(self, name):
+    #     if name is '_results':
+    #         warn(DeprecationWarning("'_results' dictionary will be deprecated in favor of attributes '_Design', '_Cost', and '_GHGs'"))
+    #         self._results = results = {'Design': self._Design,
+    #                                    'Cost': self._Cost,
+    #                                    'GHG': self._GHGs}
+    #         return results
+    #     elif name in ('_Cost', '_Design') and hasattr(self, '_results'):
+    #         warn(DeprecationWarning("'_results' dictionary will be deprecated in favor of attributes '_Design', '_Cost', and '_GHGs'"))
+    #         self._Cost = self._results['Cost']
+    #         self._Design = self._results['Design']
+    #         self._GHGs = self._results['GHG']
+    #     else:
+    #         raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
 
     def _checkbounds(self, key, value, units, bounds):
         """Issue a warning if value is out of bounds.

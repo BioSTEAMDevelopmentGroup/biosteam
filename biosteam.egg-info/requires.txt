@@ -11,3 +11,4 @@ pandas
 numpy
 graphviz
 matplotlib
+lazypkg>=1.0

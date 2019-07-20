@@ -532,15 +532,59 @@ class MixedStream(Stream):
         self.P = stream.P
         self.T = stream.T
 
-    def copyflow(self, stream):
-        """Copy flow rates of stream to self."""
-        if self._species is not stream._species:
-            raise ValueError('species must be the same to copy stream specifications')
+    def copyflow(self, stream, species=None, remove=False, exclude=False):
+        """Copy flow rates of stream to self.
+        
+        **Parameters**
+        
+            **stream:** [Stream] Flow rates will be copied from here.
+            
+            **species:** iterable[str] Species IDs. Defaults to all species.
+            
+            **remove:** [bool] If True, copied species will be removed from `stream`.
+            
+            **exclude:** [bool] If True, exclude `species` when copying.
+            
+        .. Note::
+            
+            Species flow rates that are not copied will be set to zero.
+        
+        """
+        assert self._species is stream._species, ('species must be the same to '
+                                                  'copy stream specifications')
         if isinstance(stream, MixedStream):
-            self._mol[:] = stream._mol
+            if species is None:
+                self._mol[:] = stream._mol
+                if remove: stream._mol[:] = 0
+            else:
+                indices = self.indices(species)
+                if exclude:
+                    self._mol[:] = stream._mol
+                    self._mol[indices] = 0
+                    if remove:
+                        mol = stream._mol
+                        mol[:], mol[indices] = 0, mol[indices]
+                else:
+                    mol[:] = stream._mol[:, indices]
+                    if remove: stream.mol[:, indices] = 0
         elif isinstance(stream, Stream):
-            self.empty()
-            self._mol[phase_index[stream._phase]] = stream.mol
+            if species is None:
+                self._mol[:] = 0
+                self._mol[phase_index[stream._phase]] = stream.mol
+                if remove: stream.mol[:] = 0
+            else:
+                indices = self.indices(species)
+                if exclude:
+                    p = phase_index[stream._phase]
+                    self._mol[p, :] = stream._mol
+                    self._mol[p, indices] = 0
+                    if remove:
+                        mol = stream._mol
+                        mol[:], mol[indices] = 0, mol[indices]
+                else:
+                    self._mol[:] = 0
+                    self._mol[phase_index[stream._phase], indices] = stream._mol[indices]
+                    if remove: stream.mol[indices] = 0
         else:
             raise TypeError('argument must be a Stream object')
             
@@ -590,8 +634,8 @@ class MixedStream(Stream):
         for i in (P, T, x, y, V, Q):
             Nspecs += (i is not None)
             
-        if Nspecs != 2:
-            raise ValueError("must pass two of the following specifications: P, T, x, y, V, or Q")
+        assert Nspecs == 2, ("must pass two of the following specifications: "
+                             "P, T, x, y, V, or Q")
         
         if P:
             self.P = P
@@ -811,7 +855,7 @@ class MixedStream(Stream):
             P_bubble, y_bubble = self._bubble_P(species, zf, T)
 
         solver = self._VLEsolver
-        f_activity = self.activity_coefficients
+        gamma = self.activity_coefficients
         zs = mol/molnet
         if eq == 'VP':
             if V == 1:
@@ -829,7 +873,7 @@ class MixedStream(Stream):
                 v = y*V*molnet
                 
                 def V_error(T):
-                    v[:] = solve_v(v, T, P, mol, molnet, zs, N, species, f_activity)
+                    v[:] = solve_v(v, T, P, mol, molnet, zs, N, species, gamma)
                     return v.sum()/molnet
                 
                 # Guess
@@ -851,7 +895,7 @@ class MixedStream(Stream):
                 return
             else:
                 def V_error(P):
-                    v[:] = solve_v(v, T, P, mol, molnet, zs, N, species, f_activity)
+                    v[:] = solve_v(v, T, P, mol, molnet, zs, N, species, gamma)
                     return v.sum()/molnet
                 
                 y = y or (V*zf + (1-V)*y_bubble)
@@ -885,7 +929,7 @@ class MixedStream(Stream):
                 v = y * V_guess * mol
 
                 # Solve
-                vapor_mol[index] = v = solve_v(v, T, P, mol, molnet, zs, N, species, f_activity)
+                vapor_mol[index] = v = solve_v(v, T, P, mol, molnet, zs, N, species, gamma)
             liquid_mol[index] = mol - v
             solver.T = T
             solver.P = P
@@ -921,7 +965,7 @@ class MixedStream(Stream):
             
             def Q_error(T):
                 self.T = T
-                v[:] = solve_v(v, T, P, mol, molnet, zs, N, species, f_activity)
+                v[:] = solve_v(v, T, P, mol, molnet, zs, N, species, gamma)
                 vapor_mol[index] = v
                 liquid_mol[index] = mol - v
                 return self.H/mass
@@ -963,7 +1007,7 @@ class MixedStream(Stream):
             mass = self.massnet
             def Q_error(P):
                 self.P = P
-                v[:] = solve_v(v, T, P, mol, molnet, zs, N, species, f_activity)
+                v[:] = solve_v(v, T, P, mol, molnet, zs, N, species, gamma)
                 vapor_mol[index] = v
                 liquid_mol[index] = mol - v
                 return self.H/mass

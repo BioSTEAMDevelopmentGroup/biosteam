@@ -4,7 +4,7 @@ Created on Wed May 22 23:14:02 2019
 
 @author: yoelr
 """
-from .. import _ureg
+import biosteam as bst
 from .._exceptions import DimensionError
 
 __all__ = ('DisplayUnits',)
@@ -19,10 +19,10 @@ class DisplayUnits:
         list_keys = []
         for k, v in display_units.items():
             try: # Assume units is one string
-                dims = getattr(_ureg, v).dimensionality
+                dims = getattr(bst._ureg, v).dimensionality
             except:
                 try: # Assume units are a list of possible units
-                    dims = [getattr(_ureg, i).dimensionality for i in v]
+                    dims = [getattr(bst._ureg, i).dimensionality for i in v]
                     list_keys.append(k)
                 except: # Assume the user uses value as an option, and ignores units
                     dims = v
@@ -37,7 +37,7 @@ class DisplayUnits:
             self._display_units[name] = unit
             return
         name_dim = getattr_(self, name)
-        unit_dim = getattr(_ureg, unit).dimensionality
+        unit_dim = getattr(bst._ureg, unit).dimensionality
         if isinstance(name_dim, list):
             if unit_dim not in name_dim:
                 raise DimensionError(f"dimensions for '{name}' must be either {', '.join(name_dim[:-1])} or {name_dim[-1]}; not {unit_dim}")    

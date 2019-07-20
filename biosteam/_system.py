@@ -4,8 +4,6 @@ Created on Sat Aug 18 15:04:55 2018
 
 @author: yoelr
 """
-from copy import copy
-import numpy as np
 from scipy.optimize import newton, broyden2
 from ._exceptions import SolverError, _try_method
 from ._flowsheet import find, make_digraph, save_digraph
@@ -112,7 +110,26 @@ _isproduct = lambda stream: not stream._sink and stream._source
 
 # %% Process flow
 
-class System:
+class system(type):
+    @property
+    def converge_method(self):
+        """Iterative convergence method ('wegstein', 'broyden', or 'fixed point')."""
+        return self._converge.__name__[1:]
+
+    @converge_method.setter
+    def converge_method(self, method):
+        method = method.lower().replace('-', '').replace(' ', '')
+        if 'wegstein' in method:
+            self._converge = self._wegstein
+        elif 'fixedpoint' in method:
+            self._converge = self._fixed_point
+        elif 'broyden' in method:
+            self._converge = self._broyden
+        else:
+            raise ValueError(f"only 'wegstein' and 'fixed point' methods are valid, not '{method}'")
+
+
+class System(metaclass=system):
     """Create a System object that can iteratively run each element in a network of BioSTREAM objects until the recycle stream is converged. A network can have function, Unit and/or System objects. When the network contains an inner System object, it converges/solves it in each loop/iteration.
 
     **Parameters**
@@ -179,9 +196,8 @@ class System:
         streams.discard(MissingStream) 
         
         # link all unit operations with linked streams
-        has = hasattr
         for u in units:
-            if has(u, '_link_streams'): u._link_streams()
+            if inst(u, bst.Static): u._link_streams()
         
         #: set[Unit] All units within the system
         self.units = units = set(units)
@@ -216,16 +232,18 @@ class System:
         self._TEA = None
         
         if recycle is None:
-            self._converge_method = self._run
-        elif not isinstance(recycle, Stream):
-            raise ValueError(f"recycle must be a Stream instance or None, not {type(recycle).__name__}")
+            self._converge = self._run
+        else:
+            assert isinstance(recycle, Stream), (
+             "recycle must be a Stream instance or None, not "
+            f"{type(recycle).__name__}")
         self._recycle = recycle
         
         if ID:
             ID = ID.replace(' ', '_')
             ID_words = ID.split('_')
-            if not all(word.isalnum() for word in ID_words):
-                raise ValueError('ID cannot have any special characters')
+            assert all(word.isalnum() for word in ID_words), ('ID cannot have any'
+                                                              'special characters')
             self._ID = ID
             find.system[ID] = self
     
@@ -249,7 +267,7 @@ class System:
     @property
     def converge_method(self):
         """Iterative convergence method ('wegstein', 'broyden', or 'fixed point')."""
-        return self._converge_method.__name__[1:]
+        return self._converge.__name__[1:]
 
     @converge_method.setter
     def converge_method(self, method):
@@ -257,11 +275,11 @@ class System:
             raise ValueError("cannot set converge method when no recyle is specified")
         method = method.lower().replace('-', '').replace(' ', '')
         if 'wegstein' in method:
-            self._converge_method = self._wegstein
+            self._converge = self._wegstein
         elif 'fixedpoint' in method:
-            self._converge_method = self._fixed_point
+            self._converge = self._fixed_point
         elif 'broyden' in method:
-            self._converge_method = self._broyden
+            self._converge = self._broyden
         else:
             raise ValueError(f"only 'wegstein' and 'fixed point' methods are valid, not '{method}'")
 
@@ -304,14 +322,14 @@ class System:
         if network:
             downstream_facilities = self.facilities            
         else:
-            unit_not_found = True
+            unit_found = False
             inst = isinstance
             for pos, i in enumerate(self.facilities):
                 if unit is i or (inst(i, System) and unit in i.units):
                     downstream_facilities = self.facilities[pos:]
-                    unit_not_found = False
+                    unit_found = True
                     break
-            if unit_not_found: raise ValueError(f'{unit} not found in system')
+            assert unit_found, f'{unit} not found in system'
         system = System(None, network,
                         facilities=downstream_facilities)
         system._ID = f'{type(unit).__name__}-{unit} and downstream'
@@ -438,7 +456,8 @@ class System:
             
         """
         recycle = self.recycle
-        recycle.mol[:] = mol
+        rmol = recycle.mol
+        rmol[:] = mol
         T = recycle.T
         self._run()
         self._mol_error = abs(mol - recycle.mol).sum()
@@ -447,9 +466,9 @@ class System:
         if self._iter > self.maxiter:
             raise SolverError(f'{repr(self)} could not converge' + self._error_info())
         elif self._mol_error < self.molar_tolerance and self._T_error < self.T_tolerance:
-            return recycle.mol, False
+            return rmol.copy(), False
         else:
-            return recycle.mol, True
+            return rmol.copy(), True
         
     def _run(self):
         """Rigorous run each element of the system."""
@@ -464,42 +483,34 @@ class System:
     def _fixed_point(self):
         """Converge system recycle using inner and outer loops with fixed-point iteration."""
         r = self.recycle
-        rmol = r.mol
+        rmol = r._mol
         while True:
             mol = rmol.copy()
             T = r.T
             self._run()
             self._mol_error = abs(mol - rmol).sum()
             self._T_error = abs(T - r.T)
+            self._iter += 1
             if (self._mol_error < self.molar_tolerance
                 and self._T_error < self.T_tolerance): break
-            self._iter += 1
             if self._iter > self.maxiter:
                 raise SolverError(f'{repr(self)} could not converge' + self._error_info())
             
     def _wegstein(self):
         """Converge the system recycle iteratively using wegstein's method."""
-        self.recycle.mol[:] = conditional_wegstein(self._iter_run, self.recycle.mol.copy())
+        mol = self.recycle._mol
+        mol[:] = conditional_wegstein(self._iter_run, mol.copy())
     
     def _broyden(self):
         """Converge the system recycle iteratively using broyden's bad method."""
-        self.recycle.mol[:] = broyden2((lambda x: self._iter_run(x)[0] - x),
-                                       self.recycle.mol.copy(),
+        mol = self.recycle._mol
+        mol[:] = broyden2((lambda x: self._iter_run(x)[0] - x),
+                                       mol.copy(),
                                        x_tol=self.molar_tolerance,
                                        f_tol=self.molar_tolerance)
     
     # Default converge method
-    _converge_method = _wegstein
-    
-    def _converge(self):
-        """Converge the system recycle using an iterative solver (wegstein by default)."""
-        try: return self._converge_method()
-        except Exception as error:
-            if self._recycle:
-                self._recycle.empty()
-                self._converge_method()
-            else:
-                raise error
+    _converge = _wegstein
 
     def set_spec(self, getter, setter, solver=newton, **kwargs):
         """Wrap a solver around the converge method.
@@ -515,7 +526,7 @@ class System:
              **kwargs:** [dict] Key word arguments passed to solver.
 
         """
-        converge = self._converge_method
+        converge = self._converge
 
         def error(val):
             setter(val)
@@ -527,7 +538,7 @@ class System:
             x = solver(error, **kwargs)
             if solver is newton: kwargs['x0'] = x
 
-        self._converge_method = converge_spec
+        self._converge = converge_spec
 
     def _reset_iter(self):
         self._iter = 0
@@ -603,7 +614,7 @@ class System:
         """Convege in debug mode. Just try it!"""
         self._debug_on()
         try:
-            self._converge_method()
+            self._converge()
         except Exception as error:
             self._debug_off()
             raise error
@@ -640,8 +651,8 @@ class System:
         if self._spec_error:
             error_info += f'\n specification error: {self._spec_error:.3g}'
         if recycle:
-            error_info += f"\n convergence error: Flow rate   {self._mol_error:.2e} kmol/hr"
-            error_info += f"\n                    Temperature {self._T_error:.2e} K"
+            error_info +=(f"\n convergence error: Flow rate   {self._mol_error:.2e} kmol/hr"
+                          f"\n                    Temperature {self._T_error:.2e} K")
         if self._spec_error or recycle:
             error_info += f"\n iterations: {self._iter}"
         return error_info

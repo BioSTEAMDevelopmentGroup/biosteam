@@ -6,7 +6,7 @@ This module includes arbitrary classes and functions.
 
 @author: Guest Group
 """
-from biosteam import _Q
+import biosteam as bst
 
 __all__ = ('factor', 'checkbounds', 'approx2step', 'strtuple', 'isbetween', 'count')
 
@@ -27,7 +27,7 @@ def isbetween(x0, x, x1):
 
 def factor(base_units, new_units):
     if base_units == new_units: return 1
-    else: return _Q(1, base_units).to(new_units).magnitude
+    else: return bst._Q(1, base_units).to(new_units).magnitude
 
 def checkbounds(x, bounds):
     lb, up = bounds

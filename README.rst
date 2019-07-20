@@ -82,5 +82,5 @@ Citation
 
 To cite BioSTEAM in publications use::
 
-    Yoel Cortes-Pena, Jeremy Guest (2019). BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
+    Yoel Cortes-Pena, Jeremy Guest (2019). BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules.
     https://github.com/yoelcortes/biosteam

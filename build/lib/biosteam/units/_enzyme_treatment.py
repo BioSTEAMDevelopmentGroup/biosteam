@@ -10,14 +10,14 @@ from ._hx import HXutility
 class EnzymeTreatment(MixTank):
     """Create an EnzymeTreatment unit that is cost as a MixTank with a heat exchanger."""
     _N_outs = 1
-    _kwargs = {'T': 298.15}  # operating temperature (K)
     
     #: Residence time (hr)
     _tau = 1
     
-    def _init(self):
-        self.T = self._kwargs['T']
-        self._heat_exchanger = he = HXutility(None, None, T=self.T) 
+    def __init__(self, ID='', ins=None, outs=(), *, T):
+        super().__init__(ID, ins, outs)
+        self.T = T #: Operating temperature
+        self._heat_exchanger = he = HXutility(None, None, T=T) 
         self._heat_utilities = he._heat_utilities
         he._ins = self._ins
         he._outs = self._outs

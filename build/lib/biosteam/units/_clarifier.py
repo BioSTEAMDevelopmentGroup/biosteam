@@ -5,16 +5,15 @@ Created on Thu Aug 23 22:18:16 2018
 @author: yoelr
 """
 
-from .._unit import Unit
+from ._splitter import Splitter
 from .._exceptions import DesignError
 from .decorators import cost
-from .metaclasses import splitter
 
 _iswithin = lambda x, bounds: bounds[0] < x < bounds[1]
 # Electricity: 16 hp / 200 ft diameter
 
-@cost('Settling area', cost=2720, CE=567, n=0.58, kW=0.00048355)
-class Clarifier(Unit, metaclass=splitter):
+@cost('Settling area', cost=2720, CE=567, n=0.58, kW=0.0005)
+class Clarifier(Splitter):
     _units = {'Settling area': 'ft^2'}
     # Height of the clarifier tank from other designs, estimate (ft)
     height = 10
@@ -33,9 +32,12 @@ class Clarifier(Unit, metaclass=splitter):
         elif _iswithin(SetArea, Concrete_bounds): Design['Material'] = 'Concrete'
         else: raise DesignError('Volumetric flow rate is out of working range.')
         
-    def _end(self):
-        self._Cost['Clarifier'] *= 1.4 if self._Design['Material']=='Steel' else 1
-        
+
+_cost = Clarifier._cost
+def _extended_cost(self):
+    _cost(self)
+    self._Cost['Clarifier'] *= 1.4 if self._Design['Material']=='Steel' else 1
+Clarifier._cost = _extended_cost
         
         
         

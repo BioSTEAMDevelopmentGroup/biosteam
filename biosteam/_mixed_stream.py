@@ -550,8 +550,8 @@ class MixedStream(Stream):
             Species flow rates that are not copied will be set to zero.
         
         """
-        if self._species is not stream._species:
-            raise ValueError('species must be the same to copy stream specifications')
+        assert self._species is stream._species, ('species must be the same to '
+                                                  'copy stream specifications')
         if isinstance(stream, MixedStream):
             if species is None:
                 self._mol[:] = stream._mol
@@ -634,8 +634,8 @@ class MixedStream(Stream):
         for i in (P, T, x, y, V, Q):
             Nspecs += (i is not None)
             
-        if Nspecs != 2:
-            raise ValueError("must pass two of the following specifications: P, T, x, y, V, or Q")
+        assert Nspecs == 2, ("must pass two of the following specifications: "
+                             "P, T, x, y, V, or Q")
         
         if P:
             self.P = P

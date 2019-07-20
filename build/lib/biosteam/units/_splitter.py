@@ -1,17 +1,38 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Aug 23 14:34:07 2018
+Created on Mon May 20 22:04:02 2019
 
 @author: yoelr
 """
 from .. import Unit, Stream
-from .metaclasses import final
 from numpy import asarray
 from pandas import Series
-from .metaclasses._splitter import split
-from . import Mixer
 
-class Splitter(Unit, metaclass=final):
+__all__ = ('run_split', 'run_split_with_mixing')
+
+
+def run_split(self):
+    """Splitter mass and energy balance function based on one input stream."""
+    top, bot = self.outs
+    feed = self._ins[0]
+    net_mol = feed.mol
+    top._mol[:] = net_mol * self._split
+    bot._mol[:] = net_mol - top._mol
+    bot.T = top.T = feed.T
+    bot.P = top.P = feed.P
+
+def run_split_with_mixing(self):
+    """Splitter mass and energy balance function with mixing all input streams."""
+    top, bot = self._outs
+    ins = self._ins
+    if len(ins) > 1: Stream.sum(top, ins)
+    else: top.copylike(ins[0])
+    bot.copylike(top)
+    top._mol[:] *= self._split
+    bot._mol[:] -= top._mol
+
+
+class Splitter(Unit):
     """Create a splitter that separates mixed streams based on splits.
 
     **Parameters**
@@ -115,16 +136,17 @@ class Splitter(Unit, metaclass=final):
                                Ethanol  0.1
     
     """
-    results = None
-    _has_cost = False
     _N_outs = 2
-
-    def __init__(self, ID='', outs=(), ins=None, split=None, order=None):
-        self.ID = ID
+    
+    @property
+    def split(self):
+        """[array] Componentwise split of feed to 0th output stream."""
+        return self._split_series
+    
+    def __init__(self, ID='', ins=None, outs=(), *, split, order=None):
+        Unit.__init__(self, ID, ins, outs)
         self._split = split = Stream.species.array(order, split) if order else asarray(split)
         self._split_series =  Series(split, Stream.species.IDs)
-        self._init_ins(ins)
-        self._init_outs(outs)
 
     def _run(self):
         top, bot = self._outs
@@ -135,25 +157,14 @@ class Splitter(Unit, metaclass=final):
         bot._phase = top._phase = feed._phase
         top._mol[:] = net_mol * self._split
         bot._mol[:] = net_mol - top._mol
-    
-    split = split
-    simulate = _run
-    installation_cost = purchase_cost = utility_cost = Mixer.purchase_cost
 
 
-class InvSplitter(Unit, metaclass=final):
+class InvSplitter(Unit):
     """Create a splitter that sets the input stream based on output streams. Must have only one input stream. The output streams will become the same temperature, pressure and phase as the input.
     """
     line = 'Splitter'
-    results = None
     _graphics = Splitter._graphics
     _has_cost = False
-    
-    def __init__(self, ID='', outs=(), ins=None):
-        self.ID = ID
-        self._init_ins(ins)
-        self._init_outs(outs)
-        
     def _run(self):
         feed = self.ins[0]
         feed._mol[:] = self._mol_out
@@ -164,7 +175,8 @@ class InvSplitter(Unit, metaclass=final):
             out.T = T
             out.P = P
             out.phase = phase 
-            
-    simulate = _run
+    
 
 
+        
+    

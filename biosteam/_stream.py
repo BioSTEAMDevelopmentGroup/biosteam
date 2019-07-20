@@ -7,10 +7,9 @@ Created on Sat Aug 18 14:05:10 2018
 """
 from . import _Q
 import numpy as np
-from scipy.optimize import newton
 from ._utils import property_array, PropertyFactory, DisplayUnits, \
                     tuple_array, fraction, Sink, Source, MissingStream, \
-                    wegstein
+                    wegstein, accelerated_secant
 from ._flowsheet import find
 from ._species import Species, WorkingSpecies
 from ._exceptions import SolverError, EquilibriumError, DimensionError
@@ -18,7 +17,6 @@ from ._equilibrium import DORTMUND, VLEsolver
 
 
 __all__ = ('Stream',)
-
 
 # %% TODOs
 
@@ -293,11 +291,10 @@ class Stream(metaclass=metaStream):
 
     .. code-block:: python
     
-       >>> # Enthalpy (kJ/hr) and heat capacity (kJ/(kg-K))
        >>> s2.T = 298.15
-       >>> s2.Cp
+       >>> s2.Cp # Heat capacity (kJ/(kg-K))
        3.200382054794244
-       >>> s2.H 
+       >>> s2.H  # Enthalpy (kJ/hr)
        0.0
        
        >>> # Change of temperature
@@ -313,10 +310,9 @@ class Stream(metaclass=metaStream):
 
     .. code-block:: python
     
-       >>> # Volumetric flow rate (m^3/hr) and density (kg/m^3)
-       >>> s1.volnet
+       >>> s1.volnet # Volumetric flow rate (m^3/hr)
        0.036138079740245625
-       >>> s1.rho
+       >>> s1.rho # Density (kg/m^3)
        997.0247522552814
       
        >>> # Change of pressure
@@ -333,7 +329,7 @@ class Stream(metaclass=metaStream):
        >>> s1.rho
        983.4747955832584
 
-    A dictionary of available stream properties is available in `Stream.units`. You may also find it useful to use the `help` method to search for a property:
+    A dictionary of available stream properties and respective units of measure is available in `Stream.units`. You may also find it useful to use the `help` method to search for a property:
         
     .. code-block:: python
 
@@ -1254,32 +1250,47 @@ class Stream(metaclass=metaStream):
             self.T = stream.T
             
     def copyflow(self, stream, species=None, *, remove=False, exclude=False):
-        """Copy flow rates of stream to self."""
-        if self._species is stream._species:
-            if species is None:
+        """Copy flow rates of stream to self.
+        
+        **Parameters**
+        
+            **stream:** [Stream] Flow rates will be copied from here.
+            
+            **species:** iterable[str] Species IDs. Defaults to all species.
+            
+            **remove:** [bool] If True, copied species will be removed from `stream`.
+            
+            **exclude:** [bool] If True, exclude `species` when copying.
+            
+        .. Note::
+            
+            Species flow rates that are not copied will be set to zero.
+        
+        """
+        assert self._species is stream._species, ('species must be the same to '
+                                                  'copy stream specifications')
+        if species is None:
+            self._mol[:] = stream.mol
+            if remove: stream._mol[:] = 0
+        else:
+            indices = self.indices(species)
+            if exclude:
                 self._mol[:] = stream.mol
-                if remove: stream._mol[:] = 0
+                self._mol[indices] = 0
+                if remove:
+                    mol = stream._mol
+                    if isinstance(stream, MS.MixedStream):
+                        mol[:], mol[:, indices] = 0, mol[:, indices]
+                    else:
+                        mol[:], mol[indices] = 0, mol[indices]
             else:
-                indices = self.indices(species)
-                if exclude:
-                    self._mol[:] = stream.mol
-                    self._mol[indices] = 0
-                    if remove:
-                        mol = stream._mol
-                        if isinstance(stream, MS.MixedStream):
-                            mol[:], mol[:, indices] = 0, mol[:, indices]
-                        else:
-                            mol[:], mol[indices] = 0, mol[indices]
-                else:
-                    self._mol[:] = 0
-                    self._mol[indices] = stream.mol[indices]
-                    if remove: 
-                        if isinstance(stream, MS.MixedStream):
-                            stream._mol[phase_index[self.phase], indices] = 0
-                        else:
-                            stream._mol[indices] = 0
-        else: raise ValueError('species must be the same '
-                               'to copy stream specifications')
+                self._mol[:] = 0
+                self._mol[indices] = stream.mol[indices]
+                if remove: 
+                    if isinstance(stream, MS.MixedStream):
+                        stream._mol[phase_index[self.phase], indices] = 0
+                    else:
+                        stream._mol[indices] = 0
 
     def empty(self):
         """Set flow rates to zero
@@ -1371,9 +1382,8 @@ class Stream(metaclass=metaStream):
             return 1 - y_bubble.sum()
 
         # Solve and return
-        T_bubble = newton(bubble_error, T_bubble)
+        T_bubble = accelerated_secant(bubble_error, T_bubble, T_bubble+0.01, 1e-6)
         y_bubble = y_bubble/y_bubble.sum()
-        
         self._bubble_cached = (species, P, T_bubble, y_bubble, x)
         return T_bubble, y_bubble
 
@@ -1456,7 +1466,7 @@ class Stream(metaclass=metaStream):
             return 1 - y_bubble.sum()
 
         # Solve and return
-        P_bubble = newton(bubble_error, P_bubble)
+        P_bubble = accelerated_secant(bubble_error, P_bubble, P_bubble+1, 1e-2)
         y_bubble = y_bubble/y_bubble.sum()
         self._bubble_cached = (species, P_bubble, T, y_bubble, x)
         return P_bubble, y_bubble
@@ -1538,7 +1548,7 @@ class Stream(metaclass=metaStream):
             return 1 - x_dew.sum()
 
         # Solve
-        T_dew = newton(dew_error, T_dew)
+        T_dew = accelerated_secant(dew_error, T_dew, T_dew-0.01, 1e-6)
         x_dew = x_dew/x_dew.sum()
         self._dew_cached = (species, P, T_dew, y, x_dew)
         return T_dew, x_dew
@@ -1622,7 +1632,7 @@ class Stream(metaclass=metaStream):
             return 1 - x_dew.sum()
         
         # Solve
-        P_dew = newton(dew_error, P_dew)
+        P_dew = accelerated_secant(dew_error, P_dew, P_dew+1, 1e-2)
         x_dew = x_dew/x_dew.sum()
         self._dew_cached = (species, P_dew, T, y, x_dew)
         return P_dew, x_dew

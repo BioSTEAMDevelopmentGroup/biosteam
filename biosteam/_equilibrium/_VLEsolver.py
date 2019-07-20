@@ -4,7 +4,7 @@ Created on Wed Mar 20 18:40:05 2019
 
 @author: yoelr
 """
-from .._utils import isbetween, bounded_secant, wegstein#, count
+from .._utils import isbetween, accelerated_bounded_secant, wegstein#, count
 import numpy as np
 
 __all__ = ('VLEsolver', 'solve_v', 'V_2N', 'V_3N', 'V_error')
@@ -37,10 +37,8 @@ def solve_v(v, T, P, mol, molnet, zs, N, species, gamma):
     elif N == 3:
         solve_V = V_3N
     else:
-        solve_V = lambda zs, Ks: bounded_secant(V_error, 0, V, 1,
-                                                V_error(0, zs, Ks),
-                                                V_error(1, zs, Ks),
-                                                1e-4, args=(zs, Ks))
+        solve_V = lambda zs, Ks: accelerated_bounded_secant(V_error, 0, V, 1,
+                                                            1e-4, args=(zs, Ks))
     Ks = None
     def f(x):
         nonlocal Ks, V
@@ -54,15 +52,16 @@ class VLEsolver:
     """Create a VLEsolver object for solving VLE."""
     __slots__ = ('T', 'P', 'Q', 'V')
     
-    tolerance = {'T': 0.0001,
-                 'P': 1,
-                 'Q': 1,
-                 'V': 0.0001}
+    tolerance = {'T': 0.00001,
+                 'P': 0.1,
+                 'Q': 0.1,
+                 'V': 0.00001}
     
     def __init__(self):
         self.T = self.P = self.Q = self.V = 0
     
     def __call__(self, xvar, yvar, f, x0, x1, y0, y1, yval):
+        # Bounded solver with Wegstein acceleration
         xtol = self.tolerance[xvar]
         ytol = self.tolerance[yvar]
         x = getattr(self, xvar)
@@ -70,20 +69,39 @@ class VLEsolver:
         if y1 < yval: x0, y0, x1, y1 = x1, y1, x0, y0
         if not (isbetween(x0, x, x1) and (yval-10*ytol < y < yval+10*ytol)):
             x = x0 + (yval-y0)*(x1-x0)/(y1-y0)
-        y = f(x)
-        x_ = x0
         yval_ub = yval + ytol
         yval_lb = yval - ytol
-        while abs(x-x_) > xtol:
+        
+        x_old = x
+        y = f(x)
+        if y > yval_ub:
+            x1 = x
+            y1 = y
+        elif y < yval_lb:
+            x0 = x
+            y0 = y
+        else:
+            x = x0 + (yval-y0)*(x1-x0)/(y1-y0)
+            setattr(self, xvar, x)
+            setattr(self, yvar, y)
+            return x
+        
+        x = g0 = x0 + (yval-y0)*(x1-x0)/(y1-y0)
+        while abs(x-x_old) > xtol:
+            y = f(x)
             if y > yval_ub:
-                x_ = x1 = x
+                x1 = x
                 y1 = y
             elif y < yval_lb:
-                x_ = x0 = x
+                x0 = x
                 y0 = y
             else: break
-            x = x0 + (yval-y0)*(x1-x0)/(y1-y0)
-            y = f(x)
+            g1 = x0 + (yval-y0)*(x1-x0)/(y1-y0)
+            w = (x-x_old)/(x-g1 + g0-x_old)
+            x_old = x
+            x = w*g1 + (1-w)*x
+            if x < x0 or x > x1: x = g1
+            g0 = g1
         setattr(self, xvar, x)
         setattr(self, yvar, y)
         return x

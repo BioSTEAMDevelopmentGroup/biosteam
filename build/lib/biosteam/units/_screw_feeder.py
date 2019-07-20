@@ -4,12 +4,11 @@ Created on Mon Mar  4 16:40:50 2019
 
 @author: yoelr
 """
-from .. import Unit
 from .decorators import cost
-from .metaclasses import static
+from ._static import Static
 
 @cost('Flow rate', ub=10e4, CE=567, cost=1096, n=0.22)
-class ScrewFeeder(Unit, metaclass=static):
+class ScrewFeeder(Static):
     length = 30 #: ft
     _N_outs = 1
     _has_power_utility = True

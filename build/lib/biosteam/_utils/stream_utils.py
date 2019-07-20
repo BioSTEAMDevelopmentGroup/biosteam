@@ -7,22 +7,22 @@ This module includes classes and functions relating Stream objects.
 @author: Yoel Cortes-Pena
 """
 __all__ = ('MissingStream', 'Ins', 'Outs',
-           'Sink', 'Source', 'missing_stream', 'missing_method')
+           'Sink', 'Source')
 
-# For later use in this module
-def missing_method(self, *args, **kwargs):
-    raise TypeError(f'Method not supported for {type(self).__name__} object.')
+# # For later use in this module
+# def missing_method(self, *args, **kwargs):
+#     raise TypeError(f'Method not supported for {type(self).__name__} object.')
 
 
 # %% Dummy Stream object
 
-class MissingStream:
+class MissingStreamType:
     """Create a MissingStream object that acts as a dummy in Ins and Outs objects until replaced by an actual Stream object."""
     _sink = None
     _source = None
     
     def __new__(cls):
-        return cls._missing_stream
+        return MissingStream
     
     def __bool__(self):
         return False
@@ -33,12 +33,12 @@ class MissingStream:
         raise AttributeError(type(self).__name__)
 
     def __repr__(self):
-        return f'<{type(self).__name__}>'
-
+        return f'MissingStream'
+    
     def __str__(self):
         return 'missing stream'
 
-MissingStream._missing_stream = missing_stream = object.__new__(MissingStream)
+MissingStream = object.__new__(MissingStreamType)
 
 
 # %% List objects for input and output streams
@@ -58,9 +58,9 @@ class Ins(list):
         s._sink = None
         return s
     
-    def insert(self, index, object):
-        s = super().insert(index)
-        s._sink = None
+    def insert(self, index, stream):
+        super().insert(index, stream)
+        stream._sink = self.sink
     
     def remove(self, stream):
         stream._sink = None
@@ -122,9 +122,9 @@ class Outs(list):
         s._source = None
         return s
     
-    def insert(self, index, object):
-        s = super().insert(index)
-        s._source = None
+    def insert(self, index, stream):
+        super().insert(index, stream)
+        stream._source = self.source
     
     def remove(self, stream):
         stream._source = None

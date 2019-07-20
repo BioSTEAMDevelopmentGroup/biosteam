@@ -4,21 +4,17 @@ Created on Thu Aug 23 22:15:20 2018
 
 @author: yoelr
 """
-from .. import Unit
-from .._exceptions import UndefinedCompound
-from .metaclasses import splitter, run_split_with_mixing
+from ._solids_separator import SolidsSeparator
 from .designtools import vacuum_system
 import numpy as np
 import biosteam as bst
 
 __all__ = ('RotaryVacuumFilter', 'RVF')
 
-class RotaryVacuumFilter(Unit, metaclass=splitter):
+class RotaryVacuumFilter(SolidsSeparator):
     """Create a RotaryVacuumFilter object.
     
     **Parameters**
-    
-        **P_suction:** Sucction pressure (Pa)
         
         **moisture_content:** Fraction of moisture in retentate
     
@@ -45,7 +41,7 @@ class RotaryVacuumFilter(Unit, metaclass=splitter):
     radius = 1
     
     #: Suction pressure (Pa)
-    P_suction = 100
+    P_suction = 105
     
     #: For crystals (lb/day-ft^2)
     filter_rate = 6000
@@ -56,26 +52,6 @@ class RotaryVacuumFilter(Unit, metaclass=splitter):
     
     #: Efficiency of the vacuum pump
     power_efficiency = 0.9
-    
-    def _init(self):
-        try:
-            self._water_index = wi = bst.Stream.species._indexdct['7732-18-5']
-        except KeyError:
-            raise UndefinedCompound('7732-18-5')
-        if self._split[wi] != 0:
-            raise ValueError('cannot define water split, only moisture content')
-    
-    def _run(self):
-        run_split_with_mixing(self)
-        wi = self._water_index
-        retentate = self.outs[0]
-        permeate = self.outs[1]
-        solids = retentate.massnet
-        mc = self._kwargs['moisture_content']
-        retentate._mol[wi] = water = (solids * mc/(1-mc))/18.01528
-        permeate._mol[wi] -= water
-        if permeate._mol[wi] < water:
-            raise ValueError(f'not enough water for {repr(self)}')
     
     def _design(self):
         flow = sum(stream.massnet for stream in self.outs)

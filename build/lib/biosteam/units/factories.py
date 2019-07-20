@@ -5,7 +5,6 @@ Created on Sat Jun 15 00:46:41 2019
 @author: yoelr
 """
 from .. import Unit, units
-from . import metaclasses
 from . import decorators
 import pandas as pd
 import numpy as np
@@ -47,24 +46,19 @@ def df2dct(df):
             sim, name = name_sim.split('-')
         else:
             name = name_sim
-            sim = 'static'
+            sim = 'Static'
         name = ''.join([i.capitalize() for i in name.split(' ')])
         for i in name:
             if not (i is ' ' or i.isalnum()):
                 name = name.replace(i, ' ')
-        metaname = sim.casefold()
-        if metaname in metaclasses.__dict__:
-            metacls = getattr(metaclasses, metaname)
-            new = df2unit(name, cost_items, metacls=metacls)
-        else:
-            try:
-                supercls = getattr(units, sim)
-            except:
-                supername = ''.join([i.capitalize() for i in sim.split(' ')])
-                if supername in units.__dict__:
-                    supercls = getattr(units, supername)
-                else:
-                    raise ValueError(f"invalid simulation option '{sim}'")
+        try:
+            supercls = getattr(units, sim)
+        except:
+            supername = ''.join([i.capitalize() for i in sim.split(' ')])
+            try: supercls = getattr(units, supername)
+            except AttributeError:
+                raise ValueError(f"invalid simulation option '{sim}'")
+        finally:
             new = df2unit(name, cost_items, supercls=supercls)
         dct[name] = new
     return dct

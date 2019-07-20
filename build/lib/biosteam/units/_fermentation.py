@@ -11,7 +11,10 @@ from scipy.integrate import odeint
 from .decorators import cost
 from ._tank import MixTank
 from .designtools import size_batch
+from ..reaction import Reaction
 
+@cost('Reactor volume', 'Cleaning in place', CE=521.9,
+      cost=421e3, S=3785, n=0.6, BM=1.8)
 @cost('Reactor volume', 'Agitators', CE=521.9, cost=52500,
       S=3785, n=0.5, kW=22.371, BM=1.5)
 @cost('Reactor volume', 'Reactors', CE=521.9, cost=844000,
@@ -62,9 +65,7 @@ class Fermentation(Unit):
               'Cycle time': 'hr',
               'Loading time': 'hr',
               'Total dead time': 'hr'}
-    _kwargs = {'tau': None, # Reaction time
-               'efficiency': None,
-               'N': None}  # Theoretical efficiency
+    
     _N_heat_utilities = 0
     _has_power_utility = True
     line = 'Fermentation'    
@@ -86,28 +87,23 @@ class Fermentation(Unit):
                          113.4, # Xm
                          0.45,  # Y_PS
                          0.18)  # a
-
-    def _init(self):
+    
+    
+    def __init__(self, ID='', ins=None, outs=(), *, 
+                 tau,  N, efficiency=0.9, iskinetic=False):
+        Unit.__init__(self, ID, ins, outs)
+        self.hydrolysis = Reaction('Sucrose + Water -> 2Glucose', 'Sucrose', 1.00)
+        self.fermentation = Reaction('Glucose -> 2Ethanol + 2CO2',  'Glucose', efficiency)
+        self.iskinetic = iskinetic
+        self.efficiency = efficiency
+        self.tau = tau
+        self.N = N
         self._cooler = hx = HXutility(None)
         self._heat_utilities = hx._heat_utilities
-        # Species involved in fermentation
-        try:
-            self._species_index = Stream.indices(
-                ['64-17-5', '492-61-5', '57-50-1', '7732-18-5', '124-38-9'])
-        except:
-            self._species_index = None
         hx._ins = hx._outs
-        hx._outs[0].T = 32 + 273.15
-        
-        if not self._kwargs['tau']:
-            raise ValueError(f"reaction time must be larger than 0, not '{self._kwargs['tau']}'")
-        
-        if not self._kwargs['N'] or self._kwargs['N'] <= 1:
-            raise ValueError(f"number of reactors must be greater than 1, value {self._kwargs['N']} is infeasible")
-        
-        out, CO2 = self.outs
-        out.T = CO2.T = 32 + 273.15
-        CO2.phase = 'g'
+        vent, effluent = self.outs
+        hx._outs[0].T = effluent.T = vent.T = 305.15
+        vent.phase = 'g'
 
     def _calc_efficiency(self, feed, tau):
         # Get initial concentrations
@@ -180,74 +176,61 @@ class Fermentation(Unit):
     @property
     def N(self):
         """[int] Number of reactors"""
-        return self._kwargs['N']
+        return self._N
     @N.setter
     def N(self, N):
         if N <= 1:
             raise ValueError(f"number of reactors must be greater than 1, value {N} is infeasible")
-        self._kwargs['N'] = N
+        self._N = N
 
     @property
     def efficiency(self):
-        return self._kwargs['efficiency'] or self._efficiency
+        return self.fermentation.X
     @efficiency.setter
     def efficiency(self, efficiency):
-        self._kwargs['efficiency'] = efficiency
+        self.fermentation.X = efficiency
+
+    @property
+    def tau(self):
+        return self._tau
+    @tau.setter
+    def tau(self, tau):
+        self._tau = tau
 
     def _run(self):
-        # Assume no Glycerol produced
-        # No ethanol lost with CO2
-        mw_Ethanol = 46.06844
-        mw_glucose = 180.156
-
-        # Unpack
-        kwargs = self._kwargs
-        out, CO2 = self._outs
-        out.sum(out, self._ins)
-        e, g, s, w, co2 = self._species_index or out.indices(
-                ['64-17-5', '50-99-7', '57-50-1', '7732-18-5', '124-38-9'])
-        glucose = out.mol[g]
-        sucrose = out.mol[s]
-        
-        # Hydrolysis
-        new_glucose = sucrose*2
-        ch_sucrose = -sucrose
-        ch_Water = -sucrose
-        out._mol[[g, s, w]] += [new_glucose, ch_sucrose, ch_Water]
-        
-        # Fermentation
-        self._efficiency = eff = (
-            kwargs.get('efficiency')
-            or self._calc_efficiency(out, kwargs['tau'])
-            )
-        fermented = eff*(glucose + new_glucose)
-        ch_glucose = - fermented
-        ch_Ethanol = 0.5111*fermented * mw_glucose/mw_Ethanol
-        changes = [ch_Ethanol, ch_glucose]
-        out.mol[[e, g]] += changes
-        CO2.mol[co2] = (1-0.5111)*fermented * mw_glucose/44.0095
+        vent, effluent = self.outs
+        Stream.sum(effluent, self.ins)
+        effluent_mol = effluent.mol
+        self.hydrolysis(effluent_mol)
+        if self.iskinetic:
+            self.fermentation.X = self._calc_efficiency(effluent, self._tau)
+        self.fermentation(effluent_mol)
+        vent.copyflow(effluent, ('CO2',), remove=True)
+        y = effluent.P_vapor/101325
+        Y = y.sum()
+        mol2vent = vent.molnet*Y/(1-Y)*y
+        effluent_mol[:] -= mol2vent
+        vent.mol += mol2vent
     
     def number_of_reactors_at_minimum_cost(self):
-        totalcosts = self._totalcosts
-        kwargs = self._kwargs
         cost_old = np.inf
-        kwargs['N'], N = 2, kwargs['N']
+        self._N, N = 2, self._N
         self.simulate()
-        cost_new = totalcosts[0]
+        cost_new = self.purchase_cost
         while cost_new < cost_old:
-            kwargs['N'] += 1
+            self._N += 1
             self.simulate()
             cost_old = cost_new
-            cost_new = totalcosts[0]
-        kwargs['N'], N = N, kwargs['N']
+            cost_new = self.purchase_cost
+        self._N, N = N, self._N
         return N - 1
         
     def _design(self):
-        v_0 = self.outs[0].volnet
-        tau = self._kwargs['tau']
+        v_0 = self.outs[1].volnet
+        tau = self._tau
         tau_0 = self.tau_0
         Design = self._Design
-        Design['Number of reactors'] = N = self._kwargs['N']
+        Design['Number of reactors'] = N = self._N
         Design.update(size_batch(v_0, tau, tau_0, N, self._V_wf))
         hx = self._cooler
         hx.outs[0]._mol[:] = self.outs[0].mol/N 
@@ -259,8 +242,11 @@ class Fermentation(Unit):
         hu.cost *= N
         hu.flow *= N
     
-    def _end(self):
-        N = self._Design['Number of reactors']
-        Cost = self._Cost
-        Cost['Coolers'] = self._cooler._Cost['Heat exchanger']
-        for i in Cost: Cost[i] *= N
+_cost = Fermentation._cost
+def _extended_cost(self):
+    _cost(self)
+    N = self._Design['Number of reactors']
+    Cost = self._Cost
+    Cost['Coolers'] = self._cooler._Cost['Heat exchanger']
+    for i in Cost: Cost[i] *= N
+Fermentation._cost = _extended_cost

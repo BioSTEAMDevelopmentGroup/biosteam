@@ -6,8 +6,11 @@ Created on Sat Oct 28 17:28:09 2017
 @author: Yoel Rene Cortes-Pena
 """
 __all__ = ['Species', 'WorkingSpecies', 'Stream', 'MixedStream',
-           'Unit', 'System', 'TEA', 'PowerUtility', 'HeatUtility',
-           'find', 'Flowsheet', 'CE']
+            'Unit', 'System', 'TEA', 'PowerUtility', 'HeatUtility',
+            'find', 'Flowsheet', 'CE']
+
+from lazypkg import LazyPkg
+LazyPkg(__name__, ['units', 'evaluation', 'inspect', 'compounds', 'reaction'])
 
 #: Chemical engineering plant cost index (defaults to 567.5 at 2017)
 CE = 567.5 
@@ -35,7 +38,8 @@ pd.set_option('display.max_columns', 10)
 pd.set_option('max_colwidth', 35)
 del np, pd, os, UnitRegistry
 
-# %% Import biosteam classes
+
+# %% Initialize BioSTEAM 
 
 from ._species import Species, WorkingSpecies
 from ._stream import Stream
@@ -46,6 +50,7 @@ from ._unit import Unit
 from ._system import System
 from ._tea import TEA
 from ._flowsheet import Flowsheet, find
-from ._utils import LazyPkg
 
-LazyPkg(__name__, ['units', 'evaluation', 'inspect', 'compounds', 'reaction'])
+
+
+

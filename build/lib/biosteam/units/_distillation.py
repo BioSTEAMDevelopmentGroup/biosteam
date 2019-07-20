@@ -104,10 +104,10 @@ column_doc = """Create a {Column Type} column that assumes all light and heavy n
     
     """
 
-class Dist(Unit):
+class Dist(Unit, isabstract=True):
     """Abstract class for a column."""
     # Bare module factor
-    _BM = 4.3
+    BM = 4.3
     
     # Column material factor
     _F_Mstr = 'Carbon steel'
@@ -144,11 +144,71 @@ class Dist(Unit):
                'Height': (27., 170.),
                'Weight': (9000., 2.5e6)}
     
-    _kwargs = {'P': 101325,
-               'LHK': None,
-               'y_top': None,
-               'x_bot': None,
-               'k': 1.25}
+    @property
+    def P(self):
+        return self._P
+    @P.setter
+    def P(self, P):
+        vap, liq = self.outs
+        self._P = vap.P = liq.P = P
+    @property
+    def LHK(self):
+        return self._LHK
+    @LHK.setter
+    def LHK(self, LHK):
+        # Set light non-key and heavy non-key indices
+        self._LHK = LK, HK = LHK
+        species = self.outs[0].species
+        self._LHK_index = LK_index, HK_index = species.indices(LHK)
+        self._LHK_species = tuple(getattr(species, ID) for ID in LHK)
+        
+        species_list = list(species)
+        indices = list(range(len(species_list)))
+        species_list.pop(LK_index)
+        indices.pop(LK_index)
+        if HK_index > LK_index:
+            HK_index -= 1
+        species_list.pop(HK_index)
+        indices.pop(HK_index)
+        Tbs = tuple(s.Tb for s in species_list)
+        
+        Tb_light = getattr(species, LK).Tb
+        Tb_heavy = getattr(species, HK).Tb
+        self._LNK_index = LNK_index = []
+        self._HNK_index = HNK_index = []
+        for Tb, i, s in zip(Tbs, indices, species_list):
+            if Tb < Tb_light:
+                LNK_index.append(i)
+            elif Tb > Tb_heavy:
+                HNK_index.append(i)
+            else:
+                raise ValueError(f"intermediate volatile specie, '{species_list[i]}', between light and heavy key, ['{LK}', '{HK}'].")
+    
+    @property
+    def y_top(self):
+        return self._y_top
+    @y_top.setter
+    def y_top(self, y_top):
+        self._y_top = y_top
+        self._y = array([y_top, 1-y_top])
+    
+    @property
+    def x_bot(self):
+        return self._x_bot
+    @x_bot.setter
+    def x_bot(self, x_bot):
+        self._x_bot = x_bot
+        self._x = array([x_bot, 1-x_bot])
+    
+    def __init__(self, ID='', ins=None, outs=(),
+                 P=101325, *, LHK, y_top, x_bot, k):
+        super().__init__(ID, ins, outs)
+        self.outs[0]._phase = 'g'
+        self.P = P
+        self.LHK = LHK
+        self.y_top = y_top
+        self.x_bot = x_bot
+        self.k = k
     
     @property
     def tray_spacing(self):
@@ -238,64 +298,14 @@ class Dist(Unit):
             dummy = str(F_Mdict.keys())[11:-2]
             raise ValueError(f"vessel_material must be one of the following: {dummy}")
         self._F_Mstr = vessel_material  
-
-    def _init(self):
-        vap, liq = self.outs
-        kwargs = self._kwargs
-        cached = self._cached # abstract attribute
-        species = vap.species
-        getattr_ = getattr
-
-        # Set stream phase and pressure
-        vap._phase = 'g'
-        vap.P = liq.P = kwargs['P']
-        if not kwargs['LHK']:
-            raise ValueError("must specify light and heavy key, 'LHK'")
-
-        # Set light non-key and heavy non-key indices
-        LK, HK = kwargs['LHK']
-        sp_index = species._IDs.index
-        LK_index, HK_index = cached['LHK_index'] = [sp_index(LK), sp_index(HK)]
-        self._LHK_species = tuple(getattr_(species, ID) for ID in kwargs['LHK'])
-        
-        species_list = list(species)
-        indices = list(range(len(species_list)))
-        species_list.pop(LK_index)
-        indices.pop(LK_index)
-        if HK_index > LK_index:
-            HK_index -= 1
-        species_list.pop(HK_index)
-        indices.pop(HK_index)
-        Tbs = tuple(s.Tb for s in species_list)
-        
-        Tb_light = getattr_(species, LK).Tb
-        Tb_heavy = getattr_(species, HK).Tb
-        cached['LNK_index'] = LNK_index = []
-        cached['HNK_index'] = HNK_index = []
-        for Tb, i in zip(Tbs, indices):
-            if Tb < Tb_light:
-                LNK_index.append(i)
-            elif Tb > Tb_heavy:
-                HNK_index.append(i)
-            else:
-                raise ValueError(f"intermediate volatile specie, '{species_list[i]}', between light and heavy key, ['{LK}', '{HK}'].")
-
-        # Update composition requirement and
-        # set light and heavy key compositions at top and bottoms product    
-        y_top = kwargs['y_top']
-        x_bot = kwargs['x_bot']
-        cached['y'] = array([y_top, 1-y_top])
-        cached['x'] = array([x_bot, 1-x_bot])
     
     def _mass_balance(self):
         vap, liq = self.outs
-        kwargs = self._kwargs
-        cached = self._cached
 
         # Get all important flow rates (both light and heavy keys and non-keys)
-        LHK_index = cached['LHK_index']
-        LNK_index = cached['LNK_index']
-        HNK_index = cached['HNK_index']
+        LHK_index = self._LHK_index
+        LNK_index = self._LNK_index
+        HNK_index = self._HNK_index
         mol = self._mol_in
         LHK_mol = mol[LHK_index]
         HNK_mol = mol[HNK_index]
@@ -305,11 +315,11 @@ class Dist(Unit):
         light, heavy = LHK_mol
         LHK_molnet = light + heavy
         zf = light/LHK_molnet
-        split_frac = (zf-kwargs['x_bot'])/(kwargs['y_top']-kwargs['x_bot'])
+        split_frac = (zf-self.x_bot)/(self.y_top-self.x_bot)
         top_net = LHK_molnet*split_frac
 
         # Set output streams
-        vap.mol[LHK_index] = top_net * cached['y']
+        vap.mol[LHK_index] = top_net * self._y
         liq.mol[LHK_index] = LHK_mol - vap.mol[LHK_index]
         vap.mol[LNK_index] = LNK_mol
         liq.mol[HNK_index] = HNK_mol
@@ -319,10 +329,9 @@ class Dist(Unit):
         
         # Unpack arguments
         vap, liq = self.outs
-        cached = self._cached
         species = vap._species
-        cached['vle_top'], cached['top_index'] = vle_top, top_index = species._equilibrium_species(vap._mol)
-        cached['vle_bot'], cached['bot_index'] = vle_bot, bot_index = species._equilibrium_species(liq._mol)
+        self._vle_top, self._top_index = vle_top, top_index = species._equilibrium_species(vap._mol)
+        self._vle_bot, self._bot_index = vle_bot, bot_index = species._equilibrium_species(liq._mol)
 
         # Get top and bottom compositions
         vap_mol = vap.mol[top_index]
@@ -333,12 +342,12 @@ class Dist(Unit):
 
         # Run top equilibrium to find temperature and composition of condensate
         T, y = vap._dew_T(species=(*vle_top,), y=y, P=vap.P)
-        cached['condensate_molfrac'] = y
+        self._condensate_molfrac = y
         vap.T = T
 
         # Run bottoms equilibrium to find temperature
         T, y = liq._bubble_T(species=(*vle_bot,), x=x, P=liq.P)
-        cached['boilup_molfrac'] = y
+        self._boilup_molfrac = y
         liq.T = T
 
     def _equilibrium_staircase(self, operating_line, x_stairs,
@@ -357,7 +366,7 @@ class Dist(Unit):
             
         """
         species = self._LHK_species
-        P = self._kwargs['P']
+        P = self.P
         bubble_T = self.outs[1]._bubble_T
         i = 0
         yi = y_stairs[-1]
@@ -380,18 +389,13 @@ class Dist(Unit):
 
     def _plot_stages(self):
         """Plot stages, graphical aid line, and equilibrium curve. The plot does not include operating lines nor a legend."""
-        # Cached Data
         vap, liq = self.outs
-        cached = self._cached
-        x_stages = cached.get('x_stages')
-        if not x_stages:
+        if not hasattr(self, 'x_stages'):
             self._design()
-            x_stages = cached.get('x_stages')
-        y_stages = cached['y_stages']
-        kwargs = self._kwargs
-        species_IDs = kwargs['LHK']
-        light = species_IDs[0]
-        P = kwargs['P']
+        x_stages = self._x_stages
+        y_stages = self._y_stages
+        light = self.LHK[0]
+        P = self.P
         
         # Equilibrium data
         x_eq = np.linspace(0, 1, 100)
@@ -402,7 +406,7 @@ class Dist(Unit):
         bubble_T = vap._bubble_T
         for xi in x_eq:
             T[n], y = bubble_T(self._LHK_species,
-                                   array([xi, 1-xi]), P)
+                              array([xi, 1-xi]), P)
             y_eq[n] = y[0]
             n += 1
             
@@ -713,7 +717,7 @@ class Dist(Unit):
 
     def _calc_condenser(self):
         distillate = self.outs[0]
-        condensate = self._cached['condensate'] # Abstract instance
+        condensate = self._condensate # Abstract attribute
         condenser = self._condenser
         s_in = condenser.ins[0]
         s_in._mol[:] = distillate.mol+condensate.mol
@@ -729,7 +733,7 @@ class Dist(Unit):
         
     def _calc_boiler(self):
         bottoms = self.outs[1]
-        boil_up = self._cached['boil_up'] # Abstract instance
+        boil_up = self._boil_up # Abstract attribute
         boiler = self._boiler
         s_in = boiler.ins[0]
         s_in.copylike(bottoms)
@@ -795,7 +799,10 @@ class Distillation(Dist):
                       'Stripper wall thickness': 'in',
                       'Stripper weight': 'lb'}
     
-    def _init(self):
+    def __init__(self, ID='', ins=None, outs=(),
+                 P=101325, *, LHK, y_top, x_bot, k):
+        super().__init__(ID, ins, outs, P, LHK=LHK,
+                         y_top=y_top, x_bot=x_bot, k=k)
         self._condenser = HXutility(None,
                                     ins=Stream(None, phase='g'),
                                     outs=MixedStream(None))
@@ -803,11 +810,10 @@ class Distillation(Dist):
                                  ins=Stream(None),
                                  outs=MixedStream(None))
         self._heat_utilities = self._condenser._heat_utilities + self._boiler._heat_utilities
-        self._cached = {'condensate': Stream(None),
-                        'boil_up': Stream(None, phase='g'),
-                        'vapor stream': Stream(None)}
+        self._condensate = Stream(None)
+        self._boil_up = Stream(None, phase='g')
+        self._vapor_stream =  Stream(None)
         self._McCabeThiele_args = np.zeros(6)
-        super()._init()
     
     @property
     def is_divided(self):
@@ -822,15 +828,14 @@ class Distillation(Dist):
     def _calc_Nstages(self):
         """Return a tuple with the actual number of stages for the rectifier and the stripper."""
         vap, liq = self.outs
-        cached = self._cached
         Design = self._Design
-        x_stages = cached['x_stages']
-        y_stages = cached['y_stages']
+        x_stages = self._x_stages
+        y_stages = self._y_stages
         R = Design['Reflux']
         N_stages = Design['Theoretical stages']
         feed_stage = Design['Theoretical feed stage']
-        liq_mol = cached['feed_liqmol']
-        vap_mol = cached['feed_vapmol']
+        liq_mol = self._feed_liqmol
+        vap_mol = self._feed_vapmol
         
         stage_efficiency = self.stage_efficiency
         if stage_efficiency:
@@ -838,11 +843,11 @@ class Distillation(Dist):
         else:    
             # Calculate Murphree Efficiency for rectifying section
             vap_molnet = vap.molnet
-            condensate_molfrac = cached['condensate_molfrac']
-            vle_top = cached['vle_top']
-            cached['L_Rmol'] = L_Rmol = R*vap_molnet
-            cached['V_Rmol'] = V_Rmol = (R+1)*vap_molnet
-            condensate = cached['condensate']
+            condensate_molfrac = self._condensate_molfrac
+            vle_top = self._vle_top
+            self._L_Rmol = L_Rmol = R*vap_molnet
+            self._V_Rmol = V_Rmol = (R+1)*vap_molnet
+            condensate = self._condensate
             condensate.setflow(condensate_molfrac, [i.ID for i in vle_top])
             condensate.T = vap.T
             condensate.P = vap.P
@@ -851,16 +856,16 @@ class Distillation(Dist):
             K_light = y_stages[-1]/x_stages[-1] 
             K_heavy = (1-y_stages[-1])/(1-x_stages[-1])
             alpha = K_light/K_heavy
-            cached['Rectifying Section Efficiency'] = E_rectifier = self._calc_MurphreeEfficiency(mu, alpha, L_Rmol, V_Rmol)
+            self._E_rectifier = E_rectifier = self._calc_MurphreeEfficiency(mu, alpha, L_Rmol, V_Rmol)
             
             # Calculate Murphree Efficiency for stripping section
             mu = 1000*liq.mu # mPa*s
-            cached['V_Smol'] = V_Smol = (R+1)*vap_molnet - sum(vap_mol)
-            cached['L_Smol'] = L_Smol = R*vap_molnet + sum(liq_mol) 
+            self._V_Smol = V_Smol = (R+1)*vap_molnet - sum(vap_mol)
+            self._L_Smol = L_Smol = R*vap_molnet + sum(liq_mol) 
             K_light = y_stages[0]/x_stages[0] 
             K_heavy = (1-y_stages[0])/(1-x_stages[0] )
             alpha = K_light/K_heavy
-            cached['Stripping Section Efficiency'] = E_stripper = self._calc_MurphreeEfficiency(mu, alpha, L_Smol, V_Smol)
+            self._E_stripper = E_stripper = self._calc_MurphreeEfficiency(mu, alpha, L_Smol, V_Smol)
             
             # Calculate actual number of stages
             mid_stage = feed_stage - 0.5
@@ -870,9 +875,7 @@ class Distillation(Dist):
 
     def _McCabeThiele(self):
         distillate, bottoms = self.outs
-        kwargs = self._kwargs
-        cached = self._cached
-        LHK_index = cached['LHK_index']
+        LHK_index = self._LHK_index
         LHK_species = self._LHK_species
 
         # Feed light key mol fraction
@@ -892,8 +895,8 @@ class Distillation(Dist):
                 vap_mol += s.vapor_mol
             else:
                 raise RuntimeError(f'invalid phase encountered in {repr(s)}')
-        cached['feed_liqmol'] = liq_mol
-        cached['feed_vapmol'] = vap_mol
+        self._feed_liqmol = liq_mol
+        self._feed_vapmol = vap_mol
         LHK_mol = liq_mol[LHK_index] + vap_mol[LHK_index]
         LHK_molnet = LHK_mol.sum()
         zf = LHK_mol[0]/LHK_molnet
@@ -902,9 +905,10 @@ class Distillation(Dist):
         q = liq_mol[LHK_index].sum()/LHK_molnet
         
         # Main arguments
-        P = kwargs['P']
-        k = kwargs['k']
-        y_top, x_bot = kwargs['y_top'], kwargs['x_bot']
+        P = self.P
+        k = self.k
+        y_top = self.y_top
+        x_bot = self.x_bot
         
         # Cache
         old_args = self._McCabeThiele_args
@@ -924,7 +928,7 @@ class Distillation(Dist):
         m = (y_Rmin-y_top)/(x_Rmin-y_top)
         Rmin = m/(1-m)
         if Rmin <= 0:
-            R = 0.1*k
+            R = 0.0001*k
         else:
             R = Rmin*k
 
@@ -943,9 +947,9 @@ class Distillation(Dist):
         ss = lambda y: (y-b2)/m2 # -> x        
         
         # Data for staircase
-        cached['x_stages'] = x_stages = [x_bot]
-        cached['y_stages'] = y_stages = [x_bot]
-        cached['T_stages'] = T_stages = []
+        self._x_stages = x_stages = [x_bot]
+        self._y_stages = y_stages = [x_bot]
+        self._T_stages = T_stages = []
         self._equilibrium_staircase(ss, x_stages, y_stages, T_stages, x_m)
         yi = y_stages[-1]
         xi = rs(yi)
@@ -969,7 +973,6 @@ class Distillation(Dist):
 
     def _design(self):
         self._McCabeThiele()
-        cached = self._cached
         distillate, bottoms = self._outs
         Design = self._Design
         R = Design['Reflux']
@@ -980,12 +983,12 @@ class Distillation(Dist):
         
         ### Get diameter of rectifying section based on top plate ###
         
-        condensate = cached['condensate']
+        condensate = self._condensate
         rho_L = condensate.rho
         sigma = condensate.sigma # dyn/cm
         L = condensate.massnet
         V = L*(R+1)/R
-        vapor_stream = cached['vapor stream']
+        vapor_stream = self._vapor_stream
         vapor_stream.copylike(distillate)
         vapor_stream._mol *= R+1
         V_vol = 0.0002778 * vapor_stream.volnet # m^3/s
@@ -1003,13 +1006,13 @@ class Distillation(Dist):
         
         ### Get diameter of stripping section based on feed plate ###
         
-        V_mol = cached['V_Smol']
+        V_mol = self._V_Smol
         rho_L = bottoms.rho
-        boil_up_flow = cached['boilup_molfrac'] * V_mol
-        boil_up = cached['boil_up']
+        boil_up_flow = self._boilup_molfrac * V_mol
+        boil_up = self._boil_up
         boil_up.T = bottoms.T; boil_up.P = bottoms.P
         lookup = bottoms._species._compounds.index
-        index_ = [lookup(i) for i in cached['vle_bot']]
+        index_ = [lookup(i) for i in self._vle_bot]
         boil_up.mol[index_] = boil_up_flow
         V = boil_up.massnet
         V_vol = 0.0002778 * boil_up.volnet # m^3/s
@@ -1023,7 +1026,7 @@ class Distillation(Dist):
         if A_dn is None:
             self.A_dn = self._calc_DowncomerAreaRatio(F_LV)
         S_diameter = self._calc_Diameter(V_vol, U_f, f, A_dn)
-        Po = self._kwargs['P']*0.000145078 # to psi
+        Po = self.P*0.000145078 # to psi
         rho_M = rho_Mdict[self._F_Mstr]
         
         if is_divided:
@@ -1081,19 +1084,12 @@ class Distillation(Dist):
         """Plot the McCabe Thiele Diagram."""
         # Plot stages, graphical aid and equilibrium curve
         self._plot_stages()
-        
-        # Cached Data
         vap, liq = self.outs
         Design = self._Design
-        cached = self._cached
-        x_stages = cached.get('x_stages')
-        if not x_stages:
-            self._desing()
-            x_stages = cached.get('x_stages')
-        kwargs = self._kwargs
+        if not hasattr(self, '_x_stages'): self._design()
         q_line = self._q_line
-        y_top = kwargs['y_top']
-        x_bot = kwargs['x_bot']
+        y_top = self.y_top
+        x_bot = self.x_bot
         stages = Design['Theoretical stages']
         Rmin = Design['Minimum reflux']
         R = Design['Reflux']
@@ -1113,166 +1109,163 @@ class Distillation(Dist):
         return plt
 
 
-class Stripper(Dist):
-    line = 'Stripper'
-    __doc__ = column_doc.replace('{Column Type}', 'Stripper')
-    _N_heat_utilities = 0
-    _graphics = Dist._graphics
-    _units ={'Minimum boil up': 'Ratio',
-             'Boil up': 'Ratio',
-             'Height': 'ft',
-             'Diameter': 'ft',
-             'Wall thickness': 'in',
-             'Weight': 'lb'}
+# class Stripper(Dist):
+#     line = 'Stripper'
+#     __doc__ = column_doc.replace('{Column Type}', 'Stripper')
+#     _N_heat_utilities = 0
+#     _graphics = Dist._graphics
+#     _units ={'Minimum boil up': 'Ratio',
+#              'Boil up': 'Ratio',
+#              'Height': 'ft',
+#              'Diameter': 'ft',
+#              'Wall thickness': 'in',
+#              'Weight': 'lb'}
     
-    def _init(self):
-        self._boiler = HXutility(None,
-                                 ins=Stream(None),
-                                 outs=MixedStream(None))
-        self._heat_utilities = self._boiler._heat_utilities
-        self._cached = {'boil_up': Stream(None)}
-        self._McCabeThiele_args = np.array([0, 0, 0, 0])
-        super()._init()
+#     def _init(self):
+#         self._boiler = HXutility(None,
+#                                  ins=Stream(None),
+#                                  outs=MixedStream(None))
+#         self._heat_utilities = self._boiler._heat_utilities
+#         self._boil_up = Stream(None)
+#         self._McCabeThiele_args = np.array([0, 0, 0, 0])
     
-    def plot_stages(self):
-        # Plot stages, graphical aid and equilibrium curve
-        self._plot_stages()
+#     def plot_stages(self):
+#         # Plot stages, graphical aid and equilibrium curve
+#         self._plot_stages()
         
-        # Cached Data
-        vap, liq = self.outs
-        Design = self._Design
-        cached = self._cached
-        x_stages = cached.get('x_stages')
-        if not x_stages:
-            self._design()
-            x_stages = cached.get('x_stages')
-        kwargs = self._kwargs
-        y_top = kwargs['y_top']
-        x_bot = kwargs['x_bot']
-        stages = Design['Theoretical stages']
-        Bmin = Design['Minimum boil up']
-        B = Design['Boil up']
+#         # Cached Data
+#         vap, liq = self.outs
+#         Design = self._Design
+#         cached = self._cached
+#         x_stages = cached.get('x_stages')
+#         if not x_stages:
+#             self._design()
+#             x_stages = cached.get('x_stages')
+#         y_top = self.y_top
+#         x_bot = self.x_bot
+#         stages = Design['Theoretical stages']
+#         Bmin = Design['Minimum boil up']
+#         B = Design['Boil up']
         
-        # Graph Stripping section
-        ss = self._ss
-        plt.plot([x_bot, ss(y_top)], [x_bot, y_top])
-        plt.legend([f'Stages: {stages}', 'Graphical aid', 'eq-line', 'SOL'], fontsize=12)
+#         # Graph Stripping section
+#         ss = self._ss
+#         plt.plot([x_bot, ss(y_top)], [x_bot, y_top])
+#         plt.legend([f'Stages: {stages}', 'Graphical aid', 'eq-line', 'SOL'], fontsize=12)
             
-        # Title
-        plt.title(f'McCabe Thiele Diagram (Bmin = {Bmin:.2f}, B = {B:.2f})')
-        plt.show()
-        return plt
+#         # Title
+#         plt.title(f'McCabe Thiele Diagram (Bmin = {Bmin:.2f}, B = {B:.2f})')
+#         plt.show()
+#         return plt
     
-    def _calc_Nstages(self):
-        """Return the actunal number of stages"""
-        vap, liq = self.outs
-        cached = self._cached
-        Design = self._Design
-        x_stages = cached['x_stages']
-        y_stages = cached['y_stages']
-        LHK_index = cached['LHK_index']
-        B = Design['Boil up']
-        N_stages = Design['Theoretical stages']
+#     def _calc_Nstages(self):
+#         """Return the actunal number of stages"""
+#         vap, liq = self.outs
+#         cached = self._cached
+#         Design = self._Design
+#         x_stages = cached['x_stages']
+#         y_stages = cached['y_stages']
+#         LHK_index = cached['LHK_index']
+#         B = Design['Boil up']
+#         N_stages = Design['Theoretical stages']
         
-        stage_efficiency =self.stage_efficiency
-        if stage_efficiency:
-            return N_stages/stage_efficiency
-        else:
-            # Calculate Murphree Efficiency for stripping section
-            mu = 1000 * liq.mu # mPa*s
-            cached['V_mol'] = V_mol = B*sum(liq.mol[LHK_index])
-            cached['L_mol'] = L_mol = liq.molnet + V_mol
-            K_light = y_stages[0]/x_stages[0] 
-            K_heavy = (1-y_stages[0])/(1-x_stages[0] )
-            alpha = K_light/K_heavy
-            cached['Stripping Section Efficiency'] = E_stripper = self._calc_MurphreeEfficiency(mu, alpha, L_mol, V_mol)
-        return np.ceil(N_stages/E_stripper)
+#         stage_efficiency =self.stage_efficiency
+#         if stage_efficiency:
+#             return N_stages/stage_efficiency
+#         else:
+#             # Calculate Murphree Efficiency for stripping section
+#             mu = 1000 * liq.mu # mPa*s
+#             cached['V_mol'] = V_mol = B*sum(liq.mol[LHK_index])
+#             cached['L_mol'] = L_mol = liq.molnet + V_mol
+#             K_light = y_stages[0]/x_stages[0] 
+#             K_heavy = (1-y_stages[0])/(1-x_stages[0] )
+#             alpha = K_light/K_heavy
+#             cached['Stripping Section Efficiency'] = E_stripper = self._calc_MurphreeEfficiency(mu, alpha, L_mol, V_mol)
+#         return np.ceil(N_stages/E_stripper)
     
-    def _McCabeThiele(self):
-        distillate, bottoms = self.outs
-        kwargs = self._kwargs
-        Design = self._Design
-        cached = self._cached
+#     def _McCabeThiele(self):
+#         distillate, bottoms = self.outs
+#         Design = self._Design
+#         cached = self._cached
         
-        # Some important info
-        species = self._LHK_species
-        P = kwargs['P']
-        k = kwargs['k']
-        y_top, x_bot = kwargs['y_top'], kwargs['x_bot']
+#         # Some important info
+#         species = self._LHK_species
+#         P = self.P
+#         k = self.k
+#         y_top = self.y_top
+#         x_bot = self.x_bot
         
-        old_args = self._McCabeThiele_args
-        args = np.array([y_top, x_bot, k, P])
-        if (abs(old_args - args) < np.array([0.00001, 0.00001, 0.01, 50], float)).all(): return
-        self._McCabeThiele_args = args
+#         old_args = self._McCabeThiele_args
+#         args = np.array([y_top, x_bot, k, P])
+#         if (abs(old_args - args) < np.array([0.00001, 0.00001, 0.01, 50], float)).all(): return
+#         self._McCabeThiele_args = args
         
-        # Get B_min (Boil up ratio)
-        y_Rmin = y_top
-        T_guess, x = distillate._dew_T(species, [y_Rmin, 1-y_Rmin], P)
-        x_Rmin = x[0]
-        m = (y_Rmin-x_bot)/(x_Rmin-x_bot)
-        Bmin = 1/(m-1)
-        B = 0.1*k if Bmin <= 0 else Bmin*k
+#         # Get B_min (Boil up ratio)
+#         y_Rmin = y_top
+#         T_guess, x = distillate._dew_T(species, [y_Rmin, 1-y_Rmin], P)
+#         x_Rmin = x[0]
+#         m = (y_Rmin-x_bot)/(x_Rmin-x_bot)
+#         Bmin = 1/(m-1)
+#         B = 0.1*k if Bmin <= 0 else Bmin*k
 
-        # Stripping section: Inntersects liquid composition with slope given by (B+1)/B
-        m = (B+1)/B
-        b = x_bot-m*x_bot
-        def ss(y): return (y - b)/m
-        self._ss = ss
+#         # Stripping section: Inntersects liquid composition with slope given by (B+1)/B
+#         m = (B+1)/B
+#         b = x_bot-m*x_bot
+#         def ss(y): return (y - b)/m
+#         self._ss = ss
                 
-        # Data for staircase
-        cached['x_stages'] = x_stages = [x_bot]
-        cached['y_stages'] = y_stages = [x_bot]
-        cached['T_stages'] = T_stages = []
-        self._equilibrium_staircase(ss, x_stages, y_stages, T_stages, ss(y_top))
-        stages = len(x_stages)
+#         # Data for staircase
+#         cached['x_stages'] = x_stages = [x_bot]
+#         cached['y_stages'] = y_stages = [x_bot]
+#         cached['T_stages'] = T_stages = []
+#         self._equilibrium_staircase(ss, x_stages, y_stages, T_stages, ss(y_top))
+#         stages = len(x_stages)
         
-        # Results
-        Design['Theoretical stages'] = stages
-        Design['Minimum boil up'] = Bmin
-        Design['Boil up'] = B
+#         # Results
+#         Design['Theoretical stages'] = stages
+#         Design['Minimum boil up'] = Bmin
+#         Design['Boil up'] = B
     
-    def _design(self):
-        distillate, bottoms = self.outs
-        kwargs = self._kwargs
-        Design = self._Design
-        cached = self._cached
+#     def _design(self):
+#         distillate, bottoms = self.outs
+#         Design = self._Design
+#         cached = self._cached
         
-        ### Get number of stages and height ###
+#         ### Get number of stages and height ###
         
-        self._McCabeThiele()
-        TS = self._TS
-        Design['Actual stages'] = Nstages = self._calc_Nstages()
-        Design['Height'] = H = self._calc_Height(TS, Nstages-1)
+#         self._McCabeThiele()
+#         TS = self._TS
+#         Design['Actual stages'] = Nstages = self._calc_Nstages()
+#         Design['Height'] = H = self._calc_Height(TS, Nstages-1)
         
-        ### Get diameter of stripping section based on feed plate ###
+#         ### Get diameter of stripping section based on feed plate ###
         
-        V_mol = cached['V_mol']
-        L_mol = cached['L_mol']
-        rho_L = bottoms.rho
-        boil_up_flow = cached['boilup_molfrac'] * V_mol
-        boil_up = cached['boil_up']
-        boil_up.T = bottoms.T; boil_up.P = bottoms.P
-        lookup = bottoms._species._compounds.index
-        index_ = [lookup(i) for i in cached['vle_bot']]
-        boil_up.mol[index_] = boil_up_flow
-        V = boil_up.massnet
-        V_vol = 0.0002778 * boil_up.volnet # m^3/s
-        rho_V = boil_up.rho
-        L = sum(bottoms.MW*bottoms.molfrac*L_mol) # To get liquid going down
-        F_LV = self._calc_FlowParameter(L, V, rho_V, rho_L)
-        C_sbf = self._calc_MaxCapacityParameter(TS, F_LV)
-        sigma = 1000 * bottoms.sigma # dyn/cm
-        U_f = self._calc_MaxVaporVelocity(C_sbf, sigma, rho_L, rho_V, self._F_F, self._A_ha)
-        A_dn = self._A_dn or self._calc_DowncomerAreaRatio(F_LV)
-        Design['Diameter'] = Di = self._calc_Diameter(V_vol, U_f, self._f, A_dn)
-        Po = kwargs['P']/101325*14.7
-        Design['Wall thickness'] = tv = self._calc_WallThickness(Po, Di, H)
-        rho_M = rho_Mdict[self._F_Mstr]
-        Design['Weight'] = self._calc_Weight(Di, H, tv, rho_M)
+#         V_mol = cached['V_mol']
+#         L_mol = cached['L_mol']
+#         rho_L = bottoms.rho
+#         boil_up_flow = cached['boilup_molfrac'] * V_mol
+#         boil_up = cached['boil_up']
+#         boil_up.T = bottoms.T; boil_up.P = bottoms.P
+#         lookup = bottoms._species._compounds.index
+#         index_ = [lookup(i) for i in cached['vle_bot']]
+#         boil_up.mol[index_] = boil_up_flow
+#         V = boil_up.massnet
+#         V_vol = 0.0002778 * boil_up.volnet # m^3/s
+#         rho_V = boil_up.rho
+#         L = sum(bottoms.MW*bottoms.molfrac*L_mol) # To get liquid going down
+#         F_LV = self._calc_FlowParameter(L, V, rho_V, rho_L)
+#         C_sbf = self._calc_MaxCapacityParameter(TS, F_LV)
+#         sigma = 1000 * bottoms.sigma # dyn/cm
+#         U_f = self._calc_MaxVaporVelocity(C_sbf, sigma, rho_L, rho_V, self._F_F, self._A_ha)
+#         A_dn = self._A_dn or self._calc_DowncomerAreaRatio(F_LV)
+#         Design['Diameter'] = Di = self._calc_Diameter(V_vol, U_f, self._f, A_dn)
+#         Po = self.P/101325*14.7
+#         Design['Wall thickness'] = tv = self._calc_WallThickness(Po, Di, H)
+#         rho_M = rho_Mdict[self._F_Mstr]
+#         Design['Weight'] = self._calc_Weight(Di, H, tv, rho_M)
     
-    def _cost_components(self):
-        # Cost boiler
-        self._calc_boiler()
-        self._Cost['Boiler'] = self._boiler._Cost['Heat exchanger']
+#     def _cost_components(self):
+#         # Cost boiler
+#         self._calc_boiler()
+#         self._Cost['Boiler'] = self._boiler._Cost['Heat exchanger']
 
     
