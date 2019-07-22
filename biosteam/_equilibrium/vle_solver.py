@@ -4,7 +4,7 @@ Created on Wed Mar 20 18:40:05 2019
 
 @author: yoelr
 """
-from .._utils import isbetween, bounded_wegstein, iterwegstein#, count
+from .._utils import isbetween, bounded_wegstein, wegstein#, count
 import numpy as np
 
 __all__ = ('VLEsolver', 'solve_v', 'V_2N', 'V_3N', 'V_error')
@@ -45,7 +45,7 @@ def solve_v(v, T, P, mol, molnet, zs, N, gamma):
         Ks = Psat_P * gamma(x/x.sum(), T)
         V = solve_V(zs, Ks)
         return zs/(1. + V*(Ks-1.))
-    x = iterwegstein(f, l/l.sum(), 1e-4)
+    x = wegstein(f, l/l.sum(), 1e-4)
     return molnet*V*x/x.sum()*Ks
 
 class VLEsolver:

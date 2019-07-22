@@ -8,9 +8,9 @@ from .._exceptions import SolverError
 #from .other_utils import count
 import numpy as np
 
-__all__ = ('bounded_secant', 'secant', 'iterwegstein',
-           'conditional_iterwegstein', 'aitken', 'iteraitken',
-           'wegstein', 'bounded_wegstein', 'conditional_iteraitken')
+__all__ = ('bounded_secant', 'secant', 'wegstein_secant',
+           'conditional_wegstein', 'aitken_secant', 'aitken',
+           'wegstein', 'bounded_wegstein', 'conditional_aitken')
 
 def secant(f, x0, x1, xtol, ytol=5e-8, args=(), maxiter=50):
     pos = abs
@@ -47,7 +47,7 @@ def bounded_secant(f, x0, x, x1, xtol, ytol=5e-8, args=()):
         x = x0 - y0*(x1-x0)/(y1-y0)
     return x
 
-def wegstein(f, x0, x1, xtol, ytol=5e-8, args=(), maxiter=50):
+def wegstein_secant(f, x0, x1, xtol, ytol=5e-8, args=(), maxiter=50):
     pos = abs
     y0 = f(x0, *args)
     if pos(y0) < ytol: return x0
@@ -102,7 +102,7 @@ def bounded_wegstein(f, x0, x, x1, xtol, ytol=5e-8, args=(), maxiter=50):
         g0 = g1
     return x
 
-def iterwegstein(f, x0, xtol, args=(), maxiter=50):
+def wegstein(f, x0, xtol, args=(), maxiter=50):
     x1 = y0 = f(x0, *args)
     for iter in range(maxiter):
         if (abs(y0 - x0) < xtol).all(): return y0
@@ -117,7 +117,7 @@ def iterwegstein(f, x0, xtol, args=(), maxiter=50):
         x1 = w*y1 + (1-w)*x1
     raise SolverError(f'failed to converge after {maxiter} iterations')
 
-def conditional_iterwegstein(f, x0):
+def conditional_wegstein(f, x0):
     y0, condition = f(x0)
     x1 = y0
     while condition:
@@ -132,7 +132,7 @@ def conditional_iterwegstein(f, x0):
         x1 = w*y1 + (1-w)*x1
     return y0
 
-def aitken(f, x0, x1, xtol, ytol=5e-8, args=(), maxiter=50):
+def aitken_secant(f, x0, x1, xtol, ytol=5e-8, args=(), maxiter=50):
     pos = abs
     y0 = f(x0, *args)
     if pos(y0) < ytol: return x0
@@ -151,7 +151,7 @@ def aitken(f, x0, x1, xtol, ytol=5e-8, args=(), maxiter=50):
         x1 = x2
     raise SolverError(f'failed to converge after {maxiter} iterations')
 
-def iteraitken(f, x0, xtol, args=(), maxiter=50):
+def aitken(f, x0, xtol, args=(), maxiter=50):
     x2 = x1 = f(x0, *args)
     for iter in range(maxiter):
         if (abs(x1 - x0) < xtol).all(): return x1
@@ -176,7 +176,7 @@ def iteraitken(f, x0, xtol, args=(), maxiter=50):
 #     return gg
 
 
-def conditional_iteraitken(f, x0):
+def conditional_aitken(f, x0):
     x1, condition = f(x0)
     if not condition: return x1
     x2 = x1

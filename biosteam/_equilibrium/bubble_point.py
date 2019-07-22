@@ -5,7 +5,7 @@ Created on Sun Jul 21 21:30:33 2019
 @author: yoelr
 """
 from numpy import asarray, array
-from biosteam._utils import wegstein
+from biosteam._utils import wegstein_secant
 
 __all__ = ('BubblePoint',)
 
@@ -51,12 +51,12 @@ class BubblePoint:
         self.P = P
         self.z = z
         try:
-            self.T = wegstein(self._T_error, self.T, self.T+0.01, 1e-6,
-                                        args=(P, z, [s.VaporPressure for s in self.gamma.species]))
+            self.T = wegstein_secant(self._T_error, self.T, self.T+0.01, 1e-6,
+                                     args=(P, z, [s.VaporPressure for s in self.gamma.species]))
         except:
             T = (z * [s.Tsat(P) for s in self.gamma.species]).sum()
-            self.T = wegstein(self._T_error, T, T+0.01, 1e-6,
-                                        args=(P, z, [s.VaporPressure for s in self.gamma.species]))
+            self.T = wegstein_secant(self._T_error, T, T+0.01, 1e-6,
+                                     args=(P, z, [s.VaporPressure for s in self.gamma.species]))
         self.y = self.y/self.y.sum()
         return self.T, self.y
     
@@ -90,12 +90,12 @@ class BubblePoint:
         self.T = T
         self.z = z
         try:
-            self.P = wegstein(self._P_error, self.P, self.P-1, 1e-2,
-                                        args=(T, z, Psat_gamma))
+            self.P = wegstein_secant(self._P_error, self.P, self.P-1, 1e-2,
+                                     args=(T, z, Psat_gamma))
         except:
             P = (z * Psat).sum()
-            self.P = wegstein(self._P_error, P, P-1, 1e-2,
-                                        args=(T, z, Psat_gamma))
+            self.P = wegstein_secant(self._P_error, P, P-1, 1e-2,
+                                     args=(T, z, Psat_gamma))
         self.y = self.y/self.y.sum()
         return self.P, self.y
     

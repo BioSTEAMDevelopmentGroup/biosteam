@@ -8,8 +8,7 @@ Created on Sat Aug 18 14:05:10 2018
 from . import _Q
 import numpy as np
 from ._utils import property_array, PropertyFactory, DisplayUnits, \
-                    tuple_array, fraction, Sink, Source, MissingStream, \
-                    iterwegstein, wegstein
+                    tuple_array, fraction, Sink, Source, MissingStream
 from ._flowsheet import find
 from ._species import Species, WorkingSpecies
 from ._exceptions import SolverError, EquilibriumError, DimensionError

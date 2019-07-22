@@ -6,7 +6,7 @@ Created on Sun Jul 21 22:15:30 2019
 """
 
 from numpy import asarray, array
-from biosteam._utils import wegstein, iterwegstein
+from biosteam._utils import wegstein_secant, wegstein
 
 __all__ = ('DewPoint',)
 
@@ -23,11 +23,11 @@ class DewPoint:
         return z*P/(Psat * self.gamma(x/x.sum(), T))
     
     def _T_error(self, T, zP, VPs):
-        self.x = iterwegstein(self._x_iter_at_P, self.x, 1e-5, args=(T, zP, VPs))
+        self.x = wegstein(self._x_iter_at_P, self.x, 1e-5, args=(T, zP, VPs))
         return 1 - self.x.sum()
     
     def _P_error(self, P, T, z, Psat):
-        self.x = iterwegstein(self._x_iter_at_T, self.x, 1e-5, args=(T, P, z, Psat))
+        self.x = wegstein(self._x_iter_at_T, self.x, 1e-5, args=(T, P, z, Psat))
         return 1 - self.x.sum()
     
     def solve_Tx(self, z, P):
@@ -55,12 +55,12 @@ class DewPoint:
         self.P = P
         self.z = z
         try:
-            self.T = wegstein(self._T_error, self.T, self.T-0.01, 1e-6,
+            self.T = wegstein_secant(self._T_error, self.T, self.T-0.01, 1e-6,
                                         args=(P*z, [s.VaporPressure for s in self.gamma.species]))
         except:
             self.x = z.copy()
             T = (z * [s.Tsat(P) for s in self.gamma.species]).sum()
-            self.T = wegstein(self._T_error, T, T-0.01, 1e-6,
+            self.T = wegstein_secant(self._T_error, T, T-0.01, 1e-6,
                                         args=(P*z, [s.VaporPressure for s in self.gamma.species]))
         self.x = self.x/self.x.sum()
         return self.T, self.x
@@ -92,12 +92,12 @@ class DewPoint:
         self.T = T
         self.z = z
         try:
-            self.P = wegstein(self._P_error, self.P, self.P+1, 1e-2,
+            self.P = wegstein_secant(self._P_error, self.P, self.P+1, 1e-2,
                                         args=(T, z, Psat))
         except:
             P = (z * Psat).sum()
             self.x = z.copy()
-            self.P = wegstein(self._P_error, P, P+1, 1e-2,
+            self.P = wegstein_secant(self._P_error, P, P+1, 1e-2,
                                         args=(T, z, Psat))
         self.x = self.x/self.x.sum()
         return self.P, self.x

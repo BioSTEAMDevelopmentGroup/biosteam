@@ -12,7 +12,7 @@ from ._facility import Facility
 from ._unit import Unit
 from ._report import save_report
 from ._utils import color_scheme, MissingStream, strtuple, \
-                    conditional_iterwegstein, conditional_iteraitken
+                    conditional_wegstein, conditional_aitken
 import biosteam as bst
 
 __all__ = ('System',)
@@ -499,12 +499,12 @@ class System(metaclass=system):
     def _wegstein(self):
         """Converge the system recycle iteratively using wegstein's method."""
         mol = self.recycle._mol
-        mol[:] = conditional_iterwegstein(self._iter_run, mol.copy())
+        mol[:] = conditional_wegstein(self._iter_run, mol.copy())
     
     def _aitken(self):
         """Converge the system recycle iteratively using broyden's bad method."""
         mol = self.recycle._mol
-        mol[:] = conditional_iteraitken(self._iter_run, mol.copy())
+        mol[:] = conditional_aitken(self._iter_run, mol.copy())
     
     # Default converge method
     _converge = _wegstein
