@@ -122,18 +122,22 @@ class WorkingSpecies:
         _setattr(self, '__class__', cls)
         me = self.__dict__
         tup = tuple
-        compounds = tup(me.values())
+        cmps = tup(me.values())
         IDs = tup(i for i in me)
-        CAS = tup(i.CAS for i in compounds)
-        Nspecies = len(IDs)
-        index = tup(range(Nspecies))
-        for i in compounds: me[i.CAS] = i
+        CAS = tup(i.CAS for i in cmps)
+        N = len(IDs)
+        index = tup(range(N))
+        for i in cmps: me[i.CAS] = i
         me['_indexdct'] = dict((*zip(CAS, index), *zip(IDs, index)))
         me['_index'] = index
-        me['_compounds'] = compounds
+        me['_isheavy'] = np.array([(not i.UNIFAC_Dortmund_groups or i.Tb in (inf, None)) for i in cmps])
+        me['_islight'] = np.array([(i.Tb is -inf) for i in cmps], dtype=bool)
+        nonfinite = (inf, -inf, None)
+        me['_has_equilibrium'] = np.array([(bool(i.UNIFAC_Dortmund_groups) and i.Tb not in nonfinite) for i in cmps])
+        me['_compounds'] = cmps
         me['_IDs'] = IDs
-        me['_Nspecies'] = Nspecies
-        me['_MW'] = np.array([i.MW for i in compounds])
+        me['_N'] = N
+        me['_MW'] = np.array([i.MW for i in cmps])
         return self
     
     def __dir__(self):
@@ -187,7 +191,7 @@ class WorkingSpecies:
             array([2., 0.])
         
         """
-        array = np.zeros(self._Nspecies)
+        array = np.zeros(self._N)
         array[self.indices(IDs)] = data
         return array
 
@@ -253,7 +257,7 @@ class WorkingSpecies:
         AttributeError("'{type(self).__name__} object is read-only")
     
     def __len__(self):
-        return self._Nspecies
+        return self._N
     
     def __contains__(self, compound):
         return compound in self._compounds
@@ -273,7 +277,7 @@ class WorkingSpecies:
     # General methods for getting ideal mixture properties
     def _props(self, ID, mol, T, P, phase):
         """Return component property list."""
-        out = np.zeros(self._Nspecies)
+        out = np.zeros(self._N)
         getattr_ = getattr
         cmps = self._compounds
         for i in self._index:
@@ -335,35 +339,20 @@ class WorkingSpecies:
     
     ### Equilibrium ###
     
-    def _equilibrium_species(self, mol):
-        """Return species and indexes of species in equilibrium."""
-        species = []; index = []; cmps = self._compounds
-        for i in self._index:
-            if mol[i]:
-                c = cmps[i]
-                if c.UNIFAC_Dortmund_groups and c.Tb not in (inf, None):
-                    species.append(c); index.append(i)
-        return species, index
+    def _equilibrium_indices(self, nonzero):
+        """Return indices of species in equilibrium."""
+        condition = self._has_equilibrium & nonzero
+        return [i for i in self._index if condition[i]]
 
-    def _heavy_species(self, mol):
-        """Return species and indexes of heavy species not in equilibrium."""
-        species = []; index = []; cmps = self._compounds
-        for i in self._index:
-            if mol[i]:
-                c = cmps[i]
-                if c.Tb in (inf, None) or not c.UNIFAC_Dortmund_groups:
-                    species.append(c); index.append(i)
-        return species, index
+    def _heavy_indices(self, nonzero):
+        """Return indices of heavy species not in equilibrium."""
+        condition = self._isheavy & nonzero
+        return [i for i in self._index if condition[i]]
 
-    def _light_species(self, mol):
-        """Return species and indexes of light species not in equilibrium."""
-        species = []; index = []; cmps = self._compounds
-        for i in self._index:
-            if mol[i]:
-                c = cmps[i]
-                if c.Tb is -inf:
-                    species.append(c); index.append(i)
-        return species, index
+    def _light_indices(self, nonzero):
+        """Return indices of light species not in equilibrium."""
+        condition = self._islight & nonzero
+        return [i for i in self._index if condition[i]]
     
     __repr__ = Species.__repr__
 

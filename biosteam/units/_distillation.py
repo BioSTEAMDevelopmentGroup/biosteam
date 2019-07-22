@@ -160,7 +160,7 @@ class Dist(Unit, isabstract=True):
         self._LHK = LK, HK = LHK
         species = self.outs[0].species
         self._LHK_index = LK_index, HK_index = species.indices(LHK)
-        self._LHK_species = tuple(getattr(species, ID) for ID in LHK)
+        self._LHK_species = [getattr(species, ID) for ID in LHK]
         
         species_list = list(species)
         indices = list(range(len(species_list)))
@@ -170,7 +170,7 @@ class Dist(Unit, isabstract=True):
             HK_index -= 1
         species_list.pop(HK_index)
         indices.pop(HK_index)
-        Tbs = tuple(s.Tb for s in species_list)
+        Tbs = [s.Tb for s in species_list]
         
         Tb_light = getattr(species, LK).Tb
         Tb_heavy = getattr(species, HK).Tb
@@ -330,8 +330,11 @@ class Dist(Unit, isabstract=True):
         # Unpack arguments
         vap, liq = self.outs
         species = vap._species
-        self._vle_top, self._top_index = vle_top, top_index = species._equilibrium_species(vap._mol)
-        self._vle_bot, self._bot_index = vle_bot, bot_index = species._equilibrium_species(liq._mol)
+        cmps = species._compounds
+        self._top_index = top_index = species._equilibrium_indices(vap._mol > 0)
+        self._bot_index = bot_index = species._equilibrium_indices(liq._mol > 0)
+        self._vle_top = [cmps[i] for i in top_index]
+        self._vle_bot = [cmps[i] for i in bot_index]
 
         # Get top and bottom compositions
         vap_mol = vap.mol[top_index]
@@ -341,17 +344,15 @@ class Dist(Unit, isabstract=True):
         x = liq_mol/liq_mol.sum()
 
         # Run top equilibrium to find temperature and composition of condensate
-        T, y = vap._dew_T(species=(*vle_top,), y=y, P=vap.P)
-        self._condensate_molfrac = y
-        vap.T = T
+        vap._gamma.species = self._vle_top
+        vap.T, self._condensate_molfrac = vap._dp.solve_Tx(y, vap.P)
 
         # Run bottoms equilibrium to find temperature
-        T, y = liq._bubble_T(species=(*vle_bot,), x=x, P=liq.P)
-        self._boilup_molfrac = y
-        liq.T = T
+        liq._gamma.species = self._vle_bot
+        liq.T, self._boilup_molfrac = liq._bp.solve_Ty(x, liq.P)
 
     def _equilibrium_staircase(self, operating_line, x_stairs,
-                              y_stairs, T_stairs, x_limit):
+                               y_stairs, T_stairs, x_limit, bubble_T):
         """Find the specifications at every stage of the of the operating line before the maximum liquid molar fraction. Append the light key liquid molar fraction, light key vapor molar fraction, and stage temperatures to x_stairs, y_stairs and T_stairs respectively.
         
         **Parameters**
@@ -365,9 +366,7 @@ class Dist(Unit, isabstract=True):
             T_stairs: [list] Temperature at each stage.
             
         """
-        species = self._LHK_species
         P = self.P
-        bubble_T = self.outs[1]._bubble_T
         i = 0
         yi = y_stairs[-1]
         xi = x_stairs[-1]
@@ -377,10 +376,10 @@ class Dist(Unit, isabstract=True):
                 return
             i += 1
             # Go Up
-            T_guess, y = bubble_T(species, array((xi, 1-xi)), P)
+            T, y = bubble_T(array((xi, 1-xi)), P)
             yi = y[0]
             y_stairs.append(yi)
-            T_stairs.append(T_guess)
+            T_stairs.append(T)
             # Go Right
             xi = operating_line(yi)
             if xi > 1:
@@ -403,10 +402,10 @@ class Dist(Unit, isabstract=True):
         T = np.zeros(100)
         n = 0
         
-        bubble_T = vap._bubble_T
+        vap._gamma.species = self._LHK_species
+        bubble_T = vap._bp.solve_Ty
         for xi in x_eq:
-            T[n], y = bubble_T(self._LHK_species,
-                              array([xi, 1-xi]), P)
+            T[n], y = bubble_T(array([xi, 1-xi]), P)
             y_eq[n] = y[0]
             n += 1
             
@@ -876,13 +875,12 @@ class Distillation(Dist):
     def _McCabeThiele(self):
         distillate, bottoms = self.outs
         LHK_index = self._LHK_index
-        LHK_species = self._LHK_species
 
         # Feed light key mol fraction
         species = bottoms._species
-        Nspecies = species._Nspecies
-        liq_mol = np.zeros(Nspecies)
-        vap_mol = np.zeros(Nspecies)
+        N = species._N
+        liq_mol = np.zeros(N)
+        vap_mol = liq_mol.copy()
         for s in self.ins:
             if s.phase == 'g':
                 vap_mol += s.mol
@@ -921,8 +919,9 @@ class Distillation(Dist):
             q = 1 - 1e-5
         self._q_line = q_line = lambda x: q*x/(q-1) - zf/(q-1)
         
-        bubble_T = bottoms._bubble_T
-        Rmin_intersection = lambda x: q_line(x) - bubble_T(LHK_species, array((x, 1-x)), P)[1][0]
+        bottoms._gamma.species = self._LHK_species
+        bubble_T = bottoms._bp.solve_Ty
+        Rmin_intersection = lambda x: q_line(x) - bubble_T(array((x, 1-x)), P)[1][0]
         x_Rmin = brentq(Rmin_intersection, 0, 1)
         y_Rmin = q_line(x_Rmin)
         m = (y_Rmin-y_top)/(x_Rmin-y_top)
@@ -950,11 +949,11 @@ class Distillation(Dist):
         self._x_stages = x_stages = [x_bot]
         self._y_stages = y_stages = [x_bot]
         self._T_stages = T_stages = []
-        self._equilibrium_staircase(ss, x_stages, y_stages, T_stages, x_m)
+        self._equilibrium_staircase(ss, x_stages, y_stages, T_stages, x_m, bubble_T)
         yi = y_stages[-1]
         xi = rs(yi)
         x_stages[-1] = xi if xi < 1 else 0.99999
-        self._equilibrium_staircase(rs, x_stages, y_stages, T_stages, y_top)
+        self._equilibrium_staircase(rs, x_stages, y_stages, T_stages, y_top, bubble_T)
         
         # Find feed stage
         for i in range(len(y_stages)-1):

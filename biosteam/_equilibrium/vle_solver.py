@@ -4,7 +4,7 @@ Created on Wed Mar 20 18:40:05 2019
 
 @author: yoelr
 """
-from .._utils import isbetween, accelerated_bounded_secant, wegstein#, count
+from .._utils import isbetween, bounded_wegstein, iterwegstein#, count
 import numpy as np
 
 __all__ = ('VLEsolver', 'solve_v', 'V_2N', 'V_3N', 'V_error')
@@ -27,9 +27,9 @@ def V_error(V, zs, Ks):
     """Vapor fraction error"""
     return (zs*(Ks-1.)/(1.+V*(Ks-1.))).sum()
 
-def solve_v(v, T, P, mol, molnet, zs, N, species, gamma):
+def solve_v(v, T, P, mol, molnet, zs, N, gamma):
     """Solve for vapor mol"""
-    Psat_P = np.array([s.VaporPressure(T) for s in species])/P
+    Psat_P = np.array([s.VaporPressure(T) for s in gamma._species])/P
     V = v.sum()/molnet
     l = mol - v
     if N == 2:
@@ -37,15 +37,15 @@ def solve_v(v, T, P, mol, molnet, zs, N, species, gamma):
     elif N == 3:
         solve_V = V_3N
     else:
-        solve_V = lambda zs, Ks: accelerated_bounded_secant(V_error, 0, V, 1,
-                                                            1e-4, args=(zs, Ks))
+        solve_V = lambda zs, Ks: bounded_wegstein(V_error, 0, V, 1,
+                                                  1e-4, args=(zs, Ks))
     Ks = None
     def f(x):
         nonlocal Ks, V
-        Ks = Psat_P * gamma(species, x/x.sum(), T)
+        Ks = Psat_P * gamma(x/x.sum(), T)
         V = solve_V(zs, Ks)
         return zs/(1. + V*(Ks-1.))
-    x = wegstein(f, l/l.sum(), 1e-4)
+    x = iterwegstein(f, l/l.sum(), 1e-4)
     return molnet*V*x/x.sum()*Ks
 
 class VLEsolver:
@@ -61,7 +61,7 @@ class VLEsolver:
         self.T = self.P = self.Q = self.V = 0
     
     def __call__(self, xvar, yvar, f, x0, x1, y0, y1, yval):
-        # Bounded solver with Wegstein acceleration
+        # Bounded solver with iterwegstein acceleration
         xtol = self.tolerance[xvar]
         ytol = self.tolerance[yvar]
         x = getattr(self, xvar)

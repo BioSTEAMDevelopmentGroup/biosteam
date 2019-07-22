@@ -7,11 +7,18 @@ Created on Wed Mar 20 18:40:05 2019
 
 __all__ = []
 
-from ._VLEsolver import *
+from .vle_solver import *
 from .unifac import *
+from .dew_point import *
+from .bubble_point import *
 
 from . import unifac
-from . import _VLEsolver
+from . import vle_solver
+from . import dew_point
+from . import bubble_point
 
 __all__.extend(unifac.__all__)
-__all__.extend(_VLEsolver.__all__)
+__all__.extend(vle_solver.__all__)
+__all__.extend(dew_point.__all__)
+__all__.extend(bubble_point.__all__)
+

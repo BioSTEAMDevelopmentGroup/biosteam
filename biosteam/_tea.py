@@ -7,7 +7,7 @@ Created on Mon Feb  4 19:38:37 2019
 
 import pandas as pd
 import numpy as np
-from ._utils import accelerated_secant
+from ._utils import wegstein
 from copy import copy
 
 __all__ = ('TEA',)
@@ -457,10 +457,10 @@ class TEA:
                             parameters[:-3],
                             depreciation_data)
         # Solve
-        IRR = accelerated_secant(self._calc_NPV, self._IRR_guess, self._IRR_guess+1e-6,
-                     args=(cashflow_data[-3], duration_array),
-                     xtol=1e-6,
-                     maxiter=200)
+        IRR = wegstein(self._calc_NPV, self._IRR_guess, self._IRR_guess+1e-6,
+                       args=(cashflow_data[-3], duration_array),
+                       xtol=1e-6,
+                       maxiter=200)
         self._IRR_guess = IRR if (0 < IRR < 1) else 0.15
         return IRR
     
@@ -501,11 +501,11 @@ class TEA:
         def break_even_point(cost):
             CF[:] = adjust(cost)
             return calc_NPV(IRR, data_subset, duration_array)
-        self._cost_guess = cost = accelerated_secant(break_even_point,
-                                         self._cost_guess,
-                                         self._cost_guess+1e-6,
-                                         xtol=1e-6,
-                                         maxiter=200)
+        self._cost_guess = cost = wegstein(break_even_point,
+                                           self._cost_guess,
+                                           self._cost_guess+1e-6,
+                                           xtol=1e-6,
+                                           maxiter=200)
         return stream.price + cost/cost_factor
     
     def __repr__(self):

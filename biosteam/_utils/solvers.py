@@ -8,10 +8,11 @@ from .._exceptions import SolverError
 #from .other_utils import count
 import numpy as np
 
-__all__ = ('bounded_secant', 'secant', 'wegstein', 'conditional_wegstein',
-           'accelerated_secant', 'accelerated_bounded_secant')
+__all__ = ('bounded_secant', 'secant', 'iterwegstein',
+           'conditional_iterwegstein', 'aitken', 'iteraitken',
+           'wegstein', 'bounded_wegstein', 'conditional_iteraitken')
 
-def secant(f, x0, x1, xtol, ytol=1e-7, args=(), maxiter=50):
+def secant(f, x0, x1, xtol, ytol=5e-8, args=(), maxiter=50):
     pos = abs
     y0 = f(x0, *args)
     if pos(y0) < ytol: return x0
@@ -27,7 +28,7 @@ def secant(f, x0, x1, xtol, ytol=1e-7, args=(), maxiter=50):
         y1 = f(x1, *args)
     raise SolverError(f'failed to converge after {maxiter} iterations')
 
-def bounded_secant(f, x0, x, x1, xtol, ytol=1e-7, args=()):
+def bounded_secant(f, x0, x, x1, xtol, ytol=5e-8, args=()):
     y0 = f(x0, *args)
     y1 = f(x1, *args)
     assert y0*y1 < 0, ('objective function bounderies '
@@ -46,7 +47,7 @@ def bounded_secant(f, x0, x, x1, xtol, ytol=1e-7, args=()):
         x = x0 - y0*(x1-x0)/(y1-y0)
     return x
 
-def accelerated_secant(f, x0, x1, xtol, ytol=1e-7, args=(), maxiter=50):
+def wegstein(f, x0, x1, xtol, ytol=5e-8, args=(), maxiter=50):
     pos = abs
     y0 = f(x0, *args)
     if pos(y0) < ytol: return x0
@@ -58,15 +59,15 @@ def accelerated_secant(f, x0, x1, xtol, ytol=1e-7, args=(), maxiter=50):
     for iter in range(maxiter): 
         y1 = f(x1, *args)
         g1 = x1 - y1*(x1-x0)/(y1-y0)
-        if (pos(g1-x1) < xtol) or (pos(y1) < ytol): return g1
         w = (x1-x0)/(x1-g1 + g0-x0)
         x1 = w*g1 + (1-w)*x1
+        if (pos(g1-x1) < xtol) or (pos(y1) < ytol): return x1
         x0 = x1
         y0 = y1
         g0 = g1
     raise SolverError(f'failed to converge after {maxiter} iterations')
 
-def accelerated_bounded_secant(f, x0, x, x1, xtol, ytol=1e-7, args=(), maxiter=50):
+def bounded_wegstein(f, x0, x, x1, xtol, ytol=5e-8, args=(), maxiter=50):
     y0 = f(x0, *args)
     y1 = f(x1, *args)
     assert y0*y1 < 0, ('objective function bounderies '
@@ -101,10 +102,10 @@ def accelerated_bounded_secant(f, x0, x, x1, xtol, ytol=1e-7, args=(), maxiter=5
         g0 = g1
     return x
 
-def wegstein(f, x0, xtol, args=(), maxiter=50):
+def iterwegstein(f, x0, xtol, args=(), maxiter=50):
     x1 = y0 = f(x0, *args)
     for iter in range(maxiter):
-        if (abs(y0 - x0) < xtol).all(): return x1
+        if (abs(y0 - x0) < xtol).all(): return y0
         try: y1 = f(x1, *args)
         except:
             x1 = y1
@@ -116,7 +117,7 @@ def wegstein(f, x0, xtol, args=(), maxiter=50):
         x1 = w*y1 + (1-w)*x1
     raise SolverError(f'failed to converge after {maxiter} iterations')
 
-def conditional_wegstein(f, x0):
+def conditional_iterwegstein(f, x0):
     y0, condition = f(x0)
     x1 = y0
     while condition:
@@ -129,10 +130,68 @@ def conditional_wegstein(f, x0):
         y0 = y1
         w[np.logical_not(np.isfinite(w))] = 1
         x1 = w*y1 + (1-w)*x1
-    return x1
+    return y0
 
+def aitken(f, x0, x1, xtol, ytol=5e-8, args=(), maxiter=50):
+    pos = abs
+    y0 = f(x0, *args)
+    if pos(y0) < ytol: return x0
+    y1 = f(x1, *args)
+    if pos(y1) < ytol: return x1 
+    x2 = x1 = x0 - y1*(x1-x0)/(y1-y0)
+    if (pos(x1-x0) < xtol): return x1
+    y0 = y1
+    for iter in range(maxiter): 
+        y1 = f(x2, *args)
+        x2 = x1 - y1*(x1-x0)/(y1-y0)
+        x2 = (x1**2 - x0*x2)/(2*x1 - x0 - x2)
+        if (pos(x2-x1) < xtol) or (pos(y1) < ytol): return x2
+        x0 = x1
+        y0 = y1
+        x1 = x2
+    raise SolverError(f'failed to converge after {maxiter} iterations')
 
+def iteraitken(f, x0, xtol, args=(), maxiter=50):
+    x2 = x1 = f(x0, *args)
+    for iter in range(maxiter):
+        if (abs(x1 - x0) < xtol).all(): return x1
+        try: x2 = f(x2, *args)
+        except:
+            x2 = f(x1, *args)
+        x2 = (x1**2 - x0*x2)/(2*x1 - x0 - x2)
+        x0 = x1
+        x1 = x2
+    raise SolverError(f'failed to converge after {maxiter} iterations')
     
+# def conditional_iteraitken(f, x):
+#     condition = True
+#     while condition:
+#         try: g, condition = f(x)
+#         except:
+#             g, condition = f(g)
+#         gg, condition = f(g)
+#         x = (g**2 - x*gg)/(2*g - x - gg)
+#         pos = np.logical_not(np.isfinite(x))
+#         x[pos] = gg[pos]
+#     return gg
+
+
+def conditional_iteraitken(f, x0):
+    x1, condition = f(x0)
+    if not condition: return x1
+    x2 = x1
+    while condition:
+        try: x2, condition = f(x2)
+        except:
+            x2, condition = f(x1)
+        x = (x1**2 - x0*x2)/(2*x1 - x0 - x2)
+        pos = np.logical_not(np.isfinite(x))
+        x[pos] = x2[pos]
+        x0 = x1
+        x1 = x2
+        x2 = x
+    return x2
+
 
 #    if y0*y1 < 0:
 #             x = x0 - y1*(x1-x0)/(y1-y0)
