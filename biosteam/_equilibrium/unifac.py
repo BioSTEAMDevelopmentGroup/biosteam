@@ -871,6 +871,7 @@ class DortmundActivityCoefficients:
     __slots__ = ('_species', 'chemgroups', 'rs', 'qs', 'groupcounts')
     subgroups = DOUFSG
     interactions = DOUFIP2016
+    cached = {}
     
     def __init__(self):
         self._species = self.chemgroups = self.rs = self.qs = self.groupcounts = None
@@ -883,7 +884,12 @@ class DortmundActivityCoefficients:
     def species(self, species):
         if self._species != species:
             self._species = species
-            self.load_chemgroups([s.UNIFAC_Dortmund_groups for s in species])
+            species = tuple(species)
+            if species in self.cached:
+                self.chemgroups, self.rs, self.qs, self.groupcounts = self.cached[species]
+            else:
+                self._load_species(species)
+                
     
     def __call__(self, xs, T):
         """Return UNIFAC coefficients.
@@ -957,10 +963,11 @@ class DortmundActivityCoefficients:
     
         return [exp(sum_(ij)) for ij in zip(loggammacs, loggammars)]
     
-    def load_chemgroups(self, chemgroups):
-        rs = []
-        qs = []
-        groupcounts = {}
+    def _load_species(self, species):
+        self.chemgroups = chemgroups = [s.UNIFAC_Dortmund_groups for s in species]
+        self.rs = rs = []
+        self.qs = qs = []
+        self.groupcounts = groupcounts = {}
         subgroups = self.subgroups
         for groups in chemgroups:
             ri = 0.
@@ -972,10 +979,7 @@ class DortmundActivityCoefficients:
                 else: groupcounts[group] = count
             rs.append(ri)
             qs.append(qi)
-        self.rs = rs
-        self.qs = qs
-        self.groupcounts = groupcounts
-        self.chemgroups = chemgroups
+        self.cached[species] = (chemgroups, rs, qs, groupcounts)
 
     def loggammacs(self, qs, rs, xs):
         rsxs = 0.; qsxs = 0.; rsxs2 = 0.; rs_34 = []; loggammacs = []
@@ -998,6 +1002,10 @@ class DortmundActivityCoefficients:
         try: a, b, c = interaction_data[main1][main2]
         except: return 1.
         return exp((-a/T - b - c*T))
+    
+    def __repr__(self):
+        return f"{type(self).__name__}({self.species})"
+    
     
 # def UNIFAC(self, xs, T):
 #     return UNIFAC_Coeffictients(self, xs, T, UFSG, UFIP, UNIFAC_psi, loggammacs_UNIFAC)

@@ -5,18 +5,18 @@ Created on Sun Jul 21 21:30:33 2019
 @author: yoelr
 """
 from numpy import asarray, array
-from biosteam._utils import wegstein_secant
+from biosteam._utils import wegstein_secant, aitken_secant
 
 __all__ = ('BubblePoint',)
 
 class BubblePoint:
-    __slots__ = ('gamma', 'P', 'T', 'z', 'y')
-    
+    __slots__ = ('gamma', 'P', 'T', 'y')
+    rootsolver = staticmethod(wegstein_secant)
     def __init__(self, gamma):
         self.gamma = gamma
     
-    def _T_error(self, T, P, z, VPs):
-        self.y =  z * array([i(T) for i in VPs]) * self.gamma(z, T) / P
+    def _T_error(self, T, z_over_P, z, VPs):
+        self.y =  z_over_P * array([i(T) for i in VPs]) * self.gamma(z, T)
         return 1. - self.y.sum()
     
     def _P_error(self, P, T, z, Psat_gamma):
@@ -49,14 +49,13 @@ class BubblePoint:
         """
         z = asarray(z)
         self.P = P
-        self.z = z
         try:
-            self.T = wegstein_secant(self._T_error, self.T, self.T+0.01, 1e-6,
-                                     args=(P, z, [s.VaporPressure for s in self.gamma.species]))
+            self.T = self.rootsolver(self._T_error, self.T, self.T+0.01, 1e-6,
+                                     args=(z/P, z, [s.VaporPressure for s in self.gamma.species]))
         except:
-            T = (z * [s.Tsat(P) for s in self.gamma.species]).sum()
-            self.T = wegstein_secant(self._T_error, T, T+0.01, 1e-6,
-                                     args=(P, z, [s.VaporPressure for s in self.gamma.species]))
+            T = (z * [s.Tb for s in self.gamma.species]).sum()
+            self.T = self.rootsolver(self._T_error, T, T+0.01, 1e-6,
+                                     args=(z/P, z, [s.VaporPressure for s in self.gamma.species]))
         self.y = self.y/self.y.sum()
         return self.T, self.y
     
@@ -88,19 +87,18 @@ class BubblePoint:
         Psat = array([i.VaporPressure(T) for i in self.gamma.species])
         Psat_gamma =  Psat * self.gamma(z, T)
         self.T = T
-        self.z = z
         try:
-            self.P = wegstein_secant(self._P_error, self.P, self.P-1, 1e-2,
+            self.P = self.rootsolver(self._P_error, self.P, self.P-1, 1e-2,
                                      args=(T, z, Psat_gamma))
         except:
             P = (z * Psat).sum()
-            self.P = wegstein_secant(self._P_error, P, P-1, 1e-2,
+            self.P = self.rootsolver(self._P_error, P, P-1, 1e-2,
                                      args=(T, z, Psat_gamma))
         self.y = self.y/self.y.sum()
         return self.P, self.y
     
     def __repr__(self):
-        return f"<{type(self).__name__}: species={self.gamma}>"
+        return f"<{type(self).__name__}: gamma={self.gamma}>"
     
 
     

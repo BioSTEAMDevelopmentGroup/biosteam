@@ -306,11 +306,11 @@ class TEA:
     def _get_cached_data(self):
         """Return cached data.
         
-        **Return**
+        **Return:** [tuple] including:
         
             **flow_factor:** [float] Factor to convert flow rate from kg/hr to kg/yr of operation.
             
-            **cashflow_info:** tuple[array] including:
+            **cashflow_info:** [tuple] including:
                 * cashflow_data: Cash flow data table
                 * duration_array: Range from 1 to the end of the project length
         

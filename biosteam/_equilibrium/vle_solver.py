@@ -4,7 +4,7 @@ Created on Wed Mar 20 18:40:05 2019
 
 @author: yoelr
 """
-from .._utils import isbetween, bounded_wegstein, wegstein#, count
+from .._utils import isbetween, bounded_wegstein, wegstein, aitken #, count
 import numpy as np
 
 __all__ = ('VLEsolver', 'solve_v', 'V_2N', 'V_3N', 'V_error')
@@ -38,7 +38,7 @@ def solve_v(v, T, P, mol, molnet, zs, N, gamma):
         solve_V = V_3N
     else:
         solve_V = lambda zs, Ks: bounded_wegstein(V_error, 0, V, 1,
-                                                  1e-4, args=(zs, Ks))
+                                                 1e-4, args=(zs, Ks))
     Ks = None
     def f(x):
         nonlocal Ks, V
@@ -61,7 +61,7 @@ class VLEsolver:
         self.T = self.P = self.Q = self.V = 0
     
     def __call__(self, xvar, yvar, f, x0, x1, y0, y1, yval):
-        # Bounded solver with iterwegstein acceleration
+        # Bounded solver with iterative wegstein acceleration
         xtol = self.tolerance[xvar]
         ytol = self.tolerance[yvar]
         x = getattr(self, xvar)
@@ -71,7 +71,6 @@ class VLEsolver:
             x = x0 + (yval-y0)*(x1-x0)/(y1-y0)
         yval_ub = yval + ytol
         yval_lb = yval - ytol
-        
         x_old = x
         y = f(x)
         if y > yval_ub:
@@ -85,9 +84,9 @@ class VLEsolver:
             setattr(self, xvar, x)
             setattr(self, yvar, y)
             return x
-        
-        x = g0 = x0 + (yval-y0)*(x1-x0)/(y1-y0)
-        while abs(x-x_old) > xtol:
+        delxbounds = x1-x0
+        x = g0 = x0 + (yval-y0)*delxbounds/(y1-y0)
+        while abs(delxbounds) > xtol:
             y = f(x)
             if y > yval_ub:
                 x1 = x
@@ -96,11 +95,12 @@ class VLEsolver:
                 x0 = x
                 y0 = y
             else: break
-            g1 = x0 + (yval-y0)*(x1-x0)/(y1-y0)
-            w = (x-x_old)/(x-g1 + g0-x_old)
+            delxbounds = x1-x0
+            g1 = x0 + (yval-y0)*delxbounds/(y1-y0)
+            delx = x-x_old
+            w = delx/(delx-g1+g0)
             x_old = x
             x = w*g1 + (1-w)*x
-            if x < x0 or x > x1: x = g1
             g0 = g1
         setattr(self, xvar, x)
         setattr(self, yvar, y)

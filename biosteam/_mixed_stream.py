@@ -85,11 +85,10 @@ class MixedStream(Stream):
     def __init__(self, ID='', species=None, T=298.15, P=101325):
         # Get species and set species information
         if species is None:
+            assert self._cls_species, 'must define Stream.species first'
             self._species = self._cls_species
-            if not self._species: raise RuntimeError('must define Stream.species first')
         elif isinstance(species, Species):
             self._species = WorkingSpecies(species)
-            species = ()
         elif isinstance(species, WorkingSpecies):
             self._species = species
         else:
@@ -634,10 +633,8 @@ class MixedStream(Stream):
         """
         ### Decide what kind of equilibrium to run ###
         
-        Nspecs = 0
-        for i in (P, T, x, y, V, Q):
-            Nspecs += (i is not None)
-            
+        Nspecs = ((P is not None) + (T is not None) + (x is not None)
+                 +(y is not None) + (V is not None) + (Q is not None))
         assert Nspecs == 2, ("must pass two of the following specifications: "
                              "P, T, x, y, V, or Q")
         

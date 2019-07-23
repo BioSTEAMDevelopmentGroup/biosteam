@@ -403,8 +403,8 @@ class Stream(metaclass=metaStream):
             self._species = species
             species = ()
         else: 
+            assert self._cls_species, 'must define Stream.species first'
             self._species = self._cls_species
-            assert self._species, 'must define Stream.species first'
         self._link = self._ID = self._sink = self._source = None
         self._source_link = self
         self.phase = phase
