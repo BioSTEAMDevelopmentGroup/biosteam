@@ -83,7 +83,6 @@ def bounded_wegstein(f, x0, x, x1, xtol, ytol=1e-7, args=(), maxiter=50):
     assert y0*y1 < 0, ('objective function bounderies '
                        'must have opposite signs')
     if y1 < 0: x0, y0, x1, y1 = x1, y1, x0, y0
-    slope_ispositive = x0 < x1
     x_old = x
     y = f(x, *args)
     if y > ytol:
@@ -110,10 +109,6 @@ def bounded_wegstein(f, x0, x, x1, xtol, ytol=1e-7, args=(), maxiter=50):
         w = (delx)/(delx-g1+g0)
         x_old = x
         x = w*g1 + (1-w)*x
-        if slope_ispositive:
-            if x <= x0 or x >= x1: x = g1
-        else:
-            if x <= x1 or x >= x0: x = g1
         g0 = g1
     return x
 
@@ -123,11 +118,11 @@ def wegstein(f, x0, xtol, args=(), maxiter=50):
     isfinite = np.isfinite
     for iter in range(maxiter):
         delx = x1-x0
-        if (abs(delx) < xtol).all(): return x1
         try: g1 = f(x1, *args)
         except:
             x1 = g1
             g1 = f(x1, *args)
+        if (abs(g1-x1) < xtol).all(): return g1
         w = delx/(delx-g1+g0)
         w[logical_not(isfinite(w))] = 1
         x0 = x1
@@ -180,14 +175,16 @@ def aitken_secant(f, x0, x1, xtol, ytol=5e-8, args=(), maxiter=50):
 
 def aitken(f, x, xtol, args=(), maxiter=50):
     gg = x
+    abs_ = abs
     for iter in range(maxiter):
         try: g = f(x, *args)
         except:
             x = gg
             g = f(x, *args)
+        if (abs_(g-x) < xtol).all(): return gg
         gg = f(g, *args)
         x = x - (g - x)**2/(gg-2*g+x)
-        if (abs(gg-g) < xtol).all(): return gg
+        if (abs_(gg-g) < xtol).all(): return gg
     raise SolverError(f'failed to converge after {maxiter} iterations')
     
 def conditional_aitken(f, x):

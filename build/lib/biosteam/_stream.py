@@ -8,12 +8,11 @@ Created on Sat Aug 18 14:05:10 2018
 from . import _Q
 import numpy as np
 from ._utils import property_array, PropertyFactory, DisplayUnits, \
-                    tuple_array, fraction, Sink, Source, MissingStream, \
-                    wegstein, accelerated_secant
+                    tuple_array, fraction, Sink, Source, MissingStream
 from ._flowsheet import find
 from ._species import Species, WorkingSpecies
 from ._exceptions import SolverError, EquilibriumError, DimensionError
-from ._equilibrium import DORTMUND, VLEsolver
+from ._equilibrium import DortmundActivityCoefficients, VLE, BubblePoint, DewPoint
 
 
 __all__ = ('Stream',)
@@ -337,8 +336,7 @@ class Stream(metaclass=metaStream):
        k: [float] Thermal conductivity as a function of T and P (W/m/K).
 
     """
-    activity_coefficients = staticmethod(DORTMUND)
-
+    
     # [dict] Units of measure for material properties (class attribute). 
     units = units_of_measure
 
@@ -375,9 +373,9 @@ class Stream(metaclass=metaStream):
         ('volfrac',  'volumetric fractions',     'TP',        'm^3/m^3',   'ndarray'))
 
     __slots__ = ('T', 'P', '_mol', '_mass', '_vol', 'price', '_ID', '_link',
-                 '_species', '_sink', '_source', '_dew_cached', '_bubble_cached',
-                 '_phase', '_y_cached', '_lL_split_cached', '_y',
-                 '__weakref__', '_source_link', '_VLEsolver')
+                 '_species', '_sink', '_source', '_dew_point',
+                 '_bubble_point', '_gamma', '_phase', '_lL_split_cached',
+                 '__weakref__', '_source_link', '_VLE')
 
     line = 'Stream'
 
@@ -405,19 +403,14 @@ class Stream(metaclass=metaStream):
             self._species = species
             species = ()
         else: 
+            assert self._cls_species, 'must define Stream.species first'
             self._species = self._cls_species
-            assert self._species, 'must define Stream.species first'
         self._link = self._ID = self._sink = self._source = None
         self._source_link = self
         self.phase = phase
         self.T = T  #: [float] Temperature (K)
         self.P = P  #: [float] Pressure (Pa)
         self.price = price  #: Price of stream (USD/kg)
-        # Dew point cached:
-        # (species, pressure, temperature, vapor composition, liquid composition)
-        # Bubble point cached:
-        # (species, pressure, temperature, vapor composition, liquid composition)
-        self._dew_cached = self._bubble_cached = (None,) 
         
         # Initialize flows
         self._setflows(flow, species, flow_pairs)
@@ -448,7 +441,9 @@ class Stream(metaclass=metaStream):
             else:
                 raise DimensionError(f"dimensions for flow units must be in molar, mass or volumetric flow rates, not '{dim}'")
         self.ID = ID
-
+        self._gamma = gamma = DortmundActivityCoefficients()
+        self._bubble_point = BubblePoint(gamma)
+        self._dew_point = DewPoint(gamma)
 
     def setflow(self, flow=(), species=(), units='kmol/hr', inplace='', **flow_pairs):
         """Set `flow` rates according to the `species` order and `flow_pairs`. `inplace` can be any operation that can be performed in place (e.g. +, -, *, /, |, **, etc.)."""
@@ -490,14 +485,14 @@ class Stream(metaclass=metaStream):
                 raise ValueError('cannot specify flow pairs when species is passed')
             elif flowlen == specieslen:
                 self._mol = self._species.array(species, flow)
-            elif (not specieslen) and (flowlen == self._species._Nspecies):
+            elif (not specieslen) and (flowlen == self._species._N):
                 self._mol = np.array(flow, float)
             else:
                 ValueError('length of flow rates must be equal to length of species')
         elif flow_pairs:
             self._mol = self._species.array(flow_pairs, [*flow_pairs.values()])
         else:
-            self._mol = np.zeros(self.species._Nspecies, float)
+            self._mol = np.zeros(self.species._N, float)
                 
     # Forward pipping
     def __sub__(self, index):
@@ -561,8 +556,9 @@ class Stream(metaclass=metaStream):
                 self._mass = stream._mass
                 self._mol = stream._mol
                 self._vol = stream._vol
-                self._dew_cached = stream._dew_cached
-                self._bubble_cached = stream._bubble_cached
+                self._dew_point = stream._dew_point
+                self._bubble_point = stream._bubble_point
+                self._gamma = stream._gamma
                 self._source_link = stream._source_link
                 self._link = stream
                 self.P = stream.P
@@ -1108,20 +1104,19 @@ class Stream(metaclass=metaStream):
         array([7872.1566667784855, 0 ])
         """
         mol = self.mol
-        species, index = self._species._equilibrium_species(mol)
-        T = self.T
-        N = len(species)
+        species = self._species
+        indices = species._equilibrium_indices(mol>0)
+        compounds = species._compounds
+        N = len(indices)
         P_vapor = np.zeros_like(mol)
-        if N == 1:
-            P_vapor[index[0]] = species[0].VaporPressure(T)
-            return P_vapor
-        elif N == 0:
-            return P_vapor
-        mol = self.mol[index]
+        if N==0: return P_vapor
+        species = [compounds[i] for i in indices]
+        mol = self.mol[indices]
         x = mol/mol.sum()
-        gamma = self.activity_coefficients(tuple(species), x, T)
+        T = self.T
         Psat = [s.VaporPressure(T) for s in species]
-        P_vapor[index] = x * Psat * gamma
+        self._gamma.species = species
+        P_vapor[indices] = x * Psat * self._gamma(x, T)
         return P_vapor
         
     # Other properties
@@ -1324,69 +1319,18 @@ class Stream(metaclass=metaStream):
         """
         mol = self.mol
         # If just one specie in equilibrium, return Tsat
-        species, index = self._species._equilibrium_species(mol)
-        N = len(species)
+        indices = self._species._equilibrium_indices(mol>0)
+        cmps = self._species._compounds
+        N = len(indices)
         if N == 1:
-            return (species[0].Tsat(self.P), np.array((1,)), index)
+            return (cmps[0].Tsat(self.P), np.array((1,)), indices)
         elif N == 0:
             raise EquilibriumError('no species available for phase equilibrium')
-        mol = mol[index]
+        mol = mol[indices]
+        self._gamma.species = [cmps[i] for i in indices]
         # Solve and return bubble point
-        return (*self._bubble_T(tuple(species), mol/mol.sum(), self.P), index)
+        return (*self._bubble_point.solve_Ty(mol/mol.sum(), self.P), indices)
     
-    def _bubble_T(self, species, x, P):
-        """Bubble point at given composition and pressure
-
-        **Parameters**
-
-            **species:** tuple[Compound] Species corresponding to x.
-
-            **x:** [array_like] Liquid phase composition.
-
-            **P:** [float] Pressure (Pa).
-        
-        **Returns**
-
-            **T:** [float] Bubble point temperature (K)
-
-            **y:** [numpy ndarray] Composition of the vapor phase.
-
-        >>> from biosteam import *
-        >>> Stream.species = Species('Ethanol', 'Water')
-        >>> s1 = Stream()
-        >>> s1._bubble_T(species=Stream.species,
-        ...              x=(0.6, 0.4), P=101325)
-        (352.2820850833474, array([0.703, 0.297]))
-        
-        """
-        # Setup functions to calculate vapor pressure and activity coefficients
-        x = np.asarray(x)
-        
-        # Retrive cached info
-        # Even if different composition, use previous bubble point as guess
-        if self._bubble_cached[0] == species:
-            _, cP, T_bubble, y_bubble, cx = self._bubble_cached # c means cached
-            if abs(x - cx).sum() < 1e-6 and abs(cP - P) < 1:
-                # Return cached data
-                return T_bubble, y_bubble
-        else:
-            # Initial temperature guess
-            T_bubble = (x * [s.Tsat(P) for s in species]).sum()
-            y_bubble = np.zeros(len(species))
-        
-        VPs = [s.VaporPressure for s in species]
-        gamma = self.activity_coefficients
-        def bubble_error(T):
-            # Bubble point given T, x and P
-            y_bubble[:] =  x * [i(T) for i in VPs] * gamma(species, x, T) / P
-            return 1 - y_bubble.sum()
-
-        # Solve and return
-        T_bubble = accelerated_secant(bubble_error, T_bubble, T_bubble+0.01, 1e-6)
-        y_bubble = y_bubble/y_bubble.sum()
-        self._bubble_cached = (species, P, T_bubble, y_bubble, x)
-        return T_bubble, y_bubble
-
     def bubble_P(self):
         """Bubble point at current composition and temperature.
 
@@ -1407,69 +1351,17 @@ class Stream(metaclass=metaStream):
         """
         mol = self.mol
         # If just one specie in equilibrium, return Tsat
-        species, index = self._species._equilibrium_species(mol)
-        N = len(species)
+        indices = self._species._equilibrium_indices(mol>0)
+        cmps = self._species._compounds
+        N = len(indices)
         if N == 1:
-            return (species[0].VaporPressure(self.T), np.array((1,)), index)
+            return (cmps[0].VaporPressure(self.T), np.array((1,)), indices)
         elif N == 0:
             raise EquilibriumError('no species available for phase equilibrium')
-        mol = mol[index]
-        
+        mol = mol[indices]
+        self._gamma.species = [cmps[i] for i in indices]
         # Solve and return bubble point
-        return (*self._bubble_P(tuple(species), mol/mol.sum(), self.T), index)
-
-    def _bubble_P(self, species, x, T):
-        """Bubble point at given composition and temperature.
-
-        **Parameters**
-
-            **species:** tuple[Compound] Species corresponding to x.
-
-            **x:** [array_like] Liquid phase composotion.
-
-            **T:** [float] Temperature (K).
-        
-        **Returns**
-
-            **P:** [float] Bubble point pressure (Pa).
-
-            **y:** [numpy ndarray] Vapor phase composition.
-
-        >>> from biosteam import *
-        >>> Stream.species = Species('Ethanol', 'Water')
-        >>> s1 = Stream()
-        >>> s1._bubble_P(species=Stream.species,
-        ...              x=(0.703, 0.297), T=352.28)
-        (103494.17209657285, array([0.757, 0.243]), [0, 1])
-        
-        """
-        x = np.asarray(x)
-        
-        # Retrive cached info
-        # Even if different composition, use previous bubble point as guess
-        if self._bubble_cached[0] == species:
-            _, P_bubble, cT, y_bubble, cx = self._bubble_cached # c means cached
-            if abs(x - cx).sum() < 1e-6 and abs(cT - T) < 0.01:
-                # Return cached data
-                return P_bubble, y_bubble
-        else:
-            # Initial temperature guess
-            P_bubble = (x * [s.VaporPressure(T) for s in species]).sum()
-            y_bubble = np.zeros(len(species))
-
-        gamma = self.activity_coefficients(species, x, T)
-        Psat = np.array([s.VaporPressure(T) for s in species])
-        Psat_gamma = Psat * gamma
-        def bubble_error(P):
-            # Bubble point given T, x and P
-            y_bubble[:] =  x * Psat_gamma / P
-            return 1 - y_bubble.sum()
-
-        # Solve and return
-        P_bubble = accelerated_secant(bubble_error, P_bubble, P_bubble+1, 1e-2)
-        y_bubble = y_bubble/y_bubble.sum()
-        self._bubble_cached = (species, P_bubble, T, y_bubble, x)
-        return P_bubble, y_bubble
+        return (*self._bubble_point.solve_Py(mol/mol.sum(), self.T), indices)
 
     def dew_T(self):
         """Dew point at current composition and pressure.
@@ -1490,68 +1382,17 @@ class Stream(metaclass=metaStream):
         """
         mol = self.mol
         # If just one specie in equilibrium, return Tsat
-        species, index = self._species._equilibrium_species(mol)
-        N = len(species)
+        indices = self._species._equilibrium_indices(mol>0)
+        cmps = self._species._compounds
+        N = len(indices)
         if N == 1:
-            return (species[0].Tsat(self.P), np.array((1,)), index)
+            return (cmps[0].Tsat(self.P), np.array((1,)), indices)
         elif N == 0:
             raise EquilibriumError('no species available for phase equilibrium')
-        mol = mol[index]
+        mol = mol[indices]
+        self._gamma.species = [cmps[i] for i in indices]
         # Solve and return dew point
-        return (*self._dew_T(tuple(species), mol/mol.sum(), self.P), index)
-    
-    def _dew_T(self, species, y, P):
-        """Dew point given composition and pressure.
-
-        **Parameters**
-
-            **species:** tuple[Compound] Species corresponding to x.
-
-            **y:** [array_like] Vapor phase composition.
-
-            **P:** [float] Pressure (Pa).
-
-        **Returns**
-
-            **T:** [float] Dew point temperature (K).
-
-            **x:** [numpy array] Liquid phase composition.
-
-        >>> from biosteam import *
-        >>> Stream.species = Species('Ethanol', 'Water')
-        >>> s1 = Stream()
-        >>> s1._dew_T(species=Species('Ethanol', 'Water'),
-        ...           y=(0.5, 0.5), P=101325)
-        (357.45184742263075, array([0.151, 0.849]))
-        """
-        y = np.asarray(y)
-        
-        # Retrive cached info
-        # Even if different composition, use previous bubble point as guess
-        if self._dew_cached[0] == species:
-            _, cP, T_dew, cy, x_dew = self._dew_cached # c means cached
-            if abs(y - cy).sum() < 1e-6 and abs(cP - P) < 1:
-                # Return cached data
-                return T_dew, x_dew 
-        else:
-            # Initial temperature guess
-            T_dew = (y * [s.Tsat(P) for s in species]).sum()
-            x_dew = np.array(y)
-        
-        VPs = [s.VaporPressure for s in species]
-        gamma = self.activity_coefficients
-        f = lambda x, T: (y*P/(np.array([i(T) for i in VPs])
-                               *gamma(species, x/x.sum(), T)))
-        
-        def dew_error(T):
-            x_dew[:] = wegstein(f, x_dew, 1e-5, args=(T,))
-            return 1 - x_dew.sum()
-
-        # Solve
-        T_dew = accelerated_secant(dew_error, T_dew, T_dew-0.01, 1e-6)
-        x_dew = x_dew/x_dew.sum()
-        self._dew_cached = (species, P, T_dew, y, x_dew)
-        return T_dew, x_dew
+        return (*self._dew_point.solve_Tx(mol/mol.sum(), self.P), indices)
     
     def dew_P(self):
         """Dew point at current composition and temperature.
@@ -1573,69 +1414,17 @@ class Stream(metaclass=metaStream):
         """
         mol = self.mol
         # If just one specie in equilibrium, return Tsat
-        species, index = self._species._equilibrium_species(mol)
-        N = len(species)
+        indices = self._species._equilibrium_indices(mol>0)
+        cmps = self._species._compounds
+        N = len(indices)
         if N == 1:
-            return (species[0].VaporPressure(self.T), np.array((1,)), index)
+            return (cmps[0].VaporPressure(self.T), np.array((1,)), indices)
         elif N == 0:
             raise EquilibriumError('no species available for phase equilibrium')        
-        mol = mol[index]        
+        mol = mol[indices]    
+        self._gamma.species = [cmps[i] for i in indices]
         # Solve and return dew point
-        return (*self._dew_P(tuple(species), mol/mol.sum(), self.T), index)
-    
-    def _dew_P(self, species, y, T):
-        """Dew point given composition and temperature.
-
-        **Parameters**
-
-            **species:** tuple[Compound] Species in equilibrium.
-
-            **y:** [array_like] Vapor phase composition.
-
-            **T:** [float] Temperature (K).
-
-        **Returns**
-
-            **P:** [float] Dew point pressure (Pa).
-
-            **x:** [numpy array] Liquid phase composition.
-
-        >>> from biosteam import *
-        >>> s1 = Stream(species=Species('Ethanol', 'Water'))
-        >>> s1._bubble_P(x=(0.703, 0.297), T=352.28,
-        ...              species=Species('Ethanol', 'Water'))
-        (101328.4703032754,
-         array([0.6, 0.4]),
-         (<Chemical: Ethanol>, <Chemical: Water>))
- 
-       """
-        y = np.asarray(y)
-        
-        # Retrive cached info
-        # Even if different composition, use previous bubble point as guess
-        if self._dew_cached[0] == species:
-            _, P_dew, cT, cy, x_dew = self._dew_cached # c means cached
-            if abs(y - cy).sum() < 1e-6 and abs(cT - T) < 1:
-                # Return cached data
-                return P_dew, x_dew
-        else:
-            # Initial temperature guess
-            P_dew = (y * [s.VaporPressure(T) for s in species]).sum()
-            x_dew = np.array(y)
-
-        Psat = np.array([s.VaporPressure(T) for s in species])
-        gamma = self.activity_coefficients
-        f = lambda x, P: y*P/(Psat*gamma(species, x/x.sum(), T))
-        
-        def dew_error(P):
-            x_dew[:] = wegstein(f, x_dew, 1e-5, args=(P,))
-            return 1 - x_dew.sum()
-        
-        # Solve
-        P_dew = accelerated_secant(dew_error, P_dew, P_dew+1, 1e-2)
-        x_dew = x_dew/x_dew.sum()
-        self._dew_cached = (species, P_dew, T, y, x_dew)
-        return P_dew, x_dew
+        return (*self._dew_point.solve_Px(mol/mol.sum(), self.T), indices)
 
     # Dimensionless number methods
     def Re(self, L, A=None):
@@ -1860,10 +1649,10 @@ class Stream(metaclass=metaStream):
         """Cast stream into a MixedStream object."""
         mol = self._mol
         self.__class__ = MS.MixedStream
-        self._setflows(np.zeros((4, self._species._Nspecies)))
+        self._setflows(np.zeros((4, self._species._N)))
         self._mol[phase_index[self._phase]] = mol
-        self._lL_split_cached = self._y_cached = (None,)
-        self._VLEsolver = VLEsolver()
+        self._lL_split_cached = (None,)
+        self._VLE = VLE(self)
 
     def disable_phases(self, phase):
         """Cast stream into a Stream object.
@@ -1875,10 +1664,34 @@ class Stream(metaclass=metaStream):
         """
         self._phase = phase
             
-    def VLE(self, species_IDs=(), LNK=(), HNK=(), P=None,
-            Q=None, T=None, V=None, x=None, y=None):
+    @property
+    def VLE(self):
+        """A callable VLE object for vapor-liquid equilibrium.
+
+        **Parameters**
+        
+            **Specify two:**
+                * **P:** [float] Operating pressure (Pa)
+                * **Q:** [float] Energy input (kJ/hr)
+                * **T:** [float] Operating temperature (K)
+                * **V:** [float] Molar vapor fraction
+                * **x:** [numpy array] Molar composition of liquid (for binary mixture)
+                * **y:** [numpy array] Molar composition of vapor (for binary mixture)
+
+            **Optional:**
+            
+                **species_IDs:** [tuple] IDs of species in equilibrium.
+                     
+                **LNK:** tuple[str] Light non-keys that remain as a vapor.
+        
+                **HNK:** tuple[str] Heavy non-keys that remain as a liquid.
+
+        .. Note:
+           LNK and HNK are not taken into account for equilibrium. Parameters not specified are None by default.
+
+        """
         self.enable_phases()
-        self.VLE(species_IDs, LNK, HNK, P, Q, T, V, x, y)
+        return self._VLE
         
     def LLE(self, species_IDs=(), split=None, lNK=(), LNK=(),
             solvents=(), solvent_split=(),

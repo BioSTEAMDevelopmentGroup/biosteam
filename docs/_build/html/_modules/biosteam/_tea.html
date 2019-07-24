@@ -189,7 +189,7 @@
 
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">newton</span>
+<span class="kn">from</span> <span class="nn">._utils</span> <span class="k">import</span> <span class="n">wegstein_secant</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">copy</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;TEA&#39;</span><span class="p">,)</span>
@@ -488,11 +488,11 @@
     <span class="k">def</span> <span class="nf">_get_cached_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return cached data.</span>
 <span class="sd">        </span>
-<span class="sd">        **Return**</span>
+<span class="sd">        **Return:** [tuple] including:</span>
 <span class="sd">        </span>
 <span class="sd">            **flow_factor:** [float] Factor to convert flow rate from kg/hr to kg/yr of operation.</span>
 <span class="sd">            </span>
-<span class="sd">            **cashflow_info:** tuple[array] including:</span>
+<span class="sd">            **cashflow_info:** [tuple] including:</span>
 <span class="sd">                * cashflow_data: Cash flow data table</span>
 <span class="sd">                * duration_array: Range from 1 to the end of the project length</span>
 <span class="sd">        </span>
@@ -639,9 +639,10 @@
                             <span class="n">parameters</span><span class="p">[:</span><span class="o">-</span><span class="mi">3</span><span class="p">],</span>
                             <span class="n">depreciation_data</span><span class="p">)</span>
         <span class="c1"># Solve</span>
-        <span class="n">IRR</span> <span class="o">=</span> <span class="n">newton</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_calc_NPV</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_IRR_guess</span><span class="p">,</span>
-                     <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">cashflow_data</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">],</span> <span class="n">duration_array</span><span class="p">),</span>
-                     <span class="n">maxiter</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+        <span class="n">IRR</span> <span class="o">=</span> <span class="n">wegstein_secant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_calc_NPV</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_IRR_guess</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_IRR_guess</span><span class="o">+</span><span class="mf">1e-6</span><span class="p">,</span>
+                              <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">cashflow_data</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">],</span> <span class="n">duration_array</span><span class="p">),</span>
+                              <span class="n">xtol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span>
+                              <span class="n">maxiter</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_IRR_guess</span> <span class="o">=</span> <span class="n">IRR</span> <span class="k">if</span> <span class="p">(</span><span class="mi">0</span> <span class="o">&lt;</span> <span class="n">IRR</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">)</span> <span class="k">else</span> <span class="mf">0.15</span>
         <span class="k">return</span> <span class="n">IRR</span></div>
     
@@ -682,9 +683,11 @@
         <span class="k">def</span> <span class="nf">break_even_point</span><span class="p">(</span><span class="n">cost</span><span class="p">):</span>
             <span class="n">CF</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">adjust</span><span class="p">(</span><span class="n">cost</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">calc_NPV</span><span class="p">(</span><span class="n">IRR</span><span class="p">,</span> <span class="n">data_subset</span><span class="p">,</span> <span class="n">duration_array</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_cost_guess</span> <span class="o">=</span> <span class="n">cost</span> <span class="o">=</span> <span class="n">newton</span><span class="p">(</span><span class="n">break_even_point</span><span class="p">,</span>
-                                         <span class="bp">self</span><span class="o">.</span><span class="n">_cost_guess</span><span class="p">,</span>
-                                         <span class="n">maxiter</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cost_guess</span> <span class="o">=</span> <span class="n">cost</span> <span class="o">=</span> <span class="n">wegstein_secant</span><span class="p">(</span><span class="n">break_even_point</span><span class="p">,</span>
+                                                  <span class="bp">self</span><span class="o">.</span><span class="n">_cost_guess</span><span class="p">,</span>
+                                                  <span class="bp">self</span><span class="o">.</span><span class="n">_cost_guess</span><span class="o">+</span><span class="mf">1e-6</span><span class="p">,</span>
+                                                  <span class="n">xtol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span>
+                                                  <span class="n">maxiter</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">stream</span><span class="o">.</span><span class="n">price</span> <span class="o">+</span> <span class="n">cost</span><span class="o">/</span><span class="n">cost_factor</span></div>
     
     <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

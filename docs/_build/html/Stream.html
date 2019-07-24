@@ -313,11 +313,10 @@
 <p class="last">property_array objects are significantly slower than array objects. This is because flow rate data is internally stored as molar flow rates. Also, property_array objects are arrays of python objects, which add overhead over the C implementation of numpy. Whenever possible, use the array to manage flow rates.</p>
 </div>
 <p>Some thermodynamic/material properties, including enthalpy and heat capacity, are dependent only on temperature:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Enthalpy (kJ/hr) and heat capacity (kJ/(kg-K))</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="mf">298.15</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">Cp</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="mf">298.15</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">Cp</span> <span class="c1"># Heat capacity (kJ/(kg-K))</span>
 <span class="go">3.200382054794244</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">H</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s2</span><span class="o">.</span><span class="n">H</span>  <span class="c1"># Enthalpy (kJ/hr)</span>
 <span class="go">0.0</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Change of temperature</span>
@@ -333,10 +332,9 @@
 <p class="last">Thermodynamic energies are relative to 25 degC and 1 atm.</p>
 </div>
 <p>Some thermodynamic/material properties, including volume and density, are dependent on both temperature and pressure:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Volumetric flow rate (m^3/hr) and density (kg/m^3)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">volnet</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">volnet</span> <span class="c1"># Volumetric flow rate (m^3/hr)</span>
 <span class="go">0.036138079740245625</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">rho</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">rho</span> <span class="c1"># Density (kg/m^3)</span>
 <span class="go">997.0247522552814</span>
 
 <span class="gp">&gt;&gt;&gt; </span><span class="c1"># Change of pressure</span>
@@ -354,25 +352,12 @@
 <span class="go">983.4747955832584</span>
 </pre></div>
 </div>
-<p>A dictionary of available stream properties is available in <cite>Stream.units</cite>. You may also find it useful to use the <cite>help</cite> method to search for a property:</p>
+<p>A dictionary of available stream properties and respective units of measure is available in <cite>Stream.units</cite>. You may also find it useful to use the <cite>help</cite> method to search for a property:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">help</span><span class="p">(</span><span class="s1">&#39;conductivity&#39;</span><span class="p">)</span>
 <span class="go">k: [float] Thermal conductivity as a function of T and P (W/m/K).</span>
 </pre></div>
 </div>
 </div></blockquote>
-<dl class="staticmethod">
-<dt id="biosteam.Stream.activity_coefficients">
-<em class="property">static </em><code class="descname">activity_coefficients</code><span class="sig-paren">(</span><em>species</em>, <em>xs</em>, <em>T</em>, <em>cached={}</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.Stream.activity_coefficients" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return list of Dortmund modified UNIFAC coefficients.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><p>species: tuple[Compound] Species corresponding to molar fractions</p>
-<p>xs: [array_like] Molar fractions</p>
-<p>T: [float] Temperature (K)</p>
-<p>cached: {species: (chemgroups, rs, qs, group_counts)} Cached UNIFAC parameters</p>
-</div></blockquote>
-</dd></dl>
-
 <dl class="attribute">
 <dt id="biosteam.Stream.lazy_energy_balance">
 <code class="descname">lazy_energy_balance</code><em class="property"> = True</em><a class="headerlink" href="#biosteam.Stream.lazy_energy_balance" title="Permalink to this definition">¶</a></dt>
@@ -986,6 +971,17 @@
 <dt id="biosteam.Stream.copyflow">
 <code class="descname">copyflow</code><span class="sig-paren">(</span><em>stream</em>, <em>species=None</em>, <em>*</em>, <em>remove=False</em>, <em>exclude=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.copyflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.copyflow" title="Permalink to this definition">¶</a></dt>
 <dd><p>Copy flow rates of stream to self.</p>
+<p><strong>Parameters</strong></p>
+<blockquote>
+<div><p><strong>stream:</strong> [Stream] Flow rates will be copied from here.</p>
+<p><strong>species:</strong> iterable[str] Species IDs. Defaults to all species.</p>
+<p><strong>remove:</strong> [bool] If True, copied species will be removed from <cite>stream</cite>.</p>
+<p><strong>exclude:</strong> [bool] If True, exclude <cite>species</cite> when copying.</p>
+</div></blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Species flow rates that are not copied will be set to zero.</p>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1182,10 +1178,11 @@
 <div><strong>phase:</strong> {‘s’, ‘l’, ‘g’} desired phase of stream</div></blockquote>
 </dd></dl>
 
-<dl class="method">
+<dl class="attribute">
 <dt id="biosteam.Stream.VLE">
-<code class="descname">VLE</code><span class="sig-paren">(</span><em>species_IDs=()</em>, <em>LNK=()</em>, <em>HNK=()</em>, <em>P=None</em>, <em>Q=None</em>, <em>T=None</em>, <em>V=None</em>, <em>x=None</em>, <em>y=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.VLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.VLE" title="Permalink to this definition">¶</a></dt>
-<dd><p>Perform vapor-liquid equilibrium.</p>
+<code class="descname">VLE</code><a class="headerlink" href="#biosteam.Stream.VLE" title="Permalink to this definition">¶</a></dt>
+<dd><p>A VLE object for vapor-liquid equilibrium. VLE objects are callable with the following signature:</p>
+<p>VLE(species_IDs=(), LNK=(), HNK=(), P=None, Q=None, T=None, V=None, x=None, y=None):</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><dl class="docutils">
@@ -1200,9 +1197,12 @@
 </ul>
 </dd>
 </dl>
-<p><strong>species_IDs:</strong> [tuple] IDs of species in equilibrium.</p>
+<p><strong>Optional:</strong></p>
+<blockquote>
+<div><p><strong>species_IDs:</strong> [tuple] IDs of species in equilibrium.</p>
 <p><strong>LNK:</strong> tuple[str] Light non-keys that remain as a vapor.</p>
 <p><strong>HNK:</strong> tuple[str] Heavy non-keys that remain as a liquid.</p>
+</div></blockquote>
 </div></blockquote>
 </dd></dl>
 

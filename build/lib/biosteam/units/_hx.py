@@ -591,11 +591,11 @@ class HXprocess(HX):
         if IDs:
             species = self._outs[0].species if self._outs else Stream.species
             index = species.indices(IDs)
-            species = tuple(getattr(species, ID) for ID in IDs)
-            self._cached_species_data = species, index, IDs
+            self._species = [getattr(species, ID) for ID in IDs]
+            self._cached_species_data = index, IDs
         else:
             self._cached_species_data = None
-        self._species_IDs = IDs
+        self._species_IDs = tuple(IDs)
     
     @property
     def fluid_type(self):
@@ -659,7 +659,7 @@ class HXprocess(HX):
         dT = self.dT
         
         # Arguments for dew and bubble point
-        species, index, species_IDs = self._get_species_data(s1_out, self._species_IDs)
+        index, species_IDs = self._get_species_data(s1_out, self._species_IDs)
         z = s1_out.mol[index]/s1_out.molnet
         P = s1_out.P
         
@@ -667,13 +667,13 @@ class HXprocess(HX):
             # Stream s1 is boiling
             boiling = True
             s1_out.phase = 'g'
-            s1_out.T = s1_out._dew_T(species, z, P)[0]
+            s1_out.T = s1_out._dew_point.solve_Tx(z, P)[0]
             T_pinch = s1_in.T + dT # Minimum
         else:
             # Stream s1 is condensing
             boiling = False
             s1_out.phase = 'l'
-            s1_out.T = s1_out._bubble_T(species, z, P)[0]
+            s1_out.T = s1_out._bubble_point.solve_Ty(z, P)[0]
             T_pinch = s1_in.T - dT # Maximum
         
         # Calculate maximum latent heat and new temperature of sensible stream
@@ -736,20 +736,20 @@ class HXprocess(HX):
             sp_out = s2_out
         
         # Arguments for dew and bubble point
-        species, index, species_IDs = self._get_species_data(sc_out, self._species_IDs)
+        index, species_IDs = self._get_species_data(sc_out, self._species_IDs)
         z = sc_out.mol[index]/sc_out.molnet
         P = sc_out.P
         
         if sc_out is boiling:
             sc_out.phase = 'g'
-            sc_out.T = sc_out._dew_T(species, z, P)[0]
+            sc_out.T = sc_out._dew_point.solve_Tx(z, P)[0]
         else:
             sc_out.phase = 'l'
-            sc_out.T = sc_out._bubble_T(species, z, P)[0]
+            sc_out.T = sc_out._bubble_point.solve_Ty(z, P)[0]
         
         # VLE
         duty = (sc_in.H-sc_out.H)
-        sp_out.VLE(self._species_IDs, LNK, HNK, P=sp_out.P, Q=duty)
+        sp_out.VLE(species_IDs, LNK, HNK, P=sp_out.P, Q=duty)
         self._duty = abs(duty)
         
     def _get_Hvaps(self, stream):
@@ -765,17 +765,20 @@ class HXprocess(HX):
     def _get_species_data(self, stream, species_IDs):
         _species = stream._species
         if species_IDs:
+            stream._gamma.species = self._species
             return self._cached_species_data
         else:
-            not_zero_arr = (stream.mol >= 0.001)
+            not_zero_arr = stream.mol > 0
             if (self._not_zero_arr == not_zero_arr).all():
                 return self._cached_equilibrium_species_index
             else:
-                species, index = _species._equilibrium_species(stream.mol)
-                species = tuple(species)
-                species_IDs = tuple([s.ID for s in species])
-                self._cached_species_data = out = species, index, species_IDs
+                index = _species._equilibrium_indices(not_zero_arr)
+                cmps = _species._compounds
+                species = [cmps[i] for i in index]
+                species_IDs = [s.ID for s in cmps]
+                self._cached_species_data = out = index, species_IDs
                 self._not_zero_arr = not_zero_arr
+                stream._gamma.species = species
                 return out
     
 # elif U == 'Concentric tubes':

@@ -12,7 +12,7 @@ from ._utils import property_array, PropertyFactory, DisplayUnits, \
 from ._flowsheet import find
 from ._species import Species, WorkingSpecies
 from ._exceptions import SolverError, EquilibriumError, DimensionError
-from ._equilibrium import DortmundActivityCoefficients, VLEsolver, BubblePoint, DewPoint
+from ._equilibrium import DortmundActivityCoefficients, VLE, BubblePoint, DewPoint
 
 
 __all__ = ('Stream',)
@@ -373,9 +373,9 @@ class Stream(metaclass=metaStream):
         ('volfrac',  'volumetric fractions',     'TP',        'm^3/m^3',   'ndarray'))
 
     __slots__ = ('T', 'P', '_mol', '_mass', '_vol', 'price', '_ID', '_link',
-                 '_species', '_sink', '_source', '_dp', '_bp', '_gamma',
-                 '_phase', '_lL_split_cached', '__weakref__', '_source_link',
-                 '_VLEsolver')
+                 '_species', '_sink', '_source', '_dew_point',
+                 '_bubble_point', '_gamma', '_phase', '_lL_split_cached',
+                 '__weakref__', '_source_link', '_VLE')
 
     line = 'Stream'
 
@@ -442,8 +442,8 @@ class Stream(metaclass=metaStream):
                 raise DimensionError(f"dimensions for flow units must be in molar, mass or volumetric flow rates, not '{dim}'")
         self.ID = ID
         self._gamma = gamma = DortmundActivityCoefficients()
-        self._bp = BubblePoint(gamma)
-        self._dp = DewPoint(gamma)
+        self._bubble_point = BubblePoint(gamma)
+        self._dew_point = DewPoint(gamma)
 
     def setflow(self, flow=(), species=(), units='kmol/hr', inplace='', **flow_pairs):
         """Set `flow` rates according to the `species` order and `flow_pairs`. `inplace` can be any operation that can be performed in place (e.g. +, -, *, /, |, **, etc.)."""
@@ -556,8 +556,8 @@ class Stream(metaclass=metaStream):
                 self._mass = stream._mass
                 self._mol = stream._mol
                 self._vol = stream._vol
-                self._dp = stream._dp
-                self._bp = stream._bp
+                self._dew_point = stream._dew_point
+                self._bubble_point = stream._bubble_point
                 self._gamma = stream._gamma
                 self._source_link = stream._source_link
                 self._link = stream
@@ -1329,7 +1329,7 @@ class Stream(metaclass=metaStream):
         mol = mol[indices]
         self._gamma.species = [cmps[i] for i in indices]
         # Solve and return bubble point
-        return (*self._bp.solve_Ty(mol/mol.sum(), self.P), indices)
+        return (*self._bubble_point.solve_Ty(mol/mol.sum(), self.P), indices)
     
     def bubble_P(self):
         """Bubble point at current composition and temperature.
@@ -1361,7 +1361,7 @@ class Stream(metaclass=metaStream):
         mol = mol[indices]
         self._gamma.species = [cmps[i] for i in indices]
         # Solve and return bubble point
-        return (*self._bp.solve_Py(mol/mol.sum(), self.T), indices)
+        return (*self._bubble_point.solve_Py(mol/mol.sum(), self.T), indices)
 
     def dew_T(self):
         """Dew point at current composition and pressure.
@@ -1392,7 +1392,7 @@ class Stream(metaclass=metaStream):
         mol = mol[indices]
         self._gamma.species = [cmps[i] for i in indices]
         # Solve and return dew point
-        return (*self._dp.solve_Tx(mol/mol.sum(), self.P), indices)
+        return (*self._dew_point.solve_Tx(mol/mol.sum(), self.P), indices)
     
     def dew_P(self):
         """Dew point at current composition and temperature.
@@ -1424,7 +1424,7 @@ class Stream(metaclass=metaStream):
         mol = mol[indices]    
         self._gamma.species = [cmps[i] for i in indices]
         # Solve and return dew point
-        return (*self._dp.solve_Px(mol/mol.sum(), self.T), indices)
+        return (*self._dew_point.solve_Px(mol/mol.sum(), self.T), indices)
 
     # Dimensionless number methods
     def Re(self, L, A=None):
@@ -1652,7 +1652,7 @@ class Stream(metaclass=metaStream):
         self._setflows(np.zeros((4, self._species._N)))
         self._mol[phase_index[self._phase]] = mol
         self._lL_split_cached = (None,)
-        self._VLEsolver = VLEsolver()
+        self._VLE = VLE(self)
 
     def disable_phases(self, phase):
         """Cast stream into a Stream object.
@@ -1664,10 +1664,34 @@ class Stream(metaclass=metaStream):
         """
         self._phase = phase
             
-    def VLE(self, species_IDs=(), LNK=(), HNK=(), P=None,
-            Q=None, T=None, V=None, x=None, y=None):
+    @property
+    def VLE(self):
+        """A callable VLE object for vapor-liquid equilibrium.
+
+        **Parameters**
+        
+            **Specify two:**
+                * **P:** [float] Operating pressure (Pa)
+                * **Q:** [float] Energy input (kJ/hr)
+                * **T:** [float] Operating temperature (K)
+                * **V:** [float] Molar vapor fraction
+                * **x:** [numpy array] Molar composition of liquid (for binary mixture)
+                * **y:** [numpy array] Molar composition of vapor (for binary mixture)
+
+            **Optional:**
+            
+                **species_IDs:** [tuple] IDs of species in equilibrium.
+                     
+                **LNK:** tuple[str] Light non-keys that remain as a vapor.
+        
+                **HNK:** tuple[str] Heavy non-keys that remain as a liquid.
+
+        .. Note:
+           LNK and HNK are not taken into account for equilibrium. Parameters not specified are None by default.
+
+        """
         self.enable_phases()
-        self.VLE(species_IDs, LNK, HNK, P, Q, T, V, x, y)
+        return self._VLE
         
     def LLE(self, species_IDs=(), split=None, lNK=(), LNK=(),
             solvents=(), solvent_split=(),

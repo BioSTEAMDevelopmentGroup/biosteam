@@ -304,18 +304,22 @@
         <span class="n">_setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;__class__&#39;</span><span class="p">,</span> <span class="bp">cls</span><span class="p">)</span>
         <span class="n">me</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span>
         <span class="n">tup</span> <span class="o">=</span> <span class="nb">tuple</span>
-        <span class="n">compounds</span> <span class="o">=</span> <span class="n">tup</span><span class="p">(</span><span class="n">me</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">cmps</span> <span class="o">=</span> <span class="n">tup</span><span class="p">(</span><span class="n">me</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
         <span class="n">IDs</span> <span class="o">=</span> <span class="n">tup</span><span class="p">(</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">me</span><span class="p">)</span>
-        <span class="n">CAS</span> <span class="o">=</span> <span class="n">tup</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">CAS</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">compounds</span><span class="p">)</span>
-        <span class="n">Nspecies</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">IDs</span><span class="p">)</span>
-        <span class="n">index</span> <span class="o">=</span> <span class="n">tup</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">Nspecies</span><span class="p">))</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">compounds</span><span class="p">:</span> <span class="n">me</span><span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">CAS</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+        <span class="n">CAS</span> <span class="o">=</span> <span class="n">tup</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">CAS</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cmps</span><span class="p">)</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">IDs</span><span class="p">)</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">tup</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cmps</span><span class="p">:</span> <span class="n">me</span><span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">CAS</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
         <span class="n">me</span><span class="p">[</span><span class="s1">&#39;_indexdct&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="o">*</span><span class="nb">zip</span><span class="p">(</span><span class="n">CAS</span><span class="p">,</span> <span class="n">index</span><span class="p">),</span> <span class="o">*</span><span class="nb">zip</span><span class="p">(</span><span class="n">IDs</span><span class="p">,</span> <span class="n">index</span><span class="p">)))</span>
         <span class="n">me</span><span class="p">[</span><span class="s1">&#39;_index&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">index</span>
-        <span class="n">me</span><span class="p">[</span><span class="s1">&#39;_compounds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">compounds</span>
+        <span class="n">me</span><span class="p">[</span><span class="s1">&#39;_isheavy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="ow">not</span> <span class="n">i</span><span class="o">.</span><span class="n">UNIFAC_Dortmund_groups</span> <span class="ow">or</span> <span class="n">i</span><span class="o">.</span><span class="n">Tb</span> <span class="ow">in</span> <span class="p">(</span><span class="n">inf</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cmps</span><span class="p">])</span>
+        <span class="n">me</span><span class="p">[</span><span class="s1">&#39;_islight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="n">i</span><span class="o">.</span><span class="n">Tb</span> <span class="ow">is</span> <span class="o">-</span><span class="n">inf</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cmps</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="n">nonfinite</span> <span class="o">=</span> <span class="p">(</span><span class="n">inf</span><span class="p">,</span> <span class="o">-</span><span class="n">inf</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">me</span><span class="p">[</span><span class="s1">&#39;_has_equilibrium&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="nb">bool</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">UNIFAC_Dortmund_groups</span><span class="p">)</span> <span class="ow">and</span> <span class="n">i</span><span class="o">.</span><span class="n">Tb</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">nonfinite</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cmps</span><span class="p">])</span>
+        <span class="n">me</span><span class="p">[</span><span class="s1">&#39;_compounds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cmps</span>
         <span class="n">me</span><span class="p">[</span><span class="s1">&#39;_IDs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">IDs</span>
-        <span class="n">me</span><span class="p">[</span><span class="s1">&#39;_Nspecies&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Nspecies</span>
-        <span class="n">me</span><span class="p">[</span><span class="s1">&#39;_MW&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">MW</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">compounds</span><span class="p">])</span>
+        <span class="n">me</span><span class="p">[</span><span class="s1">&#39;_N&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span>
+        <span class="n">me</span><span class="p">[</span><span class="s1">&#39;_MW&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">MW</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cmps</span><span class="p">])</span>
         <span class="k">return</span> <span class="bp">self</span>
     
     <span class="k">def</span> <span class="nf">__dir__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -369,7 +373,7 @@
 <span class="sd">            array([2., 0.])</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_Nspecies</span><span class="p">)</span>
+        <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_N</span><span class="p">)</span>
         <span class="n">array</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">indices</span><span class="p">(</span><span class="n">IDs</span><span class="p">)]</span> <span class="o">=</span> <span class="n">data</span>
         <span class="k">return</span> <span class="n">array</span>
 
@@ -435,7 +439,7 @@
         <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;&#39;{type(self).__name__} object is read-only&quot;</span><span class="p">)</span>
     
     <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Nspecies</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_N</span>
     
     <span class="k">def</span> <span class="nf">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compound</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">compound</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compounds</span>
@@ -455,7 +459,7 @@
     <span class="c1"># General methods for getting ideal mixture properties</span>
     <span class="k">def</span> <span class="nf">_props</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">mol</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">phase</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return component property list.&quot;&quot;&quot;</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_Nspecies</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_N</span><span class="p">)</span>
         <span class="n">getattr_</span> <span class="o">=</span> <span class="nb">getattr</span>
         <span class="n">cmps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compounds</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index</span><span class="p">:</span>
@@ -517,35 +521,20 @@
     
     <span class="c1">### Equilibrium ###</span>
     
-    <span class="k">def</span> <span class="nf">_equilibrium_species</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return species and indexes of species in equilibrium.&quot;&quot;&quot;</span>
-        <span class="n">species</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">index</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">cmps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compounds</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">mol</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
-                <span class="n">c</span> <span class="o">=</span> <span class="n">cmps</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-                <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">UNIFAC_Dortmund_groups</span> <span class="ow">and</span> <span class="n">c</span><span class="o">.</span><span class="n">Tb</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">inf</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
-                    <span class="n">species</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">);</span> <span class="n">index</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">species</span><span class="p">,</span> <span class="n">index</span>
+    <span class="k">def</span> <span class="nf">_equilibrium_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nonzero</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return indices of species in equilibrium.&quot;&quot;&quot;</span>
+        <span class="n">condition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_has_equilibrium</span> <span class="o">&amp;</span> <span class="n">nonzero</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="k">if</span> <span class="n">condition</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
 
-    <span class="k">def</span> <span class="nf">_heavy_species</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return species and indexes of heavy species not in equilibrium.&quot;&quot;&quot;</span>
-        <span class="n">species</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">index</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">cmps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compounds</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">mol</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
-                <span class="n">c</span> <span class="o">=</span> <span class="n">cmps</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-                <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">Tb</span> <span class="ow">in</span> <span class="p">(</span><span class="n">inf</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">c</span><span class="o">.</span><span class="n">UNIFAC_Dortmund_groups</span><span class="p">:</span>
-                    <span class="n">species</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">);</span> <span class="n">index</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">species</span><span class="p">,</span> <span class="n">index</span>
+    <span class="k">def</span> <span class="nf">_heavy_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nonzero</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return indices of heavy species not in equilibrium.&quot;&quot;&quot;</span>
+        <span class="n">condition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isheavy</span> <span class="o">&amp;</span> <span class="n">nonzero</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="k">if</span> <span class="n">condition</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
 
-    <span class="k">def</span> <span class="nf">_light_species</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return species and indexes of light species not in equilibrium.&quot;&quot;&quot;</span>
-        <span class="n">species</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">index</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">cmps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compounds</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">mol</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
-                <span class="n">c</span> <span class="o">=</span> <span class="n">cmps</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-                <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">Tb</span> <span class="ow">is</span> <span class="o">-</span><span class="n">inf</span><span class="p">:</span>
-                    <span class="n">species</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">);</span> <span class="n">index</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">species</span><span class="p">,</span> <span class="n">index</span>
+    <span class="k">def</span> <span class="nf">_light_indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nonzero</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return indices of light species not in equilibrium.&quot;&quot;&quot;</span>
+        <span class="n">condition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_islight</span> <span class="o">&amp;</span> <span class="n">nonzero</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="k">if</span> <span class="n">condition</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
     
     <span class="fm">__repr__</span> <span class="o">=</span> <span class="n">Species</span><span class="o">.</span><span class="fm">__repr__</span>
 

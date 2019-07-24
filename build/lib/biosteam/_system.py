@@ -4,7 +4,7 @@ Created on Sat Aug 18 15:04:55 2018
 
 @author: yoelr
 """
-from scipy.optimize import newton, broyden2
+from scipy.optimize import newton
 from ._exceptions import SolverError, _try_method
 from ._flowsheet import find, make_digraph, save_digraph
 from ._stream import Stream
@@ -12,7 +12,7 @@ from ._facility import Facility
 from ._unit import Unit
 from ._report import save_report
 from ._utils import color_scheme, MissingStream, strtuple, \
-                    conditional_wegstein
+                    conditional_wegstein, conditional_aitken
 import biosteam as bst
 
 __all__ = ('System',)
@@ -113,7 +113,7 @@ _isproduct = lambda stream: not stream._sink and stream._source
 class system(type):
     @property
     def converge_method(self):
-        """Iterative convergence method ('wegstein', 'broyden', or 'fixed point')."""
+        """Iterative convergence method ('wegstein', 'aitken', or 'fixed point')."""
         return self._converge.__name__[1:]
 
     @converge_method.setter
@@ -123,10 +123,10 @@ class system(type):
             self._converge = self._wegstein
         elif 'fixedpoint' in method:
             self._converge = self._fixed_point
-        elif 'broyden' in method:
-            self._converge = self._broyden
+        elif 'aitken' in method:
+            self._converge = self._aitken
         else:
-            raise ValueError(f"only 'wegstein' and 'fixed point' methods are valid, not '{method}'")
+            raise ValueError(f"only 'wegstein', 'aitken', and 'fixed point' methods are valid, not '{method}'")
 
 
 class System(metaclass=system):
@@ -266,7 +266,7 @@ class System(metaclass=system):
 
     @property
     def converge_method(self):
-        """Iterative convergence method ('wegstein', 'broyden', or 'fixed point')."""
+        """Iterative convergence method ('wegstein', 'aitken', or 'fixed point')."""
         return self._converge.__name__[1:]
 
     @converge_method.setter
@@ -278,10 +278,10 @@ class System(metaclass=system):
             self._converge = self._wegstein
         elif 'fixedpoint' in method:
             self._converge = self._fixed_point
-        elif 'broyden' in method:
-            self._converge = self._broyden
+        elif 'aitken' in method:
+            self._converge = self._aitken
         else:
-            raise ValueError(f"only 'wegstein' and 'fixed point' methods are valid, not '{method}'")
+            raise ValueError(f"only 'wegstein', 'aitken', and 'fixed point' methods are valid, not '{method}'")
 
     
     def _downstream_network(self, unit):
@@ -501,13 +501,10 @@ class System(metaclass=system):
         mol = self.recycle._mol
         mol[:] = conditional_wegstein(self._iter_run, mol.copy())
     
-    def _broyden(self):
+    def _aitken(self):
         """Converge the system recycle iteratively using broyden's bad method."""
         mol = self.recycle._mol
-        mol[:] = broyden2((lambda x: self._iter_run(x)[0] - x),
-                                       mol.copy(),
-                                       x_tol=self.molar_tolerance,
-                                       f_tol=self.molar_tolerance)
+        mol[:] = conditional_aitken(self._iter_run, mol.copy())
     
     # Default converge method
     _converge = _wegstein

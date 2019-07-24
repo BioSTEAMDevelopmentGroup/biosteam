@@ -345,11 +345,11 @@ class Dist(Unit, isabstract=True):
 
         # Run top equilibrium to find temperature and composition of condensate
         vap._gamma.species = self._vle_top
-        vap.T, self._condensate_molfrac = vap._dp.solve_Tx(y, vap.P)
+        vap.T, self._condensate_molfrac = vap._dew_point.solve_Tx(y, vap.P)
 
         # Run bottoms equilibrium to find temperature
         liq._gamma.species = self._vle_bot
-        liq.T, self._boilup_molfrac = liq._bp.solve_Ty(x, liq.P)
+        liq.T, self._boilup_molfrac = liq._bubble_point.solve_Ty(x, liq.P)
 
     def _equilibrium_staircase(self, operating_line, x_stairs,
                                y_stairs, T_stairs, x_limit, bubble_T):
@@ -403,7 +403,7 @@ class Dist(Unit, isabstract=True):
         n = 0
         
         vap._gamma.species = self._LHK_species
-        bubble_T = vap._bp.solve_Ty
+        bubble_T = vap._bubble_point.solve_Ty
         for xi in x_eq:
             T[n], y = bubble_T(array([xi, 1-xi]), P)
             y_eq[n] = y[0]
@@ -920,7 +920,7 @@ class Distillation(Dist):
         self._q_line = q_line = lambda x: q*x/(q-1) - zf/(q-1)
         
         bottoms._gamma.species = self._LHK_species
-        bubble_T = bottoms._bp.solve_Ty
+        bubble_T = bottoms._bubble_point.solve_Ty
         Rmin_intersection = lambda x: q_line(x) - bubble_T(array((x, 1-x)), P)[1][0]
         x_Rmin = brentq(Rmin_intersection, 0, 1)
         y_Rmin = q_line(x_Rmin)

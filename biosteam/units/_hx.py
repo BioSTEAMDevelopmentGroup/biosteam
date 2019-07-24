@@ -667,13 +667,13 @@ class HXprocess(HX):
             # Stream s1 is boiling
             boiling = True
             s1_out.phase = 'g'
-            s1_out.T = s1_out._dp.solve_Tx(z, P)[0]
+            s1_out.T = s1_out._dew_point.solve_Tx(z, P)[0]
             T_pinch = s1_in.T + dT # Minimum
         else:
             # Stream s1 is condensing
             boiling = False
             s1_out.phase = 'l'
-            s1_out.T = s1_out._bp.solve_Ty(z, P)[0]
+            s1_out.T = s1_out._bubble_point.solve_Ty(z, P)[0]
             T_pinch = s1_in.T - dT # Maximum
         
         # Calculate maximum latent heat and new temperature of sensible stream
@@ -742,10 +742,10 @@ class HXprocess(HX):
         
         if sc_out is boiling:
             sc_out.phase = 'g'
-            sc_out.T = sc_out._dp.solve_Tx(z, P)[0]
+            sc_out.T = sc_out._dew_point.solve_Tx(z, P)[0]
         else:
             sc_out.phase = 'l'
-            sc_out.T = sc_out._bp.solve_Ty(z, P)[0]
+            sc_out.T = sc_out._bubble_point.solve_Ty(z, P)[0]
         
         # VLE
         duty = (sc_in.H-sc_out.H)

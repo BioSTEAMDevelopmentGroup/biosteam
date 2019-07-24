@@ -10,7 +10,7 @@ __all__ = ['Species', 'WorkingSpecies', 'Stream', 'MixedStream',
             'find', 'Flowsheet', 'CE']
 
 from lazypkg import LazyPkg
-LazyPkg(__name__, ['units', 'evaluation', 'inspect', 'compounds', 'reaction'])
+LazyPkg(__name__, ['units', 'evaluation', 'inspect', 'compounds', 'reaction', '_equilibrium'])
 
 #: Chemical engineering plant cost index (defaults to 567.5 at 2017)
 CE = 567.5 

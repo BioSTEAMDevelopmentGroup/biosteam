@@ -186,7 +186,7 @@
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">_ureg</span>
+<span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
 <span class="kn">from</span> <span class="nn">.._exceptions</span> <span class="k">import</span> <span class="n">DimensionError</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;DisplayUnits&#39;</span><span class="p">,)</span>
@@ -201,10 +201,10 @@
         <span class="n">list_keys</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">display_units</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">try</span><span class="p">:</span> <span class="c1"># Assume units is one string</span>
-                <span class="n">dims</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">_ureg</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="n">dimensionality</span>
+                <span class="n">dims</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">bst</span><span class="o">.</span><span class="n">_ureg</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span><span class="o">.</span><span class="n">dimensionality</span>
             <span class="k">except</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span> <span class="c1"># Assume units are a list of possible units</span>
-                    <span class="n">dims</span> <span class="o">=</span> <span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="n">_ureg</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">dimensionality</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">v</span><span class="p">]</span>
+                    <span class="n">dims</span> <span class="o">=</span> <span class="p">[</span><span class="nb">getattr</span><span class="p">(</span><span class="n">bst</span><span class="o">.</span><span class="n">_ureg</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">dimensionality</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">v</span><span class="p">]</span>
                     <span class="n">list_keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
                 <span class="k">except</span><span class="p">:</span> <span class="c1"># Assume the user uses value as an option, and ignores units</span>
                     <span class="n">dims</span> <span class="o">=</span> <span class="n">v</span>
@@ -219,7 +219,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_display_units</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">unit</span>
             <span class="k">return</span>
         <span class="n">name_dim</span> <span class="o">=</span> <span class="n">getattr_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-        <span class="n">unit_dim</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">_ureg</span><span class="p">,</span> <span class="n">unit</span><span class="p">)</span><span class="o">.</span><span class="n">dimensionality</span>
+        <span class="n">unit_dim</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">bst</span><span class="o">.</span><span class="n">_ureg</span><span class="p">,</span> <span class="n">unit</span><span class="p">)</span><span class="o">.</span><span class="n">dimensionality</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name_dim</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">unit_dim</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">name_dim</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">DimensionError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;dimensions for &#39;</span><span class="si">{name}</span><span class="s2">&#39; must be either {&#39;, &#39;.join(name_dim[:-1])} or </span><span class="si">{name_dim[-1]}</span><span class="s2">; not </span><span class="si">{unit_dim}</span><span class="s2">&quot;</span><span class="p">)</span>    

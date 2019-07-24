@@ -186,9 +186,7 @@
 
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">copy</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">newton</span><span class="p">,</span> <span class="n">broyden2</span>
+<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">newton</span>
 <span class="kn">from</span> <span class="nn">._exceptions</span> <span class="k">import</span> <span class="n">SolverError</span><span class="p">,</span> <span class="n">_try_method</span>
 <span class="kn">from</span> <span class="nn">._flowsheet</span> <span class="k">import</span> <span class="n">find</span><span class="p">,</span> <span class="n">make_digraph</span><span class="p">,</span> <span class="n">save_digraph</span>
 <span class="kn">from</span> <span class="nn">._stream</span> <span class="k">import</span> <span class="n">Stream</span>
@@ -196,7 +194,7 @@
 <span class="kn">from</span> <span class="nn">._unit</span> <span class="k">import</span> <span class="n">Unit</span>
 <span class="kn">from</span> <span class="nn">._report</span> <span class="k">import</span> <span class="n">save_report</span>
 <span class="kn">from</span> <span class="nn">._utils</span> <span class="k">import</span> <span class="n">color_scheme</span><span class="p">,</span> <span class="n">MissingStream</span><span class="p">,</span> <span class="n">strtuple</span><span class="p">,</span> \
-                    <span class="n">conditional_wegstein</span>
+                    <span class="n">conditional_wegstein</span><span class="p">,</span> <span class="n">conditional_aitken</span>
 <span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;System&#39;</span><span class="p">,)</span>
@@ -294,7 +292,26 @@
 
 <span class="c1"># %% Process flow</span>
 
-<div class="viewcode-block" id="System"><a class="viewcode-back" href="../../System.html#biosteam.System">[docs]</a><span class="k">class</span> <span class="nc">System</span><span class="p">:</span>
+<span class="k">class</span> <span class="nc">system</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">converge_method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Iterative convergence method (&#39;wegstein&#39;, &#39;aitken&#39;, or &#39;fixed point&#39;).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_converge</span><span class="o">.</span><span class="vm">__name__</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+    <span class="nd">@converge_method</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">converge_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">):</span>
+        <span class="n">method</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;wegstein&#39;</span> <span class="ow">in</span> <span class="n">method</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_converge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wegstein</span>
+        <span class="k">elif</span> <span class="s1">&#39;fixedpoint&#39;</span> <span class="ow">in</span> <span class="n">method</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_converge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fixed_point</span>
+        <span class="k">elif</span> <span class="s1">&#39;aitken&#39;</span> <span class="ow">in</span> <span class="n">method</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_converge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aitken</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;only &#39;wegstein&#39;, &#39;aitken&#39;, and &#39;fixed point&#39; methods are valid, not &#39;</span><span class="si">{method}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="System"><a class="viewcode-back" href="../../System.html#biosteam.System">[docs]</a><span class="k">class</span> <span class="nc">System</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">system</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a System object that can iteratively run each element in a network of BioSTREAM objects until the recycle stream is converged. A network can have function, Unit and/or System objects. When the network contains an inner System object, it converges/solves it in each loop/iteration.</span>
 
 <span class="sd">    **Parameters**</span>
@@ -361,9 +378,8 @@
         <span class="n">streams</span><span class="o">.</span><span class="n">discard</span><span class="p">(</span><span class="n">MissingStream</span><span class="p">)</span> 
         
         <span class="c1"># link all unit operations with linked streams</span>
-        <span class="n">has</span> <span class="o">=</span> <span class="nb">hasattr</span>
         <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">has</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="s1">&#39;_link_streams&#39;</span><span class="p">):</span> <span class="n">u</span><span class="o">.</span><span class="n">_link_streams</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">inst</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">bst</span><span class="o">.</span><span class="n">Static</span><span class="p">):</span> <span class="n">u</span><span class="o">.</span><span class="n">_link_streams</span><span class="p">()</span>
         
         <span class="c1">#: set[Unit] All units within the system</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="n">units</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
@@ -398,16 +414,18 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_TEA</span> <span class="o">=</span> <span class="kc">None</span>
         
         <span class="k">if</span> <span class="n">recycle</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_converge_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span>
-        <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">recycle</span><span class="p">,</span> <span class="n">Stream</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;recycle must be a Stream instance or None, not {type(recycle).__name__}&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_converge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_run</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">recycle</span><span class="p">,</span> <span class="n">Stream</span><span class="p">),</span> <span class="p">(</span>
+             <span class="s2">&quot;recycle must be a Stream instance or None, not &quot;</span>
+            <span class="n">f</span><span class="s2">&quot;{type(recycle).__name__}&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_recycle</span> <span class="o">=</span> <span class="n">recycle</span>
         
         <span class="k">if</span> <span class="n">ID</span><span class="p">:</span>
             <span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
             <span class="n">ID_words</span> <span class="o">=</span> <span class="n">ID</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">word</span><span class="o">.</span><span class="n">isalnum</span><span class="p">()</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">ID_words</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;ID cannot have any special characters&#39;</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">word</span><span class="o">.</span><span class="n">isalnum</span><span class="p">()</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">ID_words</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;ID cannot have any&#39;</span>
+                                                              <span class="s1">&#39;special characters&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="n">ID</span>
             <span class="n">find</span><span class="o">.</span><span class="n">system</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
     
@@ -430,8 +448,8 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">converge_method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Iterative convergence method (&#39;wegstein&#39;, &#39;broyden&#39;, or &#39;fixed point&#39;).&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_converge_method</span><span class="o">.</span><span class="vm">__name__</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="sd">&quot;&quot;&quot;Iterative convergence method (&#39;wegstein&#39;, &#39;aitken&#39;, or &#39;fixed point&#39;).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_converge</span><span class="o">.</span><span class="vm">__name__</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
 
     <span class="nd">@converge_method</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">converge_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">):</span>
@@ -439,13 +457,13 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;cannot set converge method when no recyle is specified&quot;</span><span class="p">)</span>
         <span class="n">method</span> <span class="o">=</span> <span class="n">method</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="s1">&#39;wegstein&#39;</span> <span class="ow">in</span> <span class="n">method</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_converge_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wegstein</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_converge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_wegstein</span>
         <span class="k">elif</span> <span class="s1">&#39;fixedpoint&#39;</span> <span class="ow">in</span> <span class="n">method</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_converge_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fixed_point</span>
-        <span class="k">elif</span> <span class="s1">&#39;broyden&#39;</span> <span class="ow">in</span> <span class="n">method</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_converge_method</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_broyden</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_converge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fixed_point</span>
+        <span class="k">elif</span> <span class="s1">&#39;aitken&#39;</span> <span class="ow">in</span> <span class="n">method</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_converge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aitken</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;only &#39;wegstein&#39; and &#39;fixed point&#39; methods are valid, not &#39;</span><span class="si">{method}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;only &#39;wegstein&#39;, &#39;aitken&#39;, and &#39;fixed point&#39; methods are valid, not &#39;</span><span class="si">{method}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
 
     
     <span class="k">def</span> <span class="nf">_downstream_network</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">unit</span><span class="p">):</span>
@@ -486,14 +504,14 @@
         <span class="k">if</span> <span class="n">network</span><span class="p">:</span>
             <span class="n">downstream_facilities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">facilities</span>            
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">unit_not_found</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">unit_found</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="n">inst</span> <span class="o">=</span> <span class="nb">isinstance</span>
             <span class="k">for</span> <span class="n">pos</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">facilities</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">unit</span> <span class="ow">is</span> <span class="n">i</span> <span class="ow">or</span> <span class="p">(</span><span class="n">inst</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">System</span><span class="p">)</span> <span class="ow">and</span> <span class="n">unit</span> <span class="ow">in</span> <span class="n">i</span><span class="o">.</span><span class="n">units</span><span class="p">):</span>
                     <span class="n">downstream_facilities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">facilities</span><span class="p">[</span><span class="n">pos</span><span class="p">:]</span>
-                    <span class="n">unit_not_found</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="n">unit_found</span> <span class="o">=</span> <span class="kc">True</span>
                     <span class="k">break</span>
-            <span class="k">if</span> <span class="n">unit_not_found</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;</span><span class="si">{unit}</span><span class="s1"> not found in system&#39;</span><span class="p">)</span>
+            <span class="k">assert</span> <span class="n">unit_found</span><span class="p">,</span> <span class="n">f</span><span class="s1">&#39;</span><span class="si">{unit}</span><span class="s1"> not found in system&#39;</span>
         <span class="n">system</span> <span class="o">=</span> <span class="n">System</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">network</span><span class="p">,</span>
                         <span class="n">facilities</span><span class="o">=</span><span class="n">downstream_facilities</span><span class="p">)</span>
         <span class="n">system</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;{type(unit).__name__}-</span><span class="si">{unit}</span><span class="s1"> and downstream&#39;</span>
@@ -620,7 +638,8 @@
 <span class="sd">            </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">recycle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recycle</span>
-        <span class="n">recycle</span><span class="o">.</span><span class="n">mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">mol</span>
+        <span class="n">rmol</span> <span class="o">=</span> <span class="n">recycle</span><span class="o">.</span><span class="n">mol</span>
+        <span class="n">rmol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">mol</span>
         <span class="n">T</span> <span class="o">=</span> <span class="n">recycle</span><span class="o">.</span><span class="n">T</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mol_error</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">mol</span> <span class="o">-</span> <span class="n">recycle</span><span class="o">.</span><span class="n">mol</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
@@ -629,9 +648,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iter</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxiter</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;{repr(self)} could not converge&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_error_info</span><span class="p">())</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol_error</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">molar_tolerance</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_T_error</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">T_tolerance</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">recycle</span><span class="o">.</span><span class="n">mol</span><span class="p">,</span> <span class="kc">False</span>
+            <span class="k">return</span> <span class="n">rmol</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="kc">False</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">recycle</span><span class="o">.</span><span class="n">mol</span><span class="p">,</span> <span class="kc">True</span>
+            <span class="k">return</span> <span class="n">rmol</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="kc">True</span>
         
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Rigorous run each element of the system.&quot;&quot;&quot;</span>
@@ -646,42 +665,31 @@
     <span class="k">def</span> <span class="nf">_fixed_point</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Converge system recycle using inner and outer loops with fixed-point iteration.&quot;&quot;&quot;</span>
         <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recycle</span>
-        <span class="n">rmol</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">mol</span>
+        <span class="n">rmol</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">_mol</span>
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">mol</span> <span class="o">=</span> <span class="n">rmol</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
             <span class="n">T</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">T</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_mol_error</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">mol</span> <span class="o">-</span> <span class="n">rmol</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_T_error</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">T</span> <span class="o">-</span> <span class="n">r</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_iter</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mol_error</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">molar_tolerance</span>
                 <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_T_error</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">T_tolerance</span><span class="p">):</span> <span class="k">break</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_iter</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iter</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxiter</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;{repr(self)} could not converge&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_error_info</span><span class="p">())</span>
             
     <span class="k">def</span> <span class="nf">_wegstein</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Converge the system recycle iteratively using wegstein&#39;s method.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">recycle</span><span class="o">.</span><span class="n">mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">conditional_wegstein</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_iter_run</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">recycle</span><span class="o">.</span><span class="n">mol</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+        <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recycle</span><span class="o">.</span><span class="n">_mol</span>
+        <span class="n">mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">conditional_wegstein</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_iter_run</span><span class="p">,</span> <span class="n">mol</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
     
-    <span class="k">def</span> <span class="nf">_broyden</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_aitken</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Converge the system recycle iteratively using broyden&#39;s bad method.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">recycle</span><span class="o">.</span><span class="n">mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">broyden2</span><span class="p">((</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iter_run</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">x</span><span class="p">),</span>
-                                       <span class="bp">self</span><span class="o">.</span><span class="n">recycle</span><span class="o">.</span><span class="n">mol</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span>
-                                       <span class="n">x_tol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">molar_tolerance</span><span class="p">,</span>
-                                       <span class="n">f_tol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">molar_tolerance</span><span class="p">)</span>
+        <span class="n">mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recycle</span><span class="o">.</span><span class="n">_mol</span>
+        <span class="n">mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">conditional_aitken</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_iter_run</span><span class="p">,</span> <span class="n">mol</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
     
     <span class="c1"># Default converge method</span>
-    <span class="n">_converge_method</span> <span class="o">=</span> <span class="n">_wegstein</span>
-    
-    <span class="k">def</span> <span class="nf">_converge</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Converge the system recycle using an iterative solver (wegstein by default).&quot;&quot;&quot;</span>
-        <span class="k">try</span><span class="p">:</span> <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_converge_method</span><span class="p">()</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_recycle</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_recycle</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_converge_method</span><span class="p">()</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">error</span>
+    <span class="n">_converge</span> <span class="o">=</span> <span class="n">_wegstein</span>
 
 <div class="viewcode-block" id="System.set_spec"><a class="viewcode-back" href="../../System.html#biosteam.System.set_spec">[docs]</a>    <span class="k">def</span> <span class="nf">set_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">getter</span><span class="p">,</span> <span class="n">setter</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="n">newton</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Wrap a solver around the converge method.</span>
@@ -697,7 +705,7 @@
 <span class="sd">             **kwargs:** [dict] Key word arguments passed to solver.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">converge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_converge_method</span>
+        <span class="n">converge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_converge</span>
 
         <span class="k">def</span> <span class="nf">error</span><span class="p">(</span><span class="n">val</span><span class="p">):</span>
             <span class="n">setter</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
@@ -709,7 +717,7 @@
             <span class="n">x</span> <span class="o">=</span> <span class="n">solver</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">solver</span> <span class="ow">is</span> <span class="n">newton</span><span class="p">:</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;x0&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_converge_method</span> <span class="o">=</span> <span class="n">converge_spec</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_converge</span> <span class="o">=</span> <span class="n">converge_spec</span></div>
 
     <span class="k">def</span> <span class="nf">_reset_iter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_iter</span> <span class="o">=</span> <span class="mi">0</span>
@@ -785,7 +793,7 @@
         <span class="sd">&quot;&quot;&quot;Convege in debug mode. Just try it!&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_debug_on</span><span class="p">()</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_converge_method</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_converge</span><span class="p">()</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">error</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_debug_off</span><span class="p">()</span>
             <span class="k">raise</span> <span class="n">error</span>
@@ -822,8 +830,8 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spec_error</span><span class="p">:</span>
             <span class="n">error_info</span> <span class="o">+=</span> <span class="n">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> specification error: </span><span class="si">{self._spec_error:.3g}</span><span class="s1">&#39;</span>
         <span class="k">if</span> <span class="n">recycle</span><span class="p">:</span>
-            <span class="n">error_info</span> <span class="o">+=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> convergence error: Flow rate   </span><span class="si">{self._mol_error:.2e}</span><span class="s2"> kmol/hr&quot;</span>
-            <span class="n">error_info</span> <span class="o">+=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">                    Temperature </span><span class="si">{self._T_error:.2e}</span><span class="s2"> K&quot;</span>
+            <span class="n">error_info</span> <span class="o">+=</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> convergence error: Flow rate   </span><span class="si">{self._mol_error:.2e}</span><span class="s2"> kmol/hr&quot;</span>
+                          <span class="n">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">                    Temperature </span><span class="si">{self._T_error:.2e}</span><span class="s2"> K&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spec_error</span> <span class="ow">or</span> <span class="n">recycle</span><span class="p">:</span>
             <span class="n">error_info</span> <span class="o">+=</span> <span class="n">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> iterations: </span><span class="si">{self._iter}</span><span class="s2">&quot;</span>
         <span class="k">return</span> <span class="n">error_info</span>

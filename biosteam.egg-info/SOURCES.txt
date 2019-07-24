@@ -19,10 +19,12 @@ biosteam.egg-info/SOURCES.txt
 biosteam.egg-info/dependency_links.txt
 biosteam.egg-info/requires.txt
 biosteam.egg-info/top_level.txt
-biosteam/_equilibrium/_VLEsolver.py
 biosteam/_equilibrium/__init__.py
 biosteam/_equilibrium/_unifac.pyx
+biosteam/_equilibrium/bubble_point.py
+biosteam/_equilibrium/dew_point.py
 biosteam/_equilibrium/unifac.py
+biosteam/_equilibrium/vle.py
 biosteam/_report/__init__.py
 biosteam/_report/plot.py
 biosteam/_report/table.py
