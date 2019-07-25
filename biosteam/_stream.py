@@ -1134,7 +1134,7 @@ class Stream(metaclass=metaStream):
     def nonzero_species(self):
         """Flow indices and species that have a non-zero flow rate.
 
-        from biosteam import *
+        >>> from biosteam import *
         >>> Stream.species = Species('Ethanol', 'Water')
         >>> s1 = Stream(Water=2)
         >>> s1.nonzero_species

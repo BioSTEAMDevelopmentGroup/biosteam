@@ -12,8 +12,8 @@ __all__ = ('DewPoint',)
 
 class DewPoint:
     __slots__ = ('gamma', 'P', 'T', 'x')
-    rootsolver = staticmethod(wegstein_secant)
-    itersolver = staticmethod(wegstein)
+    rootsolver = staticmethod(aitken_secant)
+    itersolver = staticmethod(aitken)
     def __init__(self, gamma):
         self.gamma = gamma
     
@@ -60,8 +60,14 @@ class DewPoint:
         except:
             self.x = z.copy()
             T = (z * [s.Tb for s in self.gamma.species]).sum()
-            self.T = self.rootsolver(self._T_error, T, T-0.01, 1e-6,
-                                     args=(P*z, [s.VaporPressure for s in self.gamma.species]))
+            try:
+                self.T = self.rootsolver(self._T_error, T, T-0.01, 1e-6,
+                                         args=(P*z, [s.VaporPressure for s in self.gamma.species]))
+            except:
+                self.x = z.copy()
+                T = min([s.Tb for s in self.gamma.species])
+                self.T = self.rootsolver(self._T_error, T, T-0.01, 1e-6,
+                                         args=(P*z, [s.VaporPressure for s in self.gamma.species]))
         self.x = self.x/self.x.sum()
         return self.T, self.x
     

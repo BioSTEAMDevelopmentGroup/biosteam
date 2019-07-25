@@ -132,7 +132,7 @@ def wegstein(f, x0, xtol, args=(), maxiter=50):
 
 def conditional_wegstein(f, x0):
     g0, condition = f(x0)
-    x1 = g0
+    g1 = x1 = g0
     logical_not = np.logical_not
     isfinite = np.isfinite
     while condition:
@@ -152,39 +152,39 @@ def aitken_secant(f, x0, x1, xtol, ytol=5e-8, args=(), maxiter=50):
     _abs = abs
     y0 = f(x0, *args)
     if _abs(y0) < ytol: return x0
-    y1 = f(x1, *args)
-    if _abs(y1) < ytol: return x1 
-    g = x1 - y1*(x1-x0)/(y1-y0)
-    y0 = y1
-    y1 = f(g, *args)
-    if _abs(y1) < ytol: return g
-    x = gg = g - y1*(g-x1)/(y1-y0)
     for iter in range(maxiter): 
-        try:
-            y1 = f(x, *args)
-        except:
-            x = gg
-            y1 = f(x, *args)
-        gg = x - y1*(x-g)/(y1-y0)
-        if (_abs(gg-g) < xtol) or (_abs(y1) < ytol): return gg
-        x = x0 - (g - x0)**2/(gg - 2*g + x0)
-        x0 = x1
+        y1 = f(x1, *args)
+        delx = x1-x0
+        x0 = x1 - y1*delx/(y1-y0) # x0 = g
+        if _abs(y1) < ytol < xtol: return x0
         y0 = y1
-        g = gg
+        y1 = f(x0, *args)
+        delx = x0-x1
+        x2 = x0 - y1*delx/(y1-y0) # x2 = gg
+        if (_abs(delx) < xtol) or (_abs(y1) < ytol): return x2
+        delx = x1 - x0 # x - g
+        x1 = x1 - delx**2/(x2 + delx - x0)
+        y0 = y1
     raise SolverError(f'failed to converge after {maxiter} iterations')
 
 def aitken(f, x, xtol, args=(), maxiter=50):
     gg = x
     abs_ = abs
+    logical_not = np.logical_not
+    isfinite = np.isfinite
     for iter in range(maxiter):
         try: g = f(x, *args)
         except:
             x = gg
             g = f(x, *args)
-        if (abs_(g-x) < xtol).all(): return gg
+        delxg = x - g
+        if (abs_(delxg) < xtol).all(): return g
         gg = f(g, *args)
-        x = x - (g - x)**2/(gg-2*g+x)
-        if (abs_(gg-g) < xtol).all(): return gg
+        delgg_g = gg - g
+        if (abs_(delgg_g) < xtol).all(): return gg
+        x = x - delxg**2/(delgg_g + delxg)
+        pos = logical_not(isfinite(x))
+        x[pos] = gg[pos]
     raise SolverError(f'failed to converge after {maxiter} iterations')
     
 def conditional_aitken(f, x):
@@ -200,7 +200,8 @@ def conditional_aitken(f, x):
             g, condition = f(x)
         if not condition: g
         gg, condition = f(g)
-        x = x - (g - x)**2/(gg-2*g+x)
+        delxg = x - g
+        x = x - delxg**2/(gg + delxg - g)
         pos = logical_not(isfinite(x))
         x[pos] = gg[pos]
     return x

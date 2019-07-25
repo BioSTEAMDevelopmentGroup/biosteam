@@ -507,7 +507,7 @@ class System(metaclass=system):
         mol[:] = conditional_aitken(self._iter_run, mol.copy())
     
     # Default converge method
-    _converge = _wegstein
+    _converge = _aitken
 
     def set_spec(self, getter, setter, solver=newton, **kwargs):
         """Wrap a solver around the converge method.

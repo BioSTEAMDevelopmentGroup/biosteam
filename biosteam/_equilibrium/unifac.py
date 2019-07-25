@@ -997,9 +997,8 @@ class DortmundActivityCoefficients:
         return loggammacs
     
     def psi(self, T, subgroup1, subgroup2, subgroup_data, interaction_data):
-        main1 = subgroup_data[subgroup1].main_group_id
-        main2 = subgroup_data[subgroup2].main_group_id
-        try: a, b, c = interaction_data[main1][main2]
+        try: a, b, c = interaction_data[subgroup_data[subgroup1].main_group_id] \
+                                       [subgroup_data[subgroup2].main_group_id]
         except: return 1.
         return exp((-a/T - b - c*T))
     
@@ -1025,10 +1024,9 @@ def loggammacs_UNIFAC(qs, rs, xs):
     return loggammacs
 
 def UNIFAC_psi(T, subgroup1, subgroup2, subgroup_data, interaction_data):
-    main1 = subgroup_data[subgroup1].main_group_id
-    main2 = subgroup_data[subgroup2].main_group_id
     try:
-        return exp(-interaction_data[main1][main2]/T)
+        return exp(-interaction_data[subgroup_data[subgroup1].main_group_id] \
+                                    [subgroup_data[subgroup2].main_group_id]/T)
     except:
         return 1
 

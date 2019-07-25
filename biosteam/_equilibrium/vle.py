@@ -5,7 +5,6 @@ Created on Wed Mar 20 18:40:05 2019
 @author: yoelr
 """
 from .._utils import isbetween, bounded_wegstein, wegstein, aitken #, count
-from .._exceptions import EquilibriumError
 import numpy as np
 
 __all__ = ('VLE', 'V_2N', 'V_3N', 'V_error')
@@ -49,10 +48,6 @@ class VLE:
         self._gamma = stream._gamma
         self._liquid_mol = stream.liquid_mol
         self._vapor_mol = stream.vapor_mol
-    
-    @property
-    def stream(self):
-        return self._stream
     
     def __call__(self, species_IDs=None, LNK=None, HNK=None,
                  P=None, Q=None, T=None, V=None, x=None, y=None):
@@ -98,7 +93,7 @@ class VLE:
                 return self.TQ(T, Q)
             elif x_spec:
                 return self.Tx(T, np.asarray(x))
-            elif y_spec:
+            else: # y_spec
                 return self.Ty(T, np.asarray(y))
         elif P_spec:
             if V_spec:
@@ -107,16 +102,16 @@ class VLE:
                 return self.PQ(P, Q)
             elif x_spec:
                 return self.Px(P, np.asarray(x))
-            elif y_spec:
+            else: # y_spec
                 return self.Py(P, np.asarray(y))
         elif Q_spec:
             if y_spec:
                 raise NotImplementedError('specification Q and y not implemented')
             elif x_spec:
                 raise NotImplementedError('specification Q and x not implemented')
-            elif V_spec:
+            else: # V_spec
                 raise NotImplementedError('specification V and Q not implemented yet')
-        else:
+        else: # x_spec and y_spec
             raise ValueError("can only pass either 'x' or 'y' arguments, not both")
     
     def setup(self, species_IDs, LNK, HNK):
@@ -263,9 +258,8 @@ class VLE:
         
     def _lever_rule(self, x, y):
         split_frac = (self._zs[0]-x[0])/(y[0]-x[0])
-        if split_frac > 1.00001 or split_frac < -0.00001:
-            raise EquilibriumError('desired composition is not feasible')
-        elif split_frac > 1:
+        assert -0.00001 < split_frac < 1.00001, 'desired composition is infeasible'
+        if split_frac > 1:
             split_frac = 1
         elif split_frac < 0:
             split_frac = 0
@@ -399,12 +393,12 @@ class VLE:
         liquid_mol = self._liquid_mol
         
         if V == 1:
-            self.T = T_dew
+            stream.T = T_dew
             vapor_mol[index] = mol
             liquid_mol[index] = 0
             return
         elif V == 0:
-            self.T = T_bubble
+            stream.T = T_bubble
             vapor_mol[index] = 0
             liquid_mol[index] = mol
             return
@@ -590,4 +584,4 @@ class VLE:
         return self.V
 
     def __repr__(self):
-        return f"<{type(self).__name__}: stream={repr(self._stream)}>"
+        return f"{repr(self._stream)}.VLE"
