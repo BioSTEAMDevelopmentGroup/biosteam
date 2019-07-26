@@ -56,7 +56,7 @@ def bounded_secant(f, x0, x1, y0, y1, x, yval, xtol, ytol):
         else: break
         dx = x1-x0
         x = x0 + dy*dx/(y1-y0)
-        if (x - x_old) < dx/10: x = (x1 + x0)/2
+        if (x - x_old) < dx/3: x = (x1 + x0)/2
     return x
 
 def wegstein_secant(f, x0, x1, xtol, ytol=5e-8, args=(), maxiter=50):

@@ -114,7 +114,8 @@ class WorkingSpecies:
         WorkingSpecies(self)
         for i in self.IDs:
             for j in working_species.get_synonyms(i):
-                self.set_synonym(i, j)
+                try: self.set_synonym(i, j)
+                except: pass
         return self
     
     def __new__(cls, self):

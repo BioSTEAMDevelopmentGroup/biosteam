@@ -66,6 +66,48 @@ class Reaction:
         self._stoi *= 1/-(self._stoi[self._Xindex])
         self._X = X #: [float] Reactant conversion
     
+    def __add__(self, rxn):
+        assert self._species is rxn._species, 'working species must be the same to add reactions'
+        assert self.reactant is rxn.reactant, 'reactants must be the same to add reactions'
+        new = self.copy()
+        stoi = self._stoi*self.X + rxn._stoi*rxn.X
+        new._stoi = stoi/-(stoi[new._Xindex])
+        new.X = (self.X + rxn.X)/2
+        return new
+    
+    def copy(self):
+        copy = self.__new__(type(self))
+        copy._stoi = self._stoi
+        copy._Xindex = self._Xindex
+        copy._species = self._species
+        copy._X = self._X
+        return copy
+    
+    def __mul__(self, num):
+        new = self.copy()
+        new.X *= float(num)
+        return new
+    
+    def __rmul__(self, num):
+        return self.__mul__(num)
+    
+    def __div__(self, num):
+        self.__mul__(self, 1/num)
+    
+    def __rdiv__(self, num):
+        self.__mul__(self, 1/num)    
+    
+    def __neg__(self):
+        new = self.copy()
+        new.X *= -1.
+        return new
+    
+    def __sub__(self, rxn):
+        rxn.X *= -1
+        new = self.__add__(rxn)
+        rxn.X *= -1.
+        return new
+    
     def __call__(self, material):
         material += material[self._Xindex]*self.X*self._stoi
     
@@ -75,7 +117,8 @@ class Reaction:
         return self._X
     @X.setter
     def X(self, X):
-        assert 0 <= X <= 1, 'reaction conversion, X, must be a fraction'
+        X = float(X)
+        assert -1 <= X <= 1, 'reaction conversion, X, must be a fraction'
         self._X = X
     
     @property
@@ -120,12 +163,17 @@ class ReactionItem(Reaction):
         self._Xindex = rxnset._Xindex[index]
         self._index = index
     
+    def copy(self):
+        new = super().copy()
+        new._index = self._index
+        return new
+    
     @property
     def X(self):
         return self._X[self._index]
     @X.setter
     def X(self, X):
-        assert 0 <= X <= 1, 'reaction conversion, X, must be a fraction'
+        assert -1 <= X <= 1, 'reaction conversion, X, must be a fraction'
         self._X[self._index] = X
         
 
@@ -144,7 +192,7 @@ class ReactionSet:
         if len(stoi.shape) == 1:
             return ReactionItem(self, index)
         else:
-            rxnset = object.__new__(type(self))
+            rxnset = self.__new__(type(self))
             rxnset._stoi = stoi
             rxnset._X = self._X[index]
             rxnset._Xindex = self._Xindex[index]

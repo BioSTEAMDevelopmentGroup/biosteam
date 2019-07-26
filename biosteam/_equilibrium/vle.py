@@ -33,7 +33,7 @@ class VLE:
                  '_dew_point', '_bubble_point', '_v', '_liquid_mol',
                  '_vapor_mol', '_index', '_massnet', '_compound',
                  '_update_V', '_mol', '_molnet', '_N', '_solve_V',
-                 '_zs', '_Ks', '_Psat_gama', '_Psat_P', '_spec')
+                 '_zs', '_Ks', '_Psat_gama', '_Psat_P')
     
     solver = staticmethod(bounded_aitken)
     T_tol = 0.00001
@@ -510,7 +510,7 @@ class VLE:
         """Update V for N components."""
         self.V = self.solver(self._V_error, 0, 1,
                              self._V_error(0), self._V_error(1),
-                             self.V, 0, 0, 1e-4, 1e-7)
+                             self.V, 0, 1e-4, 1e-7)
         return self.V
 
     def _solve_V_2(self):

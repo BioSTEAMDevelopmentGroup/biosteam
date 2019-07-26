@@ -11,9 +11,8 @@ import biosteam as bst
 __all__ = ('factor', 'checkbounds', 'approx2step', 'strtuple', 'Counter')
 
 class Counter:
-    __slots__ = ('msg', 'N', '_start')
+    __slots__ = ('msg', 'N')
     def __init__(self, msg=None, N=0):
-        self._start = True
         self.msg = msg
         self.N = N
         
