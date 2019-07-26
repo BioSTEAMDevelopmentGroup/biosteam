@@ -372,8 +372,7 @@ class Dist(Unit, isabstract=True):
         xi = x_stairs[-1]
         while xi < x_limit:
             if i > 100:
-                print('Cannot meet specifications! Stages > 100')
-                return
+                raise RuntimeError('cannot meet specifications! stages > 100')
             i += 1
             # Go Up
             T, y = bubble_T(array((xi, 1-xi)), P)
