@@ -4,7 +4,8 @@ Created on Wed Mar 20 18:40:05 2019
 
 @author: yoelr
 """
-from .._utils import isbetween, bounded_wegstein, wegstein, aitken, bounded_aitken #, count
+from .._utils import isbetween, bounded_wegstein, wegstein, aitken, \
+                     bounded_aitken, bounded_overshoot
 import numpy as np
 
 __all__ = ('VLE', 'V_2N', 'V_3N', 'V_error')
@@ -35,7 +36,8 @@ class VLE:
                  '_update_V', '_mol', '_molnet', '_N', '_solve_V',
                  '_zs', '_Ks', '_Psat_gama', '_Psat_P')
     
-    solver = staticmethod(bounded_aitken)
+    solver = staticmethod(bounded_overshoot)
+    itersolver = staticmethod(aitken)
     T_tol = 0.00001
     P_tol = 0.1
     Q_tol = 0.1
@@ -148,10 +150,10 @@ class VLE:
         self._index = index
 
         # Set light and heavy keys
-        vapor_mol[LNK_index] = mol[LNK_index]
         vapor_mol[HNK_index] = 0
-        liquid_mol[HNK_index] = mol[HNK_index]
+        vapor_mol[LNK_index] = mol[LNK_index]
         liquid_mol[LNK_index] = 0
+        liquid_mol[HNK_index] = mol[HNK_index]
         
         self._N = N = len(index)
         if N == 1:
@@ -498,7 +500,7 @@ class VLE:
         gamma = self._gamma
         self._Psat_P = np.array([s.VaporPressure(T) for s in gamma.species])/P
         l = self._mol - self._v
-        x = aitken(self._x_iter, l/l.sum(), 1e-4)
+        x = self.itersolver(self._x_iter, l/l.sum(), 1e-4)
         self._v = self._molnet*self.V*x/x.sum()*self._Ks            
         return self._v
 

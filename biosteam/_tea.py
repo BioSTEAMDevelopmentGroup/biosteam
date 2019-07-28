@@ -459,8 +459,8 @@ class TEA:
         # Solve
         IRR = aitken_secant(self._calc_NPV, self._IRR_guess, self._IRR_guess+1e-6,
                             args=(cashflow_data[-3], duration_array),
-                            xtol=1e-6,
-                            maxiter=200)
+                              xtol=1e-6,
+                              maxiter=200)
         self._IRR_guess = IRR if (0 < IRR < 1) else 0.15
         return IRR
     

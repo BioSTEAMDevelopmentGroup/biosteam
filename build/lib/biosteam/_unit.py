@@ -80,10 +80,10 @@ class unit(type):
         if line in ('Unit', 'Mixer', 'Static', 'Splitter', 'Solids separator', 'Facility'):
             line = cls.__name__.replace('_', ' ')
             # Set new graphics object for new line
-            if '_graphics' not in dct: cls._graphics = Graphics()
+            if '_graphics' not in dct: cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
         elif 'line' in dct and '_graphics' not in dct:
             # Set new graphics for specified line
-            cls._graphics = Graphics()
+            cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
         
         cls.line = re.sub(r"\B([A-Z])", r" \1", line).capitalize()
         

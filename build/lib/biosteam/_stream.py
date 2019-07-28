@@ -833,14 +833,14 @@ class Stream(metaclass=metaStream):
                 while abs(self.T - T_old) > 0.01:
                     T_old = self.T
                     self.T += (H - self.H)/C
-                    it += 1
-                    if it > 5:
+                    if it == 5:
                         it = 0
                         it2 += 1
                         C = self.C
-                        if it2 > 20:
+                        if it2 > 10:
                             raise SolverError("could not solve temperature "
                                               "given enthalpy")
+                    else: it += 1
         except Exception as Error:
             if (self._mol == 0).all():
                 raise ValueError(f"cannot set enthalpy to empty stream")
@@ -1095,7 +1095,7 @@ class Stream(metaclass=metaStream):
 
     @property
     def P_vapor(self):
-        """Vapor pressure (Pa).
+        """Vapor pressure (Pa), not taking into account light species always in gas phase.
         
         >>> from biosteam import *
         >>> Stream.species = Species('Ethanol', 'Water')
@@ -1134,7 +1134,7 @@ class Stream(metaclass=metaStream):
     def nonzero_species(self):
         """Flow indices and species that have a non-zero flow rate.
 
-        from biosteam import *
+        >>> from biosteam import *
         >>> Stream.species = Species('Ethanol', 'Water')
         >>> s1 = Stream(Water=2)
         >>> s1.nonzero_species
@@ -1286,6 +1286,15 @@ class Stream(metaclass=metaStream):
                         stream._mol[phase_index[self.phase], indices] = 0
                     else:
                         stream._mol[indices] = 0
+
+    def recieve_vent(self, stream, efficiency=1):
+        assert self._species is stream._species, 'species must be the same to recieve vent'
+        y = stream.P_vapor/self.P
+        Y = y.sum()
+        vent_mol = self._mol
+        mol2vent = vent_mol.sum()*y*Y/(1-Y)*efficiency
+        stream._mol[:] -= mol2vent
+        vent_mol += mol2vent
 
     def empty(self):
         """Set flow rates to zero

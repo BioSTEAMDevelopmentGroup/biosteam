@@ -4,8 +4,8 @@ Created on Wed Mar 20 18:40:05 2019
 
 @author: yoelr
 """
-from .._utils import isbetween, bounded_wegstein, wegstein, aitken #, count
-from .._exceptions import EquilibriumError
+from .._utils import isbetween, bounded_wegstein, wegstein, aitken, \
+                     bounded_aitken, bounded_overshoot
 import numpy as np
 
 __all__ = ('VLE', 'V_2N', 'V_3N', 'V_error')
@@ -36,10 +36,12 @@ class VLE:
                  '_update_V', '_mol', '_molnet', '_N', '_solve_V',
                  '_zs', '_Ks', '_Psat_gama', '_Psat_P')
     
-    tolerance = {'T': 0.00001,
-                 'P': 0.1,
-                 'Q': 0.1,
-                 'V': 0.00001}
+    solver = staticmethod(bounded_aitken)
+    itersolver = staticmethod(aitken)
+    T_tol = 0.00001
+    P_tol = 0.1
+    Q_tol = 0.1
+    V_tol = 0.00001
     
     def __init__(self, stream):
         self.T = self.P = self.Q = self.V = 0
@@ -49,10 +51,6 @@ class VLE:
         self._gamma = stream._gamma
         self._liquid_mol = stream.liquid_mol
         self._vapor_mol = stream.vapor_mol
-    
-    @property
-    def stream(self):
-        return self._stream
     
     def __call__(self, species_IDs=None, LNK=None, HNK=None,
                  P=None, Q=None, T=None, V=None, x=None, y=None):
@@ -98,7 +96,7 @@ class VLE:
                 return self.TQ(T, Q)
             elif x_spec:
                 return self.Tx(T, np.asarray(x))
-            elif y_spec:
+            else: # y_spec
                 return self.Ty(T, np.asarray(y))
         elif P_spec:
             if V_spec:
@@ -107,16 +105,16 @@ class VLE:
                 return self.PQ(P, Q)
             elif x_spec:
                 return self.Px(P, np.asarray(x))
-            elif y_spec:
+            else: # y_spec
                 return self.Py(P, np.asarray(y))
         elif Q_spec:
             if y_spec:
                 raise NotImplementedError('specification Q and y not implemented')
             elif x_spec:
                 raise NotImplementedError('specification Q and x not implemented')
-            elif V_spec:
+            else: # V_spec
                 raise NotImplementedError('specification V and Q not implemented yet')
-        else:
+        else: # x_spec and y_spec
             raise ValueError("can only pass either 'x' or 'y' arguments, not both")
     
     def setup(self, species_IDs, LNK, HNK):
@@ -152,10 +150,10 @@ class VLE:
         self._index = index
 
         # Set light and heavy keys
-        vapor_mol[LNK_index] = mol[LNK_index]
         vapor_mol[HNK_index] = 0
-        liquid_mol[HNK_index] = mol[HNK_index]
+        vapor_mol[LNK_index] = mol[LNK_index]
         liquid_mol[LNK_index] = 0
+        liquid_mol[HNK_index] = mol[HNK_index]
         
         self._N = N = len(index)
         if N == 1:
@@ -263,9 +261,8 @@ class VLE:
         
     def _lever_rule(self, x, y):
         split_frac = (self._zs[0]-x[0])/(y[0]-x[0])
-        if split_frac > 1.00001 or split_frac < -0.00001:
-            raise EquilibriumError('desired composition is not feasible')
-        elif split_frac > 1:
+        assert -0.00001 < split_frac < 1.00001, 'desired composition is infeasible'
+        if split_frac > 1:
             split_frac = 1
         elif split_frac < 0:
             split_frac = 0
@@ -324,7 +321,8 @@ class VLE:
         
     def TV(self, T, V):
         if self._N == 1: self._TV_compound(T, V)
-        self._stream.T = T
+        stream = self._stream
+        self.T = stream.T = T
         P_dew, x_dew = self._dew_point.solve_Px(self._zs, T)
         P_bubble, y_bubble = self._bubble_point.solve_Py(self._zs, T)
         if V == 1:
@@ -336,11 +334,15 @@ class VLE:
             self._vapor_mol[self._index] = 0
             self._liquid_mol[self._index] = self._mol
         else:
+            self.V = V
             self._v = (V*self._zs + (1-V)*y_bubble)*V*self._molnet
-            self._stream.P = self._solve('P', 'V', self._V_at_P, P_bubble, P_dew, 0, 1, V)
+            self.P = stream.P = self.solver(self._V_at_P,
+                                            P_bubble, P_dew, 0, 1,
+                                            self.P, self.V,
+                                            self.P_tol, self.V_tol)
             self._vapor_mol[self._index] = self._v
             self._liquid_mol[self._index] = self._mol - self._v
-            self.Q = self._stream.H/self._massnet
+            self.Q = stream.H/self._massnet
 
     def TQ(self, T, Q):
         if self._N == 1: self._TQ_compound(T, Q)
@@ -381,8 +383,12 @@ class VLE:
         # Guess composition in the vapor is a weighted average of boiling points
         self._v = V*self._zs + (1-V)*y_bubble*V*self._molnet
         massnet = self._massnet
-        stream.P = self._solve('P', 'Q', self._Q_at_P, P_bubble, P_dew,
-                               H_bubble/massnet, H_dew/massnet, Hin/massnet)
+        self.Q = Hin/massnet
+        self.P = stream.P = self.solver(self._Q_at_P,
+                                        P_bubble, P_dew,
+                                        H_bubble/massnet, H_dew/massnet,
+                                        self.P, self.Q,
+                                        self.P_tol, self.Q_tol) 
         self.T = T
     
     def PV(self, P, V):
@@ -399,18 +405,22 @@ class VLE:
         liquid_mol = self._liquid_mol
         
         if V == 1:
-            self.T = T_dew
+            stream.T = T_dew
             vapor_mol[index] = mol
             liquid_mol[index] = 0
             return
         elif V == 0:
-            self.T = T_bubble
+            stream.T = T_bubble
             vapor_mol[index] = 0
             liquid_mol[index] = mol
             return
         else:
             self._v = (V*self._zs + (1-V)*y_bubble) * V * self._molnet
-            stream.T = self._solve('T', 'V', self._V_at_T, T_bubble, T_dew, 0, 1, V)
+            self.V = V
+            self.T = stream.T = self.solver(self._V_at_T,
+                                            T_bubble, T_dew, 0, 1,
+                                            self.T, V,
+                                            self.T_tol, self.V_tol)
             vapor_mol[index] = self._v
             liquid_mol[index] = mol - self._v
             self.P = P
@@ -455,8 +465,12 @@ class VLE:
         self._v = V*self._zs + (1-V)*y_bubble*V*self._molnet
         
         massnet = self._massnet
-        self._stream.T = self._solve('T', 'Q', self._Q_at_T, T_bubble, T_dew, 
-                                     H_bubble/massnet, H_dew/massnet, Hin/massnet)
+        self.Q = Hin/massnet
+        self.T = stream.T = self.solver(self._Q_at_T,
+                                        T_bubble, T_dew, 
+                                        H_bubble/massnet, H_dew/massnet,
+                                        self.T, self.Q,
+                                        self.T_tol, self.Q_tol)
         self.P = P
     
     def _Q_at_T(self, T):
@@ -486,54 +500,9 @@ class VLE:
         gamma = self._gamma
         self._Psat_P = np.array([s.VaporPressure(T) for s in gamma.species])/P
         l = self._mol - self._v
-        x = wegstein(self._x_iter, l/l.sum(), 1e-4)
+        x = self.itersolver(self._x_iter, l/l.sum(), 1e-4)
         self._v = self._molnet*self.V*x/x.sum()*self._Ks            
         return self._v
-    
-    def _solve(self, xvar, yvar, f, x0, x1, y0, y1, yval):
-        # Bounded solver with iterative wegstein acceleration
-        xtol = self.tolerance[xvar]
-        ytol = self.tolerance[yvar]
-        x = getattr(self, xvar)
-        y = getattr(self, yvar)
-        if y1 < yval: x0, y0, x1, y1 = x1, y1, x0, y0
-        if not (isbetween(x0, x, x1) and (yval-50*ytol < y < yval+50*ytol)):
-            x = x0 + (yval-y0)*(x1-x0)/(y1-y0)
-        yval_ub = yval + ytol
-        yval_lb = yval - ytol
-        x_old = x
-        y = f(x)
-        if y > yval_ub:
-            x1 = x
-            y1 = y
-        elif y < yval_lb:
-            x0 = x
-            y0 = y
-        else:
-            setattr(self, xvar, x)
-            setattr(self, yvar, y)
-            return x
-        delxbounds = x1-x0
-        x = g0 = x0 + (yval-y0)*delxbounds/(y1-y0)
-        while abs(delxbounds) > xtol:
-            y = f(x)
-            if y > yval_ub:
-                x1 = x
-                y1 = y
-            elif y < yval_lb:
-                x0 = x
-                y0 = y
-            else: break
-            delxbounds = x1-x0
-            g1 = x0 + (yval-y0)*delxbounds/(y1-y0)
-            delx = x-x_old
-            w = delx/(delx-g1+g0)
-            x_old = x
-            x = w*g1 + (1-w)*x
-            g0 = g1
-        setattr(self, xvar, x)
-        setattr(self, yvar, y)
-        return x
 
     def _V_error(self, V):
         """Vapor fraction error."""
@@ -541,7 +510,9 @@ class VLE:
 
     def _solve_V_N(self):
         """Update V for N components."""
-        self.V = bounded_wegstein(self._V_error, 0, self.V, 1, 1e-4)
+        self.V = self.solver(self._V_error, 0, 1,
+                             self._V_error(0), self._V_error(1),
+                             self.V, 0, 1e-4, 1e-7)
         return self.V
 
     def _solve_V_2(self):
@@ -590,4 +561,94 @@ class VLE:
         return self.V
 
     def __repr__(self):
-        return f"<{type(self).__name__}: stream={repr(self._stream)}>"
+        return f"{repr(self._stream)}.VLE"
+
+    # def _solve(self, xvar, yvar, f, x0, x1, y0, y1, yval):
+    #     """Bounded false position solver with Aitken acceleration."""
+    #     xtol = self.tolerance[xvar]
+    #     ytol = self.tolerance[yvar]
+    #     x = getattr(self, xvar)
+    #     y = getattr(self, yvar)
+    #     if y1 < yval: x0, y0, x1, y1 = x1, y1, x0, y0
+    #     if not (isbetween(x0, x, x1) and (yval-50*ytol < y < yval+50*ytol)):
+    #         x = x0 + (yval-y0)*(x1-x0)/(y1-y0)
+    #     yval_ub = yval + ytol
+    #     yval_lb = yval - ytol
+    #     delx_bounds = x1-x0
+    #     _abs = abs
+    #     while _abs(delx_bounds) > xtol:
+    #         y = f(x)
+    #         if y > yval_ub:
+    #             x1 = x
+    #             y1 = y
+    #         elif y < yval_lb:
+    #             x0 = x
+    #             y0 = y
+    #         else: break
+    #         delx_bounds = x1-x0
+    #         if _abs(delx_bounds) < xtol: break
+    #         g = x0 + (yval-y0)*delx_bounds/(y1-y0)
+            
+    #         y = f(g)
+    #         if y > yval_ub:
+    #             x1 = g
+    #             y1 = y
+    #         elif y < yval_lb:
+    #             x0 = g
+    #             y0 = y
+    #         else:
+    #             x = g
+    #             break
+    #         delx_bounds = x1-x0
+    #         gg = x0 + (yval-y0)*delx_bounds/(y1-y0)
+            
+    #         delxg = x - g
+    #         x = x - delxg**2/(gg + delxg - g)
+    #     setattr(self, xvar, x)
+    #     setattr(self, yvar, y)
+    #     return x
+    
+    # def _solve(self, xvar, yvar, f, x0, x1, y0, y1, yval):
+    #     """Bounded false position solver with Wegstein acceleration."""
+    #     xtol = self.tolerance[xvar]
+    #     ytol = self.tolerance[yvar]
+    #     x = getattr(self, xvar)
+    #     y = getattr(self, yvar)
+    #     if y1 < yval: x0, y0, x1, y1 = x1, y1, x0, y0
+    #     if not (isbetween(x0, x, x1) and (yval-50*ytol < y < yval+50*ytol)):
+    #         x = x0 + (yval-y0)*(x1-x0)/(y1-y0)
+    #     yval_ub = yval + ytol
+    #     yval_lb = yval - ytol
+    #     x_old = x
+    #     y = f(x)
+    #     if y > yval_ub:
+    #         x1 = x
+    #         y1 = y
+    #     elif y < yval_lb:
+    #         x0 = x
+    #         y0 = y
+    #     else:
+    #         setattr(self, xvar, x)
+    #         setattr(self, yvar, y)
+    #         return x
+    #     delxbounds = x1-x0
+    #     x = g0 = x0 + (yval-y0)*delxbounds/(y1-y0)
+    #     while abs(delxbounds) > xtol:
+    #         y = f(x)
+    #         if y > yval_ub:
+    #             x1 = x
+    #             y1 = y
+    #         elif y < yval_lb:
+    #             x0 = x
+    #             y0 = y
+    #         else: break
+    #         delxbounds = x1-x0
+    #         g1 = x0 + (yval-y0)*delxbounds/(y1-y0)
+    #         delx = x-x_old
+    #         w = delx/(delx-g1+g0)
+    #         x_old = x
+    #         x = w*g1 + (1-w)*x
+    #         g0 = g1
+    #     setattr(self, xvar, x)
+    #     setattr(self, yvar, y)
+    #     return x

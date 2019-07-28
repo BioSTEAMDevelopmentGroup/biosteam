@@ -12,8 +12,8 @@ __all__ = ('Graphics',)
 # %%
 
 _node_function = lambda unit: None
-_edge_in = [{'headport': 'c'} for i in range(3)]
-_edge_out = [{'tailport': 'c'} for i in range(3)]
+_edge_in = [{'headport': 'c'} for i in range(2)]
+_edge_out = [{'tailport': 'c'} for i in range(2)]
 _node = {'shape': 'box',
          'fillcolor': "white:#CDCDCD",
          'style': 'filled',
@@ -29,6 +29,11 @@ _node = {'shape': 'box',
     
 class Graphics:
     """Create a Graphics object that contains specifications for Graphviz node and edge styles"""
+    @classmethod
+    def box(cls, N_ins, N_outs):
+        return cls([{'headport': 'c'} for i in range(N_ins)],
+                   [{'tailport': 'c'} for i in range(N_outs)])
+    
     def __init__(self, edge_in=None,
                  edge_out=None,
                  node=None,

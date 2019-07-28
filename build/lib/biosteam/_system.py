@@ -498,16 +498,14 @@ class System(metaclass=system):
             
     def _wegstein(self):
         """Converge the system recycle iteratively using wegstein's method."""
-        mol = self.recycle._mol
-        mol[:] = conditional_wegstein(self._iter_run, mol.copy())
+        conditional_wegstein(self._iter_run, self.recycle._mol.copy())
     
     def _aitken(self):
-        """Converge the system recycle iteratively using broyden's bad method."""
-        mol = self.recycle._mol
-        mol[:] = conditional_aitken(self._iter_run, mol.copy())
+        """Converge the system recycle iteratively using Aitken's method."""
+        conditional_aitken(self._iter_run, self.recycle._mol.copy())
     
     # Default converge method
-    _converge = _wegstein
+    _converge = _aitken
 
     def set_spec(self, getter, setter, solver=newton, **kwargs):
         """Wrap a solver around the converge method.

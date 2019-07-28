@@ -114,7 +114,8 @@ class WorkingSpecies:
         WorkingSpecies(self)
         for i in self.IDs:
             for j in working_species.get_synonyms(i):
-                self.set_synonym(i, j)
+                try: self.set_synonym(i, j)
+                except: pass
         return self
     
     def __new__(cls, self):
@@ -130,10 +131,12 @@ class WorkingSpecies:
         for i in cmps: me[i.CAS] = i
         me['_indexdct'] = dict((*zip(CAS, index), *zip(IDs, index)))
         me['_index'] = index
-        me['_isheavy'] = np.array([(not i.UNIFAC_Dortmund_groups or i.Tb in (inf, None)) for i in cmps])
-        me['_islight'] = np.array([(i.Tb is -inf) for i in cmps], dtype=bool)
+        me['_isheavy'] = np.array([i.Tb in (inf, None) for i in cmps])
+        me['_islight'] = np.array([i.Tb in (0, -inf) for i in cmps], dtype=bool)
         nonfinite = (inf, -inf, None)
-        me['_has_equilibrium'] = np.array([(bool(i.UNIFAC_Dortmund_groups) and i.Tb not in nonfinite) for i in cmps])
+        me['_has_equilibrium'] = np.array([(bool(i.UNIFAC_Dortmund_groups)
+                                            and i.Tb not in nonfinite)
+                                           for i in cmps])
         me['_compounds'] = cmps
         me['_IDs'] = IDs
         me['_N'] = N
@@ -141,7 +144,7 @@ class WorkingSpecies:
         return self
     
     def __dir__(self):
-        return [i for i in super().__dir__() if i.isalnum()]
+        return [i for i in super().__dir__() if (i[0]=='_' or i.isalnum())]
 
     def get_synonyms(self, ID):
         dct = self._indexdct

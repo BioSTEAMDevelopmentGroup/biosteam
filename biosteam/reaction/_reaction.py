@@ -66,6 +66,14 @@ class Reaction:
         self._stoi *= 1/-(self._stoi[self._Xindex])
         self._X = X #: [float] Reactant conversion
     
+    def copy(self):
+        copy = self.__new__(type(self))
+        copy._stoi = self._stoi
+        copy._Xindex = self._Xindex
+        copy._species = self._species
+        copy._X = self._X
+        return copy
+    
     def __add__(self, rxn):
         assert self._species is rxn._species, 'working species must be the same to add reactions'
         assert self.reactant is rxn.reactant, 'reactants must be the same to add reactions'
@@ -75,13 +83,13 @@ class Reaction:
         new.X = (self.X + rxn.X)/2
         return new
     
-    def copy(self):
-        copy = self.__new__(type(self))
-        copy._stoi = self._stoi
-        copy._Xindex = self._Xindex
-        copy._species = self._species
-        copy._X = self._X
-        return copy
+    def __iadd__(self, rxn):
+        assert self._species is rxn._species, 'working species must be the same to add reactions'
+        assert self.reactant is rxn.reactant, 'reactants must be the same to add reactions'
+        stoi = self._stoi*self.X + rxn._stoi*rxn.X
+        self._stoi = stoi/-(stoi[self._Xindex])
+        self.X = (self.X + rxn.X)/2
+        return self
     
     def __mul__(self, num):
         new = self.copy()
@@ -91,11 +99,18 @@ class Reaction:
     def __rmul__(self, num):
         return self.__mul__(num)
     
+    def __imul__(self, num):
+        self.X *= num
+        return self
+    
     def __div__(self, num):
         self.__mul__(self, 1/num)
     
     def __rdiv__(self, num):
         self.__mul__(self, 1/num)    
+    
+    def __idiv__(self, num):
+        return self.__imul__(self, 1/num) 
     
     def __neg__(self):
         new = self.copy()
@@ -103,10 +118,21 @@ class Reaction:
         return new
     
     def __sub__(self, rxn):
-        rxn.X *= -1
-        new = self.__add__(rxn)
-        rxn.X *= -1.
+        assert self._species is rxn._species, 'working species must be the same to add reactions'
+        assert self.reactant is rxn.reactant, 'reactants must be the same to add reactions'
+        new = self.copy()
+        stoi = self._stoi*self.X - rxn._stoi*rxn.X
+        new._stoi = stoi/-(stoi[new._Xindex])
+        new.X = (self.X - rxn.X)/2
         return new
+    
+    def __isub__(self, rxn):
+        assert self._species is rxn._species, 'working species must be the same to add reactions'
+        assert self.reactant is rxn.reactant, 'reactants must be the same to add reactions'
+        stoi = self._stoi*self.X + rxn._stoi*rxn.X
+        self._stoi = stoi/-(stoi[self._Xindex])
+        self.X = (self.X - rxn.X)/2
+        return 
     
     def __call__(self, material):
         material += material[self._Xindex]*self.X*self._stoi

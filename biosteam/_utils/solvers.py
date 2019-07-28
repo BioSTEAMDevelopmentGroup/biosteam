@@ -5,13 +5,13 @@ Created on Tue Jul  9 00:35:01 2019
 @author: yoelr
 """
 from .._exceptions import SolverError
-# from .other_utils import count
+from .other_utils import Counter
 import numpy as np
 
 __all__ = ('bounded_secant', 'secant', 'wegstein_secant',
            'conditional_wegstein', 'aitken_secant', 'aitken',
            'wegstein', 'bounded_wegstein', 'conditional_aitken',
-           'bounded_aitken', 'isbetween')
+           'bounded_aitken', 'bounded_overshoot', 'isbetween')
 
 def isbetween(x0, x, x1):
     return x0 < x < x1 if x1 > x0 else x1 < x < x0
@@ -21,22 +21,59 @@ def secant(f, x0, x1, xtol, ytol=5e-8, args=(), maxiter=50):
     _abs = abs
     y0 = f(x0, *args)
     if _abs(y0) < ytol: return x0
-    y1 = f(x1, *args) 
-    if _abs(y1) < ytol: return x1
-    x_diff = x1-x0 
+    dx = x1-x0 
     for iter in range(maxiter): 
-        x1 = x0 - y1*(x_diff)/(y1-y0)
-        x_diff = x1-x0 
-        if _abs(x_diff) < xtol or _abs(y1) < ytol: return x1
+        y1 = f(x1, *args)
+        x1 = x0 - y1*dx/(y1-y0)
+        dx = x1-x0 
+        if _abs(dx) < xtol or _abs(y1) < ytol: return x1
         x0 = x1
         y0 = y1
-        y1 = f(x1, *args)
     raise SolverError(f'failed to converge after {maxiter} iterations')
+
+def bounded_overshoot(f, x0, x1, y0, y1, x, yval, xtol, ytol):
+    """False position solver with inverse quadratic interpolation and secant overshoot."""
+    _abs = abs
+    if y1 < 0.: x0, y0, x1, y1 = x1, y1, x0, y0
+    dx1 = dx0 = x1-x0
+    dy = yval-y0
+    if not isbetween(x0, x, x1):
+        x = x0 + dy*dx0/(y1-y0)
+    yval_ub = yval + ytol
+    yval_lb = yval - ytol
+    while _abs(dx1) > xtol:
+        y = f(x)
+        y2 = y1
+        x2 = x1
+        if y > yval_ub:
+            x1 = x
+            y1 = y
+        elif y < yval_lb:
+            x0 = x
+            y0 = y
+            dy = yval-y
+        else: break
+        dx1 = x1-x0
+        if (y0 == y2) or (y1 == y2):
+            # Secant with overshoot
+            x = x0 + dy*dx1/(y1-y0)
+            x = x + 0.1*(x1 + x0 - 2.*x)*(dx1/dx0)**3
+        else:
+            # Inverse quadratic interpolation
+            f1 = yval - y1
+            f0 = yval - y0
+            f2 = yval - y2
+            d01 = f0-f1
+            d02 = f0-f2
+            d12 = f1-f2
+            x = x0*f1*f2/d01/d02 - x1*f0*f2/d01/d12 + x2*f0*f1/d02/d12        
+        dx0 = dx1
+    return x
 
 def bounded_secant(f, x0, x1, y0, y1, x, yval, xtol, ytol):
     """False position solver."""
     _abs = abs
-    if y1 < 0: x0, y0, x1, y1 = x1, y1, x0, y0
+    if y1 < 0.: x0, y0, x1, y1 = x1, y1, x0, y0
     dx = x1-x0
     dy = yval-y0
     if not isbetween(x0, x, x1):
@@ -56,7 +93,7 @@ def bounded_secant(f, x0, x1, y0, y1, x, yval, xtol, ytol):
         else: break
         dx = x1-x0
         x = x0 + dy*dx/(y1-y0)
-        if (x - x_old) < dx/3: x = (x1 + x0)/2
+        if _abs(x - x_old) < dx/10: x = (x1 + x0)/2.
     return x
 
 def wegstein_secant(f, x0, x1, xtol, ytol=5e-8, args=(), maxiter=50):
@@ -73,9 +110,12 @@ def wegstein_secant(f, x0, x1, xtol, ytol=5e-8, args=(), maxiter=50):
     for iter in range(maxiter):
         y1 = f(x1, *args)
         g1 = x1 - y1*dx/(y1-y0)
-        w = dx/(dx-g1+g0)
         x0 = x1
-        x1 = w*g1 + (1-w)*x1
+        try:
+            w = dx/(dx-g1+g0)
+            x1 = w*g1 + (1.-w)*x1
+        except:
+            x1 = g1
         dx = x1-x0
         if (_abs(dx) < xtol) or (_abs(y1) < ytol): return x1
         y0 = y1
@@ -85,7 +125,7 @@ def wegstein_secant(f, x0, x1, xtol, ytol=5e-8, args=(), maxiter=50):
 def bounded_wegstein(f, x0, x1, y0, y1, x, yval, xtol, ytol):
     """False position solver with Wegstein acceleration."""
     _abs = abs
-    if y1 < 0: x0, y0, x1, y1 = x1, y1, x0, y0
+    if y1 < 0.: x0, y0, x1, y1 = x1, y1, x0, y0
     dy = yval-y0
     x_old = x = x if isbetween(x0, x, x1) else x0+dy*(x1-x0)/(y1-y0)
     y = f(x)
@@ -98,10 +138,11 @@ def bounded_wegstein(f, x0, x1, y0, y1, x, yval, xtol, ytol):
         x0 = x
         y0 = y
         dy = yval - y
-    else: return x
-    dx_bounds = x1-x0
-    x = g0 = x0 + dy*dx_bounds/(y1-y0)
-    while _abs(dx_bounds) > xtol:
+    else:
+        return x
+    dx1x0_old = dx1x0 = x1-x0
+    x = g0 = x0 + dy*dx1x0/(y1-y0)
+    while _abs(dx1x0) > xtol:
         y = f(x)
         if y > yval_ub:
             x1 = x
@@ -110,15 +151,22 @@ def bounded_wegstein(f, x0, x1, y0, y1, x, yval, xtol, ytol):
             x0 = x
             y0 = y
             dy = yval - y
-        else: return x
-        dx_bounds = x1-x0
-        g1 = x0 + dy*dx_bounds/(y1-y0)
+        else: break
+        dx1x0 = x1-x0
+        g1 = x0 + dy*dx1x0/(y1-y0)
         dx = x - x_old
-        w = (dx)/(dx-g1+g0)
-        x_old = x
-        x = w*g1 + (1-w)*x
-        g0 = g1
-        if not isbetween(x0, x, x1): x = g1
+        try:
+            w = dx/(dx-g1+g0)
+            x_old = x
+            x = w*g1 + (1.-w)*x
+        except:
+            x = g0 = g1 + 0.1*(x1+x0-2.*g1)*(dx1x0/dx1x0_old)**3.
+        else:
+            if isbetween(x0, x, x1):
+                g0 = g1                
+            else:
+                x = g0 = g1 + 0.1*(x1+x0-2.*g1)*(dx1x0/dx1x0_old)**3.
+        dx1x0_old = dx1x0
     return x
 
 def wegstein(f, x0, xtol, args=(), maxiter=50):
@@ -155,8 +203,8 @@ def conditional_wegstein(f, x0):
         w = dx/(dx-g1+g0)
         x0 = x1
         g0 = g1
-        w[logical_not(isfinite(w))] = 1
-        x1 = w*g1 + (1-w)*x1
+        w[logical_not(isfinite(w))] = 1.
+        x1 = w*g1 + (1.-w)*x1
 
 def aitken_secant(f, x0, x1, xtol, ytol=5e-8, args=(), maxiter=50):
     """Secant solver with Aitken acceleration."""
@@ -174,7 +222,8 @@ def aitken_secant(f, x0, x1, xtol, ytol=5e-8, args=(), maxiter=50):
         x2 = x0 - y1*dx/(y1-y0) # x2 = gg
         if (_abs(dx) < xtol) or (_abs(y1) < ytol): return x2
         dx = x1 - x0 # x - g
-        x1 = x1 - dx**2/(x2 + dx - x0)
+        try: x1 = x1 - dx**2./(x2 + dx - x0)
+        except: x1 = x2
         dx = x1 - x0
         y0 = y1
     raise SolverError(f'failed to converge after {maxiter} iterations')
@@ -182,14 +231,14 @@ def aitken_secant(f, x0, x1, xtol, ytol=5e-8, args=(), maxiter=50):
 def bounded_aitken(f, x0, x1, y0, y1, x, yval, xtol, ytol):
     """False position solver with Aitken acceleration."""
     _abs = abs
-    if y1 < 0: x0, y0, x1, y1 = x1, y1, x0, y0
-    dx_bounds = x1-x0
+    if y1 < 0.: x0, y0, x1, y1 = x1, y1, x0, y0
+    dx1 = x1-x0
     dy = yval-y0
     if not isbetween(x0, x, x1):
-        x = x0 + dy*dx_bounds/(y1-y0)
+        x = x0 + dy*dx1/(y1-y0)
     yval_ub = yval + ytol
     yval_lb = yval - ytol
-    while _abs(dx_bounds) > xtol:
+    while _abs(dx1) > xtol:
         y = f(x)
         if y > yval_ub:
             x1 = x
@@ -198,10 +247,12 @@ def bounded_aitken(f, x0, x1, y0, y1, x, yval, xtol, ytol):
             x0 = x
             y0 = y
             dy = yval-y
-        else: return x
-        dx_bounds = x1-x0
-        g = x0 + dy*dx_bounds/(y1-y0)
-        if _abs(dx_bounds) < xtol: return g
+        else: 
+            return x
+        dx0 = x1-x0
+        g = x0 + dy*dx0/(y1-y0)
+        if _abs(dx0) < xtol:
+            return g
         
         y = f(g)
         if y > yval_ub:
@@ -211,12 +262,18 @@ def bounded_aitken(f, x0, x1, y0, y1, x, yval, xtol, ytol):
             x0 = g
             y0 = y
             dy = yval-y
-        else: return g
-        dx_bounds = x1-x0
-        gg = x0 + dy*dx_bounds/(y1-y0)
+        else:
+            return g
+        dx1 = x1-x0
+        gg = x0 + dy*dx1/(y1-y0)
         dxg = x - g
-        x = x - dxg**2/(gg + dxg - g)
-        if not isbetween(x0, x, x1): x = gg
+        try: x = x - dxg**2./(gg + dxg - g)
+        except:
+            # Secant with overshoot
+            x = gg + 0.1*(x1+x0-2*gg)*(dx1/dx0)**3. 
+        else:
+            if not isbetween(x0, x, x1):
+                x = gg + 0.1*(x1+x0-2*gg)*(dx1/dx0)**3. 
     return x
 
 def aitken(f, x, xtol, args=(), maxiter=50):
@@ -235,7 +292,7 @@ def aitken(f, x, xtol, args=(), maxiter=50):
         gg = f(g, *args)
         dgg_g = gg - g
         if (abs_(dgg_g) < xtol).all(): return gg
-        x = x - dxg**2/(dgg_g + dxg)
+        x = x - dxg**2./(dgg_g + dxg)
         pos = logical_not(isfinite(x))
         x[pos] = gg[pos]
     raise SolverError(f'failed to converge after {maxiter} iterations')

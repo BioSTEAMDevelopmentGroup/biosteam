@@ -11,7 +11,8 @@ __all__ = ('BubblePoint',)
 
 class BubblePoint:
     __slots__ = ('gamma', 'P', 'T', 'y')
-    rootsolver = staticmethod(wegstein_secant)
+    rootsolver = staticmethod(aitken_secant)
+    
     def __init__(self, gamma):
         self.gamma = gamma
     
@@ -27,9 +28,7 @@ class BubblePoint:
         """Bubble point at given composition and pressure
 
         **Parameters**
-
-            **species:** list[Compound] Species corresponding to x.
-
+        
             **z:** [array_like] Liquid phase composition.
         
             **P:** [float] Pressure (Pa).
@@ -63,9 +62,7 @@ class BubblePoint:
         """Bubble point at given composition and temperature.
 
         **Parameters**
-
-            **species:** list[Compound] Species corresponding to x.
-
+        
             **z:** [array_like] Liquid phase composotion.
 
             **T:** [float] Temperature (K).
@@ -80,7 +77,7 @@ class BubblePoint:
         >>> bp = BubblePoint()
         >>> bp.solve_Py(species=Species('Ethanol', 'Water'),
         ...             z=(0.703, 0.297), T=352.28)
-        (103494.17209657285, array([0.757, 0.243]), [0, 1])
+        (103494.17209657285, array([0.757, 0.243]))
         
         """
         z = asarray(z)

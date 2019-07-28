@@ -50,7 +50,7 @@ def make_digraph(units, streams):
         dU = s._sink
         if dU:
             di = dU._ins.index(s)
-
+        
         # Make stream nodes / unit-stream edges / unit-unit edges
         if oU not in keys and dU not in keys: pass
             # Stream is not attached to anything

@@ -206,11 +206,7 @@ class Fermentation(Unit):
             self.fermentation.X = self._calc_efficiency(effluent, self._tau)
         self.fermentation(effluent_mol)
         vent.copyflow(effluent, ('CO2',), remove=True)
-        y = effluent.P_vapor/101325
-        Y = y.sum()
-        mol2vent = vent.molnet*Y/(1-Y)*y
-        effluent_mol[:] -= mol2vent
-        vent.mol += mol2vent
+        vent.recieve_vent(effluent)
     
     def number_of_reactors_at_minimum_cost(self):
         cost_old = np.inf

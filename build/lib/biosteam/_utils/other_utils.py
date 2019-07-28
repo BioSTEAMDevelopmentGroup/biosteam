@@ -8,20 +8,27 @@ This module includes arbitrary classes and functions.
 """
 import biosteam as bst
 
-__all__ = ('factor', 'checkbounds', 'approx2step', 'strtuple', 'isbetween', 'count')
+__all__ = ('factor', 'checkbounds', 'approx2step', 'strtuple', 'Counter')
 
-def count():
-    i = 0
-    print('starting count')
-    while True:
-        i += 1
-        print(i)
-        yield
-
-def isbetween(x0, x, x1):
-    if x0 > x1: x0, x1 = x1, x0
-    return x0 < x < x1
-
+class Counter:
+    __slots__ = ('msg', 'N')
+    def __init__(self, msg=None, N=0):
+        self.msg = msg
+        self.N = N
+        
+    def notify(self):
+        print(f"{self.msg or 'counter'}: {self.N}")
+        
+    def restart(self, msg=None, N=0, notify=True):
+        if notify: self.notify()
+        self.msg = msg or self.msg
+        self.N = N
+        
+    def count(self):
+        self.N += 1
+        
+    def __repr__(self):
+        return f"<Counter: msg={repr(self.msg)}, N={self.N}>"
 
 # %% Number functions
 
@@ -30,8 +37,7 @@ def factor(base_units, new_units):
     else: return bst._Q(1, base_units).to(new_units).magnitude
 
 def checkbounds(x, bounds):
-    lb, up = bounds
-    return lb < x < up
+    return bounds[0] < x < bounds[1]
 
 def approx2step(val, x0, dx):
     """Approximate value, val, to closest increment/step, dx, starting from x0."""
