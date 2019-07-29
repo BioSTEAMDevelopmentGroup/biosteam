@@ -145,7 +145,7 @@ def bounded_wegstein(f, x0, x1, y0, y1, x, yval, xtol, ytol):
         dy = yval - y
     else:
         return x
-    dx1x0_old = dx1x0 = x1-x0
+    dx1x0 = x1-x0
     x = g0 = x0 + dy*dx1x0/(y1-y0)
     while _abs(dx1x0) > xtol:
         y = f(x)
@@ -165,13 +165,10 @@ def bounded_wegstein(f, x0, x1, y0, y1, x, yval, xtol, ytol):
             x_old = x
             x = w*g1 + (1.-w)*x
         except:
-            x = g0 = g1 + 0.1*(x1+x0-2.*g1)*(dx1x0/dx1x0_old)**3.
+            x = g0 = g1
         else:
-            if isbetween(x0, x, x1):
-                g0 = g1                
-            else:
-                x = g0 = g1 + 0.1*(x1+x0-2.*g1)*(dx1x0/dx1x0_old)**3.
-        dx1x0_old = dx1x0
+            if isbetween(x0, x, x1): g0 = g1                
+            else: x = g0 = g1
     return x
 
 def wegstein(f, x0, xtol, args=(), maxiter=50):
@@ -274,7 +271,7 @@ def bounded_aitken(f, x0, x1, y0, y1, x, yval, xtol, ytol):
         dxg = x - g
         try: x = x - dxg**2./(gg + dxg - g)
         except:
-            # Secant with overshoot
+            # Add overshoot to prevent getting stuck
             x = gg + 0.1*(x1+x0-2*gg)*(dx1/dx0)**3. 
         else:
             if not isbetween(x0, x, x1):
