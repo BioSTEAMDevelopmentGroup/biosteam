@@ -32,7 +32,7 @@ def secant(f, x0, x1, xtol, ytol=5e-8, args=(), maxiter=50):
     raise SolverError(f'failed to converge after {maxiter} iterations')
 
 def bounded_overshoot(f, x0, x1, y0, y1, x, yval, xtol, ytol):
-    """False position solver with inverse quadratic interpolation and secant overshoot."""
+    """False position solver with inverse quadratic interpolation and overshoot."""
     _abs = abs
     if y1 < 0.: x0, y0, x1, y1 = x1, y1, x0, y0
     dx1 = dx0 = x1-x0
@@ -55,7 +55,7 @@ def bounded_overshoot(f, x0, x1, y0, y1, x, yval, xtol, ytol):
         else: break
         dx1 = x1-x0
         if (y1 == y2) or (y0 == y2):
-            # Secant with overshoot
+            # False position with overshoot
             x = x0 + f0*dx1/(y1-y0)
             x = x + 0.05*(x1 + x0 - 2.*x)*(dx1/dx0)**3
         else:
