@@ -36,9 +36,9 @@ def bounded_overshoot(f, x0, x1, y0, y1, x, yval, xtol, ytol):
     _abs = abs
     if y1 < 0.: x0, y0, x1, y1 = x1, y1, x0, y0
     dx1 = dx0 = x1-x0
-    dy = yval-y0
+    f0 = yval-y0
     if not isbetween(x0, x, x1):
-        x = x0 + dy*dx0/(y1-y0)
+        x = x0 + f0*dx0/(y1-y0)
     yval_ub = yval + ytol
     yval_lb = yval - ytol
     while _abs(dx1) > xtol:
@@ -51,22 +51,24 @@ def bounded_overshoot(f, x0, x1, y0, y1, x, yval, xtol, ytol):
         elif y < yval_lb:
             x0 = x
             y0 = y
-            dy = yval-y
+            f0 = yval-y
         else: break
         dx1 = x1-x0
-        if (y0 == y2) or (y1 == y2):
+        if (y1 == y2) or (y0 == y2):
             # Secant with overshoot
-            x = x0 + dy*dx1/(y1-y0)
-            x = x + 0.1*(x1 + x0 - 2.*x)*(dx1/dx0)**3
+            x = x0 + f0*dx1/(y1-y0)
+            x = x + 0.05*(x1 + x0 - 2.*x)*(dx1/dx0)**3
         else:
             # Inverse quadratic interpolation
             f1 = yval - y1
-            f0 = yval - y0
             f2 = yval - y2
             d01 = f0-f1
             d02 = f0-f2
             d12 = f1-f2
-            x = x0*f1*f2/d01/d02 - x1*f0*f2/d01/d12 + x2*f0*f1/d02/d12        
+            f0_d12 = f0/d12
+            f1_d02 = f1/d02
+            f2_d01 = f2/d01
+            x = x0*f1_d02*f2_d01 - x1*f0_d12*f2_d01 + x2*f0_d12*f1_d02
         dx0 = dx1
     return x
 
