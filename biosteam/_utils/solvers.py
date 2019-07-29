@@ -11,7 +11,7 @@ import numpy as np
 __all__ = ('bounded_secant', 'secant', 'wegstein_secant',
            'conditional_wegstein', 'aitken_secant', 'aitken',
            'wegstein', 'bounded_wegstein', 'conditional_aitken',
-           'bounded_aitken', 'bounded_overshoot', 'isbetween')
+           'bounded_aitken', 'IQ_interpolation', 'isbetween')
 
 def isbetween(x0, x, x1):
     return x0 < x < x1 if x1 > x0 else x1 < x < x0
@@ -31,8 +31,8 @@ def secant(f, x0, x1, xtol, ytol=5e-8, args=(), maxiter=50):
         y0 = y1
     raise SolverError(f'failed to converge after {maxiter} iterations')
 
-def bounded_overshoot(f, x0, x1, y0, y1, x, yval, xtol, ytol):
-    """False position solver with inverse quadratic interpolation and overshoot."""
+def IQ_interpolation(f, x0, x1, y0, y1, x, yval, xtol, ytol):
+    """Inverse quadratic interpolation solver."""
     _abs = abs
     if y1 < 0.: x0, y0, x1, y1 = x1, y1, x0, y0
     dx1 = dx0 = x1-x0
@@ -43,21 +43,24 @@ def bounded_overshoot(f, x0, x1, y0, y1, x, yval, xtol, ytol):
     yval_lb = yval - ytol
     while _abs(dx1) > xtol:
         y = f(x)
-        y2 = y1
-        x2 = x1
         if y > yval_ub:
+            y2 = y1
+            x2 = x1
             x1 = x
             y1 = y
         elif y < yval_lb:
+            y2 = y0
+            x2 = x0
             x0 = x
             y0 = y
             f0 = yval-y
         else: break
         dx1 = x1-x0
         if (y1 == y2) or (y0 == y2):
-            # False position with overshoot
+            # False position
             x = x0 + f0*dx1/(y1-y0)
-            x = x + 0.05*(x1 + x0 - 2.*x)*(dx1/dx0)**3
+            # Overshoot to prevent getting stuck
+            x = x + 0.1*(x1 + x0 - 2.*x)*(dx1/dx0)**3
         else:
             # Inverse quadratic interpolation
             f1 = yval - y1
