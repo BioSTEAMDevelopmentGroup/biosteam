@@ -236,9 +236,9 @@ def duty(units, N_ins, N_outs):
         raise ValueError(f"number of input and output streams must be 1 for selected basis")
     factor = _Q(1, 'kJ/hr').to(units).magnitude
     if factor == 1:
-        return lambda self: self._outs[0].H - self._ins[0].H
+        return lambda self: abs(self._outs[0].H - self._ins[0].H)
     else:
-        return lambda self: factor*(self._outs[0].H - self._ins[0].H)
+        return lambda self: abs(factor*(self._outs[0].H - self._ins[0].H))
 
 @design.define
 def dry_flow_rate(units, N_ins, N_outs):

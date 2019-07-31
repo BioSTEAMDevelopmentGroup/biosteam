@@ -78,6 +78,7 @@ def make_digraph(units, streams):
     return f
 
 def save_digraph(digraph, file, format):
+    format = 'png'
     if not file:
         if format == 'svg':
             x = display.SVG(digraph.pipe(format=format))

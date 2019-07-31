@@ -119,11 +119,11 @@ class system(type):
     @converge_method.setter
     def converge_method(self, method):
         method = method.lower().replace('-', '').replace(' ', '')
-        if 'wegstein' in method:
+        if 'wegstein' == method:
             self._converge = self._wegstein
-        elif 'fixedpoint' in method:
+        elif 'fixedpoint' == method:
             self._converge = self._fixed_point
-        elif 'aitken' in method:
+        elif 'aitken' == method:
             self._converge = self._aitken
         else:
             raise ValueError(f"only 'wegstein', 'aitken', and 'fixed point' methods are valid, not '{method}'")
@@ -274,11 +274,11 @@ class System(metaclass=system):
         if self.recycle is None:
             raise ValueError("cannot set converge method when no recyle is specified")
         method = method.lower().replace('-', '').replace(' ', '')
-        if 'wegstein' in method:
+        if 'wegstein' == method:
             self._converge = self._wegstein
-        elif 'fixedpoint' in method:
+        elif 'fixedpoint' == method:
             self._converge = self._fixed_point
-        elif 'aitken' in method:
+        elif 'aitken' == method:
             self._converge = self._aitken
         else:
             raise ValueError(f"only 'wegstein', 'aitken', and 'fixed point' methods are valid, not '{method}'")
@@ -608,18 +608,13 @@ class System(metaclass=system):
     def debug(self):
         """Convege in debug mode. Just try it!"""
         self._debug_on()
-        try:
-            self._converge()
-        except Exception as error:
-            self._debug_off()
-            raise error
+        try: self._converge()
+        finally: self._debug_off()
+        end = self._error_info()
+        if end:
+            print(f'\nFinished debugging{end}')
         else:
-            end = self._error_info()
-            if end:
-                print(f'\nFinished debugging{end}')
-            else:
-                print(f'\n        Finished debugging')
-            self._debug_off()
+            print(f'\n        Finished debugging')
 
     # Representation
     def __str__(self):

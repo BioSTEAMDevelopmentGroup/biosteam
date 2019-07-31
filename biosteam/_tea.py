@@ -159,7 +159,7 @@ class TEA:
         """Total purchase cost (USD)."""
         return sum([u.purchase_cost for u in self._units])
     @property
-    def intallation_cost(self):
+    def installation_cost(self):
         """Total installation cost (USD)."""
         return sum([u.installation_cost for u in self._units])
 

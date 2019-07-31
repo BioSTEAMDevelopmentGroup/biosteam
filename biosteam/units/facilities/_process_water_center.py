@@ -18,6 +18,18 @@ cost = bst.units.decorators.cost
 @cost('Process water flow rate', 'Tank',
       CE=522, cost=250e3, S=451555, n=0.7, BM=1.7)
 class ProcessWaterCenter(Facility):
+    """
+    **ins**
+    
+        [0] Recycle water
+        
+        [1] Make-up water
+        
+    **outs**
+    
+        [0] Process water
+    
+    """
     _N_ins = 2
     _N_outs = 1
     makeup_water_price = 0.0002113 #: (USD/kg)
@@ -27,7 +39,7 @@ class ProcessWaterCenter(Facility):
     CT_blowdown = 0.01
     _units = {'Makeup water flow rate': 'kg/hr',
               'Process water flow rate': 'kg/hr'}
-    def __init__(self, ID, ins=None, outs=(), *, BT, CT):
+    def __init__(self, ID='', ins=None, outs=(), *, BT, CT):
         Facility.__init__(self, ID, ins, outs)
         makeup_water = bst.Stream('Makeup_water', species=bst.Species('Water',)) 
         if self._ins[1]:

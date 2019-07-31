@@ -12,7 +12,7 @@ from ._utils import property_array, PropertyFactory, DisplayUnits, \
 from ._flowsheet import find
 from ._species import Species, WorkingSpecies
 from ._exceptions import SolverError, EquilibriumError, DimensionError
-from ._equilibrium import DortmundActivityCoefficients, VLE, BubblePoint, DewPoint
+from ._equilibrium import Dortmund, VLE, BubblePoint, DewPoint
 
 
 __all__ = ('Stream',)
@@ -441,7 +441,7 @@ class Stream(metaclass=metaStream):
             else:
                 raise DimensionError(f"dimensions for flow units must be in molar, mass or volumetric flow rates, not '{dim}'")
         self.ID = ID
-        self._gamma = gamma = DortmundActivityCoefficients()
+        self._gamma = gamma = Dortmund()
         self._bubble_point = BubblePoint(gamma)
         self._dew_point = DewPoint(gamma)
 

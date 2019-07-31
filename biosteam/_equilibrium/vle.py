@@ -4,7 +4,7 @@ Created on Wed Mar 20 18:40:05 2019
 
 @author: yoelr
 """
-from .._utils import isbetween, bounded_wegstein, wegstein, aitken, \
+from .._utils import bounded_wegstein, wegstein, aitken, \
                      bounded_aitken, IQ_interpolation
 import numpy as np
 

@@ -144,7 +144,7 @@ class WorkingSpecies:
         return self
     
     def __dir__(self):
-        return [i for i in super().__dir__() if (i[0]=='_' or i.isalnum())]
+        return [i for i in super().__dir__() if (i.isalnum() or (i and i[0]=='_'))]
 
     def get_synonyms(self, ID):
         dct = self._indexdct

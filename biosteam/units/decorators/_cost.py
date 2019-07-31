@@ -105,7 +105,7 @@ del BM
 @property
 def installation_cost(self):
     C = self._Cost
-    return ([C[i]*j.BM for i,j in self.cost_items.items()]).sum()
+    return sum([C[i]*j.BM for i,j in self.cost_items.items()])
 
 def cost(basis, ID=None, *, CE, cost, n, S=1, ub=0, kW=0, BM=1, units=None, fsize=None):    
     r"""Add item (free-on-board) purchase cost based on exponential scale up:

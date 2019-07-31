@@ -9,7 +9,7 @@ from thermo.utils import log, exp
 import thermo.unifac
 import os
 
-__all__ = ('DortmundActivityCoefficients',)
+__all__ = ('Dortmund',)
 
 # %% Data
 folder = os.path.join(os.path.dirname(thermo.unifac.__file__), 'Phase Change')
@@ -867,14 +867,15 @@ with open(os.path.join(folder, 'PSRK interaction parameters.tsv')) as f:
 
 # %% Activity Coefficients
 
-class DortmundActivityCoefficients:
+class Dortmund:
     __slots__ = ('_species', 'chemgroups', 'rs', 'qs', 'groupcounts')
     subgroups = DOUFSG
     interactions = DOUFIP2016
     cached = {}
     
-    def __init__(self):
+    def __init__(self, *species):
         self._species = self.chemgroups = self.rs = self.qs = self.groupcounts = None
+        if species: self.species = species
     
     @property
     def species(self):
@@ -1003,7 +1004,7 @@ class DortmundActivityCoefficients:
         return exp((-a/T - b - c*T))
     
     def __repr__(self):
-        return f"{type(self).__name__}({self.species})"
+        return f"{type(self).__name__}({', '.join([i.ID for i in self.species])})"
     
     
 # def UNIFAC(self, xs, T):
