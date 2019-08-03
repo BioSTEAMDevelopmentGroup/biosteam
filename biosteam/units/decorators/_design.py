@@ -242,13 +242,13 @@ def duty(units, N_ins, N_outs):
 
 @design.define
 def dry_flow_rate(units, N_ins, N_outs):
-    if not (N_ins == N_outs == 1):
-        raise ValueError(f"number of input and output streams must be 1 for selected basis")
+    if not (N_ins == 1):
+        raise ValueError(f"number of input streams must be 1 for selected basis")
     if units != 'kg/hr':
         raise ValueError(f"units must be in kg/hr for selected basis")
     def dry_flow(self):
         feed = self._ins[0]
-        return feed.massnet - feed.mass[feed.indices('7732-18-5', CAS=True)]
+        return feed.massnet - feed.mass[feed.index('7732-18-5')]
     return dry_flow
 
 del flow_rate, duty, dry_flow_rate

@@ -477,7 +477,7 @@ class Stream(metaclass=metaStream):
                                  f"mass or volumetric flow rates, not '{dim}'")
     
     def _setflows(self, flow, species, flow_pairs):
-        """Initialize molar flow rates accoring the species order, and flow_pairs. Instance species do not change."""
+        """Initialize molar flow rates according to the species order, and flow_pairs. Instance species do not change."""
         flowlen = len(flow)
         specieslen = len(species)
         if flowlen:
@@ -488,7 +488,7 @@ class Stream(metaclass=metaStream):
             elif (not specieslen) and (flowlen == self._species._N):
                 self._mol = np.array(flow, float)
             else:
-                ValueError('length of flow rates must be equal to length of species')
+                raise ValueError('length of flow rates must be equal to length of species')
         elif flow_pairs:
             self._mol = self._species.array(flow_pairs, [*flow_pairs.values()])
         else:

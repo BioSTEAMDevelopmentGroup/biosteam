@@ -91,7 +91,7 @@ def _cost(self):
 
 def _extended_cost(self):
     _cost(self)
-    self._end_decorated_cost_
+    self._end_decorated_cost_()
 
 @property
 def BM(self):

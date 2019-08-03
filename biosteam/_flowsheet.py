@@ -56,7 +56,10 @@ def make_digraph(units, streams):
             # Stream is not attached to anything
         elif oU not in keys:
             # Feed stream case
-            f.node(s.ID)
+            try:
+                f.node(s.ID)
+            except:
+                s.show()
             edge_in = dU._graphics.edge_in
             f.attr('edge', arrowtail='none', arrowhead='none',
                    tailport='e', **edge_in[di])

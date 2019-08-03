@@ -74,7 +74,7 @@ def IQ_interpolation(f, x0, x1, y0, y1, x, yval, xtol, ytol):
             try:
                 # False position
                 x = x0 + f0*dx1/(y1-y0)
-            except ZeroDivisionError:
+            except:
                 # Bisection
                 x = (x0+x1)/2
             else:

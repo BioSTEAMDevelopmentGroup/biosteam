@@ -50,11 +50,9 @@ class BoilerTurbogenerator(Facility):
     
     def __init__(self, ID='', ins=None, outs=(), *,
                  boiler_efficiency=0.80,
-                 turbo_generator_efficiency=0.85,
-                 moisture_content=0.5):
+                 turbo_generator_efficiency=0.85):
         Unit.__init__(self, ID, ins, outs)
         self.boiler_efficiency = boiler_efficiency
-        self.moisture_content = moisture_content
         self.turbo_generator_efficiency = turbo_generator_efficiency
         self.steam_utilities = set()
         self.steam_demand = Stream(None, species=Species('Water'), P=lps.P, T=lps.T, phase='g')
@@ -86,7 +84,8 @@ class BoilerTurbogenerator(Facility):
         Design['Flow rate'] = feed_massnet = feed.massnet
         
         # A percent of bagasse is water, so remove latent heat of vaporization
-        H_content = feed_Hc*B_eff - feed_massnet*2260*self.moisture_content
+        moisture_content = feed._mass[feed.index('7732-18-5')]/feed_massnet
+        H_content = feed_Hc*B_eff - feed_massnet*2260*moisture_content
         
         # Heat available for the turbogenerator
         H_electricity = H_content - H_steam 
