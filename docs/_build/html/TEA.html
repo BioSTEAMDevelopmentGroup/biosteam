@@ -206,52 +206,142 @@
 <span id="tea"></span><h1>TEA<a class="headerlink" href="#module-biosteam" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.TEA">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">TEA</code><span class="sig-paren">(</span><em>system</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create a TEA object that can perform cash flow analysis on a System object.</p>
+<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">TEA</code><span class="sig-paren">(</span><em>system</em>, <em>IRR</em>, <em>duration</em>, <em>depreciation</em>, <em>income_tax</em>, <em>operating_days</em>, <em>lang_factor</em>, <em>construction_schedule</em>, <em>startup_months</em>, <em>startup_FOCfrac</em>, <em>startup_VOCfrac</em>, <em>startup_salesfrac</em>, <em>WC_over_FCI</em>, <em>finance_interest</em>, <em>finance_years</em>, <em>finance_fraction</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract TEA class for cash flow analysis.</p>
+<p><strong>Abstract methods</strong></p>
+<blockquote>
+<div><p><strong>_TDC:</strong> [function] Should take direct permanent investment as an argument and return total depreciable capital (e.g. _TDC(self, DPI) -&gt; TDC).</p>
+<p><strong>_FCI:</strong> [function] Should take total depreciable capital as an argument and return fixed capital investment (e.g. _FCI(self, TDC) -&gt; FCI).</p>
+<p><strong>_FOC:</strong> [function] Should take fixed capital investment as an arguments and return fixed operating cost without depreciation (e.g. _FOC(self, FCI) -&gt; FOC).</p>
+</div></blockquote>
 <p><strong>Parameters</strong></p>
 <blockquote>
-<div><strong>system:</strong> [System] Should contain feed and product streams.</div></blockquote>
+<div><p><strong>system:</strong> [System] Should contain feed and product streams.</p>
+<p><strong>IRR:</strong> [float]  Internal rate of return (fraction).</p>
+<p><strong>duration:</strong> tuple[int, int] Start and end year of venture (e.g. (2018, 2038)).</p>
+<p><strong>depreciation:</strong> [str] ‘MACRS’ + number of years (e.g. ‘MACRS7’).</p>
+<p><strong>operating_days:</strong> [float] Number of operating days per year.</p>
+<p><strong>income_tax:</strong> [float] Combined federal and state income tax rate (fraction).</p>
+<p><strong>lang_factor:</strong> [float] Lang factor for getting fixed capital investment from total purchase cost. If no lang factor, estimate capital investment using bare module factors.</p>
+<p><strong>construction_schedule:</strong> tuple[float] Construction investment fractions per year (e.g. (0.5, 0.5) for 50% capital investment in the first year and 50% investment in the second).</p>
+<p><strong>startup_months:</strong> [float] Startup time in months.</p>
+<p><strong>startup_FOCfrac:</strong> [float] Fraction of fixed operating costs incurred during startup.</p>
+<p><strong>startup_VOCfrac:</strong> [float] Fraction of variable operating costs incurred during startup.</p>
+<p><strong>startup_salesfrac:</strong> [float] Fraction of sales achieved during startup.</p>
+<p><strong>WC_over_FCI</strong>: [float] Working capital as a fraction of fixed capital investment.</p>
+<p><strong>finanace_interest:</strong> [float] Yearly interest of capital cost financing as a fraction.</p>
+<p><strong>finance_years:</strong> [int] Number of years the loan is paid for.</p>
+<p><strong>finance_fraction:</strong> [float] Fraction of capital cost that needs to be financed.</p>
+</div></blockquote>
 <p><strong>Examples</strong></p>
 <blockquote>
 <div><a class="reference internal" href="Techno-economic analysis of a biorefinery.html"><span class="doc">Techno-economic analysis of a biorefinery</span></a></div></blockquote>
+<dl class="staticmethod">
+<dt id="biosteam.TEA.like">
+<em class="property">static </em><code class="descname">like</code><span class="sig-paren">(</span><em>system</em>, <em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.like"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.like" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a Cashflow object from <cite>system</cite> with the same settings as <cite>other</cite>.</p>
+</dd></dl>
+
 <dl class="attribute">
-<dt id="biosteam.TEA.options">
-<code class="descname">options</code><a class="headerlink" href="#biosteam.TEA.options" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>[dict] Options for cash flow analysis [-]:</dt>
-<dd><ul class="first last simple">
-<li><strong>Lang factor:</strong> Lang factor for getting fixed capital investment from total purchase cost. If no lang factor, estimate capital investment using bare module factors.</li>
-<li><strong>Operating days:</strong> (day).</li>
-<li><strong>IRR:</strong> Internal rate of return (fraction).</li>
-<li><strong>Wage:</strong> Wage per employee (USD/yr).</li>
-<li><strong>Year:</strong> Start year of venture.</li>
-<li><strong>Employees:</strong> Number of employees.</li>
-<li><strong>Fringe benefits:</strong> Cost of fringe benefits as a fraction of labor cost.</li>
-<li><strong>Income tax:</strong> Combined federal and state income tax rate (fraction).</li>
-<li><strong>Property tax:</strong> Fee as a fraction of fixed capital investment.</li>
-<li><strong>Property insurance:</strong> Fee as a fraction of fixed capital investment.</li>
-<li><strong>Duration:</strong> Duration of venture (years).</li>
-<li><strong>Supplies:</strong> Yearly fee as a fraction of labor costs.</li>
-<li><strong>Maintenance:</strong> Yearly fee as a fraction of fixed capital investment.</li>
-<li><strong>Administration:</strong> Yearly fee as a fraction of fixed capital investment.</li>
-<li><strong>Working capital:</strong> Fee as a fraction of fixed capital investment.</li>
-<li><strong>Startup:</strong> Cost of start up as a fraction of depreciable capital.</li>
-<li><strong>Land:</strong> Cost of land as a fraction of depreciable capital.</li>
-<li><strong>Royalties:</strong> Cost of royalties as a fraction of depreciable capital.</li>
-<li><strong>Depreciation:</strong> ‘MACRS’ + number of years (e.g. ‘MACRS7’).</li>
-<li><strong>Startup schedule:</strong> tuple of startup investment fractions per year, starting from year 0. For example, for 50% capital investment in year 0 and 50% investment in year 1: (0.5, 0.5).</li>
-<li><strong>Contingency:</strong> Cost as a fraction of direct permanent invesment.</li>
-<li><strong>Other recurring costs:</strong> Any additional recurring costs per year of operation.</li>
-<li><strong>Other fixed capital:</strong> Any additional investment not accounted for.</li>
-</ul>
-</dd>
-</dl>
+<dt id="biosteam.TEA.IRR">
+<code class="descname">IRR</code><a class="headerlink" href="#biosteam.TEA.IRR" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float]  Internal rate of return (fraction).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.income_tax">
+<code class="descname">income_tax</code><a class="headerlink" href="#biosteam.TEA.income_tax" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Combined federal and state income tax rate (fraction).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.lang_factor">
+<code class="descname">lang_factor</code><a class="headerlink" href="#biosteam.TEA.lang_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Lang factor for getting fixed capital investment from total purchase cost. If no lang factor, estimate capital investment using bare module factors.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.startup_FOCfrac">
+<code class="descname">startup_FOCfrac</code><a class="headerlink" href="#biosteam.TEA.startup_FOCfrac" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Fraction of fixed operating costs incurred during startup.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.startup_VOCfrac">
+<code class="descname">startup_VOCfrac</code><a class="headerlink" href="#biosteam.TEA.startup_VOCfrac" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Fraction of variable operating costs incurred during startup.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.startup_salesfrac">
+<code class="descname">startup_salesfrac</code><a class="headerlink" href="#biosteam.TEA.startup_salesfrac" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Fraction of sales achieved during startup.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.WC_over_FCI">
+<code class="descname">WC_over_FCI</code><a class="headerlink" href="#biosteam.TEA.WC_over_FCI" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Working capital as a fraction of fixed capital investment.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.finance_interest">
+<code class="descname">finance_interest</code><a class="headerlink" href="#biosteam.TEA.finance_interest" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Yearly interest of capital cost financing as a fraction.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.finance_years">
+<code class="descname">finance_years</code><a class="headerlink" href="#biosteam.TEA.finance_years" title="Permalink to this definition">¶</a></dt>
+<dd><p>[int] Number of years the loan is paid for.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.finance_fraction">
+<code class="descname">finance_fraction</code><a class="headerlink" href="#biosteam.TEA.finance_fraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Fraction of capital cost that needs to be financed.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.units">
+<code class="descname">units</code><a class="headerlink" href="#biosteam.TEA.units" title="Permalink to this definition">¶</a></dt>
+<dd><p>list[Unit] All unit operations considered</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.system">
+<code class="descname">system</code><a class="headerlink" href="#biosteam.TEA.system" title="Permalink to this definition">¶</a></dt>
+<dd><p>[System] Should contain feed and product streams.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.operating_days">
+<code class="descname">operating_days</code><a class="headerlink" href="#biosteam.TEA.operating_days" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Number of operating days per year.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.duration">
+<code class="descname">duration</code><a class="headerlink" href="#biosteam.TEA.duration" title="Permalink to this definition">¶</a></dt>
+<dd><p>tuple[int, int] Start and end year of venture.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.depreciation">
+<code class="descname">depreciation</code><a class="headerlink" href="#biosteam.TEA.depreciation" title="Permalink to this definition">¶</a></dt>
+<dd><p>[str] ‘MACRS’ + number of years (e.g. ‘MACRS7’).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.construction_schedule">
+<code class="descname">construction_schedule</code><a class="headerlink" href="#biosteam.TEA.construction_schedule" title="Permalink to this definition">¶</a></dt>
+<dd><p>tuple[float] Construction investment fractions per year, starting from year 0. For example, for 50% capital investment in year 0 and 50% investment in year 1: (0.5, 0.5).</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="biosteam.TEA.utility_cost">
 <code class="descname">utility_cost</code><a class="headerlink" href="#biosteam.TEA.utility_cost" title="Permalink to this definition">¶</a></dt>
-<dd><p>Total utility cost (USD/hr).</p>
+<dd><p>Total utility cost (USD/yr).</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -261,9 +351,87 @@
 </dd></dl>
 
 <dl class="attribute">
-<dt id="biosteam.TEA.intallation_cost">
-<code class="descname">intallation_cost</code><a class="headerlink" href="#biosteam.TEA.intallation_cost" title="Permalink to this definition">¶</a></dt>
+<dt id="biosteam.TEA.installation_cost">
+<code class="descname">installation_cost</code><a class="headerlink" href="#biosteam.TEA.installation_cost" title="Permalink to this definition">¶</a></dt>
 <dd><p>Total installation cost (USD).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.DPI">
+<code class="descname">DPI</code><a class="headerlink" href="#biosteam.TEA.DPI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Direct permanent investment.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.TDC">
+<code class="descname">TDC</code><a class="headerlink" href="#biosteam.TEA.TDC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total depreciable capital.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.FCI">
+<code class="descname">FCI</code><a class="headerlink" href="#biosteam.TEA.FCI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fixed capital investment.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.TCI">
+<code class="descname">TCI</code><a class="headerlink" href="#biosteam.TEA.TCI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total capital investment.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.FOC">
+<code class="descname">FOC</code><a class="headerlink" href="#biosteam.TEA.FOC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fixed operating costs (USD/yr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.VOC">
+<code class="descname">VOC</code><a class="headerlink" href="#biosteam.TEA.VOC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Variable operating costs (USD/yr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.AOC">
+<code class="descname">AOC</code><a class="headerlink" href="#biosteam.TEA.AOC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Annual operating cost excluding depreciation (USD/yr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.material_cost">
+<code class="descname">material_cost</code><a class="headerlink" href="#biosteam.TEA.material_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Annual material cost.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.annual_depreciation">
+<code class="descname">annual_depreciation</code><a class="headerlink" href="#biosteam.TEA.annual_depreciation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Depreciation (USD/yr) equivalent to FCI dived by the the duration of the venture.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.sales">
+<code class="descname">sales</code><a class="headerlink" href="#biosteam.TEA.sales" title="Permalink to this definition">¶</a></dt>
+<dd><p>Annual sales revenue.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.ROI">
+<code class="descname">ROI</code><a class="headerlink" href="#biosteam.TEA.ROI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return on investment (1/yr) without accounting for annualized depreciation.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.net_earnings">
+<code class="descname">net_earnings</code><a class="headerlink" href="#biosteam.TEA.net_earnings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net earnings without accounting for annualized depreciation.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.TEA.PBP">
+<code class="descname">PBP</code><a class="headerlink" href="#biosteam.TEA.PBP" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pay back period (yr) without accounting for annualized depreciation.</p>
 </dd></dl>
 
 <dl class="method">
@@ -272,16 +440,10 @@
 <dd><p>Return DataFrame of the cash flow analysis.</p>
 </dd></dl>
 
-<dl class="method">
-<dt id="biosteam.TEA.results">
-<code class="descname">results</code><span class="sig-paren">(</span><em>with_units=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.results" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return results of techno-economic analysis as a DataFrame object if <cite>with_units</cite> is True or as a Series otherwise.</p>
-</dd></dl>
-
-<dl class="method">
+<dl class="attribute">
 <dt id="biosteam.TEA.NPV">
-<code class="descname">NPV</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.NPV"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.NPV" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate NPV by cash flow analysis.</p>
+<code class="descname">NPV</code><a class="headerlink" href="#biosteam.TEA.NPV" title="Permalink to this definition">¶</a></dt>
+<dd><p>Net present value.</p>
 </dd></dl>
 
 <dl class="method">

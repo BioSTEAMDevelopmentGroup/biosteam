@@ -485,15 +485,15 @@
      "output_type": "stream",
      "text": [
       "MixedStream: feed\n",
-      " phase: 'lg', T: 381.97 K, P: 101325 Pa\n",
+      " phase: 'lg', T: 382.24 K, P: 101325 Pa\n",
       "         species   kmol/hr\n",
-      " liquid: Methanol  0.226\n",
+      " liquid: Methanol  0.222\n",
       "         Glycerol  2\n",
-      "         Water     0.66\n",
+      "         Water     0.667\n",
       "\n",
-      " vapor:  Methanol  0.774\n",
-      "         Glycerol  0.000965\n",
-      "         Water     2.12\n"
+      " vapor:  Methanol  0.778\n",
+      "         Glycerol  0.000981\n",
+      "         Water     2.11\n"
      ]
     }
    ],
@@ -575,7 +575,7 @@
     }
    ],
    "source": [
-    "bst.CE # Default year is 2018"
+    "bst.CE # Default year is 2017"
    ]
   },
   {
@@ -698,16 +698,16 @@
      "output_type": "stream",
      "text": [
       "UtilityAgent:\n",
-      " species               <Species: Water>\n",
-      " molfrac               (1.00,)\n",
+      " species     -         <Species: Water>\n",
+      " molfrac     -         (1.00,)\n",
       " T           K         305.37\n",
       " P           Pa        101,325\n",
-      " phase                 'l'\n",
+      " phase       -         'l'\n",
       " Hvap        kJ/kmol   None\n",
       " T_limit     K         324.82\n",
       " price_kJ    USD/kJ    0\n",
       " price_kmol  USD/kmol  0.0004879\n",
-      " efficiency            1.00\n"
+      " efficiency  -         1.00\n"
      ]
     }
    ],
@@ -778,16 +778,16 @@
      "output_type": "stream",
      "text": [
       "UtilityAgent:\n",
-      " species               <Species: Water>\n",
-      " molfrac               (1.00,)\n",
+      " species     -         <Species: Water>\n",
+      " molfrac     -         (1.00,)\n",
       " T           K         411.49\n",
       " P           Pa        344,738\n",
-      " phase                 'g'\n",
+      " phase       -         'g'\n",
       " Hvap        kJ/kmol   3.89e+04\n",
       " T_limit     K         None\n",
       " price_kJ    USD/kJ    0\n",
       " price_kmol  USD/kmol  0.2378\n",
-      " efficiency            0.95\n"
+      " efficiency  -         0.95\n"
      ]
     }
    ],
@@ -871,7 +871,7 @@
     {
      "data": {
       "text/plain": [
-       "[<MissingStream>]"
+       "[MissingStream]"
       ]
      },
      "execution_count": 33,
@@ -974,13 +974,13 @@
       "                    Water     220\n",
       "outs...\n",
       "[0] d1\n",
-      "    phase: 'g', T: 417.04 K, P: 101325 Pa\n",
-      "    flow (kmol/hr): Glycerol  0.731\n",
+      "    phase: 'g', T: 421.36 K, P: 101325 Pa\n",
+      "    flow (kmol/hr): Glycerol  0.921\n",
       "                    Water     199\n",
       "[1] d2\n",
-      "    phase: 'l', T: 417.04 K, P: 101325 Pa\n",
+      "    phase: 'l', T: 421.36 K, P: 101325 Pa\n",
       "    flow (kmol/hr): Glycerol  179\n",
-      "                    Water     20.6\n"
+      "                    Water     20.9\n"
      ]
     }
    ],
@@ -1032,17 +1032,17 @@
        "      <th rowspan=\"3\" valign=\"top\">Medium pressure steam</th>\n",
        "      <th>Duty</th>\n",
        "      <td>kJ/hr</td>\n",
-       "      <td>1.68e+07</td>\n",
+       "      <td>1.7e+07</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Flow</th>\n",
        "      <td>kmol/hr</td>\n",
-       "      <td>462</td>\n",
+       "      <td>470</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Cost</th>\n",
        "      <td>USD/hr</td>\n",
-       "      <td>127</td>\n",
+       "      <td>129</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th rowspan=\"6\" valign=\"top\">Design</th>\n",
@@ -1084,7 +1084,7 @@
        "    <tr>\n",
        "      <th>Heat exchanger</th>\n",
        "      <td>USD</td>\n",
-       "      <td>2.66e+04</td>\n",
+       "      <td>2.71e+04</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Purchase cost</th>\n",
@@ -1096,7 +1096,7 @@
        "      <th>Utility cost</th>\n",
        "      <th></th>\n",
        "      <td>USD/hr</td>\n",
-       "      <td>127</td>\n",
+       "      <td>129</td>\n",
        "    </tr>\n",
        "  </tbody>\n",
        "</table>\n",
@@ -1104,9 +1104,9 @@
       ],
       "text/plain": [
        "Flash                                   Units            F1\n",
-       "Medium pressure steam Duty              kJ/hr      1.68e+07\n",
-       "                      Flow            kmol/hr           462\n",
-       "                      Cost             USD/hr           127\n",
+       "Medium pressure steam Duty              kJ/hr       1.7e+07\n",
+       "                      Flow            kmol/hr           470\n",
+       "                      Cost             USD/hr           129\n",
        "Design                SepType                      Vertical\n",
        "                      Length               ft          41.5\n",
        "                      Diameter             ft             7\n",
@@ -1114,9 +1114,9 @@
        "                      Wall thickness       in         0.375\n",
        "                      Material                 Carbon steel\n",
        "Cost                  Flash               USD      9.11e+04\n",
-       "                      Heat exchanger      USD      2.66e+04\n",
+       "                      Heat exchanger      USD      2.71e+04\n",
        "Purchase cost                             USD      1.18e+05\n",
-       "Utility cost                           USD/hr           127"
+       "Utility cost                           USD/hr           129"
       ]
      },
      "execution_count": 37,
@@ -1136,9 +1136,9 @@
     {
      "data": {
       "text/plain": [
-       "Medium pressure steam  Duty                  1.68e+07\n",
-       "                       Flow                       462\n",
-       "                       Cost                       127\n",
+       "Medium pressure steam  Duty                   1.7e+07\n",
+       "                       Flow                       470\n",
+       "                       Cost                       129\n",
        "Design                 SepType               Vertical\n",
        "                       Length                    41.5\n",
        "                       Diameter                     7\n",
@@ -1146,9 +1146,9 @@
        "                       Wall thickness           0.375\n",
        "                       Material          Carbon steel\n",
        "Cost                   Flash                 9.11e+04\n",
-       "                       Heat exchanger        2.66e+04\n",
+       "                       Heat exchanger        2.71e+04\n",
        "Purchase cost                                1.18e+05\n",
-       "Utility cost                                      127\n",
+       "Utility cost                                      129\n",
        "Name: F1, dtype: object"
       ]
      },
@@ -1260,7 +1260,7 @@
    "outputs": [
     {
      "data": {
-      "image/png": "iVBORw0KGgoAAAANSUhEUgAAAU0AAABPCAYAAABvT5d7AAAABmJLR0QA/wD/AP+gvaeTAAAXhElEQVR4nO2deVhUZdvAf6RmmSIqKKsf7oWYfiqWZbmkCJiGC4ogITiBoIavGK8LmltGpYWimFtYAu4IpYCGmoobb5pLhiaKC1avQOlg2qfBfH+cmcMMA8rYwIA+v+uaa855nvvc5z5n5tzzzLPct5lKpVIhEAgEgkrxlKkNEAgEgtqEcJoCgUBgAMJpCgQCgQHUNbUBgkfjyJEj5OXlmdqMx5Y6deowZMgQ6tYVj4hAFzMxEFQ7MTMzM7UJjz3bt2/H09PT1GYIahji73ktJiEhAZVKJV5V8AK4c+eOiT9hQU1EOE2BQCAwAOE0BQKBwACE0xQIBAID0HOaWVlZmJmZPRGvrKwsU9zzKiMyMtLk97Q2vurXr2/qj87o1K9f3+T39XF4RUZG6t1bvfkUOTk5AGzctAkVUKKCEqBEpUIF6jKVXKdCq14FJai0ytAtU4EKVZnjQKVSUUKZOlmmtEwjV4Jar0aftn0ae7XkNTZotlUq2Bb2Djk5OfTo0cN431QTk5ubS7169YiPjweQBzS0J0hoD3Q8SOZhxxmiyxjHPaqdD5NJS0vju+++43Hj3r17vOXpyejRo+VnDZX2e+nzrEJ6drWfHyh9hmQ59fOmva+tt2ydRq+2PllWVeb85erTrdP2Afr6ypxfW1ZHn65tGh9Tnr7k8FByc3P17m2Fk9BGeHlRooJi9Yk17yUqyUHJZSooRl2mgmK1k9Op1z4WFcU6OqRtbR3a5yvWKitRqY9Fo1dfn+75NHp1y0pUQFhFV1678fLywsvLS8cxVHa7qmSNcVxV6fv7778fS6cJ4DVihPwcl2g5sLKNCO2GSVlZuYFEOY0enUZJxbL6DZiysiqtc2s1jjQ6yhynva8nq+UgdWXLNsi0/Ep590YF5zPSyr2vok9TIBAIDEA4TYFAIDAA4TQFAoHAAITTFAgEAgMQTlMgEAgMQDhNgUAgMADhNAUCgcAAhNMUCAQCAxBOUyAQVAt/5OezJ2krM31HmtqUf4QISy2oMRQVFXHhwgXOnz9PRkYGq1atMrVJAiPyRdQHpMStqbA+9+wZzp04TtauNLJ2p5H0261qtK7yiJamoMawatUq9u7dy/Tp09mzZ4+pzREYmfDF0RXWbYuNYX3UApo0b0Fw1CKS/1szHSaIlqagBhEeHo5KpWLZsmWmNkVQjcS89y/MmzYjfPlqnjU31wnKURMRLU1BpVm2bBlNmjThq6++Ij8/n2bNmhEbG4ulpSVWVlY0b96c2NhYWX7FihXY2Nhga2vL9evXAVi5ciX29vYkJiZSUFBAy5YtTXU5girmtlLJt0lbeLXJc/zbZyTXLuboyaz7cD4Ab0+P5Dlz8+o28ZEQTlNQKZYtW4anpyd//PEHnp6erF69GoDQ0FDS09MB8Pf3JzQ0VD4mJCQEV1dXTp8+jZ2dHStXruTNN98kLy+PwYMHExcXZ5JrEVQPc4LG8UNmJruu/MpHiZv5+dRJnfqLZ8+QuPhjXPq7kr5+HYOamzPfbxSnMw+YyOLKIZymoFJERkbKwXrNzc1555135Lru3bszd+5cvvzyS520wmfPnmXo0KFYWloCMG/ePFlHo0aNCAgIqMYrEFQnB9NTOZieinfoRBqqW5Av93fVkTmxfx8Aze3tcfMby+acPJpZ2xI5fDDnj/+n2m2uLMJpCipFYGAg7du3JykpCaVSiZWVFYWFhXJ97969Adi3b59cduDAAVxcXOR9Pz8/OnfuTEpKCkVFRVhaWnL16tXquwhBtXFot/Tvo2XbdnJZ2b/fK2fPBKB1x05yvfvYQAD2bUqsDjMfCeE0BZUiNDQUNzc3xo0bh6OjI8uXL9ep79ixI/7+/oSHh6NUKlEqlVy+fBk7OztZJigoiAEDBjBhwgScnJzElKLHmKQvKp5a9CBaqR1o+pdfGNMcoyKcpqBStG3blg0bNnDw4EECAgKYNWuWnuMcO3YsAHv37uXo0aOMHKk7ibl169asW7eO3bt34+fnx/z584XjfIIZPHYcAH8qlXp1Lq7u1W1OpTG60zyZlcWcyZN4oeEzzJv8LufPnDb2KVAW5HMsJYmYQB+j6xaUj4WFBUqlEmdnZxYvXsyBAweYPXu2joymtRkcHEx8fDzdunXTqbezs6OoqAgnJycWLlzIrl27WLBgQXVehqCamLFE+kG98OOZCmVef2soAP+9dkUu0zjQ14d7VaF1/wyjOs0j+7/Dq+/rBIVHkH37L1x6vcayBfOMeQoAti+K4vMJCk59m2503YKKiYmJkQd6LCwsmDdP/7P19vYGwNXVVa8OpGlImulHjRs31sv2V1RUVO62oHbx8hv9AVj1wTz+m3cNgBMH9sv10VMn87+v9cYnPIKvPlzAzYJ8ADJTkujh6s5rnsOr3+hKYlSnmZq0DQBbBwcA3Ed4EbNpqzFPAYB/1GKj6xQ8nKCgIJKTk2natCkpKSlMmDBBT6Zbt264urrSs2fPcnUEBgayY8cOHBwc2LlzJ0FBQXKdo6MjL774orzfpUsX2rRpY/wLEVQ51vYOpPx4DisbW4Z1ep5F4ZNp9YITr7h5MGv1OsZOkwaBxk6fxUsD3Rn9QhsGNZcGiqYsr9ldNkZdEZSwpmZfbE3kk08+ISIigoiICHx8fOjcubOpTSqXmzdvolKpmDhxouwsy6bmBVAqldjY2JTr7DQtzODgYNlZauu4fPnyA7NOPolkZmby2muvERAQgI+PD3379qVOnTqmNqtSWNs7EPHpEqZ+ukRe5fNhwmadDJQA7n5jcfMbq5eNsqZilJZmy2efxrFBfXm/Q8NneKHhM/L+7/n5xMcswcWiAVO9vTiu1UwHuFmQz9bYpbhZmTPXbxSnDurW31EqOZy8DR/bJnw6djS/XbpoDLNrBNnZ2QB89tlndOnShXbt2rFgwQI5/3xtIyUlhSFDhpjajMcGzZSs+Ph4BgwYQIsWLQgLC+Po0aMmtuzJxShO8+rde1y+83/y/vnbf5F9+y9AcpjzJoVgZWvLf27ewTt0IpPe8iBH3UF8syCfRWETsLSxJT1fiWdQKDOHDyb37I+yvphJQWQfOcSac1eYsm4Dl8+cMobZNYJnnnmGunXrcv/+fQBycnKYN28e7dq1o1u3bixZsoRff/3VxFY+mA8//FBeRnn9+nV69eplapMeK7S/H4WFhXz++ef07NkTBwcHIiMjOXv2rIktfLKo8ilHWfu/Y39aKgPVo2HdX1dPgv46GZA6h4/sSqPP0BEAdH5Nqj/8jVT//e50ju9OxyM4lAbqybGd+/WvarNNiuYB+eGHH5g6dSr29vb07t2btWvXcvPmTRNbp4+9vT0AixcvZtq0aSa25vHn3r17AOTl5fHxxx/j7OyMk5MTUVFRXLly5SFHC/4pVR7laOeWTQB0a9xAp/zLRR8xbsYs9mzbDICrZSOd+s2ffcLoaZGc2LMbAJvWbSlR920928g4C/uPHTtGvXr1jKLrUbl4seKuBpVKxd9//w1IfVuHDh0iJCREZ5VNTcDPz48xY8Y8dn2PNeH7cezYsQfWa35gs7OzmTVrFjNmzKBTp07VYdoTS5U7zf1pOwE4fuuOuqNXRbFK6gguAQ6npwKwu6BIKlN3Bher63dX4cqApUuXsnTp0irTX1nq1n34x1BSInWNFxcXc/jwYeDJHiCpDmrT9wOQf2BPnzb+3GhBKdW2IuhKzoUH1ueVEzaqqklISJBHaU31CgkJeaidTz31FHXq1KFOnTq4u7uTkJAAgJmZWVXfoieamvD90HzWD0PTIu7atSvR0RUH+xX8c6rcab6/VFoZkLpxA7fVs/3/yM9n43LpFzz8sxgAMjZvkFcD3CzIJ3mFVD5+0RIArmgNDD0JmJmZUbduXczMzOjZsyfLly/nxo0bpKam4uMjVkIJSh1lu3bteP/997l48SLHjx8nLCzMxJYZxs2CfPZv38o8v1GmNqVSGM1pZmstl7ys1arsO2gwAGs+iaJvS2tesniOQe0d6ateQtXL400AEhd/zPA29ng0N2eMUxteHSLVd+n7BgCbP15AwXVpNcpPh0rj7SXMmGqsS6gRaB6Ejh07EhUVxdWrV8nMzCQ4OJimTZtWyTmzsrIICwvjueeeY/Lkyezfvx+lUol5FQSFLSoqkgeOBIbz9NNPA2BjY8OUKVM4efIkP//8MzNnzqR169Ymtu7RWP/RQqKCAjm2K83ouu8WKQlztDSqTqPN03R/qXRwYmCXTvI8zaZWVqSdPY/iPWlUdViggu1nztHCXlo1ZGFpxYaTP+ETHgGAh/844k78hJWd9GBZ2tkT+/2PNLW25V2XTsRNm4J9hxfoMsCNoOVrGDKldo/W3r17V+6LcnR0ZMaMGZw7d44zZ84QHh5e5Q4mKyuLPn360KtXL/7880+io6Np2rQpCoWiSs4n5hcajub7YWFhgUKh4ODBg1y/fp2oqKgauxjCECZ98lmV6b547IjRdRplIOjq3XvyIE4xuoM5IK0MCImcTfDM2ToDQRqa2zswdvos3p4WqXcsSI5z3EefEhC1WDoWFWFxifJ2cS0eD/Hz86Nu3boEBQWZZFQ8Pj4eAC+v0gAJnTp1YtasWaSlGfeXv6ioqNJ9dAKJXr16MWrUKPz9/RkwYEClB4UEUivz8IavjK5XhIYzMf369WP16tUmm0b0yy+/AHDmjG40Gu1pKzExMVhYWNCkSROaNGmiExJOO0eQJpjHihUrsLa2Jj4+noKCAmxtbeXyb7/9FgAHBwcc1DEKQJq0vXr1alq1aoVCoeDIkSNy+Y4dOwgODgaksHMdOnRgzpw58qT/1NRUnJycmDt3bo1fCGAoLVu2ZOPGjbi7u1eZwyy4cYNdO3fgN0zqEkv4Yi12zz7NjHcnculCaVdbYX4+e1N3EjJyOEXKW8yd/C4x8+fK9beVSnZt20L3xg3oYdGA5C/j+CM/X+98fyqV7Nu+lf6WjZjtO5LrZQaBh7RojGeLxgyzbiyXjbSxwNvGAh/bJjqyd4uUHEtJQuHQlHccmnEwsdRJ7lm5nB8zdgHwL0crwltZ/YO7VIpwmk8477//PgAvv/wycXFxKLViG2q2J02aJDu7gIAAnUAdoaGhDBw4kOzsbOzt7YmNjWXIkCH89ttvDBkyhLVr18qyERER8va1a9e4dk2KflNYWEhERATW1tbk5uYSGBiIr68v2dnZTJ8+ncmTJ7N3717OnTtHv3792LRpExs2bGDlypWcOnUKDw8P9uzZw6ZNm+TcRYLK08HejjHDhrJr5w6OZx3DN3Ac536TnF3fzs7kqh3n9NBggr2Gszd1J5fOncd7nII/tKL3RwYF8uft23x/6w67LlwhMy2Vhe+GygPAGhaGKDh1KJOUS9eZl7CZnNO6uYPWn9WfSRP7ffkDwSvfHc8vP59jzbXfWX2tkKs/nubrRQsBeHPqdFnus8v5LM7Vd+CPgnCaTzidOnXi1KlTKBQKJk6ciK2tLVu3btVxngAuLi7Mnz+fuLg4vTxAI0aMkPMAzZkzRyeX0Lhx4x5qw6FDh8jIyGDwYGnQ8JVXXgEgLS1NJ0jx888/D0jRjwA2btwo9+nZ2NgAsGnTJsNvwhNO4b378na3Hi8B0KhxY8YopKAqGanSXOtVW5JkudbPd6BDpxeZHS3NgtGs/OujHthtYmXF2PD3yExP5ai6tQfSvOzD6amMCJkop7/o/oZuGMHGlvotQks7/b79oylJnPw2nTcCSvNV9RzhzfWfqnZZqXCaAtq1a8eSJUvYt28fCoWCgIAA7Ozs9Po0+/TpA0h/kTXs379fp2vB39+fjh07kpycjFKpxNLSUu4CqIiUlBRAGghr1aoVrVq1AtCLDC+oXpzUYfo+mP5vvbpG5o119ncnSw61qVWpw3PsIP3I7d6yWS47miGt8LNv01Yue9TUvUe3bwHAXMvJtu7anZAvqrbfXDhNgUyPHj2Ijo5m7969uLu7M2rUKB3H6ezsTEBAAJMnT5bzAF26dElnhH/8+PG4uroyfvx42rdvz+eff/7Q82ZkZABSaLjc3Fxyc3O5dOnSA5eYCmoWW9bqd4toslAeUq/6A0iJe7TcQeXxg4mCkAun+YTToEGDcv+KL14sBXrWRGLXEBgoZQvMyMjg8OHDevVt2rRh/fr17NmzB39/f+bOnVspxwmQm5v7qJchqEJ8FUEPlentPgiQopqVxTOgaqav/e8ANwCu/VS9C1+E0xRw4sQJvTLNyLa7u26CK01rU6FQsH79erp3765T37x5c5RKJR07duSjjz4iIyOj3LQY2kRFRQGQlJQkp7goLCxkzRrjtUoEhqMZOe/r5vZQWQ8vaTXP9culP3yaAaB+nsPksvfUKwAvnq04d1Bl6aJ2mvvWx3G3SDrX79fz2FDFC16E0xTg4eEhrwICadR861YpTUnZHD4Ao0ePBmDgwIHl6ouNjZWjtFtYWOgkYBswYAAABQUF8iCPJp9QTEwML774Iq1atcLFxQUPDw+d3OraDlWDZvv333+Xy7S3BYaRvFkaSCu6dYttiQn09xhEfw+pFVlYTitSQy9XV3q7e7B28cdya/PIt7sYGqCgmzocJICLOqxj3ML53FDnDjqpFXQ89r1/AeDmL/2j+UU9HenC8f/IMnHTpgDQdaAHXQa48d36OCY5OfKOQzPSlkfTT1Eaz8G5v/QdvV1YwHerYw2+H+UhnKaAO3fuYGtry7Zt22jYsCF2dnZkZ2dz4sQJnJ2d9eS7d++Om5sbr776arn6FAoFX3/9NdbW1nzzzTeMHz9ertNMO4qLi2PYMKkF0qxZM44cOcKkSZMA8PX1JTMzE1tbW3r06CEf27VrV6B0dB2QbdAOfPz6668/0n0QQLvnX8B/+FCet7bCzsGB6C/i5LqXHEv7rkNG6iY+a2jemNkxK3jdfRCubf+HHhZSKMjQOfN15FrYO7DpVDaWNrb4dHFi6dTJOL7gxEsD3fn3yi/w/fcMAIaHhePi6s6kV7vz/e502nVzoZurG5NWrGW4eiqRuaUVgZ8sYXCY1LIc9G44/RUhtGhdmmpl0FRJ38F1q+k+TDel9KNipioTXywxMRFfX1/+LimRVvioQ7Rp3ku0wroVy6uAqHBFkLaO8kLDaba1dWifr1irrESlklcBSXr19emeT6NXt6xEBQvaW5OQkFBrg1+YmZnp2e/r6wtIq3zK5tipzHZlZW/dusXcuXNZtGhRlZ2juvSlpaUxc+ZMvTB75d3f2oSZmRnx8fF4+/jIz51KzsGjfoa0tps9LcU8+O2v+zqymlw+mmdLpX72VJQ+cw+T1c77U76seruMrKyjzHHa+3qymnI9WW27dWXLvTcqSA4PpXOjZ/RWsYmWpsBgkpOTeeutt0xthkBgEoTTFFSKDz74QF5GmZeXJ/4CP0YU3LhRup1/4wGSAqiGyO2CxwPNXMzo6GjefvttE1sjMCYd7O3kbWcHO375654Jran5CKcpqBT+/v6ysxRpNh4vCu/d1+nvK0F8vg9C/D0XCAQCAxBOUyAQCAxAOE2BQCAwAOE0BQKBwACE0xQIBAIDEE5TIBAIDEA4TYFAIDAA4TQFAoHAACqc3O49ahQq9cJ2kCa+qpAWtJfuq9QyVCCjkvf1ZcroLU+3XplmX/WA4x6mWyXb8jiSmJjI/fv39SaglzchvTJlNfE4Y+rWJIx7HBkzZgzJKSk6z4y0pfWuKn1GSutUOs+U5l3e1nqWKLe8rD7dZ1JPr965NIFVHs2Gcq+z0tdUqjU77Rs6lxOwRc9p9uvXD29vb4qLizEzAzDTFTCrcKdW0dnbm379+pnaDKPi7e3N/ftSkiwzM93Ppuy+QMLLy4u2bds+XLCWMX36dHJypFiU5T7HGsotFt8VAGcvL73MBFBOaDhB7aC2hy6r6Yj7K6gI0acpEAgEBiCcpkAgEBiAiHJUi9myZQv16tUztRkCwROF6NOspdSvX59790Tcw6rk2LFjOjmKBAIQTlMgEAgMQvRpCgQCgQEIpykQCAQGIJymQCAQGEBdYIqpjRAIBILawv8DQ6kwhLA7mRsAAAAASUVORK5CYII=\n",
+      "image/png": "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\n",
       "text/plain": [
        "<IPython.core.display.Image object>"
       ]
@@ -1332,9 +1332,9 @@
       "System: sys1\n",
       " recycle: d5\n",
       " network: (M1, F1, S1)\n",
-      " convergence error: Flow rate   9.80e-03 kmol/hr\n",
-      "                    Temperature 7.87e-04 K\n",
-      " iterations: 11\n"
+      " convergence error: Flow rate   3.80e-03 kmol/hr\n",
+      "                    Temperature 9.29e-02 K\n",
+      " iterations: 5\n"
      ]
     }
    ],
@@ -1355,16 +1355,16 @@
       "Flash: F1\n",
       "ins...\n",
       "[0] d4  from  Mixer-M1\n",
-      "    phase: 'l', T: 327.55 K, P: 101325 Pa\n",
+      "    phase: 'l', T: 328.21 K, P: 101325 Pa\n",
       "    flow (kmol/hr): Glycerol  200\n",
       "                    Water     533\n",
       "outs...\n",
       "[0] product\n",
-      "    phase: 'g', T: 377.45 K, P: 101325 Pa\n",
-      "    flow (kmol/hr): Glycerol  0.08\n",
+      "    phase: 'g', T: 379.17 K, P: 101325 Pa\n",
+      "    flow (kmol/hr): Glycerol  0.0893\n",
       "                    Water     367\n",
       "[1] d2  to  Splitter-S1\n",
-      "    phase: 'l', T: 377.45 K, P: 101325 Pa\n",
+      "    phase: 'l', T: 379.17 K, P: 101325 Pa\n",
       "    flow (kmol/hr): Glycerol  200\n",
       "                    Water     167\n"
      ]
@@ -1415,7 +1415,7 @@
        "    <tr>\n",
        "      <th>Flow</th>\n",
        "      <td>kmol/hr</td>\n",
-       "      <td>524</td>\n",
+       "      <td>526</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Cost</th>\n",
@@ -1462,13 +1462,13 @@
        "    <tr>\n",
        "      <th>Heat exchanger</th>\n",
        "      <td>USD</td>\n",
-       "      <td>3.22e+04</td>\n",
+       "      <td>3.26e+04</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Purchase cost</th>\n",
        "      <th></th>\n",
        "      <td>USD</td>\n",
-       "      <td>9.38e+04</td>\n",
+       "      <td>9.42e+04</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>Utility cost</th>\n",
@@ -1483,7 +1483,7 @@
       "text/plain": [
        "Flash                                Units            F1\n",
        "Low pressure steam Duty              kJ/hr      2.04e+07\n",
-       "                   Flow            kmol/hr           524\n",
+       "                   Flow            kmol/hr           526\n",
        "                   Cost             USD/hr           105\n",
        "Design             SepType                      Vertical\n",
        "                   Length               ft          32.5\n",
@@ -1492,8 +1492,8 @@
        "                   Wall thickness       in         0.312\n",
        "                   Material                 Carbon steel\n",
        "Cost               Flash               USD      6.16e+04\n",
-       "                   Heat exchanger      USD      3.22e+04\n",
-       "Purchase cost                          USD      9.38e+04\n",
+       "                   Heat exchanger      USD      3.26e+04\n",
+       "Purchase cost                          USD      9.42e+04\n",
        "Utility cost                        USD/hr           105"
       ]
      },

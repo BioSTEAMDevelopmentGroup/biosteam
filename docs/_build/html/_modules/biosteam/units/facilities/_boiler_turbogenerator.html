@@ -197,7 +197,7 @@
 <span class="c1">#: TODO add reference of NREL</span>
 
 <div class="viewcode-block" id="BoilerTurbogenerator"><a class="viewcode-back" href="../../../../facilities.html#biosteam.units.facilities.BoilerTurbogenerator">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Work&#39;</span><span class="p">,</span> <span class="s1">&#39;Turbogenerator&#39;</span><span class="p">,</span>
-      <span class="n">CE</span><span class="o">=</span><span class="mi">551</span><span class="p">,</span> <span class="n">S</span><span class="o">=-</span><span class="mi">42200</span><span class="p">,</span> <span class="n">kW</span><span class="o">=-</span><span class="mi">42200</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mf">9500e3</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.83</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">1.8</span><span class="p">)</span>
+      <span class="n">CE</span><span class="o">=</span><span class="mi">551</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mi">42200</span><span class="p">,</span> <span class="n">kW</span><span class="o">=-</span><span class="mi">42200</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mf">9500e3</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.60</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">1.8</span><span class="p">)</span>
 <span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;Hot process water softener system&#39;</span><span class="p">,</span> 
       <span class="n">CE</span><span class="o">=</span><span class="mi">551</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mf">78e3</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mi">235803</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">1.8</span><span class="p">)</span>
 <span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;Amine addition pkg&#39;</span><span class="p">,</span> 
@@ -232,10 +232,10 @@
     
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="o">*</span><span class="p">,</span>
                  <span class="n">boiler_efficiency</span><span class="o">=</span><span class="mf">0.80</span><span class="p">,</span>
-                 <span class="n">turbo_generator_efficiency</span><span class="o">=</span><span class="mf">0.85</span><span class="p">):</span>
+                 <span class="n">turbogenerator_efficiency</span><span class="o">=</span><span class="mf">0.85</span><span class="p">):</span>
         <span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">boiler_efficiency</span> <span class="o">=</span> <span class="n">boiler_efficiency</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">turbo_generator_efficiency</span> <span class="o">=</span> <span class="n">turbo_generator_efficiency</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">turbogenerator_efficiency</span> <span class="o">=</span> <span class="n">turbogenerator_efficiency</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">steam_utilities</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">steam_demand</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">),</span> <span class="n">P</span><span class="o">=</span><span class="n">lps</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">lps</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">)</span>
     
@@ -243,16 +243,16 @@
     
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">B_eff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boiler_efficiency</span>
-        <span class="n">TG_eff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">turbo_generator_efficiency</span>
+        <span class="n">TG_eff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">turbogenerator_efficiency</span>
         <span class="n">steam</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">steam_demand</span>
         <span class="n">steam_utilities</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">steam_utilities</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">steam_utilities</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">_costunits</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">system</span><span class="o">.</span><span class="n">units</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">u</span> <span class="ow">is</span> <span class="bp">self</span><span class="p">:</span> <span class="k">continue</span>
                 <span class="k">for</span> <span class="n">hu</span> <span class="ow">in</span> <span class="n">u</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">hu</span><span class="o">.</span><span class="n">ID</span> <span class="o">==</span> <span class="s1">&#39;Low pressure steam&#39;</span><span class="p">:</span>
                         <span class="n">steam_utilities</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">hu</span><span class="p">)</span>
-        <span class="n">steam</span><span class="o">.</span><span class="n">_mol</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">flow</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">steam_utilities</span><span class="p">)</span>
+        <span class="n">steam</span><span class="o">.</span><span class="n">_mol</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">flow</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">steam_utilities</span><span class="p">])</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">emission</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">hu_cooling</span><span class="p">,</span> <span class="n">hu_steam</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span>
@@ -262,17 +262,18 @@
         <span class="c1"># This is simply for the mass balance (no special purpose)</span>
         <span class="n">emission</span><span class="o">.</span><span class="n">mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span> <span class="c1"># TODO: In reality, this should be CO2</span>
         
-        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
-        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">feed_massnet</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">massnet</span>
-        
-        <span class="c1"># 50 percent of bagasse is water, so remove latent heat of vaporization</span>
-        <span class="n">H_content</span> <span class="o">=</span> <span class="n">feed_Hc</span><span class="o">*</span><span class="n">B_eff</span> <span class="o">-</span> <span class="n">feed_massnet</span><span class="o">*</span><span class="mi">1130</span> 
+        <span class="c1"># A percent of bagasse is water, so remove latent heat of vaporization</span>
+        <span class="n">feed_massnet</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">massnet</span>
+        <span class="n">moisture_content</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">_mass</span><span class="p">[</span><span class="n">feed</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;7732-18-5&#39;</span><span class="p">)]</span><span class="o">/</span><span class="n">feed_massnet</span>
+        <span class="n">H_content</span> <span class="o">=</span> <span class="n">feed_Hc</span><span class="o">*</span><span class="n">B_eff</span> <span class="o">-</span> <span class="n">feed_massnet</span><span class="o">*</span><span class="mi">2260</span><span class="o">*</span><span class="n">moisture_content</span>
         
         <span class="c1"># Heat available for the turbogenerator</span>
         <span class="n">H_electricity</span> <span class="o">=</span> <span class="n">H_content</span> <span class="o">-</span> <span class="n">H_steam</span> 
         
         <span class="c1">#: [float] Total steam produced by the boiler (kmol/hr)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">total_steam</span> <span class="o">=</span> <span class="n">H_content</span><span class="o">/</span><span class="n">lps</span><span class="o">.</span><span class="n">Hvap</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">total_steam</span> <span class="o">=</span> <span class="n">H_content</span><span class="o">/</span><span class="mi">70000</span> <span class="c1"># Superheat steam with 70000 kJ/kmol</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_steam</span> <span class="o">*</span> <span class="mf">18.01528</span>
         
         <span class="k">if</span> <span class="n">H_electricity</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">H_steam</span> <span class="o">=</span> <span class="n">H_content</span>
@@ -282,9 +283,8 @@
             <span class="n">cooling</span> <span class="o">=</span> <span class="n">electricity</span> <span class="o">-</span> <span class="n">H_electricity</span>
         <span class="n">hu_cooling</span><span class="p">(</span><span class="n">cooling</span><span class="p">,</span> <span class="n">steam</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="n">hu_steam</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="s1">&#39;Low pressure steam&#39;</span>
-        <span class="n">molnet</span> <span class="o">=</span> <span class="n">steam</span><span class="o">.</span><span class="n">molnet</span>
-        <span class="n">hu_steam</span><span class="o">.</span><span class="n">cost</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="n">molnet</span><span class="o">*</span><span class="n">lps</span><span class="o">.</span><span class="n">price_kmol</span> <span class="o">+</span> <span class="n">H_steam</span><span class="o">*</span><span class="n">lps</span><span class="o">.</span><span class="n">price_kJ</span><span class="p">)</span>
-        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Work&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">electricity</span><span class="o">/</span><span class="mi">3600</span><span class="p">)</span>        </div>
+        <span class="n">hu_steam</span><span class="o">.</span><span class="n">cost</span> <span class="o">=</span> <span class="o">-</span><span class="nb">sum</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">cost</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">steam_utilities</span><span class="p">])</span>
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Work&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">electricity</span><span class="o">/</span><span class="mi">3600</span>        </div>
 
 <span class="c1"># Simulation of ethanol production from sugarcane</span>
 <span class="c1"># in Brazil: economic study of an autonomous</span>

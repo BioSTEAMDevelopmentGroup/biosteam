@@ -388,11 +388,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">fermentation</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_efficiency</span><span class="p">(</span><span class="n">effluent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tau</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fermentation</span><span class="p">(</span><span class="n">effluent_mol</span><span class="p">)</span>
         <span class="n">vent</span><span class="o">.</span><span class="n">copyflow</span><span class="p">(</span><span class="n">effluent</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;CO2&#39;</span><span class="p">,),</span> <span class="n">remove</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="n">effluent</span><span class="o">.</span><span class="n">P_vapor</span><span class="o">/</span><span class="mi">101325</span>
-        <span class="n">Y</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
-        <span class="n">mol2vent</span> <span class="o">=</span> <span class="n">vent</span><span class="o">.</span><span class="n">molnet</span><span class="o">*</span><span class="n">Y</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">Y</span><span class="p">)</span><span class="o">*</span><span class="n">y</span>
-        <span class="n">effluent_mol</span><span class="p">[:]</span> <span class="o">-=</span> <span class="n">mol2vent</span>
-        <span class="n">vent</span><span class="o">.</span><span class="n">mol</span> <span class="o">+=</span> <span class="n">mol2vent</span>
+        <span class="n">vent</span><span class="o">.</span><span class="n">recieve_vent</span><span class="p">(</span><span class="n">effluent</span><span class="p">)</span>
     
     <span class="k">def</span> <span class="nf">number_of_reactors_at_minimum_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">cost_old</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>

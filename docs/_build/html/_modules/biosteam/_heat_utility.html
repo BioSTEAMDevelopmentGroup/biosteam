@@ -308,16 +308,16 @@
         
         <span class="k">def</span> <span class="nf">_ipython_display_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;{type(self).__name__}:</span><span class="se">\n</span><span class="s2">&quot;</span>
-                 <span class="o">+</span><span class="n">f</span><span class="s2">&quot; species               {repr(self.species)}</span><span class="se">\n</span><span class="s2">&quot;</span>
-                 <span class="o">+</span><span class="n">f</span><span class="s2">&quot; molfrac               ({&#39;, &#39;.join([format(i,&#39;.2f&#39;) for i in self.molfrac])},)</span><span class="se">\n</span><span class="s2">&quot;</span>
+                 <span class="o">+</span><span class="n">f</span><span class="s2">&quot; species     -         {repr(self.species)}</span><span class="se">\n</span><span class="s2">&quot;</span>
+                 <span class="o">+</span><span class="n">f</span><span class="s2">&quot; molfrac     -         ({&#39;, &#39;.join([format(i,&#39;.2f&#39;) for i in self.molfrac])},)</span><span class="se">\n</span><span class="s2">&quot;</span>
                  <span class="o">+</span><span class="n">f</span><span class="s2">&quot; T           K         </span><span class="si">{self.T:,.2f}</span><span class="se">\n</span><span class="s2">&quot;</span>
                  <span class="o">+</span><span class="n">f</span><span class="s2">&quot; P           Pa        </span><span class="si">{self.P:,.0f}</span><span class="se">\n</span><span class="s2">&quot;</span>
-                 <span class="o">+</span><span class="n">f</span><span class="s2">&quot; phase                 &#39;</span><span class="si">{self.phase}</span><span class="s2">&#39;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                 <span class="o">+</span><span class="n">f</span><span class="s2">&quot; phase       -         &#39;</span><span class="si">{self.phase}</span><span class="s2">&#39;</span><span class="se">\n</span><span class="s2">&quot;</span>
                  <span class="o">+</span><span class="n">f</span><span class="s2">&quot; Hvap        kJ/kmol   {self.Hvap and format(self.Hvap, &#39;,.4g&#39;)}</span><span class="se">\n</span><span class="s2">&quot;</span>
                  <span class="o">+</span><span class="n">f</span><span class="s2">&quot; T_limit     K         {self.T_limit and format(self.T_limit, &#39;,.2f&#39;)}</span><span class="se">\n</span><span class="s2">&quot;</span>
                  <span class="o">+</span><span class="n">f</span><span class="s2">&quot; price_kJ    USD/kJ    </span><span class="si">{self.price_kJ:.4g}</span><span class="se">\n</span><span class="s2">&quot;</span>
                  <span class="o">+</span><span class="n">f</span><span class="s2">&quot; price_kmol  USD/kmol  </span><span class="si">{self.price_kmol:.4g}</span><span class="se">\n</span><span class="s2">&quot;</span>
-                 <span class="o">+</span><span class="n">f</span><span class="s2">&quot; efficiency            </span><span class="si">{self.efficiency:.2f}</span><span class="s2">&quot;</span><span class="p">)</span>
+                 <span class="o">+</span><span class="n">f</span><span class="s2">&quot; efficiency  -         </span><span class="si">{self.efficiency:.2f}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="c1"># lines = out.splitlines()</span>
             <span class="c1"># wt_units_index = (3, 4, 6, 7, 8, 9)</span>
             <span class="c1"># units = (&#39;K&#39;, &#39;Pa&#39;, &#39;kJ/kmol&#39;, &#39;K&#39;, &#39;USD/kJ&#39;, &#39;USD/kmol&#39;)</span>

@@ -188,7 +188,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">least_squares</span>
 <span class="kn">from</span> <span class="nn">._equilibrium</span> <span class="k">import</span> <span class="n">VLE</span><span class="p">,</span> <span class="n">BubblePoint</span><span class="p">,</span> <span class="n">DewPoint</span><span class="p">,</span> \
-                          <span class="n">DortmundActivityCoefficients</span>
+                          <span class="n">Dortmund</span>
 <span class="kn">from</span> <span class="nn">._species</span> <span class="k">import</span> <span class="n">Species</span><span class="p">,</span> <span class="n">WorkingSpecies</span>
 <span class="kn">from</span> <span class="nn">._stream</span> <span class="k">import</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">nonzero_species</span><span class="p">,</span> <span class="n">MassFlow</span><span class="p">,</span> \
                             <span class="n">mol_flow_dim</span><span class="p">,</span> <span class="n">mass_flow_dim</span><span class="p">,</span> <span class="n">vol_flow_dim</span><span class="p">,</span> \
@@ -281,7 +281,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">T</span>  <span class="c1">#: [float] Temperature (K)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">=</span> <span class="n">P</span>  <span class="c1">#: [float] Pressure (Pa)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_lL_split_cached</span> <span class="o">=</span> <span class="p">(</span><span class="kc">None</span><span class="p">,)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span> <span class="o">=</span> <span class="n">gamma</span> <span class="o">=</span> <span class="n">DortmundActivityCoefficients</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_gamma</span> <span class="o">=</span> <span class="n">gamma</span> <span class="o">=</span> <span class="n">Dortmund</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_bubble_point</span> <span class="o">=</span> <span class="n">BubblePoint</span><span class="p">(</span><span class="n">gamma</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dew_point</span> <span class="o">=</span> <span class="n">DewPoint</span><span class="p">(</span><span class="n">gamma</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_setflows</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_N</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">))</span>
@@ -791,9 +791,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">VLE</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;A VLE object for vapor-liquid equilibrium. VLE objects are callable with the following signature:</span>
-<span class="sd">        </span>
-<span class="sd">        VLE(species_IDs=(), LNK=(), HNK=(), P=None, Q=None, T=None, V=None, x=None, y=None):</span>
+        <span class="sd">&quot;&quot;&quot;A callable VLE object for vapor-liquid equilibrium.</span>
 
 <span class="sd">        **Parameters**</span>
 <span class="sd">        </span>
@@ -814,7 +812,7 @@
 <span class="sd">                **HNK:** tuple[str] Heavy non-keys that remain as a liquid.</span>
 
 <span class="sd">        .. Note:</span>
-<span class="sd">           LNK and HNK are not taken into account for equilibrium.</span>
+<span class="sd">           LNK and HNK are not taken into account for equilibrium. Parameters not specified are None by default.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_VLE</span>
@@ -1073,199 +1071,6 @@
 <span class="n">Stream</span><span class="o">.</span><span class="n">VLE</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">MixedStream</span><span class="o">.</span><span class="n">VLE</span><span class="o">.</span><span class="vm">__doc__</span>
 <span class="n">Stream</span><span class="o">.</span><span class="n">LLE</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">MixedStream</span><span class="o">.</span><span class="n">LLE</span><span class="o">.</span><span class="vm">__doc__</span>
 <span class="n">MixedStream</span><span class="o">.</span><span class="n">mu</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">Stream</span><span class="o">.</span><span class="n">mu</span><span class="o">.</span><span class="vm">__doc__</span>
-
-<span class="c1">#         def v_given_TPmol(v_guess, T, P, mol):</span>
-<span class="c1">#             # Return equilibrium vapor flow rates</span>
-<span class="c1">#             # given T, P and molar flow rates.</span>
-<span class="c1">#             Psat_P = np.array([s.VaporPressure(T) for s in species])/P</span>
-<span class="c1">#             actcoef = self.activity_coefficients</span>
-<span class="c1">#             def v_error(v):</span>
-<span class="c1">#                 # Error function for constant T and P,</span>
-<span class="c1">#                 # where v represents vapor flow rates.</span>
-<span class="c1">#                 l = mol - v</span>
-<span class="c1">#                 x = l/l.sum()</span>
-<span class="c1">#                 return abs(x*Psat_P * actcoef(species, x, T) - v/v.sum())</span>
-            
-<span class="c1">#             return least_squares(v_error, v_guess,</span>
-<span class="c1">#                                  bounds=(np.zeros(Nspecies), mol),</span>
-<span class="c1">#                                  ftol=0.001).x</span>
-
-<span class="c1">#         if eq == &#39;VP&#39;:</span>
-<span class="c1">#             if V == 1:</span>
-<span class="c1">#                 self.T = T_dew</span>
-<span class="c1">#                 vapor_mol[index] = mol</span>
-<span class="c1">#                 liquid_mol[index] = 0</span>
-<span class="c1">#                 return</span>
-<span class="c1">#             elif V == 0:</span>
-<span class="c1">#                 self.T = T_bubble</span>
-<span class="c1">#                 vapor_mol[index] = 0</span>
-<span class="c1">#                 liquid_mol[index] = mol</span>
-<span class="c1">#                 return</span>
-<span class="c1">#             else:</span>
-<span class="c1">#                 def V_error(T):</span>
-<span class="c1">#                     nonlocal v</span>
-<span class="c1">#                     if T &gt; T_dew:</span>
-<span class="c1">#                         return V - (1 + T - T_dew)</span>
-<span class="c1">#                     elif T &lt; T_bubble:</span>
-<span class="c1">#                         return V - (T - T_bubble)</span>
-<span class="c1">#                     v = v_given_TPmol(v, T, P, mol)</span>
-<span class="c1">#                     return V - v.sum()/molnet</span>
-                
-<span class="c1">#                 # Guess vapor flow rates and solve</span>
-<span class="c1">#                 T = self.T</span>
-<span class="c1">#                 if (T_dew &lt; T &lt; T_dew):</span>
-<span class="c1">#                     v = vapor_mol[index]/molnet</span>
-<span class="c1">#                     self.T = golden_ratio(V_error, T_bubble-0.1, T_dew+0.1, 0.0001, T)</span>
-<span class="c1">#                 else:</span>
-<span class="c1">#                     y = V*zf + (1-V)*y_bubble</span>
-<span class="c1">#                     v = y*V*molnet</span>
-<span class="c1">#                     P = V*T_dew + (1-V)*T_bubble</span>
-<span class="c1">#                     self.T = golden_ratio(V_error, T_bubble-0.1, T_dew+0.1, 0.0001, T)</span>
-                
-<span class="c1">#                 vapor_mol[index] = v</span>
-<span class="c1">#                 liquid_mol[index] = mol - vapor_mol[index]</span>
-<span class="c1">#         elif eq == &#39;VT&#39;:</span>
-<span class="c1">#             if V == 1:</span>
-<span class="c1">#                 self.P = P_dew</span>
-<span class="c1">#                 vapor_mol[index] = mol</span>
-<span class="c1">#                 liquid_mol[index] = 0</span>
-<span class="c1">#                 return</span>
-<span class="c1">#             elif V == 0:</span>
-<span class="c1">#                 self.P = P_bubble</span>
-<span class="c1">#                 vapor_mol[index] = 0</span>
-<span class="c1">#                 liquid_mol[index] = mol</span>
-<span class="c1">#                 return</span>
-<span class="c1">#             else:</span>
-<span class="c1">#                 def V_error(P):</span>
-<span class="c1">#                     nonlocal v</span>
-<span class="c1">#                     if P &lt; P_dew:</span>
-<span class="c1">#                         return V - (1 + P_dew - P)</span>
-<span class="c1">#                     elif P &gt; P_bubble:</span>
-<span class="c1">#                         return V - (P_bubble - P)</span>
-<span class="c1">#                     v = v_given_TPmol(v, T, P, mol)</span>
-<span class="c1">#                     return V - v.sum()/molnet</span>
-                
-<span class="c1">#                 # Guess vapor flow rates and solve</span>
-<span class="c1">#                 P = self.P</span>
-<span class="c1">#                 if (P_dew &lt; P &lt; P_bubble):</span>
-<span class="c1">#                     v = vapor_mol[index]/molnet</span>
-<span class="c1">#                     self.P = golden_ratio(V_error, P_dew-10, P_bubble+10, 10, P)</span>
-<span class="c1">#                 else:</span>
-<span class="c1">#                     y = V*zf + (1-V)*y_bubble</span>
-<span class="c1">#                     v = y*V*molnet</span>
-<span class="c1">#                     P = V*P_dew + (1-V)*P_bubble</span>
-<span class="c1">#                     self.P = golden_ratio(V_error, P_dew-10, P_bubble+10, 10, P)</span>
-                    
-<span class="c1">#                 vapor_mol[index] = v</span>
-<span class="c1">#                 liquid_mol[index] = mol - vapor_mol[index]        </span>
-<span class="c1">#         elif eq == &#39;TP&#39;:</span>
-<span class="c1">#             y = self._y_cached[1] if self._y_cached[0] == species else None</span>
-<span class="c1">#             if y is None:</span>
-<span class="c1">#                 # Guess composition in the vapor is a</span>
-<span class="c1">#                 # weighted average of bubble/dew points</span>
-<span class="c1">#                 f = (T - T_dew)/(T_bubble - T_dew)</span>
-<span class="c1">#                 y = f*zf + (1-f)*y_bubble</span>
-            
-<span class="c1">#             # Check if there is equilibrium</span>
-<span class="c1">#             if T &gt;= T_dew:</span>
-<span class="c1">#                 vapor_mol[index] = mol</span>
-<span class="c1">#                 liquid_mol[index] = 0</span>
-<span class="c1">#                 return</span>
-<span class="c1">#             elif T &lt;= T_bubble:</span>
-<span class="c1">#                 vapor_mol[index] = 0</span>
-<span class="c1">#                 liquid_mol[index] = mol</span>
-<span class="c1">#                 return</span>
-<span class="c1">#             else:</span>
-<span class="c1">#                 # Guess overall vapor fraction</span>
-<span class="c1">#                 V_guess = (T - T_bubble)/(T_dew - T_bubble)</span>
-                
-<span class="c1">#                 # Guess vapor flow rates</span>
-<span class="c1">#                 v_guess = y * V_guess * mol</span>
-
-<span class="c1">#                 # Solve</span>
-<span class="c1">#                 vapor_mol[index] = v = v_given_TPmol(v_guess, T, P, mol)</span>
-<span class="c1">#             self._y_cached = (species, v/v.sum())</span>
-<span class="c1">#             liquid_mol[index] = mol - v</span>
-<span class="c1">#         elif eq == &#39;QP&#39;:</span>
-<span class="c1">#             # Check if super heated vapor</span>
-<span class="c1">#             vapor_mol[index] = mol</span>
-<span class="c1">#             liquid_mol[index] = 0</span>
-<span class="c1">#             self.T = T_dew</span>
-<span class="c1">#             H_dew = self.H</span>
-<span class="c1">#             if Hin &gt;= H_dew:</span>
-<span class="c1">#                 self.H = Hin</span>
-<span class="c1">#                 return</span>
-
-<span class="c1">#             # Check if subcooled liquid</span>
-<span class="c1">#             vapor_mol[index] = 0</span>
-<span class="c1">#             liquid_mol[index] = mol</span>
-<span class="c1">#             self.T = T_bubble</span>
-<span class="c1">#             H_bubble = self.H</span>
-<span class="c1">#             if Hin &lt;= H_bubble:</span>
-<span class="c1">#                 self.H = Hin</span>
-<span class="c1">#                 return</span>
-
-<span class="c1">#             def H_error(T):</span>
-<span class="c1">#                 nonlocal v</span>
-<span class="c1">#                 self.T = T</span>
-<span class="c1">#                 vapor_mol[index] = v = v_given_TPmol(v, T, P, mol)</span>
-<span class="c1">#                 liquid_mol[index] = mol - v</span>
-<span class="c1">#                 return Hin - self.H</span>
-
-<span class="c1">#             # Guess T, overall vapor fraction, and vapor flow rates</span>
-<span class="c1">#             T = self.T</span>
-<span class="c1">#             if T_bubble &lt; T &lt; T_dew:</span>
-<span class="c1">#                 v = vapor_mol[index]/molnet</span>
-<span class="c1">#             else:</span>
-<span class="c1">#                 T = T_bubble + (Hin - H_bubble)/(H_dew - H_bubble) * (T_dew - T_bubble)</span>
-<span class="c1">#                 V_guess = (T - T_bubble)/(T_dew - T_bubble)</span>
-<span class="c1">#                 # Guess composition in the vapor is a weighted average of boiling points</span>
-<span class="c1">#                 f = (T - T_dew)/(T_bubble - T_dew)</span>
-<span class="c1">#                 y = f*zf + (1-f)*y_bubble</span>
-<span class="c1">#                 v = y * V_guess * mol</span>
-            
-<span class="c1">#             # Solve</span>
-<span class="c1">#             v = y * V_guess * mol</span>
-<span class="c1">#             self.T = golden_ratio(H_error, T_bubble, T_dew, 0.0001, T)</span>
-<span class="c1">#         elif eq == &#39;QT&#39;:</span>
-<span class="c1">#             # Check if super heated vapor</span>
-<span class="c1">#             vapor_mol[index] = mol</span>
-<span class="c1">#             liquid_mol[index] = 0</span>
-<span class="c1">#             self.P = P_dew</span>
-<span class="c1">#             H_dew = self.H</span>
-<span class="c1">#             if Hin &gt;= H_dew:</span>
-<span class="c1">#                 self.H = Hin</span>
-<span class="c1">#                 return</span>
-
-<span class="c1">#             # Check if subcooled liquid</span>
-<span class="c1">#             vapor_mol[index] = 0</span>
-<span class="c1">#             liquid_mol[index] = mol</span>
-<span class="c1">#             self.P = P_bubble</span>
-<span class="c1">#             H_bubble = self.H</span>
-<span class="c1">#             if Hin &lt;= H_bubble:</span>
-<span class="c1">#                 self.H = Hin</span>
-<span class="c1">#                 return</span>
- 
-<span class="c1">#             def H_error(P):</span>
-<span class="c1">#                 nonlocal v</span>
-<span class="c1">#                 self.P = P</span>
-<span class="c1">#                 vapor_mol[index] = v = v_given_TPmol(v, T, P, mol)</span>
-<span class="c1">#                 liquid_mol[index] = mol - v</span>
-<span class="c1">#                 return Hin - self.H</span>
-
-<span class="c1">#             # Guess P, overall vapor fraction, and vapor flow rates</span>
-<span class="c1">#             P = self.P</span>
-<span class="c1">#             if P_dew &lt; P &lt; P_bubble:</span>
-<span class="c1">#                 v = vapor_mol[index]/molnet</span>
-<span class="c1">#             else:</span>
-<span class="c1">#                 P = P_bubble + (Hin - H_bubble)/(H_dew - H_bubble) * (P_dew - P_bubble)</span>
-<span class="c1">#                 V_guess = (P - P_bubble)/(P_dew - P_bubble)</span>
-<span class="c1">#                 f = (P - P_dew)/(P_bubble - P_dew)</span>
-<span class="c1">#                 y = f*zf + (1-f)*y_bubble</span>
-<span class="c1">#                 v = y * V_guess * mol</span>
-            
-<span class="c1">#             # Solve</span>
-<span class="c1">#             self.P = golden_ratio(H_error, P_dew, P_bubble, 10, P)</span>
 </pre></div>
 
            </div>

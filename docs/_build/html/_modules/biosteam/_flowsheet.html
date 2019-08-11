@@ -200,7 +200,7 @@
     <span class="c1"># Set up unit nodes</span>
     <span class="n">UD</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Contains full description (ID and line) by ID</span>
     <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">:</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="s1">&#39;link_streams&#39;</span><span class="p">):</span> <span class="n">u</span><span class="o">.</span><span class="n">_link_streams</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="s1">&#39;link_streams&#39;</span><span class="p">):</span> <span class="n">u</span><span class="o">.</span><span class="n">link_streams</span><span class="p">()</span>
         <span class="n">graphics</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">_graphics</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">graphics</span><span class="o">.</span><span class="n">in_system</span><span class="p">:</span>
             <span class="k">continue</span>  <span class="c1"># Ignore Unit</span>
@@ -223,7 +223,7 @@
     <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;edge&#39;</span><span class="p">,</span> <span class="nb">dir</span><span class="o">=</span><span class="s1">&#39;foward&#39;</span><span class="p">)</span>
     
     <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">streams</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span><span class="p">:</span> <span class="k">continue</span>  <span class="c1"># Ignore stream</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">s</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">s</span><span class="o">.</span><span class="n">ID</span><span class="p">:</span> <span class="k">continue</span>  <span class="c1"># Ignore stream</span>
 
         <span class="n">oU</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">_source</span>
         <span class="k">if</span> <span class="n">oU</span><span class="p">:</span>
@@ -232,7 +232,7 @@
         <span class="n">dU</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">_sink</span>
         <span class="k">if</span> <span class="n">dU</span><span class="p">:</span>
             <span class="n">di</span> <span class="o">=</span> <span class="n">dU</span><span class="o">.</span><span class="n">_ins</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-
+        
         <span class="c1"># Make stream nodes / unit-stream edges / unit-unit edges</span>
         <span class="k">if</span> <span class="n">oU</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">keys</span> <span class="ow">and</span> <span class="n">dU</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span> <span class="k">pass</span>
             <span class="c1"># Stream is not attached to anything</span>
@@ -254,8 +254,12 @@
             <span class="c1"># Process stream case</span>
             <span class="n">edge_in</span> <span class="o">=</span> <span class="n">dU</span><span class="o">.</span><span class="n">_graphics</span><span class="o">.</span><span class="n">edge_in</span>
             <span class="n">edge_out</span> <span class="o">=</span> <span class="n">oU</span><span class="o">.</span><span class="n">_graphics</span><span class="o">.</span><span class="n">edge_out</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;edge&#39;</span><span class="p">,</span> <span class="n">arrowtail</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">arrowhead</span><span class="o">=</span><span class="s1">&#39;normal&#39;</span><span class="p">,</span>
-                   <span class="o">**</span><span class="n">edge_in</span><span class="p">[</span><span class="n">di</span><span class="p">],</span> <span class="o">**</span><span class="n">edge_out</span><span class="p">[</span><span class="n">oi</span><span class="p">])</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;edge&#39;</span><span class="p">,</span> <span class="n">arrowtail</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">arrowhead</span><span class="o">=</span><span class="s1">&#39;normal&#39;</span><span class="p">,</span>
+                       <span class="o">**</span><span class="n">edge_in</span><span class="p">[</span><span class="n">di</span><span class="p">],</span> <span class="o">**</span><span class="n">edge_out</span><span class="p">[</span><span class="n">oi</span><span class="p">])</span>
+            <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">attr</span><span class="p">(</span><span class="s1">&#39;edge&#39;</span><span class="p">,</span> <span class="n">arrowtail</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">arrowhead</span><span class="o">=</span><span class="s1">&#39;normal&#39;</span><span class="p">,</span>
+                       <span class="n">tailport</span><span class="o">=</span><span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="n">headport</span><span class="o">=</span><span class="s1">&#39;c&#39;</span><span class="p">)</span>
             <span class="n">f</span><span class="o">.</span><span class="n">edge</span><span class="p">(</span><span class="n">UD</span><span class="p">[</span><span class="n">oU</span><span class="p">],</span> <span class="n">UD</span><span class="p">[</span><span class="n">dU</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">f</span>
 

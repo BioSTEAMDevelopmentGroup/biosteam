@@ -871,7 +871,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.P_vapor">
 <code class="descname">P_vapor</code><a class="headerlink" href="#biosteam.Stream.P_vapor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Vapor pressure (Pa).</p>
+<dd><p>Vapor pressure (Pa), not taking into account light species always in gas phase.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
@@ -897,11 +897,13 @@
 <dt id="biosteam.Stream.nonzero_species">
 <code class="descname">nonzero_species</code><a class="headerlink" href="#biosteam.Stream.nonzero_species" title="Permalink to this definition">¶</a></dt>
 <dd><p>Flow indices and species that have a non-zero flow rate.</p>
-<p>from biosteam import *
-&gt;&gt;&gt; Stream.species = Species(‘Ethanol’, ‘Water’)
-&gt;&gt;&gt; s1 = Stream(Water=2)
-&gt;&gt;&gt; s1.nonzero_species
-[1], [‘Water’]</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span><span class="o">.</span><span class="n">nonzero_species</span>
+<span class="go">[1], [&#39;Water&#39;]</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="method">
@@ -1181,8 +1183,7 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.VLE">
 <code class="descname">VLE</code><a class="headerlink" href="#biosteam.Stream.VLE" title="Permalink to this definition">¶</a></dt>
-<dd><p>A VLE object for vapor-liquid equilibrium. VLE objects are callable with the following signature:</p>
-<p>VLE(species_IDs=(), LNK=(), HNK=(), P=None, Q=None, T=None, V=None, x=None, y=None):</p>
+<dd><p>A callable VLE object for vapor-liquid equilibrium.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
 <div><dl class="docutils">

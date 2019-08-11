@@ -554,8 +554,7 @@
         <span class="n">xi</span> <span class="o">=</span> <span class="n">x_stairs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
         <span class="k">while</span> <span class="n">xi</span> <span class="o">&lt;</span> <span class="n">x_limit</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Cannot meet specifications! Stages &gt; 100&#39;</span><span class="p">)</span>
-                <span class="k">return</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s1">&#39;cannot meet specifications! stages &gt; 100&#39;</span><span class="p">)</span>
             <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="c1"># Go Up</span>
             <span class="n">T</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">bubble_T</span><span class="p">(</span><span class="n">array</span><span class="p">((</span><span class="n">xi</span><span class="p">,</span> <span class="mi">1</span><span class="o">-</span><span class="n">xi</span><span class="p">)),</span> <span class="n">P</span><span class="p">)</span>

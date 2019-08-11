@@ -200,42 +200,57 @@
 <span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Process water flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;Tank&#39;</span><span class="p">,</span>
       <span class="n">CE</span><span class="o">=</span><span class="mi">522</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mf">250e3</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mi">451555</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">1.7</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">ProcessWaterCenter</span><span class="p">(</span><span class="n">Facility</span><span class="p">):</span>
-    <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">2</span>
-    <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">makeup_water_price</span> <span class="o">=</span> <span class="mf">0.0002113</span> <span class="c1">#: (USD/kg)</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    **ins**</span>
+<span class="sd">    </span>
+<span class="sd">        [0] Recycle water</span>
+<span class="sd">        </span>
+<span class="sd">        [1] Make-up water</span>
+<span class="sd">        </span>
+<span class="sd">        [2] Boiler water</span>
+<span class="sd">        </span>
+<span class="sd">        [3] Cooling tower water</span>
+<span class="sd">        </span>
+<span class="sd">    **outs**</span>
+<span class="sd">    </span>
+<span class="sd">        [0] Process water</span>
+<span class="sd">        </span>
+<span class="sd">        [1] Boiler water</span>
+<span class="sd">        </span>
+<span class="sd">        [2] Cooling tower water</span>
+<span class="sd">    </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">3</span>
     <span class="n">boiler_blowdown</span> <span class="o">=</span> <span class="mf">0.002</span>
     <span class="n">RO_rejection</span> <span class="o">=</span> <span class="mf">0.25</span>
     <span class="n">CT_evaporation</span> <span class="o">=</span> <span class="mf">0.001</span>
     <span class="n">CT_blowdown</span> <span class="o">=</span> <span class="mf">0.01</span>
     <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Makeup water flow rate&#39;</span><span class="p">:</span> <span class="s1">&#39;kg/hr&#39;</span><span class="p">,</span>
               <span class="s1">&#39;Process water flow rate&#39;</span><span class="p">:</span> <span class="s1">&#39;kg/hr&#39;</span><span class="p">}</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="o">*</span><span class="p">,</span> <span class="n">BT</span><span class="p">,</span> <span class="n">CT</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="o">*</span><span class="p">,</span> <span class="n">BT</span><span class="p">,</span> <span class="n">CT</span><span class="p">):</span>
         <span class="n">Facility</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">)</span>
-        <span class="n">makeup_water</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;Makeup_water&#39;</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">bst</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,))</span> 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">link</span> <span class="o">=</span> <span class="n">makeup_water</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">makeup_water</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">BT</span> <span class="o">=</span> <span class="n">BT</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">CT</span> <span class="o">=</span> <span class="n">CT</span>
         
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">s_recycle</span><span class="p">,</span> <span class="n">s_makeup</span><span class="p">,</span> <span class="n">s_BT</span><span class="p">,</span> <span class="n">s_CT</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span>
+        <span class="n">s_process</span><span class="p">,</span> <span class="n">s_BT_</span><span class="p">,</span> <span class="n">s_CT_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+        <span class="n">s_BT</span><span class="o">.</span><span class="n">link</span> <span class="o">=</span> <span class="n">s_BT_</span>
+        <span class="n">s_CT</span><span class="o">.</span><span class="n">link</span> <span class="o">=</span> <span class="n">s_CT_</span>
         <span class="n">process_water</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">molnet</span>
-        <span class="n">recycle_water</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">molnet</span>
-        <span class="n">boiler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">BT</span><span class="o">.</span><span class="n">total_steam</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">boiler_blowdown</span> <span class="o">*</span> <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">RO_rejection</span><span class="p">)</span>
-        <span class="n">cooling_tower</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CT</span><span class="o">.</span><span class="n">cooling_water</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CT_evaporation</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">CT_blowdown</span><span class="p">)</span>
-        <span class="n">makeup_water_stream</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> 
-        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
+        <span class="n">recycle_water</span> <span class="o">=</span> <span class="n">s_recycle</span><span class="o">.</span><span class="n">molnet</span>
+        <span class="n">wi</span> <span class="o">=</span> <span class="n">s_BT</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;7732-18-5&#39;</span><span class="p">)</span>
+        <span class="n">s_BT</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">wi</span><span class="p">]</span> <span class="o">=</span> <span class="n">BT_water</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">BT</span><span class="o">.</span><span class="n">total_steam</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">boiler_blowdown</span> <span class="o">*</span> <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">RO_rejection</span><span class="p">)</span>
+        <span class="n">wi</span> <span class="o">=</span> <span class="n">s_CT</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;7732-18-5&#39;</span><span class="p">)</span>
+        <span class="n">s_CT</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">wi</span><span class="p">]</span> <span class="o">=</span> <span class="n">CT_water</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">CT</span><span class="o">.</span><span class="n">cooling_water</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">CT_evaporation</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">CT_blowdown</span><span class="p">)</span>
         <span class="n">process_loss</span> <span class="o">=</span> <span class="n">process_water</span> <span class="o">-</span> <span class="n">recycle_water</span>
-        <span class="k">if</span> <span class="n">process_loss</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">makeup_water</span> <span class="o">=</span> <span class="n">boiler</span> <span class="o">+</span> <span class="n">cooling_tower</span> <span class="o">+</span> <span class="n">process_loss</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">makeup_water</span> <span class="o">=</span> <span class="n">boiler</span> <span class="o">+</span> <span class="n">cooling_tower</span>
-        <span class="n">makeup_water_stream</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">makeup_water</span>
-        
-        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Process water flow rate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">process_water</span> <span class="o">+</span> <span class="n">boiler</span> <span class="o">+</span> <span class="n">cooling_tower</span><span class="p">)</span><span class="o">*</span><span class="mf">18.015</span>
-        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Makeup water flow rate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">makeup_water</span><span class="o">*</span><span class="mf">18.015</span>
-        <span class="n">makeup_water_stream</span><span class="o">.</span><span class="n">price</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">makeup_water_price</span></div>
+        <span class="n">makeup_water</span> <span class="o">=</span> <span class="n">process_loss</span> <span class="k">if</span> <span class="n">process_loss</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="n">wi</span> <span class="o">=</span> <span class="n">s_makeup</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;7732-18-5&#39;</span><span class="p">)</span>
+        <span class="n">s_makeup</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">wi</span><span class="p">]</span> <span class="o">=</span> <span class="n">makeup_water</span>
+        <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Process water flow rate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">process_water</span> <span class="o">+</span> <span class="n">BT_water</span> <span class="o">+</span> <span class="n">CT_water</span><span class="p">)</span><span class="o">*</span><span class="mf">18.015</span>
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Makeup water flow rate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">makeup_water</span> <span class="o">+</span> <span class="n">BT_water</span> <span class="o">+</span> <span class="n">CT_water</span><span class="p">)</span><span class="o">*</span><span class="mf">18.015</span></div>
         
         
 </pre></div>

@@ -98,9 +98,10 @@
 <li class="toctree-l1"><a class="reference internal" href="Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">7. Techno-economic analysis of a biorefinery</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#Perform-cash-flow-analysis">7.1. Perform cash flow analysis</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Find-production-cost,-price,-and-IRR">7.2. Find production cost, price, and IRR</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#System-report">7.3. System report</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Inhereting-from-TEA-objects">7.1. Inhereting from TEA objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Perform-cash-flow-analysis">7.2. Perform cash flow analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Find-production-cost,-price,-and-IRR">7.3. Find production cost, price, and IRR</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#System-report">7.4. System report</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
@@ -373,20 +374,146 @@ div.nboutput div.output_area.stderr {
 </style>
 <div class="section" id="Techno-economic-analysis-of-a-biorefinery">
 <h1>7. Techno-economic analysis of a biorefinery<a class="headerlink" href="#Techno-economic-analysis-of-a-biorefinery" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="Perform-cash-flow-analysis">
-<h2>7.1. Perform cash flow analysis<a class="headerlink" href="#Perform-cash-flow-analysis" title="Permalink to this headline">¶</a></h2>
-<p>Create a TEA object from a system:</p>
-<div class="nbinput docutils container">
+<p>TEA objects can perform cashflow analysis on a System object and
+arguments for cashflow analysis. These include arguments such as
+operating days, lang factor, and income tax, as well as arguments for
+taking into account startup operation, construction schedule, and
+capital cost financing.</p>
+<div class="section" id="Inhereting-from-TEA-objects">
+<h2>7.1. Inhereting from TEA objects<a class="headerlink" href="#Inhereting-from-TEA-objects" title="Permalink to this headline">¶</a></h2>
+<p>Depending on the rigour and flexibility of the techno-economic analysis,
+different parameters may be needed to calculate total depreciable
+capital (TDC), fixed capital investment (FCI), and fixed operating cost
+(FOC). For this reason, the TEA object is left as an <em>abstract class</em>
+with <em>abstract methods</em> <code class="docutils literal notranslate"><span class="pre">_TDC</span></code>, <code class="docutils literal notranslate"><span class="pre">_FCI</span></code>, and <code class="docutils literal notranslate"><span class="pre">_FOC</span></code>. Here is an
+example TEA subclass from the lipidcane biorefinery design for the
+co-production of ethanol and biodiesel:</p>
+<div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [1]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
-<span class="kn">import</span> <span class="nn">lipidcane</span> <span class="k">as</span> <span class="nn">lc</span>
 
-<span class="n">lc</span><span class="o">.</span><span class="n">lipidcane_sys</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
-<span class="n">lipidcane_tea</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">TEA</span><span class="p">(</span><span class="n">lc</span><span class="o">.</span><span class="n">lipidcane_sys</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">LipidcaneTEA</span><span class="p">(</span><span class="n">bst</span><span class="o">.</span><span class="n">TEA</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create a TEA_lipidcane object for techno-economic analysis of a biorefinery [1]</span>
+
+<span class="sd">    Parameters</span>
+
+<span class="sd">        system: [System] Should contain feed and product streams.</span>
+
+<span class="sd">        IRR: [float]  Internal rate of return (fraction).</span>
+
+<span class="sd">        duration: tuple[int, int] Start and end year of venture (e.g. (2018, 2038)).</span>
+
+<span class="sd">        depreciation: [str] &#39;MACRS&#39; + number of years (e.g. &#39;MACRS7&#39;).</span>
+
+<span class="sd">        operating_days: [float] Number of operating days per year.</span>
+
+<span class="sd">        income_tax: [float] Combined federal and state income tax rate (fraction).</span>
+
+<span class="sd">        lang_factor: [float] Lang factor for getting fixed capital investment from</span>
+<span class="sd">        total purchase cost. If no lang factor, estimate capital investment</span>
+<span class="sd">        using bare module factors.</span>
+
+<span class="sd">        startup_schedule: tuple[float] Startup investment fractions per year</span>
+<span class="sd">        (e.g. (0.5, 0.5) for 50% capital investment in the first year and 50%</span>
+<span class="sd">        investment in the second).</span>
+
+<span class="sd">        WC_over_FCI: [float] Working capital as a fraction of fixed capital investment.</span>
+
+<span class="sd">        labor_cost: [float] Total labor cost (USD/yr).</span>
+
+<span class="sd">        fringe_benefits: [float] Cost of fringe benefits as a fraction of labor cost.</span>
+
+<span class="sd">        property_tax: [float] Fee as a fraction of fixed capital investment.</span>
+
+<span class="sd">        property_insurance: [float] Fee as a fraction of fixed capital investment.</span>
+
+<span class="sd">        supplies: [float] Yearly fee as a fraction of labor cost.</span>
+
+<span class="sd">        maintenance: [float] Yearly fee as a fraction of fixed capital investment.</span>
+
+<span class="sd">        administration: [float] Yearly fee as a fraction of fixed capital investment.</span>
+
+<span class="sd">    References</span>
+
+<span class="sd">        [1] Huang, H., Long, S., &amp; Singh, V. (2016). Techno-economic analysis of biodiesel</span>
+<span class="sd">        and ethanol co-production from lipid-producing sugarcane. Biofuels, Bioproducts</span>
+<span class="sd">        and Biorefining, 10(3), 299–315. https://doi.org/10.1002/bbb.1640</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">IRR</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">depreciation</span><span class="p">,</span> <span class="n">income_tax</span><span class="p">,</span>
+                 <span class="n">operating_days</span><span class="p">,</span> <span class="n">lang_factor</span><span class="p">,</span> <span class="n">construction_schedule</span><span class="p">,</span> <span class="n">WC_over_FCI</span><span class="p">,</span>
+                 <span class="n">labor_cost</span><span class="p">,</span> <span class="n">fringe_benefits</span><span class="p">,</span> <span class="n">property_tax</span><span class="p">,</span>
+                 <span class="n">property_insurance</span><span class="p">,</span> <span class="n">supplies</span><span class="p">,</span> <span class="n">maintenance</span><span class="p">,</span> <span class="n">administration</span><span class="p">):</span>
+        <span class="c1"># Huang et. al. does not take into account financing or startup</span>
+        <span class="c1"># so these parameters are 0 by default</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">IRR</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">depreciation</span><span class="p">,</span> <span class="n">income_tax</span><span class="p">,</span>
+                         <span class="n">operating_days</span><span class="p">,</span> <span class="n">lang_factor</span><span class="p">,</span> <span class="n">construction_schedule</span><span class="p">,</span>
+                         <span class="n">startup_months</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">startup_FOCfrac</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">startup_VOCfrac</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                         <span class="n">startup_salesfrac</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">finance_interest</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">finance_years</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                         <span class="n">finance_fraction</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">WC_over_FCI</span><span class="o">=</span><span class="n">WC_over_FCI</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labor_cost</span> <span class="o">=</span> <span class="n">labor_cost</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fringe_benefits</span> <span class="o">=</span> <span class="n">fringe_benefits</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">property_tax</span> <span class="o">=</span> <span class="n">property_tax</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">property_insurance</span> <span class="o">=</span> <span class="n">property_insurance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">supplies</span><span class="o">=</span> <span class="n">supplies</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maintenance</span> <span class="o">=</span> <span class="n">maintenance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">administration</span> <span class="o">=</span> <span class="n">administration</span>
+
+    <span class="c1"># The abstract _TDC method should take direct permanent investment</span>
+    <span class="c1"># and return the total depreciable capital. Huang et. al. assume</span>
+    <span class="c1"># these values are equal</span>
+    <span class="k">def</span> <span class="nf">_TDC</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">DPI</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">DPI</span>
+
+    <span class="c1"># The abstract _FCI method should take total depreciable capital</span>
+    <span class="c1"># and return the fixed capital investment. Again, Huang et. al.</span>
+    <span class="c1"># assume these values are equal.</span>
+    <span class="k">def</span> <span class="nf">_FCI</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">TDC</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">TDC</span>
+
+    <span class="c1"># The abstract _FOC method should take fixed capital investment</span>
+    <span class="c1"># and return the fixed operating cost.</span>
+    <span class="k">def</span> <span class="nf">_FOC</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">FCI</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">FCI</span><span class="o">*</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">property_tax</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">property_insurance</span>
+                     <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">maintenance</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">administration</span><span class="p">)</span>
+                <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">labor_cost</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">fringe_benefits</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">supplies</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="Perform-cash-flow-analysis">
+<h2>7.2. Perform cash flow analysis<a class="headerlink" href="#Perform-cash-flow-analysis" title="Permalink to this headline">¶</a></h2>
+<p>Create a TEA object from a system:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">lipidcane</span> <span class="k">as</span> <span class="nn">lc</span>
+
+<span class="n">lipidcane_tea</span> <span class="o">=</span> <span class="n">LipidcaneTEA</span><span class="p">(</span><span class="n">system</span><span class="o">=</span><span class="n">lc</span><span class="o">.</span><span class="n">lipidcane_sys</span><span class="p">,</span>
+                             <span class="n">IRR</span><span class="o">=</span><span class="mf">0.15</span><span class="p">,</span>
+                             <span class="n">duration</span><span class="o">=</span><span class="p">(</span><span class="mi">2018</span><span class="p">,</span> <span class="mi">2038</span><span class="p">),</span>
+                             <span class="n">depreciation</span><span class="o">=</span><span class="s1">&#39;MACRS7&#39;</span><span class="p">,</span>
+                             <span class="n">income_tax</span><span class="o">=</span><span class="mf">0.35</span><span class="p">,</span>
+                             <span class="n">operating_days</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+                             <span class="n">lang_factor</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+                             <span class="n">construction_schedule</span><span class="o">=</span><span class="p">(</span><span class="mf">0.4</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">),</span>
+                             <span class="n">WC_over_FCI</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+                             <span class="n">labor_cost</span><span class="o">=</span><span class="mf">2.5e6</span><span class="p">,</span>
+                             <span class="n">fringe_benefits</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span>
+                             <span class="n">property_tax</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
+                             <span class="n">property_insurance</span><span class="o">=</span><span class="mf">0.005</span><span class="p">,</span>
+                             <span class="n">supplies</span><span class="o">=</span><span class="mf">0.20</span><span class="p">,</span>
+                             <span class="n">maintenance</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+                             <span class="n">administration</span><span class="o">=</span><span class="mf">0.005</span><span class="p">)</span>
+
 <span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">show</span><span class="p">()</span> <span class="c1"># Print TEA summary at current options</span>
 </pre></div>
 </div>
@@ -396,71 +523,20 @@ div.nboutput div.output_area.stderr {
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-TEA: lipid_cane_system
- NPV: 2.09e+08 USD at 15.0% IRR
- ROI: 0.3 1/yr
- PBP: 2.74 yr
+LipidcaneTEA: lipid_cane_system
+ NPV: 7.59e+07 USD at 15.0% IRR
+ ROI: 0.194 1/yr
+ PBP: 4.92 yr
 </pre></div></div>
 </div>
-<p>TEA objects have a long list of options for cash flow analysis:</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [2]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">options</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[2]:
-</pre></div>
-</div>
-<div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>{&#39;Lang factor&#39;: 3,
- &#39;Operating days&#39;: 330,
- &#39;IRR&#39;: 0.15,
- &#39;Wage&#39;: 50000.0,
- &#39;Year&#39;: None,
- &#39;Employees&#39;: 50,
- &#39;Fringe benefits&#39;: 0.4,
- &#39;Income tax&#39;: 0.35,
- &#39;Property tax&#39;: 0.001,
- &#39;Property insurance&#39;: 0.005,
- &#39;Duration&#39;: 20,
- &#39;Supplies&#39;: 0.2,
- &#39;Maintenance&#39;: 0.01,
- &#39;Administration&#39;: 0.005,
- &#39;Working capital&#39;: 0.05,
- &#39;Startup&#39;: 0,
- &#39;Land&#39;: 0,
- &#39;Royalties&#39;: 0,
- &#39;Contingency&#39;: 0.18,
- &#39;Depreciation&#39;: &#39;MACRS7&#39;,
- &#39;Startup schedule&#39;: (0.4, 0.6),
- &#39;Other recurring costs&#39;: 0,
- &#39;Other fixed capital&#39;: 0}
-</pre></div>
-</div>
-</div>
-<p>Update options and retrieve results from cash flow analysis:</p>
+<p>Retrieve complete cashflow analysis as a DataFrame object:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [3]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;IRR&#39;</span><span class="p">:</span> <span class="mf">0.175</span><span class="p">,</span>
-           <span class="s1">&#39;Lang factor&#39;</span><span class="p">:</span> <span class="mf">3.00</span><span class="p">,</span>
-           <span class="s1">&#39;Operating days&#39;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
-           <span class="s1">&#39;Year&#39;</span><span class="p">:</span> <span class="mi">2020</span><span class="p">,</span>
-           <span class="s1">&#39;Employees&#39;</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span>
-           <span class="s1">&#39;Administration&#39;</span><span class="p">:</span> <span class="mf">0.005</span><span class="p">,</span>
-           <span class="s1">&#39;Duration&#39;</span><span class="p">:</span> <span class="mi">20</span><span class="p">}</span>
-<span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
-<span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
+<span></span><span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">get_cashflow</span><span class="p">()</span>
 </pre></div>
 </div>
 </div>
@@ -488,257 +564,215 @@ TEA: lipid_cane_system
   <thead>
     <tr style="text-align: right;">
       <th></th>
-      <th>Units</th>
-      <th>Value</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
       <th>Depreciable capital</th>
-      <td>USD</td>
-      <td>1.93e+08</td>
-    </tr>
-    <tr>
       <th>Fixed capital investment</th>
-      <td>USD</td>
-      <td>1.93e+08</td>
-    </tr>
-    <tr>
       <th>Working capital</th>
-      <td>USD</td>
-      <td>9.63e+06</td>
-    </tr>
-    <tr>
-      <th>Total capital investment</th>
-      <td>USD</td>
-      <td>2.02e+08</td>
-    </tr>
-    <tr>
       <th>Depreciation</th>
-      <td>USD/yr</td>
-      <td>9.63e+06</td>
-    </tr>
-    <tr>
-      <th>Utility cost</th>
-      <td>USD/yr</td>
-      <td>-2.71e+07</td>
-    </tr>
-    <tr>
-      <th>Material cost</th>
-      <td>USD/yr</td>
-      <td>6.16e+07</td>
-    </tr>
-    <tr>
-      <th>Sales</th>
-      <td>USD/yr</td>
-      <td>1.02e+08</td>
-    </tr>
-    <tr>
-      <th>Labor</th>
-      <td>USD/yr</td>
-      <td>2.5e+06</td>
-    </tr>
-    <tr>
-      <th>Annual operating cost</th>
-      <td>USD/yr</td>
-      <td>5.22e+07</td>
-    </tr>
-    <tr>
-      <th>Net present value</th>
-      <td>USD</td>
-      <td>2.85e+07</td>
-    </tr>
-    <tr>
-      <th>Return on investment</th>
-      <td>1/yr</td>
-      <td>0.159</td>
-    </tr>
-    <tr>
-      <th>Pay back period</th>
-      <td>yr</td>
-      <td>4.61</td>
-    </tr>
-  </tbody>
-</table>
-</div></div>
-</div>
-<p>Retrieve complete cashflow analysis as a DataFrame object:</p>
-<div class="nbinput docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [4]:
-</pre></div>
-</div>
-<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">get_cashflow</span><span class="p">()</span>
-</pre></div>
-</div>
-</div>
-<div class="nboutput nblast docutils container">
-<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[4]:
-</pre></div>
-</div>
-<div class="output_area docutils container">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>Depreciable capital</th>
-      <th>Depreciation</th>
-      <th>Fixed capital</th>
-      <th>Working capital</th>
-      <th>Annual operating cost (excl. depr.)</th>
-      <th>Sales</th>
+      <th>Loan</th>
+      <th>...</th>
       <th>Net earnings</th>
       <th>Cash flow</th>
-      <th>Discounted cash flow</th>
-      <th>Cumulative cash flow</th>
+      <th>Discount factor</th>
+      <th>Net present value (NPV)</th>
+      <th>Cummulative NPV</th>
     </tr>
   </thead>
   <tbody>
     <tr>
+      <th>2016</th>
+      <td>7.87e+07</td>
+      <td>7.87e+07</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>0</td>
+      <td>-7.87e+07</td>
+      <td>1.15</td>
+      <td>-9.05e+07</td>
+      <td>-9.05e+07</td>
+    </tr>
+    <tr>
+      <th>2017</th>
+      <td>1.18e+08</td>
+      <td>1.18e+08</td>
+      <td>9.84e+06</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>0</td>
+      <td>-1.28e+08</td>
+      <td>1</td>
+      <td>-1.28e+08</td>
+      <td>-2.18e+08</td>
+    </tr>
+    <tr>
+      <th>2018</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>2.81e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>2.17e+07</td>
+      <td>4.99e+07</td>
+      <td>0.87</td>
+      <td>4.34e+07</td>
+      <td>-1.75e+08</td>
+    </tr>
+    <tr>
+      <th>2019</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>4.82e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>8.7e+06</td>
+      <td>5.69e+07</td>
+      <td>0.756</td>
+      <td>4.3e+07</td>
+      <td>-1.32e+08</td>
+    </tr>
+    <tr>
       <th>2020</th>
-      <td>7.71e+07</td>
-      <td>0</td>
-      <td>7.71e+07</td>
       <td>0</td>
       <td>0</td>
       <td>0</td>
+      <td>3.44e+07</td>
       <td>0</td>
-      <td>-7.71e+07</td>
-      <td>-7.71e+07</td>
-      <td>-7.71e+07</td>
+      <td>...</td>
+      <td>1.77e+07</td>
+      <td>5.21e+07</td>
+      <td>0.658</td>
+      <td>3.42e+07</td>
+      <td>-9.78e+07</td>
     </tr>
     <tr>
       <th>2021</th>
-      <td>1.16e+08</td>
-      <td>0</td>
-      <td>1.16e+08</td>
       <td>0</td>
       <td>0</td>
       <td>0</td>
+      <td>2.46e+07</td>
       <td>0</td>
-      <td>-1.16e+08</td>
-      <td>-9.84e+07</td>
-      <td>-1.75e+08</td>
+      <td>...</td>
+      <td>2.4e+07</td>
+      <td>4.86e+07</td>
+      <td>0.572</td>
+      <td>2.78e+07</td>
+      <td>-7e+07</td>
     </tr>
     <tr>
       <th>2022</th>
       <td>0</td>
-      <td>2.75e+07</td>
       <td>0</td>
-      <td>9.63e+06</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>2.06e+07</td>
-      <td>3.85e+07</td>
-      <td>2.79e+07</td>
-      <td>-1.48e+08</td>
+      <td>0</td>
+      <td>1.76e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>2.86e+07</td>
+      <td>4.62e+07</td>
+      <td>0.497</td>
+      <td>2.3e+07</td>
+      <td>-4.7e+07</td>
     </tr>
     <tr>
       <th>2023</th>
       <td>0</td>
-      <td>4.72e+07</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>7.79e+06</td>
-      <td>5.5e+07</td>
-      <td>3.39e+07</td>
-      <td>-1.14e+08</td>
+      <td>1.75e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>2.86e+07</td>
+      <td>4.62e+07</td>
+      <td>0.432</td>
+      <td>2e+07</td>
+      <td>-2.71e+07</td>
     </tr>
     <tr>
       <th>2024</th>
       <td>0</td>
-      <td>3.37e+07</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>1.66e+07</td>
-      <td>5.03e+07</td>
-      <td>2.64e+07</td>
-      <td>-8.74e+07</td>
+      <td>1.76e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>2.86e+07</td>
+      <td>4.62e+07</td>
+      <td>0.376</td>
+      <td>1.74e+07</td>
+      <td>-9.7e+06</td>
     </tr>
     <tr>
       <th>2025</th>
       <td>0</td>
-      <td>2.41e+07</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>2.28e+07</td>
-      <td>4.69e+07</td>
-      <td>2.09e+07</td>
-      <td>-6.64e+07</td>
+      <td>8.77e+06</td>
+      <td>0</td>
+      <td>...</td>
+      <td>3.43e+07</td>
+      <td>4.31e+07</td>
+      <td>0.327</td>
+      <td>1.41e+07</td>
+      <td>4.39e+06</td>
     </tr>
     <tr>
       <th>2026</th>
       <td>0</td>
-      <td>1.72e+07</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>2.73e+07</td>
-      <td>4.45e+07</td>
-      <td>1.69e+07</td>
-      <td>-4.95e+07</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>4e+07</td>
+      <td>4e+07</td>
+      <td>0.284</td>
+      <td>1.14e+07</td>
+      <td>1.58e+07</td>
     </tr>
     <tr>
       <th>2027</th>
       <td>0</td>
-      <td>1.72e+07</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>2.73e+07</td>
-      <td>4.45e+07</td>
-      <td>1.44e+07</td>
-      <td>-3.51e+07</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>4e+07</td>
+      <td>4e+07</td>
+      <td>0.247</td>
+      <td>9.89e+06</td>
+      <td>2.57e+07</td>
     </tr>
     <tr>
       <th>2028</th>
       <td>0</td>
-      <td>1.72e+07</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>2.73e+07</td>
-      <td>4.45e+07</td>
-      <td>1.22e+07</td>
-      <td>-2.29e+07</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>4e+07</td>
+      <td>4e+07</td>
+      <td>0.215</td>
+      <td>8.6e+06</td>
+      <td>3.43e+07</td>
     </tr>
     <tr>
       <th>2029</th>
       <td>0</td>
-      <td>8.59e+06</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>3.29e+07</td>
-      <td>4.15e+07</td>
-      <td>9.71e+06</td>
-      <td>-1.32e+07</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>4e+07</td>
+      <td>4e+07</td>
+      <td>0.187</td>
+      <td>7.48e+06</td>
+      <td>4.17e+07</td>
     </tr>
     <tr>
       <th>2030</th>
@@ -746,12 +780,13 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>3.85e+07</td>
-      <td>3.85e+07</td>
-      <td>7.67e+06</td>
-      <td>-5.51e+06</td>
+      <td>0</td>
+      <td>...</td>
+      <td>4e+07</td>
+      <td>4e+07</td>
+      <td>0.163</td>
+      <td>6.5e+06</td>
+      <td>4.82e+07</td>
     </tr>
     <tr>
       <th>2031</th>
@@ -759,12 +794,13 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>3.85e+07</td>
-      <td>3.85e+07</td>
-      <td>6.53e+06</td>
-      <td>1.02e+06</td>
+      <td>0</td>
+      <td>...</td>
+      <td>4e+07</td>
+      <td>4e+07</td>
+      <td>0.141</td>
+      <td>5.66e+06</td>
+      <td>5.39e+07</td>
     </tr>
     <tr>
       <th>2032</th>
@@ -772,12 +808,13 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>3.85e+07</td>
-      <td>3.85e+07</td>
-      <td>5.55e+06</td>
-      <td>6.57e+06</td>
+      <td>0</td>
+      <td>...</td>
+      <td>4e+07</td>
+      <td>4e+07</td>
+      <td>0.123</td>
+      <td>4.92e+06</td>
+      <td>5.88e+07</td>
     </tr>
     <tr>
       <th>2033</th>
@@ -785,12 +822,13 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>3.85e+07</td>
-      <td>3.85e+07</td>
-      <td>4.73e+06</td>
-      <td>1.13e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>4e+07</td>
+      <td>4e+07</td>
+      <td>0.107</td>
+      <td>4.28e+06</td>
+      <td>6.31e+07</td>
     </tr>
     <tr>
       <th>2034</th>
@@ -798,12 +836,13 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>3.85e+07</td>
-      <td>3.85e+07</td>
-      <td>4.02e+06</td>
-      <td>1.53e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>4e+07</td>
+      <td>4e+07</td>
+      <td>0.0929</td>
+      <td>3.72e+06</td>
+      <td>6.68e+07</td>
     </tr>
     <tr>
       <th>2035</th>
@@ -811,12 +850,13 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>3.85e+07</td>
-      <td>3.85e+07</td>
-      <td>3.42e+06</td>
-      <td>1.87e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>4e+07</td>
+      <td>4e+07</td>
+      <td>0.0808</td>
+      <td>3.23e+06</td>
+      <td>7e+07</td>
     </tr>
     <tr>
       <th>2036</th>
@@ -824,63 +864,40 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>3.85e+07</td>
-      <td>3.85e+07</td>
-      <td>2.91e+06</td>
-      <td>2.17e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>4e+07</td>
+      <td>4e+07</td>
+      <td>0.0703</td>
+      <td>2.81e+06</td>
+      <td>7.29e+07</td>
     </tr>
     <tr>
       <th>2037</th>
       <td>0</td>
       <td>0</td>
+      <td>-9.84e+06</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>3.85e+07</td>
-      <td>3.85e+07</td>
-      <td>2.48e+06</td>
-      <td>2.41e+07</td>
-    </tr>
-    <tr>
-      <th>2038</th>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>3.85e+07</td>
-      <td>3.85e+07</td>
-      <td>2.11e+06</td>
-      <td>2.63e+07</td>
-    </tr>
-    <tr>
-      <th>2039</th>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>-9.63e+06</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>3.85e+07</td>
-      <td>4.81e+07</td>
-      <td>2.25e+06</td>
-      <td>2.85e+07</td>
+      <td>...</td>
+      <td>4e+07</td>
+      <td>4.99e+07</td>
+      <td>0.0611</td>
+      <td>3.05e+06</td>
+      <td>7.59e+07</td>
     </tr>
   </tbody>
 </table>
+<p>22 rows × 15 columns</p>
 </div></div>
 </div>
 </div>
 <div class="section" id="Find-production-cost,-price,-and-IRR">
-<h2>7.2. Find production cost, price, and IRR<a class="headerlink" href="#Find-production-cost,-price,-and-IRR" title="Permalink to this headline">¶</a></h2>
+<h2>7.3. Find production cost, price, and IRR<a class="headerlink" href="#Find-production-cost,-price,-and-IRR" title="Permalink to this headline">¶</a></h2>
 <p>Find production cost:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [5]:
+<span></span>In [4]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -890,18 +907,18 @@ TEA: lipid_cane_system
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[5]:
+<span></span>Out[4]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>array([22349632.734, 29879831.666])
+<span></span>array([18722500.738, 23775412.926])
 </pre></div>
 </div>
 </div>
 <p>Solve for the price of a stream at the break even point:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [6]:
+<span></span>In [5]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -912,22 +929,22 @@ TEA: lipid_cane_system
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[6]:
+<span></span>Out[5]:
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>0.04051119454187604
+<span></span>0.04620943503548121
 </pre></div>
 </div>
 </div>
 <p>Solve for the IRR at the break even point:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [7]:
+<span></span>In [6]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;IRR&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">solve_IRR</span><span class="p">()</span>
+<span></span><span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">IRR</span> <span class="o">=</span> <span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">solve_IRR</span><span class="p">()</span>
 <span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -937,16 +954,16 @@ TEA: lipid_cane_system
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-TEA: lipid_cane_system
- NPV: 8.26e-06 USD at 20.7% IRR
- ROI: 0.159 1/yr
- PBP: 4.61 yr
+LipidcaneTEA: lipid_cane_system
+ NPV: -0.000201 USD at 21.1% IRR
+ ROI: 0.194 1/yr
+ PBP: 4.92 yr
 </pre></div></div>
 </div>
-<p>Note that the cashflow table is always created up to date:</p>
+<p>Note that the cashflow table is created up to date:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [8]:
+<span></span>In [7]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
@@ -956,7 +973,7 @@ TEA: lipid_cane_system
 </div>
 <div class="nboutput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>Out[8]:
+<span></span>Out[7]:
 </pre></div>
 </div>
 <div class="output_area docutils container">
@@ -979,147 +996,214 @@ TEA: lipid_cane_system
     <tr style="text-align: right;">
       <th></th>
       <th>Depreciable capital</th>
-      <th>Depreciation</th>
-      <th>Fixed capital</th>
+      <th>Fixed capital investment</th>
       <th>Working capital</th>
-      <th>Annual operating cost (excl. depr.)</th>
-      <th>Sales</th>
+      <th>Depreciation</th>
+      <th>Loan</th>
+      <th>...</th>
       <th>Net earnings</th>
       <th>Cash flow</th>
-      <th>Discounted cash flow</th>
-      <th>Cumulative cash flow</th>
+      <th>Discount factor</th>
+      <th>Net present value (NPV)</th>
+      <th>Cummulative NPV</th>
     </tr>
   </thead>
   <tbody>
     <tr>
+      <th>2016</th>
+      <td>7.87e+07</td>
+      <td>7.87e+07</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>0</td>
+      <td>-7.87e+07</td>
+      <td>1.21</td>
+      <td>-9.52e+07</td>
+      <td>-9.52e+07</td>
+    </tr>
+    <tr>
+      <th>2017</th>
+      <td>1.18e+08</td>
+      <td>1.18e+08</td>
+      <td>9.84e+06</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>0</td>
+      <td>-1.28e+08</td>
+      <td>1</td>
+      <td>-1.28e+08</td>
+      <td>-2.23e+08</td>
+    </tr>
+    <tr>
+      <th>2018</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>2.81e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>2.17e+07</td>
+      <td>4.99e+07</td>
+      <td>0.826</td>
+      <td>4.12e+07</td>
+      <td>-1.82e+08</td>
+    </tr>
+    <tr>
+      <th>2019</th>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>4.82e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>8.7e+06</td>
+      <td>5.69e+07</td>
+      <td>0.682</td>
+      <td>3.88e+07</td>
+      <td>-1.43e+08</td>
+    </tr>
+    <tr>
       <th>2020</th>
-      <td>7.71e+07</td>
-      <td>0</td>
-      <td>7.71e+07</td>
       <td>0</td>
       <td>0</td>
       <td>0</td>
+      <td>3.44e+07</td>
       <td>0</td>
-      <td>-7.71e+07</td>
-      <td>-7.71e+07</td>
-      <td>-7.71e+07</td>
+      <td>...</td>
+      <td>1.77e+07</td>
+      <td>5.21e+07</td>
+      <td>0.564</td>
+      <td>2.93e+07</td>
+      <td>-1.14e+08</td>
     </tr>
     <tr>
       <th>2021</th>
-      <td>1.16e+08</td>
-      <td>0</td>
-      <td>1.16e+08</td>
       <td>0</td>
       <td>0</td>
       <td>0</td>
+      <td>2.46e+07</td>
       <td>0</td>
-      <td>-1.16e+08</td>
-      <td>-9.58e+07</td>
-      <td>-1.73e+08</td>
+      <td>...</td>
+      <td>2.4e+07</td>
+      <td>4.86e+07</td>
+      <td>0.466</td>
+      <td>2.26e+07</td>
+      <td>-9.11e+07</td>
     </tr>
     <tr>
       <th>2022</th>
       <td>0</td>
-      <td>2.75e+07</td>
       <td>0</td>
-      <td>9.63e+06</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>2.06e+07</td>
-      <td>3.85e+07</td>
-      <td>2.64e+07</td>
-      <td>-1.46e+08</td>
+      <td>0</td>
+      <td>1.76e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>2.86e+07</td>
+      <td>4.62e+07</td>
+      <td>0.385</td>
+      <td>1.78e+07</td>
+      <td>-7.34e+07</td>
     </tr>
     <tr>
       <th>2023</th>
       <td>0</td>
-      <td>4.72e+07</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>7.79e+06</td>
-      <td>5.5e+07</td>
-      <td>3.13e+07</td>
-      <td>-1.15e+08</td>
+      <td>1.75e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>2.86e+07</td>
+      <td>4.62e+07</td>
+      <td>0.318</td>
+      <td>1.47e+07</td>
+      <td>-5.87e+07</td>
     </tr>
     <tr>
       <th>2024</th>
       <td>0</td>
-      <td>3.37e+07</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>1.66e+07</td>
-      <td>5.03e+07</td>
-      <td>2.37e+07</td>
-      <td>-9.15e+07</td>
+      <td>1.76e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>2.86e+07</td>
+      <td>4.62e+07</td>
+      <td>0.262</td>
+      <td>1.21e+07</td>
+      <td>-4.66e+07</td>
     </tr>
     <tr>
       <th>2025</th>
       <td>0</td>
-      <td>2.41e+07</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>2.28e+07</td>
-      <td>4.69e+07</td>
-      <td>1.83e+07</td>
-      <td>-7.32e+07</td>
+      <td>8.77e+06</td>
+      <td>0</td>
+      <td>...</td>
+      <td>3.43e+07</td>
+      <td>4.31e+07</td>
+      <td>0.217</td>
+      <td>9.34e+06</td>
+      <td>-3.73e+07</td>
     </tr>
     <tr>
       <th>2026</th>
       <td>0</td>
-      <td>1.72e+07</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>2.73e+07</td>
-      <td>4.45e+07</td>
-      <td>1.44e+07</td>
-      <td>-5.88e+07</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>4e+07</td>
+      <td>4e+07</td>
+      <td>0.179</td>
+      <td>7.17e+06</td>
+      <td>-3.01e+07</td>
     </tr>
     <tr>
       <th>2027</th>
       <td>0</td>
-      <td>1.72e+07</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>2.73e+07</td>
-      <td>4.45e+07</td>
-      <td>1.19e+07</td>
-      <td>-4.68e+07</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>4e+07</td>
+      <td>4e+07</td>
+      <td>0.148</td>
+      <td>5.92e+06</td>
+      <td>-2.42e+07</td>
     </tr>
     <tr>
       <th>2028</th>
       <td>0</td>
-      <td>1.72e+07</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>2.73e+07</td>
-      <td>4.45e+07</td>
-      <td>9.89e+06</td>
-      <td>-3.69e+07</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>4e+07</td>
+      <td>4e+07</td>
+      <td>0.122</td>
+      <td>4.89e+06</td>
+      <td>-1.93e+07</td>
     </tr>
     <tr>
       <th>2029</th>
       <td>0</td>
-      <td>8.59e+06</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>3.29e+07</td>
-      <td>4.15e+07</td>
-      <td>7.64e+06</td>
-      <td>-2.93e+07</td>
+      <td>0</td>
+      <td>0</td>
+      <td>...</td>
+      <td>4e+07</td>
+      <td>4e+07</td>
+      <td>0.101</td>
+      <td>4.04e+06</td>
+      <td>-1.52e+07</td>
     </tr>
     <tr>
       <th>2030</th>
@@ -1127,12 +1211,13 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>3.85e+07</td>
-      <td>3.85e+07</td>
-      <td>5.87e+06</td>
-      <td>-2.34e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>4e+07</td>
+      <td>4e+07</td>
+      <td>0.0834</td>
+      <td>3.34e+06</td>
+      <td>-1.19e+07</td>
     </tr>
     <tr>
       <th>2031</th>
@@ -1140,12 +1225,13 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>3.85e+07</td>
-      <td>3.85e+07</td>
-      <td>4.87e+06</td>
-      <td>-1.86e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>4e+07</td>
+      <td>4e+07</td>
+      <td>0.0689</td>
+      <td>2.76e+06</td>
+      <td>-9.15e+06</td>
     </tr>
     <tr>
       <th>2032</th>
@@ -1153,12 +1239,13 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>3.85e+07</td>
-      <td>3.85e+07</td>
-      <td>4.03e+06</td>
-      <td>-1.45e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>4e+07</td>
+      <td>4e+07</td>
+      <td>0.0569</td>
+      <td>2.28e+06</td>
+      <td>-6.87e+06</td>
     </tr>
     <tr>
       <th>2033</th>
@@ -1166,12 +1253,13 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>3.85e+07</td>
-      <td>3.85e+07</td>
-      <td>3.34e+06</td>
-      <td>-1.12e+07</td>
+      <td>0</td>
+      <td>...</td>
+      <td>4e+07</td>
+      <td>4e+07</td>
+      <td>0.047</td>
+      <td>1.88e+06</td>
+      <td>-4.99e+06</td>
     </tr>
     <tr>
       <th>2034</th>
@@ -1179,12 +1267,13 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>3.85e+07</td>
-      <td>3.85e+07</td>
-      <td>2.77e+06</td>
-      <td>-8.43e+06</td>
+      <td>0</td>
+      <td>...</td>
+      <td>4e+07</td>
+      <td>4e+07</td>
+      <td>0.0388</td>
+      <td>1.55e+06</td>
+      <td>-3.43e+06</td>
     </tr>
     <tr>
       <th>2035</th>
@@ -1192,12 +1281,13 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>3.85e+07</td>
-      <td>3.85e+07</td>
-      <td>2.29e+06</td>
-      <td>-6.13e+06</td>
+      <td>0</td>
+      <td>...</td>
+      <td>4e+07</td>
+      <td>4e+07</td>
+      <td>0.0321</td>
+      <td>1.28e+06</td>
+      <td>-2.15e+06</td>
     </tr>
     <tr>
       <th>2036</th>
@@ -1205,64 +1295,41 @@ TEA: lipid_cane_system
       <td>0</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>3.85e+07</td>
-      <td>3.85e+07</td>
-      <td>1.9e+06</td>
-      <td>-4.23e+06</td>
+      <td>0</td>
+      <td>...</td>
+      <td>4e+07</td>
+      <td>4e+07</td>
+      <td>0.0265</td>
+      <td>1.06e+06</td>
+      <td>-1.09e+06</td>
     </tr>
     <tr>
       <th>2037</th>
       <td>0</td>
       <td>0</td>
+      <td>-9.84e+06</td>
       <td>0</td>
       <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>3.85e+07</td>
-      <td>3.85e+07</td>
-      <td>1.58e+06</td>
-      <td>-2.66e+06</td>
-    </tr>
-    <tr>
-      <th>2038</th>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>3.85e+07</td>
-      <td>3.85e+07</td>
-      <td>1.31e+06</td>
-      <td>-1.35e+06</td>
-    </tr>
-    <tr>
-      <th>2039</th>
-      <td>0</td>
-      <td>0</td>
-      <td>0</td>
-      <td>-9.63e+06</td>
-      <td>4.26e+07</td>
-      <td>1.02e+08</td>
-      <td>3.85e+07</td>
-      <td>4.81e+07</td>
-      <td>1.35e+06</td>
-      <td>8.23e-06</td>
+      <td>...</td>
+      <td>4e+07</td>
+      <td>4.99e+07</td>
+      <td>0.0219</td>
+      <td>1.09e+06</td>
+      <td>-0.000201</td>
     </tr>
   </tbody>
 </table>
+<p>22 rows × 15 columns</p>
 </div></div>
 </div>
 </div>
 <div class="section" id="System-report">
-<h2>7.3. System report<a class="headerlink" href="#System-report" title="Permalink to this headline">¶</a></h2>
+<h2>7.4. System report<a class="headerlink" href="#System-report" title="Permalink to this headline">¶</a></h2>
 <p>Save stream tables, utility requirements, itemized costs, TEA results,
 and a cash flow table:</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
-<span></span>In [9]:
+<span></span>In [8]:
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>

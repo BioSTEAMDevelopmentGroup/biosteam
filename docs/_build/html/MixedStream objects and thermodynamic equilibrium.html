@@ -949,6 +949,7 @@ MixedStream: ms1
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">ms2</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">MixedStream</span><span class="p">(</span><span class="s1">&#39;ms2&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">353.88</span><span class="p">)</span>
+<span class="n">bst</span><span class="o">.</span><span class="n">MixedStream</span><span class="o">.</span><span class="n">lazy_energy_balance</span> <span class="o">=</span> <span class="kc">False</span>
 <span class="n">ms2</span><span class="o">.</span><span class="n">setflow</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 <span class="n">ms2</span><span class="o">.</span><span class="n">setflow</span><span class="p">(</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">Ethanol</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">ms2</span><span class="o">.</span><span class="n">VLE</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="mf">353.88</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">)</span>
@@ -1043,7 +1044,7 @@ MixedStream: ms2
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 MixedStream: ms2
- phase: &#39;lg&#39;, T: 353.88 K, P: 101332 Pa
+ phase: &#39;lg&#39;, T: 353.88 K, P: 101331 Pa
          species  kmol/hr
  liquid: Water    1.84
          Ethanol  1.16
@@ -1070,7 +1071,7 @@ MixedStream: ms2
 <div class="output_area docutils container">
 <div class="highlight"><pre>
 MixedStream: ms2
- phase: &#39;lg&#39;, T: 353.88 K, P: 96580.5 Pa
+ phase: &#39;lg&#39;, T: 353.88 K, P: 101331 Pa
          species  kmol/hr
  liquid: Water    1.84
          Ethanol  1.16
