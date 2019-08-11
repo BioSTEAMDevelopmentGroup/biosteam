@@ -164,14 +164,13 @@ def add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, fsize):
             raise ValueError(f"ID '{ID}' already in use")
         cls.cost_items[ID] = CostItem(basis, units, S, ub, CE, cost, n, kW, BM)
     else:
-        if '_cost' in cls.__dict__:
-            raise RuntimeError("'_cost' method is already implemented, cannot decorate class")
         ID = ID or cls.line
         cls.cost_items = {ID: CostItem(basis, units, S, ub, CE, cost, n, kW, BM)}
-        if hasattr(cls, '_end_decorated_cost_'):
-            cls._cost = _extended_cost
-        else:
-            cls._cost = _cost
+        if '_cost' not in cls.__dict__:
+            if hasattr(cls, '_end_decorated_cost_'):
+                cls._cost = _extended_cost
+            else:
+                cls._cost = _cost
         cls.BM = BM_property
         cls.installation_cost = installation_cost
     return cls

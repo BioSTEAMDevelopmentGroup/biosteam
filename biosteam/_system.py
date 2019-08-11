@@ -197,7 +197,7 @@ class System(metaclass=system):
         
         # link all unit operations with linked streams
         for u in units:
-            if inst(u, bst.Static): u._link_streams()
+            if inst(u, bst.Static): u.link_streams()
         
         #: set[Unit] All units within the system
         self.units = units = set(units)

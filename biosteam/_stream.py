@@ -56,7 +56,8 @@ def _print_helpdata(helpdata):
 # %% Units of measure
 
 # Biosteam units of measure
-units_of_measure = dict(MW='g/mol',
+units_of_measure = dict(cost='USD/hr',
+                        MW='g/mol',
                         mass='kg/hr',
                         mol='kmol/hr',
                         vol='m^3/hr',
@@ -1332,7 +1333,7 @@ class Stream(metaclass=metaStream):
         cmps = self._species._compounds
         N = len(indices)
         if N == 1:
-            return (cmps[0].Tsat(self.P), np.array((1,)), indices)
+            return (cmps[indices[0]].Tsat(self.P), np.array((1,)), indices)
         elif N == 0:
             raise EquilibriumError('no species available for phase equilibrium')
         mol = mol[indices]
@@ -1364,7 +1365,7 @@ class Stream(metaclass=metaStream):
         cmps = self._species._compounds
         N = len(indices)
         if N == 1:
-            return (cmps[0].VaporPressure(self.T), np.array((1,)), indices)
+            return (cmps[indices[0]].VaporPressure(self.T), np.array((1,)), indices)
         elif N == 0:
             raise EquilibriumError('no species available for phase equilibrium')
         mol = mol[indices]

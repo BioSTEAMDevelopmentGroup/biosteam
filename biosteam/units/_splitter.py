@@ -164,7 +164,6 @@ class InvSplitter(Unit):
     """
     line = 'Splitter'
     _graphics = Splitter._graphics
-    _has_cost = False
     def _run(self):
         feed = self.ins[0]
         feed._mol[:] = self._mol_out

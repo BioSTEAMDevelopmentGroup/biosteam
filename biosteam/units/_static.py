@@ -26,7 +26,7 @@ class Static(Unit):
                                      else Stream.proxy(o)
                                      for o in outs))
             
-    def _link_streams(self):
+    def link_streams(self):
         """Link product to feed."""
         try: self._outs[0].link = self._ins[0]
         except Exception as Error:
@@ -35,7 +35,7 @@ class Static(Unit):
        
     def simulate(self):
         """Run rigourous simulation and determine all design requirements and costs."""
-        self._link_streams()
+        self.link_streams()
         super().simulate()
     
     def _run(self):
@@ -47,6 +47,8 @@ class Static(Unit):
             
     def _info(self, T, P, flow, fraction):
         """Information on unit."""
-        self._link_streams()
+        self.link_streams()
         return super()._info(T, P, flow, fraction)
+    
+    
     

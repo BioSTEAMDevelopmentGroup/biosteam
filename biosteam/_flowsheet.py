@@ -18,7 +18,7 @@ def make_digraph(units, streams):
     # Set up unit nodes
     UD = {}  # Contains full description (ID and line) by ID
     for u in units:
-        if hasattr(u, 'link_streams'): u._link_streams()
+        if hasattr(u, 'link_streams'): u.link_streams()
         graphics = u._graphics
         if not graphics.in_system:
             continue  # Ignore Unit
@@ -56,10 +56,7 @@ def make_digraph(units, streams):
             # Stream is not attached to anything
         elif oU not in keys:
             # Feed stream case
-            try:
-                f.node(s.ID)
-            except:
-                s.show()
+            f.node(s.ID)
             edge_in = dU._graphics.edge_in
             f.attr('edge', arrowtail='none', arrowhead='none',
                    tailport='e', **edge_in[di])

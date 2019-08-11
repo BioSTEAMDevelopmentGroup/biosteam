@@ -13,7 +13,7 @@ __all__ = ('VentScrubber',)
       S=22608, CE=522, cost=215e3, n=0.6, BM=2.4)
 class VentScrubber(Unit): 
     _N_ins = _N_outs = 2
-    
+    _units = {'Flow rate': 'kg/hr'}
     def __init__(self, ID='', ins=None, outs=(), *, gas):
         Unit.__init__(self, ID, ins, outs)
         self.gas = gas
@@ -25,3 +25,6 @@ class VentScrubber(Unit):
         bottoms.copyflow(vent_exit, self.gas,
                          remove=True, exclude=True)
         bottoms.mol[:] += water.mol
+        
+    def _design(self):
+        self._Design['Flow rate'] = self._outs[0].massnet

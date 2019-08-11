@@ -226,16 +226,18 @@ def aitken_secant(f, x0, x1, xtol, ytol=5e-8, args=(), maxiter=50):
     dx = x1-x0
     for iter in range(maxiter):
         y1 = f(x1, *args)
+        if y1 == y0: return x1
         x0 = x1 - y1*dx/(y1-y0) # x0 = g
         dx = x0-x1
         if _abs(dx) < xtol or _abs(y1) < ytol: return x0
         y0 = y1
         y1 = f(x0, *args)
+        if y1 == y0: return x0
         x2 = x0 - y1*dx/(y1-y0) # x2 = gg
         if _abs(dx) < xtol or _abs(y1) < ytol: return x2
         dx = x1 - x0 # x - g
-        try: x1 = x1 - dx**2./(x2 + dx - x0)
-        except: x1 = x2
+        denominator = x2 + dx - x0
+        x1 = x1 - dx**2./denominator if denominator else x2
         dx = x1 - x0
         y0 = y1
     raise SolverError(f'failed to converge after {maxiter} iterations')
