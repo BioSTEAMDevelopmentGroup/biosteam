@@ -58,12 +58,12 @@ def save_report(system, file='report.xlsx', **stream_properties):
     """
     writer = ExcelWriter(file)
     units = list(system._costunits)
-    try:
-        system.diagram('thorough', file='diagram', format='png')
-        flowsheet = writer.book.add_worksheet('Flowsheet')
-        flowsheet.insert_image('A1', 'diagram.png')
-    except:
-        warn(RuntimeWarning('Failed to generate diagram through graphviz. Please check graphviz installation.', stacklevel=2))
+    # try:
+    system.diagram('thorough', file='diagram', format='png')
+    flowsheet = writer.book.add_worksheet('Flowsheet')
+    flowsheet.insert_image('A1', 'diagram.png')
+    # except:
+    #     warn(RuntimeWarning('Failed to generate diagram through graphviz. Please check graphviz installation.'), stacklevel=2)
     
     if system._TEA:
         # Cost table
@@ -73,9 +73,6 @@ def save_report(system, file='report.xlsx', **stream_properties):
         # Cash flow
         TEA = system._TEA
         TEA.get_cashflow().to_excel(writer, 'Cash flow')
-        
-        # TEA
-        TEA.results().to_excel(writer, 'Techno-Economic Analysis')
     else:
         warn(RuntimeWarning(f'Cannot find TEA object in {repr(system)}. Ignoring TEA sheets.'), stacklevel=2)
     
@@ -165,12 +162,12 @@ def cost_table(system):
     
     # Initialize data
     try:
-        o = system.TEA.options
+        TEA = system.TEA
     except AttributeError as AE:
         if not hasattr(system, 'TEA'):
             raise ValueError('Cannot find TEA object related to system. A TEA object of the system must be created first.')
         else: raise AE
-    operating_days = o['Operating days']
+    operating_days = TEA.operating_days
     N_units = len(units)
     array = np.empty((N_units, 3), dtype=object)
     IDs = []
@@ -187,7 +184,7 @@ def cost_table(system):
         IDs.append(unit.ID)
     
     df = DataFrame(array, columns=columns, index=IDs)    
-    if not o['Lang factor']:
+    if not TEA.lang_factor:
         df['Installation cost (10^6 USD)'] = [u.installation_cost for u in units]
     
     return df
@@ -281,7 +278,7 @@ def stream_table(streams, flow='kg/min', **props) -> 'DataFrame':
         raise DimensionError(f"Dimensions for flow units must be in molar, mass or volumetric flow rates, not '{flow_dim}'.")
     
     # Prepare rows and columns
-    ss = sorted(streams, key=_stream_key)
+    ss = sorted([i for i in streams if i.ID], key=_stream_key)
     species = ss[0]._species._IDs
     n = len(ss)
     m = len(species)

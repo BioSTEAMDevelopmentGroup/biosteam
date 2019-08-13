@@ -15,7 +15,7 @@ lps = HeatUtility.heating_agents['Low pressure steam']
 #: TODO add reference of NREL
 
 @cost('Work', 'Turbogenerator',
-      CE=551, S=-42200, kW=-42200, cost=9500e3, n=0.83, BM=1.8)
+      CE=551, S=42200, kW=-42200, cost=9500e3, n=0.60, BM=1.8)
 @cost('Flow rate', 'Hot process water softener system', 
       CE=551, cost=78e3, S=235803, n=0.6, BM=1.8)
 @cost('Flow rate', 'Amine addition pkg', 
@@ -50,10 +50,10 @@ class BoilerTurbogenerator(Facility):
     
     def __init__(self, ID='', ins=None, outs=(), *,
                  boiler_efficiency=0.80,
-                 turbo_generator_efficiency=0.85):
+                 turbogenerator_efficiency=0.85):
         Unit.__init__(self, ID, ins, outs)
         self.boiler_efficiency = boiler_efficiency
-        self.turbo_generator_efficiency = turbo_generator_efficiency
+        self.turbogenerator_efficiency = turbogenerator_efficiency
         self.steam_utilities = set()
         self.steam_demand = Stream(None, species=Species('Water'), P=lps.P, T=lps.T, phase='g')
     
@@ -61,16 +61,16 @@ class BoilerTurbogenerator(Facility):
     
     def _design(self):
         B_eff = self.boiler_efficiency
-        TG_eff = self.turbo_generator_efficiency
+        TG_eff = self.turbogenerator_efficiency
         steam = self.steam_demand
         steam_utilities = self.steam_utilities
         if not steam_utilities:
-            for u in self.system._costunits:
+            for u in self.system.units:
                 if u is self: continue
                 for hu in u._heat_utilities:
                     if hu.ID == 'Low pressure steam':
                         steam_utilities.add(hu)
-        steam._mol[0] = sum(i.flow for i in steam_utilities)
+        steam._mol[0] = sum([i.flow for i in steam_utilities])
         feed = self._ins[0]
         emission = self._outs[0]
         hu_cooling, hu_steam = self._heat_utilities
@@ -80,17 +80,18 @@ class BoilerTurbogenerator(Facility):
         # This is simply for the mass balance (no special purpose)
         emission.mol[:] = feed.mol # TODO: In reality, this should be CO2
         
-        Design = self._Design
-        Design['Flow rate'] = feed_massnet = feed.massnet
-        
-        # 50 percent of bagasse is water, so remove latent heat of vaporization
-        H_content = feed_Hc*B_eff - feed_massnet*1130 
+        # A percent of bagasse is water, so remove latent heat of vaporization
+        feed_massnet = feed.massnet
+        moisture_content = feed._mass[feed.index('7732-18-5')]/feed_massnet
+        H_content = feed_Hc*B_eff - feed_massnet*2260*moisture_content
         
         # Heat available for the turbogenerator
         H_electricity = H_content - H_steam 
         
         #: [float] Total steam produced by the boiler (kmol/hr)
-        self.total_steam = H_content/lps.Hvap 
+        self.total_steam = H_content/70000 # Superheat steam with 70000 kJ/kmol
+        Design = self._Design
+        Design['Flow rate'] = self.total_steam * 18.01528
         
         if H_electricity < 0:
             H_steam = H_content
@@ -100,9 +101,8 @@ class BoilerTurbogenerator(Facility):
             cooling = electricity - H_electricity
         hu_cooling(cooling, steam.T)
         hu_steam.ID = 'Low pressure steam'
-        molnet = steam.molnet
-        hu_steam.cost = -(molnet*lps.price_kmol + H_steam*lps.price_kJ)
-        Design['Work'] = (-electricity/3600)        
+        hu_steam.cost = -sum([i.cost for i in steam_utilities])
+        Design['Work'] = electricity/3600        
 
 # Simulation of ethanol production from sugarcane
 # in Brazil: economic study of an autonomous

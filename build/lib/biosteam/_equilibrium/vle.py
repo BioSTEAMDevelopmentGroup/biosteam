@@ -4,8 +4,8 @@ Created on Wed Mar 20 18:40:05 2019
 
 @author: yoelr
 """
-from .._utils import isbetween, bounded_wegstein, wegstein, aitken, \
-                     bounded_aitken, bounded_overshoot
+from .._utils import bounded_wegstein, wegstein, aitken, \
+                     bounded_aitken, IQ_interpolation
 import numpy as np
 
 __all__ = ('VLE', 'V_2N', 'V_3N', 'V_error')
@@ -36,7 +36,7 @@ class VLE:
                  '_update_V', '_mol', '_molnet', '_N', '_solve_V',
                  '_zs', '_Ks', '_Psat_gama', '_Psat_P')
     
-    solver = staticmethod(bounded_aitken)
+    solver = staticmethod(IQ_interpolation)
     itersolver = staticmethod(aitken)
     T_tol = 0.00001
     P_tol = 0.1

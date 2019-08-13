@@ -12,7 +12,7 @@ from ._utils import property_array, PropertyFactory, DisplayUnits, \
 from ._flowsheet import find
 from ._species import Species, WorkingSpecies
 from ._exceptions import SolverError, EquilibriumError, DimensionError
-from ._equilibrium import DortmundActivityCoefficients, VLE, BubblePoint, DewPoint
+from ._equilibrium import Dortmund, VLE, BubblePoint, DewPoint
 
 
 __all__ = ('Stream',)
@@ -56,7 +56,8 @@ def _print_helpdata(helpdata):
 # %% Units of measure
 
 # Biosteam units of measure
-units_of_measure = dict(MW='g/mol',
+units_of_measure = dict(cost='USD/hr',
+                        MW='g/mol',
                         mass='kg/hr',
                         mol='kmol/hr',
                         vol='m^3/hr',
@@ -441,7 +442,7 @@ class Stream(metaclass=metaStream):
             else:
                 raise DimensionError(f"dimensions for flow units must be in molar, mass or volumetric flow rates, not '{dim}'")
         self.ID = ID
-        self._gamma = gamma = DortmundActivityCoefficients()
+        self._gamma = gamma = Dortmund()
         self._bubble_point = BubblePoint(gamma)
         self._dew_point = DewPoint(gamma)
 
@@ -477,7 +478,7 @@ class Stream(metaclass=metaStream):
                                  f"mass or volumetric flow rates, not '{dim}'")
     
     def _setflows(self, flow, species, flow_pairs):
-        """Initialize molar flow rates accoring the species order, and flow_pairs. Instance species do not change."""
+        """Initialize molar flow rates according to the species order, and flow_pairs. Instance species do not change."""
         flowlen = len(flow)
         specieslen = len(species)
         if flowlen:
@@ -488,7 +489,7 @@ class Stream(metaclass=metaStream):
             elif (not specieslen) and (flowlen == self._species._N):
                 self._mol = np.array(flow, float)
             else:
-                ValueError('length of flow rates must be equal to length of species')
+                raise ValueError('length of flow rates must be equal to length of species')
         elif flow_pairs:
             self._mol = self._species.array(flow_pairs, [*flow_pairs.values()])
         else:
@@ -1332,7 +1333,7 @@ class Stream(metaclass=metaStream):
         cmps = self._species._compounds
         N = len(indices)
         if N == 1:
-            return (cmps[0].Tsat(self.P), np.array((1,)), indices)
+            return (cmps[indices[0]].Tsat(self.P), np.array((1,)), indices)
         elif N == 0:
             raise EquilibriumError('no species available for phase equilibrium')
         mol = mol[indices]
@@ -1364,7 +1365,7 @@ class Stream(metaclass=metaStream):
         cmps = self._species._compounds
         N = len(indices)
         if N == 1:
-            return (cmps[0].VaporPressure(self.T), np.array((1,)), indices)
+            return (cmps[indices[0]].VaporPressure(self.T), np.array((1,)), indices)
         elif N == 0:
             raise EquilibriumError('no species available for phase equilibrium')
         mol = mol[indices]

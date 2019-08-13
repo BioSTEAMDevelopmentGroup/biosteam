@@ -39,10 +39,10 @@ class BubblePoint:
 
             **y:** [numpy ndarray] Composition of the vapor phase.
 
-        >>> from biosteam import Species, BubblePoint
-        >>> bp = BubblePoint()
-        >>> bp.solve_Ty(species=Species('Ethanol', 'Water'),
-        ...             z=(0.6, 0.4), P=101325)
+        >>> from biosteam import Species, BubblePoint, Dortmund
+        >>> gamma = Dortmund(*Species('Ethanol', 'Water'))
+        >>> bp = BubblePoint(gamma)
+        >>> bp.solve_Ty(z=(0.6, 0.4), P=101325)
         (352.2820850833474, array([0.703, 0.297]))
         
         """
@@ -73,10 +73,10 @@ class BubblePoint:
 
             **y:** [numpy ndarray] Vapor phase composition.
 
-        >>> from biosteam import Species, BubblePoint
-        >>> bp = BubblePoint()
-        >>> bp.solve_Py(species=Species('Ethanol', 'Water'),
-        ...             z=(0.703, 0.297), T=352.28)
+        >>> from biosteam import Species, BubblePoint, Dortmund
+        >>> gamma = Dortmund(*Species('Ethanol', 'Water'))
+        >>> bp = BubblePoint(gamma)
+        >>> bp.solve_Py(z=(0.703, 0.297), T=352.28)
         (103494.17209657285, array([0.757, 0.243]))
         
         """

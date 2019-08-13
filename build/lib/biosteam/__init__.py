@@ -48,7 +48,7 @@ from ._heat_utility import HeatUtility
 from ._power_utility import PowerUtility
 from ._unit import Unit
 from ._system import System
-from ._tea import TEA
+from ._tea import CombinedTEA, TEA
 from ._flowsheet import Flowsheet, find
 
 

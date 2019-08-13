@@ -18,7 +18,7 @@ def make_digraph(units, streams):
     # Set up unit nodes
     UD = {}  # Contains full description (ID and line) by ID
     for u in units:
-        if hasattr(u, 'link_streams'): u._link_streams()
+        if hasattr(u, 'link_streams'): u.link_streams()
         graphics = u._graphics
         if not graphics.in_system:
             continue  # Ignore Unit
@@ -41,7 +41,7 @@ def make_digraph(units, streams):
     f.attr('edge', dir='foward')
     
     for s in streams:
-        if not s: continue  # Ignore stream
+        if not s or not s.ID: continue  # Ignore stream
 
         oU = s._source
         if oU:
@@ -72,8 +72,12 @@ def make_digraph(units, streams):
             # Process stream case
             edge_in = dU._graphics.edge_in
             edge_out = oU._graphics.edge_out
-            f.attr('edge', arrowtail='none', arrowhead='normal',
-                   **edge_in[di], **edge_out[oi])
+            try:
+                f.attr('edge', arrowtail='none', arrowhead='normal',
+                       **edge_in[di], **edge_out[oi])
+            except IndexError:
+                f.attr('edge', arrowtail='none', arrowhead='normal',
+                       tailport='c', headport='c')
             f.edge(UD[oU], UD[dU], label=s.ID)
     return f
 

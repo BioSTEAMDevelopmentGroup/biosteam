@@ -100,7 +100,7 @@ class unit(type):
         if isabstract: return cls
         
         if not hasattr(cls, '_run'):
-            raise NotImplementedError("'Unit' subclass must have a '_run' method. Use the 'isabstract' key word argument to disregard this error.")
+            raise NotImplementedError("'Unit' subclass must have a '_run' method unless the 'isabstract' keyword argument is True")
         
         return cls
 

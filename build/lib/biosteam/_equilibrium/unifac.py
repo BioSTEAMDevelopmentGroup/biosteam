@@ -9,7 +9,7 @@ from thermo.utils import log, exp
 import thermo.unifac
 import os
 
-__all__ = ('DortmundActivityCoefficients',)
+__all__ = ('Dortmund',)
 
 # %% Data
 folder = os.path.join(os.path.dirname(thermo.unifac.__file__), 'Phase Change')
@@ -867,14 +867,15 @@ with open(os.path.join(folder, 'PSRK interaction parameters.tsv')) as f:
 
 # %% Activity Coefficients
 
-class DortmundActivityCoefficients:
+class Dortmund:
     __slots__ = ('_species', 'chemgroups', 'rs', 'qs', 'groupcounts')
     subgroups = DOUFSG
     interactions = DOUFIP2016
     cached = {}
     
-    def __init__(self):
+    def __init__(self, *species):
         self._species = self.chemgroups = self.rs = self.qs = self.groupcounts = None
+        if species: self.species = species
     
     @property
     def species(self):
@@ -1003,7 +1004,7 @@ class DortmundActivityCoefficients:
         return exp((-a/T - b - c*T))
     
     def __repr__(self):
-        return f"{type(self).__name__}({self.species})"
+        return f"{type(self).__name__}({', '.join([i.ID for i in self.species])})"
     
     
 # def UNIFAC(self, xs, T):
@@ -1013,22 +1014,22 @@ class DortmundActivityCoefficients:
 #     """For LLE"""
 #     return UNIFAC_Coeffictients(self, xs, T, UFSG, UFLLIP, UNIFAC_psi, loggammacs_UNIFAC)
 
-def loggammacs_UNIFAC(qs, rs, xs):
-    rsxs = sum([ri*xi for ri, xi in zip(rs, xs)])
-    Vis = [ri/rsxs for ri in rs]
-    qsxs = sum([qi*xi for qi, xi in zip(qs, xs)])
-    Fis = [qi/qsxs for qi in qs]
+# def loggammacs_UNIFAC(qs, rs, xs):
+#     rsxs = sum([ri*xi for ri, xi in zip(rs, xs)])
+#     Vis = [ri/rsxs for ri in rs]
+#     qsxs = sum([qi*xi for qi, xi in zip(qs, xs)])
+#     Fis = [qi/qsxs for qi in qs]
 
-    loggammacs = [1. - Visi + log(Visi) - 5.*qsi*(1. - Visi/Fisi + log(Visi/Fisi))
-                  for Visi, Fisi, qsi in zip(Vis, Fis, qs)]
-    return loggammacs
+#     loggammacs = [1. - Visi + log(Visi) - 5.*qsi*(1. - Visi/Fisi + log(Visi/Fisi))
+#                   for Visi, Fisi, qsi in zip(Vis, Fis, qs)]
+#     return loggammacs
 
-def UNIFAC_psi(T, subgroup1, subgroup2, subgroup_data, interaction_data):
-    try:
-        return exp(-interaction_data[subgroup_data[subgroup1].main_group_id] \
-                                    [subgroup_data[subgroup2].main_group_id]/T)
-    except:
-        return 1
+# def UNIFAC_psi(T, subgroup1, subgroup2, subgroup_data, interaction_data):
+#     try:
+#         return exp(-interaction_data[subgroup_data[subgroup1].main_group_id] \
+#                                     [subgroup_data[subgroup2].main_group_id]/T)
+#     except:
+#         return 1
 
 
 

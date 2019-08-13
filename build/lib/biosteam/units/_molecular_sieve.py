@@ -14,7 +14,7 @@ __all__ = ('MolecularSieve',)
 #       cost=405000, CE=521.9, S=22687, n=0.6, kW=1044)
 # @cost('Flow rate', 'Pressure filter pressing',
 #       cost=75200, CE=521.9, S=22687, n=0.6, kW=112)
-@cost('Flow rate', 'Column', kW=151,
+@cost('Flow rate', 'Column', kW=151, BM=1.8,
       cost=2601000, CE=521.9, S=22687, n=0.6)
 class MolecularSieve(Splitter):
     """Create an ethanol/water molecular sieve for bioethanol plants.
@@ -50,7 +50,6 @@ class MolecularSieve(Splitter):
         :doc:`MolecularSieve Example`
     
     """
-    BM = 1.8
     _N_heat_utilities = 2
     _units = {'Flow rate': 'kg/hr'}
     def __init__(self, ID='', ins=None, outs=(), *, order=None, split):
@@ -58,7 +57,7 @@ class MolecularSieve(Splitter):
         self._outs[0]._phase = self._outs[1]._phase = 'g'
 
     def _design(self):
-        self._Design['Flow rate'] = flow = self._ins[0].massnet
+        self._Design['Flow rate'] = flow = self._outs[1].massnet
         T = self.ins[0].T
         self._heat_utilities[0](1429.65*flow, T)
         self._heat_utilities[1](-55.51*flow, T)

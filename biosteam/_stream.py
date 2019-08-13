@@ -797,6 +797,11 @@ class Stream(metaclass=metaStream):
 
     ### Energy flows ###
 
+    def H_at(self, mol=None, T=None, P=None, phase=None):
+        """Return enthalpy flow rate at given arguments, excluding formation energies (kJ/hr). Arguments with None values default to stream specifications."""
+        return self._species._propflow('H', mol or self._mol, T or self.T,
+                                       P or self.P, phase or self._phase)
+
     # Enthalpy
     @property
     def H(self):

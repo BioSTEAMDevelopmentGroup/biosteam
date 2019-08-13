@@ -6,7 +6,7 @@ Created on Tue Sep 18 10:28:29 2018
 """
 from scipy.optimize import least_squares
 from ._equilibrium import VLE, BubblePoint, DewPoint, \
-                          DortmundActivityCoefficients
+                          Dortmund
 from ._species import Species, WorkingSpecies
 from ._stream import Stream, nonzero_species, MassFlow, \
                             mol_flow_dim, mass_flow_dim, vol_flow_dim, \
@@ -99,7 +99,7 @@ class MixedStream(Stream):
         self.T = T  #: [float] Temperature (K)
         self.P = P  #: [float] Pressure (Pa)
         self._lL_split_cached = (None,)
-        self._gamma = gamma = DortmundActivityCoefficients()
+        self._gamma = gamma = Dortmund()
         self._bubble_point = BubblePoint(gamma)
         self._dew_point = DewPoint(gamma)
         self._setflows(np.zeros((4, self._species._N), dtype=np.float64))

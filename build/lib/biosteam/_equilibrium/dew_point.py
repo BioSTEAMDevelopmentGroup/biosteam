@@ -46,10 +46,10 @@ class DewPoint:
 
             **x:** [numpy array] Liquid phase composition.
 
-        >>> from biosteam import Species, DewPoint
-        >>> dp = DewPoint()
-        >>> dp.solve_Tx(species=Species('Ethanol', 'Water'),
-        ...             z=(0.5, 0.5), P=101325)
+        >>> from biosteam import Species, DewPoint, Dortmund
+        >>> gamma = Dortmund(*Species('Ethanol', 'Water'))
+        >>> dp = DewPoint(gamma)
+        >>> dp.solve_Tx(z=(0.5, 0.5), P=101325)
         (357.45184742263075, array([0.151, 0.849]))
         """
         z = asarray(z)
@@ -65,9 +65,14 @@ class DewPoint:
                                          args=(P*z, [s.VaporPressure for s in self.gamma.species]))
             except:
                 self.x = z.copy()
-                T = min([s.Tb for s in self.gamma.species])
-                self.T = self.rootsolver(self._T_error, T, T-0.01, 1e-6,
-                                         args=(P*z, [s.VaporPressure for s in self.gamma.species]))
+                T_guess = min([s.Tb for s in self.gamma.species])
+                try:
+                    self.T = self.rootsolver(self._T_error, T_guess, T_guess-0.01, 1e-6,
+                                             args=(P*z, [s.VaporPressure for s in self.gamma.species]))
+                except:
+                    self.T = T
+                    self.x = z.copy()
+                
         self.x = self.x/self.x.sum()
         return self.T, self.x
     
@@ -86,10 +91,10 @@ class DewPoint:
 
             **x:** [numpy array] Liquid phase composition.
 
-        >>> from biosteam import Species, DewPoint
-        >>> dp = DewPoint()
-        >>> dp.solve_Px(z=(0.703, 0.297), T=352.28,
-        ...             species=Species('Ethanol', 'Water'))
+        >>> from biosteam import Species, DewPoint, Dortmund
+        >>> gamma = Dortmund(*Species('Ethanol', 'Water'))
+        >>> dp = DewPoint(gamma)
+        >>> dp.solve_Px(z=(0.703, 0.297), T=352.28)
         (111366.15384513882, array([0.6, 0.4]))
  
        """
