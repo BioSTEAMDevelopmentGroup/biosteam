@@ -132,12 +132,11 @@ class Substance(Compound):
     def phase(self, phase): pass
 
 
-class StaticChemical(Substance):
-    def __init__(self, ID, *, T=298.15, P=101325, MW=None,
-                 Cp=None, rho=None, k=None, mu=None, sigma=None,
-                 Pr=None, Hf=None, Hc=None, phase=None, **properties):
-        obj = Chemical(ID, T, P)
-        super().__init__(obj=obj,
-                 ID=obj.ID, CAS=obj.CAS, MW=obj.MW, T=T, P=P,
-                 Cp=Cp, rho=rho, k=k, mu=mu, sigma=sigma,
-                 Pr=Pr, Hf=Hf, Hc=Hc, phase=phase, **properties)
+def StaticChemical(ID, *, T=298.15, P=101325, MW=None,
+                   Cp=None, rho=None, k=None, mu=None, sigma=None,
+                   Pr=None, Hf=None, Hc=None, phase=None, **properties):
+    obj = Chemical(ID, T, P)
+    return Substance(obj=obj, ID=obj.ID, CAS=obj.CAS,
+                     MW=obj.MW, T=T, P=P, Cp=Cp, rho=rho,
+                     k=k, mu=mu, sigma=sigma, Pr=Pr, Hf=Hf,
+                     Hc=Hc, phase=phase, **properties)

@@ -11,12 +11,12 @@ from ..decorators import cost
 __all__ = ('CoolingTower',) #'CoolingTowerWithPowerDemand')
 
 @cost('Flow rate', 'Cooling water pump',
-      S=44200, kW=1021, cost=283671, CE=551, n=0.8, BM=3.1)
+      S=557183, kW=1021, cost=283671, CE=551, n=0.8, BM=3.1)
 @cost('Flow rate', 'Cooling tower',
-      S=44200, kW=1598, cost=1375e3, CE=551, n=0.7, BM=1.5)
+      S=557183, kW=1598, cost=1375e3, CE=551, n=0.7, BM=1.5)
 class CoolingTower(Facility):
     """Create a cooling tower that is cost based on flow rate of cooling water."""
-    _units = {'Flow rate': 'gpm'}
+    _units = {'Flow rate': 'kmol/hr'}
     _N_heat_utilities = 1
     _N_outs = _N_ins = 0
     def __init__(self, ID=''):
@@ -32,8 +32,7 @@ class CoolingTower(Facility):
                     if hu.ID == 'Cooling water':
                         cwu.add(hu)
         #: Cooling water flow rate (kmol/hr)
-        self.cooling_water = q = sum(i.flow for i in cwu)
-        self._Design['Flow rate'] = 0.07932*q
+        self._Design['Flow rate'] = self.cooling_water = q = sum([i.flow for i in cwu])
         hu = self._heat_utilities[0]
         cw = hu.cooling_agents['Cooling water']
         hu.ID = 'Cooling water'

@@ -41,7 +41,7 @@ def make_digraph(units, streams):
     f.attr('edge', dir='foward')
     
     for s in streams:
-        if not s or not s.ID: continue  # Ignore stream
+        if not s: continue  # Ignore stream
 
         oU = s._source
         if oU:
@@ -72,12 +72,8 @@ def make_digraph(units, streams):
             # Process stream case
             edge_in = dU._graphics.edge_in
             edge_out = oU._graphics.edge_out
-            try:
-                f.attr('edge', arrowtail='none', arrowhead='normal',
-                       **edge_in[di], **edge_out[oi])
-            except IndexError:
-                f.attr('edge', arrowtail='none', arrowhead='normal',
-                       tailport='c', headport='c')
+            f.attr('edge', arrowtail='none', arrowhead='normal',
+                   **edge_in[di], **edge_out[oi])
             f.edge(UD[oU], UD[dU], label=s.ID)
     return f
 

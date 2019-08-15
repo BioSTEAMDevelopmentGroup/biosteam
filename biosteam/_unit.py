@@ -563,7 +563,7 @@ class Unit(metaclass=unit):
         
         return neighborhood
 
-    def diagram(self, radius=0, file=None, format='svg'):
+    def diagram(self, radius=0, file=None, format='png'):
         """Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of the unit and all neighboring units within given radius.
         
         **Parameters**

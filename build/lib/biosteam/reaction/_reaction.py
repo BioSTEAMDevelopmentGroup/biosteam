@@ -139,12 +139,10 @@ class Reaction:
     
     @property
     def X(self):
-        """[float] Reaction converion."""
+        """[float] Reaction converion as a fraction."""
         return self._X
     @X.setter
     def X(self, X):
-        X = float(X)
-        assert -1 <= X <= 1, 'reaction conversion, X, must be a fraction'
         self._X = X
     
     @property
@@ -179,6 +177,7 @@ class Reaction:
         print(outs)
     _ipython_display_ = show
 
+
 class ReactionItem(Reaction):
     """Create a ReactionItem object from a ReactionSet and index."""
     __slots__ = ('_index')
@@ -199,7 +198,6 @@ class ReactionItem(Reaction):
         return self._X[self._index]
     @X.setter
     def X(self, X):
-        assert -1 <= X <= 1, 'reaction conversion, X, must be a fraction'
         self._X[self._index] = X
         
 

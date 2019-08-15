@@ -65,7 +65,7 @@ class Fermentation(Unit):
               'Cycle time': 'hr',
               'Loading time': 'hr',
               'Total dead time': 'hr'}
-    
+    _N_ins = _N_outs = 2
     _N_heat_utilities = 0
     _has_power_utility = True
     line = 'Fermentation'    

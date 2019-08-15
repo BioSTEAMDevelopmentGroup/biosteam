@@ -36,10 +36,10 @@ class Model(State):
          :doc:`Advanced simulation`
     
     """
-    __slots__ = ('_table',   # [DataFrame] All arguments and results.
-                 '_metrics', # dict[ID: function] Functions should return evaluated metric.
-                 '_index',   # list[int] Order of sample evaluation for performance.
-                 '_samples', # [array] Argument sample space.
+    __slots__ = ('_table',   # [DataFrame] All arguments and results
+                 '_metrics', # dict[ID: function] Functions should return evaluated metric
+                 '_index',   # list[int] Order of sample evaluation for performance
+                 '_samples', # [array] Argument sample space
                  '_setters', # list[function] Cached parameter setters
                  '_repeats') # [bool] True if parameter states repeat
     

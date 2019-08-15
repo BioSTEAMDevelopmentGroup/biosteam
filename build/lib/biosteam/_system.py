@@ -86,6 +86,7 @@ class _systemUnit(Unit, isabstract=True):
     """Dummy unit for displaying a system."""
     line = 'System'
     ID = None
+    _N_ins = _N_outs = 1
     _ID = property(lambda self: self.ID)
 
 _sysgraphics = _systemUnit._graphics
@@ -439,7 +440,6 @@ class System(metaclass=system):
         else:
             raise ValueError(f"kind must be either 'thorough', 'surface', or 'minimal'")
             
-
     # Methods for running one iteration of a loop
     def _iter_run(self, mol):
         """Run the system at specified recycle molar flow rate.

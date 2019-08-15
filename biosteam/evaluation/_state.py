@@ -7,6 +7,8 @@ Created on Thu May  9 13:38:57 2019
 from ._block import Block
 from .. import Unit, Stream
 import numpy as np
+import pandas as pd
+from chaospy import J
 
 __all__ = ('State',)
 
@@ -99,6 +101,30 @@ class State:
         if not self._model: self._loadmodel()
         return tuple(self._params)
     
+    def get_distribution_summary(self):
+        params = self.get_parameters()
+        if not params: return None
+        index = []
+        values = []
+        for p in params:
+            distribution = p.distribution
+            element = p.element_name
+            name = p.name
+            units = p.units or ''
+            if distribution:
+                shape = type(distribution).__name__
+                index.append((element, name, units, shape))
+                values.append(', '.join([f'{i:.4g}' for i in distribution._repr.values()]))
+            else:
+                index.append((element, name, units, ''))
+                values.append('')
+        index = pd.MultiIndex.from_tuples(index,
+                                          names=('Element',
+                                                 'Name',
+                                                 'Units',
+                                                 'Shape'))
+        return pd.DataFrame(values, index, ('Values',))
+    
     def parameter(self, setter=None, element=None, kind='isolated',
                   name=None, distribution=None, units=None):
         """Define parameter and add to model.
@@ -131,6 +157,18 @@ class State:
         self._params.append(param)
         self._erase()
         return param
+    
+    def sample(self, N, rule): 
+        """Sample from parameter distribution.
+        
+        **Parameters**
+        
+            **N:** [int] Number of samples.
+            
+            **rule:** [str] Sampling rule (e.g. "L" for latin hypercube sampling).
+        """
+        if not self._model: self._loadmodel()
+        return J(*[i.distribution for i in self._params]).sample(N, rule).transpose()
     
     def _erase(self):
         """Erase cached data."""

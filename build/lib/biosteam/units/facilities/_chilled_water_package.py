@@ -20,7 +20,7 @@ class ChilledWaterPackage(Facility):
     """
     _N_heat_utilities = 1
     _N_ins = _N_outs = 0
-    _units = {'Duty': 'kJ/h4'}
+    _units = {'Duty': 'kJ/hr'}
     def __init__(self, ID=''):
         Facility.__init__(self, ID, None, None)
         self.chilled_water_utilities = set()
@@ -32,7 +32,7 @@ class ChilledWaterPackage(Facility):
                 if u is self: continue
                 for hu in u._heat_utilities:
                     if hu.ID == 'Chilled water': cwu.add(hu)
-        self._Design['Duty'] = duty = sum(i.duty for i in cwu)
+        self._Design['Duty'] = duty = sum([i.duty for i in cwu])
         self._heat_utilities[0](duty, 330)
         
         

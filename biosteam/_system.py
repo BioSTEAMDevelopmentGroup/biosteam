@@ -414,7 +414,7 @@ class System(metaclass=system):
         f = make_digraph(self.units, self.streams)
         save_digraph(f, file, format)
         
-    def diagram(self, kind='surface', file=None, format='svg'):
+    def diagram(self, kind='surface', file=None, format='png'):
         """Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of the system.
         
         **Parameters**
@@ -463,10 +463,10 @@ class System(metaclass=system):
         self._mol_error = abs(mol - recycle.mol).sum()
         self._T_error = abs(T - recycle.T)
         self._iter += 1
-        if self._iter > self.maxiter:
-            raise SolverError(f'{repr(self)} could not converge' + self._error_info())
-        elif self._mol_error < self.molar_tolerance and self._T_error < self.T_tolerance:
+        if self._mol_error < self.molar_tolerance and self._T_error < self.T_tolerance:
             return rmol.copy(), False
+        elif self._iter > self.maxiter:
+            raise SolverError(f'{repr(self)} could not converge' + self._error_info())
         else:
             return rmol.copy(), True
         

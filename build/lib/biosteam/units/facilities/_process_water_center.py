@@ -42,8 +42,8 @@ class ProcessWaterCenter(Facility):
     _N_outs = 3
     boiler_blowdown = 0.002
     RO_rejection = 0.25
-    CT_evaporation = 0.001
-    CT_blowdown = 0.01
+    CT_evaporation = 0.01
+    CT_blowdown = 0.001
     _units = {'Makeup water flow rate': 'kg/hr',
               'Process water flow rate': 'kg/hr'}
     def __init__(self, ID='', ins=None, outs=(), *, BT, CT):
@@ -56,7 +56,7 @@ class ProcessWaterCenter(Facility):
         s_process, s_BT_, s_CT_ = self.outs
         s_BT.link = s_BT_
         s_CT.link = s_CT_
-        process_water = self._outs[0].molnet
+        process_water = s_process.molnet
         recycle_water = s_recycle.molnet
         wi = s_BT.index('7732-18-5')
         s_BT.mol[wi] = BT_water = self.BT.total_steam * self.boiler_blowdown * 1/(1-self.RO_rejection)
