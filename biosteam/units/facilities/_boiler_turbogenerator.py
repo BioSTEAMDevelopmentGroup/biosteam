@@ -15,7 +15,7 @@ lps = HeatUtility.heating_agents['Low pressure steam']
 #: TODO add reference of NREL
 
 @cost('Work', 'Turbogenerator',
-      CE=551, S=42200, kW=-42200, cost=9500e3, n=0.60, BM=1.8)
+      CE=551, S=42200, kW=0, cost=9500e3, n=0.60, BM=1.8)
 @cost('Flow rate', 'Hot process water softener system', 
       CE=551, cost=78e3, S=235803, n=0.6, BM=1.8)
 @cost('Flow rate', 'Amine addition pkg', 
@@ -103,6 +103,9 @@ class BoilerTurbogenerator(Facility):
         hu_steam.ID = 'Low pressure steam'
         hu_steam.cost = -sum([i.cost for i in steam_utilities])
         Design['Work'] = electricity/3600        
+
+    def _end_decorated_cost_(self):
+        self._power_utility(self._power_utility.rate - self._Design['Work'])
 
 # Simulation of ethanol production from sugarcane
 # in Brazil: economic study of an autonomous

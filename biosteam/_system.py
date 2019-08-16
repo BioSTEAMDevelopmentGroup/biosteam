@@ -11,7 +11,7 @@ from ._stream import Stream
 from ._facility import Facility
 from ._unit import Unit
 from ._report import save_report
-from ._utils import color_scheme, MissingStream, strtuple, \
+from ._utils import colors, MissingStream, strtuple, \
                     conditional_wegstein, conditional_aitken
 import biosteam as bst
 
@@ -21,11 +21,10 @@ __all__ = ('System',)
 
 def _evaluate(self, command=None):
     """Evaluate a command and request user input for next command. If no command, return. This function is used for debugging a System object."""    
-    CS = color_scheme
     # Done evaluating if no command, exit debugger if 'exit'
     if command is None:
-        Next = CS.next('Next: ') + f'{repr(self)}\n'
-        info = CS.info("Enter to continue or type to evaluate:\n")
+        Next = colors.next('Next: ') + f'{repr(self)}\n'
+        info = colors.info("Enter to continue or type to evaluate:\n")
         command = input(Next + info + ">>> ")
     
     if command == 'exit': raise KeyboardInterrupt()
@@ -40,8 +39,8 @@ def _evaluate(self, command=None):
             out = eval(command, {}, lcs)            
         except Exception as err:
             # Print exception and ask to raise error or continue evaluating
-            err = CS.exception(f'{type(err).__name__}:') + f' {str(err)}\n\n'
-            info = CS.info(f"Enter to raise error or type to evaluate:\n")
+            err = colors.exception(f'{type(err).__name__}:') + f' {str(err)}\n\n'
+            info = colors.info(f"Enter to raise error or type to evaluate:\n")
             command = input(err + info + ">>> ")
             if command == '': raise err
             _evaluate(self, command)        
@@ -606,7 +605,7 @@ class System(metaclass=system):
         self.network = tuple(network)
     
     def debug(self):
-        """Convege in debug mode. Just try it!"""
+        """Converge in debug mode. Just try it!"""
         self._debug_on()
         try: self._converge()
         finally: self._debug_off()
