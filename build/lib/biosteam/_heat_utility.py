@@ -126,26 +126,16 @@ class HeatUtility:
         
         def _ipython_display_(self):
             print(f"{type(self).__name__}:\n"
-                 +f" species     -         {repr(self.species)}\n"
-                 +f" molfrac     -         ({', '.join([format(i,'.2f') for i in self.molfrac])},)\n"
+                 +f" species     .         {repr(self.species)}\n"
+                 +f" molfrac     .         ({', '.join([format(i,'.2f') for i in self.molfrac])},)\n"
                  +f" T           K         {self.T:,.2f}\n"
                  +f" P           Pa        {self.P:,.0f}\n"
-                 +f" phase       -         '{self.phase}'\n"
+                 +f" phase       .         '{self.phase}'\n"
                  +f" Hvap        kJ/kmol   {self.Hvap and format(self.Hvap, ',.4g')}\n"
                  +f" T_limit     K         {self.T_limit and format(self.T_limit, ',.2f')}\n"
                  +f" price_kJ    USD/kJ    {self.price_kJ:.4g}\n"
                  +f" price_kmol  USD/kmol  {self.price_kmol:.4g}\n"
-                 +f" efficiency  -         {self.efficiency:.2f}")
-            # lines = out.splitlines()
-            # wt_units_index = (3, 4, 6, 7, 8, 9)
-            # units = ('K', 'Pa', 'kJ/kmol', 'K', 'USD/kJ', 'USD/kmol')
-            # lines_wt_units = [lines[i] for i in wt_units_index]
-            # maxlen = max([len(i) for i in lines_wt_units])+2
-            # for i, line, u in zip(range(6), lines_wt_units, units):
-            #     lines_wt_units[i] = line + (maxlen - len(line))*' ' + u
-            # for i, line in zip(wt_units_index, lines_wt_units):
-            #     lines[i] = line
-            # print('\n'.join(lines))
+                 +f" efficiency  .         {self.efficiency:.2f}")
             
         show = _ipython_display_
             

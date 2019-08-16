@@ -65,7 +65,7 @@ class Fermentation(Unit):
               'Cycle time': 'hr',
               'Loading time': 'hr',
               'Total dead time': 'hr'}
-    
+    _N_ins = _N_outs = 2
     _N_heat_utilities = 0
     _has_power_utility = True
     line = 'Fermentation'    
@@ -215,12 +215,10 @@ class Fermentation(Unit):
         cost_old = np.inf
         self._N, N = 2, self._N
         cost_new = self.purchase_cost
-        self._design()
-        self._cost()
+        self._summary()
         while cost_new < cost_old:
             self._N += 1
-            self._design()
-            self._cost()
+            self._summary()
             cost_old = cost_new
             cost_new = self.purchase_cost
         self._N, N = N, self._N

@@ -564,6 +564,43 @@ class CombinedTEA(TEA):
         #: Guess sales for solve_price method
         self._sales = 0
     
+    
+    @property
+    def operating_days(self):
+        v_all = [i.operating_days for i in self.TEAs]
+        v0, *vs = v_all
+        if all([v0 == v for v in vs]): return v0
+        else: return tuple(v_all)
+    @operating_days.setter
+    def operating_days(self, operating_days):
+        vector = np.zeros(len(self.TEAs))
+        vector[:] = operating_days
+        for i, j in zip(self.TEAs, vector):
+            i.operating_days = j
+    @property
+    def startup_months(self):
+        v_all = [i.startup_months for i in self.TEAs]
+        v0, *vs = v_all
+        if all([v0 == v for v in vs]): return v0
+        else: return tuple(v_all)
+    @startup_months.setter
+    def startup_months(self, startup_months):
+        vector = np.zeros(len(self.TEAs))
+        vector[:] = startup_months
+        for i, j in zip(self.TEAs, vector):
+            i.startup_months = j
+    @property
+    def income_tax(self):
+        v_all = [i.income_tax for i in self.TEAs]
+        v0, *vs = v_all
+        if all([v0 == v for v in vs]): return v0
+        else: return tuple(v_all)
+    @income_tax.setter
+    def income_tax(self, income_tax):
+        vector = np.zeros(len(self.TEAs))
+        vector[:] = income_tax
+        for i, j in zip(self.TEAs, vector):
+            i.income_tax = j
     @property
     def cashflow(self):
         return sum([i.cashflow for i in self.TEAs])
