@@ -254,10 +254,10 @@ class WorkingSpecies:
                 if i not in dct: raise UndefinedCompound(i)       
     
     def __delattr__(self, ID):
-        AttributeError("'{type(self).__name__} object is read-only")
+        AttributeError(f"'{type(self).__name__} object is read-only")
     
     def __setattr__(self, ID, name):
-        AttributeError("'{type(self).__name__} object is read-only")
+        AttributeError(f"'{type(self).__name__} object is read-only")
     
     def __len__(self):
         return self._N

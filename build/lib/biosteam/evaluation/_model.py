@@ -29,7 +29,7 @@ class Model(State):
     
         **skip:** [bool] If True, skip simulation for repeated states
     
-        ****metrics:** dict[str: function] ID-metric pairs.
+        ****metrics:** [str: function] ID-metric pairs.
     
     **Examples**
 
@@ -52,7 +52,12 @@ class Model(State):
         """Erase cached data."""
         self._setters = self._model = self._table = self._samples = None
     
-    def reset_metrics(self, **metrics):
+    @property
+    def metrics(self):
+        """dict[str: function] ID-metric pairs."""
+        return self._metrics
+    @metrics.setter
+    def metrics(self, metrics):
         table = self._table
         if table is not None:
             for i in self._metrics:

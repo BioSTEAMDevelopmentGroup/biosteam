@@ -87,13 +87,13 @@ def add_heat_utility_price_params(model, shape):
 def add_agent_price_params(model, name, agent, shape):
     if agent.price_kJ:
         @model.parameter(element=name, units='USD/kJ',
-                         name='Price per unit energy',
+                         name='Price',
                          distribution=shape(agent.price_kJ))
         def set_price(price_kJ):
             agent.price_kJ = price_kJ 
     elif agent.price_kmol:
         @model.parameter(element=name, units='USD/kmol',
-                         name='Price per unit material',
+                         name='Price',
                          distribution=shape(agent.price_kmol))
         def set_price(price_kmol):
             agent.price_kmol = price_kmol 
@@ -153,20 +153,20 @@ def _kW(model, ID, item, line, shape):
     key = 'kW'
     mid = float(item[key])
     if not mid: return None
-    distribution = shape(mid)
-    basis = item.basis
     units = item.units
     size = item.S
-    size = '' if size is 1 else f'{size} '
-    units = f'kW per {size}{units} {basis.casefold()}'
+    mid = mid/size
+    distribution = shape(mid)
+    units = (bst._Q(1, 'kW') / bst._Q(1, units)).units
     name = 'electricity rate'
     if ID!=line: ID = ID + ' ' + name
     else: ID = name
-    _cost_option(model, ID, item, key, line, distribution, units)
+    @model.parameter(element=line, units=units, distribution=distribution, name=ID)
+    def set_cost_option(value):
+        item[key] = value*size
 
 def _cost_option(model, ID, item, key, line, distribution, units):
     @model.parameter(element=line, units=units, distribution=distribution, name=ID)
     def set_cost_option(value):
         item[key] = value
-    set_cost_option
  
