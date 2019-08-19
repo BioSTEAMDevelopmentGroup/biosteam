@@ -104,26 +104,30 @@ class State:
     def get_distribution_summary(self):
         params = self.get_parameters()
         if not params: return None
-        index = []
-        values = []
+        params_by_shape = {}
+        shape_keys = {}
         for p in params:
             distribution = p.distribution
-            element = p.element_name
-            name = p.name
-            units = p.units or ''
-            if distribution:
-                shape = type(distribution).__name__
-                index.append((element, name, units, shape))
-                values.append(', '.join([f'{i:.4g}' for i in distribution._repr.values()]))
+            if not distribution: continue
+            shape = type(distribution).__name__
+            if shape in params_by_shape:
+                params_by_shape[shape].append(p)
             else:
-                index.append((element, name, units, ''))
-                values.append('')
-        index = pd.MultiIndex.from_tuples(index,
-                                          names=('Element',
-                                                 'Name',
-                                                 'Units',
-                                                 'Shape'))
-        return pd.DataFrame(values, index, ('Values',))
+                params_by_shape[shape] = [p]
+                shape_keys[shape] = tuple(distribution._repr.keys())
+        tables_by_shape = {}
+        for shape, params in params_by_shape.items():
+            data = []
+            columns = ('Element', 'Name', 'Units', 'Shape', *shape_keys[shape])
+            for p in params:
+                distribution = p.distribution
+                element = p.element_name
+                name = p.name.replace(element, '')
+                units = p.units or ''
+                values = distribution._repr.values()
+                data.append((element, name, units, shape, *values))
+            tables_by_shape[shape] =  pd.DataFrame(data, columns=columns)
+        return tables_by_shape
     
     def parameter(self, setter=None, element=None, kind='isolated',
                   name=None, distribution=None, units=None):

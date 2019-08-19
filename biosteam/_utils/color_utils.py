@@ -37,9 +37,10 @@ colors.red = Color('red', (241, 119, 127))
 colors.red_tint = colors.red.tint(25)
 colors.red_shade = colors.red.shade(25)
 colors.red_dark = colors.red.shade(45)
-colors.purple = Color('red', 255*np.array([0.635, 0.502, 0.725]))
-colors.purple_tint = colors.purple.tint(25)
+colors.purple = Color('purple', 255*np.array([0.635, 0.502, 0.725]))
+colors.purple_tint = colors.purple.tint(50)
 colors.purple_shade = colors.purple.shade(25)
+colors.purple_dark = colors.purple.shade(75)
 
 # Neutral colors
 colors.brown = Color('brown', [97, 30, 9])

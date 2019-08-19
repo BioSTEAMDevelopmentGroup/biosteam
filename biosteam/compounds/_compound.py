@@ -16,19 +16,19 @@ _R = 8.3144598  # Universal gas constant (J/mol-K)
 # %% Integrals methods
 
 # Methods taking the integral of a function
-def _func_int_rigorous(func, Xi, Xf):
+def _integral_rigorous(func, Xi, Xf):
     """Take the full integral."""
     return integrate.quad(func, Xi, Xf)[0]
 
-def _func_int_initial(func, Xi, Xf):
+def _integral_initial(func, Xi, Xf):
     """Take the integral with a constant derivative at the initial value."""
     return func(Xf)*(Xf-Xi)
 
-def _func_int_final(func, Xi, Xf):
+def _integral_final(func, Xi, Xf):
     """Take the integral with a constant derivative at the final value."""
     return func(Xf)*(Xf-Xi)
 
-def _func_int_average(func, Xi, Xf):
+def _integral_average(func, Xi, Xf):
     """Take the integral with a constant derivative at the average value."""
     return func((Xi+Xf)/2)*(Xf-Xi)
 
@@ -91,7 +91,7 @@ class Compound:
     MW = 1          # Arbitrary molecular weight (g/mol)
 
     #: Method for taking the integral of Cp
-    _func_integral = staticmethod(_func_int_average)
+    _integral = staticmethod(_integral_average)
 
     def quantity(self, prop_ID):
         """Return a material property as a Quantity object as described in the `pint package <https://pint.readthedocs.io/en/latest/>`__ 
@@ -131,46 +131,42 @@ class Compound:
     def H(self):
         """Enthapy (kJ/kmol) disregarding pressure and assuming the specified phase."""
         phase_ref = self.phase_ref
-        H = self.H_ref
-        T = self.T
         phase = self.phase
-        obj_dct = {'s': self.HeatCapacitySolid,
-                   'l': self.HeatCapacityLiquid,
-                   'g': self.HeatCapacityGas}
 
         # Perform enthalpy calculations at 101325 Pa
         if phase_ref == phase:
-            H += self._func_integral(obj_dct[phase], self.T_ref, T)
+            if phase == 'l':
+                H = self._integral(self.HeatCapacityLiquid, self.T_ref, self.T)
+            elif phase == 'g':
+                H = self._integral(self.HeatCapacityGas, self.T_ref, self.T)
+            elif phase == 's':
+                H = self._integral(self.HeatCapacitySolid, self.T_ref, self.T)
         elif phase_ref == 'l' and phase == 'g':
-            H += self.H_int_l_T_ref_l_to_Tb + self.Hvap_Tbm + \
-                self._func_integral(obj_dct['g'], self.Tb, T)
-        elif phase_ref == 's' and phase == 'l':
-            H += self.H_int_T_ref_s_to_Tm + self.Hfusm + \
-                self._func_integral(obj_dct['l'], self.Tm, T)
-        elif phase_ref == 'l' and phase == 's':
-            H += -self.H_int_l_Tm_to_T_ref_l - self.Hfusm + \
-                self._func_integral(obj_dct['s'], self.Tm, T)
+            H = self.H_int_l_T_ref_l_to_Tb + self.Hvap_Tbm + \
+                self._integral(self.HeatCapacityGas, self.Tb, self.T)
         elif phase_ref == 'g' and phase == 'l':
-            H += -self.H_int_Tb_to_T_ref_g - self.Hvap_Tbm + \
-                self._func_integral(obj_dct['l'], self.Tb, T)
+            H = -self.H_int_Tb_to_T_ref_g - self.Hvap_Tbm + \
+                self._integral(self.HeatCapacityLiquid, self.Tb, self.T)
+        elif phase_ref == 's' and phase == 'l':
+            H = self.H_int_T_ref_s_to_Tm + self.Hfusm + \
+                self._integral(self.HeatCapacityLiquid, self.Tm, self.T)
+        elif phase_ref == 'l' and phase == 's':
+            H = -self.H_int_l_Tm_to_T_ref_l - self.Hfusm + \
+                self._integral(self.HeatCapacitySolid, self.Tm, self.T)
         elif phase_ref == 's' and phase == 'g':
-            H += self.H_int_T_ref_s_to_Tm + self.Hfusm + self.H_int_l_Tm_to_Tb + \
-                self.Hvap_Tbm + self._func_integral(obj_dct['g'], self.Tb, T)
+            H = self.H_int_T_ref_s_to_Tm + self.Hfusm + self.H_int_l_Tm_to_Tb + \
+                self.Hvap_Tbm + self._integral(self.HeatCapacityGas, self.Tb, self.T)
         elif phase_ref == 'g' and phase == 's':
-            H += -self.H_int_Tb_to_T_ref_g - self.Hvap_Tbm - self.H_int_l_Tm_to_Tb - \
-                self.Hfusm + self._func_integral(obj_dct['s'], self.Tm, T)
-        return H
+            H = -self.H_int_Tb_to_T_ref_g - self.Hvap_Tbm - self.H_int_l_Tm_to_Tb - \
+                self.Hfusm + self._integral(self.HeatCapacitySolid, self.Tm, self.T)
+        return self.H_ref + H
 
     @property
     def S(self):
         """Entropy (kJ/kmol) assuming the specified phase."""
         S = self.S_ref
-        T = self.T
         phase = self.phase
         phase_ref = self.phase_ref
-        func_dct = {'s': self._delSs_delT,
-                    'l': self._delSl_delT,
-                    'g': self._delSg_delT}
 
         # Add Pressure Entropy
         if self.phase == 'g':
@@ -178,27 +174,32 @@ class Compound:
 
         # Add Temperature Entropy
         if phase == phase_ref:
-            S += func_dct[self.phase](self.T_ref, T)
+            if phase == 'l':
+                S += self._delSl_delT(self.T_ref, self.T)
+            elif phase == 'g':
+                S += self._delSg_delT(self.T_ref, self.T)
+            elif phase == 's':
+                S += self._delSs_delT(self.T_ref, self.T)
         elif phase_ref == 'l' and phase == 'g':
             S += self.S_int_l_T_ref_l_to_Tb + self.Hvap_Tbm / \
-                self.Tb + func_dct['g'](self.Tb, T)
+                self.Tb + self._delSg_delT(self.Tb, self.T)
         elif phase_ref == 'g' and phase == 'l':
             S += - self.S_int_Tb_to_T_ref_g - self.Hvapm / \
-                self.Tb + func_dct['l'](self.Tb, T)
+                self.Tb + self._delSl_delT(self.Tb, self.T)
         elif phase_ref == 's' and phase == 'l':
             S += self.S_int_T_ref_s_to_Tm + self.Hfusm / \
-                self.Tm + func_dct['l'](self.Tm, T)
+                self.Tm + self._delSl_delT(self.Tm, self.T)
         elif self.phase_ref == 'l' and phase == 's':
             S += - self.S_int_l_Tm_to_T_ref_l - self.Hfusm / \
-                self.Tm + func_dct['s'](self.Tm, T)
+                self.Tm + self._delSs_delT(self.Tm, self.T)
         elif phase_ref == 's' and phase == 'g':
             S += self.S_int_T_ref_s_to_Tm + self.Hfusm/self.Tm + \
                 self.S_int_l_Tm_to_Tb + self.Hvap_Tbm / \
-                self.Tb + func_dct['g'](self.Tb, T)
+                self.Tb + self._delSg_delT(self.Tb, self.T)
         elif phase_ref == 'g' and phase == 's':
             S += - self.S_int_Tb_to_T_ref_g - self.Hvap_Tbm/self.Tb - \
                 self.S_int_l_Tm_to_Tb - self.Hfusm / \
-                self.Tm + func_dct['s'](self.Tm, T)
+                self.Tm + self._delSs_delT(self.Tm, self.T)
         else:
             raise Exception(f'Error in Compound object "{self.ID}" with phase "{phase}" and reference "{phase_ref}.')
         return S
@@ -272,13 +273,13 @@ class Compound:
                       * 'constant': Compute integral using current function value
         """
         if integral_type == 'rigorous':
-            cls._func_integral = staticmethod(_func_int_rigorous)
+            cls._integral = staticmethod(_integral_rigorous)
         elif integral_type == 'average':
-            cls._func_integral = staticmethod(_func_int_average)
+            cls._integral = staticmethod(_integral_average)
         elif integral_type == 'final':
-            cls._func_integral = staticmethod(_func_int_final)
+            cls._integral = staticmethod(_integral_final)
         elif integral_type == 'initial':
-            cls._func_integral = staticmethod(_func_int_final)
+            cls._integral = staticmethod(_integral_final)
         else:
             raise ValueError("Must pass one of the following types of Cp integration: 'rigorous', 'average', 'initial', or 'final'")
         cls._integral_type = integral_type
