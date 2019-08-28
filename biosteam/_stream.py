@@ -460,7 +460,8 @@ class Stream(metaclass=metaStream):
         elif dim == vol_flow_dim:
             exec(f"self._vol[index] {inplace}= q.to('m3/hr').magnitude", locals())
         else:
-            raise DimensionError(f"dimensions for flow units must be in molar, mass or volumetric flow rates, not '{dim}'")
+            raise DimensionError(f"dimensions for flow units must be in molar, "
+                                 f"mass or volumetric flow rates, not '{dim}'")
     
     def getflow(self, *species, units='kmol/hr'):
         """Get flow rates of species in given units."""
@@ -483,13 +484,15 @@ class Stream(metaclass=metaStream):
         specieslen = len(species)
         if flowlen:
             if flow_pairs:
-                raise ValueError('cannot specify flow pairs when species is passed')
+                raise ValueError('cannot specify both "flow" and '
+                                 '"flow_pairs" when species is passed')
             elif flowlen == specieslen:
                 self._mol = self._species.array(species, flow)
             elif (not specieslen) and (flowlen == self._species._N):
                 self._mol = np.array(flow, float)
             else:
-                raise ValueError('length of flow rates must be equal to length of species')
+                raise ValueError('length of flow rates must be equal to '
+                                 'length of species')
         elif flow_pairs:
             self._mol = self._species.array(flow_pairs, [*flow_pairs.values()])
         else:
