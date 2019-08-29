@@ -1,4 +1,4 @@
-lazypkg>=1.0
+lazypkg>=1.1
 ht==0.1.52
 fluids==0.1.74
 pint==0.9

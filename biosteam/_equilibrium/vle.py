@@ -295,20 +295,20 @@ class VLE:
         self.T = stream.T = T
         self.P = self._stream.P = P
         # Setup bounderies
-        T_dew, x_dew = self._dew_point.solve_Tx(self._zs, P)
-        T_bubble, y_bubble = self._bubble_point.solve_Ty(self._zs, P)
+        P_dew, x_dew = self._dew_point.solve_Px(self._zs, T)
+        P_bubble, y_bubble = self._bubble_point.solve_Py(self._zs, T)
         
         # Check if there is equilibrium
-        if T >= T_dew:
+        if T >= P_dew:
             self._vapor_mol[self._index] = self._mol
             self._liquid_mol[self._index] = 0
-        elif T <= T_bubble:
+        elif T <= P_bubble:
             self._vapor_mol[self._index] = 0
             self._liquid_mol[self._index] = self._mol
         else:
             # Guess composition in the vapor is a
             # weighted average of bubble/dew points
-            self.V = V = self.V or (T - T_dew)/(T_bubble - T_dew)
+            self.V = V = self.V or (T - P_dew)/(P_bubble - P_dew)
             y = V*self._zs + (1-V)*y_bubble
             
             # Guess vapor flow rates
@@ -520,8 +520,8 @@ class VLE:
         z1, z2 = self._zs
         K1, K2 = self._Ks
         self.V = (-K1*z1 - K2*z2 + z1 + z2)/(K1*K2*z1 + K1*K2 *
-                                           z2 - K1*z1 - K1*z2
-                                           - K2*z1 - K2*z2 + z1 + z2)
+                                             z2 - K1*z1 - K1*z2
+                                             - K2*z1 - K2*z2 + z1 + z2)
         return self.V
     
     def _solve_V_3(self):

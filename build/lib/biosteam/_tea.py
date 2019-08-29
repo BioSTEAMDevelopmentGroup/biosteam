@@ -294,7 +294,7 @@ class TEA:
     @property
     def annual_depreciation(self):
         """Depreciation (USD/yr) equivalent to FCI dived by the the duration of the venture."""
-        return self.FCI/(self.duration[1]-self.duration[0])
+        return self.TDC/(self.duration[1]-self.duration[0])
     @property
     def sales(self):
         """Annual sales revenue."""
@@ -408,7 +408,7 @@ class TEA:
         """Return AOC at given FCI"""
         return self._FOC(FCI) + self.VOC
     
-    def production_cost(self, *products):
+    def production_cost(self, *products, with_annual_depreciation=True):
         """Return production cost of products.
         
         **Parameters**
@@ -419,8 +419,20 @@ class TEA:
            If there is more than one main product, The production cost is proportionally allocated to each of the main products with respect to their marketing values. The marketing value of each product is determined by the annual production multiplied by its selling price.
         """
         market_values = np.array([i.cost for i in products])
-        weights = market_values/market_values.sum()
-        return weights*self.AOC
+        total_market_value = market_values.sum()
+        weights = market_values/total_market_value
+        coproducts = self.system.products.difference(products)
+        coproduct_sales = sum([s.cost for s in coproducts if s.price]) * self._annual_factor
+        if with_annual_depreciation:
+            TDC = self.TDC
+            annual_depreciation = TDC/(self.duration[1]-self.duration[0])
+            AOC = self._AOC(self._FCI(TDC))
+            return weights*(AOC 
+                            + coproduct_sales
+                            - total_market_value
+                            + annual_depreciation)
+        else:
+            return weights*(self.AOC + coproduct_sales - total_market_value)
     
     @property
     def cashflow(self):
