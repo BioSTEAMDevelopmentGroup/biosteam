@@ -18,7 +18,7 @@ __all__ = ('TEA', 'CombinedTEA')
 # %% Depreciation data
 
 _MACRS = {'MACRS5': np.array([.2000, .3200, .1920,
-                             .1152, .1152, .0576]),
+                              .1152, .1152, .0576]),
           
           'MACRS7':  np.array([.1429, .2449, .1749,
                                .1249, .0893, .0892,

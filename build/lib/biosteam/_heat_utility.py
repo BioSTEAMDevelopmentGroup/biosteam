@@ -126,16 +126,16 @@ class HeatUtility:
         
         def _ipython_display_(self):
             print(f"{type(self).__name__}:\n"
-                 +f" species     .         {repr(self.species)}\n"
-                 +f" molfrac     .         ({', '.join([format(i,'.2f') for i in self.molfrac])},)\n"
+                 +f" species               {repr(self.species)}\n"
+                 +f" molfrac               ({', '.join([format(i,'.2f') for i in self.molfrac])},)\n"
                  +f" T           K         {self.T:,.2f}\n"
                  +f" P           Pa        {self.P:,.0f}\n"
-                 +f" phase       .         '{self.phase}'\n"
+                 +f" phase                 '{self.phase}'\n"
                  +f" Hvap        kJ/kmol   {self.Hvap and format(self.Hvap, ',.4g')}\n"
                  +f" T_limit     K         {self.T_limit and format(self.T_limit, ',.2f')}\n"
                  +f" price_kJ    USD/kJ    {self.price_kJ:.4g}\n"
                  +f" price_kmol  USD/kmol  {self.price_kmol:.4g}\n"
-                 +f" efficiency  .         {self.efficiency:.2f}")
+                 +f" efficiency            {self.efficiency:.2f}")
             
         show = _ipython_display_
             
@@ -211,7 +211,7 @@ class HeatUtility:
                 agent = self._select_heating_agent(T_op)
             
         # Calculate utility flow rate requirement
-        efficiency = self.efficiency if self.efficiency else agent.efficiency
+        efficiency = self.efficiency or agent.efficiency
         duty = duty/efficiency
         if agent.Hvap:
             self._update_flow_wt_phase_change(duty, agent.Hvap)

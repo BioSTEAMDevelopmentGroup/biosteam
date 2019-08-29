@@ -12,7 +12,7 @@ setup(
     name='biosteam',
     packages=['biosteam'],
     license='MIT',
-    version='0.8.7',
+    version='0.8.8',
     description='The Biorefinery Simulation and Techno-Economic Analysis Modules',
     long_description=open('README.rst').read(),
     #ext_modules=cythonize('biosteam/equilibrium/unifac.pyx'),
@@ -21,7 +21,7 @@ setup(
     install_requires=['pint==0.9', 'ht==0.1.52', 'fluids==0.1.74',
                       'scipy', 'IPython', 'thermo==0.1.39', 'colorpalette>=0.2.3',
                       'array_collections==0.1.9', 'free_properties==0.1.9',
-                      'pandas', 'numpy', 'graphviz', 'matplotlib', 'lazypkg>=1.1',
+                      'pandas', 'numpy', 'graphviz', 'matplotlib', 'lazypkg>=1.2',
                       'chaospy'],
     python_requires=">=3.6",
     package_data=
