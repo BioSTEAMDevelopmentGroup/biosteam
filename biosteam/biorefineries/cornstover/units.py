@@ -15,7 +15,7 @@ path = os.path.dirname(os.path.realpath(__file__)) + '\\'
 xl2mod(path + '_humbird2011.xlsx', sys.modules[__name__])
 del sys, xl2mod, os, path
 
-from biosteam._utils.solvers import aitken_secant
+from biosteam.utils.solvers import aitken_secant
 from biosteam import Unit, MixedStream, Stream
 from biosteam.units.decorators import cost
 from biosteam.units.designtools import size_batch

@@ -6,12 +6,10 @@ Created on Tue Aug 13 21:44:23 2019
 """
 
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 from biosteam import colors
-from biosteam.utils import DoubleColorLegend
-from biosteam.evaluation.evaluation_tools import plot_spearman, plot_single_points, \
-     plot_montecarlo_across_coordinate, plot_montecarlo
+from biosteam.evaluation.evaluation_tools import plot_spearman, \
+    plot_single_points, plot_montecarlo
 
     
 # %% Plot Monte Carlo
@@ -40,11 +38,11 @@ replacement_labels = {
     'TEA operating days': 'Operating days',
     'Stream-Cornstover price': 'Cornstover price',
     'Fermentation-U34 efficiency': 'Fermentation efficiency',
-    'Stream-Cellulase422 price': 'Cellulase price',
+    'Stream-Cellulase price': 'Cellulase price',
     'Stream-Cornstover flow rate': 'Cornstover flow rate',
     'TEA income tax': 'Income tax',
-    'Saccharification and co fermentation-U22 saccharification conversion': 'Saccharification conversion',
-    'Saccharification and co fermentation-U22 ethanol conversion': 'Ethanol conversion',
+    'Saccharification and co fermentation-U72 saccharification conversion': 'Saccharification conversion',
+    'Saccharification and co fermentation-U72 ethanol conversion': 'Ethanol conversion',
     'Boiler turbogenerator-BT boiler efficiency': 'Boiler efficiency',
     'Boiler turbogenerator boiler base cost': 'Boiler base cost',
     'Boiler turbogenerator turbogenerator base cost': 'Turbogenerator base cost',

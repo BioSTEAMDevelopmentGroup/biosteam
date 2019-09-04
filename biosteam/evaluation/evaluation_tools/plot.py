@@ -7,7 +7,7 @@ Created on Mon Sep  2 05:01:11 2019
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from biosteam._utils.plot_utils import DoubleColorCircle, DoubleColorLegend
+from biosteam.utils.plot_utils import DoubleColorCircle, DoubleColorLegend
 from biosteam import colors
 
 __all__ = ('plot_montecarlo', 'plot_montecarlo_across_coordinate',

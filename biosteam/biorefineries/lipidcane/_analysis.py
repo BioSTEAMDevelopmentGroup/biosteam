@@ -13,8 +13,8 @@ model_lc = lc.model.lipidcane_model
 model_sc = sc.model.sugarcane_model
 model_lc_lf = lc.model.lipidcane_model_with_lipidfraction_parameter
 np.random.seed(1234)
-N_spearman_samples = 500
-N_coordinate_samples = 100
+N_spearman_samples = 5000
+N_coordinate_samples = 1000
 N_coordinates = 20
 rule = 'L'
 
