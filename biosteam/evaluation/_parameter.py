@@ -28,7 +28,8 @@ class Parameter:
             Units of parameter.
     
     """
-    __slots__ = ('name', 'setter', 'simulate', 'element', 'system', 'distribution', 'units')
+    __slots__ = ('name', 'setter', 'simulate', 'element',
+                 'system', 'distribution', 'units')
     
     def __init__(self, name, setter, simulate,
                  element, system, distribution,

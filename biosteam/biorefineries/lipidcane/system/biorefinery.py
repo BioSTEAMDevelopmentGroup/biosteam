@@ -4,17 +4,17 @@ Created on Mon Feb 18 22:18:21 2019
 
 @author: Guest Group
 """
-from biosteam.biorefineries.lipidcane.system.ethanol import ethanol_sys, Sugar_solution
-from biosteam.biorefineries.lipidcane.system.biodiesel import biodiesel_sys, Oil
+from biosteam.biorefineries.lipidcane.system.ethanol import ethanol_sys, sugar_solution
+from biosteam.biorefineries.lipidcane.system.biodiesel import biodiesel_sys, oil
 from biosteam.biorefineries.lipidcane.system.pretreatment import \
-    pretreatment_sys, pretreatment_species, F4, Lipid, Sugar
+    pretreatment_sys, pretreatment_species, U202, lipid, sugar
 from biosteam.biorefineries.lipidcane.tea import LipidcaneTEA
 from biosteam.units.facilities import CoolingTower, \
                                       BoilerTurbogenerator, \
                                       ChilledWaterPackage, \
                                       ProcessWaterCenter
 from biosteam import System, Stream, find, Species
-from biosteam.units import Junction, InvSplitter
+from biosteam.units import Junction
 from biosteam.biorefineries.lipidcane.utils import set_lipid_fraction
 import warnings
 
@@ -29,22 +29,22 @@ water = Species('Water',)
 stream = find.stream
 
 BT = BoilerTurbogenerator('BT',
-                          ins=F4-0,
+                          ins=U202-0, # Bagasse from conveyor belt
                           outs=emission,
                           boiler_efficiency=0.80,
                           turbogenerator_efficiency=0.85)
 
 Stream.species = water
 CT = CoolingTower('CT')
-process_water_streams = (stream.Water_1, stream.Water_2,
-                         stream.Imbibition_water,
-                         stream.S134, stream.Water_3)
-recycle_water_streams = (stream.Water_4,)
+process_water_streams = (stream.rvf_wash_water, stream.oil_wash_water,
+                         stream.imbibition_water,
+                         stream.stripping_water, stream.biodiesel_wash_water)
+recycle_water_streams = (stream.recycle_water,)
 makeup_water = Stream('Makeup water', price=0.000254)
 BT_makeup_water = Stream('BT makeup water', price=0.000254)
 CT_makeup_water = Stream('CT makeup water', price=0.000254)
-process_water = Stream('Process water')
-recycle_water = Stream('Recycle water')
+process_water = Stream('process water')
+recycle_water = Stream('recycle water')
 
 def update_water():
     process_water._mol[0] = sum([i.getflow('Water') for i in process_water_streams])
@@ -57,8 +57,8 @@ PWC = ProcessWaterCenter('PWC',
                          BT=BT, CT=CT)
 
 # %% Set up system
-connect_sugar = Junction(Sugar, Sugar_solution, ('Water', 'Glucose', 'Sucrose'))
-connect_lipid = Junction(Lipid, Oil, ('Lipid',))
+connect_sugar = Junction(sugar, sugar_solution, ('Water', 'Glucose', 'Sucrose'))
+connect_lipid = Junction(lipid, oil, ('Lipid',))
 
 lipidcane_sys = System('lipid cane system',
                        network=pretreatment_sys.network
@@ -69,7 +69,7 @@ lipidcane_sys = System('lipid cane system',
 units = lipidcane_sys._costunits
 
 # %% Perform TEA
-lipidcane_sys.reset_names()
+
 lipidcane_tea = LipidcaneTEA(system=lipidcane_sys, IRR=0.15, duration=(2018, 2038),
                              depreciation='MACRS7', income_tax=0.35,
                              operating_days=200, lang_factor=3,

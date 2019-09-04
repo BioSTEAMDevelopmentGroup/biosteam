@@ -29,21 +29,21 @@ Stream.species = biodiesel_species
 # %% Fresh Streams
 
 # Fresh degummed oil
-Oil = Stream('Oil', Lipid=8853.49, Water=1.00e-02,
+oil = Stream('oil', Lipid=8853.49, Water=1.00e-02,
              units='kg/hr', T=347.15)
 
-# Fresh Methanol
-Methanol = Stream('Methanol', Methanol=1,
+# Fresh methanol
+methanol = Stream('methanol', Methanol=1,
                   price=price['Methanol'])
 
 # Catalyst
-Catalyst = Stream('Catalyst', NaOCH3=0.25,
+catalyst = Stream('catalyst', NaOCH3=0.25,
                   Methanol=0.75, units='kg/hr',
                   price=price['NaOCH3'])
                   # price=0.25*price['NaOCH3'] + 0.75*Methanol.price)
 
 # Water to remove glycerol
-Water = Stream('Water 3', Water=13.6, T=273.15+60, 
+biodiesel_wash_water = Stream('biodiesel wash water', Water=13.6, T=273.15+60, 
                price=price['Water'])
 
 # Acid to neutralize catalyst after second centrifuge
@@ -59,13 +59,13 @@ HCl2 = Stream('HCl2', HCl=0.21, Water=0.79,
 NaOH = Stream('NaOH', NaOH=1, price=price['NaOH'])
 
 # Products
-Crude_glycerol = Stream('Crude glycerol',
+crude_glycerol = Stream('crude glycerol',
                         price=price['Crude glycerol'])
-Biodiesel = Stream('Biodiesel',
+biodiesel = Stream('biodiesel',
                    price=price['Biodiesel'])
 
 # Waste
-Waste = Stream('Waste', price=price['Waste'])
+waste = Stream('waste', price=price['Waste'])
 
 # %% Units
 
@@ -77,34 +77,34 @@ Waste = Stream('Waste', price=price['Waste'])
 x_cat = 1.05e-05 # Catalyst molar fraction in methanol feed
 
 # Mix Recycle Methanol and Fresh Methanol
-T1 = StorageTank('T1')
-P1 = Pump('P1')
+T401 = StorageTank('T401')
+P401 = Pump('P401')
 
 # Storage Tank for Catalyst
-T2 = StorageTank('T2')
-P2 = Pump('P2')
+T402 = StorageTank('T402')
+P402 = Pump('P402')
 
-# Tank for Oil
-T3 = StorageTank('T3')
-T3.tau = 4
-P3 = Pump('P3')
+# Tank for oil
+T403 = StorageTank('T403')
+T403.tau = 4
+P403 = Pump('P403')
 
 # Mix Methanol and Catalyst stream
-M1 = MixTank('M1')
-P0 = Pump('P0')
+T404 = MixTank('T404')
+P404 = Pump('P404')
 
 # Mass Balance for Methanol, Recycle Methanol, and Catalyst stream
-MB1 = MassBalance('MB1', species=('Methanol', 'NaOCH3'), streams=(0, 1))
+B401 = MassBalance('B401', species=('Methanol', 'NaOCH3'), streams=(0, 1))
 
 # Split Methanol/Catalyst to reactors
-S1 = InvSplitter('S1')
+S401 = InvSplitter('S401')
 
 # First Reactor
-R1 = Transesterification('R1', efficiency=0.90, methanol2lipid=6, T=333.15,
+R401 = Transesterification('R401', efficiency=0.90, methanol2lipid=6, T=333.15,
                          catalyst_molfrac=x_cat)
 
 # Centrifuge to remove glycerol
-C1 = SplitCentrifuge_LLE('C1',
+C401 = SplitCentrifuge_LLE('C401',
                          split=(0.99,  # Lipid
                                 0.40,  # Methanol
                                 0.06,  # Glycerol
@@ -114,14 +114,14 @@ C1 = SplitCentrifuge_LLE('C1',
                                 0,     # HCl
                                 0.40)) # NaOCH3
 
-P4 = Pump('P4')
+P405 = Pump('P405')
 
 # Second Reactor
-R2 = Transesterification('R2', efficiency=0.90, methanol2lipid=6, T=333.15,
+R402 = Transesterification('R402', efficiency=0.90, methanol2lipid=6, T=333.15,
                          catalyst_molfrac=x_cat) 
 
 # Centrifuge to remove glycerol
-C2 = SplitCentrifuge_LLE('C2',
+C402 = SplitCentrifuge_LLE('C402',
                          split=(0.90,  # Lipid
                                 0.10,  # Methanol
                                 0.05,  # Glycerol
@@ -132,13 +132,13 @@ C2 = SplitCentrifuge_LLE('C2',
                                 0.10)) # NaOCH3
 
 # Acids and bases per catalyst by mol
-catalyst_index = Oil.index('NaOCH3')
+catalyst_index = oil.index('NaOCH3')
 k1 = 0.323/1.5; k2 = 1.060/1.5; k3 = 0.04505/1.5;
-catalyst_mol = M1.outs[0].mol[7]
+catalyst_mol = T404.outs[0].mol[7]
 def adjust_acid_and_base():
     global catalyst_mol
     # Adjust according to USDA biodiesel model
-    new = M1.outs[0].mol[7]
+    new = T404.outs[0].mol[7]
     if new != catalyst_mol:
         catalyst_mol = new
         NaOH._mol[5] = k1 * new
@@ -148,12 +148,12 @@ def adjust_acid_and_base():
 """Biodiesel Purification Section"""
 
 # Water wash
-W1 = MixTank('W1')
-W1.tau = 0.25
-X0 = Pump('X0')
+T405 = MixTank('T405')
+T405.tau = 0.25
+P406 = Pump('P406')
 
 # Centrifuge out water
-C3 = RatioCentrifuge_LLE('C3',
+C403 = RatioCentrifuge_LLE('C403',
                          Kspecies=('Methanol', 'Glycerol'),
                          Ks=array((0.382, 0.183)),
                          top_solvents=('Biodiesel',),
@@ -164,85 +164,85 @@ C3 = RatioCentrifuge_LLE('C3',
 # Vacuum dry biodiesel
 # Consider doing this by split, and keeping this unit constant
 # 290 Pa, 324 K according to USDA Biodiesel Model
-V1 = SplitFlash('V1', outs=('', 'biodiesel'),
+F401 = SplitFlash('F401',
                 order=('Water', 'Methanol', 'Biodiesel'),
                 split=(0.9999, 0.9999, 0.00001),
                 P=2026.5, T=331.5, Q=0)
-V1.line = 'Vacuum dryer'
-V1.material = 'Stainless steel 316'
-P6 = Pump('P6')
+F401.line = 'Vacuum dryer'
+F401.material = 'Stainless steel 316'
+P407 = Pump('P407')
 
 """Glycerol Purification Section"""
 
 # Condense vacuumed methanol to recycle
-HX1 = HXutility('HX1', V=0, T=295)
-P11 = Pump('P11')
+H401 = HXutility('H401', V=0, T=295)
+P408 = Pump('P408')
 
 # Mix recycled streams and HCl
-T5 = MixTank('T5')
-P7 = Pump('P7')
+T406 = MixTank('T406')
+P409 = Pump('P409')
 
 # Centrifuge out waste fat
 # assume all the lipid, free_lipid and biodiesel is washed out
-C4 = SplitCentrifuge_LLE('C4', outs=('', Waste),
+C404 = SplitCentrifuge_LLE('C404', outs=('', waste),
                          order=('Methanol', 'Glycerol', 'Water'),
                          split=(0.999, 0.999, 0.999))
 
 # Add and mix NaOH
-T6 = MixTank('T6')
-P8 = Pump('P8')
+T407 = MixTank('T407')
+P410 = Pump('P410')
 
 # Methanol/Water distillation column
-D1 = Distillation('D1',
+D401 = Distillation('D401',
                   LHK=('Methanol', 'Water'), P=101325,
                   y_top=0.99999, x_bot=0.0001, k=2.5)
-D1.is_divided = True
-D1.tray_material = 'Stainless steel 316'
-D1.vessel_material = 'Stainless steel 316'
+D401.is_divided = True
+D401.tray_material = 'Stainless steel 316'
+D401.vessel_material = 'Stainless steel 316'
 
 # Condense recycle methanol
-HXD1 = HXutility('HXD1', V=0, T=315)
-P9 = Pump('P9')
+H402 = HXutility('H402', V=0, T=315)
+P411 = Pump('P411')
 
 # Glycerol/Water flash (not a distillation column)
 w = 0.20/Stream.species.Water.MW
 g = 0.80/Stream.species.Glycerol.MW
 x = w/(w+g)
-D2 = Flash('D2',
+F402 = Flash('F402',
            species_IDs=('Water', 'Glycerol'),
            P=101325,
            x=(x, 1-x),
            HNK=('Biodiesel',),
            LNK=('Methanol',))
-D2.HasGlycolGroups = True
-D2.vessel_material = 'Stainless steel 316'
+F402.HasGlycolGroups = True
+F402.vessel_material = 'Stainless steel 316'
 
 # Condense water to recycle
-HXD2_top = HXprocess('HXD2_top', fluid_type='ll', outs=(MixedStream(), ''),
+H403 = HXprocess('H403', fluid_type='ll', outs=(MixedStream(), ''),
                      species_IDs=('Methanol', 'Water'), 
                      HNK=('Glycerol', 'Biodiesel', 'NaOH', 'HCl'))
     
 # Use heat from glycerol
-HXD2_bot = HXprocess('HXD2_bot', fluid_type='ls',
+H404 = HXprocess('H404', fluid_type='ls',
                      species_IDs=('Methanol', 'Water'), 
                      HNK=('Glycerol', 'Biodiesel', 'NaOH', 'HCl'))
-run_bot = HXD2_bot._run
+run_bot = H404._run
 
 # Storage tank for glycerol
-T7 = StorageTank('T7', outs=Crude_glycerol)
-HXD2_bot-1-T7
+T408 = StorageTank('T408', outs=crude_glycerol)
+H404-1-T408
 
 # Storage tank for biodiesel
-T8 = StorageTank('T8', outs=Biodiesel)
-V1-1-P6-0-T8
+T409 = StorageTank('T409', outs=biodiesel)
+F401-1-P407-0-T409
 
 # %% Set up systems
 
 # Biodiesel Transesterification Section
-Oil-T3-P3
-(P3-0, S1-0)-R1-0-C1
-(C1-0, S1-1)-R2-0-C2
-transesterification_network = (T3, P3, R1, C1, P4, R2, C2,
+oil-T403-P403
+(P403-0, S401-0)-R401-0-C401
+(C401-0, S401-1)-R402-0-C402
+transesterification_network = (T403, P403, R401, C401, P405, R402, C402,
                                adjust_acid_and_base)
 
 """
@@ -255,46 +255,48 @@ minimum spec requirements:
 """
 
 # Find Water Flow
-(C2-0, HXD2_top-0, Water, HCl1)-W1-X0-C3
+(C402-0, H403-0, biodiesel_wash_water, HCl1)-T405-P406-C403
 def adjust_water_flow():
-    HXD2_top.outs[0].liquid_mol[4] = 800*C2.outs[0]._mol[2]
+    H403.outs[0].liquid_mol[4] = 800*C402.outs[0]._mol[2]
 
 # Glycerol recycle and purification section
-C3-0-V1
-V1-0-HX1-P11
-C1-1-P4
-(P4-0, C2-1, C3-1, P11-0, HCl2)-T5-P7-C4
-(C4-0, NaOH)-T6-P8
-(HXD2_top-1, D2-1)-HXD2_bot
-HXD2_bot-0-D1-1-D2
-(D2-0, P8-0)-HXD2_top
+C403-0-F401
+F401-0-H401-P408
+C401-1-P405
+(P405-0, C402-1, C403-1, P408-0, HCl2)-T406-P409-C404
+(C404-0, NaOH)-T407-P410
+(H403-1, F402-1)-H404
+H404-0-D401-1-F402
+(F402-0, P410-0)-H403
 glycerol_recycle_sys = System('glycerol_recycle_sys',
                               network=(adjust_water_flow, 
-                                       W1, X0, C3, V1, HX1, P11, P6, T5,
-                                       P7, C4, T6, P8, HXD2_top, HXD2_bot, 
-                                       D1, D2, HXD2_top, HXD2_bot),
-                              recycle=D2-0)                           
+                                       T405, P406, C403, F401, H401,
+                                       P408, P407, T406, P409, C404,
+                                       T407, P410, H403, H404, D401,
+                                       F402, H403, H404),
+                              recycle=F402-0)                           
 # Find Fresh Methanol Flow
-D1-0-HXD1-P9    # Recycle methanol
-Methanol-T1-P1  # Mix fresh and recycled methanol
-Catalyst-T2-P2  # Fresh catalyst
-(P9-0, P1-0, P2-0)-M1-P0-S1  # Mix Catalyst with Methanol
-meoh_network = (HXD1, P9, T1, P1, T2, P2, M1, P0, S1)
+D401-0-H402-P411    # Recycle methanol
+methanol-T401-P401  # Mix fresh and recycled methanol
+catalyst-T402-P402  # Fresh catalyst
+(P411-0, P401-0, P402-0)-T404-P404-S401  # Mix Catalyst with Methanol
+meoh_network = (H402, P411, T401, P401, T402, P402, T404, P404, S401)
 
 # Set connections for mass balance proxy
-(Catalyst, Methanol, D1-0)-MB1
-MB1**(1**R1, 1**R2)
+(catalyst, methanol, D401-0)-B401
+B401**(1**R401, 1**R402)
 
 # Complete System
-biodiesel_sys = System('biodiesel_sys', network=transesterification_network
-                                              + (glycerol_recycle_sys, MB1)
-                                              + meoh_network
-                                              + (T7, T8))
+biodiesel_sys = System('biodiesel_sys',
+                       network=transesterification_network
+                               + (glycerol_recycle_sys, B401)
+                               + meoh_network
+                               + (T408, T409))
 
 # Initial conditions
-index = Oil.indices(['Methanol', 'Glycerol', 'Water'])
-D2.outs[0].mol[index] = (3.483e-02, 8.284e-03, 2.094e+01)
-D2.outs[0].T = 374.986
-HXD2_top.outs[0].T = 374.986
-HXD2_top.outs[0].liquid_mol[index] = (3.483e-02, 8.284e-03, 2.094e+01)
+index = oil.indices(['Methanol', 'Glycerol', 'Water'])
+F402.outs[0].mol[index] = (3.483e-02, 8.284e-03, 2.094e+01)
+F402.outs[0].T = 374.986
+H403.outs[0].T = 374.986
+H403.outs[0].liquid_mol[index] = (3.483e-02, 8.284e-03, 2.094e+01)
 

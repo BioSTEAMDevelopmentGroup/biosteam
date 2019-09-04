@@ -506,13 +506,17 @@ class Unit(metaclass=unit):
             new_length = len(downstream_units)
         return downstream_units
 
-    def _neighborhood(self, radius=1):
+    def _neighborhood(self, radius=1, upstream=True, downstream=True):
         """Return all neighboring units within given radius.
         
         Parameters
         ----------
         radius : int
                  Maxium number streams between neighbors.
+        downstream=True : bool, optional
+            Whether to show downstream operations
+        upstream=True : bool, optional
+            Whether to show upstream operations
         
         """
         radius -= 1
@@ -524,21 +528,26 @@ class Unit(metaclass=unit):
         for i in range(radius):
             neighbors = set()
             for neighbor in direct_neighborhood:
-                _add_upstream_neighbors(neighbor, neighbors)
-                _add_downstream_neighbors(neighbor, neighbors)
+                upstream and _add_upstream_neighbors(neighbor, neighbors)
+                downstream and _add_downstream_neighbors(neighbor, neighbors)
             if neighbors == direct_neighborhood: break
             direct_neighborhood = neighbors
             neighborhood.update(direct_neighborhood)
         
         return neighborhood
 
-    def diagram(self, radius=0, file=None, format='png'):
+    def diagram(self, radius=0, upstream=True, downstream=True, 
+                file=None, format='png'):
         """Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of the unit and all neighboring units within given radius.
         
         Parameters
         ----------
         radius : int
                  Maxium number streams between neighbors.
+        downstream=True : bool, optional
+            Whether to show downstream operations
+        upstream=True : bool, optional
+            Whether to show upstream operations
         file : Must be one of the following:
             * [str] File name to save diagram.
             * [None] Display diagram in console.
@@ -547,7 +556,7 @@ class Unit(metaclass=unit):
         
         """
         if radius > 0:
-            neighborhood = self._neighborhood(radius)
+            neighborhood = self._neighborhood(radius, upstream, downstream)
             neighborhood.add(self)
             sys = bst.System('', neighborhood)
             return sys.diagram('thorough', file, format)
