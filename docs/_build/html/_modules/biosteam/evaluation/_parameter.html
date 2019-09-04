@@ -89,17 +89,17 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../Getting started.html">1. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Creating a Unit.html">3. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit operation examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -112,11 +112,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../compounds.html">compounds</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../inspect.html">inspect</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../reaction.html">reaction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../evaluation.html">evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 
             
@@ -189,24 +189,25 @@
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Parameter&#39;</span><span class="p">,)</span>
 <span class="kn">from</span> <span class="nn">._name</span> <span class="k">import</span> <span class="n">elementname</span>
 
-<div class="viewcode-block" id="Parameter"><a class="viewcode-back" href="../../../Parameter.html#biosteam.evaluation.Parameter">[docs]</a><span class="k">class</span> <span class="nc">Parameter</span><span class="p">:</span>
+<div class="viewcode-block" id="Parameter"><a class="viewcode-back" href="../../../evaluation/Parameter.html#biosteam.evaluation.Parameter">[docs]</a><span class="k">class</span> <span class="nc">Parameter</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Create a Parameter object that, when called, runs the setter and the simulate functions.</span>
 <span class="sd">    </span>
-<span class="sd">    **Parameters**</span>
-<span class="sd">    </span>
-<span class="sd">        **name:** [str] Name of parameter</span>
-<span class="sd">        </span>
-<span class="sd">        **setter:** [function] Should set the parameter</span>
-<span class="sd">        </span>
-<span class="sd">        **simulate:** [function] Should simulate parameter effects</span>
-<span class="sd">        </span>
-<span class="sd">        **element:** [object] Element associated to parameter</span>
-<span class="sd">        </span>
-<span class="sd">        **system:** [System] System associated to parameter</span>
-<span class="sd">        </span>
-<span class="sd">        **distribution:** [chaospy Dist] Parameter distribution</span>
-<span class="sd">        </span>
-<span class="sd">        **units:** [str] Units of parameter</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    name : str</span>
+<span class="sd">           Name of parameter.</span>
+<span class="sd">    setter : function</span>
+<span class="sd">             Should set the parameter.</span>
+<span class="sd">    simulate : function</span>
+<span class="sd">               Should simulate parameter effects.</span>
+<span class="sd">    element : object</span>
+<span class="sd">              Element associated to parameter.</span>
+<span class="sd">    system : System</span>
+<span class="sd">             System associated to parameter.</span>
+<span class="sd">    distribution : chaospy.Dist</span>
+<span class="sd">                   Parameter distribution.</span>
+<span class="sd">    units : str</span>
+<span class="sd">            Units of parameter.</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;setter&#39;</span><span class="p">,</span> <span class="s1">&#39;simulate&#39;</span><span class="p">,</span> <span class="s1">&#39;element&#39;</span><span class="p">,</span> <span class="s1">&#39;system&#39;</span><span class="p">,</span> <span class="s1">&#39;distribution&#39;</span><span class="p">,</span> <span class="s1">&#39;units&#39;</span><span class="p">)</span>

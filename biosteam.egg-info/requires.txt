@@ -11,5 +11,5 @@ pandas
 numpy
 graphviz
 matplotlib
-lazypkg>=1.2
+lazypkg>=1.3
 chaospy

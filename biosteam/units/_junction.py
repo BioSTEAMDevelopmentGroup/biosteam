@@ -37,20 +37,19 @@ class Junction(Unit):
     to `downstream`. This serves to connect streams with different
     Species object.
     
-    **Parameters**
-        
-        **downstream:** [Stream or str] Flow rate, T, P, and phase information
+    Parameters
+    ----------    
+    upstream=None : Stream or str, defaults to missing stream
+        Stream that will be copied to `downstream`.
+    downstream="" : Stream or str, defaults to new stream
+        Flow rate, T, P, and phase information
         will be copied from `upstream` to this stream.
         If None, stream will be missing.
-        
-        **upstream:** [Stream or str] Stream that will be copied to
-        `downstream`. If None, stream will be missing.
-        
-        **species:** list[str] IDs of species to be passed down.
-        If None, all species in common will be passed.
+    species=None : list[str], defaults to all species in common
+        IDs of species to be passed down.
     
-    **Examples**
-    
+    Examples
+    --------
     Create a Junction object and connect streams with different Species objects:
         
     >>> from biosteam import *

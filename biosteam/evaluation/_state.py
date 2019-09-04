@@ -9,6 +9,7 @@ from .. import Unit, Stream
 import numpy as np
 import pandas as pd
 from chaospy import J
+from .evaluation_tools import load_default_parameters
 
 __all__ = ('State',)
 
@@ -76,11 +77,12 @@ def modelfunction(params):
 class State:
     """Create a State object that can update the `system` state given a sample of parameter states.
     
-    **Parameters**
-    
-        **system:** [System] Reflects the model state.
-        
-        **skip:** [bool] If True, skip simulation for repeated states
+    Parameters
+    ----------
+    system : System
+        Reflects the model state.
+    skip=False : bool
+        If True, skip simulation for repeated states
     
     """
     __slots__ = ('_system', # [System] Reflects the model state.
@@ -88,7 +90,9 @@ class State:
                  '_model', # [function] Model function.
                  '_skip') # [bool] If True, skip simulation for repeated states
     
-    def __init__(self, system, skip=True):
+    load_default_parameters = load_default_parameters
+    
+    def __init__(self, system, skip=False):
         self._system = system
         self._params = []
         self._model = None
@@ -97,11 +101,22 @@ class State:
     def __len__(self):
         return len(self._params)
     
+    def copy(self):
+        """Return copy."""
+        copy = self.__new__(type(self))
+        copy._params = list(self._params)
+        copy._system = self._system
+        copy._model = self._model
+        copy._skip = self._skip
+        return copy
+    
     def get_parameters(self):
+        """Return parameters."""
         if not self._model: self._loadmodel()
         return tuple(self._params)
     
     def get_distribution_summary(self):
+        """Return dictionary of shape name-DataFrame pairs."""
         params = self.get_parameters()
         if not params: return None
         params_by_shape = {}
@@ -133,27 +148,28 @@ class State:
                   name=None, distribution=None, units=None):
         """Define parameter and add to model.
         
-        **Parameters**
+        Parameters
+        ----------    
+        setter : function
+                 Should set parameter in the element.
+        element : Unit or Stream
+                  Element in the system being altered.
+        kind : {'coupled', 'isolated', 'design', 'cost'}
+            * 'coupled': parameter is coupled to the system.
+            * 'isolated': parameter does not affect the system but does affect the element (if any).
+            * 'design': parameter only affects design and cost of the element.
+            * 'cost': parameter only affects cost of the element.
+        name : str
+               Name of parameter. If None, default to argument name of setter.
+        distribution : chaospy.Dist
+                       Parameter distribution.
+        units : str
+                Parameter units of measure
             
-            **setter:** [function] Should set parameter in the element.
-            
-            **element:** [Unit or Stream] Element in the system being altered.
-            
-            **kind:** {'isolated', 'design', 'cost'}
-                * 'coupled': parameter is coupled to the system.
-                * 'isolated': parameter does not affect the system but does affect the element (if any).
-                * 'design': parameter only affects design and cost of the element.
-                * 'cost': parameter only affects cost of the element.
-                
-            **name:** [str] Name of parameter. If None, default to argument name of setter.
-            
-            **distribution:** [chaospy.Dist] Parameter distribution.
-            
-            **units:** [str] Parameter units
-            
-        .. Note::
-            
-            If kind is 'coupled', account for downstream operations. Otherwise, only account for given element. If kind is 'design' or 'cost', element must be a Unit object.
+        Notes
+        -----
+        
+        If kind is 'coupled', account for downstream operations. Otherwise, only account for given element. If kind is 'design' or 'cost', element must be a Unit object.
         
         """
         if not setter: return lambda setter: self.parameter(setter, element, kind, name, distribution, units)
@@ -163,13 +179,43 @@ class State:
         return param
     
     def sample(self, N, rule): 
-        """Sample from parameter distribution.
+        """Return N samples from parameter distribution at given rule.
         
-        **Parameters**
+        Parameters
+        ----------
+        N : int
+            Number of samples.
+        rule : str
+               Sampling rule.
         
-            **N:** [int] Number of samples.
+        Notes
+        -----
+        Use the following ``rule`` flag for sampling:
+        
+        +-------+-------------------------------------------------+
+        | key   | Description                                     |
+        +=======+=================================================+
+        | ``C`` | Roots of the first order Chebyshev polynomials. |
+        +-------+-------------------------------------------------+
+        | ``NC``| Chebyshev nodes adjusted to ensure nested.      |
+        +-------+-------------------------------------------------+
+        | ``K`` | Korobov lattice.                                |
+        +-------+-------------------------------------------------+
+        | ``R`` | Classical (Pseudo-)Random samples.              |
+        +-------+-------------------------------------------------+
+        | ``RG``| Regular spaced grid.                            |
+        +-------+-------------------------------------------------+
+        | ``NG``| Nested regular spaced grid.                     |
+        +-------+-------------------------------------------------+
+        | ``L`` | Latin hypercube samples.                        |
+        +-------+-------------------------------------------------+
+        | ``S`` | Sobol low-discrepancy sequence.                 |
+        +-------+-------------------------------------------------+
+        | ``H`` | Halton low-discrepancy sequence.                |
+        +-------+-------------------------------------------------+
+        | ``M`` | Hammersley low-discrepancy sequence.            |
+        +-------+-------------------------------------------------+
             
-            **rule:** [str] Sampling rule (e.g. "L" for latin hypercube sampling).
         """
         if not self._model: self._loadmodel()
         return J(*[i.distribution for i in self._params]).sample(N, rule).transpose()

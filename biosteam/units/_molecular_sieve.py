@@ -21,33 +21,31 @@ class MolecularSieve(Splitter):
     The molecular sieve is modeled as a component wise separator. Costing
     is based on scaling by the 6/10ths rule from an NREL TEA report [1].
     
-    **Parameters**
-    
-        **split:** [array_like] Componentwise split to the 0th output stream
-
-    **ins**
-    
+    Parameters
+    ----------
+    ins
         [0] Feed (gas)
         
-    **outs**
-    
+    outs
         [0] Split stream (gas)
         
         [1] Remainder stream (gas)
+    split : array_like
+            Componentwise split to the 0th output stream
     
-    **References**
+    References
+    ----------
+    [1] Process Design and Economics for Biochemical Conversion of
+    Lignocellulosic Biomass to Ethanol Dilute-Acid Pretreatment and
+    Enzymatic Hydrolysis of Corn Stover. D. Humbird, R. Davis, L.
+    Tao, C. Kinchin, D. Hsu, and A. Aden (National Renewable Energy
+    Laboratory Golden, Colorado). P. Schoen, J. Lukas, B. Olthof,
+    M. Worley, D. Sexton, and D. Dudgeon (Harris Group Inc. Seattle,
+    Washington and Atlanta, Georgia)
     
-        [1] Process Design and Economics for Biochemical Conversion of
-        Lignocellulosic Biomass to Ethanol Dilute-Acid Pretreatment and
-        Enzymatic Hydrolysis of Corn Stover. D. Humbird, R. Davis, L.
-        Tao, C. Kinchin, D. Hsu, and A. Aden (National Renewable Energy
-        Laboratory Golden, Colorado). P. Schoen, J. Lukas, B. Olthof,
-        M. Worley, D. Sexton, and D. Dudgeon (Harris Group Inc. Seattle,
-        Washington and Atlanta, Georgia)
-    
-    **Examples**
-    
-        :doc:`MolecularSieve Example`
+    Examples
+    --------
+    :doc:`notebooks/MolecularSieve Example`
     
     """
     _N_heat_utilities = 2

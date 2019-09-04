@@ -89,17 +89,17 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../Getting started.html">1. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Creating a Unit.html">3. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit operation examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -112,11 +112,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../compounds.html">compounds</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../inspect.html">inspect</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../reaction.html">reaction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../evaluation.html">evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 
             
@@ -214,109 +214,105 @@
     <span class="n">bot</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">-=</span> <span class="n">top</span><span class="o">.</span><span class="n">_mol</span>
 
 
-<div class="viewcode-block" id="Splitter"><a class="viewcode-back" href="../../../Splitter.html#biosteam.units.Splitter">[docs]</a><span class="k">class</span> <span class="nc">Splitter</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
+<div class="viewcode-block" id="Splitter"><a class="viewcode-back" href="../../../units/Splitter.html#biosteam.units.Splitter">[docs]</a><span class="k">class</span> <span class="nc">Splitter</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a splitter that separates mixed streams based on splits.</span>
 
-<span class="sd">    **Parameters**</span>
-
-<span class="sd">        **split:** Should be one of the following</span>
-<span class="sd">            * [float] The fraction of net feed in the 0th output stream</span>
-<span class="sd">            * [array_like] Componentwise split of feed to 0th output stream</span>
-<span class="sd">            </span>
-<span class="sd">        **order:** Iterable[str] Species order of split</span>
-<span class="sd">    </span>
-<span class="sd">    **ins**</span>
-<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ins</span>
 <span class="sd">        [0] Feed stream</span>
-<span class="sd">        </span>
-<span class="sd">    **outs**</span>
-<span class="sd">    </span>
+<span class="sd">    outs</span>
 <span class="sd">        [0] Split stream</span>
 <span class="sd">        </span>
-<span class="sd">        [1] Remainder stream</span>
+<span class="sd">        [1] Remainder stream    </span>
+<span class="sd">    split : Should be one of the following</span>
+<span class="sd">            * [float] The fraction of net feed in the 0th output stream</span>
+<span class="sd">            * [array_like] Componentwise split of feed to 0th output stream</span>
+<span class="sd">    order=None : Iterable[str], defaults to Stream.species.IDs</span>
+<span class="sd">        Species order of split.</span>
 <span class="sd">    </span>
-<span class="sd">    **Examples**</span>
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Create a Splitter object with an ID, a feed stream, two output streams, and an overall split:</span>
+<span class="sd">        </span>
+<span class="sd">    .. code-block:: python</span>
 <span class="sd">    </span>
-<span class="sd">        Create a Splitter object with an ID, a feed stream, two output streams, and an overall split:</span>
-<span class="sd">            </span>
-<span class="sd">        .. code-block:: python</span>
+<span class="sd">       &gt;&gt;&gt; from biosteam import Species, Stream, units</span>
+<span class="sd">       &gt;&gt;&gt; Stream.species = Species(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
+<span class="sd">       &gt;&gt;&gt; feed = Stream(&#39;feed&#39;, Water=20, Ethanol=10, T=340)</span>
+<span class="sd">       &gt;&gt;&gt; S1 = units.Splitter(&#39;S1&#39;, ins=feed, outs=(&#39;top&#39;, &#39;bot&#39;), split=0.1)</span>
+<span class="sd">       &gt;&gt;&gt; S1.simulate()</span>
+<span class="sd">       &gt;&gt;&gt; S1.show()</span>
+<span class="sd">       Splitter: S1</span>
+<span class="sd">       ins...</span>
+<span class="sd">       [0] feed</span>
+<span class="sd">           phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
+<span class="sd">           flow (kmol/hr): Water    20</span>
+<span class="sd">                           Ethanol  10</span>
+<span class="sd">       outs...</span>
+<span class="sd">       [0] top</span>
+<span class="sd">           phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
+<span class="sd">           flow (kmol/hr): Water    2</span>
+<span class="sd">                           Ethanol  1</span>
+<span class="sd">       [1] bot</span>
+<span class="sd">           phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
+<span class="sd">           flow (kmol/hr): Water    18</span>
+<span class="sd">                           Ethanol  9</span>
+<span class="sd">      </span>
+<span class="sd">    Create a Splitter object, but this time with a componentwise split:</span>
 <span class="sd">        </span>
-<span class="sd">           &gt;&gt;&gt; from biosteam import Species, Stream, units</span>
-<span class="sd">           &gt;&gt;&gt; Stream.species = Species(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
-<span class="sd">           &gt;&gt;&gt; feed = Stream(&#39;feed&#39;, Water=20, Ethanol=10, T=340)</span>
-<span class="sd">           &gt;&gt;&gt; S1 = units.Splitter(&#39;S1&#39;, ins=feed, outs=(&#39;top&#39;, &#39;bot&#39;), split=0.1)</span>
-<span class="sd">           &gt;&gt;&gt; S1.simulate()</span>
-<span class="sd">           &gt;&gt;&gt; S1.show()</span>
-<span class="sd">           Splitter: S1</span>
-<span class="sd">           ins...</span>
-<span class="sd">           [0] feed</span>
-<span class="sd">               phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
-<span class="sd">               flow (kmol/hr): Water    20</span>
-<span class="sd">                               Ethanol  10</span>
-<span class="sd">           outs...</span>
-<span class="sd">           [0] top</span>
-<span class="sd">               phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
-<span class="sd">               flow (kmol/hr): Water    2</span>
-<span class="sd">                               Ethanol  1</span>
-<span class="sd">           [1] bot</span>
-<span class="sd">               phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
-<span class="sd">               flow (kmol/hr): Water    18</span>
-<span class="sd">                               Ethanol  9</span>
-<span class="sd">          </span>
-<span class="sd">        Create a Splitter object, but this time with a componentwise split:</span>
-<span class="sd">            </span>
-<span class="sd">        .. code-block:: python</span>
-<span class="sd">        </span>
-<span class="sd">           &gt;&gt;&gt; from biosteam import Species, Stream, units</span>
-<span class="sd">           &gt;&gt;&gt; Stream.species = Species(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
-<span class="sd">           &gt;&gt;&gt; feed = Stream(&#39;feed&#39;, Water=20, Ethanol=10, T=340)</span>
-<span class="sd">           &gt;&gt;&gt; S1 = units.Splitter(&#39;S1&#39;, ins=feed, outs=(&#39;top&#39;, &#39;bot&#39;),</span>
-<span class="sd">           ...                     split=(0.1, 0.99))</span>
-<span class="sd">           &gt;&gt;&gt; S1.simulate()</span>
-<span class="sd">           &gt;&gt;&gt; S1.show()</span>
-<span class="sd">           Splitter: S1</span>
-<span class="sd">           ins...</span>
-<span class="sd">           [0] feed</span>
-<span class="sd">               phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
-<span class="sd">               flow (kmol/hr): Water    20</span>
-<span class="sd">                               Ethanol  10</span>
-<span class="sd">           outs...</span>
-<span class="sd">           [0] top</span>
-<span class="sd">               phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
-<span class="sd">               flow (kmol/hr): Water    2</span>
-<span class="sd">                               Ethanol  9.9</span>
-<span class="sd">           [1] bot</span>
-<span class="sd">               phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
-<span class="sd">               flow (kmol/hr): Water    18</span>
-<span class="sd">                               Ethanol  0.1</span>
-<span class="sd">                               </span>
-<span class="sd">        Create a Splitter object using componentwise split, but this time specify the order:</span>
-<span class="sd">            </span>
-<span class="sd">        .. code-block:: python</span>
-<span class="sd">        </span>
-<span class="sd">           &gt;&gt;&gt; from biosteam import Species, Stream, units</span>
-<span class="sd">           &gt;&gt;&gt; Stream.species = Species(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
-<span class="sd">           &gt;&gt;&gt; feed = Stream(&#39;feed&#39;, Water=20, Ethanol=10, T=340)</span>
-<span class="sd">           &gt;&gt;&gt; S1 = units.Splitter(&#39;S1&#39;, ins=feed, outs=(&#39;top&#39;, &#39;bot&#39;),</span>
-<span class="sd">           ...                     split=(0.99, 0.01), order=(&#39;Ethanol&#39;, &#39;Water&#39;))</span>
-<span class="sd">           &gt;&gt;&gt; S1.simulate()</span>
-<span class="sd">           &gt;&gt;&gt; S1.show()</span>
-<span class="sd">           Splitter: S1</span>
-<span class="sd">           ins...</span>
-<span class="sd">           [0] feed</span>
-<span class="sd">               phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
-<span class="sd">               flow (kmol/hr): Water    20</span>
-<span class="sd">                               Ethanol  10</span>
-<span class="sd">           outs...</span>
-<span class="sd">           [0] top</span>
-<span class="sd">               phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
-<span class="sd">               flow (kmol/hr): Water    2</span>
-<span class="sd">                               Ethanol  9.9</span>
-<span class="sd">           [1] bot</span>
-<span class="sd">               phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
-<span class="sd">               flow (kmol/hr): Water    18</span>
-<span class="sd">                               Ethanol  0.1</span>
+<span class="sd">    .. code-block:: python</span>
 <span class="sd">    </span>
+<span class="sd">       &gt;&gt;&gt; from biosteam import Species, Stream, units</span>
+<span class="sd">       &gt;&gt;&gt; Stream.species = Species(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
+<span class="sd">       &gt;&gt;&gt; feed = Stream(&#39;feed&#39;, Water=20, Ethanol=10, T=340)</span>
+<span class="sd">       &gt;&gt;&gt; S1 = units.Splitter(&#39;S1&#39;, ins=feed, outs=(&#39;top&#39;, &#39;bot&#39;),</span>
+<span class="sd">       ...                     split=(0.1, 0.99))</span>
+<span class="sd">       &gt;&gt;&gt; S1.simulate()</span>
+<span class="sd">       &gt;&gt;&gt; S1.show()</span>
+<span class="sd">       Splitter: S1</span>
+<span class="sd">       ins...</span>
+<span class="sd">       [0] feed</span>
+<span class="sd">           phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
+<span class="sd">           flow (kmol/hr): Water    20</span>
+<span class="sd">                           Ethanol  10</span>
+<span class="sd">       outs...</span>
+<span class="sd">       [0] top</span>
+<span class="sd">           phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
+<span class="sd">           flow (kmol/hr): Water    2</span>
+<span class="sd">                           Ethanol  9.9</span>
+<span class="sd">       [1] bot</span>
+<span class="sd">           phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
+<span class="sd">           flow (kmol/hr): Water    18</span>
+<span class="sd">                           Ethanol  0.1</span>
+<span class="sd">                           </span>
+<span class="sd">    Create a Splitter object using componentwise split, but this time specify the order:</span>
+<span class="sd">        </span>
+<span class="sd">    .. code-block:: python</span>
+<span class="sd">    </span>
+<span class="sd">       &gt;&gt;&gt; from biosteam import Species, Stream, units</span>
+<span class="sd">       &gt;&gt;&gt; Stream.species = Species(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
+<span class="sd">       &gt;&gt;&gt; feed = Stream(&#39;feed&#39;, Water=20, Ethanol=10, T=340)</span>
+<span class="sd">       &gt;&gt;&gt; S1 = units.Splitter(&#39;S1&#39;, ins=feed, outs=(&#39;top&#39;, &#39;bot&#39;),</span>
+<span class="sd">       ...                     split=(0.99, 0.01), order=(&#39;Ethanol&#39;, &#39;Water&#39;))</span>
+<span class="sd">       &gt;&gt;&gt; S1.simulate()</span>
+<span class="sd">       &gt;&gt;&gt; S1.show()</span>
+<span class="sd">       Splitter: S1</span>
+<span class="sd">       ins...</span>
+<span class="sd">       [0] feed</span>
+<span class="sd">           phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
+<span class="sd">           flow (kmol/hr): Water    20</span>
+<span class="sd">                           Ethanol  10</span>
+<span class="sd">       outs...</span>
+<span class="sd">       [0] top</span>
+<span class="sd">           phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
+<span class="sd">           flow (kmol/hr): Water    2</span>
+<span class="sd">                           Ethanol  9.9</span>
+<span class="sd">       [1] bot</span>
+<span class="sd">           phase: &#39;l&#39;, T: 340 K, P: 101325 Pa</span>
+<span class="sd">           flow (kmol/hr): Water    18</span>
+<span class="sd">                           Ethanol  0.1</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">2</span>
     

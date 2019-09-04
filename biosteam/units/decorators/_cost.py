@@ -14,25 +14,26 @@ __all__ = ('cost', 'add_cost', 'CostItem')
 class CostItem:
     """Create a CostItem object which defines exponential scaling factors for an item's purchase cost.
     
-    **Parameters**
-    
-        **basis:** Name of size parameter used for scaling.
-    
-        **units:** Units of measure.
-        
-        **S:** Size.
-        
-        **ub:** Size limit.
-        
-        **CE:** Chemical engineering plant cost index.
-        
-        **cost:** Purchase cost of item.
-        
-        **n:** Exponential factor.
-        
-        **kW:** Electricity rate.
-        
-        **BM:** Bare module factor (installation factor).
+    Parameters
+    ----------
+    basis : str
+        Name of size parameter used for scaling.
+    units : str
+        Units of measure.
+    S : float
+        Size.
+    ub : float
+         Size limit.
+    CE : float
+         Chemical engineering plant cost index.
+    cost : float
+        Purchase cost of item.
+    n : float
+        Exponential factor.
+    kW : float
+        Electricity rate.
+    BM : float
+        Bare module factor (installation factor).
     
     """
     __slots__ = ('_basis', '_units', 'S', 'ub', 'CE', 'cost', 'n', 'kW', 'BM')
@@ -110,33 +111,34 @@ def installation_cost(self):
 def cost(basis, ID=None, *, CE, cost, n, S=1, ub=0, kW=0, BM=1, units=None, fsize=None):    
     r"""Add item (free-on-board) purchase cost based on exponential scale up:
     
-    **Parameters**
-    
-        **basis:** Name of size parameter used for scaling.
+    Parameters
+    ----------
+    basis : str
+        Name of size parameter used for scaling.    
+    ID : str
+        Name of purchase item.
+    CE : float
+         Chemical engineering plant cost index.
+    cost : float
+        Purchase cost of item.
+    n : float
+        Exponential factor.
+    S = 1 : float
+        Size.
+    ub : float
+         Size limit.
+    kW : float
+        Electricity rate.
+    BM = 1: float
+        Bare module factor (installation factor).
+    units = None : str, optional
+        Units of measure.
+    fsize = None : function, optional
+        Accepts a Unit object argument and returns the size parameter. If None, defaults to function predefined for given name and units of measure.
         
-        **ID:** Name of purchase item.
-        
-        **CE:** Chemical engineering plant cost index.
-        
-        **cost:** Purchase cost of item.
-        
-        **n:** Exponential factor.
-        
-        **S:** Size.
-        
-        **ub:** Size limit.
-        
-        **kW:** Electricity rate.
-        
-        **BM:** Bare module factor (installation factor).
-        
-        **units:** Units of measure.
-        
-        **fsize:** Function that accepts a Unit object argument and returns the size parameter. If None, defaults to function predefined for given name and units of measure.
-        
-    **Examples**
-    
-        :doc:`Unit decorators`
+    Examples
+    --------
+    :doc:`../../tutorial/Unit decorators`
     
     """
     

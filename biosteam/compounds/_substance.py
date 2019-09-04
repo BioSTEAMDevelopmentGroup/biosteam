@@ -28,46 +28,47 @@ def select_value(obj, user_defined, attr, default):
 class Substance(Compound):
     """Create a Substance object with the same material properties as "obj" argument for simplified modeling purposes. The phase stays constant as the specified `default_phase`.
 
-    **Parameters**
-    
-        **ID:** [str] ID of specie
+    Parameters
+    ----------
+    ID : str
+         ID of specie
+    CAS="" : str
+        CAS identification
+    obj=None : Comound, defaults to Chemical('Water')
+        Should contain analog properties for substance at STP.
+    MW=1 : float
+        Molecular weight of compound.
+    T=298.15 : float
+        Temperature (K)
+    P=101325 : float
+        Pressure (Pa)
+    rho=None : float, defaults to obj.rho
+        Density (kg/m^3)
+    k=None : float, defaults to obj.k
+        Thermal conductivity (W/m/K)
+    mu=None : float, defaults to obj.mu
+        Hydrolic viscosity (Pa*s)
+    sigma=None : float, defaults to obj.sigma
+        Surface tension (N/m)
+    Hfm : float, defaults to obj.Hfm
+        Heat of formation (J/mol)
+    Hc : float, defaults to obj.Hc
+        Heat of combustion (J/mol)
+    phase=None : {'l', 's', 'g'}, defaults to obj.phase
+        Phase of substance.
+    **properties
+        Additional properties to set.
         
-        **CAS:** [str] CAS identification
-        
-        **obj** [Specie] Should contain analog properties for specie at STP. Defaults to water if None.
+    Examples
+    --------
+    Create a 'Yeast' substance with the same properties as water:
 
-        **MW:** Molecular weight of compound (defaults to 1)
-         
-        **T:** Temperature (K)
-         
-        **P:** Pressure (Pa)
-         
-        **rho:** Density (kg/m^3)
+    .. code-block:: python
         
-        **k:** Thermal conductivity (W/m/K)
-        
-        **mu:** Hydrolic viscosity (Pa*s)
-        
-        **sigma:** Surface tension (N/m)
-        
-        **Hfm:** Heat of formation (J/mol)
-        
-        **Hc:** Heat of combustion (J/mol)
-        
-        **phase:** {'l', 's', 'g'} Phase of substance
-        
-        ****properties:** Additional properties to set
-        
-    **Examples**
-    
-        Create a 'Yeast' substance with the same properties as water:
-    
-        .. code-block:: python
-            
-            >>> from biosteam.compounds import Substance
-            >>> Yeast = Substance('Yeast', obj=Chemical('Water'))
-            >>> Yeast.rho
-            997
+        >>> from biosteam.compounds import Substance
+        >>> Yeast = Substance('Yeast', obj=Chemical('Water'))
+        >>> Yeast.rho
+        997
             
     """
     def __init__(self, ID, CAS='', obj=None, *,

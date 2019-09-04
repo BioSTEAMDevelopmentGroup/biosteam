@@ -91,17 +91,17 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="Getting started.html">1. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">3. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit operation examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units/notebooks/examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -114,11 +114,11 @@
 <li class="toctree-l1"><a class="reference internal" href="System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="compounds.html">compounds</a></li>
-<li class="toctree-l1"><a class="reference internal" href="units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inspect.html">inspect</a></li>
 <li class="toctree-l1"><a class="reference internal" href="reaction.html">reaction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="evaluation.html">evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluation/evaluation.html">evaluation</a></li>
 </ul>
 
             
@@ -209,24 +209,47 @@
 <dt id="biosteam.Stream">
 <em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Stream</code><span class="sig-paren">(</span><em>ID=''</em>, <em>flow=()</em>, <em>species=()</em>, <em>units='kmol/hr'</em>, <em>phase='l'</em>, <em>T=298.15</em>, <em>P=101325</em>, <em>*</em>, <em>price=0</em>, <em>**flow_pairs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Stream object that defines material flow rates along its thermodynamic state. Thermodynamic and transport properties of a stream are readily available. Ideal mixture is assumed for stream properties and excess thermodynamic energies are neglected as a simplifying assumption for low pressure processes.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><p><strong>ID:</strong> [str] A unique identification. If ID is an empty string (i.e. ‘’ ), a default ID will be chosen. If ID is None, stream will not be registered in flowsheet.</p>
-<p><strong>flow:</strong> [tuple] All flow rates corresponding to <cite>species</cite>.</p>
-<p><strong>species:</strong> tuple[str] or [Species] Species corresponding to <cite>flow</cite>. If empty, assume same species as class.</p>
-<p><strong>units:</strong> [str] The units of the flow rates (only mass, molar, and volumetric flow rates are valid)</p>
-<p><strong>phase:</strong> [str] ‘l’ for liquid, ‘g’ for gas, or ‘s’ for solid.</p>
-<p><strong>T:</strong> [float] Temperature (K).</p>
-<p><strong>P:</strong> [float] Pressure (Pa).</p>
-<p><strong>price:</strong> [float] (USD/kg).</p>
-<p><strong>**flow_pairs:</strong> Compound-flow pairs</p>
-</div></blockquote>
-<p><strong>Class Properties</strong></p>
-<blockquote>
-<div><strong>species</strong> = Species(): [Species] Contains pure component thermodynamic properties for computing overall properties of Stream instances.</div></blockquote>
-<p><strong>Examples</strong></p>
-<blockquote>
-<div><p>Before making a stream, set the species using a Species object:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>ID=’‘</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, defaults to a unique ID</span></dt>
+<dd><p class="first last">A unique identification. If ID is None, stream will not be
+registered in flowsheet.</p>
+</dd>
+<dt><strong>flow=()</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple, optional</span></dt>
+<dd><p class="first last">All flow rates corresponding to <cite>species</cite>.</p>
+</dd>
+<dt><strong>species=()</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple[str] or Species, defaults to Stream.species</span></dt>
+<dd><p class="first last">Species corresponding to <cite>flow</cite>.</p>
+</dd>
+<dt><strong>units=’kmol/hr’</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
+<dd><p class="first last">Flow rate units of measure (only mass, molar, and
+volumetric flow rates are valid)</p>
+</dd>
+<dt><strong>phase=’l’</strong> <span class="classifier-delimiter">:</span> <span class="classifier">{‘l’, ‘g’, ‘s’}, optional</span></dt>
+<dd><p class="first last">Either gas (“g”), liquid (“l”), or solid (“s”).</p>
+</dd>
+<dt><strong>T=298.15</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float, optional</span></dt>
+<dd><p class="first last">Temperature (K).</p>
+</dd>
+<dt><strong>P=101325</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float, optional</span></dt>
+<dd><p class="first last">Pressure (Pa).</p>
+</dd>
+<dt><strong>price=0</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float, optional</span></dt>
+<dd><p class="first last">Price in USD/kg.</p>
+</dd>
+<dt><strong>**flow_pairs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Compound-flow pairs</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<p>Before making a stream, set the species using a Species object:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Set Species object</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span> 
 </pre></div>
@@ -357,7 +380,6 @@
 <span class="go">k: [float] Thermal conductivity as a function of T and P (W/m/K).</span>
 </pre></div>
 </div>
-</div></blockquote>
 <dl class="attribute">
 <dt id="biosteam.Stream.lazy_energy_balance">
 <code class="descname">lazy_energy_balance</code><em class="property"> = True</em><a class="headerlink" href="#biosteam.Stream.lazy_energy_balance" title="Permalink to this definition">¶</a></dt>
@@ -433,11 +455,21 @@
 <dl class="attribute">
 <dt id="biosteam.Stream.indices">
 <code class="descname">indices</code><a class="headerlink" href="#biosteam.Stream.indices" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return flow indices of specified species.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><strong>IDs:</strong> [iterable] species IDs or CAS numbers.</div></blockquote>
-<p>Example</p>
+<dd><p>Return indices of specified species.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>IDs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">iterable</span></dt>
+<dd><p class="first last">Species IDs or CAS numbers.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
 <p>Indices by ID:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">([</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">])</span>
@@ -457,10 +489,20 @@
 <dt id="biosteam.Stream.index">
 <code class="descname">index</code><a class="headerlink" href="#biosteam.Stream.index" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return index of specified compound.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><strong>ID:</strong> [str] compound ID</div></blockquote>
-<p>Example</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>ID: str</strong></dt>
+<dd><p class="first last">Compound ID</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
 <p>Index by ID:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">([</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">])</span>
@@ -592,6 +634,12 @@
 &gt;&gt;&gt; s1 = Stream(Water=2)
 &gt;&gt;&gt; s1.volnet
 0.036138079740245625</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.Stream.H_at">
+<code class="descname">H_at</code><span class="sig-paren">(</span><em>mol=None</em>, <em>T=None</em>, <em>P=None</em>, <em>phase=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.H_at"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.H_at" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return enthalpy flow rate at given arguments, excluding formation energies (kJ/hr). Arguments with None values default to stream specifications.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -910,10 +958,20 @@
 <dt id="biosteam.Stream.quantity">
 <code class="descname">quantity</code><span class="sig-paren">(</span><em>prop_ID</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.quantity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.quantity" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a property as a Quantity object as described in the <a class="reference external" href="https://pint.readthedocs.io/en/latest/">pint package</a></p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><strong>prop_ID:</strong> [str] name of the property (e.g. ‘mol’, ‘H’, ‘k’ …)</div></blockquote>
-<p>Example:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>prop_ID</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Name of the property (e.g. ‘mol’, ‘H’, ‘k’ …)</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
@@ -927,15 +985,26 @@
 <dt id="biosteam.Stream.derivative">
 <code class="descname">derivative</code><span class="sig-paren">(</span><em>prop_ID</em>, <em>var_ID</em>, <em>index=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.derivative"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.derivative" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the derivative of property ‘prop_ID’ and variable ‘var_ID’. If the property given by var_ID is an array, use index to specify which element.</p>
-<blockquote>
-<div><p><strong>Parameters</strong></p>
-<blockquote>
-<div><p><strong>prop_ID:</strong> [str] Name of the property (e.g. ‘rho’, ‘Cp’, ‘H’, ‘volnet’ …)</p>
-<p><strong>var_ID:</strong> [str] Name of the variable (e.g ‘T’, ‘P’, ‘molnet’ …)</p>
-<p><strong>index:</strong> [array_like or None] Optional indices if the variable is an array</p>
-</div></blockquote>
-</div></blockquote>
-<p><strong>Example</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>prop_ID</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Name of the property (e.g. ‘rho’, ‘Cp’, ‘H’, ‘volnet’ …)</p>
+</dd>
+<dt><strong>var_ID</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Name of the variable (e.g ‘T’, ‘P’, ‘molnet’ …)</p>
+</dd>
+<dt><strong>index</strong> <span class="classifier-delimiter">:</span> <span class="classifier">array_like, optional</span></dt>
+<dd><p class="first last">Indices if the variable is an array</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Ethanol</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
@@ -973,17 +1042,30 @@
 <dt id="biosteam.Stream.copyflow">
 <code class="descname">copyflow</code><span class="sig-paren">(</span><em>stream</em>, <em>species=None</em>, <em>*</em>, <em>remove=False</em>, <em>exclude=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.copyflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.copyflow" title="Permalink to this definition">¶</a></dt>
 <dd><p>Copy flow rates of stream to self.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><p><strong>stream:</strong> [Stream] Flow rates will be copied from here.</p>
-<p><strong>species:</strong> iterable[str] Species IDs. Defaults to all species.</p>
-<p><strong>remove:</strong> [bool] If True, copied species will be removed from <cite>stream</cite>.</p>
-<p><strong>exclude:</strong> [bool] If True, exclude <cite>species</cite> when copying.</p>
-</div></blockquote>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Species flow rates that are not copied will be set to zero.</p>
-</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>stream</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Stream</span></dt>
+<dd><p class="first last">Flow rates will be copied from here.</p>
+</dd>
+<dt><strong>species=None</strong> <span class="classifier-delimiter">:</span> <span class="classifier">iterable[str], defaults to all species.</span></dt>
+<dd><p class="first last">Species IDs.</p>
+</dd>
+<dt><strong>remove=False: bool, optional</strong></dt>
+<dd><p class="first last">If True, copied species will be removed from <cite>stream</cite>.</p>
+</dd>
+<dt><strong>exclude=False: bool, optional</strong></dt>
+<dd><p class="first last">If True, exclude <cite>species</cite> when copying.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Species that are not included will be set to zero.</p>
 </dd></dl>
 
 <dl class="method">
@@ -1004,12 +1086,26 @@
 <dt id="biosteam.Stream.bubble_T">
 <code class="descname">bubble_T</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.bubble_T"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.bubble_T" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bubble point at current composition and pressure.</p>
-<p><strong>Returns</strong></p>
-<blockquote>
-<div><p><strong>T:</strong> [float] Bubble point temperature (T).</p>
-<p><strong>y:</strong> [numpy ndarray] Vapor phase composition.</p>
-<p><strong>indices:</strong> [list] Indices of species in equilibrium</p>
-</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>T</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Bubble point temperature (T).</p>
+</dd>
+<dt><strong>y</strong> <span class="classifier-delimiter">:</span> <span class="classifier">numpy.ndarray</span></dt>
+<dd><p class="first last">Vapor phase composition.</p>
+</dd>
+<dt><strong>indices</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list[int]</span></dt>
+<dd><p class="first last">Indices of species in equilibrium</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">stream</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mf">0.6</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">),</span>
 <span class="gp">... </span>                <span class="n">species</span><span class="o">=</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">))</span>
@@ -1023,12 +1119,26 @@
 <dt id="biosteam.Stream.bubble_P">
 <code class="descname">bubble_P</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.bubble_P"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.bubble_P" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bubble point at current composition and temperature.</p>
-<p><strong>Returns</strong></p>
-<blockquote>
-<div><p><strong>P:</strong> [float] Bubble point pressure (Pa).</p>
-<p><strong>y:</strong> [numpy ndarray] Vapor phase composition.</p>
-<p><strong>indices:</strong> [list] Indices of species in equilibrium</p>
-</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>P</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Bubble point pressure (Pa).</p>
+</dd>
+<dt><strong>y</strong> <span class="classifier-delimiter">:</span> <span class="classifier">numpy.ndarray</span></dt>
+<dd><p class="first last">Vapor phase composition.</p>
+</dd>
+<dt><strong>indices</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list[int]</span></dt>
+<dd><p class="first last">Indices of species in equilibrium.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mf">0.703</span><span class="p">,</span> <span class="mf">0.297</span><span class="p">),</span> <span class="n">T</span><span class="o">=</span><span class="mf">352.28</span><span class="p">,</span>
 <span class="go">                species=Species(&#39;Ethanol&#39;, &#39;Water&#39;))</span>
@@ -1042,13 +1152,28 @@
 <dt id="biosteam.Stream.dew_T">
 <code class="descname">dew_T</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.dew_T"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.dew_T" title="Permalink to this definition">¶</a></dt>
 <dd><p>Dew point at current composition and pressure.</p>
-<p><strong>Returns</strong></p>
-<blockquote>
-<div><p><strong>T:</strong> [float] Dew point temperature (K).</p>
-<p><strong>x:</strong> [numpy array] Liquid phase composition.</p>
-<p><strong>indices:</strong> [list] Indices of species in equilibrium</p>
-</div></blockquote>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">stream</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>T</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Dew point temperature (K).</p>
+</dd>
+<dt><strong>x</strong> <span class="classifier-delimiter">:</span> <span class="classifier">numpy.ndarray</span></dt>
+<dd><p class="first last">Liquid phase composition.</p>
+</dd>
+<dt><strong>indices</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list[int]</span></dt>
+<dd><p class="first last">Indices of species in equilibrium</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">Species</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">stream</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span>
 <span class="gp">... </span>                <span class="n">species</span><span class="o">=</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">stream</span><span class="o">.</span><span class="n">dew_T</span><span class="p">()</span>
 <span class="go">(357.45184742263075, array([0.151, 0.849]), [0, 1])</span>
@@ -1060,12 +1185,26 @@
 <dt id="biosteam.Stream.dew_P">
 <code class="descname">dew_P</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.dew_P"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.dew_P" title="Permalink to this definition">¶</a></dt>
 <dd><p>Dew point at current composition and temperature.</p>
-<p><strong>Returns</strong></p>
-<blockquote>
-<div><p><strong>P:</strong> [float] Dew point pressure (Pa).</p>
-<p><strong>x:</strong> [numpy array] Liquid phase composition.</p>
-<p><strong>indices:</strong> [list] Indices of species in equilibrium</p>
-</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>P</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Dew point pressure (Pa).</p>
+</dd>
+<dt><strong>x</strong> <span class="classifier-delimiter">:</span> <span class="classifier">numpy.ndarray</span></dt>
+<dd><p class="first last">Liquid phase composition.</p>
+</dd>
+<dt><strong>indices</strong> <span class="classifier-delimiter">:</span> <span class="classifier">list[int]</span></dt>
+<dd><p class="first last">Indices of species in equilibrium.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">stream</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="mf">0.703</span><span class="p">,</span> <span class="mf">0.297</span><span class="p">),</span> <span class="n">T</span><span class="o">=</span><span class="mf">352.28</span><span class="p">,</span>
 <span class="gp">... </span>                <span class="n">species</span><span class="o">=</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">))</span>
@@ -1079,12 +1218,23 @@
 <dt id="biosteam.Stream.Re">
 <code class="descname">Re</code><span class="sig-paren">(</span><em>L</em>, <em>A=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.Re"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.Re" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return Reynolds number.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><p><strong>L:</strong> [float] Characteristic lenght (m)</p>
-<p><strong>A:</strong> [float] Cross-sectional area (m^2). If A is None, assume flow through a cylindrical pipe.</p>
-</div></blockquote>
-<p>Example</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>L</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Characteristic length (m).</p>
+</dd>
+<dt><strong>A=None</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float, optional</span></dt>
+<dd><p class="first last">Cross-sectional area (m^2). If A is None, assume flow through a cylindrical pipe.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Ethanol&#39;</span><span class="p">,</span> <span class="s1">&#39;Water&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
@@ -1098,11 +1248,22 @@
 <dt id="biosteam.Stream.help">
 <em class="property">classmethod </em><code class="descname">help</code><span class="sig-paren">(</span><em>prop</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.help"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.help" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print information related to a property.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><strong>prop:</strong> [str] name or description of a property</div></blockquote>
-<p>Example</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">help</span><span class="p">(</span><span class="s1">&#39;rho&#39;</span><span class="p">)</span>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>prop</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Name or description of a property.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Stream</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">help</span><span class="p">(</span><span class="s1">&#39;rho&#39;</span><span class="p">)</span>
 <span class="go">rho: [float] Density as a function of T and P (kg/m^3).</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">help</span><span class="p">(</span><span class="s1">&#39;density&#39;</span><span class="p">)</span>
 <span class="go">rho: [float] Density as a function of T and P (kg/m^3).</span>
@@ -1114,17 +1275,36 @@
 <dt id="biosteam.Stream.T_equilibrium">
 <em class="property">static </em><code class="descname">T_equilibrium</code><span class="sig-paren">(</span><em>streams</em>, <em>T_guess=None</em>, <em>Q_in=0</em>, <em>approximate=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.T_equilibrium"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.T_equilibrium" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bring all streams to temperature equilibrium.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><p><strong>streams:</strong> [Stream] All streams</p>
-<p><strong>T_guess:</strong> [float] Equilibrium temperature guess (K)</p>
-<p><strong>Q_in:</strong> [float] Heat addition to streams (kJ/hr)</p>
-<p><strong>approximate:</strong> [bool] If True, approximate energy balance with constant heat capacity</p>
-</div></blockquote>
-<p><strong>Return</strong></p>
-<blockquote>
-<div><strong>T:</strong> [float] New temperature (K)</div></blockquote>
-<p><strong>Example</strong></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
+<dt><strong>streams</strong> <span class="classifier-delimiter">:</span> <span class="classifier">iterable[Stream]</span></dt>
+<dd><p class="first last">All streams in temperature equilibrium.</p>
+</dd>
+<dt><strong>T_guess=None</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float, optional</span></dt>
+<dd><p class="first last">Equilibrium temperature guess (K).</p>
+</dd>
+<dt><strong>Q_in=0</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float, optional</span></dt>
+<dd><p class="first last">Heat addition to streams (kJ/hr).</p>
+</dd>
+<dt><strong>approximate=True</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">If True, approximate energy balance with constant heat capacity.</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>T</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">New temperature (K).</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
@@ -1139,17 +1319,24 @@
 <dl class="staticmethod">
 <dt id="biosteam.Stream.sum">
 <em class="property">static </em><code class="descname">sum</code><span class="sig-paren">(</span><em>s_sum</em>, <em>streams</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.sum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.sum" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mixes streams and sets resulting mass and energy in ‘s_sum’. Assumes the same pressure as streams[0], and no phase equilibrium. If ‘s_sum’ is a Stream object, it assumes the phase does not change.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><p><strong>s_sum:</strong> [Stream] Container for the resulting mixture of streams</p>
-<p><strong>streams:</strong> [tuple] Stream objects to be mixed</p>
-</div></blockquote>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Ignores contents of <cite>s_sum</cite> as if it was empty</p>
-</div>
-<p><strong>Example</strong></p>
+<dd><p>Mixes streams and sets resulting mass and energy in ‘s_sum’. Assumes the same pressure as streams[0], and no phase equilibrium.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>s_sum</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Stream</span></dt>
+<dd><p class="first last">Container for the resulting mixture of streams.</p>
+</dd>
+<dt><strong>streams</strong> <span class="classifier-delimiter">:</span> <span class="classifier">iterable[Stream]</span></dt>
+<dd><p class="first last">Stream objects to be mixed</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="o">*</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">s1</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="n">Water</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
@@ -1175,54 +1362,97 @@
 <dt id="biosteam.Stream.disable_phases">
 <code class="descname">disable_phases</code><span class="sig-paren">(</span><em>phase</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.disable_phases"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.disable_phases" title="Permalink to this definition">¶</a></dt>
 <dd><p>Cast stream into a Stream object.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><strong>phase:</strong> {‘s’, ‘l’, ‘g’} desired phase of stream</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>phase</strong> <span class="classifier-delimiter">:</span> <span class="classifier">{‘s’, ‘l’, ‘g’}</span></dt>
+<dd><p class="first last">Desired phase of stream</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="biosteam.Stream.VLE">
 <code class="descname">VLE</code><a class="headerlink" href="#biosteam.Stream.VLE" title="Permalink to this definition">¶</a></dt>
 <dd><p>A callable VLE object for vapor-liquid equilibrium.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><dl class="docutils">
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
 <dt><strong>Specify two:</strong></dt>
 <dd><ul class="first last simple">
-<li><strong>P:</strong> [float] Operating pressure (Pa)</li>
-<li><strong>Q:</strong> [float] Energy input (kJ/hr)</li>
-<li><strong>T:</strong> [float] Operating temperature (K)</li>
-<li><strong>V:</strong> [float] Molar vapor fraction</li>
-<li><strong>x:</strong> [numpy array] Molar composition of liquid (for binary mixture)</li>
-<li><strong>y:</strong> [numpy array] Molar composition of vapor (for binary mixture)</li>
+<li><strong>P:</strong> Operating pressure (Pa)</li>
+<li><strong>Q:</strong> Energy input (kJ/hr)</li>
+<li><strong>T:</strong> Operating temperature (K)</li>
+<li><strong>V:</strong> Molar vapor fraction</li>
+<li><strong>x:</strong> Molar composition of liquid (for binary mixture)</li>
+<li><strong>y:</strong> Molar composition of vapor (for binary mixture)</li>
 </ul>
 </dd>
+<dt><strong>species_IDs=None</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple, optional</span></dt>
+<dd><p class="first last">IDs of species in equilibrium.</p>
+</dd>
+<dt><strong>LNK=None</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple[str], optional</span></dt>
+<dd><p class="first last">Light non-keys that remain as a vapor (disregards equilibrium).</p>
+</dd>
+<dt><strong>LNK=None</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple[str], optional</span></dt>
+<dd><p class="first last">Heavy non-keys that remain as a liquid (disregards equilibrium).</p>
+</dd>
 </dl>
-<p><strong>Optional:</strong></p>
-<blockquote>
-<div><p><strong>species_IDs:</strong> [tuple] IDs of species in equilibrium.</p>
-<p><strong>LNK:</strong> tuple[str] Light non-keys that remain as a vapor.</p>
-<p><strong>HNK:</strong> tuple[str] Heavy non-keys that remain as a liquid.</p>
-</div></blockquote>
-</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.Stream.LLE">
 <code class="descname">LLE</code><span class="sig-paren">(</span><em>species_IDs=()</em>, <em>split=None</em>, <em>lNK=()</em>, <em>LNK=()</em>, <em>solvents=()</em>, <em>solvent_split=()</em>, <em>P=None</em>, <em>T=None</em>, <em>Q=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_stream.html#Stream.LLE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Stream.LLE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform LIQUID-liquid equilibrium.</p>
-<p><strong>Optional Parameters</strong></p>
-<blockquote>
-<div><p><strong>species_IDs:</strong> <em>tuple[str]</em> IDs of equilibrium species</p>
-<p><strong>split:</strong> <em>tuple[float]</em> Initial guess split fractions of each specie to the ‘liquid’</p>
-<p><strong>lNK:</strong> <em>tuple[str]</em> Species assumed to completely remain in the ‘liquid’ phase.</p>
-<p><strong>LNK:</strong> <em>tuple[str]</em> Species assumed to completely remain in the ‘LIQUID’ phase.</p>
-<p><strong>solvents:</strong> <em>tuple[str]</em> Species corresponding to specified solvent_split</p>
-<p><strong>solvent_split:</strong> <em>tuple[float]</em> Split fractions of each specie to the ‘liquid’ phase.</p>
-<p><strong>Q:</strong> <em>[float]</em> Energy input (kJ/hr)</p>
-<p><strong>T:</strong> <em>[float]</em> Operating temperature (K)</p>
-<p><strong>P:</strong> <em>[float]</em> Operating pressure (Pa)</p>
-</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>species_IDs=None</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple[str], optional</span></dt>
+<dd><p class="first last">IDs of equilibrium species</p>
+</dd>
+<dt><strong>split=None</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple[float], optional</span></dt>
+<dd><p class="first last">Initial guess split fractions of each specie to the ‘liquid’</p>
+</dd>
+<dt><strong>lNK=()</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple[str], optional</span></dt>
+<dd><p class="first last">Species assumed to completely remain in the ‘liquid’ phase.</p>
+</dd>
+<dt><strong>LNK=()</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple[str], optional</span></dt>
+<dd><p class="first last">Species assumed to completely remain in the ‘LIQUID’ phase.</p>
+</dd>
+<dt><strong>solvents=()</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple[str], optional</span></dt>
+<dd><p class="first last">Species corresponding to specified solvent_split</p>
+</dd>
+<dt><strong>solvent_split=()</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple[float], optional</span></dt>
+<dd><p class="first last">Split fractions of each specie to the ‘liquid’ phase.</p>
+</dd>
+<dt><strong>Q=0</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float, optional</span></dt>
+<dd><p class="first last">Energy input (kJ/hr).</p>
+</dd>
+<dt><strong>T=None</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float, defaults to stream temperature</span></dt>
+<dd><p class="first last">Operating temperature (K).</p>
+</dd>
+<dt><strong>P=None</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float, defaults to stream pressure</span></dt>
+<dd><p class="first last">Operating pressure (Pa).</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">

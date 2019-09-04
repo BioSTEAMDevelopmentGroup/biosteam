@@ -91,17 +91,17 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="Getting started.html">1. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">3. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit operation examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units/notebooks/examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -114,11 +114,11 @@
 <li class="toctree-l1"><a class="reference internal" href="System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="compounds.html">compounds</a></li>
-<li class="toctree-l1"><a class="reference internal" href="units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inspect.html">inspect</a></li>
 <li class="toctree-l1"><a class="reference internal" href="reaction.html">reaction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="evaluation.html">evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluation/evaluation.html">evaluation</a></li>
 </ul>
 
             
@@ -207,56 +207,55 @@
 <dl class="class">
 <dt id="biosteam.Unit">
 <em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Unit</code><span class="sig-paren">(</span><em>ID=''</em>, <em>ins=None</em>, <em>outs=()</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit" title="Permalink to this definition">¶</a></dt>
-<dd><p>Abstract parent class for Unit objects. Child objects must contain _run, _design and _cost methods to estimate stream outputs of a Unit and find design and cost information.</p>
+<dd><p>Abstract parent class for Unit objects. Child objects must contain <cite>_run</cite>, <cite>_design</cite> and <cite>_cost</cite> methods to estimate stream outputs of a Unit and find design and cost information.</p>
 <p><strong>Parameters</strong></p>
-<blockquote>
-<div><p><strong>ID:</strong> [str] A unique identification. If ID is an empty string (i.e. ‘’ ), a default ID will be chosen. If ID is None, unit will not be registered in flowsheet.</p>
-<p><strong>ins:</strong> tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</p>
-<p><strong>outs:</strong> tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</p>
-</div></blockquote>
-<p><strong>Class Definitions</strong></p>
-<blockquote>
-<div><p><strong>line</strong> = [Defaults to the class name of the first child class]: [str] Name denoting the type of Unit class</p>
-<p><strong>BM</strong> = None: [float] Bare module factor (installation factor)</p>
 <dl class="docutils">
-<dt><strong>_run()</strong></dt>
+<dt>ID=’‘ <span class="classifier-delimiter">:</span> <span class="classifier">str, defaults to a unique ID</span></dt>
+<dd>A unique identification. If ID is None, unit will not be
+registered in flowsheet.</dd>
+<dt>ins=None <span class="classifier-delimiter">:</span> <span class="classifier">tuple[str or Stream], defaults to missing streams</span></dt>
+<dd>Input streams or IDs to initialize input streams.
+If empty, default IDs will be given.</dd>
+<dt>outs=() <span class="classifier-delimiter">:</span> <span class="classifier">tuple[str or Stream], defaults to new streams</span></dt>
+<dd>Output streams or IDs to initialize output streams. If None, 
+leave streams missing.</dd>
+</dl>
+<p><strong>Abstract attributes</strong></p>
+<dl class="docutils">
+<dt>line=None <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd>Name denoting the type of Unit class. Defaults to the class
+name of the first child class.</dd>
+<dt>BM=None <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd>Bare module factor (installation factor).</dd>
+<dt>_units={} <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
+<dd>Units of measure for results Operation and Design.</dd>
+<dt>_N_ins=1 <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Expected number of input streams.</dd>
+<dt>_N_outs=2 <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd>Expected number of output streams.</dd>
+<dt>_N_heat_utilities=0: int</dt>
+<dd>Number of heat utilities created with each instance</dd>
+<dt>_has_power_utility=False <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd>If True, a PowerUtility object is created with each instance.</dd>
+<dt>_has_cost=True <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd>Should be True if it has any associated cost.</dd>
+<dt>_graphics <span class="classifier-delimiter">:</span> <span class="classifier">biosteam.Graphics, abstract, optional</span></dt>
+<dd>Settings for diagram representation.</dd>
+</dl>
+<p><strong>Abstract class methods</strong></p>
+<dl class="docutils">
+<dt>_run()</dt>
 <dd>Run simulation and update output streams.</dd>
-<dt><strong>_design()</strong></dt>
+<dt>_design()</dt>
 <dd>Add design requirements to “_Design” dictionary attribute.</dd>
-<dt><strong>_cost()</strong></dt>
+<dt>_cost()</dt>
 <dd>Add itemized purchse costs to results “_Cost” dictionary attribute.</dd>
 </dl>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">The <cite>_run</cite> method is called during recycle loop convergence. The <cite>_design</cite> and <cite>_cost</cite> methods are called in the given order for generating results.</p>
-</div>
-<p><strong>_units</strong> = {}: [dict] Default units for results Operation and Design</p>
-<p><strong>_N_ins</strong> = 1: [int] Expected number of input streams</p>
-<p><strong>_N_outs</strong> = 2: [int] Expected number of output streams</p>
-<p><strong>_N_heat_utilities</strong> = 0: [int] Number of heat utilities</p>
-<p><strong>_has_power_utility</strong> = False: [bool] If True, a PowerUtility object is created for every instance.</p>
-<p><strong>_has_cost</strong> = True: [bool] Should be True if it has any associated cost</p>
-<p><strong>_graphics</strong> = &lt;Graphics&gt;: [biosteam Graphics] Settings for diagram representation.</p>
-</div></blockquote>
-<p><strong>ins</strong></p>
-<blockquote>
-<div>list of input streams</div></blockquote>
-<p><strong>outs</strong></p>
-<blockquote>
-<div>list of output streams</div></blockquote>
-<p><strong>Examples</strong></p>
-<blockquote>
-<div><p><a class="reference internal" href="Creating a Unit.html"><span class="doc">Creating a Unit</span></a></p>
-<p><a class="reference internal" href="Using -pipe- notation.html"><span class="doc">Using -pipe- notation</span></a></p>
-<p><a class="reference internal" href="Inheriting from Unit.html"><span class="doc">Inheriting from Unit</span></a></p>
-<p><a class="reference internal" href="Unit decorators.html"><span class="doc">Unit decorators</span></a></p>
-</div></blockquote>
-<dl class="attribute">
-<dt id="biosteam.Unit.BM">
-<code class="descname">BM</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.Unit.BM" title="Permalink to this definition">¶</a></dt>
-<dd><p>[float] Bare module factor (installation factor).</p>
-</dd></dl>
-
+<p class="rubric">Examples</p>
+<p><a class="reference internal" href="tutorial/Creating a Unit.html"><span class="doc">Creating a Unit</span></a></p>
+<p><a class="reference internal" href="tutorial/Using -pipe- notation.html"><span class="doc">Using -pipe- notation</span></a></p>
+<p><a class="reference internal" href="tutorial/Inheriting from Unit.html"><span class="doc">Inheriting from Unit</span></a></p>
+<p><a class="reference internal" href="tutorial/Unit decorators.html"><span class="doc">Unit decorators</span></a></p>
 <dl class="attribute">
 <dt id="biosteam.Unit.purchase_cost">
 <code class="descname">purchase_cost</code><a class="headerlink" href="#biosteam.Unit.purchase_cost" title="Permalink to this definition">¶</a></dt>
@@ -295,21 +294,30 @@
 
 <dl class="method">
 <dt id="biosteam.Unit.diagram">
-<code class="descname">diagram</code><span class="sig-paren">(</span><em>radius=0</em>, <em>file=None</em>, <em>format='svg'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit.diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.diagram" title="Permalink to this definition">¶</a></dt>
+<code class="descname">diagram</code><span class="sig-paren">(</span><em>radius=0</em>, <em>file=None</em>, <em>format='png'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_unit.html#Unit.diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Unit.diagram" title="Permalink to this definition">¶</a></dt>
 <dd><p>Display a <a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz</a> diagram of the unit and all neighboring units within given radius.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><p><strong>radius:</strong> [int] Maxium number streams between neighbors.</p>
-<dl class="docutils">
-<dt><strong>file:</strong> Must be one of the following:</dt>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>radius</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Maxium number streams between neighbors.</p>
+</dd>
+<dt><strong>file</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Must be one of the following:</span></dt>
 <dd><ul class="first last simple">
 <li>[str] File name to save diagram.</li>
 <li>[None] Display diagram in console.</li>
 </ul>
 </dd>
+<dt><strong>format</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Format of file.</p>
+</dd>
 </dl>
-<p><strong>format:</strong> Format of file.</p>
-</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">

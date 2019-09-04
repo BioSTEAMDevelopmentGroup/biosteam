@@ -1,0 +1,737 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Pump &mdash; BioSTEAM 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../../',
+              VERSION:'0.1',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> BioSTEAM
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Find unit operations and manage flowsheets.html">4. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Using -pipe- notation.html">5. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Inheriting from Unit.html">6. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Unit decorators.html">7. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Stoichiometric reactions.html">8. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Advanced simulation.html">9. Advanced simulation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">BioSTEAM API</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../Species.html">Species</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Stream.html">Stream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../MixedStream.html">MixedStream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Unit.html">Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../HeatUtility.html">HeatUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../System.html">System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../TEA.html">TEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../units/units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../inspect.html">inspect</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../reaction.html">reaction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../evaluation/evaluation.html">evaluation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">BioSTEAM</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+      <li>Pump</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../../_sources/tutorial/unit operations/Pump Example.ipynb.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS for nbsphinx extension */
+
+/* remove conflicting styling from Sphinx themes */
+div.nbinput,
+div.nbinput div.prompt,
+div.nbinput div.input_area,
+div.nbinput div[class*=highlight],
+div.nbinput div[class*=highlight] pre,
+div.nboutput,
+div.nbinput div.prompt,
+div.nbinput div.output_area,
+div.nboutput div[class*=highlight],
+div.nboutput div[class*=highlight] pre {
+    background: none;
+    border: none;
+    padding: 0 0;
+    margin: 0;
+    box-shadow: none;
+}
+
+/* avoid gaps between output lines */
+div.nboutput div[class*=highlight] pre {
+    line-height: normal;
+}
+
+/* input/output containers */
+div.nbinput,
+div.nboutput {
+    display: -webkit-flex;
+    display: flex;
+    align-items: flex-start;
+    margin: 0;
+    width: 100%;
+}
+@media (max-width: 540px) {
+    div.nbinput,
+    div.nboutput {
+        flex-direction: column;
+    }
+}
+
+/* input container */
+div.nbinput {
+    padding-top: 5px;
+}
+
+/* last container */
+div.nblast {
+    padding-bottom: 5px;
+}
+
+/* input prompt */
+div.nbinput div.prompt pre {
+    color: #303F9F;
+}
+
+/* output prompt */
+div.nboutput div.prompt pre {
+    color: #D84315;
+}
+
+/* all prompts */
+div.nbinput div.prompt,
+div.nboutput div.prompt {
+    min-width: 8ex;
+    padding-top: 0.4em;
+    padding-right: 0.4em;
+    text-align: right;
+    flex: 0;
+}
+@media (max-width: 540px) {
+    div.nbinput div.prompt,
+    div.nboutput div.prompt {
+        text-align: left;
+        padding: 0.4em;
+    }
+    div.nboutput div.prompt.empty {
+        padding: 0;
+    }
+}
+
+/* disable scrollbars on prompts */
+div.nbinput div.prompt pre,
+div.nboutput div.prompt pre {
+    overflow: hidden;
+}
+
+/* input/output area */
+div.nbinput div.input_area,
+div.nboutput div.output_area {
+    padding: 0.4em;
+    -webkit-flex: 1;
+    flex: 1;
+    overflow: auto;
+}
+@media (max-width: 540px) {
+    div.nbinput div.input_area,
+    div.nboutput div.output_area {
+        width: 100%;
+    }
+}
+
+/* input area */
+div.nbinput div.input_area {
+    border: 1px solid #cfcfcf;
+    border-radius: 2px;
+    background: #f7f7f7;
+}
+
+/* override MathJax center alignment in output cells */
+div.nboutput div[class*=MathJax] {
+    text-align: left !important;
+}
+
+/* override sphinx.ext.pngmath center alignment in output cells */
+div.nboutput div.math p {
+    text-align: left;
+}
+
+/* standard error */
+div.nboutput div.output_area.stderr {
+    background: #fdd;
+}
+
+/* ANSI colors */
+.ansi-black-fg { color: #3E424D; }
+.ansi-black-bg { background-color: #3E424D; }
+.ansi-black-intense-fg { color: #282C36; }
+.ansi-black-intense-bg { background-color: #282C36; }
+.ansi-red-fg { color: #E75C58; }
+.ansi-red-bg { background-color: #E75C58; }
+.ansi-red-intense-fg { color: #B22B31; }
+.ansi-red-intense-bg { background-color: #B22B31; }
+.ansi-green-fg { color: #00A250; }
+.ansi-green-bg { background-color: #00A250; }
+.ansi-green-intense-fg { color: #007427; }
+.ansi-green-intense-bg { background-color: #007427; }
+.ansi-yellow-fg { color: #DDB62B; }
+.ansi-yellow-bg { background-color: #DDB62B; }
+.ansi-yellow-intense-fg { color: #B27D12; }
+.ansi-yellow-intense-bg { background-color: #B27D12; }
+.ansi-blue-fg { color: #208FFB; }
+.ansi-blue-bg { background-color: #208FFB; }
+.ansi-blue-intense-fg { color: #0065CA; }
+.ansi-blue-intense-bg { background-color: #0065CA; }
+.ansi-magenta-fg { color: #D160C4; }
+.ansi-magenta-bg { background-color: #D160C4; }
+.ansi-magenta-intense-fg { color: #A03196; }
+.ansi-magenta-intense-bg { background-color: #A03196; }
+.ansi-cyan-fg { color: #60C6C8; }
+.ansi-cyan-bg { background-color: #60C6C8; }
+.ansi-cyan-intense-fg { color: #258F8F; }
+.ansi-cyan-intense-bg { background-color: #258F8F; }
+.ansi-white-fg { color: #C5C1B4; }
+.ansi-white-bg { background-color: #C5C1B4; }
+.ansi-white-intense-fg { color: #A1A6B2; }
+.ansi-white-intense-bg { background-color: #A1A6B2; }
+
+.ansi-default-inverse-fg { color: #FFFFFF; }
+.ansi-default-inverse-bg { background-color: #000000; }
+
+.ansi-bold { font-weight: bold; }
+.ansi-underline { text-decoration: underline; }
+
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+</style>
+<div class="section" id="Pump">
+<h1>Pump<a class="headerlink" href="#Pump" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="Simulate-Pump-for-costing-purposes-(no-pressure-input-necessary)">
+<h2>Simulate Pump for costing purposes (no pressure input necessary)<a class="headerlink" href="#Simulate-Pump-for-costing-purposes-(no-pressure-input-necessary)" title="Permalink to this headline">¶</a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">biosteam</span> <span class="k">import</span> <span class="n">Species</span><span class="p">,</span> <span class="n">Stream</span>
+<span class="kn">from</span> <span class="nn">biosteam.units</span> <span class="k">import</span> <span class="n">Pump</span>
+<span class="n">Stream</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">,</span> <span class="s1">&#39;Ethanol&#39;</span><span class="p">)</span>
+
+<span class="c1"># Simulate pump</span>
+<span class="n">feed</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">350</span><span class="p">)</span>
+<span class="n">P1</span> <span class="o">=</span> <span class="n">Pump</span><span class="p">(</span><span class="s1">&#39;P1&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">feed</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="s1">&#39;out&#39;</span><span class="p">)</span>
+<span class="n">P1</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+
+<span class="c1"># Show results</span>
+<span class="n">P1</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
+<span class="n">P1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/tutorial_unit_operations_Pump_Example_2_0.png" src="../../_images/tutorial_unit_operations_Pump_Example_2_0.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Pump: P1
+ins...
+[0] feed
+    phase: &#39;l&#39;, T: 350 K, P: 101325 Pa
+    flow (kmol/hr): Water  200
+outs...
+[0] out
+    phase: &#39;l&#39;, T: 350 K, P: 101325 Pa
+    flow (kmol/hr): Water  200
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">P1</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[2]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Pump</th>
+      <th>Units</th>
+      <th>P1</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="2" valign="top">Power</th>
+      <th>Rate</th>
+      <td>kW</td>
+      <td>0.89</td>
+    </tr>
+    <tr>
+      <th>Cost</th>
+      <td>USD/hr</td>
+      <td>0.0696</td>
+    </tr>
+    <tr>
+      <th rowspan="8" valign="top">Design</th>
+      <th>Ideal power</th>
+      <td>hp</td>
+      <td>0.42</td>
+    </tr>
+    <tr>
+      <th>Flow rate</th>
+      <td>gpm</td>
+      <td>16.3</td>
+    </tr>
+    <tr>
+      <th>Efficiency</th>
+      <td></td>
+      <td>0.352</td>
+    </tr>
+    <tr>
+      <th>Actual power</th>
+      <td></td>
+      <td>1.19</td>
+    </tr>
+    <tr>
+      <th>Pump power</th>
+      <td></td>
+      <td>1.5</td>
+    </tr>
+    <tr>
+      <th>N</th>
+      <td></td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>Head</th>
+      <td>ft</td>
+      <td>297</td>
+    </tr>
+    <tr>
+      <th>Type</th>
+      <td></td>
+      <td>Centrifugal</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">Cost</th>
+      <th>Pump</th>
+      <td>USD</td>
+      <td>4.3e+03</td>
+    </tr>
+    <tr>
+      <th>Motor</th>
+      <td>USD</td>
+      <td>399</td>
+    </tr>
+    <tr>
+      <th>Purchase cost</th>
+      <th></th>
+      <td>USD</td>
+      <td>4.7e+03</td>
+    </tr>
+    <tr>
+      <th>Utility cost</th>
+      <th></th>
+      <td>USD/hr</td>
+      <td>0.0696</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+</div>
+<div class="section" id="Simulate-Pump-for-pressure-increase">
+<h2>Simulate Pump for pressure increase<a class="headerlink" href="#Simulate-Pump-for-pressure-increase" title="Permalink to this headline">¶</a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="c1"># Simulate pump</span>
+<span class="n">feed</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;feed&#39;</span><span class="p">,</span> <span class="n">Water</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">350</span><span class="p">)</span>
+<span class="n">P1</span> <span class="o">=</span> <span class="n">Pump</span><span class="p">(</span><span class="s1">&#39;P1&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="n">feed</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="s1">&#39;out&#39;</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mf">2e5</span><span class="p">)</span>
+<span class="n">P1</span><span class="o">.</span><span class="n">simulate</span><span class="p">()</span>
+
+<span class="c1"># Show results</span>
+<span class="n">P1</span><span class="o">.</span><span class="n">diagram</span><span class="p">()</span>
+<span class="n">P1</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../../_images/tutorial_unit_operations_Pump_Example_5_0.png" src="../../_images/tutorial_unit_operations_Pump_Example_5_0.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Pump: P1
+ins...
+[0] feed
+    phase: &#39;l&#39;, T: 350 K, P: 101325 Pa
+    flow (kmol/hr): Water  200
+outs...
+[0] out
+    phase: &#39;l&#39;, T: 350 K, P: 200000 Pa
+    flow (kmol/hr): Water  200
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>In [4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
+<span></span><span class="n">P1</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre>
+<span></span>Out[4]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Pump</th>
+      <th>Units</th>
+      <th>P1</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="2" valign="top">Power</th>
+      <th>Rate</th>
+      <td>kW</td>
+      <td>0.289</td>
+    </tr>
+    <tr>
+      <th>Cost</th>
+      <td>USD/hr</td>
+      <td>0.0226</td>
+    </tr>
+    <tr>
+      <th rowspan="8" valign="top">Design</th>
+      <th>Ideal power</th>
+      <td>hp</td>
+      <td>0.136</td>
+    </tr>
+    <tr>
+      <th>Flow rate</th>
+      <td>gpm</td>
+      <td>16.3</td>
+    </tr>
+    <tr>
+      <th>Efficiency</th>
+      <td></td>
+      <td>0.352</td>
+    </tr>
+    <tr>
+      <th>Actual power</th>
+      <td></td>
+      <td>0.387</td>
+    </tr>
+    <tr>
+      <th>Pump power</th>
+      <td></td>
+      <td>0.5</td>
+    </tr>
+    <tr>
+      <th>N</th>
+      <td></td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <th>Head</th>
+      <td>ft</td>
+      <td>96.5</td>
+    </tr>
+    <tr>
+      <th>Type</th>
+      <td></td>
+      <td>Centrifugal</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">Cost</th>
+      <th>Pump</th>
+      <td>USD</td>
+      <td>4.37e+03</td>
+    </tr>
+    <tr>
+      <th>Motor</th>
+      <td>USD</td>
+      <td>311</td>
+    </tr>
+    <tr>
+      <th>Purchase cost</th>
+      <th></th>
+      <td>USD</td>
+      <td>4.68e+03</td>
+    </tr>
+    <tr>
+      <th>Utility cost</th>
+      <th></th>
+      <td>USD/hr</td>
+      <td>0.0226</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Yoel Cortes-Pena and Jeremy Guest
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -89,17 +89,17 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../Getting started.html">1. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Creating a Unit.html">3. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Unit operation examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../units/notebooks/examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -112,11 +112,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../compounds.html">compounds</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../inspect.html">inspect</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../reaction.html">reaction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../evaluation.html">evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 
             
@@ -349,32 +349,39 @@
 <div class="viewcode-block" id="Stream"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream">[docs]</a><span class="k">class</span> <span class="nc">Stream</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">metaStream</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a Stream object that defines material flow rates along its thermodynamic state. Thermodynamic and transport properties of a stream are readily available. Ideal mixture is assumed for stream properties and excess thermodynamic energies are neglected as a simplifying assumption for low pressure processes.</span>
 
-<span class="sd">**Parameters**</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ID=&#39;&#39; : str, defaults to a unique ID</span>
+<span class="sd">        A unique identification. If ID is None, stream will not be</span>
+<span class="sd">        registered in flowsheet.</span>
 
-<span class="sd">    **ID:** [str] A unique identification. If ID is an empty string (i.e. &#39;&#39; ), a default ID will be chosen. If ID is None, stream will not be registered in flowsheet.</span>
+<span class="sd">    flow=() : tuple, optional</span>
+<span class="sd">        All flow rates corresponding to `species`.</span>
 
-<span class="sd">    **flow:** [tuple] All flow rates corresponding to `species`.</span>
+<span class="sd">    species=() : tuple[str] or Species, defaults to Stream.species</span>
+<span class="sd">        Species corresponding to `flow`.</span>
 
-<span class="sd">    **species:** tuple[str] or [Species] Species corresponding to `flow`. If empty, assume same species as class.</span>
+<span class="sd">    units=&#39;kmol/hr&#39; : str, optional</span>
+<span class="sd">        Flow rate units of measure (only mass, molar, and</span>
+<span class="sd">        volumetric flow rates are valid)</span>
 
-<span class="sd">    **units:** [str] The units of the flow rates (only mass, molar, and volumetric flow rates are valid)</span>
+<span class="sd">    phase=&#39;l&#39; : {&#39;l&#39;, &#39;g&#39;, &#39;s&#39;}, optional</span>
+<span class="sd">        Either gas (&quot;g&quot;), liquid (&quot;l&quot;), or solid (&quot;s&quot;).</span>
 
-<span class="sd">    **phase:** [str] &#39;l&#39; for liquid, &#39;g&#39; for gas, or &#39;s&#39; for solid.</span>
+<span class="sd">    T=298.15 : float, optional</span>
+<span class="sd">        Temperature (K).</span>
 
-<span class="sd">    **T:** [float] Temperature (K).</span>
+<span class="sd">    P=101325 : float, optional</span>
+<span class="sd">        Pressure (Pa).</span>
 
-<span class="sd">    **P:** [float] Pressure (Pa).</span>
-
-<span class="sd">    **price:** [float] (USD/kg).</span>
+<span class="sd">    price=0 : float, optional</span>
+<span class="sd">        Price in USD/kg.</span>
 <span class="sd">    </span>
-<span class="sd">    ****flow_pairs:** Compound-flow pairs</span>
+<span class="sd">    **flow_pairs : float</span>
+<span class="sd">                   Compound-flow pairs</span>
 
-<span class="sd">**Class Properties**</span>
-
-<span class="sd">    **species** = Species(): [Species] Contains pure component thermodynamic properties for computing overall properties of Stream instances.</span>
-
-<span class="sd">**Examples**</span>
-
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
 <span class="sd">    Before making a stream, set the species using a Species object:</span>
 
 <span class="sd">    .. code-block:: python</span>
@@ -642,7 +649,8 @@
         <span class="k">elif</span> <span class="n">dim</span> <span class="o">==</span> <span class="n">vol_flow_dim</span><span class="p">:</span>
             <span class="n">exec</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;self._vol[index] </span><span class="si">{inplace}</span><span class="s2">= q.to(&#39;m3/hr&#39;).magnitude&quot;</span><span class="p">,</span> <span class="nb">locals</span><span class="p">())</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">DimensionError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;dimensions for flow units must be in molar, mass or volumetric flow rates, not &#39;</span><span class="si">{dim}</span><span class="s2">&#39;&quot;</span><span class="p">)</span></div>
+            <span class="k">raise</span> <span class="n">DimensionError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;dimensions for flow units must be in molar, &quot;</span>
+                                 <span class="n">f</span><span class="s2">&quot;mass or volumetric flow rates, not &#39;</span><span class="si">{dim}</span><span class="s2">&#39;&quot;</span><span class="p">)</span></div>
     
 <div class="viewcode-block" id="Stream.getflow"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.getflow">[docs]</a>    <span class="k">def</span> <span class="nf">getflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">species</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get flow rates of species in given units.&quot;&quot;&quot;</span>
@@ -665,13 +673,15 @@
         <span class="n">specieslen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">flowlen</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">flow_pairs</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;cannot specify flow pairs when species is passed&#39;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;cannot specify both &quot;flow&quot; and &#39;</span>
+                                 <span class="s1">&#39;&quot;flow_pairs&quot; when species is passed&#39;</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">flowlen</span> <span class="o">==</span> <span class="n">specieslen</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">flow</span><span class="p">)</span>
             <span class="k">elif</span> <span class="p">(</span><span class="ow">not</span> <span class="n">specieslen</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">flowlen</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_N</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">flow</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;length of flow rates must be equal to length of species&#39;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;length of flow rates must be equal to &#39;</span>
+                                 <span class="s1">&#39;length of species&#39;</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">flow_pairs</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">flow_pairs</span><span class="p">,</span> <span class="p">[</span><span class="o">*</span><span class="n">flow_pairs</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
         <span class="k">else</span><span class="p">:</span>
@@ -752,18 +762,6 @@
             <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;link must be a Stream object, not a &quot;</span>
                                   <span class="s2">&quot;&#39;{type(stream).__name__}&#39; object.&quot;</span><span class="p">)</span>
     
-    <span class="c1"># def __getattr__(self, key):</span>
-    <span class="c1">#     if self._link is MissingStream:</span>
-    <span class="c1">#         if self.source and self.source._ins[0] is not MissingStream:</span>
-    <span class="c1">#             self.source._link_streams()</span>
-    <span class="c1">#             try: return object.__getattribute__(self, key)</span>
-    <span class="c1">#             except: raise AttributeError(f&#39;{repr(self.source)}.ins[0] is missing stream&#39;)</span>
-    <span class="c1">#         raise AttributeError(f&#39;{self}.link is missing stream&#39;)</span>
-    <span class="c1">#     elif not self._source_link:</span>
-    <span class="c1">#         raise AttributeError(f&#39;{repr(self.link.source)} must be simulated first&#39;)</span>
-    <span class="c1">#     else:</span>
-    <span class="c1">#         raise AttributeError(f&quot;&#39;{type(self).__name__}&#39; has no attribute &#39;{key}&#39;&quot;)</span>
-    
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">species</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;[Species] Contains pure component thermodynamic properties for computing overall properties of Stream instances.&quot;&quot;&quot;</span>
@@ -801,7 +799,7 @@
     <span class="k">def</span> <span class="nf">MW</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Molecular weight of all species (array g/mol):     </span>
 
-<span class="sd">        from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
 <span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; Stream.MW</span>
 <span class="sd">        tuple_array([18.01528, 46.06844])</span>
@@ -812,14 +810,15 @@
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">indices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return flow indices of specified species.</span>
+        <span class="sd">&quot;&quot;&quot;Return indices of specified species.</span>
 
-<span class="sd">        **Parameters**</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        IDs : iterable</span>
+<span class="sd">              Species IDs or CAS numbers.</span>
 
-<span class="sd">             **IDs:** [iterable] species IDs or CAS numbers.</span>
-
-<span class="sd">        Example</span>
-
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
 <span class="sd">        Indices by ID:</span>
 <span class="sd">        </span>
 <span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
@@ -840,12 +839,13 @@
     <span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return index of specified compound.</span>
 
-<span class="sd">        **Parameters**</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ID: str</span>
+<span class="sd">            Compound ID</span>
 
-<span class="sd">             **ID:** [str] compound ID</span>
-
-<span class="sd">        Example</span>
-
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
 <span class="sd">        Index by ID:</span>
 <span class="sd">        </span>
 <span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
@@ -978,6 +978,11 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_propflow</span><span class="p">(</span><span class="s1">&#39;Vm&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span><span class="p">)</span><span class="o">*</span><span class="mi">1000</span>
 
     <span class="c1">### Energy flows ###</span>
+
+<div class="viewcode-block" id="Stream.H_at"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.H_at">[docs]</a>    <span class="k">def</span> <span class="nf">H_at</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return enthalpy flow rate at given arguments, excluding formation energies (kJ/hr). Arguments with None values default to stream specifications.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span><span class="o">.</span><span class="n">_propflow</span><span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="n">mol</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol</span><span class="p">,</span> <span class="n">T</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
+                                       <span class="n">P</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">phase</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span><span class="p">)</span></div>
 
     <span class="c1"># Enthalpy</span>
     <span class="nd">@property</span>
@@ -1328,12 +1333,13 @@
 <div class="viewcode-block" id="Stream.quantity"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.quantity">[docs]</a>    <span class="k">def</span> <span class="nf">quantity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a property as a Quantity object as described in the `pint package &lt;https://pint.readthedocs.io/en/latest/&gt;`__ </span>
 
-<span class="sd">        **Parameters**</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        prop_ID : str</span>
+<span class="sd">                  Name of the property (e.g. &#39;mol&#39;, &#39;H&#39;, &#39;k&#39; ...)</span>
 
-<span class="sd">             **prop_ID:** [str] name of the property (e.g. &#39;mol&#39;, &#39;H&#39;, &#39;k&#39; ...)</span>
-
-<span class="sd">        Example:</span>
-
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
 <span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; s1 = Stream(Ethanol=2)</span>
@@ -1350,16 +1356,17 @@
 <div class="viewcode-block" id="Stream.derivative"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.derivative">[docs]</a>    <span class="k">def</span> <span class="nf">derivative</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">,</span> <span class="n">var_ID</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the derivative of property &#39;prop_ID&#39; and variable &#39;var_ID&#39;. If the property given by var_ID is an array, use index to specify which element.</span>
 
-<span class="sd">         **Parameters**</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        prop_ID : str</span>
+<span class="sd">                  Name of the property (e.g. &#39;rho&#39;, &#39;Cp&#39;, &#39;H&#39;, &#39;volnet&#39; ...)</span>
+<span class="sd">        var_ID : str</span>
+<span class="sd">                 Name of the variable (e.g &#39;T&#39;, &#39;P&#39;, &#39;molnet&#39; ...)</span>
+<span class="sd">        index : array_like, optional</span>
+<span class="sd">                Indices if the variable is an array</span>
 
-<span class="sd">             **prop_ID:** [str] Name of the property (e.g. &#39;rho&#39;, &#39;Cp&#39;, &#39;H&#39;, &#39;volnet&#39; ...)</span>
-
-<span class="sd">             **var_ID:** [str] Name of the variable (e.g &#39;T&#39;, &#39;P&#39;, &#39;molnet&#39; ...)</span>
-
-<span class="sd">             **index:** [array_like or None] Optional indices if the variable is an array</span>
-
-<span class="sd">        **Example**</span>
-
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
 <span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; s1 = Stream(Ethanol=2)</span>
@@ -1430,19 +1437,21 @@
 <div class="viewcode-block" id="Stream.copyflow"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.copyflow">[docs]</a>    <span class="k">def</span> <span class="nf">copyflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">remove</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Copy flow rates of stream to self.</span>
 <span class="sd">        </span>
-<span class="sd">        **Parameters**</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        stream : Stream</span>
+<span class="sd">            Flow rates will be copied from here.</span>
+<span class="sd">        species=None : iterable[str], defaults to all species.</span>
+<span class="sd">            Species IDs. </span>
+<span class="sd">        remove=False: bool, optional</span>
+<span class="sd">            If True, copied species will be removed from `stream`.</span>
+<span class="sd">        exclude=False: bool, optional</span>
+<span class="sd">            If True, exclude `species` when copying.</span>
 <span class="sd">        </span>
-<span class="sd">            **stream:** [Stream] Flow rates will be copied from here.</span>
-<span class="sd">            </span>
-<span class="sd">            **species:** iterable[str] Species IDs. Defaults to all species.</span>
-<span class="sd">            </span>
-<span class="sd">            **remove:** [bool] If True, copied species will be removed from `stream`.</span>
-<span class="sd">            </span>
-<span class="sd">            **exclude:** [bool] If True, exclude `species` when copying.</span>
-<span class="sd">            </span>
-<span class="sd">        .. Note::</span>
-<span class="sd">            </span>
-<span class="sd">            Species flow rates that are not copied will be set to zero.</span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        </span>
+<span class="sd">        Species that are not included will be set to zero.</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="ow">is</span> <span class="n">stream</span><span class="o">.</span><span class="n">_species</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;species must be the same to &#39;</span>
@@ -1494,14 +1503,17 @@
 <div class="viewcode-block" id="Stream.bubble_T"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.bubble_T">[docs]</a>    <span class="k">def</span> <span class="nf">bubble_T</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Bubble point at current composition and pressure.</span>
 
-<span class="sd">        **Returns**</span>
-
-<span class="sd">            **T:** [float] Bubble point temperature (T).</span>
-
-<span class="sd">            **y:** [numpy ndarray] Vapor phase composition.</span>
-<span class="sd">            </span>
-<span class="sd">            **indices:** [list] Indices of species in equilibrium</span>
-
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        T : float</span>
+<span class="sd">            Bubble point temperature (T).</span>
+<span class="sd">        y : numpy.ndarray</span>
+<span class="sd">            Vapor phase composition.</span>
+<span class="sd">        indices : list[int]</span>
+<span class="sd">                  Indices of species in equilibrium</span>
+<span class="sd">        </span>
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
 <span class="sd">        &gt;&gt;&gt; stream = Stream(flow=(0.6, 0.4),</span>
 <span class="sd">        ...                 species=Species(&#39;Ethanol&#39;, &#39;Water&#39;))</span>
@@ -1526,14 +1538,17 @@
 <div class="viewcode-block" id="Stream.bubble_P"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.bubble_P">[docs]</a>    <span class="k">def</span> <span class="nf">bubble_P</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Bubble point at current composition and temperature.</span>
 
-<span class="sd">        **Returns**</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        P : float</span>
+<span class="sd">            Bubble point pressure (Pa).</span>
+<span class="sd">        y : numpy.ndarray</span>
+<span class="sd">            Vapor phase composition.</span>
+<span class="sd">        indices : list[int]</span>
+<span class="sd">                  Indices of species in equilibrium.</span>
 
-<span class="sd">            **P:** [float] Bubble point pressure (Pa).</span>
-
-<span class="sd">            **y:** [numpy ndarray] Vapor phase composition.</span>
-<span class="sd">            </span>
-<span class="sd">            **indices:** [list] Indices of species in equilibrium</span>
-
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
 <span class="sd">        &gt;&gt;&gt; s1 = Stream(flow=(0.703, 0.297), T=352.28,</span>
 <span class="sd">                        species=Species(&#39;Ethanol&#39;, &#39;Water&#39;))</span>
@@ -1558,14 +1573,18 @@
 <div class="viewcode-block" id="Stream.dew_T"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.dew_T">[docs]</a>    <span class="k">def</span> <span class="nf">dew_T</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Dew point at current composition and pressure.</span>
 <span class="sd">        </span>
-<span class="sd">        **Returns**</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        T : float</span>
+<span class="sd">            Dew point temperature (K).</span>
+<span class="sd">        x : numpy.ndarray</span>
+<span class="sd">            Liquid phase composition.</span>
+<span class="sd">        indices : list[int]</span>
+<span class="sd">                  Indices of species in equilibrium</span>
 
-<span class="sd">            **T:** [float] Dew point temperature (K).</span>
-
-<span class="sd">            **x:** [numpy array] Liquid phase composition.</span>
-<span class="sd">            </span>
-<span class="sd">            **indices:** [list] Indices of species in equilibrium</span>
-
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; from biosteam import Stream, Species</span>
 <span class="sd">        &gt;&gt;&gt; stream = Stream(flow=(0.5, 0.5),</span>
 <span class="sd">        ...                 species=Species(&#39;Ethanol&#39;, &#39;Water&#39;))</span>
 <span class="sd">        &gt;&gt;&gt; stream.dew_T()</span>
@@ -1589,14 +1608,17 @@
 <div class="viewcode-block" id="Stream.dew_P"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.dew_P">[docs]</a>    <span class="k">def</span> <span class="nf">dew_P</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Dew point at current composition and temperature.</span>
 <span class="sd">        </span>
-<span class="sd">        **Returns**</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        P : float</span>
+<span class="sd">            Dew point pressure (Pa).</span>
+<span class="sd">        x : numpy.ndarray</span>
+<span class="sd">            Liquid phase composition.</span>
+<span class="sd">        indices : list[int]</span>
+<span class="sd">                  Indices of species in equilibrium.</span>
 
-<span class="sd">            **P:** [float] Dew point pressure (Pa).</span>
-
-<span class="sd">            **x:** [numpy array] Liquid phase composition.</span>
-<span class="sd">            </span>
-<span class="sd">            **indices:** [list] Indices of species in equilibrium</span>
-
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
 <span class="sd">        &gt;&gt;&gt; stream = Stream(flow=(0.703, 0.297), T=352.28,</span>
 <span class="sd">        ...                 species=Species(&#39;Ethanol&#39;, &#39;Water&#39;))</span>
@@ -1622,19 +1644,21 @@
 <div class="viewcode-block" id="Stream.Re"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.Re">[docs]</a>    <span class="k">def</span> <span class="nf">Re</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">L</span><span class="p">,</span> <span class="n">A</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return Reynolds number.</span>
 
-<span class="sd">        **Parameters**</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        L : float</span>
+<span class="sd">            Characteristic length (m).</span>
+<span class="sd">        A=None : float, optional</span>
+<span class="sd">            Cross-sectional area (m^2). If A is None, assume flow through a cylindrical pipe.</span>
 
-<span class="sd">             **L:** [float] Characteristic lenght (m)</span>
-
-<span class="sd">             **A:** [float] Cross-sectional area (m^2). If A is None, assume flow through a cylindrical pipe.</span>
-
-<span class="sd">        Example</span>
-
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
 <span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Ethanol&#39;, &#39;Water&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; s1 = Stream(Water=200)</span>
 <span class="sd">        &gt;&gt;&gt; s1.Re(0.2, 0.031416)</span>
 <span class="sd">        27639.956372923512</span>
+<span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">volnet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">volnet</span><span class="o">/</span><span class="mi">3600</span> <span class="c1"># m3/s</span>
         <span class="k">if</span> <span class="n">A</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># Assume pipe</span>
@@ -1646,25 +1670,27 @@
     <span class="k">def</span> <span class="nf">_helpdata</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">prop</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return information related to a property.</span>
 
-<span class="sd">        **Parameters**</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        prop : str</span>
+<span class="sd">               Name or description of a property.</span>
 
-<span class="sd">             **prop:** [str] name or description of a property</span>
+<span class="sd">        Returns</span>
+<span class="sd">        --------</span>
+<span class="sd">        ID : str</span>
+<span class="sd">             Name of the property</span>
+<span class="sd">        description : str</span>
+<span class="sd">                      Description of the property</span>
+<span class="sd">        dependency : str</span>
+<span class="sd">                     TP dependency</span>
+<span class="sd">        units : str</span>
+<span class="sd">                Units of measure</span>
+<span class="sd">        datatype : str</span>
+<span class="sd">                   object type returned by property.</span>
 
-<span class="sd">        Return</span>
-
-<span class="sd">             **out:** tupple[str] where elements are:</span>
-<span class="sd">                  * **ID:** [str] name of the property</span>
-
-<span class="sd">                  * **Description:** [str] description of the property</span>
-
-<span class="sd">                  * **Dependency:** [str] TP dependency</span>
-
-<span class="sd">                  * **Units:** [str] units of measure</span>
-
-<span class="sd">                  * **Datatype:** [str] type returned by property</span>
-
-<span class="sd">        Example</span>
-
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; from biosteam import Stream</span>
 <span class="sd">        &gt;&gt;&gt; Stream._helplist(&#39;k&#39;)</span>
 <span class="sd">        (&#39;k&#39;, &#39;thermal conductivity&#39;, &#39;TP&#39;, &#39;W/m/K&#39;, &#39;float&#39;)</span>
 
@@ -1693,12 +1719,14 @@
     <span class="k">def</span> <span class="nf">help</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">prop</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Print information related to a property.</span>
 
-<span class="sd">        **Parameters**</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        prop : str</span>
+<span class="sd">               Name or description of a property.</span>
 
-<span class="sd">             **prop:** [str] name or description of a property     </span>
-
-<span class="sd">        Example</span>
-
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; from biosteam import Stream</span>
 <span class="sd">        &gt;&gt;&gt; Stream.help(&#39;rho&#39;)</span>
 <span class="sd">        rho: [float] Density as a function of T and P (kg/m^3).</span>
 <span class="sd">        &gt;&gt;&gt; Stream.help(&#39;density&#39;)</span>
@@ -1712,22 +1740,27 @@
     <span class="k">def</span> <span class="nf">T_equilibrium</span><span class="p">(</span><span class="n">streams</span><span class="p">,</span> <span class="n">T_guess</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Q_in</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">approximate</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Bring all streams to temperature equilibrium.</span>
 
-<span class="sd">        **Parameters**</span>
-
-<span class="sd">            **streams:** [Stream] All streams</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        streams : iterable[Stream]</span>
+<span class="sd">            All streams in temperature equilibrium.</span>
 <span class="sd">        </span>
-<span class="sd">            **T_guess:** [float] Equilibrium temperature guess (K)</span>
+<span class="sd">        T_guess=None : float, optional</span>
+<span class="sd">            Equilibrium temperature guess (K).</span>
 
-<span class="sd">            **Q_in:** [float] Heat addition to streams (kJ/hr)     </span>
+<span class="sd">        Q_in=0 : float, optional</span>
+<span class="sd">            Heat addition to streams (kJ/hr).</span>
 <span class="sd">            </span>
-<span class="sd">            **approximate:** [bool] If True, approximate energy balance with constant heat capacity</span>
+<span class="sd">        approximate=True : bool</span>
+<span class="sd">            If True, approximate energy balance with constant heat capacity.</span>
 
-<span class="sd">        **Return**</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        T : float</span>
+<span class="sd">            New temperature (K).</span>
 
-<span class="sd">             **T:** [float] New temperature (K)</span>
-
-<span class="sd">        **Example**</span>
-
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
 <span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; s1 = Stream(Water=2, T=300)</span>
@@ -1775,18 +1808,17 @@
 
 <div class="viewcode-block" id="Stream.sum"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.sum">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">sum</span><span class="p">(</span><span class="n">s_sum</span><span class="p">,</span> <span class="n">streams</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Mixes streams and sets resulting mass and energy in &#39;s_sum&#39;. Assumes the same pressure as streams[0], and no phase equilibrium. If &#39;s_sum&#39; is a Stream object, it assumes the phase does not change.</span>
+        <span class="sd">&quot;&quot;&quot;Mixes streams and sets resulting mass and energy in &#39;s_sum&#39;. Assumes the same pressure as streams[0], and no phase equilibrium. </span>
 
-<span class="sd">        **Parameters** </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        s_sum : Stream</span>
+<span class="sd">                Container for the resulting mixture of streams.</span>
+<span class="sd">        streams : iterable[Stream]</span>
+<span class="sd">                  Stream objects to be mixed</span>
 
-<span class="sd">             **s_sum:** [Stream] Container for the resulting mixture of streams</span>
-
-<span class="sd">             **streams:** [tuple] Stream objects to be mixed</span>
-
-<span class="sd">        .. Note:: Ignores contents of `s_sum` as if it was empty</span>
-
-<span class="sd">        **Example**</span>
-
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
 <span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
 <span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
 <span class="sd">        &gt;&gt;&gt; s1 = Stream(Water=2, T=300)</span>
@@ -1849,9 +1881,10 @@
 <div class="viewcode-block" id="Stream.disable_phases"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.disable_phases">[docs]</a>    <span class="k">def</span> <span class="nf">disable_phases</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Cast stream into a Stream object.</span>
 <span class="sd">        </span>
-<span class="sd">        **Parameters**</span>
-<span class="sd">        </span>
-<span class="sd">            **phase:** {&#39;s&#39;, &#39;l&#39;, &#39;g&#39;} desired phase of stream</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        phase : {&#39;s&#39;, &#39;l&#39;, &#39;g&#39;}</span>
+<span class="sd">                Desired phase of stream</span>
 <span class="sd">            </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="n">phase</span></div>
@@ -1860,26 +1893,21 @@
     <span class="k">def</span> <span class="nf">VLE</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;A callable VLE object for vapor-liquid equilibrium.</span>
 
-<span class="sd">        **Parameters**</span>
-<span class="sd">        </span>
-<span class="sd">            **Specify two:**</span>
-<span class="sd">                * **P:** [float] Operating pressure (Pa)</span>
-<span class="sd">                * **Q:** [float] Energy input (kJ/hr)</span>
-<span class="sd">                * **T:** [float] Operating temperature (K)</span>
-<span class="sd">                * **V:** [float] Molar vapor fraction</span>
-<span class="sd">                * **x:** [numpy array] Molar composition of liquid (for binary mixture)</span>
-<span class="sd">                * **y:** [numpy array] Molar composition of vapor (for binary mixture)</span>
-
-<span class="sd">            **Optional:**</span>
-<span class="sd">            </span>
-<span class="sd">                **species_IDs:** [tuple] IDs of species in equilibrium.</span>
-<span class="sd">                     </span>
-<span class="sd">                **LNK:** tuple[str] Light non-keys that remain as a vapor.</span>
-<span class="sd">        </span>
-<span class="sd">                **HNK:** tuple[str] Heavy non-keys that remain as a liquid.</span>
-
-<span class="sd">        .. Note:</span>
-<span class="sd">           LNK and HNK are not taken into account for equilibrium. Parameters not specified are None by default.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        Specify two:</span>
+<span class="sd">            * **P:** Operating pressure (Pa)</span>
+<span class="sd">            * **Q:** Energy input (kJ/hr)</span>
+<span class="sd">            * **T:** Operating temperature (K)</span>
+<span class="sd">            * **V:** Molar vapor fraction</span>
+<span class="sd">            * **x:** Molar composition of liquid (for binary mixture)</span>
+<span class="sd">            * **y:** Molar composition of vapor (for binary mixture)</span>
+<span class="sd">        species_IDs=None : tuple, optional</span>
+<span class="sd">            IDs of species in equilibrium.</span>
+<span class="sd">        LNK=None : tuple[str], optional</span>
+<span class="sd">            Light non-keys that remain as a vapor (disregards equilibrium).</span>
+<span class="sd">        LNK=None : tuple[str], optional</span>
+<span class="sd">            Heavy non-keys that remain as a liquid (disregards equilibrium).</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">enable_phases</span><span class="p">()</span>

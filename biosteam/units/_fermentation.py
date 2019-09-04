@@ -20,45 +20,41 @@ from ..reaction import Reaction
 @cost('Reactor volume', 'Reactors', CE=521.9, cost=844000,
       S=3785, n=0.5, BM=1.5)
 class Fermentation(Unit):
-    """Create a Fermentation object which models large-scale batch fermentation for the production of 1st generation ethanol using yeast [1, 2, 3, 4]. Only sucrose and glucose are taken into account. Conversion is based on reaction time, `tau`. Cleaning and unloading time, `tau_0`, fraction of working volume, `V_wf`, and number of reactors, `N_reactors`, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3].
+    """Create a Fermentation object which models large-scale batch fermentation for the production of 1st generation ethanol using yeast [1, 2, 3, 4]. A compound with CAS 'Yeast' must be present in species. Only sucrose and glucose are taken into account for conversion. Conversion is based on reaction time, `tau`. Cleaning and unloading time, `tau_0`, fraction of working volume, `V_wf`, and number of reactors, `N_reactors`, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3]. 
     
-    **Parameters**
-    
-        **tau:** Reaction time.
-        
-        **efficiency:** User enforced efficiency.
-        
-        **N:** Number of batch reactors
-    
-    **ins**
-    
+    Parameters
+    ----------
+    ins 
         [:] Inffluent streams
         
-    **outs**
-    
+    outs
         [0] Effluent
         
         [1] CO2
+    tau : float
+        Reaction time.
+    efficiency=0.9 : float, optional
+        User enforced efficiency.
+    iskinetic=False: bool, optional
+        If True, `Fermenation.kinetic_model` will be used.
+    N : int
+        Number of batch reactors
     
-    **References**
+    References
+    ----------
+    [1] Oliveira, Samuel C., et al. "Discrimination between ethanol inhibition models in a continuous alcoholic fermentation process using flocculating yeast." Applied biochemistry and biotechnology 74.3 (1998): 161-172.
     
-        [1] Oliveira, Samuel C., et al. "Discrimination between ethanol inhibition models in a continuous alcoholic fermentation process using flocculating yeast." Applied biochemistry and biotechnology 74.3 (1998): 161-172.
-        
-        [2] Oliveira, Samuel C., et al. "Continuous ethanol fermentation in a tower reactor with flocculating yeast recycle: scale-up effects on process performance, kinetic parameters and model predictions." Bioprocess Engineering 20.6 (1999): 525-530.
-        
-        [3] Oliveira, Samuel C., et al. "Mathematical modeling of a continuous alcoholic fermentation process in a two-stage tower reactor cascade with flocculating yeast recycle." Bioprocess and biosystems engineering 38.3 (2015): 469-479.
-        
-        [4] Oliveira, Samuel C., et al. "Kinetic Modeling of 1‐G Ethanol Fermentations." Fermentation Processes. InTech, 2017.
-        
-        [5] D. Humbird, R. Davis, L. Tao, C. Kinchin, D. Hsu, and A. Aden National. Renewable Energy Laboratory Golden, Colorado. P. Schoen, J. Lukas, B. Olthof, M. Worley, D. Sexton, and D. Dudgeon. Harris Group Inc. Seattle, Washington and Atlanta, Georgia. Process Design and Economics for Biochemical Conversion of Lignocellulosic Biomass to Ethanol Dilute-Acid Pretreatment and Enzymatic Hydrolysis of Corn Stover. May 2011. Technical Report NREL/TP-5100-47764
-        
-    .. note::
-        
-        A compound with CAS 'Yeast' must be present in species.
-        
-    **Examples**
+    [2] Oliveira, Samuel C., et al. "Continuous ethanol fermentation in a tower reactor with flocculating yeast recycle: scale-up effects on process performance, kinetic parameters and model predictions." Bioprocess Engineering 20.6 (1999): 525-530.
     
-        :doc:`Fermentation Example`
+    [3] Oliveira, Samuel C., et al. "Mathematical modeling of a continuous alcoholic fermentation process in a two-stage tower reactor cascade with flocculating yeast recycle." Bioprocess and biosystems engineering 38.3 (2015): 469-479.
+    
+    [4] Oliveira, Samuel C., et al. "Kinetic Modeling of 1‐G Ethanol Fermentations." Fermentation Processes. InTech, 2017.
+    
+    [5] D. Humbird, R. Davis, L. Tao, C. Kinchin, D. Hsu, and A. Aden National. Renewable Energy Laboratory Golden, Colorado. P. Schoen, J. Lukas, B. Olthof, M. Worley, D. Sexton, and D. Dudgeon. Harris Group Inc. Seattle, Washington and Atlanta, Georgia. Process Design and Economics for Biochemical Conversion of Lignocellulosic Biomass to Ethanol Dilute-Acid Pretreatment and Enzymatic Hydrolysis of Corn Stover. May 2011. Technical Report NREL/TP-5100-47764
+        
+    Examples
+    --------
+    :doc:`notebooks/Fermentation Example`
         
     """
     _units = {'Reactor volume': 'm3',
@@ -138,25 +134,26 @@ class Fermentation(Unit):
     def kinetic_model(z, t, *kinetic_constants) -> '(dXdt, dPdt, dSdt)':
         """Return change of yeast, ethanol, and substrate concentration in kg/m3.
         
-        **Parameters**
+        Parameters
+        ----------
+        z : Iterable with (X, E, S) [-]:
+            * X: Yeast concentration (kg/m3)
+            * P: Ethanol concentration (kg/m3)
+            * S: Substrate concentration (kg/m3)
         
-            **z:** Iterable with (X, E, S) [-]:
-                * X: Yeast concentration (kg/m3)
-                * P: Ethanol concentration (kg/m3)
-                * S: Substrate concentration (kg/m3)
-            
-            **t:** Time point
-            
-            ***kinetic_constants:**
-                * mu_m1: Maximum specific growth rate (1/hr)
-                * mu_m2: Maximum specific ethanol production rate (g-product/g-cell-hr)
-                * Ks1: Sugar saturation constant for growth (g/L)
-                * Ks2: Sugar saturation constant for product (g/L)
-                * Pm1: Maximum product concentration at zero growth [mu_m1=0] (g/L)
-                * Pm2: Maximum product concentration [mu_m2=0] (g/L)
-                * Xm: Maximum cell concentration [mu_m1=0] (g/L)
-                * Y_PS: Ethanol yield based on sugar consumed
-                * a: Toxic power
+        t : float
+            Time point
+        
+        *kinetic_constants
+            * mu_m1: Maximum specific growth rate (1/hr)
+            * mu_m2: Maximum specific ethanol production rate (g-product/g-cell-hr)
+            * Ks1: Sugar saturation constant for growth (g/L)
+            * Ks2: Sugar saturation constant for product (g/L)
+            * Pm1: Maximum product concentration at zero growth [mu_m1=0] (g/L)
+            * Pm2: Maximum product concentration [mu_m2=0] (g/L)
+            * Xm: Maximum cell concentration [mu_m1=0] (g/L)
+            * Y_PS: Ethanol yield based on sugar consumed
+            * a: Toxic power
                 
         """
         mu_m1, mu_m2, Ks1, Ks2, Pm1, Pm2, Xm, Y_PS, a = kinetic_constants

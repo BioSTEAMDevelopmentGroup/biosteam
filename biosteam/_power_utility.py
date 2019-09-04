@@ -5,41 +5,37 @@ Created on Sun Nov 11 11:20:42 2018
 @author: yoelr
 """
 from . import _Q
-from ._utils import DisplayUnits
+from .utils import DisplayUnits
 
 __all__ = ('PowerUtility',)
 
 class PowerUtility:
     """Create an PowerUtility object that, when called, calculates the cost of power (kW) and saves the power and cost.
             
-    **Class Parameters**
+    Examples
+    --------
+    Create a PowerUtility object:
     
-        **price:** ($/kW-hr)
+    .. code-block:: python
     
-    **Examples**
+       >>> pu = PowerUtility()
+       >>> pu
+       <PowerUtility: 0 kW, 0 USD/hr>
+       
+    Call object to calculate cost:
+        
+    .. code-block:: python
     
-        Create a PowerUtility object:
+       >>> pu(rate=500)
+       >>> pu
+       <PowerUtility: 500 kW, 30 USD/hr>
+       
+    Results are accessible:
         
-        .. code-block:: python
-        
-           >>> pu = PowerUtility()
-           >>> pu
-           <PowerUtility: 0 kW, 0 USD/hr>
-           
-        Call object to calculate cost:
-            
-        .. code-block:: python
-        
-           >>> pu(rate=500)
-           >>> pu
-           <PowerUtility: 500 kW, 30 USD/hr>
-           
-        Results are accessible:
-            
-        .. code-block:: python
-        
-           >>> pu.rate, pu.cost
-           (500, 30.)
+    .. code-block:: python
+    
+       >>> pu.rate, pu.cost
+       (500, 30.)
     
     """
     _units = dict(rate='kW', cost='USD/hr')
@@ -48,18 +44,23 @@ class PowerUtility:
     display_units = DisplayUnits(**_units)
     
     __slots__ = ('rate', 'cost')
-    price = 0.0782 #: USD/kWhr
+    #: [float] USD/kWhr
+    price = 0.0782
     
     def __init__(self):
+        #: Power requirement (kW)
         self.rate = 0
+        
+        #: Cost (USD/hr)
         self.cost = 0
     
-    def __call__(self, rate:'kW'):
+    def __call__(self, rate):
         """Calculate cost and save. 
         
-        **Parameters**
-        
-            rate: [float] Power requirement (kW)
+        Parameters
+        ----------
+        rate : float
+               Power requirement (kW)
         
         """
         self.rate = rate

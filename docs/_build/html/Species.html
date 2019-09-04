@@ -45,7 +45,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Stream" href="Stream.html" />
-    <link rel="prev" title="11. Advanced simulation" href="Advanced simulation.html" /> 
+    <link rel="prev" title="11. Advanced simulation" href="tutorial/Advanced simulation.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -91,17 +91,17 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="Getting started.html">1. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">3. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit operation examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units/notebooks/examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -114,11 +114,11 @@
 <li class="toctree-l1"><a class="reference internal" href="System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="compounds.html">compounds</a></li>
-<li class="toctree-l1"><a class="reference internal" href="units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inspect.html">inspect</a></li>
 <li class="toctree-l1"><a class="reference internal" href="reaction.html">reaction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="evaluation.html">evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluation/evaluation.html">evaluation</a></li>
 </ul>
 
             
@@ -209,10 +209,14 @@
 <dt id="biosteam.Species">
 <em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Species</code><span class="sig-paren">(</span><em>*IDs</em>, <em>cls=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_species.html#Species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create Species object that contains Compound objects as attributes.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><dl class="docutils">
-<dt><strong>*IDs:</strong> [str] Strings should be one of the following [-]:</dt>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>*IDs</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><dl class="first last docutils">
+<dt>Strings should be one of the following [-]:</dt>
 <dd><ul class="first last simple">
 <li>Name, in IUPAC form or common form or a synonym registered in PubChem</li>
 <li>InChI name, prefixed by ‘InChI=1S/’ or ‘InChI=1/’</li>
@@ -223,9 +227,15 @@
 </ul>
 </dd>
 </dl>
-<p><strong>Optional</strong></p>
-<p><strong>cls:</strong> [type Compound] The type of objects that will be created and stored as attributes. Defaults to biosteam.Chemical</p>
-</div></blockquote>
+</dd>
+<dt><strong>cls=None</strong> <span class="classifier-delimiter">:</span> <span class="classifier">type Compound, defaults to biosteam.Chemical</span></dt>
+<dd><p class="first last">The type of objects that will be created and stored as attributes.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
 <dl class="classmethod">
 <dt id="biosteam.Species.tospecies">
 <em class="property">classmethod </em><code class="descname">tospecies</code><span class="sig-paren">(</span><em>compounds</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_species.html#Species.tospecies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Species.tospecies" title="Permalink to this definition">¶</a></dt>
@@ -265,7 +275,7 @@
         <a href="Stream.html" class="btn btn-neutral float-right" title="Stream" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="Advanced simulation.html" class="btn btn-neutral float-left" title="11. Advanced simulation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="tutorial/Advanced simulation.html" class="btn btn-neutral float-left" title="11. Advanced simulation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

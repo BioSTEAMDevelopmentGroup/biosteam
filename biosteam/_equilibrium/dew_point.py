@@ -34,18 +34,23 @@ class DewPoint:
     def solve_Tx(self, z, P):
         """Dew point given composition and pressure.
 
-        **Parameters**
+        Parameters
+        ----------
+        y : array_like
+            Vapor phase composition.
 
-            **y:** [array_like] Vapor phase composition.
+        P : float
+            Pressure (Pa).
 
-            **P:** [float] Pressure (Pa).
+        Returns
+        -------
+        T : float
+            Dew point temperature (K).
+        x : numpy.ndarray
+            Liquid phase composition.
 
-        **Returns**
-
-            **T:** [float] Dew point temperature (K).
-
-            **x:** [numpy array] Liquid phase composition.
-
+        Examples
+        --------
         >>> from biosteam import Species, DewPoint, Dortmund
         >>> gamma = Dortmund(*Species('Ethanol', 'Water'))
         >>> dp = DewPoint(gamma)
@@ -79,18 +84,22 @@ class DewPoint:
     def solve_Px(self, z, T):
         """Dew point given composition and temperature.
 
-        **Parameters**
+        Parameters
+        ----------
+        y : array_like
+            Vapor phase composition.
+        T : float
+            Temperature (K).
+        
+        Returns
+        -------
+        P : float
+            Dew point pressure (Pa).
+        x : numpy.ndarray
+            Liquid phase composition.
 
-            **y:** [array_like] Vapor phase composition.
-
-            **T:** [float] Temperature (K).
-
-        **Returns**
-
-            **P:** [float] Dew point pressure (Pa).
-
-            **x:** [numpy array] Liquid phase composition.
-
+        Examples
+        --------
         >>> from biosteam import Species, DewPoint, Dortmund
         >>> gamma = Dortmund(*Species('Ethanol', 'Water'))
         >>> dp = DewPoint(gamma)

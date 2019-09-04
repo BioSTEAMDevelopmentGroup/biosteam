@@ -89,17 +89,17 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../Getting started.html">1. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Creating a Unit.html">3. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit operation examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -112,11 +112,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../compounds.html">compounds</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../inspect.html">inspect</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../reaction.html">reaction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../evaluation.html">evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 
             
@@ -211,11 +211,10 @@
 <span class="k">def</span> <span class="nf">_save</span><span class="p">(</span><span class="n">tables</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="n">sheet_name</span><span class="o">=</span><span class="s1">&#39;Sheet1&#39;</span><span class="p">,</span> <span class="n">n_row</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Save a list of tables as an excel file.</span>
 <span class="sd">    </span>
-<span class="sd">    **Parameters**</span>
-<span class="sd">    </span>
-<span class="sd">        **tables:** iterable[DataFrame]</span>
-<span class="sd">        </span>
-<span class="sd">        **writer:** [ExcelWritter]</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    tables : iterable[DataFrame]</span>
+<span class="sd">    writer : ExcelWritter</span>
 <span class="sd">        </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tables</span><span class="p">:</span>
@@ -231,11 +230,13 @@
 <span class="k">def</span> <span class="nf">save_report</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="s1">&#39;report.xlsx&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">stream_properties</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Save a system report as an xlsx file.</span>
 <span class="sd">    </span>
-<span class="sd">    **Parameters**</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    file : str</span>
+<span class="sd">        File name to save report</span>
 <span class="sd">    </span>
-<span class="sd">        **file:** [str] File name to save report</span>
-<span class="sd">    </span>
-<span class="sd">        ****stream_properties:** [str] Additional stream properties and units as key-value pairs (e.g. T=&#39;degC&#39;, flow=&#39;gpm&#39;, H=&#39;kW&#39;, etc..)</span>
+<span class="sd">    **stream_properties : str</span>
+<span class="sd">        Additional stream properties and units as key-value pairs (e.g. T=&#39;degC&#39;, flow=&#39;gpm&#39;, H=&#39;kW&#39;, etc..)</span>
 <span class="sd">        </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">writer</span> <span class="o">=</span> <span class="n">ExcelWriter</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
@@ -292,13 +293,13 @@
 <span class="k">def</span> <span class="nf">results_table</span><span class="p">(</span><span class="n">units</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Return a list of results tables for each unit type.</span>
 
-<span class="sd">    **Parameters**</span>
-
-<span class="sd">        **units:** iterable[Unit]</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    units : iterable[Unit]</span>
 <span class="sd">        </span>
-<span class="sd">    **Returns:**</span>
-<span class="sd">    </span>
-<span class="sd">        **tables:** list[DataFrame]</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tables : list[DataFrame]</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">units</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="p">(</span><span class="k">lambda</span> <span class="n">u</span><span class="p">:</span> <span class="n">u</span><span class="o">.</span><span class="n">line</span><span class="p">))</span>
@@ -326,13 +327,13 @@
 <span class="k">def</span> <span class="nf">cost_table</span><span class="p">(</span><span class="n">system</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Return a cost table as a pandas DataFrame object.</span>
 
-<span class="sd">    **Parameters**:</span>
-
-<span class="sd">        **units:** array_like[Unit]</span>
-<span class="sd">         </span>
-<span class="sd">    **Returns**</span>
-<span class="sd">    </span>
-<span class="sd">        **cost_table:** [DataFrame] </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    units : iterable[Unit]</span>
+<span class="sd">        </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    costtable : DataFrame</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">columns</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Unit operation&#39;</span><span class="p">,</span>
@@ -374,13 +375,13 @@
 <span class="k">def</span> <span class="nf">heat_utilities_table</span><span class="p">(</span><span class="n">units</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Return a list of utility tables for each heat utility source.</span>
 <span class="sd">    </span>
-<span class="sd">    **Parameters**</span>
-<span class="sd">    </span>
-<span class="sd">        **units:** iterable[units]</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    units : iterable[Unit]</span>
 <span class="sd">        </span>
-<span class="sd">    **Returns**</span>
-<span class="sd">    </span>
-<span class="sd">        **tables:** list[DataFrame]</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tables : list[DataFrame]</span>
 <span class="sd">        </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Sort heat utilities by unit type, then by utility Type</span>
@@ -439,13 +440,15 @@
 <span class="k">def</span> <span class="nf">stream_table</span><span class="p">(</span><span class="n">streams</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="s1">&#39;kg/min&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">props</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;DataFrame&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Return a stream table as a pandas DataFrame object.</span>
 
-<span class="sd">    **Parameters**:</span>
+<span class="sd">    Parameters</span>
 
-<span class="sd">         **streams:** array_like[Stream]</span>
+<span class="sd">    streams : array_like[Stream]</span>
 <span class="sd">        </span>
-<span class="sd">         **Flow:** [str] Units for flow rate</span>
+<span class="sd">    flow : str</span>
+<span class="sd">        Units for flow rate</span>
 
-<span class="sd">         **props:** [str] Additional stream properties and units as key-value pairs</span>
+<span class="sd">    props : str</span>
+<span class="sd">        Additional stream properties and units as key-value pairs</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Get correct flow attributes</span>

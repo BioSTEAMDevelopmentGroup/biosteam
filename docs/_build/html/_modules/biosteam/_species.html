@@ -89,17 +89,17 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../Getting started.html">1. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Creating a Unit.html">3. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Unit operation examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../units/notebooks/examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -112,11 +112,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../compounds.html">compounds</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../inspect.html">inspect</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../reaction.html">reaction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../evaluation.html">evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 
             
@@ -202,19 +202,19 @@
 <div class="viewcode-block" id="Species"><a class="viewcode-back" href="../../Species.html#biosteam.Species">[docs]</a><span class="k">class</span> <span class="nc">Species</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Create Species object that contains Compound objects as attributes.</span>
 
-<span class="sd">    **Parameters**</span>
-
-<span class="sd">        ***IDs:** [str] Strings should be one of the following [-]:</span>
-<span class="sd">                  * Name, in IUPAC form or common form or a synonym registered in PubChem</span>
-<span class="sd">                  * InChI name, prefixed by &#39;InChI=1S/&#39; or &#39;InChI=1/&#39;</span>
-<span class="sd">                  * InChI key, prefixed by &#39;InChIKey=&#39;</span>
-<span class="sd">                  * PubChem CID, prefixed by &#39;PubChem=&#39;</span>
-<span class="sd">                  * SMILES (prefix with &#39;SMILES=&#39; to ensure smiles parsing)</span>
-<span class="sd">                  * CAS number</span>
-<span class="sd">         </span>
-<span class="sd">        **Optional**</span>
-<span class="sd">        </span>
-<span class="sd">        **cls:** [type Compound] The type of objects that will be created and stored as attributes. Defaults to biosteam.Chemical</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    *IDs : str</span>
+<span class="sd">           Strings should be one of the following [-]:</span>
+<span class="sd">              * Name, in IUPAC form or common form or a synonym registered in PubChem</span>
+<span class="sd">              * InChI name, prefixed by &#39;InChI=1S/&#39; or &#39;InChI=1/&#39;</span>
+<span class="sd">              * InChI key, prefixed by &#39;InChIKey=&#39;</span>
+<span class="sd">              * PubChem CID, prefixed by &#39;PubChem=&#39;</span>
+<span class="sd">              * SMILES (prefix with &#39;SMILES=&#39; to ensure smiles parsing)</span>
+<span class="sd">              * CAS number</span>
+<span class="sd">     </span>
+<span class="sd">    cls=None : type Compound, defaults to biosteam.Chemical</span>
+<span class="sd">        The type of objects that will be created and stored as attributes. </span>
 <span class="sd">        </span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="Species.tospecies"><a class="viewcode-back" href="../../Species.html#biosteam.Species.tospecies">[docs]</a>    <span class="nd">@classmethod</span>
@@ -345,16 +345,17 @@
     <span class="k">def</span> <span class="nf">kwarray</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">data</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return an array with entries that correspond to compound IDs.</span>
 <span class="sd">        </span>
-<span class="sd">        **Parameters**</span>
-<span class="sd">        </span>
-<span class="sd">            ****data:** ID-value pair.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">            **data : </span>
+<span class="sd">                     ID-value pair.</span>
 <span class="sd">            </span>
-<span class="sd">        **Examples**</span>
-<span class="sd">        </span>
-<span class="sd">            &gt;&gt;&gt; from biosteam import *</span>
-<span class="sd">            &gt;&gt;&gt; Stream.species = Species(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
-<span class="sd">            &gt;&gt;&gt; Stream.species.kwarray(Water=2)</span>
-<span class="sd">            array([2., 0.])</span>
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species.kwarray(Water=2)</span>
+<span class="sd">        array([2., 0.])</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="p">[</span><span class="o">*</span><span class="n">data</span><span class="o">.</span><span class="n">values</span><span class="p">()])</span>
@@ -362,18 +363,19 @@
     <span class="k">def</span> <span class="nf">array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">IDs</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return an array with entries that correspond to species IDs.</span>
 <span class="sd">        </span>
-<span class="sd">        **Parameters**</span>
-<span class="sd">        </span>
-<span class="sd">            **IDs:** [iterable] compound IDs.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        IDs : iterable</span>
+<span class="sd">              Compound IDs.</span>
+<span class="sd">        data : array_like</span>
+<span class="sd">               Data corresponding to IDs.</span>
 <span class="sd">            </span>
-<span class="sd">            **data:** [array_like] Data corresponding to IDs.</span>
-<span class="sd">            </span>
-<span class="sd">        **Examples**</span>
-<span class="sd">        </span>
-<span class="sd">            &gt;&gt;&gt; from biosteam import *</span>
-<span class="sd">            &gt;&gt;&gt; Stream.species = Species(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
-<span class="sd">            &gt;&gt;&gt; Stream.species.array([&#39;Water&#39;], [2])</span>
-<span class="sd">            array([2., 0.])</span>
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species = Species(&#39;Water&#39;, &#39;Ethanol&#39;)</span>
+<span class="sd">        &gt;&gt;&gt; Stream.species.array([&#39;Water&#39;], [2])</span>
+<span class="sd">        array([2., 0.])</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_N</span><span class="p">)</span>
@@ -383,12 +385,13 @@
     <span class="k">def</span> <span class="nf">index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return index of specified compound.</span>
 
-<span class="sd">        **Parameters**</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ID: str</span>
+<span class="sd">            Compound ID</span>
 
-<span class="sd">             **ID:** [str] compound ID</span>
-
-<span class="sd">        Example</span>
-
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
 <span class="sd">        Index by ID:</span>
 <span class="sd">        </span>
 <span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
@@ -409,12 +412,13 @@
     <span class="k">def</span> <span class="nf">indices</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">IDs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return indices of specified species.</span>
 
-<span class="sd">        **Parameters**</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        IDs : iterable</span>
+<span class="sd">              Species IDs or CAS numbers.</span>
 
-<span class="sd">             **IDs:** [iterable] species IDs or CAS numbers.</span>
-
-<span class="sd">        Example</span>
-
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
 <span class="sd">        Indices by ID:</span>
 <span class="sd">        </span>
 <span class="sd">        &gt;&gt;&gt; from biosteam import *</span>
@@ -436,10 +440,10 @@
                 <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dct</span><span class="p">:</span> <span class="k">raise</span> <span class="n">UndefinedCompound</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>       
     
     <span class="k">def</span> <span class="nf">__delattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
-        <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;&#39;{type(self).__name__} object is read-only&quot;</span><span class="p">)</span>
+        <span class="ne">AttributeError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;&#39;{type(self).__name__} object is read-only&quot;</span><span class="p">)</span>
     
     <span class="k">def</span> <span class="nf">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-        <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;&#39;{type(self).__name__} object is read-only&quot;</span><span class="p">)</span>
+        <span class="ne">AttributeError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;&#39;{type(self).__name__} object is read-only&quot;</span><span class="p">)</span>
     
     <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_N</span>

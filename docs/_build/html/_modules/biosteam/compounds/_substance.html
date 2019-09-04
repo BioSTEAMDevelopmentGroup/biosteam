@@ -89,17 +89,17 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../Getting started.html">1. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Creating a Unit.html">3. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit operation examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -112,11 +112,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../compounds.html">compounds</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../inspect.html">inspect</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../reaction.html">reaction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../evaluation.html">evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 
             
@@ -207,49 +207,50 @@
     
 <span class="c1"># %%</span>
 
-<div class="viewcode-block" id="Substance"><a class="viewcode-back" href="../../../Substance.html#biosteam.compounds.Substance">[docs]</a><span class="k">class</span> <span class="nc">Substance</span><span class="p">(</span><span class="n">Compound</span><span class="p">):</span>
+<div class="viewcode-block" id="Substance"><a class="viewcode-back" href="../../../compounds/Substance.html#biosteam.compounds.Substance">[docs]</a><span class="k">class</span> <span class="nc">Substance</span><span class="p">(</span><span class="n">Compound</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a Substance object with the same material properties as &quot;obj&quot; argument for simplified modeling purposes. The phase stays constant as the specified `default_phase`.</span>
 
-<span class="sd">    **Parameters**</span>
-<span class="sd">    </span>
-<span class="sd">        **ID:** [str] ID of specie</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ID : str</span>
+<span class="sd">         ID of specie</span>
+<span class="sd">    CAS=&quot;&quot; : str</span>
+<span class="sd">        CAS identification</span>
+<span class="sd">    obj=None : Comound, defaults to Chemical(&#39;Water&#39;)</span>
+<span class="sd">        Should contain analog properties for substance at STP.</span>
+<span class="sd">    MW=1 : float</span>
+<span class="sd">        Molecular weight of compound.</span>
+<span class="sd">    T=298.15 : float</span>
+<span class="sd">        Temperature (K)</span>
+<span class="sd">    P=101325 : float</span>
+<span class="sd">        Pressure (Pa)</span>
+<span class="sd">    rho=None : float, defaults to obj.rho</span>
+<span class="sd">        Density (kg/m^3)</span>
+<span class="sd">    k=None : float, defaults to obj.k</span>
+<span class="sd">        Thermal conductivity (W/m/K)</span>
+<span class="sd">    mu=None : float, defaults to obj.mu</span>
+<span class="sd">        Hydrolic viscosity (Pa*s)</span>
+<span class="sd">    sigma=None : float, defaults to obj.sigma</span>
+<span class="sd">        Surface tension (N/m)</span>
+<span class="sd">    Hfm : float, defaults to obj.Hfm</span>
+<span class="sd">        Heat of formation (J/mol)</span>
+<span class="sd">    Hc : float, defaults to obj.Hc</span>
+<span class="sd">        Heat of combustion (J/mol)</span>
+<span class="sd">    phase=None : {&#39;l&#39;, &#39;s&#39;, &#39;g&#39;}, defaults to obj.phase</span>
+<span class="sd">        Phase of substance.</span>
+<span class="sd">    **properties</span>
+<span class="sd">        Additional properties to set.</span>
 <span class="sd">        </span>
-<span class="sd">        **CAS:** [str] CAS identification</span>
-<span class="sd">        </span>
-<span class="sd">        **obj** [Specie] Should contain analog properties for specie at STP. Defaults to water if None.</span>
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Create a &#39;Yeast&#39; substance with the same properties as water:</span>
 
-<span class="sd">        **MW:** Molecular weight of compound (defaults to 1)</span>
-<span class="sd">         </span>
-<span class="sd">        **T:** Temperature (K)</span>
-<span class="sd">         </span>
-<span class="sd">        **P:** Pressure (Pa)</span>
-<span class="sd">         </span>
-<span class="sd">        **rho:** Density (kg/m^3)</span>
+<span class="sd">    .. code-block:: python</span>
 <span class="sd">        </span>
-<span class="sd">        **k:** Thermal conductivity (W/m/K)</span>
-<span class="sd">        </span>
-<span class="sd">        **mu:** Hydrolic viscosity (Pa*s)</span>
-<span class="sd">        </span>
-<span class="sd">        **sigma:** Surface tension (N/m)</span>
-<span class="sd">        </span>
-<span class="sd">        **Hfm:** Heat of formation (J/mol)</span>
-<span class="sd">        </span>
-<span class="sd">        **Hc:** Heat of combustion (J/mol)</span>
-<span class="sd">        </span>
-<span class="sd">        **phase:** {&#39;l&#39;, &#39;s&#39;, &#39;g&#39;} Phase of substance</span>
-<span class="sd">        </span>
-<span class="sd">        ****properties:** Additional properties to set</span>
-<span class="sd">        </span>
-<span class="sd">    **Examples**</span>
-<span class="sd">    </span>
-<span class="sd">        Create a &#39;Yeast&#39; substance with the same properties as water:</span>
-<span class="sd">    </span>
-<span class="sd">        .. code-block:: python</span>
-<span class="sd">            </span>
-<span class="sd">            &gt;&gt;&gt; from biosteam.compounds import Substance</span>
-<span class="sd">            &gt;&gt;&gt; Yeast = Substance(&#39;Yeast&#39;, obj=Chemical(&#39;Water&#39;))</span>
-<span class="sd">            &gt;&gt;&gt; Yeast.rho</span>
-<span class="sd">            997</span>
+<span class="sd">        &gt;&gt;&gt; from biosteam.compounds import Substance</span>
+<span class="sd">        &gt;&gt;&gt; Yeast = Substance(&#39;Yeast&#39;, obj=Chemical(&#39;Water&#39;))</span>
+<span class="sd">        &gt;&gt;&gt; Yeast.rho</span>
+<span class="sd">        997</span>
 <span class="sd">            </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">CAS</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">obj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span>
@@ -314,15 +315,14 @@
     <span class="k">def</span> <span class="nf">phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase</span><span class="p">):</span> <span class="k">pass</span></div>
 
 
-<span class="k">class</span> <span class="nc">StaticChemical</span><span class="p">(</span><span class="n">Substance</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">298.15</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">MW</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">Cp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">Pr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Hf</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Hc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">properties</span><span class="p">):</span>
-        <span class="n">obj</span> <span class="o">=</span> <span class="n">Chemical</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">obj</span><span class="o">=</span><span class="n">obj</span><span class="p">,</span>
-                 <span class="n">ID</span><span class="o">=</span><span class="n">obj</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="n">CAS</span><span class="o">=</span><span class="n">obj</span><span class="o">.</span><span class="n">CAS</span><span class="p">,</span> <span class="n">MW</span><span class="o">=</span><span class="n">obj</span><span class="o">.</span><span class="n">MW</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">P</span><span class="p">,</span>
-                 <span class="n">Cp</span><span class="o">=</span><span class="n">Cp</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span>
-                 <span class="n">Pr</span><span class="o">=</span><span class="n">Pr</span><span class="p">,</span> <span class="n">Hf</span><span class="o">=</span><span class="n">Hf</span><span class="p">,</span> <span class="n">Hc</span><span class="o">=</span><span class="n">Hc</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="n">phase</span><span class="p">,</span> <span class="o">**</span><span class="n">properties</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">StaticChemical</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">298.15</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">MW</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">Cp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">Pr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Hf</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Hc</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">properties</span><span class="p">):</span>
+    <span class="n">obj</span> <span class="o">=</span> <span class="n">Chemical</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Substance</span><span class="p">(</span><span class="n">obj</span><span class="o">=</span><span class="n">obj</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="n">obj</span><span class="o">.</span><span class="n">ID</span><span class="p">,</span> <span class="n">CAS</span><span class="o">=</span><span class="n">obj</span><span class="o">.</span><span class="n">CAS</span><span class="p">,</span>
+                     <span class="n">MW</span><span class="o">=</span><span class="n">obj</span><span class="o">.</span><span class="n">MW</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">P</span><span class="p">,</span> <span class="n">Cp</span><span class="o">=</span><span class="n">Cp</span><span class="p">,</span> <span class="n">rho</span><span class="o">=</span><span class="n">rho</span><span class="p">,</span>
+                     <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span> <span class="n">Pr</span><span class="o">=</span><span class="n">Pr</span><span class="p">,</span> <span class="n">Hf</span><span class="o">=</span><span class="n">Hf</span><span class="p">,</span>
+                     <span class="n">Hc</span><span class="o">=</span><span class="n">Hc</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="n">phase</span><span class="p">,</span> <span class="o">**</span><span class="n">properties</span><span class="p">)</span>
 </pre></div>
 
            </div>

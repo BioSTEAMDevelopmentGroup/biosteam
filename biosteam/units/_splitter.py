@@ -35,106 +35,102 @@ def run_split_with_mixing(self):
 class Splitter(Unit):
     """Create a splitter that separates mixed streams based on splits.
 
-    **Parameters**
-
-        **split:** Should be one of the following
-            * [float] The fraction of net feed in the 0th output stream
-            * [array_like] Componentwise split of feed to 0th output stream
-            
-        **order:** Iterable[str] Species order of split
-    
-    **ins**
-    
+    Parameters
+    ----------
+    ins
         [0] Feed stream
-        
-    **outs**
-    
+    outs
         [0] Split stream
         
-        [1] Remainder stream
+        [1] Remainder stream    
+    split : Should be one of the following
+            * [float] The fraction of net feed in the 0th output stream
+            * [array_like] Componentwise split of feed to 0th output stream
+    order=None : Iterable[str], defaults to Stream.species.IDs
+        Species order of split.
     
-    **Examples**
+    Examples
+    --------
+    Create a Splitter object with an ID, a feed stream, two output streams, and an overall split:
+        
+    .. code-block:: python
     
-        Create a Splitter object with an ID, a feed stream, two output streams, and an overall split:
-            
-        .. code-block:: python
+       >>> from biosteam import Species, Stream, units
+       >>> Stream.species = Species('Water', 'Ethanol')
+       >>> feed = Stream('feed', Water=20, Ethanol=10, T=340)
+       >>> S1 = units.Splitter('S1', ins=feed, outs=('top', 'bot'), split=0.1)
+       >>> S1.simulate()
+       >>> S1.show()
+       Splitter: S1
+       ins...
+       [0] feed
+           phase: 'l', T: 340 K, P: 101325 Pa
+           flow (kmol/hr): Water    20
+                           Ethanol  10
+       outs...
+       [0] top
+           phase: 'l', T: 340 K, P: 101325 Pa
+           flow (kmol/hr): Water    2
+                           Ethanol  1
+       [1] bot
+           phase: 'l', T: 340 K, P: 101325 Pa
+           flow (kmol/hr): Water    18
+                           Ethanol  9
+      
+    Create a Splitter object, but this time with a componentwise split:
         
-           >>> from biosteam import Species, Stream, units
-           >>> Stream.species = Species('Water', 'Ethanol')
-           >>> feed = Stream('feed', Water=20, Ethanol=10, T=340)
-           >>> S1 = units.Splitter('S1', ins=feed, outs=('top', 'bot'), split=0.1)
-           >>> S1.simulate()
-           >>> S1.show()
-           Splitter: S1
-           ins...
-           [0] feed
-               phase: 'l', T: 340 K, P: 101325 Pa
-               flow (kmol/hr): Water    20
-                               Ethanol  10
-           outs...
-           [0] top
-               phase: 'l', T: 340 K, P: 101325 Pa
-               flow (kmol/hr): Water    2
-                               Ethanol  1
-           [1] bot
-               phase: 'l', T: 340 K, P: 101325 Pa
-               flow (kmol/hr): Water    18
-                               Ethanol  9
-          
-        Create a Splitter object, but this time with a componentwise split:
-            
-        .. code-block:: python
-        
-           >>> from biosteam import Species, Stream, units
-           >>> Stream.species = Species('Water', 'Ethanol')
-           >>> feed = Stream('feed', Water=20, Ethanol=10, T=340)
-           >>> S1 = units.Splitter('S1', ins=feed, outs=('top', 'bot'),
-           ...                     split=(0.1, 0.99))
-           >>> S1.simulate()
-           >>> S1.show()
-           Splitter: S1
-           ins...
-           [0] feed
-               phase: 'l', T: 340 K, P: 101325 Pa
-               flow (kmol/hr): Water    20
-                               Ethanol  10
-           outs...
-           [0] top
-               phase: 'l', T: 340 K, P: 101325 Pa
-               flow (kmol/hr): Water    2
-                               Ethanol  9.9
-           [1] bot
-               phase: 'l', T: 340 K, P: 101325 Pa
-               flow (kmol/hr): Water    18
-                               Ethanol  0.1
-                               
-        Create a Splitter object using componentwise split, but this time specify the order:
-            
-        .. code-block:: python
-        
-           >>> from biosteam import Species, Stream, units
-           >>> Stream.species = Species('Water', 'Ethanol')
-           >>> feed = Stream('feed', Water=20, Ethanol=10, T=340)
-           >>> S1 = units.Splitter('S1', ins=feed, outs=('top', 'bot'),
-           ...                     split=(0.99, 0.01), order=('Ethanol', 'Water'))
-           >>> S1.simulate()
-           >>> S1.show()
-           Splitter: S1
-           ins...
-           [0] feed
-               phase: 'l', T: 340 K, P: 101325 Pa
-               flow (kmol/hr): Water    20
-                               Ethanol  10
-           outs...
-           [0] top
-               phase: 'l', T: 340 K, P: 101325 Pa
-               flow (kmol/hr): Water    2
-                               Ethanol  9.9
-           [1] bot
-               phase: 'l', T: 340 K, P: 101325 Pa
-               flow (kmol/hr): Water    18
-                               Ethanol  0.1
+    .. code-block:: python
     
+       >>> from biosteam import Species, Stream, units
+       >>> Stream.species = Species('Water', 'Ethanol')
+       >>> feed = Stream('feed', Water=20, Ethanol=10, T=340)
+       >>> S1 = units.Splitter('S1', ins=feed, outs=('top', 'bot'),
+       ...                     split=(0.1, 0.99))
+       >>> S1.simulate()
+       >>> S1.show()
+       Splitter: S1
+       ins...
+       [0] feed
+           phase: 'l', T: 340 K, P: 101325 Pa
+           flow (kmol/hr): Water    20
+                           Ethanol  10
+       outs...
+       [0] top
+           phase: 'l', T: 340 K, P: 101325 Pa
+           flow (kmol/hr): Water    2
+                           Ethanol  9.9
+       [1] bot
+           phase: 'l', T: 340 K, P: 101325 Pa
+           flow (kmol/hr): Water    18
+                           Ethanol  0.1
+                           
+    Create a Splitter object using componentwise split, but this time specify the order:
+        
+    .. code-block:: python
+    
+       >>> from biosteam import Species, Stream, units
+       >>> Stream.species = Species('Water', 'Ethanol')
+       >>> feed = Stream('feed', Water=20, Ethanol=10, T=340)
+       >>> S1 = units.Splitter('S1', ins=feed, outs=('top', 'bot'),
+       ...                     split=(0.99, 0.01), order=('Ethanol', 'Water'))
+       >>> S1.simulate()
+       >>> S1.show()
+       Splitter: S1
+       ins...
+       [0] feed
+           phase: 'l', T: 340 K, P: 101325 Pa
+           flow (kmol/hr): Water    20
+                           Ethanol  10
+       outs...
+       [0] top
+           phase: 'l', T: 340 K, P: 101325 Pa
+           flow (kmol/hr): Water    2
+                           Ethanol  9.9
+       [1] bot
+           phase: 'l', T: 340 K, P: 101325 Pa
+           flow (kmol/hr): Water    18
+                           Ethanol  0.1
+
     """
     _N_outs = 2
     

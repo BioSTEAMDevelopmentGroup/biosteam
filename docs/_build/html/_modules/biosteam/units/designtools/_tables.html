@@ -89,17 +89,17 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../Getting started.html">1. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../Creating a Unit.html">3. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../Unit operation examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../units/notebooks/examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -112,11 +112,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../compounds.html">compounds</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../inspect.html">inspect</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../reaction.html">reaction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../evaluation.html">evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 
             
@@ -187,7 +187,7 @@
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;GTable&#39;</span><span class="p">,</span> <span class="s1">&#39;HNATable&#39;</span><span class="p">,</span> <span class="s1">&#39;FinalValue&#39;</span><span class="p">,</span>
            <span class="s1">&#39;VesselWeightAndWallThickness&#39;</span><span class="p">,</span> <span class="s1">&#39;Kvalue&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="GTable"><a class="viewcode-back" href="../../../../designtools.html#biosteam.units.designtools.GTable">[docs]</a><span class="k">def</span> <span class="nf">GTable</span><span class="p">(</span><span class="n">DRho</span><span class="p">,</span> <span class="n">Hlr</span><span class="p">):</span>
+<div class="viewcode-block" id="GTable"><a class="viewcode-back" href="../../../../units/designtools.html#biosteam.units.designtools.GTable">[docs]</a><span class="k">def</span> <span class="nf">GTable</span><span class="p">(</span><span class="n">DRho</span><span class="p">,</span> <span class="n">Hlr</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Return the allowable downflow (baffle liquid load) in gph/ft2, usually used for vertical vessel.</span>
 <span class="sd">    </span>
 <span class="sd">    **Parameters**</span>
@@ -288,7 +288,7 @@
     <span class="k">return</span> <span class="nb">round</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="HNATable"><a class="viewcode-back" href="../../../../designtools.html#biosteam.units.designtools.HNATable">[docs]</a><span class="k">def</span> <span class="nf">HNATable</span><span class="p">(</span><span class="n">Type</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
+<div class="viewcode-block" id="HNATable"><a class="viewcode-back" href="../../../../units/designtools.html#biosteam.units.designtools.HNATable">[docs]</a><span class="k">def</span> <span class="nf">HNATable</span><span class="p">(</span><span class="n">Type</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Table for cylindrical height and area conversions.</span>
 <span class="sd">        </span>
 <span class="sd">    **Parameters**</span>
@@ -327,7 +327,7 @@
     <span class="k">return</span> <span class="n">Y</span></div>
 
 
-<div class="viewcode-block" id="VesselWeightAndWallThickness"><a class="viewcode-back" href="../../../../designtools.html#biosteam.units.designtools.VesselWeightAndWallThickness">[docs]</a><span class="k">def</span> <span class="nf">VesselWeightAndWallThickness</span><span class="p">(</span><span class="n">Pressure</span><span class="p">,</span> <span class="n">Diameter</span><span class="p">,</span> <span class="n">VesselLength</span><span class="p">,</span> <span class="n">rho_M</span><span class="p">,</span> <span class="n">Je</span><span class="o">=</span><span class="mf">0.85</span><span class="p">):</span>
+<div class="viewcode-block" id="VesselWeightAndWallThickness"><a class="viewcode-back" href="../../../../units/designtools.html#biosteam.units.designtools.VesselWeightAndWallThickness">[docs]</a><span class="k">def</span> <span class="nf">VesselWeightAndWallThickness</span><span class="p">(</span><span class="n">Pressure</span><span class="p">,</span> <span class="n">Diameter</span><span class="p">,</span> <span class="n">VesselLength</span><span class="p">,</span> <span class="n">rho_M</span><span class="p">,</span> <span class="n">Je</span><span class="o">=</span><span class="mf">0.85</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Return vessel weight and wall thickness.</span>
 <span class="sd">    </span>
 <span class="sd">    **Parameters**</span>
@@ -431,7 +431,7 @@
     <span class="k">return</span> <span class="n">Hlll</span>  <span class="c1"># in ft</span>
 
 
-<div class="viewcode-block" id="Kvalue"><a class="viewcode-back" href="../../../../designtools.html#biosteam.units.designtools.Kvalue">[docs]</a><span class="k">def</span> <span class="nf">Kvalue</span><span class="p">(</span><span class="n">P</span><span class="p">):</span>
+<div class="viewcode-block" id="Kvalue"><a class="viewcode-back" href="../../../../units/designtools.html#biosteam.units.designtools.Kvalue">[docs]</a><span class="k">def</span> <span class="nf">Kvalue</span><span class="p">(</span><span class="n">P</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Return K-constant in Stoke&#39;s Law using the York-Demister equation.</span>
 <span class="sd">    </span>
 <span class="sd">    **Parameters**</span>
@@ -450,7 +450,7 @@
     <span class="k">return</span> <span class="n">K</span></div>
 
 
-<div class="viewcode-block" id="FinalValue"><a class="viewcode-back" href="../../../../designtools.html#biosteam.units.designtools.FinalValue">[docs]</a><span class="k">def</span> <span class="nf">FinalValue</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
+<div class="viewcode-block" id="FinalValue"><a class="viewcode-back" href="../../../../units/designtools.html#biosteam.units.designtools.FinalValue">[docs]</a><span class="k">def</span> <span class="nf">FinalValue</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Return value to the next/highest 0.5 units&quot;&quot;&quot;</span>
     <span class="n">intval</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">value</span> <span class="o">&gt;</span> <span class="n">intval</span><span class="p">:</span>

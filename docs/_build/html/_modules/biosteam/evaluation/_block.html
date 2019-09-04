@@ -89,17 +89,17 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../Getting started.html">1. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Creating a Unit.html">3. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit operation examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -112,11 +112,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../compounds.html">compounds</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../inspect.html">inspect</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../reaction.html">reaction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../evaluation.html">evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 
             
@@ -197,14 +197,17 @@
 
 <span class="c1"># %% Simulation blocks</span>
 
-<div class="viewcode-block" id="Block"><a class="viewcode-back" href="../../../Block.html#biosteam.evaluation.Block">[docs]</a><span class="k">class</span> <span class="nc">Block</span><span class="p">:</span>
+<div class="viewcode-block" id="Block"><a class="viewcode-back" href="../../../evaluation/Block.html#biosteam.evaluation.Block">[docs]</a><span class="k">class</span> <span class="nc">Block</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Create a Block object that can simulate the element and the system downstream. The block can also generate Parameter objects that can update the system state.</span>
 <span class="sd">    </span>
-<span class="sd">    **Parameters**</span>
-<span class="sd">    </span>
-<span class="sd">        **element:** [Unit or Stream] Element in the system.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    element : Unit or Stream</span>
+<span class="sd">              Element in the system.</span>
 <span class="sd">        </span>
-<span class="sd">        **system:** [System] If None, ignore downstream.</span>
+<span class="sd">    system=None : System, optional</span>
+<span class="sd">        System affected by element. In other words, element should affect</span>
+<span class="sd">        downstream operations in the system.</span>
 <span class="sd">        </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
@@ -235,7 +238,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_element</span> <span class="o">=</span> <span class="n">element</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_blocks</span><span class="p">[</span><span class="n">system</span><span class="p">,</span> <span class="n">element</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
     
-<div class="viewcode-block" id="Block.parameter"><a class="viewcode-back" href="../../../Block.html#biosteam.evaluation.Block.parameter">[docs]</a>    <span class="k">def</span> <span class="nf">parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setter</span><span class="p">,</span> <span class="n">simulate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">distribution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Parameter</span><span class="p">:</span>
+<div class="viewcode-block" id="Block.parameter"><a class="viewcode-back" href="../../../evaluation/Block.html#biosteam.evaluation.Block.parameter">[docs]</a>    <span class="k">def</span> <span class="nf">parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setter</span><span class="p">,</span> <span class="n">simulate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">distribution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Parameter</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Return a Parameter object.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">simulate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="n">simulate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_simulate</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span> <span class="o">=</span> <span class="n">signature</span><span class="p">(</span><span class="n">setter</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>

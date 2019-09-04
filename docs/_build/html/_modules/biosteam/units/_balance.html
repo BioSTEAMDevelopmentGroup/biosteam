@@ -89,17 +89,17 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../Getting started.html">1. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Creating a Unit.html">3. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit operation examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -112,11 +112,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../compounds.html">compounds</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../inspect.html">inspect</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../reaction.html">reaction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../evaluation.html">evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 
             
@@ -194,24 +194,24 @@
 
 <span class="c1"># %% Mass Balance Unit</span>
 
-<div class="viewcode-block" id="MassBalance"><a class="viewcode-back" href="../../../MassBalance.html#biosteam.units.MassBalance">[docs]</a><span class="k">class</span> <span class="nc">MassBalance</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
+<div class="viewcode-block" id="MassBalance"><a class="viewcode-back" href="../../../units/MassBalance.html#biosteam.units.MassBalance">[docs]</a><span class="k">class</span> <span class="nc">MassBalance</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a Unit object that changes net input flow rates to satisfy output flow rates. This calculation is based on mass balance equations for specified species. </span>
 
-<span class="sd">    **Parameters**</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    species : tuple[str]</span>
+<span class="sd">        Species that will be used to solve mass balance linear equations. The number of species must be same as the number of input streams varied.</span>
+<span class="sd">    streams : tuple[int]</span>
+<span class="sd">        Indices of input streams that can vary in net flow rate</span>
+<span class="sd">    exact=True : bool, optional</span>
+<span class="sd">        True if exact flow rate solution is required for the specified species.</span>
+<span class="sd">    balance=&#39;flow&#39; : {&#39;flow&#39;, &#39;fraction&#39;}, optional</span>
+<span class="sd">          * &#39;flow&#39;: Satisfy output flow rates</span>
+<span class="sd">          * &#39;fraction&#39;: Satisfy net output molar fractions</span>
 
-<span class="sd">        **species:** tuple[str] Species that will be used to solve mass balance linear equations. The number of species must be same as the number of input streams varied.</span>
-
-<span class="sd">        **streams:** tuple[int] Indices of input streams that can vary in net flow rate</span>
-
-<span class="sd">        **exact:** [bool] True if exact flow rate solution is required for the specified species.</span>
-
-<span class="sd">        **balance:** [str] Should be one of the following:</span>
-<span class="sd">                  * &#39;flow&#39;: Satisfy output flow rates</span>
-<span class="sd">                  * &#39;fraction&#39;: Satisfy net output molar fractions</span>
-
-<span class="sd">    **Examples**</span>
-<span class="sd">    </span>
-<span class="sd">        :doc:`MassBalance Example`</span>
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    :doc:`notebooks/MassBalance Example`</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Balance&#39;</span>

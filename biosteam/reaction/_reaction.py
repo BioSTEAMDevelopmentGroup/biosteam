@@ -19,19 +19,22 @@ def stoi2str(stoi, species):
 class Reaction:
     """Create a Reaction object which defines a stoichiometric reaction and conversion. When called, it returns the change in material due to the reaction.
     
-    **Parameters**
-    
-        **reaction:** [str] Stoichiometric equation written as:
-            i1 R1 + ... + in Rn -> j1 P1 + ... + jm Pm
+    Parameters
+    ----------
+    reaction : str
+               Stoichiometric equation written as:
+               'i1 R1 + ... + in Rn -> j1 P1 + ... + jm Pm'
 
-        **reactant:** [str] ID of reactant compound.
+    reactant : str
+               ID of reactant compound.
         
-        **X:** [float] Reactant conversion (fraction).
+    X : float
+        Reactant conversion (fraction).
         
-        **species:** [Species] Defaults to Stream.species.
+    species=None : Species, defaults to Stream.species.
         
-    **Examples**
-    
+    Examples
+    --------
     >>> import biosteam as bst    
     >>> import biosteam.reaction as rn
     >>> bst.Stream.species = sp = bst.Species('H2O', 'H2', 'O2')
@@ -67,6 +70,7 @@ class Reaction:
         self._X = X #: [float] Reactant conversion
     
     def copy(self):
+        """Return copy of Reaction object."""
         copy = self.__new__(type(self))
         copy._stoi = self._stoi
         copy._Xindex = self._Xindex
@@ -189,12 +193,14 @@ class ReactionItem(Reaction):
         self._index = index
     
     def copy(self):
+        """Return copy of Reaction object."""
         new = super().copy()
         new._index = self._index
         return new
     
     @property
     def X(self):
+        """[float] Reaction converion as a fraction."""
         return self._X[self._index]
     @X.setter
     def X(self, X):
@@ -271,6 +277,7 @@ class ParallelReaction(ReactionSet):
 
     @property
     def X_net(self):
+        """[dict] Net reaction conversion of reactants."""
         X_net = {}
         for i, j in zip(self.reactants, self.X):
             if i in X_net:
@@ -289,6 +296,7 @@ class SeriesReaction(ReactionSet):
 
     @property
     def X_net(self):
+        """[dict] Net reaction conversion of reactants."""
         X_net = {}
         for i, j in zip(self.reactants, self.X):
             if i in X_net:

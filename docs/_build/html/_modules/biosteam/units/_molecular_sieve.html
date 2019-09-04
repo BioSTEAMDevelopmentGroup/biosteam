@@ -89,17 +89,17 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../Getting started.html">1. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Creating a Unit.html">3. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit operation examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -112,11 +112,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../compounds.html">compounds</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../inspect.html">inspect</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../reaction.html">reaction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../evaluation.html">evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 
             
@@ -196,40 +196,38 @@
 <span class="c1">#       cost=405000, CE=521.9, S=22687, n=0.6, kW=1044)</span>
 <span class="c1"># @cost(&#39;Flow rate&#39;, &#39;Pressure filter pressing&#39;,</span>
 <span class="c1">#       cost=75200, CE=521.9, S=22687, n=0.6, kW=112)</span>
-<div class="viewcode-block" id="MolecularSieve"><a class="viewcode-back" href="../../../MolecularSieve.html#biosteam.units.MolecularSieve">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;Column&#39;</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mi">151</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">1.8</span><span class="p">,</span>
+<div class="viewcode-block" id="MolecularSieve"><a class="viewcode-back" href="../../../units/MolecularSieve.html#biosteam.units.MolecularSieve">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;Column&#39;</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mi">151</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">1.8</span><span class="p">,</span>
       <span class="n">cost</span><span class="o">=</span><span class="mi">2601000</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">521.9</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mi">22687</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.6</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">MolecularSieve</span><span class="p">(</span><span class="n">Splitter</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create an ethanol/water molecular sieve for bioethanol plants.</span>
 <span class="sd">    The molecular sieve is modeled as a component wise separator. Costing</span>
 <span class="sd">    is based on scaling by the 6/10ths rule from an NREL TEA report [1].</span>
 <span class="sd">    </span>
-<span class="sd">    **Parameters**</span>
-<span class="sd">    </span>
-<span class="sd">        **split:** [array_like] Componentwise split to the 0th output stream</span>
-
-<span class="sd">    **ins**</span>
-<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ins</span>
 <span class="sd">        [0] Feed (gas)</span>
 <span class="sd">        </span>
-<span class="sd">    **outs**</span>
-<span class="sd">    </span>
+<span class="sd">    outs</span>
 <span class="sd">        [0] Split stream (gas)</span>
 <span class="sd">        </span>
 <span class="sd">        [1] Remainder stream (gas)</span>
+<span class="sd">    split : array_like</span>
+<span class="sd">            Componentwise split to the 0th output stream</span>
 <span class="sd">    </span>
-<span class="sd">    **References**</span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    [1] Process Design and Economics for Biochemical Conversion of</span>
+<span class="sd">    Lignocellulosic Biomass to Ethanol Dilute-Acid Pretreatment and</span>
+<span class="sd">    Enzymatic Hydrolysis of Corn Stover. D. Humbird, R. Davis, L.</span>
+<span class="sd">    Tao, C. Kinchin, D. Hsu, and A. Aden (National Renewable Energy</span>
+<span class="sd">    Laboratory Golden, Colorado). P. Schoen, J. Lukas, B. Olthof,</span>
+<span class="sd">    M. Worley, D. Sexton, and D. Dudgeon (Harris Group Inc. Seattle,</span>
+<span class="sd">    Washington and Atlanta, Georgia)</span>
 <span class="sd">    </span>
-<span class="sd">        [1] Process Design and Economics for Biochemical Conversion of</span>
-<span class="sd">        Lignocellulosic Biomass to Ethanol Dilute-Acid Pretreatment and</span>
-<span class="sd">        Enzymatic Hydrolysis of Corn Stover. D. Humbird, R. Davis, L.</span>
-<span class="sd">        Tao, C. Kinchin, D. Hsu, and A. Aden (National Renewable Energy</span>
-<span class="sd">        Laboratory Golden, Colorado). P. Schoen, J. Lukas, B. Olthof,</span>
-<span class="sd">        M. Worley, D. Sexton, and D. Dudgeon (Harris Group Inc. Seattle,</span>
-<span class="sd">        Washington and Atlanta, Georgia)</span>
-<span class="sd">    </span>
-<span class="sd">    **Examples**</span>
-<span class="sd">    </span>
-<span class="sd">        :doc:`MolecularSieve Example`</span>
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    :doc:`notebooks/MolecularSieve Example`</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">2</span>

@@ -27,18 +27,22 @@ class BubblePoint:
     def solve_Ty(self, z, P):
         """Bubble point at given composition and pressure
 
-        **Parameters**
+        Parameters
+        ----------
+        z : array_like
+            Liquid phase composition.
+        P : float
+            Pressure (Pa).
         
-            **z:** [array_like] Liquid phase composition.
-        
-            **P:** [float] Pressure (Pa).
-        
-        **Returns**
+        Returns
+        -------
+        T : float 
+            Bubble point temperature (K)
+        y : numpy.ndarray
+            Composition of the vapor phase.
 
-            **T:** [float] Bubble point temperature (K)
-
-            **y:** [numpy ndarray] Composition of the vapor phase.
-
+        Examples
+        --------
         >>> from biosteam import Species, BubblePoint, Dortmund
         >>> gamma = Dortmund(*Species('Ethanol', 'Water'))
         >>> bp = BubblePoint(gamma)
@@ -61,18 +65,22 @@ class BubblePoint:
     def solve_Py(self, z, T):
         """Bubble point at given composition and temperature.
 
-        **Parameters**
+        Parameters
+        ----------
+        z : array_like
+            Liquid phase composotion.
+        T : float
+            Temperature (K).
         
-            **z:** [array_like] Liquid phase composotion.
+        Returns
+        -------
+        P : float
+            Bubble point pressure (Pa).
+        y : numpy.ndarray
+            Vapor phase composition.
 
-            **T:** [float] Temperature (K).
-        
-        **Returns**
-
-            **P:** [float] Bubble point pressure (Pa).
-
-            **y:** [numpy ndarray] Vapor phase composition.
-
+        Examples
+        --------
         >>> from biosteam import Species, BubblePoint, Dortmund
         >>> gamma = Dortmund(*Species('Ethanol', 'Water'))
         >>> bp = BubblePoint(gamma)

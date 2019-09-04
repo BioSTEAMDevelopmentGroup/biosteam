@@ -895,11 +895,12 @@ class Dortmund:
     def __call__(self, xs, T):
         """Return UNIFAC coefficients.
         
-        **Parameters**
-        
-            xs: [array_like] Molar fractions
-            
-            T: [float] Temperature (K)
+        Parameters
+        ----------
+        xs : array_like
+            Molar fractions
+        T : float
+            Temperature (K)
         
         """
         groupcounts = self.groupcounts

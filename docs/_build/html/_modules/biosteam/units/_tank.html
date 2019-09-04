@@ -89,17 +89,17 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../Getting started.html">1. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Creating a Unit.html">3. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit operation examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -112,11 +112,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../compounds.html">compounds</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../inspect.html">inspect</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../reaction.html">reaction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../evaluation.html">evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 
             
@@ -207,7 +207,7 @@
     <span class="k">def</span> <span class="nf">tau</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tau</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_tau</span> <span class="o">=</span> <span class="n">tau</span>
 
-<div class="viewcode-block" id="StorageTank"><a class="viewcode-back" href="../../../StorageTank.html#biosteam.units.StorageTank">[docs]</a><span class="k">class</span> <span class="nc">StorageTank</span><span class="p">(</span><span class="n">Static</span><span class="p">,</span> <span class="n">Tank</span><span class="p">):</span>
+<div class="viewcode-block" id="StorageTank"><a class="viewcode-back" href="../../../units/StorageTank.html#biosteam.units.StorageTank">[docs]</a><span class="k">class</span> <span class="nc">StorageTank</span><span class="p">(</span><span class="n">Static</span><span class="p">,</span> <span class="n">Tank</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Create a storage tank with volume based on residence time [1].</span>
 
 <span class="sd">    .. math::</span>
@@ -215,9 +215,9 @@
 <span class="sd">        V &amp;= \\tau Q \\\\</span>
 <span class="sd">        C_{fob}^{2007} &amp;= 250000 + 94.2 V (2*10^3 &lt; V &lt; 50*10^3 m^3) \\\\</span>
 
-<span class="sd">    **References**</span>
-
-<span class="sd">        [1] Apostolakou, A. A., Kookos, I. K., Marazioti, C., &amp; Angelopoulos, K. C. (2009). Techno-economic analysis of a biodiesel production process from vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031. https://doi.org/10.1016/j.fuproc.2009.04.017</span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    [1] Apostolakou, A. A., Kookos, I. K., Marazioti, C., &amp; Angelopoulos, K. C. (2009). Techno-economic analysis of a biodiesel production process from vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031. https://doi.org/10.1016/j.fuproc.2009.04.017</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Storage tank&#39;</span>
@@ -240,7 +240,7 @@
         <span class="k">else</span><span class="p">:</span>    
             <span class="k">raise</span> <span class="n">DesignError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Volume is out of bounds for costing&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="MixTank"><a class="viewcode-back" href="../../../MixTank.html#biosteam.units.MixTank">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Total volume&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mi">12080</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">525.4</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.525</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mf">0.0985</span><span class="p">,</span> <span class="n">ub</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<div class="viewcode-block" id="MixTank"><a class="viewcode-back" href="../../../units/MixTank.html#biosteam.units.MixTank">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Total volume&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mi">12080</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">525.4</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.525</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mf">0.0985</span><span class="p">,</span> <span class="n">ub</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">MixTank</span><span class="p">(</span><span class="n">Tank</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a mixing tank with volume based on residence time.</span>
 
@@ -251,8 +251,8 @@
 <span class="sd">       C_{fob}^{2007} &amp;= 12080 * V^{0.525} (0.1 &lt; V &lt; 30 m^3)</span>
 
 <span class="sd">    References</span>
-
-<span class="sd">         [1] I.K. Kookos, Preliminary Chemical Process Synthesis and Design, Tziolas Publishing, Thessalonika, Greece, 2008 (book in Greek).</span>
+<span class="sd">    ----------</span>
+<span class="sd">    [1] I.K. Kookos, Preliminary Chemical Process Synthesis and Design, Tziolas Publishing, Thessalonika, Greece, 2008 (book in Greek).</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;Mix tank&#39;</span>

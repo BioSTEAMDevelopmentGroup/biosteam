@@ -56,24 +56,21 @@ class VLE:
                  P=None, Q=None, T=None, V=None, x=None, y=None):
         """Perform vapor-liquid equilibrium.
 
-        **Parameters**
-        
-            **Specify two:**
-                * **P:** [float] Operating pressure (Pa)
-                * **Q:** [float] Energy input (kJ/hr)
-                * **T:** [float] Operating temperature (K)
-                * **V:** [float] Molar vapor fraction
-                * **x:** [numpy array] Molar composition of liquid (for binary mixture)
-                * **y:** [numpy array] Molar composition of vapor (for binary mixture)
-
-            **species_IDs:** [tuple] IDs of species in equilibrium.
-                 
-            **LNK:** tuple[str] Light non-keys that remain as a vapor.
-    
-            **HNK:** tuple[str] Heavy non-keys that remain as a liquid.
-
-        .. Note:
-           LNK and HNK are not taken into account for equilibrium.
+        Parameters
+        ----------
+        Specify two:
+            * **P:** Operating pressure (Pa)
+            * **Q:** Energy input (kJ/hr)
+            * **T:** Operating temperature (K)
+            * **V:** Molar vapor fraction
+            * **x:** Molar composition of liquid (for binary mixture)
+            * **y:** Molar composition of vapor (for binary mixture)
+        species_IDs = None : tuple, optional
+                             IDs of species in equilibrium.
+        LNK = None : tuple[str], optional
+              Light non-keys that remain as a vapor (disregards equilibrium).
+        LNK = None : tuple[str], optional
+              Heavy non-keys that remain as a liquid (disregards equilibrium).
 
         """
         ### Decide what kind of equilibrium to run ###

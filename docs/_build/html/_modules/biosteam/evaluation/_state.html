@@ -89,17 +89,17 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../Getting started.html">1. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Creating a Unit.html">3. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit operation examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -112,11 +112,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../compounds.html">compounds</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../inspect.html">inspect</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../reaction.html">reaction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../evaluation.html">evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 
             
@@ -189,6 +189,8 @@
 <span class="kn">from</span> <span class="nn">._block</span> <span class="k">import</span> <span class="n">Block</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">Stream</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">chaospy</span> <span class="k">import</span> <span class="n">J</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;State&#39;</span><span class="p">,)</span>
 
@@ -253,14 +255,15 @@
 
 <span class="c1"># %%</span>
     
-<div class="viewcode-block" id="State"><a class="viewcode-back" href="../../../State.html#biosteam.evaluation.State">[docs]</a><span class="k">class</span> <span class="nc">State</span><span class="p">:</span>
+<div class="viewcode-block" id="State"><a class="viewcode-back" href="../../../evaluation/State.html#biosteam.evaluation.State">[docs]</a><span class="k">class</span> <span class="nc">State</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Create a State object that can update the `system` state given a sample of parameter states.</span>
 <span class="sd">    </span>
-<span class="sd">    **Parameters**</span>
-<span class="sd">    </span>
-<span class="sd">        **system:** [System] Reflects the model state.</span>
-<span class="sd">        </span>
-<span class="sd">        **skip:** [bool] If True, skip simulation for repeated states</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    system : System</span>
+<span class="sd">        Reflects the model state.</span>
+<span class="sd">    skip=False : bool</span>
+<span class="sd">        If True, skip simulation for repeated states</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;_system&#39;</span><span class="p">,</span> <span class="c1"># [System] Reflects the model state.</span>
@@ -268,7 +271,7 @@
                  <span class="s1">&#39;_model&#39;</span><span class="p">,</span> <span class="c1"># [function] Model function.</span>
                  <span class="s1">&#39;_skip&#39;</span><span class="p">)</span> <span class="c1"># [bool] If True, skip simulation for repeated states</span>
     
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">system</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_system</span> <span class="o">=</span> <span class="n">system</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="kc">None</span>
@@ -277,35 +280,66 @@
     <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
     
-    <span class="k">def</span> <span class="nf">get_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="State.get_parameters"><a class="viewcode-back" href="../../../evaluation/State.html#biosteam.evaluation.State.get_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">get_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return parameters.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadmodel</span><span class="p">()</span>
-        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span></div>
     
-<div class="viewcode-block" id="State.parameter"><a class="viewcode-back" href="../../../State.html#biosteam.evaluation.State.parameter">[docs]</a>    <span class="k">def</span> <span class="nf">parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">element</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;isolated&#39;</span><span class="p">,</span>
+<div class="viewcode-block" id="State.get_distribution_summary"><a class="viewcode-back" href="../../../evaluation/State.html#biosteam.evaluation.State.get_distribution_summary">[docs]</a>    <span class="k">def</span> <span class="nf">get_distribution_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return dictionary of shape name-DataFrame pairs.&quot;&quot;&quot;</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameters</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">params</span><span class="p">:</span> <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">params_by_shape</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">shape_keys</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+            <span class="n">distribution</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">distribution</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">distribution</span><span class="p">:</span> <span class="k">continue</span>
+            <span class="n">shape</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">distribution</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+            <span class="k">if</span> <span class="n">shape</span> <span class="ow">in</span> <span class="n">params_by_shape</span><span class="p">:</span>
+                <span class="n">params_by_shape</span><span class="p">[</span><span class="n">shape</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">params_by_shape</span><span class="p">[</span><span class="n">shape</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">p</span><span class="p">]</span>
+                <span class="n">shape_keys</span><span class="p">[</span><span class="n">shape</span><span class="p">]</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">distribution</span><span class="o">.</span><span class="n">_repr</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">tables_by_shape</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">shape</span><span class="p">,</span> <span class="n">params</span> <span class="ow">in</span> <span class="n">params_by_shape</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">columns</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Element&#39;</span><span class="p">,</span> <span class="s1">&#39;Name&#39;</span><span class="p">,</span> <span class="s1">&#39;Units&#39;</span><span class="p">,</span> <span class="s1">&#39;Shape&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">shape_keys</span><span class="p">[</span><span class="n">shape</span><span class="p">])</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+                <span class="n">distribution</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">distribution</span>
+                <span class="n">element</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">element_name</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="n">units</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">units</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span>
+                <span class="n">values</span> <span class="o">=</span> <span class="n">distribution</span><span class="o">.</span><span class="n">_repr</span><span class="o">.</span><span class="n">values</span><span class="p">()</span>
+                <span class="n">data</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">element</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="o">*</span><span class="n">values</span><span class="p">))</span>
+            <span class="n">tables_by_shape</span><span class="p">[</span><span class="n">shape</span><span class="p">]</span> <span class="o">=</span>  <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tables_by_shape</span></div>
+    
+<div class="viewcode-block" id="State.parameter"><a class="viewcode-back" href="../../../evaluation/State.html#biosteam.evaluation.State.parameter">[docs]</a>    <span class="k">def</span> <span class="nf">parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">setter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">element</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;isolated&#39;</span><span class="p">,</span>
                   <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">distribution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Define parameter and add to model.</span>
 <span class="sd">        </span>
-<span class="sd">        **Parameters**</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------    </span>
+<span class="sd">        setter : function</span>
+<span class="sd">                 Should set parameter in the element.</span>
+<span class="sd">        element : Unit or Stream</span>
+<span class="sd">                  Element in the system being altered.</span>
+<span class="sd">        kind : {&#39;coupled&#39;, &#39;isolated&#39;, &#39;design&#39;, &#39;cost&#39;}</span>
+<span class="sd">            * &#39;coupled&#39;: parameter is coupled to the system.</span>
+<span class="sd">            * &#39;isolated&#39;: parameter does not affect the system but does affect the element (if any).</span>
+<span class="sd">            * &#39;design&#39;: parameter only affects design and cost of the element.</span>
+<span class="sd">            * &#39;cost&#39;: parameter only affects cost of the element.</span>
+<span class="sd">        name : str</span>
+<span class="sd">               Name of parameter. If None, default to argument name of setter.</span>
+<span class="sd">        distribution : chaospy.Dist</span>
+<span class="sd">                       Parameter distribution.</span>
+<span class="sd">        units : str</span>
+<span class="sd">                Parameter units of measure</span>
 <span class="sd">            </span>
-<span class="sd">            **setter:** [function] Should set parameter in the element.</span>
-<span class="sd">            </span>
-<span class="sd">            **element:** [Unit or Stream] Element in the system being altered.</span>
-<span class="sd">            </span>
-<span class="sd">            **kind:** {&#39;isolated&#39;, &#39;design&#39;, &#39;cost&#39;}</span>
-<span class="sd">                * &#39;coupled&#39;: parameter is coupled to the system.</span>
-<span class="sd">                * &#39;isolated&#39;: parameter does not affect the system but does affect the element (if any).</span>
-<span class="sd">                * &#39;design&#39;: parameter only affects design and cost of the element.</span>
-<span class="sd">                * &#39;cost&#39;: parameter only affects cost of the element.</span>
-<span class="sd">                </span>
-<span class="sd">            **name:** [str] Name of parameter. If None, default to argument name of setter.</span>
-<span class="sd">            </span>
-<span class="sd">            **distribution:** [chaospy.Dist] Parameter distribution.</span>
-<span class="sd">            </span>
-<span class="sd">            **units:** [str] Parameter units</span>
-<span class="sd">            </span>
-<span class="sd">        .. Note::</span>
-<span class="sd">            </span>
-<span class="sd">            If kind is &#39;coupled&#39;, account for downstream operations. Otherwise, only account for given element. If kind is &#39;design&#39; or &#39;cost&#39;, element must be a Unit object.</span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        </span>
+<span class="sd">        If kind is &#39;coupled&#39;, account for downstream operations. Otherwise, only account for given element. If kind is &#39;design&#39; or &#39;cost&#39;, element must be a Unit object.</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">setter</span><span class="p">:</span> <span class="k">return</span> <span class="k">lambda</span> <span class="n">setter</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">setter</span><span class="p">,</span> <span class="n">element</span><span class="p">,</span> <span class="n">kind</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">distribution</span><span class="p">,</span> <span class="n">units</span><span class="p">)</span>
@@ -313,6 +347,19 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_erase</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">param</span></div>
+    
+<div class="viewcode-block" id="State.sample"><a class="viewcode-back" href="../../../evaluation/State.html#biosteam.evaluation.State.sample">[docs]</a>    <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="n">rule</span><span class="p">):</span> 
+        <span class="sd">&quot;&quot;&quot;Sample from parameter distribution.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        N : int</span>
+<span class="sd">            Number of samples.</span>
+<span class="sd">        rule : str</span>
+<span class="sd">               Sampling rule (e.g. &quot;L&quot; for latin hypercube sampling).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadmodel</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">J</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">distribution</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">])</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">rule</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">()</span></div>
     
     <span class="k">def</span> <span class="nf">_erase</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Erase cached data.&quot;&quot;&quot;</span>
@@ -328,7 +375,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="n">modelfunction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">)</span>
     
-<div class="viewcode-block" id="State.__call__"><a class="viewcode-back" href="../../../State.html#biosteam.evaluation.State.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample</span><span class="p">):</span>
+<div class="viewcode-block" id="State.__call__"><a class="viewcode-back" href="../../../evaluation/State.html#biosteam.evaluation.State.__call__">[docs]</a>    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sample</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Update state given sample of parameters.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadmodel</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">sample</span><span class="p">))</span></div>
@@ -360,7 +407,7 @@
             <span class="n">out</span> <span class="o">+=</span> <span class="n">newline</span>
         <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> &#39;</span><span class="p">)</span>
     
-<div class="viewcode-block" id="State.show"><a class="viewcode-back" href="../../../State.html#biosteam.evaluation.State.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="State.show"><a class="viewcode-back" href="../../../evaluation/State.html#biosteam.evaluation.State.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return information on metric parameters.&quot;&quot;&quot;</span>
         <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">())</span></div>
     <span class="n">_ipython_display_</span> <span class="o">=</span> <span class="n">show</span></div>

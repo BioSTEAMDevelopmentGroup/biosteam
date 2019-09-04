@@ -89,17 +89,17 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../Getting started.html">1. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Creating a Unit.html">3. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit operation examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -112,11 +112,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../compounds.html">compounds</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../inspect.html">inspect</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../reaction.html">reaction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../evaluation.html">evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 
             
@@ -201,19 +201,22 @@
 <div class="viewcode-block" id="Reaction"><a class="viewcode-back" href="../../../reaction.html#biosteam.reaction.Reaction">[docs]</a><span class="k">class</span> <span class="nc">Reaction</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Create a Reaction object which defines a stoichiometric reaction and conversion. When called, it returns the change in material due to the reaction.</span>
 <span class="sd">    </span>
-<span class="sd">    **Parameters**</span>
-<span class="sd">    </span>
-<span class="sd">        **reaction:** [str] Stoichiometric equation written as:</span>
-<span class="sd">            i1 R1 + ... + in Rn -&gt; j1 P1 + ... + jm Pm</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    reaction : str</span>
+<span class="sd">               Stoichiometric equation written as:</span>
+<span class="sd">               &#39;i1 R1 + ... + in Rn -&gt; j1 P1 + ... + jm Pm&#39;</span>
 
-<span class="sd">        **reactant:** [str] ID of reactant compound.</span>
+<span class="sd">    reactant : str</span>
+<span class="sd">               ID of reactant compound.</span>
 <span class="sd">        </span>
-<span class="sd">        **X:** [float] Reactant conversion (fraction).</span>
+<span class="sd">    X : float</span>
+<span class="sd">        Reactant conversion (fraction).</span>
 <span class="sd">        </span>
-<span class="sd">        **species:** [Species] Defaults to Stream.species.</span>
+<span class="sd">    species=None : Species, defaults to Stream.species.</span>
 <span class="sd">        </span>
-<span class="sd">    **Examples**</span>
-<span class="sd">    </span>
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; import biosteam as bst    </span>
 <span class="sd">    &gt;&gt;&gt; import biosteam.reaction as rn</span>
 <span class="sd">    &gt;&gt;&gt; bst.Stream.species = sp = bst.Species(&#39;H2O&#39;, &#39;H2&#39;, &#39;O2&#39;)</span>
@@ -248,13 +251,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_stoi</span> <span class="o">*=</span> <span class="mi">1</span><span class="o">/-</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_stoi</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_Xindex</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_X</span> <span class="o">=</span> <span class="n">X</span> <span class="c1">#: [float] Reactant conversion</span>
     
-    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Reaction.copy"><a class="viewcode-back" href="../../../reaction.html#biosteam.reaction.Reaction.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return copy of Reaction object.&quot;&quot;&quot;</span>
         <span class="n">copy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
         <span class="n">copy</span><span class="o">.</span><span class="n">_stoi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stoi</span>
         <span class="n">copy</span><span class="o">.</span><span class="n">_Xindex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Xindex</span>
         <span class="n">copy</span><span class="o">.</span><span class="n">_species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span>
         <span class="n">copy</span><span class="o">.</span><span class="n">_X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X</span>
-        <span class="k">return</span> <span class="n">copy</span>
+        <span class="k">return</span> <span class="n">copy</span></div>
     
     <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rxn</span><span class="p">):</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="ow">is</span> <span class="n">rxn</span><span class="o">.</span><span class="n">_species</span><span class="p">,</span> <span class="s1">&#39;working species must be the same to add reactions&#39;</span>
@@ -321,12 +325,10 @@
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">X</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;[float] Reaction converion.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;[float] Reaction converion as a fraction.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X</span>
     <span class="nd">@X</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">X</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
-        <span class="n">X</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
-        <span class="k">assert</span> <span class="o">-</span><span class="mi">1</span> <span class="o">&lt;=</span> <span class="n">X</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;reaction conversion, X, must be a fraction&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_X</span> <span class="o">=</span> <span class="n">X</span>
     
     <span class="nd">@property</span>
@@ -361,6 +363,7 @@
         <span class="nb">print</span><span class="p">(</span><span class="n">outs</span><span class="p">)</span>
     <span class="n">_ipython_display_</span> <span class="o">=</span> <span class="n">show</span></div>
 
+
 <span class="k">class</span> <span class="nc">ReactionItem</span><span class="p">(</span><span class="n">Reaction</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a ReactionItem object from a ReactionSet and index.&quot;&quot;&quot;</span>
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;_index&#39;</span><span class="p">)</span>
@@ -372,16 +375,17 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="n">index</span>
     
     <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return copy of Reaction object.&quot;&quot;&quot;</span>
         <span class="n">new</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="n">new</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index</span>
         <span class="k">return</span> <span class="n">new</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">X</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;[float] Reaction converion as a fraction.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_index</span><span class="p">]</span>
     <span class="nd">@X</span><span class="o">.</span><span class="n">setter</span>
     <span class="k">def</span> <span class="nf">X</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">):</span>
-        <span class="k">assert</span> <span class="o">-</span><span class="mi">1</span> <span class="o">&lt;=</span> <span class="n">X</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;reaction conversion, X, must be a fraction&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_X</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">X</span>
         
 
@@ -455,6 +459,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">X_net</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;[dict] Net reaction conversion of reactants.&quot;&quot;&quot;</span>
         <span class="n">X_net</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">X_net</span><span class="p">:</span>
@@ -473,6 +478,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">X_net</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;[dict] Net reaction conversion of reactants.&quot;&quot;&quot;</span>
         <span class="n">X_net</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reactants</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">X_net</span><span class="p">:</span>

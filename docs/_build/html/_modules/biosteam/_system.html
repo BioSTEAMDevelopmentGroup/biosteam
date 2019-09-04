@@ -89,17 +89,17 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../Getting started.html">1. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Creating a Unit.html">3. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Unit operation examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../units/notebooks/examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -112,11 +112,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../compounds.html">compounds</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../inspect.html">inspect</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../reaction.html">reaction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../evaluation.html">evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 
             
@@ -193,7 +193,7 @@
 <span class="kn">from</span> <span class="nn">._facility</span> <span class="k">import</span> <span class="n">Facility</span>
 <span class="kn">from</span> <span class="nn">._unit</span> <span class="k">import</span> <span class="n">Unit</span>
 <span class="kn">from</span> <span class="nn">._report</span> <span class="k">import</span> <span class="n">save_report</span>
-<span class="kn">from</span> <span class="nn">._utils</span> <span class="k">import</span> <span class="n">color_scheme</span><span class="p">,</span> <span class="n">MissingStream</span><span class="p">,</span> <span class="n">strtuple</span><span class="p">,</span> \
+<span class="kn">from</span> <span class="nn">._utils</span> <span class="k">import</span> <span class="n">colors</span><span class="p">,</span> <span class="n">MissingStream</span><span class="p">,</span> <span class="n">strtuple</span><span class="p">,</span> \
                     <span class="n">conditional_wegstein</span><span class="p">,</span> <span class="n">conditional_aitken</span>
 <span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
 
@@ -203,11 +203,10 @@
 
 <span class="k">def</span> <span class="nf">_evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Evaluate a command and request user input for next command. If no command, return. This function is used for debugging a System object.&quot;&quot;&quot;</span>    
-    <span class="n">CS</span> <span class="o">=</span> <span class="n">color_scheme</span>
     <span class="c1"># Done evaluating if no command, exit debugger if &#39;exit&#39;</span>
     <span class="k">if</span> <span class="n">command</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">Next</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">next</span><span class="p">(</span><span class="s1">&#39;Next: &#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">f</span><span class="s1">&#39;{repr(self)}</span><span class="se">\n</span><span class="s1">&#39;</span>
-        <span class="n">info</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Enter to continue or type to evaluate:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">Next</span> <span class="o">=</span> <span class="n">colors</span><span class="o">.</span><span class="n">next</span><span class="p">(</span><span class="s1">&#39;Next: &#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">f</span><span class="s1">&#39;{repr(self)}</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="n">colors</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Enter to continue or type to evaluate:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">command</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="n">Next</span> <span class="o">+</span> <span class="n">info</span> <span class="o">+</span> <span class="s2">&quot;&gt;&gt;&gt; &quot;</span><span class="p">)</span>
     
     <span class="k">if</span> <span class="n">command</span> <span class="o">==</span> <span class="s1">&#39;exit&#39;</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">KeyboardInterrupt</span><span class="p">()</span>
@@ -222,8 +221,8 @@
             <span class="n">out</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="p">{},</span> <span class="n">lcs</span><span class="p">)</span>            
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
             <span class="c1"># Print exception and ask to raise error or continue evaluating</span>
-            <span class="n">err</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;{type(err).__name__}:&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">f</span><span class="s1">&#39; {str(err)}</span><span class="se">\n\n</span><span class="s1">&#39;</span>
-            <span class="n">info</span> <span class="o">=</span> <span class="n">CS</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Enter to raise error or type to evaluate:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">err</span> <span class="o">=</span> <span class="n">colors</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;{type(err).__name__}:&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">f</span><span class="s1">&#39; {str(err)}</span><span class="se">\n\n</span><span class="s1">&#39;</span>
+            <span class="n">info</span> <span class="o">=</span> <span class="n">colors</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Enter to raise error or type to evaluate:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">command</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="n">err</span> <span class="o">+</span> <span class="n">info</span> <span class="o">+</span> <span class="s2">&quot;&gt;&gt;&gt; &quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">command</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span> <span class="k">raise</span> <span class="n">err</span>
             <span class="n">_evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">)</span>        
@@ -268,6 +267,7 @@
     <span class="sd">&quot;&quot;&quot;Dummy unit for displaying a system.&quot;&quot;&quot;</span>
     <span class="n">line</span> <span class="o">=</span> <span class="s1">&#39;System&#39;</span>
     <span class="n">ID</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_N_ins</span> <span class="o">=</span> <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">_ID</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>
 
 <span class="n">_sysgraphics</span> <span class="o">=</span> <span class="n">_systemUnit</span><span class="o">.</span><span class="n">_graphics</span>
@@ -314,15 +314,18 @@
 <div class="viewcode-block" id="System"><a class="viewcode-back" href="../../System.html#biosteam.System">[docs]</a><span class="k">class</span> <span class="nc">System</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">system</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a System object that can iteratively run each element in a network of BioSTREAM objects until the recycle stream is converged. A network can have function, Unit and/or System objects. When the network contains an inner System object, it converges/solves it in each loop/iteration.</span>
 
-<span class="sd">    **Parameters**</span>
-
-<span class="sd">         **ID:** [str] A unique identification. If ID is None, instance will not be registered in flowsheet.</span>
-
-<span class="sd">         **network:** tuple[Unit, function and/or System] A network that is run element by element until the recycle converges.</span>
-
-<span class="sd">         **recycle:** [Stream] A tear stream for the recycle loop.</span>
-<span class="sd">         </span>
-<span class="sd">         **facilities:** tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the network simulation.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ID : str</span>
+<span class="sd">         A unique identification. If ID is None, instance will not be</span>
+<span class="sd">         registered in flowsheet.</span>
+<span class="sd">    network : tuple[Unit, function and/or System]</span>
+<span class="sd">        A network that is run element by element until the recycle converges.</span>
+<span class="sd">    recycle=None : Stream, optional</span>
+<span class="sd">        A tear stream for the recycle loop.</span>
+<span class="sd">    facilities=() : tuple[Unit, function, and/or System], optional</span>
+<span class="sd">        Offsite facilities that are simulated only after</span>
+<span class="sd">        completing the network simulation.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1">### Class attributes ###</span>
@@ -595,21 +598,19 @@
         <span class="n">f</span> <span class="o">=</span> <span class="n">make_digraph</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">streams</span><span class="p">)</span>
         <span class="n">save_digraph</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="nb">format</span><span class="p">)</span>
         
-<div class="viewcode-block" id="System.diagram"><a class="viewcode-back" href="../../System.html#biosteam.System.diagram">[docs]</a>    <span class="k">def</span> <span class="nf">diagram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;surface&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;svg&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="System.diagram"><a class="viewcode-back" href="../../System.html#biosteam.System.diagram">[docs]</a>    <span class="k">def</span> <span class="nf">diagram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;surface&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Display a `Graphviz &lt;https://pypi.org/project/graphviz/&gt;`__ diagram of the system.</span>
 <span class="sd">        </span>
-<span class="sd">        **Parameters**</span>
-<span class="sd">        </span>
-<span class="sd">            **kind:** Must be one of the following:</span>
-<span class="sd">                * **&#39;thorough&#39;:** Thoroughly display every unit within the network</span>
-<span class="sd">                * **&#39;surface&#39;:** Display only surface elements listed in the network</span>
-<span class="sd">                * **&#39;minimal&#39;:** Minimally display the network as a box</span>
-<span class="sd">        </span>
-<span class="sd">            **file:** Must be one of the following:</span>
-<span class="sd">                * [str] File name to save diagram.</span>
-<span class="sd">                * [None] Display diagram in console.</span>
-<span class="sd">        </span>
-<span class="sd">            **format:** File format.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        kind=&#39;surface&#39; : {&#39;thorough&#39;, &#39;surface&#39;, &#39;minimal&#39;}:</span>
+<span class="sd">            * **&#39;thorough&#39;:** Display every unit within the network.</span>
+<span class="sd">            * **&#39;surface&#39;:** Display only elements listed in the network.</span>
+<span class="sd">            * **&#39;minimal&#39;:** Display network as a box.</span>
+<span class="sd">        file=None : str, display in console by default</span>
+<span class="sd">            File name to save diagram.</span>
+<span class="sd">        format=&#39;png&#39; : str</span>
+<span class="sd">            File format (e.g. &quot;png&quot;, &quot;svg&quot;).</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">kind</span> <span class="o">==</span> <span class="s1">&#39;thorough&#39;</span><span class="p">:</span>
@@ -621,20 +622,21 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;kind must be either &#39;thorough&#39;, &#39;surface&#39;, or &#39;minimal&#39;&quot;</span><span class="p">)</span></div>
             
-
     <span class="c1"># Methods for running one iteration of a loop</span>
     <span class="k">def</span> <span class="nf">_iter_run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Run the system at specified recycle molar flow rate.</span>
 <span class="sd">        </span>
-<span class="sd">        **Parameters**</span>
-<span class="sd">        </span>
-<span class="sd">            **mol:** [array] Recycle molar flow rates.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        mol : numpy.ndarray</span>
+<span class="sd">              Recycle molar flow rates.</span>
 <span class="sd">            </span>
-<span class="sd">        **Returns**</span>
-<span class="sd">        </span>
-<span class="sd">            **rmol:** [array] New recycle molar flow rates.</span>
-<span class="sd">            </span>
-<span class="sd">            **unconverged:** [bool] True if recycle has not converged.</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        rmol : numpy.ndarray</span>
+<span class="sd">               New recycle molar flow rates.</span>
+<span class="sd">        unconverged : bool</span>
+<span class="sd">                      True if recycle has not converged.</span>
 <span class="sd">            </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">recycle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">recycle</span>
@@ -645,10 +647,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_mol_error</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">mol</span> <span class="o">-</span> <span class="n">recycle</span><span class="o">.</span><span class="n">mol</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_T_error</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">T</span> <span class="o">-</span> <span class="n">recycle</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_iter</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iter</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxiter</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;{repr(self)} could not converge&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_error_info</span><span class="p">())</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol_error</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">molar_tolerance</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_T_error</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">T_tolerance</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol_error</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">molar_tolerance</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_T_error</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">T_tolerance</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">rmol</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iter</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxiter</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;{repr(self)} could not converge&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_error_info</span><span class="p">())</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">rmol</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="kc">True</span>
         
@@ -692,15 +694,16 @@
 <div class="viewcode-block" id="System.set_spec"><a class="viewcode-back" href="../../System.html#biosteam.System.set_spec">[docs]</a>    <span class="k">def</span> <span class="nf">set_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">getter</span><span class="p">,</span> <span class="n">setter</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="n">newton</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Wrap a solver around the converge method.</span>
 
-<span class="sd">        **Parameters**</span>
-
-<span class="sd">             **getter:** [function] Returns objective value.</span>
-
-<span class="sd">             **setter:** [function] Changes independent variable.</span>
-<span class="sd">             </span>
-<span class="sd">             **solver:** [function] Solves objective function.</span>
-
-<span class="sd">             **kwargs:** [dict] Key word arguments passed to solver.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        getter : function</span>
+<span class="sd">            Returns objective value.</span>
+<span class="sd">        setter : function</span>
+<span class="sd">            Changes independent variable.</span>
+<span class="sd">        solver=scipy.optimize.newton : function</span>
+<span class="sd">            Solves objective function.</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Key word arguments passed to solver.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">converge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_converge</span>
@@ -788,7 +791,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">network</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">network</span><span class="p">)</span>
     
 <div class="viewcode-block" id="System.debug"><a class="viewcode-back" href="../../System.html#biosteam.System.debug">[docs]</a>    <span class="k">def</span> <span class="nf">debug</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Convege in debug mode. Just try it!&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Converge in debug mode. Just try it!&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_debug_on</span><span class="p">()</span>
         <span class="k">try</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_converge</span><span class="p">()</span>
         <span class="k">finally</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debug_off</span><span class="p">()</span>

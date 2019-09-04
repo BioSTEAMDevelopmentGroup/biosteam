@@ -1,0 +1,432 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Flash &mdash; BioSTEAM 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../',
+              VERSION:'0.1',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="HXprocess" href="HXprocess.html" />
+    <link rel="prev" title="Fermentation" href="Fermentation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> BioSTEAM
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">BioSTEAM API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../Species.html">Species</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Stream.html">Stream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MixedStream.html">MixedStream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Unit.html">Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../HeatUtility.html">HeatUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../System.html">System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../TEA.html">TEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="designtools.html">designtools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Centrifuge_LLE.html">Centrifuge_LLE</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Distillation.html">Distillation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Fermentation.html">Fermentation</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Flash</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HXprocess.html">HXprocess</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HXutility.html">HXutility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Junction.html">Junction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MassBalance.html">MassBalance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MixTank.html">MixTank</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Mixer.html">Mixer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MolecularSieve.html">MolecularSieve</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MultiEffectEvaporator.html">MultiEffectEvaporator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Pump.html">Pump</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Splitter.html">Splitter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="StorageTank.html">StorageTank</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Transesterification.html">Transesterification</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../inspect.html">inspect</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reaction.html">reaction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../evaluation/evaluation.html">evaluation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">BioSTEAM</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="units.html">units</a> &raquo;</li>
+        
+      <li>Flash</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/units/Flash.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+</style>
+<div class="section" id="module-biosteam.units">
+<span id="flash"></span><h1>Flash<a class="headerlink" href="#module-biosteam.units" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="biosteam.units.Flash">
+<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">Flash</code><span class="sig-paren">(</span><em>ID=''</em>, <em>ins=None</em>, <em>outs=()</em>, <em>*</em>, <em>species_IDs=None</em>, <em>LNK=()</em>, <em>HNK=()</em>, <em>V=None</em>, <em>T=None</em>, <em>Q=None</em>, <em>P=None</em>, <em>y=None</em>, <em>x=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_flash.html#Flash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Flash" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create an equlibrium based flash drum with the option of having light non-keys and heavy non-keys completly separate into their respective phases. Design procedure is based on heuristics by Wayne D. Monnery &amp; William Y. Svrcek [1]. Purchase costs are based on correlations by Mulet et al. [2, 3] as compiled by Warren et. al. [4].</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>ins</strong></dt>
+<dd><p class="first last">[0] Input stream</p>
+</dd>
+<dt><strong>outs</strong></dt>
+<dd><p class="first">[0] Vapor product</p>
+<p class="last">[1] Liquid product</p>
+</dd>
+<dt><strong>Specify two:</strong></dt>
+<dd><ul class="first last simple">
+<li><strong>P:</strong> Operating pressure (Pa)</li>
+<li><strong>Q:</strong> Energy input (kJ/hr)</li>
+<li><strong>T:</strong> Operating temperature (K)</li>
+<li><strong>V:</strong> Molar vapor fraction</li>
+<li><strong>x:</strong> Molar composition of liquid (for binary mixture)</li>
+<li><strong>y:</strong> Molar composition of vapor (for binary mixture)</li>
+</ul>
+</dd>
+<dt><strong>species_IDs=None</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple, optional</span></dt>
+<dd><p class="first last">IDs of species in equilibrium.</p>
+</dd>
+<dt><strong>LNK=None</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple[str], optional</span></dt>
+<dd><p class="first last">Light non-keys that remain as a vapor (disregards equilibrium).</p>
+</dd>
+<dt><strong>LNK=None</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple[str], optional</span></dt>
+<dd><p class="first last">Heavy non-keys that remain as a liquid (disregards equilibrium).</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">References</p>
+<p>[1] “Design Two-Phase Separators Within the Right Limits”, Chemical Engineering Progress Oct, 1993.</p>
+<p>[2] Mulet, A., A. B. Corripio, and L. B. Evans, “Estimate Costs of Pressure Vessels via Correlations,” Chem. Eng., 88(20), 145–150 (1981a).</p>
+<p>[3] Mulet, A., A.B. Corripio, and L.B.Evans, “Estimate Costs of Distillation and Absorption Towers via Correlations,” Chem. Eng., 88(26), 77–82 (1981b).</p>
+<p>[4] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R., &amp; Ng, M. K. (2017). Product and Process Design Principles. Wiley. Cost Accounting and Capital Cost Estimation (Chapter 16)</p>
+<p class="rubric">Examples</p>
+<p><a class="reference internal" href="notebooks/Flash Example.html"><span class="doc">Flash</span></a></p>
+<dl class="attribute">
+<dt id="biosteam.units.Flash.vacuum_system_preference">
+<code class="descname">vacuum_system_preference</code><em class="property"> = 'Liquid-ring pump'</em><a class="headerlink" href="#biosteam.units.Flash.vacuum_system_preference" title="Permalink to this definition">¶</a></dt>
+<dd><p>If a vacuum system is needed, it will choose one according to this preference.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Flash.HasGlycolGroups">
+<code class="descname">HasGlycolGroups</code><em class="property"> = False</em><a class="headerlink" href="#biosteam.units.Flash.HasGlycolGroups" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if glycol groups are present in the mixture</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Flash.HasAmineGroups">
+<code class="descname">HasAmineGroups</code><em class="property"> = False</em><a class="headerlink" href="#biosteam.units.Flash.HasAmineGroups" title="Permalink to this definition">¶</a></dt>
+<dd><p>True if amine groups are present in the mixture</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Flash.SepType">
+<code class="descname">SepType</code><em class="property"> = 'Default'</em><a class="headerlink" href="#biosteam.units.Flash.SepType" title="Permalink to this definition">¶</a></dt>
+<dd><p>[str] ‘Horizontal’, ‘Vertical’, or ‘Default’</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Flash.HoldupTime">
+<code class="descname">HoldupTime</code><em class="property"> = 15</em><a class="headerlink" href="#biosteam.units.Flash.HoldupTime" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Time it takes to raise liquid to half full (min)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Flash.SurgeTime">
+<code class="descname">SurgeTime</code><em class="property"> = 7.5</em><a class="headerlink" href="#biosteam.units.Flash.SurgeTime" title="Permalink to this definition">¶</a></dt>
+<dd><p>[float] Time it takes to reach from normal to maximum liquied level (min)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Flash.Mist">
+<code class="descname">Mist</code><em class="property"> = False</em><a class="headerlink" href="#biosteam.units.Flash.Mist" title="Permalink to this definition">¶</a></dt>
+<dd><p>[bool] True if using a mist eliminator pad</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Flash.material">
+<code class="descname">material</code><a class="headerlink" href="#biosteam.units.Flash.material" title="Permalink to this definition">¶</a></dt>
+<dd><p>Vessel construction material.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Flash.species_IDs">
+<code class="descname">species_IDs</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.Flash.species_IDs" title="Permalink to this definition">¶</a></dt>
+<dd><p>tuple[str] IDs of species in thermodynamic equilibrium</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Flash.LNK">
+<code class="descname">LNK</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.Flash.LNK" title="Permalink to this definition">¶</a></dt>
+<dd><p>tuple[str] Light non-keys assumed to remain as a vapor</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Flash.HNK">
+<code class="descname">HNK</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.Flash.HNK" title="Permalink to this definition">¶</a></dt>
+<dd><p>tuple[str] Heavy non-keys assumed to remain as a liquid</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Flash.V">
+<code class="descname">V</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.Flash.V" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enforced molar vapor fraction</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Flash.T">
+<code class="descname">T</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.Flash.T" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enforced operating temperature (K)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Flash.y">
+<code class="descname">y</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.Flash.y" title="Permalink to this definition">¶</a></dt>
+<dd><p>[array_like] Molar composition of vapor (for binary mixture)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Flash.x">
+<code class="descname">x</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.units.Flash.x" title="Permalink to this definition">¶</a></dt>
+<dd><p>[array_like] Molar composition of liquid (for binary mixture)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Flash.P">
+<code class="descname">P</code><a class="headerlink" href="#biosteam.units.Flash.P" title="Permalink to this definition">¶</a></dt>
+<dd><p>Operating pressure (Pa)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Flash.Q">
+<code class="descname">Q</code><a class="headerlink" href="#biosteam.units.Flash.Q" title="Permalink to this definition">¶</a></dt>
+<dd><p>Duty (kJ/hr)</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="HXprocess.html" class="btn btn-neutral float-right" title="HXprocess" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Fermentation.html" class="btn btn-neutral float-left" title="Fermentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Yoel Cortes-Pena and Jeremy Guest
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

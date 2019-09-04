@@ -91,17 +91,17 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="Getting started.html">1. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">3. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit operation examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units/notebooks/examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -114,11 +114,11 @@
 <li class="toctree-l1"><a class="reference internal" href="System.html">System</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="compounds.html">compounds</a></li>
-<li class="toctree-l1"><a class="reference internal" href="units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inspect.html">inspect</a></li>
 <li class="toctree-l1"><a class="reference internal" href="reaction.html">reaction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="evaluation.html">evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluation/evaluation.html">evaluation</a></li>
 </ul>
 
             
@@ -209,33 +209,86 @@
 <em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">TEA</code><span class="sig-paren">(</span><em>system</em>, <em>IRR</em>, <em>duration</em>, <em>depreciation</em>, <em>income_tax</em>, <em>operating_days</em>, <em>lang_factor</em>, <em>construction_schedule</em>, <em>startup_months</em>, <em>startup_FOCfrac</em>, <em>startup_VOCfrac</em>, <em>startup_salesfrac</em>, <em>WC_over_FCI</em>, <em>finance_interest</em>, <em>finance_years</em>, <em>finance_fraction</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA" title="Permalink to this definition">¶</a></dt>
 <dd><p>Abstract TEA class for cash flow analysis.</p>
 <p><strong>Abstract methods</strong></p>
-<blockquote>
-<div><p><strong>_TDC:</strong> [function] Should take direct permanent investment as an argument and return total depreciable capital (e.g. _TDC(self, DPI) -&gt; TDC).</p>
-<p><strong>_FCI:</strong> [function] Should take total depreciable capital as an argument and return fixed capital investment (e.g. _FCI(self, TDC) -&gt; FCI).</p>
-<p><strong>_FOC:</strong> [function] Should take fixed capital investment as an arguments and return fixed operating cost without depreciation (e.g. _FOC(self, FCI) -&gt; FOC).</p>
-</div></blockquote>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><p><strong>system:</strong> [System] Should contain feed and product streams.</p>
-<p><strong>IRR:</strong> [float]  Internal rate of return (fraction).</p>
-<p><strong>duration:</strong> tuple[int, int] Start and end year of venture (e.g. (2018, 2038)).</p>
-<p><strong>depreciation:</strong> [str] ‘MACRS’ + number of years (e.g. ‘MACRS7’).</p>
-<p><strong>operating_days:</strong> [float] Number of operating days per year.</p>
-<p><strong>income_tax:</strong> [float] Combined federal and state income tax rate (fraction).</p>
-<p><strong>lang_factor:</strong> [float] Lang factor for getting fixed capital investment from total purchase cost. If no lang factor, estimate capital investment using bare module factors.</p>
-<p><strong>construction_schedule:</strong> tuple[float] Construction investment fractions per year (e.g. (0.5, 0.5) for 50% capital investment in the first year and 50% investment in the second).</p>
-<p><strong>startup_months:</strong> [float] Startup time in months.</p>
-<p><strong>startup_FOCfrac:</strong> [float] Fraction of fixed operating costs incurred during startup.</p>
-<p><strong>startup_VOCfrac:</strong> [float] Fraction of variable operating costs incurred during startup.</p>
-<p><strong>startup_salesfrac:</strong> [float] Fraction of sales achieved during startup.</p>
-<p><strong>WC_over_FCI</strong>: [float] Working capital as a fraction of fixed capital investment.</p>
-<p><strong>finanace_interest:</strong> [float] Yearly interest of capital cost financing as a fraction.</p>
-<p><strong>finance_years:</strong> [int] Number of years the loan is paid for.</p>
-<p><strong>finance_fraction:</strong> [float] Fraction of capital cost that needs to be financed.</p>
-</div></blockquote>
-<p><strong>Examples</strong></p>
-<blockquote>
-<div><a class="reference internal" href="Techno-economic analysis of a biorefinery.html"><span class="doc">Techno-economic analysis of a biorefinery</span></a></div></blockquote>
+<dl class="docutils">
+<dt>_TDC <span class="classifier-delimiter">:</span> <span class="classifier">function</span></dt>
+<dd>Should take direct permanent investment as an argument
+and return total depreciable capital (e.g. _TDC(self, DPI) -&gt; TDC).</dd>
+<dt>_FCI <span class="classifier-delimiter">:</span> <span class="classifier">function</span></dt>
+<dd>Should take total depreciable capital as an argument and return
+fixed capital investment (e.g. _FCI(self, TDC) -&gt; FCI).</dd>
+<dt>_FOC <span class="classifier-delimiter">:</span> <span class="classifier">function</span></dt>
+<dd>Should take fixed capital investment as an arguments and return
+fixed operating cost without depreciation (e.g. _FOC(self, FCI) -&gt; FOC).</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>system</strong> <span class="classifier-delimiter">:</span> <span class="classifier">System</span></dt>
+<dd><p class="first last">Should contain feed and product streams.</p>
+</dd>
+<dt><strong>IRR</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Internal rate of return (fraction).</p>
+</dd>
+<dt><strong>duration</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple[int, int]</span></dt>
+<dd><p class="first last">Start and end year of venture (e.g. (2018, 2038)).</p>
+</dd>
+<dt><strong>depreciation</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">‘MACRS’ + number of years (e.g. ‘MACRS7’).</p>
+</dd>
+<dt><strong>operating_days</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Number of operating days per year.</p>
+</dd>
+<dt><strong>income_tax</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Combined federal and state income tax rate (fraction).</p>
+</dd>
+<dt><strong>lang_factor</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Lang factor for getting fixed capital investment
+from total purchase cost. If no lang factor, estimate
+capital investment using bare module factors.</p>
+</dd>
+<dt><strong>construction_schedule</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple[float]</span></dt>
+<dd><p class="first last">Construction investment fractions per year
+(e.g. (0.5, 0.5) for 50% capital investment
+in the first year and 50% investment in the
+second).</p>
+</dd>
+<dt><strong>startup_months</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Startup time in months.</p>
+</dd>
+<dt><strong>startup_FOCfrac</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Fraction of fixed operating costs incurred during
+startup.</p>
+</dd>
+<dt><strong>startup_VOCfrac</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Fraction of variable operating costs incurred during
+startup.</p>
+</dd>
+<dt><strong>startup_salesfrac</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Fraction of sales achieved during startup.</p>
+</dd>
+<dt><strong>WC_over_FCI</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Working capital as a fraction of fixed capital
+investment.</p>
+</dd>
+<dt><strong>finanace_interest</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Yearly interest of capital cost financing as a
+fraction.</p>
+</dd>
+<dt><strong>finance_years</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Number of years the loan is paid for.</p>
+</dd>
+<dt><strong>finance_fraction</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Fraction of capital cost that needs to be financed.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<p><a class="reference internal" href="tutorial/Techno-economic analysis of a biorefinery.html"><span class="doc">Techno-economic analysis of a biorefinery</span></a></p>
 <dl class="staticmethod">
 <dt id="biosteam.TEA.like">
 <em class="property">static </em><code class="descname">like</code><span class="sig-paren">(</span><em>system</em>, <em>other</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.like"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.like" title="Permalink to this definition">¶</a></dt>
@@ -448,15 +501,28 @@
 
 <dl class="method">
 <dt id="biosteam.TEA.production_cost">
-<code class="descname">production_cost</code><span class="sig-paren">(</span><em>*products</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.production_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.production_cost" title="Permalink to this definition">¶</a></dt>
+<code class="descname">production_cost</code><span class="sig-paren">(</span><em>*products</em>, <em>with_annual_depreciation=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.production_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.production_cost" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return production cost of products.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><strong>*products:</strong> [Stream] Main products of the system</div></blockquote>
-<div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">If there is more than one main product, The production cost is proportionally allocated to each of the main products with respect to their marketing values. The marketing value of each product is determined by the annual production multiplied by its selling price.</p>
-</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>*products</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Stream</span></dt>
+<dd><p class="first last">Main products of the system</p>
+</dd>
+<dt><strong>with_annual_depreciation=True</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>If there is more than one main product, The production cost is
+proportionally allocated to each of the main products with respect to
+their marketing values. The marketing value of each product is
+determined by the annual production multiplied by its selling price.</p>
 </dd></dl>
 
 <dl class="method">
@@ -469,9 +535,19 @@
 <dt id="biosteam.TEA.solve_price">
 <code class="descname">solve_price</code><span class="sig-paren">(</span><em>stream</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#TEA.solve_price"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.TEA.solve_price" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the price (USD/kg) of stream at the break even point (NPV = 0) through cash flow analysis.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><strong>stream:</strong> [Stream] Stream with variable selling price.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>stream</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Stream</span></dt>
+<dd><p class="first last">Stream with variable selling price.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">

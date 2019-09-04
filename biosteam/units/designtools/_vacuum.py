@@ -5,7 +5,7 @@ Created on Fri Feb 22 17:31:50 2019
 @author: yoelr
 """
 import numpy as np
-from biosteam._utils import checkbounds
+from biosteam.utils import checkbounds
 from biosteam._exceptions import DesignError
 import biosteam as bst
 
@@ -43,23 +43,25 @@ def vacuum_system(massflow:'kg/hr', volflow:'m3/hr',
                   vacuum_system_preference=None):
     """Return dictionary of results
     
-    **Parameters**
+    Parameters
+    ----------
+    massflow : float
+        Vapor mass flow rate entering vacuum system from vessel (not including inleakage) 
+    volflow : float
+        Vapor volumetric flow rate entering vacuum system from vessel (not including inleakage)
+    P_suction : float
+        Suction pressure
+    vol : float
+        Vacuum volume
+    vacuum_system_preference : tuple[str] or str
+        Name(s) of preferred vacuum systems
     
-        **massflow:** [float] Vapor mass flow rate entering vacuum system from vessel (not including inleakage) 
-        
-        **volflow:** [float] Vapor volumetric flow rate entering vacuum system from vessel (not including inleakage)
-        
-        **P_suction:** [float] Suction pressure
-        
-        **vol:** [float] Vacuum volume
-        
-        **vacuum_system_preference:** tuple[str] or [str] Name(s) of preferred vacuum systems
-    
-    **Return**
-    
-        **power:** [float] (kW)
-        
-        **cost:** [float] (USD)
+    Returns
+    -------
+    float
+        power (kW)
+    float
+        cost (USD)
     
     """
     vacuum_systems = _prefered_VacuumSystems(vacuum_system_preference)

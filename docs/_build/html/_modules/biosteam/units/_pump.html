@@ -89,17 +89,17 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../Getting started.html">1. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Creating a Unit.html">3. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit operation examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -112,11 +112,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../compounds.html">compounds</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../inspect.html">inspect</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../reaction.html">reaction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../evaluation.html">evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 
             
@@ -239,28 +239,27 @@
 <span class="c1"># %% Classes</span>
 
 <span class="c1"># TODO: Fix pump selection to include NPSH available and required.</span>
-<div class="viewcode-block" id="Pump"><a class="viewcode-back" href="../../../Pump.html#biosteam.units.Pump">[docs]</a><span class="k">class</span> <span class="nc">Pump</span><span class="p">(</span><span class="n">Static</span><span class="p">):</span>
+<div class="viewcode-block" id="Pump"><a class="viewcode-back" href="../../../units/Pump.html#biosteam.units.Pump">[docs]</a><span class="k">class</span> <span class="nc">Pump</span><span class="p">(</span><span class="n">Static</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a pump that sets the pressure of the 0th output stream.</span>
 
-<span class="sd">    **Parameters**</span>
-
-<span class="sd">        **P:** [float] Pressure of output stream (Pa). If None, cost pump as increase of pressure to P_startup.</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">        P=None : float, optional</span>
+<span class="sd">            Pressure of output stream (Pa). If None, cost pump as increase of pressure to P_startup.</span>
 <span class="sd">    </span>
-<span class="sd">    **ins**</span>
-<span class="sd">    </span>
+<span class="sd">    ins</span>
 <span class="sd">        [0] Input stream</span>
 <span class="sd">        </span>
-<span class="sd">    **outs**</span>
-<span class="sd">    </span>
+<span class="sd">    outs</span>
 <span class="sd">        [1] Output stream</span>
 <span class="sd">    </span>
-<span class="sd">    **Examples**</span>
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    :doc:`notebooks/Pump Example`</span>
 <span class="sd">    </span>
-<span class="sd">        :doc:`Pump Example`</span>
-<span class="sd">    </span>
-<span class="sd">    **References**</span>
-<span class="sd">    </span>
-<span class="sd">        [0] Seider, Warren D., et al. (2017). &quot;Cost Accounting and Capital Cost Estimation&quot;. In Product and Process Design Principles: Synthesis, Analysis, and Evaluation (pp. 450-455). New York: Wiley.</span>
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    [0] Seider, Warren D., et al. (2017). &quot;Cost Accounting and Capital Cost Estimation&quot;. In Product and Process Design Principles: Synthesis, Analysis, and Evaluation (pp. 450-455). New York: Wiley.</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Ideal power&#39;</span><span class="p">:</span> <span class="s1">&#39;hp&#39;</span><span class="p">,</span>

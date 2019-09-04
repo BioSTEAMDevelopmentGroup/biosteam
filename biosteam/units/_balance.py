@@ -15,21 +15,21 @@ __all__ = ('MassBalance',)
 class MassBalance(Unit):
     """Create a Unit object that changes net input flow rates to satisfy output flow rates. This calculation is based on mass balance equations for specified species. 
 
-    **Parameters**
+    Parameters
+    ----------
+    species : tuple[str]
+        Species that will be used to solve mass balance linear equations. The number of species must be same as the number of input streams varied.
+    streams : tuple[int]
+        Indices of input streams that can vary in net flow rate
+    exact=True : bool, optional
+        True if exact flow rate solution is required for the specified species.
+    balance='flow' : {'flow', 'fraction'}, optional
+          * 'flow': Satisfy output flow rates
+          * 'fraction': Satisfy net output molar fractions
 
-        **species:** tuple[str] Species that will be used to solve mass balance linear equations. The number of species must be same as the number of input streams varied.
-
-        **streams:** tuple[int] Indices of input streams that can vary in net flow rate
-
-        **exact:** [bool] True if exact flow rate solution is required for the specified species.
-
-        **balance:** [str] Should be one of the following:
-                  * 'flow': Satisfy output flow rates
-                  * 'fraction': Satisfy net output molar fractions
-
-    **Examples**
-    
-        :doc:`MassBalance Example`
+    Examples
+    --------
+    :doc:`notebooks/MassBalance Example`
     
     """
     line = 'Balance'

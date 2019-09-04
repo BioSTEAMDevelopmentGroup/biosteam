@@ -64,43 +64,46 @@ rho_Mdict = {'Carbon steel': 0.284 ,
 # Abstract doc string for columns
 column_doc = """Create a {Column Type} column that assumes all light and heavy non keys separate to the top and bottoms product respectively. McCabe-Thiele analysis is used to find both the number of stages and the reflux ratio given a ratio of actual reflux to minimum reflux [1]. This assumption is good for both binary distillation of highly polar compounds and ternary distillation assuming complete separation of light non-keys and heavy non-keys with large differences in boiling points. Preliminary analysis showed that the theoretical number of stages using this method on Methanol/Glycerol/Water systems is off by less than +-1 stage. Other methods, such as the Fenske-Underwood-Gilliland method, are more suitable for hydrocarbons. The Murphree efficiency is based on the modified O'Connell correlation [2]. The diameter is based on tray separation and flooding velocity [1]. Purchase costs are based on correlations by Mulet et al. [3, 4] as compiled by Warren et. al. [5].
 
-    **Parameters**
-
-        **LHK:** *tuple[str]* Light and heavy keys
-
-        **P:** *[float]* Operating pressure (Pa)
-
-        **y_top:** *[float]* Molar fraction of light key in the distillate
-
-        **x_bot:** *[float]* Molar fraction of light key in the bottoms
-
-        **k:** *[float]* Ratio of reflux to minimum reflux 
-
-    **ins**
-        
+    Parameters
+    ----------
+    ins
         [:] All input streams
 
-    **outs**
-        
+    outs
         [0] Distillate product
         
         [1] Bottoms product
 
-    **References**
+    LHK : tuple[str]
+          Light and heavy keys.
 
-        [1] J.D. Seader, E.J. Henley, D.K. Roper. Separation Process Principles 3rd Edition. John Wiley & Sons, Inc. (2011)
+    P=101325 : float
+        Operating pressure (Pa).
+
+    y_top : float
+            Molar fraction of light key in the distillate.
+
+    x_bot : float
+            Molar fraction of light key in the bottoms.
+
+    k : float
+        Ratio of reflux to minimum reflux.
+
+    References
+    ----------
+    [1] J.D. Seader, E.J. Henley, D.K. Roper. Separation Process Principles 3rd Edition. John Wiley & Sons, Inc. (2011)
+
+    [2] M. Duss, R. Taylor. Predict Distillation Tray Efficiency. AICHE (2018)
     
-        [2] M. Duss, R. Taylor. Predict Distillation Tray Efficiency. AICHE (2018)
-        
-        [3] Mulet, A., A. B. Corripio, and L. B. Evans, “Estimate Costs of Pressure Vessels via Correlations,” Chem. Eng., 88(20), 145–150 (1981a).
+    [3] Mulet, A., A. B. Corripio, and L. B. Evans, “Estimate Costs of Pressure Vessels via Correlations,” Chem. Eng., 88(20), 145–150 (1981a).
 
-        [4] Mulet, A., A.B. Corripio, and L.B.Evans, “Estimate Costs of Distillation and Absorption Towers via Correlations,” Chem. Eng., 88(26), 77–82 (1981b).
+    [4] Mulet, A., A.B. Corripio, and L.B.Evans, “Estimate Costs of Distillation and Absorption Towers via Correlations,” Chem. Eng., 88(26), 77–82 (1981b).
 
-        [5] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R., & Ng, M. K. (2017). Product and Process Design Principles. Wiley. Cost Accounting and Capital Cost Estimation (Chapter 16)    
+    [5] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R., & Ng, M. K. (2017). Product and Process Design Principles. Wiley. Cost Accounting and Capital Cost Estimation (Chapter 16)    
 
-    **Examples**
-    
-        :doc:`{Column Type} Example`
+    Examples
+    --------
+    :doc:`notebooks/{Column Type} Example`
     
     """
 
@@ -355,15 +358,19 @@ class Dist(Unit, isabstract=True):
                                y_stairs, T_stairs, x_limit, bubble_T):
         """Find the specifications at every stage of the of the operating line before the maximum liquid molar fraction. Append the light key liquid molar fraction, light key vapor molar fraction, and stage temperatures to x_stairs, y_stairs and T_stairs respectively.
         
-        **Parameters**
-        
-            operating_line: [function] Should return the liquid molar fraction of the light key given its vapor molar fraction.
-            
-            x_stairs: [list] Liquid molar compositions at each stage. Last element should be the starting point for the next stage
-            
-            y_stairs: [list] Vapor molar compositions at each stage. Last element should be the starting point for the next stage
-            
-            T_stairs: [list] Temperature at each stage.
+        Parameters
+        ----------
+        operating_line : function
+                         Should return the liquid molar fraction of the light
+                         key given its vapor molar fraction.
+        x_stairs : list
+                   Liquid molar compositions at each stage. Last element
+                   should be the starting point for the next stage.
+        y_stairs : list
+                   Vapor molar compositions at each stage. Last element 
+                   should be the starting point for the next stage.
+        T_stairs : list
+                   Temperature at each stage.
             
         """
         P = self.P

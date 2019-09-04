@@ -89,17 +89,17 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../Getting started.html">1. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Creating a Unit.html">3. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Unit operation examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../units/notebooks/examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -112,11 +112,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../compounds.html">compounds</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../inspect.html">inspect</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../reaction.html">reaction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../evaluation.html">evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 
             
@@ -249,19 +249,24 @@
 <div class="viewcode-block" id="MixedStream"><a class="viewcode-back" href="../../MixedStream.html#biosteam.MixedStream">[docs]</a><span class="k">class</span> <span class="nc">MixedStream</span><span class="p">(</span><span class="n">Stream</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;An extension of the :doc:`Stream` class. All inherited properties and methods are supported. Create a MixedStream object that can manage mixtures of solid (&#39;s&#39;), liquid (&#39;l&#39;), LIQUID (&#39;L&#39;), and vapor (&#39;g&#39;) phases. A MixedStream object is capable of vapor-liquid equilibrium (VLE) and liquid-LIQUID equilibrium (LLE).</span>
 
-<span class="sd">    **Parameters**</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ID=&quot;&quot; : str, defaults to a unique ID</span>
+<span class="sd">        A unique identification. If ID is None, stream will not be</span>
+<span class="sd">        registered in flowsheet.</span>
 
-<span class="sd">         **ID:** [str] ID of the stream. If ID is &#39;&#39;, a default ID will be chosen.</span>
+<span class="sd">    species=None : Species, defaults to Stream.species</span>
 
-<span class="sd">         **species:** [Species] Species object for the stream. If None, assume same as class&#39; Species object.</span>
+<span class="sd">    T=298.15 : float, optional</span>
+<span class="sd">        Temperature (K)</span>
 
-<span class="sd">         **T:** [float] Temperature (K)</span>
+<span class="sd">    P=101325 : float, optional</span>
+<span class="sd">        Pressure (Pa)</span>
 
-<span class="sd">         **P:** [float] Pressure (Pa)</span>
-
-<span class="sd">    **Examples**</span>
-
-<span class="sd">         :doc:`MixedStream objects and thermodynamic equilibrium`</span>
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    :doc:`tutorial/MixedStream objects and thermodynamic equilibrium`</span>
+<span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">()</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">298.15</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">):</span>
@@ -325,9 +330,10 @@
     <span class="k">def</span> <span class="nf">_setflows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mol</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Set molar, mass and volumetric flow rates for all phases.</span>
 <span class="sd">        </span>
-<span class="sd">        **Parameters**</span>
-<span class="sd">        </span>
-<span class="sd">            **mol_array:** Array of molar flow rates (kmol/hr) with species by column and phases (&#39;s&#39;, &#39;l&#39;, &#39;L&#39;, &#39;g&#39;) by row.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">            mol : array_like</span>
+<span class="sd">                  Array of molar flow rates (kmol/hr) with species by column and phases (&#39;s&#39;, &#39;l&#39;, &#39;L&#39;, &#39;g&#39;) by row.</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span>
@@ -599,6 +605,7 @@
     <span class="c1"># Other properties</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">mu</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Hydraulic viscosity as a function of T and P (Pa*s).&quot;&quot;&quot;</span>
         <span class="c1"># Katti, P.K.; Chaudhri, M.M. (1964). &quot;Viscosities of Binary Mixtures of Benzyl Acetate with Dioxane, Aniline, and m-Cresol&quot;. Journal of Chemical and Engineering Data. 9 (1964): 442–443.</span>
         <span class="c1"># molnet = self.molnet</span>
         <span class="c1"># if self.molnet == 0: return 0</span>
@@ -720,19 +727,21 @@
     <span class="k">def</span> <span class="nf">copyflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stream</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">remove</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">exclude</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Copy flow rates of stream to self.</span>
 <span class="sd">        </span>
-<span class="sd">        **Parameters**</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        stream : Stream</span>
+<span class="sd">                 Flow rates will be copied from here.</span>
+<span class="sd">        species = None : iterable[str], defaults to all species.</span>
+<span class="sd">                         Species IDs. </span>
+<span class="sd">        remove = False : bool, optional</span>
+<span class="sd">                 If True, copied species will be removed from `stream`.</span>
+<span class="sd">        exclude = False : bool, optional</span>
+<span class="sd">                          If True, exclude `species` when copying.</span>
 <span class="sd">        </span>
-<span class="sd">            **stream:** [Stream] Flow rates will be copied from here.</span>
-<span class="sd">            </span>
-<span class="sd">            **species:** iterable[str] Species IDs. Defaults to all species.</span>
-<span class="sd">            </span>
-<span class="sd">            **remove:** [bool] If True, copied species will be removed from `stream`.</span>
-<span class="sd">            </span>
-<span class="sd">            **exclude:** [bool] If True, exclude `species` when copying.</span>
-<span class="sd">            </span>
-<span class="sd">        .. Note::</span>
-<span class="sd">            </span>
-<span class="sd">            Species flow rates that are not copied will be set to zero.</span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        </span>
+<span class="sd">        Species that are not included will be set to zero.</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_species</span> <span class="ow">is</span> <span class="n">stream</span><span class="o">.</span><span class="n">_species</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;species must be the same to &#39;</span>
@@ -778,9 +787,10 @@
     <span class="k">def</span> <span class="nf">disable_phases</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Cast stream into a Stream object.</span>
 <span class="sd">        </span>
-<span class="sd">        **Parameters**</span>
-<span class="sd">        </span>
-<span class="sd">            **phase:** {&#39;s&#39;, &#39;l&#39;, &#39;g&#39;} desired phase of stream</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        phase : {&#39;s&#39;, &#39;l&#39;, &#39;g&#39;}</span>
+<span class="sd">                Desired phase of stream.</span>
 <span class="sd">            </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span> <span class="o">=</span> <span class="n">Stream</span>
@@ -793,26 +803,21 @@
     <span class="k">def</span> <span class="nf">VLE</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;A callable VLE object for vapor-liquid equilibrium.</span>
 
-<span class="sd">        **Parameters**</span>
-<span class="sd">        </span>
-<span class="sd">            **Specify two:**</span>
-<span class="sd">                * **P:** [float] Operating pressure (Pa)</span>
-<span class="sd">                * **Q:** [float] Energy input (kJ/hr)</span>
-<span class="sd">                * **T:** [float] Operating temperature (K)</span>
-<span class="sd">                * **V:** [float] Molar vapor fraction</span>
-<span class="sd">                * **x:** [numpy array] Molar composition of liquid (for binary mixture)</span>
-<span class="sd">                * **y:** [numpy array] Molar composition of vapor (for binary mixture)</span>
-
-<span class="sd">            **Optional:**</span>
-<span class="sd">            </span>
-<span class="sd">                **species_IDs:** [tuple] IDs of species in equilibrium.</span>
-<span class="sd">                     </span>
-<span class="sd">                **LNK:** tuple[str] Light non-keys that remain as a vapor.</span>
-<span class="sd">        </span>
-<span class="sd">                **HNK:** tuple[str] Heavy non-keys that remain as a liquid.</span>
-
-<span class="sd">        .. Note:</span>
-<span class="sd">           LNK and HNK are not taken into account for equilibrium. Parameters not specified are None by default.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        Specify two:</span>
+<span class="sd">            * **P:** Operating pressure (Pa)</span>
+<span class="sd">            * **Q:** Energy input (kJ/hr)</span>
+<span class="sd">            * **T:** Operating temperature (K)</span>
+<span class="sd">            * **V:** Molar vapor fraction</span>
+<span class="sd">            * **x:** Molar composition of liquid (for binary mixture)</span>
+<span class="sd">            * **y:** Molar composition of vapor (for binary mixture)</span>
+<span class="sd">        species_IDs=None : tuple, optional</span>
+<span class="sd">            IDs of species in equilibrium.</span>
+<span class="sd">        LNK=None : tuple[str], optional</span>
+<span class="sd">            Light non-keys that remain as a vapor (disregards equilibrium).</span>
+<span class="sd">        LNK=None : tuple[str], optional</span>
+<span class="sd">            Heavy non-keys that remain as a liquid (disregards equilibrium).</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_VLE</span>
@@ -822,28 +827,26 @@
             <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">Q</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Perform LIQUID-liquid equilibrium.</span>
 
-<span class="sd">        **Optional Parameters**</span>
-
-<span class="sd">            **species_IDs:** *tuple[str]* IDs of equilibrium species</span>
-<span class="sd">            </span>
-<span class="sd">            **split:** *tuple[float]* Initial guess split fractions of each specie to the &#39;liquid&#39;</span>
-
-<span class="sd">            **lNK:** *tuple[str]* Species assumed to completely remain in the &#39;liquid&#39; phase.</span>
-
-<span class="sd">            **LNK:** *tuple[str]* Species assumed to completely remain in the &#39;LIQUID&#39; phase.</span>
-
-<span class="sd">            **solvents:** *tuple[str]* Species corresponding to specified solvent_split</span>
-
-<span class="sd">            **solvent_split:** *tuple[float]* Split fractions of each specie to the &#39;liquid&#39; phase.                </span>
-<span class="sd">            </span>
-<span class="sd">            **Q:** *[float]* Energy input (kJ/hr)</span>
-<span class="sd">            </span>
-<span class="sd">            **T:** *[float]* Operating temperature (K)</span>
-<span class="sd">            </span>
-<span class="sd">            **P:** *[float]* Operating pressure (Pa)    </span>
-
-<span class="sd">        .. Note:</span>
-<span class="sd">           lNK and LNK are not taken into account for equilibrium. Assumes constant pressure and temperatrue if none are provided.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        species_IDs=None : tuple[str], optional</span>
+<span class="sd">            IDs of equilibrium species</span>
+<span class="sd">        split=None : tuple[float], optional</span>
+<span class="sd">            Initial guess split fractions of each specie to the &#39;liquid&#39;</span>
+<span class="sd">        lNK=() : tuple[str], optional</span>
+<span class="sd">            Species assumed to completely remain in the &#39;liquid&#39; phase.</span>
+<span class="sd">        LNK=() : tuple[str], optional</span>
+<span class="sd">            Species assumed to completely remain in the &#39;LIQUID&#39; phase.</span>
+<span class="sd">        solvents=() : tuple[str], optional</span>
+<span class="sd">            Species corresponding to specified solvent_split</span>
+<span class="sd">        solvent_split=() : tuple[float], optional</span>
+<span class="sd">            Split fractions of each specie to the &#39;liquid&#39; phase.                </span>
+<span class="sd">        Q=0 : float, optional</span>
+<span class="sd">            Energy input (kJ/hr).</span>
+<span class="sd">        T=None : float, defaults to stream temperature</span>
+<span class="sd">            Operating temperature (K).</span>
+<span class="sd">        P=None : float, defaults to stream pressure</span>
+<span class="sd">            Operating pressure (Pa).</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1">### Set Up ###</span>

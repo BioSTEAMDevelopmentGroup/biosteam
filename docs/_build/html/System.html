@@ -91,17 +91,17 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="Getting started.html">1. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">3. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit operation examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units/notebooks/examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -114,11 +114,11 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="compounds.html">compounds</a></li>
-<li class="toctree-l1"><a class="reference internal" href="units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inspect.html">inspect</a></li>
 <li class="toctree-l1"><a class="reference internal" href="reaction.html">reaction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="evaluation.html">evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluation/evaluation.html">evaluation</a></li>
 </ul>
 
             
@@ -209,13 +209,30 @@
 <dt id="biosteam.System">
 <em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">System</code><span class="sig-paren">(</span><em>ID</em>, <em>network</em>, <em>recycle=None</em>, <em>facilities=()</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_system.html#System"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a System object that can iteratively run each element in a network of BioSTREAM objects until the recycle stream is converged. A network can have function, Unit and/or System objects. When the network contains an inner System object, it converges/solves it in each loop/iteration.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><p><strong>ID:</strong> [str] A unique identification. If ID is None, instance will not be registered in flowsheet.</p>
-<p><strong>network:</strong> tuple[Unit, function and/or System] A network that is run element by element until the recycle converges.</p>
-<p><strong>recycle:</strong> [Stream] A tear stream for the recycle loop.</p>
-<p><strong>facilities:</strong> tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the network simulation.</p>
-</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>ID</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">A unique identification. If ID is None, instance will not be
+registered in flowsheet.</p>
+</dd>
+<dt><strong>network</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple[Unit, function and/or System]</span></dt>
+<dd><p class="first last">A network that is run element by element until the recycle converges.</p>
+</dd>
+<dt><strong>recycle=None</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Stream, optional</span></dt>
+<dd><p class="first last">A tear stream for the recycle loop.</p>
+</dd>
+<dt><strong>facilities=()</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple[Unit, function, and/or System], optional</span></dt>
+<dd><p class="first last">Offsite facilities that are simulated only after
+completing the network simulation.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
 <dl class="attribute">
 <dt id="biosteam.System.maxiter">
 <code class="descname">maxiter</code><em class="property"> = 100</em><a class="headerlink" href="#biosteam.System.maxiter" title="Permalink to this definition">¶</a></dt>
@@ -262,11 +279,22 @@
 <dt id="biosteam.System.save_report">
 <code class="descname">save_report</code><span class="sig-paren">(</span><em>file='report.xlsx'</em>, <em>**stream_properties</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.System.save_report" title="Permalink to this definition">¶</a></dt>
 <dd><p>Save a system report as an xlsx file.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><p><strong>file:</strong> [str] File name to save report</p>
-<p><strong>**stream_properties:</strong> [str] Additional stream properties and units as key-value pairs (e.g. T=’degC’, flow=’gpm’, H=’kW’, etc..)</p>
-</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>file</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">File name to save report</p>
+</dd>
+<dt><strong>**stream_properties</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Additional stream properties and units as key-value pairs (e.g. T=’degC’, flow=’gpm’, H=’kW’, etc..)</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="attribute">
@@ -289,40 +317,59 @@
 
 <dl class="method">
 <dt id="biosteam.System.diagram">
-<code class="descname">diagram</code><span class="sig-paren">(</span><em>kind='surface'</em>, <em>file=None</em>, <em>format='svg'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_system.html#System.diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.diagram" title="Permalink to this definition">¶</a></dt>
+<code class="descname">diagram</code><span class="sig-paren">(</span><em>kind='surface'</em>, <em>file=None</em>, <em>format='png'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_system.html#System.diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.diagram" title="Permalink to this definition">¶</a></dt>
 <dd><p>Display a <a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz</a> diagram of the system.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><dl class="docutils">
-<dt><strong>kind:</strong> Must be one of the following:</dt>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>kind=’surface’</strong> <span class="classifier-delimiter">:</span> <span class="classifier">{‘thorough’, ‘surface’, ‘minimal’}:</span></dt>
 <dd><ul class="first last simple">
-<li><strong>‘thorough’:</strong> Thoroughly display every unit within the network</li>
-<li><strong>‘surface’:</strong> Display only surface elements listed in the network</li>
-<li><strong>‘minimal’:</strong> Minimally display the network as a box</li>
+<li><strong>‘thorough’:</strong> Display every unit within the network.</li>
+<li><strong>‘surface’:</strong> Display only elements listed in the network.</li>
+<li><strong>‘minimal’:</strong> Display network as a box.</li>
 </ul>
 </dd>
-<dt><strong>file:</strong> Must be one of the following:</dt>
-<dd><ul class="first last simple">
-<li>[str] File name to save diagram.</li>
-<li>[None] Display diagram in console.</li>
-</ul>
+<dt><strong>file=None</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, display in console by default</span></dt>
+<dd><p class="first last">File name to save diagram.</p>
+</dd>
+<dt><strong>format=’png’</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">File format (e.g. “png”, “svg”).</p>
 </dd>
 </dl>
-<p><strong>format:</strong> File format.</p>
-</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.System.set_spec">
 <code class="descname">set_spec</code><span class="sig-paren">(</span><em>getter</em>, <em>setter</em>, <em>solver=&lt;function newton&gt;</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_system.html#System.set_spec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.set_spec" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrap a solver around the converge method.</p>
-<p><strong>Parameters</strong></p>
-<blockquote>
-<div><p><strong>getter:</strong> [function] Returns objective value.</p>
-<p><strong>setter:</strong> [function] Changes independent variable.</p>
-<p><strong>solver:</strong> [function] Solves objective function.</p>
-<p><strong>kwargs:</strong> [dict] Key word arguments passed to solver.</p>
-</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>getter</strong> <span class="classifier-delimiter">:</span> <span class="classifier">function</span></dt>
+<dd><p class="first last">Returns objective value.</p>
+</dd>
+<dt><strong>setter</strong> <span class="classifier-delimiter">:</span> <span class="classifier">function</span></dt>
+<dd><p class="first last">Changes independent variable.</p>
+</dd>
+<dt><strong>solver=scipy.optimize.newton</strong> <span class="classifier-delimiter">:</span> <span class="classifier">function</span></dt>
+<dd><p class="first last">Solves objective function.</p>
+</dd>
+<dt><strong>**kwargs</strong></dt>
+<dd><p class="first last">Key word arguments passed to solver.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -346,7 +393,7 @@
 <dl class="method">
 <dt id="biosteam.System.debug">
 <code class="descname">debug</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_system.html#System.debug"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.debug" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convege in debug mode. Just try it!</p>
+<dd><p>Converge in debug mode. Just try it!</p>
 </dd></dl>
 
 <dl class="method">

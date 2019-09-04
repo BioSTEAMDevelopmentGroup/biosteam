@@ -91,17 +91,17 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="Getting started.html">1. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">3. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit operation examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units/notebooks/examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -114,11 +114,11 @@
 <li class="toctree-l1"><a class="reference internal" href="System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="compounds.html">compounds</a></li>
-<li class="toctree-l1"><a class="reference internal" href="units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inspect.html">inspect</a></li>
 <li class="toctree-l1"><a class="reference internal" href="reaction.html">reaction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="evaluation.html">evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluation/evaluation.html">evaluation</a></li>
 </ul>
 
             
@@ -208,12 +208,8 @@
 <dt id="biosteam.PowerUtility">
 <em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">PowerUtility</code><a class="reference internal" href="_modules/biosteam/_power_utility.html#PowerUtility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.PowerUtility" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create an PowerUtility object that, when called, calculates the cost of power (kW) and saves the power and cost.</p>
-<p><strong>Class Parameters</strong></p>
-<blockquote>
-<div><strong>price:</strong> ($/kW-hr)</div></blockquote>
-<p><strong>Examples</strong></p>
-<blockquote>
-<div><p>Create a PowerUtility object:</p>
+<p class="rubric">Examples</p>
+<p>Create a PowerUtility object:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">pu</span> <span class="o">=</span> <span class="n">PowerUtility</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pu</span>
 <span class="go">&lt;PowerUtility: 0 kW, 0 USD/hr&gt;</span>
@@ -230,7 +226,6 @@
 <span class="go">(500, 30.)</span>
 </pre></div>
 </div>
-</div></blockquote>
 <dl class="attribute">
 <dt id="biosteam.PowerUtility.display_units">
 <code class="descname">display_units</code><em class="property"> = DisplayUnits(rate='kW', cost='USD/hr')</em><a class="headerlink" href="#biosteam.PowerUtility.display_units" title="Permalink to this definition">¶</a></dt>
@@ -240,7 +235,19 @@
 <dl class="attribute">
 <dt id="biosteam.PowerUtility.price">
 <code class="descname">price</code><em class="property"> = 0.0782</em><a class="headerlink" href="#biosteam.PowerUtility.price" title="Permalink to this definition">¶</a></dt>
-<dd><p>USD/kWhr</p>
+<dd><p>[float] USD/kWhr</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.PowerUtility.rate">
+<code class="descname">rate</code><a class="headerlink" href="#biosteam.PowerUtility.rate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Power requirement (kW)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.PowerUtility.cost">
+<code class="descname">cost</code><a class="headerlink" href="#biosteam.PowerUtility.cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cost (USD/hr)</p>
 </dd></dl>
 
 </dd></dl>

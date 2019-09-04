@@ -15,7 +15,7 @@
 import os
 import sys
 
-new_path = ['..\\', '..\\LipidCane']
+new_path = ['..\\']
 for p in new_path:
      sys.path.insert(0, os.path.abspath(p))
 
@@ -52,7 +52,11 @@ extensions = [
     'sphinx.ext.imgmath',
     'sphinx.ext.ifconfig',
     'sphinx.ext.autosummary',
+	'numpydoc',
     'nbsphinx']
+
+# Do not show all members of the class
+numpydoc_show_class_members = False
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

@@ -89,17 +89,17 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../Getting started.html">1. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Creating a Unit.html">3. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit operation examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -112,11 +112,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../compounds.html">compounds</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../inspect.html">inspect</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../reaction.html">reaction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../evaluation.html">evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 
             
@@ -198,47 +198,49 @@
 <span class="c1"># %% Integrals methods</span>
 
 <span class="c1"># Methods taking the integral of a function</span>
-<span class="k">def</span> <span class="nf">_func_int_rigorous</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">Xi</span><span class="p">,</span> <span class="n">Xf</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_integral_rigorous</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">Xi</span><span class="p">,</span> <span class="n">Xf</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Take the full integral.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">integrate</span><span class="o">.</span><span class="n">quad</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">Xi</span><span class="p">,</span> <span class="n">Xf</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
-<span class="k">def</span> <span class="nf">_func_int_initial</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">Xi</span><span class="p">,</span> <span class="n">Xf</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_integral_initial</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">Xi</span><span class="p">,</span> <span class="n">Xf</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Take the integral with a constant derivative at the initial value.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="n">Xf</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">Xf</span><span class="o">-</span><span class="n">Xi</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">_func_int_final</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">Xi</span><span class="p">,</span> <span class="n">Xf</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_integral_final</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">Xi</span><span class="p">,</span> <span class="n">Xf</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Take the integral with a constant derivative at the final value.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="n">Xf</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">Xf</span><span class="o">-</span><span class="n">Xi</span><span class="p">)</span>
 
-<span class="k">def</span> <span class="nf">_func_int_average</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">Xi</span><span class="p">,</span> <span class="n">Xf</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_integral_average</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">Xi</span><span class="p">,</span> <span class="n">Xf</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Take the integral with a constant derivative at the average value.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">func</span><span class="p">((</span><span class="n">Xi</span><span class="o">+</span><span class="n">Xf</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">Xf</span><span class="o">-</span><span class="n">Xi</span><span class="p">)</span>
 
 
 <span class="c1"># %% Compound class</span>
 
-<div class="viewcode-block" id="Compound"><a class="viewcode-back" href="../../../Compound.html#biosteam.compounds.Compound">[docs]</a><span class="k">class</span> <span class="nc">Compound</span><span class="p">:</span>
+<div class="viewcode-block" id="Compound"><a class="viewcode-back" href="../../../compounds/Compound.html#biosteam.compounds.Compound">[docs]</a><span class="k">class</span> <span class="nc">Compound</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Abstract class, Compound, for making objects that contain pure component thermodynamic and transport properties. The enthalpy property, H, ignores excess ethalpies and calculates based on latent heats and the heat capacity at a constant pressure of 101325 Pa. It is suitable for solids and liquids which are weak functions of pressure</span>
 
-<span class="sd">    **Parameters**</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    IDs : str</span>
+<span class="sd">          A unique identification</span>
+<span class="sd">    T=298.15 : float</span>
+<span class="sd">        Temperature (K)</span>
+<span class="sd">    P=101325 : float</span>
+<span class="sd">        Pressure (Pa)</span>
+<span class="sd">    phase=&#39;l&#39; : {&#39;s&#39;, &#39;l&#39;, &#39;g&#39;}</span>
+<span class="sd">        Solid, liquid or gas.</span>
 
-<span class="sd">         **IDs:** [str] A unique identification</span>
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    </span>
+<span class="sd">    phase_ref=&#39;l&#39;: Reference phase</span>
 
-<span class="sd">         **T:** [float] Temperature (K)</span>
+<span class="sd">    H_ref=0: Reference enthalpy (kJ/hr)</span>
 
-<span class="sd">         **P:** [float] Pressure (Pa)</span>
-
-<span class="sd">         **phase:** [str] &#39;l&#39;(iquid) or &#39;g&#39;(as)           </span>
-
-<span class="sd">    **Class Attributes**</span>
-
-<span class="sd">         **phase_ref** = &#39;l&#39;: Reference phase</span>
-
-<span class="sd">         **H_ref** = 0: Reference enthalpy (kJ/hr)</span>
-
-<span class="sd">         **T_ref** = 298.15: Reference temperature (K)</span>
+<span class="sd">    T_ref=298.15: Reference temperature (K)</span>
 <span class="sd">         </span>
-<span class="sd">         **P_ref** = 101325: Reference pressure (Pa)</span>
+<span class="sd">    P_ref=101325: Reference pressure (Pa)</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1">#: [DisplayUnits] Units of measure for IPython display</span>
@@ -273,14 +275,15 @@
     <span class="n">MW</span> <span class="o">=</span> <span class="mi">1</span>          <span class="c1"># Arbitrary molecular weight (g/mol)</span>
 
     <span class="c1">#: Method for taking the integral of Cp</span>
-    <span class="n">_func_integral</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">_func_int_average</span><span class="p">)</span>
+    <span class="n">_integral</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">_integral_average</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Compound.quantity"><a class="viewcode-back" href="../../../Compound.html#biosteam.compounds.Compound.quantity">[docs]</a>    <span class="k">def</span> <span class="nf">quantity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">):</span>
+<div class="viewcode-block" id="Compound.quantity"><a class="viewcode-back" href="../../../compounds/Compound.html#biosteam.compounds.Compound.quantity">[docs]</a>    <span class="k">def</span> <span class="nf">quantity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return a material property as a Quantity object as described in the `pint package &lt;https://pint.readthedocs.io/en/latest/&gt;`__ </span>
 
-<span class="sd">        **Parameters**</span>
-
-<span class="sd">             **prop_ID:** *[str]* name of the property (e.g. &#39;mol&#39;, &#39;H&#39;, &#39;k&#39; ...)</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        prop_ID : str</span>
+<span class="sd">            Name of the property (e.g. &#39;mol&#39;, &#39;H&#39;, &#39;k&#39; ...)</span>
 <span class="sd">             </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">_Q</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_ID</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span><span class="p">[</span><span class="n">prop_ID</span><span class="p">])</span></div>
@@ -313,46 +316,42 @@
     <span class="k">def</span> <span class="nf">H</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Enthapy (kJ/kmol) disregarding pressure and assuming the specified phase.&quot;&quot;&quot;</span>
         <span class="n">phase_ref</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_ref</span>
-        <span class="n">H</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H_ref</span>
-        <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span>
         <span class="n">phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase</span>
-        <span class="n">obj_dct</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;s&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">HeatCapacitySolid</span><span class="p">,</span>
-                   <span class="s1">&#39;l&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">HeatCapacityLiquid</span><span class="p">,</span>
-                   <span class="s1">&#39;g&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">HeatCapacityGas</span><span class="p">}</span>
 
         <span class="c1"># Perform enthalpy calculations at 101325 Pa</span>
         <span class="k">if</span> <span class="n">phase_ref</span> <span class="o">==</span> <span class="n">phase</span><span class="p">:</span>
-            <span class="n">H</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_func_integral</span><span class="p">(</span><span class="n">obj_dct</span><span class="p">[</span><span class="n">phase</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">T_ref</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">phase</span> <span class="o">==</span> <span class="s1">&#39;l&#39;</span><span class="p">:</span>
+                <span class="n">H</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_integral</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">HeatCapacityLiquid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T_ref</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">phase</span> <span class="o">==</span> <span class="s1">&#39;g&#39;</span><span class="p">:</span>
+                <span class="n">H</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_integral</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">HeatCapacityGas</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T_ref</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">phase</span> <span class="o">==</span> <span class="s1">&#39;s&#39;</span><span class="p">:</span>
+                <span class="n">H</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_integral</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">HeatCapacitySolid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T_ref</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">phase_ref</span> <span class="o">==</span> <span class="s1">&#39;l&#39;</span> <span class="ow">and</span> <span class="n">phase</span> <span class="o">==</span> <span class="s1">&#39;g&#39;</span><span class="p">:</span>
-            <span class="n">H</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H_int_l_T_ref_l_to_Tb</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Hvap_Tbm</span> <span class="o">+</span> \
-                <span class="bp">self</span><span class="o">.</span><span class="n">_func_integral</span><span class="p">(</span><span class="n">obj_dct</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">Tb</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">phase_ref</span> <span class="o">==</span> <span class="s1">&#39;s&#39;</span> <span class="ow">and</span> <span class="n">phase</span> <span class="o">==</span> <span class="s1">&#39;l&#39;</span><span class="p">:</span>
-            <span class="n">H</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H_int_T_ref_s_to_Tm</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Hfusm</span> <span class="o">+</span> \
-                <span class="bp">self</span><span class="o">.</span><span class="n">_func_integral</span><span class="p">(</span><span class="n">obj_dct</span><span class="p">[</span><span class="s1">&#39;l&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">Tm</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">phase_ref</span> <span class="o">==</span> <span class="s1">&#39;l&#39;</span> <span class="ow">and</span> <span class="n">phase</span> <span class="o">==</span> <span class="s1">&#39;s&#39;</span><span class="p">:</span>
-            <span class="n">H</span> <span class="o">+=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">H_int_l_Tm_to_T_ref_l</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Hfusm</span> <span class="o">+</span> \
-                <span class="bp">self</span><span class="o">.</span><span class="n">_func_integral</span><span class="p">(</span><span class="n">obj_dct</span><span class="p">[</span><span class="s1">&#39;s&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">Tm</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+            <span class="n">H</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H_int_l_T_ref_l_to_Tb</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Hvap_Tbm</span> <span class="o">+</span> \
+                <span class="bp">self</span><span class="o">.</span><span class="n">_integral</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">HeatCapacityGas</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Tb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">phase_ref</span> <span class="o">==</span> <span class="s1">&#39;g&#39;</span> <span class="ow">and</span> <span class="n">phase</span> <span class="o">==</span> <span class="s1">&#39;l&#39;</span><span class="p">:</span>
-            <span class="n">H</span> <span class="o">+=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">H_int_Tb_to_T_ref_g</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Hvap_Tbm</span> <span class="o">+</span> \
-                <span class="bp">self</span><span class="o">.</span><span class="n">_func_integral</span><span class="p">(</span><span class="n">obj_dct</span><span class="p">[</span><span class="s1">&#39;l&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">Tb</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+            <span class="n">H</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">H_int_Tb_to_T_ref_g</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Hvap_Tbm</span> <span class="o">+</span> \
+                <span class="bp">self</span><span class="o">.</span><span class="n">_integral</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">HeatCapacityLiquid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Tb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">phase_ref</span> <span class="o">==</span> <span class="s1">&#39;s&#39;</span> <span class="ow">and</span> <span class="n">phase</span> <span class="o">==</span> <span class="s1">&#39;l&#39;</span><span class="p">:</span>
+            <span class="n">H</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H_int_T_ref_s_to_Tm</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Hfusm</span> <span class="o">+</span> \
+                <span class="bp">self</span><span class="o">.</span><span class="n">_integral</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">HeatCapacityLiquid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Tm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">phase_ref</span> <span class="o">==</span> <span class="s1">&#39;l&#39;</span> <span class="ow">and</span> <span class="n">phase</span> <span class="o">==</span> <span class="s1">&#39;s&#39;</span><span class="p">:</span>
+            <span class="n">H</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">H_int_l_Tm_to_T_ref_l</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Hfusm</span> <span class="o">+</span> \
+                <span class="bp">self</span><span class="o">.</span><span class="n">_integral</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">HeatCapacitySolid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Tm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">phase_ref</span> <span class="o">==</span> <span class="s1">&#39;s&#39;</span> <span class="ow">and</span> <span class="n">phase</span> <span class="o">==</span> <span class="s1">&#39;g&#39;</span><span class="p">:</span>
-            <span class="n">H</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H_int_T_ref_s_to_Tm</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Hfusm</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">H_int_l_Tm_to_Tb</span> <span class="o">+</span> \
-                <span class="bp">self</span><span class="o">.</span><span class="n">Hvap_Tbm</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_func_integral</span><span class="p">(</span><span class="n">obj_dct</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">Tb</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+            <span class="n">H</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">H_int_T_ref_s_to_Tm</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Hfusm</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">H_int_l_Tm_to_Tb</span> <span class="o">+</span> \
+                <span class="bp">self</span><span class="o">.</span><span class="n">Hvap_Tbm</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_integral</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">HeatCapacityGas</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Tb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">phase_ref</span> <span class="o">==</span> <span class="s1">&#39;g&#39;</span> <span class="ow">and</span> <span class="n">phase</span> <span class="o">==</span> <span class="s1">&#39;s&#39;</span><span class="p">:</span>
-            <span class="n">H</span> <span class="o">+=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">H_int_Tb_to_T_ref_g</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Hvap_Tbm</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">H_int_l_Tm_to_Tb</span> <span class="o">-</span> \
-                <span class="bp">self</span><span class="o">.</span><span class="n">Hfusm</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_func_integral</span><span class="p">(</span><span class="n">obj_dct</span><span class="p">[</span><span class="s1">&#39;s&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">Tm</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">H</span>
+            <span class="n">H</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">H_int_Tb_to_T_ref_g</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Hvap_Tbm</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">H_int_l_Tm_to_Tb</span> <span class="o">-</span> \
+                <span class="bp">self</span><span class="o">.</span><span class="n">Hfusm</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_integral</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">HeatCapacitySolid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Tm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">H_ref</span> <span class="o">+</span> <span class="n">H</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">S</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Entropy (kJ/kmol) assuming the specified phase.&quot;&quot;&quot;</span>
         <span class="n">S</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">S_ref</span>
-        <span class="n">T</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span>
         <span class="n">phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase</span>
         <span class="n">phase_ref</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_ref</span>
-        <span class="n">func_dct</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;s&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delSs_delT</span><span class="p">,</span>
-                    <span class="s1">&#39;l&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delSl_delT</span><span class="p">,</span>
-                    <span class="s1">&#39;g&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delSg_delT</span><span class="p">}</span>
 
         <span class="c1"># Add Pressure Entropy</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase</span> <span class="o">==</span> <span class="s1">&#39;g&#39;</span><span class="p">:</span>
@@ -360,44 +359,50 @@
 
         <span class="c1"># Add Temperature Entropy</span>
         <span class="k">if</span> <span class="n">phase</span> <span class="o">==</span> <span class="n">phase_ref</span><span class="p">:</span>
-            <span class="n">S</span> <span class="o">+=</span> <span class="n">func_dct</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">T_ref</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">phase</span> <span class="o">==</span> <span class="s1">&#39;l&#39;</span><span class="p">:</span>
+                <span class="n">S</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delSl_delT</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T_ref</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">phase</span> <span class="o">==</span> <span class="s1">&#39;g&#39;</span><span class="p">:</span>
+                <span class="n">S</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delSg_delT</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T_ref</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">phase</span> <span class="o">==</span> <span class="s1">&#39;s&#39;</span><span class="p">:</span>
+                <span class="n">S</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delSs_delT</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T_ref</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">phase_ref</span> <span class="o">==</span> <span class="s1">&#39;l&#39;</span> <span class="ow">and</span> <span class="n">phase</span> <span class="o">==</span> <span class="s1">&#39;g&#39;</span><span class="p">:</span>
             <span class="n">S</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">S_int_l_T_ref_l_to_Tb</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Hvap_Tbm</span> <span class="o">/</span> \
-                <span class="bp">self</span><span class="o">.</span><span class="n">Tb</span> <span class="o">+</span> <span class="n">func_dct</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">Tb</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Tb</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delSg_delT</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Tb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">phase_ref</span> <span class="o">==</span> <span class="s1">&#39;g&#39;</span> <span class="ow">and</span> <span class="n">phase</span> <span class="o">==</span> <span class="s1">&#39;l&#39;</span><span class="p">:</span>
             <span class="n">S</span> <span class="o">+=</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">S_int_Tb_to_T_ref_g</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Hvapm</span> <span class="o">/</span> \
-                <span class="bp">self</span><span class="o">.</span><span class="n">Tb</span> <span class="o">+</span> <span class="n">func_dct</span><span class="p">[</span><span class="s1">&#39;l&#39;</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">Tb</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Tb</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delSl_delT</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Tb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">phase_ref</span> <span class="o">==</span> <span class="s1">&#39;s&#39;</span> <span class="ow">and</span> <span class="n">phase</span> <span class="o">==</span> <span class="s1">&#39;l&#39;</span><span class="p">:</span>
             <span class="n">S</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">S_int_T_ref_s_to_Tm</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Hfusm</span> <span class="o">/</span> \
-                <span class="bp">self</span><span class="o">.</span><span class="n">Tm</span> <span class="o">+</span> <span class="n">func_dct</span><span class="p">[</span><span class="s1">&#39;l&#39;</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">Tm</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Tm</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delSl_delT</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Tm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_ref</span> <span class="o">==</span> <span class="s1">&#39;l&#39;</span> <span class="ow">and</span> <span class="n">phase</span> <span class="o">==</span> <span class="s1">&#39;s&#39;</span><span class="p">:</span>
             <span class="n">S</span> <span class="o">+=</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">S_int_l_Tm_to_T_ref_l</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Hfusm</span> <span class="o">/</span> \
-                <span class="bp">self</span><span class="o">.</span><span class="n">Tm</span> <span class="o">+</span> <span class="n">func_dct</span><span class="p">[</span><span class="s1">&#39;s&#39;</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">Tm</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Tm</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delSs_delT</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Tm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">phase_ref</span> <span class="o">==</span> <span class="s1">&#39;s&#39;</span> <span class="ow">and</span> <span class="n">phase</span> <span class="o">==</span> <span class="s1">&#39;g&#39;</span><span class="p">:</span>
             <span class="n">S</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">S_int_T_ref_s_to_Tm</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Hfusm</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Tm</span> <span class="o">+</span> \
                 <span class="bp">self</span><span class="o">.</span><span class="n">S_int_l_Tm_to_Tb</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">Hvap_Tbm</span> <span class="o">/</span> \
-                <span class="bp">self</span><span class="o">.</span><span class="n">Tb</span> <span class="o">+</span> <span class="n">func_dct</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">Tb</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Tb</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delSg_delT</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Tb</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">phase_ref</span> <span class="o">==</span> <span class="s1">&#39;g&#39;</span> <span class="ow">and</span> <span class="n">phase</span> <span class="o">==</span> <span class="s1">&#39;s&#39;</span><span class="p">:</span>
             <span class="n">S</span> <span class="o">+=</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">S_int_Tb_to_T_ref_g</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Hvap_Tbm</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">Tb</span> <span class="o">-</span> \
                 <span class="bp">self</span><span class="o">.</span><span class="n">S_int_l_Tm_to_Tb</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Hfusm</span> <span class="o">/</span> \
-                <span class="bp">self</span><span class="o">.</span><span class="n">Tm</span> <span class="o">+</span> <span class="n">func_dct</span><span class="p">[</span><span class="s1">&#39;s&#39;</span><span class="p">](</span><span class="bp">self</span><span class="o">.</span><span class="n">Tm</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Tm</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delSs_delT</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Tm</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Error in Compound object &quot;</span><span class="si">{self.ID}</span><span class="s1">&quot; with phase &quot;</span><span class="si">{phase}</span><span class="s1">&quot; and reference &quot;</span><span class="si">{phase_ref}</span><span class="s1">.&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">S</span>
     
     <span class="c1">### Class factory ###</span>
 
-<div class="viewcode-block" id="Compound.Factory"><a class="viewcode-back" href="../../../Compound.html#biosteam.compounds.Compound.Factory">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Compound.Factory"><a class="viewcode-back" href="../../../compounds/Compound.html#biosteam.compounds.Compound.Factory">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">Factory</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">const_prop_molar_dct</span><span class="o">=</span><span class="p">{},</span> <span class="n">state_dep_prop_molar_dct</span><span class="o">=</span><span class="p">{}):</span>
         <span class="sd">&quot;&quot;&quot;Make new child class with constant and temperature dependent properties.</span>
 
-<span class="sd">        **Parameters**</span>
-
-<span class="sd">             **ID:** *[str]* ID of new Compound object</span>
-
-<span class="sd">             **const_prop_molar_dct:** *[dict]* constant properties to set to new object</span>
-
-<span class="sd">             **state_dep_prop_molar_dct:** *[dict]* methods that will turn into Python properties for the new object</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ID : str</span>
+<span class="sd">            ID of new Compound object</span>
+<span class="sd">        const_prop_molar_dct : dict</span>
+<span class="sd">            Constant properties to set to new object</span>
+<span class="sd">        state_dep_prop_molar_dct : dict</span>
+<span class="sd">            Methods that will turn into Python properties for the new object</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">child</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="p">(</span><span class="bp">cls</span><span class="p">,),</span> <span class="p">{})</span>
@@ -442,7 +447,7 @@
         
         <span class="k">return</span> <span class="n">child</span></div>
 
-<div class="viewcode-block" id="Compound.set_integral_type"><a class="viewcode-back" href="../../../Compound.html#biosteam.compounds.Compound.set_integral_type">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Compound.set_integral_type"><a class="viewcode-back" href="../../../compounds/Compound.html#biosteam.compounds.Compound.set_integral_type">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">set_integral_type</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">integral_type</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Change the enthalpy and entropy property calculator to different levels of rigour.</span>
 
@@ -454,13 +459,13 @@
 <span class="sd">                      * &#39;constant&#39;: Compute integral using current function value</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">integral_type</span> <span class="o">==</span> <span class="s1">&#39;rigorous&#39;</span><span class="p">:</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">_func_integral</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">_func_int_rigorous</span><span class="p">)</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_integral</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">_integral_rigorous</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">integral_type</span> <span class="o">==</span> <span class="s1">&#39;average&#39;</span><span class="p">:</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">_func_integral</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">_func_int_average</span><span class="p">)</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_integral</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">_integral_average</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">integral_type</span> <span class="o">==</span> <span class="s1">&#39;final&#39;</span><span class="p">:</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">_func_integral</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">_func_int_final</span><span class="p">)</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_integral</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">_integral_final</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">integral_type</span> <span class="o">==</span> <span class="s1">&#39;initial&#39;</span><span class="p">:</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="n">_func_integral</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">_func_int_final</span><span class="p">)</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_integral</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="n">_integral_final</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Must pass one of the following types of Cp integration: &#39;rigorous&#39;, &#39;average&#39;, &#39;initial&#39;, or &#39;final&#39;&quot;</span><span class="p">)</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_integral_type</span> <span class="o">=</span> <span class="n">integral_type</span></div>
@@ -486,7 +491,7 @@
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span>
 
-<div class="viewcode-block" id="Compound.show"><a class="viewcode-back" href="../../../Compound.html#biosteam.compounds.Compound.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Compound.show"><a class="viewcode-back" href="../../../compounds/Compound.html#biosteam.compounds.Compound.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;print information on self&quot;&quot;&quot;</span>
         <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">))</span></div>
     <span class="n">_ipython_display_</span> <span class="o">=</span> <span class="n">show</span>

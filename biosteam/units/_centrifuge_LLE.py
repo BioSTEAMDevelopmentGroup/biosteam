@@ -26,33 +26,31 @@ class Centrifuge_LLE(Unit):
 
     :math:`C_{fob}^{2007} = 28100 Q^{0.574} (0.1 < Q < 100 \frac{m^3}{h})` 
 
-    **Parameters**
-
-        **species_IDs:** *tuple[str]* IDs of equilibrium species
-    
-        **split:** *tuple[float]* Initial guess split fractions of equilibrium specise to the 'liquid' phase.
-    
-        **lNK:** *tuple[str]* Species assumed to completely remain in the 'liquid' phase.
-    
-        **LNK:** *tuple[str]* Species assumed to completely remain in the 'LIQUID' phase.
-    
-        **solvents:** *tuple[str]* Species corresponding to specified solvent_split.
-    
-        **solvent_split:** *tuple[float]* Split fractions of each specie to the 'liquid' phase.
-         
-    **ins**
-    
+    Parameters
+    ----------
+    ins
         [0] Input stream
         
-    **outs**
-    
+    outs
         [0] 'liquid' phase stream
         
         [1] 'LIQUID' phase stream
+    species_IDs=None : tuple[str], optional
+        IDs of equilibrium species
+    split=None : tuple[float], optional
+        Initial guess split fractions of each specie to the 'liquid'
+    lNK=() : tuple[str], optional
+        Species assumed to completely remain in the 'liquid' phase.
+    LNK=() : tuple[str], optional
+        Species assumed to completely remain in the 'LIQUID' phase.
+    solvents=() : tuple[str], optional
+        Species corresponding to specified solvent_split
+    solvent_split=() : tuple[float], optional
+        Split fractions of each specie to the 'liquid' phase.                
     
     **Examples**
     
-        :doc:`Centrifuge_LLE Example`
+        :doc:`notebooks/Centrifuge_LLE Example`
     
     """
     line = 'Liquids Centrifuge'

@@ -29,11 +29,10 @@ def _stream_key(s):
 def _save(tables, writer, sheet_name='Sheet1', n_row=1):
     """Save a list of tables as an excel file.
     
-    **Parameters**
-    
-        **tables:** iterable[DataFrame]
-        
-        **writer:** [ExcelWritter]
+    Parameters
+    ----------
+    tables : iterable[DataFrame]
+    writer : ExcelWritter
         
     """
     for t in tables:
@@ -49,11 +48,13 @@ def _save(tables, writer, sheet_name='Sheet1', n_row=1):
 def save_report(system, file='report.xlsx', **stream_properties):
     """Save a system report as an xlsx file.
     
-    **Parameters**
+    Parameters
+    ----------
+    file : str
+        File name to save report
     
-        **file:** [str] File name to save report
-    
-        ****stream_properties:** [str] Additional stream properties and units as key-value pairs (e.g. T='degC', flow='gpm', H='kW', etc..)
+    **stream_properties : str
+        Additional stream properties and units as key-value pairs (e.g. T='degC', flow='gpm', H='kW', etc..)
         
     """
     writer = ExcelWriter(file)
@@ -110,13 +111,13 @@ save_system_results = save_report
 def results_table(units):
     """Return a list of results tables for each unit type.
 
-    **Parameters**
-
-        **units:** iterable[Unit]
+    Parameters
+    ----------
+    units : iterable[Unit]
         
-    **Returns:**
-    
-        **tables:** list[DataFrame]
+    Returns
+    -------
+    tables : list[DataFrame]
     
     """
     units.sort(key=(lambda u: u.line))
@@ -144,13 +145,13 @@ def results_table(units):
 def cost_table(system):
     """Return a cost table as a pandas DataFrame object.
 
-    **Parameters**:
-
-        **units:** array_like[Unit]
-         
-    **Returns**
-    
-        **cost_table:** [DataFrame] 
+    Parameters
+    ----------
+    units : iterable[Unit]
+        
+    Returns
+    -------
+    costtable : DataFrame
 
     """
     columns = ('Unit operation',
@@ -192,13 +193,13 @@ def cost_table(system):
 def heat_utilities_table(units):
     """Return a list of utility tables for each heat utility source.
     
-    **Parameters**
-    
-        **units:** iterable[units]
+    Parameters
+    ----------
+    units : iterable[Unit]
         
-    **Returns**
-    
-        **tables:** list[DataFrame]
+    Returns
+    -------
+    tables : list[DataFrame]
         
     """
     # Sort heat utilities by unit type, then by utility Type
@@ -257,13 +258,15 @@ def power_utilities_table(units):
 def stream_table(streams, flow='kg/min', **props) -> 'DataFrame':
     """Return a stream table as a pandas DataFrame object.
 
-    **Parameters**:
+    Parameters
 
-         **streams:** array_like[Stream]
+    streams : array_like[Stream]
         
-         **Flow:** [str] Units for flow rate
+    flow : str
+        Units for flow rate
 
-         **props:** [str] Additional stream properties and units as key-value pairs
+    props : str
+        Additional stream properties and units as key-value pairs
     
     """
     # Get correct flow attributes

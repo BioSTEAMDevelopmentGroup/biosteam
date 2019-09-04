@@ -44,7 +44,7 @@
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="compounds" href="compounds.html" />
+    <link rel="next" title="compounds" href="compounds/compounds.html" />
     <link rel="prev" title="TEA" href="TEA.html" /> 
 </head>
 
@@ -91,17 +91,17 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="Getting started.html">1. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">3. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit operation examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units/notebooks/examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -114,11 +114,11 @@
 <li class="toctree-l1"><a class="reference internal" href="System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="TEA.html">TEA</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="compounds.html">compounds</a></li>
-<li class="toctree-l1"><a class="reference internal" href="units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="inspect.html">inspect</a></li>
 <li class="toctree-l1"><a class="reference internal" href="reaction.html">reaction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="evaluation.html">evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluation/evaluation.html">evaluation</a></li>
 </ul>
 
             
@@ -205,7 +205,7 @@
 <div class="section" id="find">
 <h1>find<a class="headerlink" href="#find" title="Permalink to this headline">¶</a></h1>
 <p>As BioSTEAM objects are created, they are automatically registered. The <cite>find</cite> object allows the user to find any Unit, Stream or System instance.  When <cite>find</cite> is called, it simply looks up the item and returns it.</p>
-<p><a class="reference internal" href="Find unit operations and manage flowsheets.html"><span class="doc">Find unit operations and manage flowsheets</span></a></p>
+<p><a class="reference internal" href="tutorial/Find unit operations and manage flowsheets.html"><span class="doc">Find unit operations and manage flowsheets</span></a></p>
 <span class="target" id="module-biosteam"></span><dl class="class">
 <dt id="biosteam.Flowsheet">
 <em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Flowsheet</code><span class="sig-paren">(</span><em>ID</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_flowsheet.html#Flowsheet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Flowsheet" title="Permalink to this definition">¶</a></dt>
@@ -238,8 +238,12 @@
 <dt id="biosteam.Flowsheet.diagram">
 <code class="descname">diagram</code><span class="sig-paren">(</span><em>kind='surface'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_flowsheet.html#Flowsheet.diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Flowsheet.diagram" title="Permalink to this definition">¶</a></dt>
 <dd><p>Display all units and attached streams.</p>
-<dl class="docutils">
-<dt><strong>kind:</strong> Must be one of the following:</dt>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>kind=’surface’</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Must be one of the following</span></dt>
 <dd><ul class="first last simple">
 <li><strong>‘thorough’:</strong> Thoroughly display every unit.</li>
 <li><strong>‘surface’:</strong> Display units and recycle systems.</li>
@@ -247,6 +251,10 @@
 </ul>
 </dd>
 </dl>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
@@ -261,7 +269,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="compounds.html" class="btn btn-neutral float-right" title="compounds" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="compounds/compounds.html" class="btn btn-neutral float-right" title="compounds" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="TEA.html" class="btn btn-neutral float-left" title="TEA" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

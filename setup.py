@@ -27,8 +27,18 @@ setup(
     package_data=
         {'biosteam': ['_equilibrium/*', 'inspect/*', 'price/*', '_report/*',
                       'my_units_defs.txt', '_utils/*', 'units/*', 'evaluation/*', 
-                      'compounds/*', 'units/designtools/*',
-                      'units/facilities/*', 'units/decorators/*', 'reaction/*'], },
+                      'compounds/*', 'units/designtools/*', 'biorefineries/*',
+					  'units/facilities/*', 'units/decorators/*', 'reaction/*'
+					  'biorefineries/lipidcane/*', 
+					  'biorefineries/lipidcane/utils', 
+					  'biorefineries/lipidcane/species',
+					  'biorefineries/lipidcane/species/tripalmitin_liquid.xlsx', 
+					  'biorefineries/lipidcane/system', 
+					  'biorefineries/sugarcane/*',
+					  'biorefineries/cornstover/*', '
+					  'biorefineries/cornstover/_humbird2011.xlsx',
+					  'biorefineries/cornstover/montecarlo',
+                      ], },
     platforms=['Windows', 'Mac', 'Linux'],
     author_email='yoelcortes@gmail.com',
     url='https://github.com/yoelcortes/biosteam',

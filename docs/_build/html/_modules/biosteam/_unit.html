@@ -89,17 +89,17 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../Getting started.html">1. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Creating a Unit.html">3. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Unit operation examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../units/notebooks/examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -112,11 +112,11 @@
 <li class="toctree-l1"><a class="reference internal" href="../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../TEA.html">TEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Flowsheet.html">find</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../compounds.html">compounds</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../units.html">units</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../units/units.html">units</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../inspect.html">inspect</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../reaction.html">reaction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../evaluation.html">evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../evaluation/evaluation.html">evaluation</a></li>
 </ul>
 
             
@@ -249,7 +249,7 @@
     
 <span class="k">class</span> <span class="nc">unit</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Unit metaclass for keeping track for Unit lines and graphics.&quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">,</span> <span class="n">isabstract</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">unitdoc</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">,</span> <span class="n">isabstract</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="c1"># Make new Unit class</span>
         <span class="bp">cls</span> <span class="o">=</span> <span class="nb">type</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="n">mcl</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">dct</span><span class="p">)</span>
         
@@ -259,7 +259,7 @@
         <span class="c1"># Set line</span>
         <span class="c1"># default_line constitutes a new Unit class</span>
         <span class="n">line</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">line</span>
-        <span class="k">if</span> <span class="n">line</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;Unit&#39;</span><span class="p">,</span> <span class="s1">&#39;Mixer&#39;</span><span class="p">,</span> <span class="s1">&#39;Static&#39;</span><span class="p">,</span> <span class="s1">&#39;Splitter&#39;</span><span class="p">,</span> <span class="s1">&#39;Solids separator&#39;</span><span class="p">,</span> <span class="s1">&#39;Facility&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">line</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;Mixer&#39;</span><span class="p">,</span> <span class="s1">&#39;Static&#39;</span><span class="p">,</span> <span class="s1">&#39;Splitter&#39;</span><span class="p">,</span> <span class="s1">&#39;Solids separator&#39;</span><span class="p">,</span> <span class="s1">&#39;Facility&#39;</span><span class="p">):</span>
             <span class="n">line</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span>
             <span class="c1"># Set new graphics object for new line</span>
             <span class="k">if</span> <span class="s1">&#39;_graphics&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dct</span><span class="p">:</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_graphics</span> <span class="o">=</span> <span class="n">Graphics</span><span class="o">.</span><span class="n">box</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_N_ins</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_N_outs</span><span class="p">)</span>
@@ -268,16 +268,6 @@
             <span class="bp">cls</span><span class="o">.</span><span class="n">_graphics</span> <span class="o">=</span> <span class="n">Graphics</span><span class="o">.</span><span class="n">box</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_N_ins</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_N_outs</span><span class="p">)</span>
         
         <span class="bp">cls</span><span class="o">.</span><span class="n">line</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\B([A-Z])&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot; \1&quot;</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span>
-        
-        <span class="k">if</span> <span class="n">unitdoc</span> <span class="ow">and</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">:</span>
-            <span class="bp">cls</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__doc__</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;**Parameters**&#39;</span><span class="p">,</span> 
-   <span class="s2">&quot;**Parameters**&quot;</span>
-<span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>    
-<span class="s2">&quot;</span><span class="se">\n</span><span class="s2">        **ID:** [str] Unique identification. If set as &#39;&#39;, a default ID will be chosen.&quot;</span>
-<span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
-<span class="s2">&quot;</span><span class="se">\n</span><span class="s2">        **outs:** tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.&quot;</span>
-<span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
-<span class="s2">&quot;</span><span class="se">\n</span><span class="s2">        **ins:** tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.&quot;</span><span class="p">)</span>
         
         <span class="k">if</span> <span class="n">isabstract</span><span class="p">:</span> <span class="k">return</span> <span class="bp">cls</span>
         
@@ -289,73 +279,66 @@
 
 <span class="c1"># %% Unit Operation</span>
 
-<div class="viewcode-block" id="Unit"><a class="viewcode-back" href="../../Unit.html#biosteam.units.Unit">[docs]</a><span class="k">class</span> <span class="nc">Unit</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">unit</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Abstract parent class for Unit objects. Child objects must contain _run, _design and _cost methods to estimate stream outputs of a Unit and find design and cost information.  </span>
+<div class="viewcode-block" id="Unit"><a class="viewcode-back" href="../../Unit.html#biosteam.Unit">[docs]</a><span class="k">class</span> <span class="nc">Unit</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">unit</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract parent class for Unit objects. Child objects must contain `_run`, `_design` and `_cost` methods to estimate stream outputs of a Unit and find design and cost information.  </span>
 
 <span class="sd">    **Parameters**</span>
-
-<span class="sd">        **ID:** [str] A unique identification. If ID is an empty string (i.e. &#39;&#39; ), a default ID will be chosen. If ID is None, unit will not be registered in flowsheet.</span>
-
-<span class="sd">        **ins:** tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.</span>
-
-<span class="sd">        **outs:** tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.</span>
-<span class="sd">                </span>
-
-<span class="sd">    **Class Definitions** </span>
 <span class="sd">    </span>
-<span class="sd">        **line** = [Defaults to the class name of the first child class]: [str] Name denoting the type of Unit class    </span>
-<span class="sd">        </span>
-<span class="sd">        **BM** = None: [float] Bare module factor (installation factor)</span>
-<span class="sd">        </span>
-<span class="sd">        **_run()**</span>
-<span class="sd">            Run simulation and update output streams.</span>
+<span class="sd">    ID=&#39;&#39; : str, defaults to a unique ID</span>
+<span class="sd">        A unique identification. If ID is None, unit will not be</span>
+<span class="sd">        registered in flowsheet.</span>
+<span class="sd">    ins=None : tuple[str or Stream], defaults to missing streams</span>
+<span class="sd">        Input streams or IDs to initialize input streams.</span>
+<span class="sd">        If empty, default IDs will be given.</span>
+<span class="sd">    outs=() : tuple[str or Stream], defaults to new streams</span>
+<span class="sd">        Output streams or IDs to initialize output streams. If None, </span>
+<span class="sd">        leave streams missing.</span>
 
-<span class="sd">        **_design()**</span>
-<span class="sd">            Add design requirements to &quot;_Design&quot; dictionary attribute.</span>
-
-<span class="sd">        **_cost()**</span>
-<span class="sd">            Add itemized purchse costs to results &quot;_Cost&quot; dictionary attribute.</span>
-<span class="sd">            </span>
-<span class="sd">        .. Note::</span>
-<span class="sd">           </span>
-<span class="sd">           The `_run` method is called during recycle loop convergence. The `_design` and `_cost` methods are called in the given order for generating results.</span>
-<span class="sd">        </span>
-<span class="sd">        **_units** = {}: [dict] Default units for results Operation and Design</span>
-<span class="sd">        </span>
-<span class="sd">        **_N_ins** = 1: [int] Expected number of input streams</span>
-
-<span class="sd">        **_N_outs** = 2: [int] Expected number of output streams</span>
-
-<span class="sd">        **_N_heat_utilities** = 0: [int] Number of heat utilities  </span>
-
-<span class="sd">        **_has_power_utility** = False: [bool] If True, a PowerUtility object is created for every instance.</span>
-<span class="sd">        </span>
-<span class="sd">        **_has_cost** = True: [bool] Should be True if it has any associated cost</span>
+<span class="sd">    **Abstract attributes**</span>
 <span class="sd">    </span>
-<span class="sd">        **_graphics** = &lt;Graphics&gt;: [biosteam Graphics] Settings for diagram representation.</span>
+<span class="sd">    line=None : str</span>
+<span class="sd">        Name denoting the type of Unit class. Defaults to the class</span>
+<span class="sd">        name of the first child class.</span>
+<span class="sd">    BM=None : float</span>
+<span class="sd">        Bare module factor (installation factor).</span>
+<span class="sd">    _units={} : dict</span>
+<span class="sd">        Units of measure for results Operation and Design.</span>
+<span class="sd">    _N_ins=1 : int</span>
+<span class="sd">        Expected number of input streams.</span>
+<span class="sd">    _N_outs=2 : int</span>
+<span class="sd">        Expected number of output streams.</span>
+<span class="sd">    _N_heat_utilities=0: int</span>
+<span class="sd">        Number of heat utilities created with each instance</span>
+<span class="sd">    _has_power_utility=False : bool</span>
+<span class="sd">        If True, a PowerUtility object is created with each instance.</span>
+<span class="sd">    _has_cost=True : bool</span>
+<span class="sd">        Should be True if it has any associated cost.</span>
+<span class="sd">    _graphics : biosteam.Graphics, abstract, optional</span>
+<span class="sd">        Settings for diagram representation.</span>
 
-<span class="sd">    **ins**</span>
-<span class="sd">        </span>
-<span class="sd">        list of input streams</span>
-<span class="sd">        </span>
-<span class="sd">    **outs**</span>
+<span class="sd">    **Abstract class methods**</span>
 <span class="sd">    </span>
-<span class="sd">        list of output streams</span>
+<span class="sd">    _run()</span>
+<span class="sd">        Run simulation and update output streams.</span>
+<span class="sd">    _design()</span>
+<span class="sd">        Add design requirements to &quot;_Design&quot; dictionary attribute.</span>
+<span class="sd">    _cost()</span>
+<span class="sd">        Add itemized purchse costs to results &quot;_Cost&quot; dictionary attribute.</span>
 <span class="sd">    </span>
-<span class="sd">    **Examples**</span>
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    :doc:`tutorial/Creating a Unit`</span>
 <span class="sd">    </span>
-<span class="sd">        :doc:`Creating a Unit`</span>
-<span class="sd">        </span>
-<span class="sd">        :doc:`Using -pipe- notation`</span>
-<span class="sd">        </span>
-<span class="sd">        :doc:`Inheriting from Unit`</span>
-<span class="sd">        </span>
-<span class="sd">        :doc:`Unit decorators`</span>
+<span class="sd">    :doc:`tutorial/Using -pipe- notation`</span>
+<span class="sd">    </span>
+<span class="sd">    :doc:`tutorial/Inheriting from Unit`</span>
+<span class="sd">    </span>
+<span class="sd">    :doc:`tutorial/Unit decorators`</span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span> 
     <span class="c1">### Abstract Attributes ###</span>
     
-    <span class="c1">#: [float] Bare module factor (installation factor).</span>
+    <span class="c1"># [float] Bare module factor (installation factor).</span>
     <span class="n">BM</span> <span class="o">=</span> <span class="kc">None</span>
     
     <span class="c1"># [dict] Default units for construction</span>
@@ -518,12 +501,12 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">sum</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">cost</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">])</span>
 
-<div class="viewcode-block" id="Unit.simulate"><a class="viewcode-back" href="../../Unit.html#biosteam.units.Unit.simulate">[docs]</a>    <span class="k">def</span> <span class="nf">simulate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Unit.simulate"><a class="viewcode-back" href="../../Unit.html#biosteam.Unit.simulate">[docs]</a>    <span class="k">def</span> <span class="nf">simulate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Run rigourous simulation and determine all design requirements.&quot;&quot;&quot;</span>
         <span class="n">_try_method</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_run</span><span class="p">)</span>
         <span class="n">_try_method</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_summary</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Unit.results"><a class="viewcode-back" href="../../Unit.html#biosteam.units.Unit.results">[docs]</a>    <span class="k">def</span> <span class="nf">results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_units</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="Unit.results"><a class="viewcode-back" href="../../Unit.html#biosteam.Unit.results">[docs]</a>    <span class="k">def</span> <span class="nf">results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_units</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return key results from simulation as a DataFrame if `with_units` is True or as a Series otherwise.&quot;&quot;&quot;</span>
         <span class="n">ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ID</span>
         <span class="n">keys</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">addkey</span> <span class="o">=</span> <span class="n">keys</span><span class="o">.</span><span class="n">append</span>
@@ -614,33 +597,18 @@
             <span class="n">series</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">ID</span>
             <span class="k">return</span> <span class="n">series</span></div>
 
-    <span class="c1"># def __getattr__(self, name):</span>
-    <span class="c1">#     if name is &#39;_results&#39;:</span>
-    <span class="c1">#         warn(DeprecationWarning(&quot;&#39;_results&#39; dictionary will be deprecated in favor of attributes &#39;_Design&#39;, &#39;_Cost&#39;, and &#39;_GHGs&#39;&quot;))</span>
-    <span class="c1">#         self._results = results = {&#39;Design&#39;: self._Design,</span>
-    <span class="c1">#                                    &#39;Cost&#39;: self._Cost,</span>
-    <span class="c1">#                                    &#39;GHG&#39;: self._GHGs}</span>
-    <span class="c1">#         return results</span>
-    <span class="c1">#     elif name in (&#39;_Cost&#39;, &#39;_Design&#39;) and hasattr(self, &#39;_results&#39;):</span>
-    <span class="c1">#         warn(DeprecationWarning(&quot;&#39;_results&#39; dictionary will be deprecated in favor of attributes &#39;_Design&#39;, &#39;_Cost&#39;, and &#39;_GHGs&#39;&quot;))</span>
-    <span class="c1">#         self._Cost = self._results[&#39;Cost&#39;]</span>
-    <span class="c1">#         self._Design = self._results[&#39;Design&#39;]</span>
-    <span class="c1">#         self._GHGs = self._results[&#39;GHG&#39;]</span>
-    <span class="c1">#     else:</span>
-    <span class="c1">#         raise AttributeError(f&quot;&#39;{type(self).__name__}&#39; object has no attribute &#39;{name}&#39;&quot;)</span>
-
     <span class="k">def</span> <span class="nf">_checkbounds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">bounds</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Issue a warning if value is out of bounds.</span>
 <span class="sd">        </span>
-<span class="sd">        **Parameters**</span>
-<span class="sd">        </span>
-<span class="sd">            **key:** [str] Name of value.</span>
-<span class="sd">            </span>
-<span class="sd">            **value:** [float]</span>
-<span class="sd">            </span>
-<span class="sd">            **units:** [str] Units of value</span>
-<span class="sd">            </span>
-<span class="sd">            **bounds:** iterable[float, float] Upper and lower bounds.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key : str</span>
+<span class="sd">              Name of value.</span>
+<span class="sd">        value : float</span>
+<span class="sd">        units : str</span>
+<span class="sd">                Units of value        </span>
+<span class="sd">        bounds : iterable[float, float]</span>
+<span class="sd">                 Upper and lower bounds.</span>
 <span class="sd">            </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Warn when value is out of bounds</span>
@@ -655,16 +623,16 @@
     <span class="k">def</span> <span class="nf">_lb_warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">lb</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Warn that value is below lower bound.</span>
 <span class="sd">        </span>
-<span class="sd">         **Parameters**</span>
-<span class="sd">        </span>
-<span class="sd">            **key:** [str] Name of value.</span>
-<span class="sd">            </span>
-<span class="sd">            **value:** [float]</span>
-<span class="sd">            </span>
-<span class="sd">            **units:** [str] Units of value.</span>
-<span class="sd">            </span>
-<span class="sd">            **lb:** [float] lower bound.</span>
-<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        key : str</span>
+<span class="sd">              Name of value.</span>
+<span class="sd">        value : float</span>
+<span class="sd">        units : str </span>
+<span class="sd">                Units of value.</span>
+<span class="sd">        lb : float</span>
+<span class="sd">             Lower bound.</span>
+<span class="sd">    </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">_lb_warning</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">units</span><span class="p">,</span> <span class="n">lb</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
 
@@ -723,9 +691,10 @@
     <span class="k">def</span> <span class="nf">_neighborhood</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return all neighboring units within given radius.</span>
 <span class="sd">        </span>
-<span class="sd">        **Parameters**</span>
-<span class="sd">        </span>
-<span class="sd">            **radius:**[int] Maxium number streams between neighbors.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        radius : int</span>
+<span class="sd">                 Maxium number streams between neighbors.</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">radius</span> <span class="o">-=</span> <span class="mi">1</span>
@@ -745,18 +714,18 @@
         
         <span class="k">return</span> <span class="n">neighborhood</span>
 
-<div class="viewcode-block" id="Unit.diagram"><a class="viewcode-back" href="../../Unit.html#biosteam.units.Unit.diagram">[docs]</a>    <span class="k">def</span> <span class="nf">diagram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;svg&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="Unit.diagram"><a class="viewcode-back" href="../../Unit.html#biosteam.Unit.diagram">[docs]</a>    <span class="k">def</span> <span class="nf">diagram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">radius</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Display a `Graphviz &lt;https://pypi.org/project/graphviz/&gt;`__ diagram of the unit and all neighboring units within given radius.</span>
 <span class="sd">        </span>
-<span class="sd">        **Parameters**</span>
-<span class="sd">        </span>
-<span class="sd">            **radius:** [int] Maxium number streams between neighbors.</span>
-<span class="sd">        </span>
-<span class="sd">            **file:** Must be one of the following:</span>
-<span class="sd">                * [str] File name to save diagram.</span>
-<span class="sd">                * [None] Display diagram in console.</span>
-<span class="sd">        </span>
-<span class="sd">            **format:** Format of file.</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        radius : int</span>
+<span class="sd">                 Maxium number streams between neighbors.</span>
+<span class="sd">        file : Must be one of the following:</span>
+<span class="sd">            * [str] File name to save diagram.</span>
+<span class="sd">            * [None] Display diagram in console.</span>
+<span class="sd">        format : str</span>
+<span class="sd">                 Format of file.</span>
 <span class="sd">        </span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">radius</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -970,7 +939,7 @@
         <span class="n">info</span> <span class="o">=</span> <span class="n">info</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1"> &#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">    &#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">info</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
-<div class="viewcode-block" id="Unit.show"><a class="viewcode-back" href="../../Unit.html#biosteam.units.Unit.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Unit.show"><a class="viewcode-back" href="../../Unit.html#biosteam.Unit.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Prints information on unit.&quot;&quot;&quot;</span>
         <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">fraction</span><span class="p">))</span></div>
     

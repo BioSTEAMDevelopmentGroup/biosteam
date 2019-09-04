@@ -1,0 +1,457 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Distillation &mdash; BioSTEAM 0.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript">
+          var DOCUMENTATION_OPTIONS = {
+              URL_ROOT:'../',
+              VERSION:'0.1',
+              LANGUAGE:'None',
+              COLLAPSE_INDEX:false,
+              FILE_SUFFIX:'.html',
+              HAS_SOURCE:  true,
+              SOURCELINK_SUFFIX: '.txt'
+          };
+      </script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Fermentation" href="Fermentation.html" />
+    <link rel="prev" title="Centrifuge_LLE" href="Centrifuge_LLE.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> BioSTEAM
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Tutorial</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Getting started.html">1. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/examples.html">4. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">9. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
+</ul>
+<p class="caption"><span class="caption-text">BioSTEAM API</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../Species.html">Species</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Stream.html">Stream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../MixedStream.html">MixedStream</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Unit.html">Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../PowerUtility.html">PowerUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../HeatUtility.html">HeatUtility</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../System.html">System</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../TEA.html">TEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Flowsheet.html">find</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../compounds/compounds.html">compounds</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="units.html">units</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="decorators.html">decorators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="designtools.html">designtools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="facilities.html">facilities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Centrifuge_LLE.html">Centrifuge_LLE</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Distillation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Fermentation.html">Fermentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Flash.html">Flash</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HXprocess.html">HXprocess</a></li>
+<li class="toctree-l2"><a class="reference internal" href="HXutility.html">HXutility</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Junction.html">Junction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MassBalance.html">MassBalance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MixTank.html">MixTank</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Mixer.html">Mixer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MolecularSieve.html">MolecularSieve</a></li>
+<li class="toctree-l2"><a class="reference internal" href="MultiEffectEvaporator.html">MultiEffectEvaporator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Pump.html">Pump</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Splitter.html">Splitter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="StorageTank.html">StorageTank</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Transesterification.html">Transesterification</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../inspect.html">inspect</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reaction.html">reaction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../evaluation/evaluation.html">evaluation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">BioSTEAM</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="units.html">units</a> &raquo;</li>
+        
+      <li>Distillation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/units/Distillation.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast,
+.nboutput.nblast {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast + .nbinput {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+</style>
+<div class="section" id="module-biosteam.units">
+<span id="distillation"></span><h1>Distillation<a class="headerlink" href="#module-biosteam.units" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="biosteam.units.Distillation">
+<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">Distillation</code><span class="sig-paren">(</span><em>ID=''</em>, <em>ins=None</em>, <em>outs=()</em>, <em>P=101325</em>, <em>*</em>, <em>LHK</em>, <em>y_top</em>, <em>x_bot</em>, <em>k</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_distillation.html#Distillation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Distillation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a Distillation column that assumes all light and heavy non keys separate to the top and bottoms product respectively. McCabe-Thiele analysis is used to find both the number of stages and the reflux ratio given a ratio of actual reflux to minimum reflux [1]. This assumption is good for both binary distillation of highly polar compounds and ternary distillation assuming complete separation of light non-keys and heavy non-keys with large differences in boiling points. Preliminary analysis showed that the theoretical number of stages using this method on Methanol/Glycerol/Water systems is off by less than +-1 stage. Other methods, such as the Fenske-Underwood-Gilliland method, are more suitable for hydrocarbons. The Murphree efficiency is based on the modified O’Connell correlation [2]. The diameter is based on tray separation and flooding velocity [1]. Purchase costs are based on correlations by Mulet et al. [3, 4] as compiled by Warren et. al. [5].</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>ins</strong></dt>
+<dd><p class="first last">[:] All input streams</p>
+</dd>
+<dt><strong>outs</strong></dt>
+<dd><p class="first">[0] Distillate product</p>
+<p class="last">[1] Bottoms product</p>
+</dd>
+<dt><strong>LHK</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple[str]</span></dt>
+<dd><p class="first last">Light and heavy keys.</p>
+</dd>
+<dt><strong>P=101325</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float, optional</span></dt>
+<dd><p class="first last">Operating pressure (Pa).</p>
+</dd>
+<dt><strong>y_top</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Molar fraction of light key in the distillate.</p>
+</dd>
+<dt><strong>x_bot</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Molar fraction of light key in the bottoms.</p>
+</dd>
+<dt><strong>k</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Ratio of reflux to minimum reflux.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">References</p>
+<p>[1] J.D. Seader, E.J. Henley, D.K. Roper. Separation Process Principles 3rd Edition. John Wiley &amp; Sons, Inc. (2011)</p>
+<p>[2] M. Duss, R. Taylor. Predict Distillation Tray Efficiency. AICHE (2018)</p>
+<p>[3] Mulet, A., A. B. Corripio, and L. B. Evans, “Estimate Costs of Pressure Vessels via Correlations,” Chem. Eng., 88(20), 145–150 (1981a).</p>
+<p>[4] Mulet, A., A.B. Corripio, and L.B.Evans, “Estimate Costs of Distillation and Absorption Towers via Correlations,” Chem. Eng., 88(26), 77–82 (1981b).</p>
+<p>[5] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R., &amp; Ng, M. K. (2017). Product and Process Design Principles. Wiley. Cost Accounting and Capital Cost Estimation (Chapter 16)</p>
+<p class="rubric">Examples</p>
+<p><a class="reference internal" href="notebooks/Distillation Example.html"><span class="doc">Distillation</span></a></p>
+<dl class="attribute">
+<dt id="biosteam.units.Distillation.ID">
+<code class="descname">ID</code><a class="headerlink" href="#biosteam.units.Distillation.ID" title="Permalink to this definition">¶</a></dt>
+<dd><p>Unique Identification (str). If set as ‘’, it will choose a default ID.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.diagram">
+<code class="descname">diagram</code><span class="sig-paren">(</span><em>radius=0</em>, <em>file=None</em>, <em>format='png'</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.diagram" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display a <a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz</a> diagram of the unit and all neighboring units within given radius.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>radius</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
+<dd><p class="first last">Maxium number streams between neighbors.</p>
+</dd>
+<dt><strong>file</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Must be one of the following:</span></dt>
+<dd><ul class="first last simple">
+<li>[str] File name to save diagram.</li>
+<li>[None] Display diagram in console.</li>
+</ul>
+</dd>
+<dt><strong>format</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Format of file.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Distillation.downcomer_area_factor">
+<code class="descname">downcomer_area_factor</code><a class="headerlink" href="#biosteam.units.Distillation.downcomer_area_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enforced ratio of downcomer area to net (total) area. If None, estimate ratio based on Oliver’s estimation [1].</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Distillation.foaming_factor">
+<code class="descname">foaming_factor</code><a class="headerlink" href="#biosteam.units.Distillation.foaming_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Foaming factor (0 to 1).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Distillation.installation_cost">
+<code class="descname">installation_cost</code><a class="headerlink" href="#biosteam.units.Distillation.installation_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Installation cost (USD).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Distillation.open_area_factor">
+<code class="descname">open_area_factor</code><a class="headerlink" href="#biosteam.units.Distillation.open_area_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ratio of open area, A_h, to active area, A_a.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Distillation.purchase_cost">
+<code class="descname">purchase_cost</code><a class="headerlink" href="#biosteam.units.Distillation.purchase_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total purchase cost (USD).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.results">
+<code class="descname">results</code><span class="sig-paren">(</span><em>with_units=True</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return key results from simulation as a DataFrame if <cite>with_units</cite> is True or as a Series otherwise.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.show">
+<code class="descname">show</code><span class="sig-paren">(</span><em>T=None</em>, <em>P=None</em>, <em>flow=None</em>, <em>fraction=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.show" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prints information on unit.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.simulate">
+<code class="descname">simulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.simulate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run rigourous simulation and determine all design requirements.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Distillation.stage_efficiency">
+<code class="descname">stage_efficiency</code><a class="headerlink" href="#biosteam.units.Distillation.stage_efficiency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Enforced user defined stage efficiency.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Distillation.tray_material">
+<code class="descname">tray_material</code><a class="headerlink" href="#biosteam.units.Distillation.tray_material" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default ‘Carbon steel’</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Distillation.tray_type">
+<code class="descname">tray_type</code><a class="headerlink" href="#biosteam.units.Distillation.tray_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default ‘Sieve’</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Distillation.utility_cost">
+<code class="descname">utility_cost</code><a class="headerlink" href="#biosteam.units.Distillation.utility_cost" title="Permalink to this definition">¶</a></dt>
+<dd><p>Total utility cost (USD/hr).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Distillation.velocity_factor">
+<code class="descname">velocity_factor</code><a class="headerlink" href="#biosteam.units.Distillation.velocity_factor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ratio of actual velocity to maximum velocity allowable before flooding.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Distillation.vessel_material">
+<code class="descname">vessel_material</code><a class="headerlink" href="#biosteam.units.Distillation.vessel_material" title="Permalink to this definition">¶</a></dt>
+<dd><p>Default ‘Carbon steel’</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="biosteam.units.Distillation.is_divided">
+<code class="descname">is_divided</code><a class="headerlink" href="#biosteam.units.Distillation.is_divided" title="Permalink to this definition">¶</a></dt>
+<dd><p>[bool] True if the stripper and rectifier are two separate columns.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.units.Distillation.plot_stages">
+<code class="descname">plot_stages</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_distillation.html#Distillation.plot_stages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Distillation.plot_stages" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the McCabe Thiele Diagram.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Fermentation.html" class="btn btn-neutral float-right" title="Fermentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Centrifuge_LLE.html" class="btn btn-neutral float-left" title="Centrifuge_LLE" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Yoel Cortes-Pena and Jeremy Guest
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

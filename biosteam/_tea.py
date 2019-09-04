@@ -7,7 +7,7 @@ Created on Mon Feb  4 19:38:37 2019
 
 import pandas as pd
 import numpy as np
-from ._utils import wegstein_secant, aitken_secant, secant
+from .utils import wegstein_secant, aitken_secant, secant
 from copy import copy as copy_
 
 __all__ = ('TEA', 'CombinedTEA')
@@ -70,52 +70,70 @@ def solve_payment(payment, loan, interest, years):
 class TEA:
     """Abstract TEA class for cash flow analysis.
     
-        **Abstract methods**
-        
-            **_TDC:** [function] Should take direct permanent investment as an argument and return total depreciable capital (e.g. _TDC(self, DPI) -> TDC).
-            
-            **_FCI:** [function] Should take total depreciable capital as an argument and return fixed capital investment (e.g. _FCI(self, TDC) -> FCI).
-            
-            **_FOC:** [function] Should take fixed capital investment as an arguments and return fixed operating cost without depreciation (e.g. _FOC(self, FCI) -> FOC).
-        
-        **Parameters**
-        
-            **system:** [System] Should contain feed and product streams.
-            
-            **IRR:** [float]  Internal rate of return (fraction).
-            
-            **duration:** tuple[int, int] Start and end year of venture (e.g. (2018, 2038)).
-            
-            **depreciation:** [str] 'MACRS' + number of years (e.g. 'MACRS7').
-            
-            **operating_days:** [float] Number of operating days per year.
-            
-            **income_tax:** [float] Combined federal and state income tax rate (fraction).
-            
-            **lang_factor:** [float] Lang factor for getting fixed capital investment from total purchase cost. If no lang factor, estimate capital investment using bare module factors.
-            
-            **construction_schedule:** tuple[float] Construction investment fractions per year (e.g. (0.5, 0.5) for 50% capital investment in the first year and 50% investment in the second).
-            
-            **startup_months:** [float] Startup time in months.
-            
-            **startup_FOCfrac:** [float] Fraction of fixed operating costs incurred during startup.
-            
-            **startup_VOCfrac:** [float] Fraction of variable operating costs incurred during startup.
-            
-            **startup_salesfrac:** [float] Fraction of sales achieved during startup.
-            
-            **WC_over_FCI**: [float] Working capital as a fraction of fixed capital investment.
-            
-            **finanace_interest:** [float] Yearly interest of capital cost financing as a fraction.
-            
-            **finance_years:** [int] Number of years the loan is paid for.
-            
-            **finance_fraction:** [float] Fraction of capital cost that needs to be financed.
-                        
-        **Examples**
-        
-            :doc:`Techno-economic analysis of a biorefinery` 
+    **Abstract methods**
     
+    _TDC : function
+           Should take direct permanent investment as an argument
+           and return total depreciable capital (e.g. _TDC(self, DPI) -> TDC).
+    _FCI : function
+           Should take total depreciable capital as an argument and return
+           fixed capital investment (e.g. _FCI(self, TDC) -> FCI).
+    _FOC : function
+           Should take fixed capital investment as an arguments and return
+           fixed operating cost without depreciation (e.g. _FOC(self, FCI) -> FOC).
+    
+    Parameters
+    ----------
+    system : System
+             Should contain feed and product streams.
+    IRR : float
+          Internal rate of return (fraction).
+    duration : tuple[int, int]
+               Start and end year of venture (e.g. (2018, 2038)).
+    depreciation : str
+                   'MACRS' + number of years (e.g. 'MACRS7').
+    operating_days : float 
+                     Number of operating days per year.
+    income_tax : float
+                 Combined federal and state income tax rate (fraction).
+    lang_factor : float
+                  Lang factor for getting fixed capital investment
+                  from total purchase cost. If no lang factor, estimate
+                  capital investment using bare module factors.
+    construction_schedule : tuple[float]
+                            Construction investment fractions per year
+                            (e.g. (0.5, 0.5) for 50% capital investment
+                            in the first year and 50% investment in the
+                            second).
+    startup_months : float
+                     Startup time in months.
+        
+    startup_FOCfrac : float
+                      Fraction of fixed operating costs incurred during
+                      startup.
+        
+    startup_VOCfrac : float
+                      Fraction of variable operating costs incurred during
+                      startup.
+        
+    startup_salesfrac : float
+                        Fraction of sales achieved during startup.
+        
+    WC_over_FCI : float
+                  Working capital as a fraction of fixed capital
+                  investment.
+    finanace_interest : float
+                        Yearly interest of capital cost financing as a
+                        fraction.
+    finance_years : int
+                    Number of years the loan is paid for.
+    finance_fraction : float
+                       Fraction of capital cost that needs to be financed.
+    
+    Examples
+    --------
+    :doc:`tutorial/Techno-economic analysis of a biorefinery` 
+
     """
     
     __slots__ = ('system', 'income_tax', 'lang_factor', 'WC_over_FCI',
@@ -411,12 +429,18 @@ class TEA:
     def production_cost(self, *products, with_annual_depreciation=True):
         """Return production cost of products.
         
-        **Parameters**
+        Parameters
+        ----------
+        *products : Stream
+                    Main products of the system
+        with_annual_depreciation=True : bool, optional
         
-            ***products:** [Stream] Main products of the system
-        
-        .. Note::
-           If there is more than one main product, The production cost is proportionally allocated to each of the main products with respect to their marketing values. The marketing value of each product is determined by the annual production multiplied by its selling price.
+        Notes
+        -----
+        If there is more than one main product, The production cost is
+        proportionally allocated to each of the main products with respect to
+        their marketing values. The marketing value of each product is
+        determined by the annual production multiplied by its selling price.
         """
         market_values = np.array([i.cost for i in products])
         total_market_value = market_values.sum()
@@ -511,9 +535,10 @@ class TEA:
     def solve_price(self, stream):
         """Return the price (USD/kg) of stream at the break even point (NPV = 0) through cash flow analysis. 
         
-        **Parameters**
-        
-            **stream:** [Stream] Stream with variable selling price.
+        Parameters
+        ----------
+        stream : Stream
+            Stream with variable selling price.
             
         """
         price2cost = self._price2cost(stream)
@@ -728,11 +753,12 @@ class CombinedTEA(TEA):
     def solve_price(self, stream, TEA):
         """Return the price (USD/kg) of stream at the break even point (NPV = 0) through cash flow analysis. 
         
-        **Parameters**
-        
-            **stream:** [Stream] Stream with variable selling price.
-            
-            **TEA:** [TEA] stream should belong here.
+        Parameters
+        ----------
+        stream : Stream
+                 Stream with variable selling price.
+        TEA : TEA
+              Stream should belong here.
             
         """
         price2cost = TEA._price2cost(stream)
