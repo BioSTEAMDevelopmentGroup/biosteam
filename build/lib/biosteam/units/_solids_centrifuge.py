@@ -13,24 +13,23 @@ from ._splitter import Splitter
 class SolidsCentrifuge(Splitter):
     """Create a solids centrifuge that separates out solids according to user defined split. Assume a continuous scroll solid bowl. 
     
-    **Parameters**
-    
-        **split:** [array_like] Component splits to 0th output stream
-        
-        **solids:** tuple[str] IDs of solids 
-    
-    **ins**
-    
+    Parameters
+    ----------
+    ins
         [:] Input streams
-    
-    **outs**
-    
+    outs
         [0] Liquid stream
         
         [1] Solids stream
+    split: array_like
+           Component splits to 0th output stream
+    order=None : Iterable[str], defaults to Stream.species.IDs
+        Species order of split.
+    solids : tuple[str]
+             IDs of solids.
     
-    **References**
-    
+    References
+    ----------
         .. [0] Seider, Warren D., et al. (2017). "Cost Accounting and Capital Cost Estimation". In Product and Process Design Principles: Synthesis, Analysis, and Evaluation (pp. 481-485). New York: Wiley.
     
     """

@@ -5,7 +5,7 @@ Created on Sat Aug 18 14:25:34 2018
 @author: yoelr
 """
 from ._exceptions import DimensionError
-from ._utils import DisplayUnits
+from .utils import DisplayUnits
 from ._species import Species
 from ._stream import Stream, mol_flow_dim, mass_flow_dim, vol_flow_dim
 from . import _Q
@@ -26,51 +26,54 @@ _Water = Species('Water')
 
 
 class HeatUtility:
-    """Create an HeatUtility object that can choose a utility stream and calculate utility requirements. It can calculate required flow rate, temperature, or phase change of utility. Calculations assume counter current flow rate.
+    """Create an HeatUtility object that can choose a utility stream and calculate utility requirements. It can calculate required flow rate, temperature change, or phase change of utility. Calculations assume counter current flow rate.
     
-    **Parameters**
+    Parameters
+    ----------
+    efficiency=None : float, optional
+        Enforced fraction of heat transfered from utility (due
+        to losses to environment).
     
-        **efficiency:** [float] Fraction of heat transfered after accounting for heat loss.
+    Attributes
+    ----------
+    cooling_agents : dict[str: UtilityAgent]
+                     All cooling utilities available
+    heating_agents : dict[str: UtilityAgent]
+                     All heating utilities available
     
-    **Class Attributes**
-
-        **cooling_agents:** dict[str: UtilityAgent] All cooling utilities available
+    Examples
+    --------
+    Create a heat utility:
         
-        **heating_agents:** dict[str: UtilityAgent] All heating utilities available
+    .. code-block:: python
     
-    **Examples**
+       >>> hu = HeatUtility()
+       >>> hu
+       HeatUtility: None
+        duty: 0
+        flow: 0
+        cost: 0
     
-        Create a heat utility:
-            
-        .. code-block:: python
+    Calculate utility requirement by calling it with a duty (kJ/hr), and enter and exit temperature (K):
         
-           >>> hu = HeatUtility()
-           >>> hu
-           HeatUtility: None
-            duty: 0
-            flow: 0
-            cost: 0
+    .. code-block:: python
+    
+       >>> hu(1000, 300, 350)
+       >>> hu
+       HeatUtility: Low pressure steam
+        duty: 1.11e+03 kJ/hr
+        flow: 0.0284 kmol/hr,
+        cost: 0.00674 USD/hr
+   
+    All results are accessible:
         
-        Calculate utility requirement by calling it with a duty (kJ/hr), and enter and exit temperature (K):
-            
-        .. code-block:: python
-        
-           >>> hu(1000, 300, 350)
-           >>> hu
-           HeatUtility: Low pressure steam
-            duty: 1.11e+03 kJ/hr
-            flow: 0.0284 kmol/hr,
-            cost: 0.00674 USD/hr
-       
-        All results are accessible:
-            
-        .. code-block:: python
-        
-           >>> hu.ID, hu.duty, hu.flow, hu.cost
-           ('Low pressure steam',
-            1111.111111111111,
-            0.028351477551759364,
-            0.006741981361808377)
+    .. code-block:: python
+    
+       >>> hu.ID, hu.duty, hu.flow, hu.cost
+       ('Low pressure steam',
+        1111.111111111111,
+        0.028351477551759364,
+        0.006741981361808377)
            
     """
     __slots__ = ('_fresh', '_used', 'ID', 'duty',
@@ -87,23 +90,23 @@ class HeatUtility:
     class UtilityAgent:
         """Create a UtilityAgent object that defines a utility option.
         
-            **Parameters**
-        
-                species: [Species] 
-                
-                molfrac: [tuple] Molar fraction of species
-                
-                phase: [str] {'g', 'l'}
-                
-                Hvap: [float] Latent heat of vaporization (kJ/kmol)
-                
-                T_limit: [float] Temperature limit (K)
-                
-                price_kJ: [float] Price (USD/kJ)
-                
-                price_kmol: [float] Price (USD/kmol)
-                
-                efficiency: [float] Heat transfer efficiency (between 0 to 1)
+        Parameters
+        ----------
+        species: Species
+        molfrac: tuple[float]
+                 Molar fraction of species.
+        phase : {'g', 'l'}
+                Either gas ("g") or liquid ("l").
+        Hvap : float
+               Latent heat of vaporization (kJ/kmol)
+        T_limit : float
+                  Temperature limit (K)
+        price_kJ : float
+                   Price (USD/kJ)
+        price_kmol : float
+                     Price (USD/kmol)
+        efficiency : float
+                     Heat transfer efficiency (between 0 to 1)
                 
         """
         __slots__ = ('species', 'molfrac', 'T', 'P', 'phase', 'Hvap', 'T_limit',
@@ -174,13 +177,14 @@ class HeatUtility:
     def __call__(self, duty, T_in, T_out=None):
         """Calculate utility requirements given the essential parameters.
         
-        **Parameters**
-        
-            **duty:** [float] Unit duty requirement (kJ/hr)
-            
-            **T_in:** [float] Entering process stream temperature (K)
-            
-            **T_out:** [float] Exit process stream temperature (K)
+        Parameters
+        ----------
+        duty : float
+               Unit duty requirement (kJ/hr)
+        T_in : float
+               Entering process stream temperature (K)
+        T_out=None : float, optional
+            Exit process stream temperature (K)
         
         """
         # Set pinch and operating temperature
@@ -233,13 +237,12 @@ class HeatUtility:
     
     # Selection of a heat transfer agent
     def _select_cooling_agent(self, T_pinch):
-        """Select a cooling agent that works at the pinch temperature and return relevant information.
+        """Select a cooling agent that works at the pinch temperature and return UtilityAgent.
         
-        **Parameters**
-
-             **T_pinch:**  [float] Pinch temperature of process stream (K)
-        
-        **Returns:** [UtilityAgent]
+        Parameters
+        ----------
+        T_pinch : float
+                  Pinch temperature of process stream (K)
         
         """
         dt = 2*self.dT
@@ -254,13 +257,12 @@ class HeatUtility:
         raise RuntimeError(f'no cooling agent that can cool under {T_pinch} K')
             
     def _select_heating_agent(self, T_pinch):
-        """Return a heating agent that works at the pinch temperature and return relevant information.
+        """Return a heating agent that works at the pinch temperature and return UtilityAgent.
         
-        **Parameters**
-
-             **T_pinch:**  [float] Pinch temperature of process stream (K)
-        
-        **Returns:** [UtilityAgent]
+        Parameters
+        ----------
+        T_pinch : float
+                  Pinch temperature of process stream (K)
         
         """
         dt = 2*self.dT
@@ -297,13 +299,14 @@ class HeatUtility:
     def _T_exit(T_pinch, dT, T_limit, negduty):
         """Return exit temperature of the utility in a counter current heat exchanger
 
-        **Parameters**
-
-             **T_pinch:** [float] Pinch temperature of process stream (K)
-
-             **dT:** [float] Pinch temperature difference (K)
-
-             **negduty:** [bool] True if exit temperature should be lower (process stream is gaining energy)
+        Parameters
+        ----------
+        T_pinch : float
+                  Pinch temperature of process stream (K)
+        dT : float 
+             Pinch temperature difference (K)
+        negduty : bool
+                  True if exit temperature should be lower (process stream is gaining energy)
 
         """
         if negduty:

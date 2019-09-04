@@ -20,19 +20,19 @@ _setattr = object.__setattr__
 class Species:
     """Create Species object that contains Compound objects as attributes.
 
-    **Parameters**
-
-        ***IDs:** [str] Strings should be one of the following [-]:
-                  * Name, in IUPAC form or common form or a synonym registered in PubChem
-                  * InChI name, prefixed by 'InChI=1S/' or 'InChI=1/'
-                  * InChI key, prefixed by 'InChIKey='
-                  * PubChem CID, prefixed by 'PubChem='
-                  * SMILES (prefix with 'SMILES=' to ensure smiles parsing)
-                  * CAS number
-         
-        **Optional**
-        
-        **cls:** [type Compound] The type of objects that will be created and stored as attributes. Defaults to biosteam.Chemical
+    Parameters
+    ----------
+    *IDs : str
+           Strings should be one of the following [-]:
+              * Name, in IUPAC form or common form or a synonym registered in PubChem
+              * InChI name, prefixed by 'InChI=1S/' or 'InChI=1/'
+              * InChI key, prefixed by 'InChIKey='
+              * PubChem CID, prefixed by 'PubChem='
+              * SMILES (prefix with 'SMILES=' to ensure smiles parsing)
+              * CAS number
+     
+    cls=None : type Compound, defaults to biosteam.Chemical
+        The type of objects that will be created and stored as attributes. 
         
     """
     @classmethod
@@ -163,16 +163,17 @@ class WorkingSpecies:
     def kwarray(self, **data):
         """Return an array with entries that correspond to compound IDs.
         
-        **Parameters**
-        
-            ****data:** ID-value pair.
+        Parameters
+        ----------
+            **data : 
+                     ID-value pair.
             
-        **Examples**
-        
-            >>> from biosteam import *
-            >>> Stream.species = Species('Water', 'Ethanol')
-            >>> Stream.species.kwarray(Water=2)
-            array([2., 0.])
+        Examples
+        --------
+        >>> from biosteam import *
+        >>> Stream.species = Species('Water', 'Ethanol')
+        >>> Stream.species.kwarray(Water=2)
+        array([2., 0.])
         
         """
         return self.array(data, [*data.values()])
@@ -180,18 +181,19 @@ class WorkingSpecies:
     def array(self, IDs, data):
         """Return an array with entries that correspond to species IDs.
         
-        **Parameters**
-        
-            **IDs:** [iterable] compound IDs.
+        Parameters
+        ----------
+        IDs : iterable
+              Compound IDs.
+        data : array_like
+               Data corresponding to IDs.
             
-            **data:** [array_like] Data corresponding to IDs.
-            
-        **Examples**
-        
-            >>> from biosteam import *
-            >>> Stream.species = Species('Water', 'Ethanol')
-            >>> Stream.species.array(['Water'], [2])
-            array([2., 0.])
+        Examples
+        --------
+        >>> from biosteam import *
+        >>> Stream.species = Species('Water', 'Ethanol')
+        >>> Stream.species.array(['Water'], [2])
+        array([2., 0.])
         
         """
         array = np.zeros(self._N)
@@ -201,12 +203,13 @@ class WorkingSpecies:
     def index(self, ID):
         """Return index of specified compound.
 
-        **Parameters**
+        Parameters
+        ----------
+        ID: str
+            Compound ID
 
-             **ID:** [str] compound ID
-
-        Example
-
+        Examples
+        --------
         Index by ID:
         
         >>> from biosteam import *
@@ -227,12 +230,13 @@ class WorkingSpecies:
     def indices(self, IDs):
         """Return indices of specified species.
 
-        **Parameters**
+        Parameters
+        ----------
+        IDs : iterable
+              Species IDs or CAS numbers.
 
-             **IDs:** [iterable] species IDs or CAS numbers.
-
-        Example
-
+        Examples
+        --------
         Indices by ID:
         
         >>> from biosteam import *

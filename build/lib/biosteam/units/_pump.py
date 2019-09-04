@@ -60,25 +60,24 @@ def calc_NPSH(P_suction, P_vapor, rho_liq):
 class Pump(Static):
     """Create a pump that sets the pressure of the 0th output stream.
 
-    **Parameters**
-
-        **P:** [float] Pressure of output stream (Pa). If None, cost pump as increase of pressure to P_startup.
+    Parameters
+    ----------
+        P=None : float, optional
+            Pressure of output stream (Pa). If None, cost pump as increase of pressure to P_startup.
     
-    **ins**
-    
+    ins
         [0] Input stream
         
-    **outs**
-    
+    outs
         [1] Output stream
     
-    **Examples**
+    Examples
+    --------
+    :doc:`notebooks/Pump Example`
     
-        :doc:`Pump Example`
-    
-    **References**
-    
-        [0] Seider, Warren D., et al. (2017). "Cost Accounting and Capital Cost Estimation". In Product and Process Design Principles: Synthesis, Analysis, and Evaluation (pp. 450-455). New York: Wiley.
+    References
+    ----------
+    [0] Seider, Warren D., et al. (2017). "Cost Accounting and Capital Cost Estimation". In Product and Process Design Principles: Synthesis, Analysis, and Evaluation (pp. 450-455). New York: Wiley.
     
     """
     _units = {'Ideal power': 'hp',

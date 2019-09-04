@@ -13,25 +13,25 @@ from ..reaction import Reaction, ParallelReaction
 class Transesterification(Unit):
     """Create a transesterification reactor that converts 'Lipid' and 'Methanol' to 'Biodiesel' and 'Glycerol'. Finds the amount of catalyst 'NaOCH3' required and consumes it to 'NaOH' and 'Methanol'.
     
-    **Parameters**
-    
-        **efficiency:** Efficiency of conversion (on a 'Lipid' basis)
-        
-        **methanol2lipid:** Methanol feed to lipid molar ratio
-        
-        **catalyst_molfrac:** Catalyst to methanol molar ratio
-        
-        **T:** Operating temperature (K)
-    
-    **ins**
-    
+    Parameters
+    ----------
+    ins
         [0] Lipid feed
         
         [1] Methanol feed (includes catalyst)
-        
-    **outs**
-    
+    outs
         [0] Product
+    efficiency : float
+                 Efficiency of conversion (on a 'Lipid' basis)
+        
+    methanol2lipid : float
+                     Methanol feed to lipid molar ratio
+        
+    catalyst_molfrac : float
+                       Catalyst to methanol molar ratio
+        
+    T : float
+        Operating temperature (K)
     
     """
     _bounds = {'Volume': (0.1, 20)}

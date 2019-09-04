@@ -7,6 +7,9 @@ Created on Thu Mar  7 23:17:38 2019
 import numpy as np
 import pandas as pd
 from ._state import State
+from ._metric import Metric
+from biosteam.utils import TicToc
+from scipy.stats import spearmanr
 
 __all__ = ('Model',)
 
@@ -23,30 +26,42 @@ paramindex = lambda params: pd.MultiIndex.from_arrays(
 class Model(State):
     """Create a Model object that allows for evaluation over a sample space.
     
-    **Parameters**
-    
-        **system:** [System] Should reflect the model state.
-    
-        **skip:** [bool] If True, skip simulation for repeated states
-    
-        ****metrics:** [str: function] ID-metric pairs.
-    
-    **Examples**
-
-         :doc:`Advanced simulation`
+    Parameters
+    ----------
+    system : System
+        Should reflect the model state.
+    metrics : tuple[Metric]
+        Metrics to be evaluated by model.
+    skip=False : bool
+        If True, skip simulation for repeated states.
+    Examples
+    --------
+    :doc:`../tutorial/Advanced simulation`
     
     """
     __slots__ = ('_table',   # [DataFrame] All arguments and results
-                 '_metrics', # dict[ID: function] Functions should return evaluated metric
+                 '_metrics', # tuple[Metric] Metrics to be evaluated by model
                  '_index',   # list[int] Order of sample evaluation for performance
                  '_samples', # [array] Argument sample space
                  '_setters', # list[function] Cached parameter setters
                  '_repeats') # [bool] True if parameter states repeat
     
-    def __init__(self, system, skip=False, **metrics):
+    def __init__(self, system, metrics, skip=False):
         super().__init__(system, skip)
-        self._metrics = metrics
+        self.metrics = metrics
         self._repeats = self._setters = self._samples = self._table = None
+        
+    def copy(self):
+        """Return copy."""
+        copy = super().copy()
+        copy._metrics = self._metrics
+        if self._model:
+            copy._repeats = self._repeats
+            copy._setters = self._setters
+            copy._table = self._table.copy()
+        else:
+            copy._repeats = copy._setters = copy._samples = copy._table = None
+        return copy
     
     def _erase(self):
         """Erase cached data."""
@@ -54,15 +69,14 @@ class Model(State):
     
     @property
     def metrics(self):
-        """dict[str: function] ID-metric pairs."""
+        """tuple[Metric] Metrics to be evaluated by model."""
         return self._metrics
     @metrics.setter
     def metrics(self, metrics):
-        table = self._table
-        if table is not None:
-            for i in self._metrics:
-                if i in table: del table[i]
-        self._metrics = metrics
+        for i in metrics:
+            if not isinstance(i, Metric):
+                raise ValueError(f"metrics must be '{Metric.__name__}' objects, not '{type(i).__name__}'")
+        self._metrics = tuple(metrics)
     
     @property
     def table(self):
@@ -70,7 +84,15 @@ class Model(State):
         return self._table
     
     def load_samples(self, samples, has_repeats=None):
-        """Load samples for evaluation"""
+        """Load samples for evaluation
+        
+        Parameters
+        ----------
+        samples : numpy.ndarray, dim=2
+        has_repeats=None : bool, optional
+            True if parameter values are repeated throughout samples.
+        
+        """
         if not self._model: self._loadmodel()
         params = self._params
         paramlen = len(params)
@@ -100,9 +122,9 @@ class Model(State):
             self._repeats = has_repeats
         
     def evaluate(self, default=None):
-        """Evaluate metric over the argument sample space and save values to `table`."""
+        """Evaluate metric over the argument sample space and save values to ``table``."""
         # Setup before simulation
-        funcs = tuple(self._metrics.values())
+        funcs = [i.getter for i in self._metrics]
         values = []
         add = values.append
         samples = self._samples
@@ -121,25 +143,133 @@ class Model(State):
                 setters = self._setters
             else:
                 self._setters = setters = [p.setter for p in self._params]
-            add = values.append
             sim = self._system.simulate
             for i in self._index:
                 for f, s in zip(setters, samples[i]): f(s)
                 sim()
                 add([i() for i in funcs])
-        for k, v in zip(self._metrics.keys(), zip(*values)): self.table[k] = v
+        names = [i.name for i in self._metrics]
+        for k, v in zip(names, zip(*values)): self.table[k] = v
+    
+    def evaluate_across_coordinate(self, f_coordinate, name,
+                                   lb, ub, xlfile,
+                                   N_samples=1000, N_points=20,  rule='L',
+                                   notify=True):
+        """Evaluate across coordinate and save sample metrics.
+        
+        Parameters
+        ----------
+        f_coordinate : function
+            Should change state of system given the coordinate.
+        lb : float
+            Lower bound of coordinate.
+        ub : float
+            Upper bound of coordinate.
+        xlfile : str
+            Name of file to save. File must end with ".xlsx"
+        N_samples=1000 : int, optional
+            Number of samples at each coordinate.
+        N_points=20 : int, optional
+            Number of lipid fractions evaluated.
+        rule='L' : str
+            Sampling rule.
+        notify=True : bool, optional
+            If True, notify elapsed time after each coordinate evaluation.
+        
+        """
+        # Load samples
+        samples = self.sample(N_samples, 'L')
+        self.load_samples(samples, has_repeats=False)
+        
+        # Points to evaluate
+        coordinate = np.linspace(lb, ub, N_points)
+        
+        # Initialize data containers
+        metric_data = {}
+        def new_data(key, dct=metric_data):
+            data = np.zeros([N_samples, N_points])
+            dct[key] = data
+            return data
+        for i in self.metrics: new_data(i.name)
+        
+        # Initialize timer
+        if notify:
+            timer = TicToc()
+            timer.tic()
+            def evaluate():
+                self.evaluate()
+                print(f"Elapsed time: {timer.elapsed_time:.0f} sec")
+        else:
+            evaluate = self.evaluate
+        
+        # Simulate lipidcane biorefinery    
+        table = self.table
+        for n, f in enumerate(coordinate):
+            f_coordinate(f)
+            evaluate()
+            for metric in metric_data:
+                metric_data[metric][:, n] = table[metric]
+        
+        # Save data to excel
+        data = pd.DataFrame(data=np.zeros([N_samples, N_points]), columns=coordinate)
+        data.columns.name = name
+        
+        with pd.ExcelWriter(xlfile) as writer:
+            for metric in metric_data:
+                data[:] = metric_data[metric]
+                data.to_excel(writer, sheet_name=metric)
+    
+    def spearman(self, metric_names=(), excluded_params=()):
+        """Return DataFrame of Spearman's rank correlation for metrics vs parameters.
+        
+        Parameters
+        ----------
+        metric_names=() : Iterable[str], defaults to all metrics
+            Names of metrics to be be correlated with parameters.
+        excluded_params=() : Iterable[str], optional
+            Names of parameters to exclude.
+        """
+        data = self.table
+        param_cols = list(data)
+        all_metric_names = [i.name for i in self.metrics]
+        if not metric_names: 
+            metric_names = all_metric_names
+        params = list(self._params)
+        for i in excluded_params:
+            for j in params:
+                if j.name == i:
+                    params.remove(j)
+                    break
+            for j in param_cols: 
+                if j[0] == i:
+                    param_cols.remove(j)
+                    break
+        
+        for i in all_metric_names: param_cols.remove((i, ''))
+        param_descriptions = [i.describe() for i in params]
+        allrhos = []
+        for name in metric_names:
+            rhos = []
+            metric = data[name]
+            for col in param_cols:
+                rho, p = spearmanr(data[col], metric)
+                rhos.append(rho)
+            allrhos.append(rhos)
+        allrhos = np.array(allrhos).transpose()
+        return pd.DataFrame(allrhos, index=param_descriptions,
+                            columns=metric_names)
     
     def __call__(self, sample):
-        """Return dictionary of metric values."""
+        """Return list of metric values."""
         super().__call__(sample)
-        return {i:j() for i,j in self._metrics.items()}
+        return [i.getter() for i in self._metrics]
     
     def _repr(self):
         clsname = type(self).__name__
         newline = "\n" + " "*(len(clsname)+2)
-        return f'{clsname}: {newline.join(self._metrics.keys())}'
+        return f'{clsname}: {newline.join([i.describe() for i in self.metrics])}'
         
     def __repr__(self):
-        return f'<{type(self).__name__}: {", ".join(self._metrics.keys())}>'
+        return f'<{type(self).__name__}: {", ".join([i.name for i in self.metrics])}>'
     
         

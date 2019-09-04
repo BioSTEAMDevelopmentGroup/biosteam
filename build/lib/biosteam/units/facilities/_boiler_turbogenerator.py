@@ -27,20 +27,18 @@ lps = HeatUtility.heating_agents['Low pressure steam']
 class BoilerTurbogenerator(Facility):
     """Create a Boiler_TurboGenerator object that will calculate electricity generation from burning the feed. It also takes into account how much steam is being produced, and the required cooling utility of the turbo generator. No emissions or mass balances are taken into account.
     
-    **Parameters**
-    
-        **boiler_efficiency:** [float] Fraction of heat transfered to steam.
-    
-        **turbo_generator_efficiency:** [float] Fraction of steam heat converted to electricity.
-    
-    **ins**
-    
+    Parameters
+    ----------
+    ins
         [0] Feed that will be burned.
-    
-    **outs**
-    
+    outs
         [0] Emission (burned feed)
-        
+    boiler_efficiency : float
+        Fraction of heat transfered to steam.
+    
+    turbo_generator_efficiency : float
+        Fraction of steam heat converted to electricity.
+    
     
     """
     _N_heat_utilities = 2

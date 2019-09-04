@@ -7,7 +7,7 @@ Created on Sat Aug 18 14:05:10 2018
 """
 from . import _Q
 import numpy as np
-from ._utils import property_array, PropertyFactory, DisplayUnits, \
+from .utils import property_array, PropertyFactory, DisplayUnits, \
                     tuple_array, fraction, Sink, Source, MissingStream
 from ._flowsheet import find
 from ._species import Species, WorkingSpecies
@@ -167,32 +167,39 @@ class metaStream(type):
 class Stream(metaclass=metaStream):
     """Create a Stream object that defines material flow rates along its thermodynamic state. Thermodynamic and transport properties of a stream are readily available. Ideal mixture is assumed for stream properties and excess thermodynamic energies are neglected as a simplifying assumption for low pressure processes.
 
-**Parameters**
+    Parameters
+    ----------
+    ID='' : str, defaults to a unique ID
+        A unique identification. If ID is None, stream will not be
+        registered in flowsheet.
 
-    **ID:** [str] A unique identification. If ID is an empty string (i.e. '' ), a default ID will be chosen. If ID is None, stream will not be registered in flowsheet.
+    flow=() : tuple, optional
+        All flow rates corresponding to `species`.
 
-    **flow:** [tuple] All flow rates corresponding to `species`.
+    species=() : tuple[str] or Species, defaults to Stream.species
+        Species corresponding to `flow`.
 
-    **species:** tuple[str] or [Species] Species corresponding to `flow`. If empty, assume same species as class.
+    units='kmol/hr' : str, optional
+        Flow rate units of measure (only mass, molar, and
+        volumetric flow rates are valid)
 
-    **units:** [str] The units of the flow rates (only mass, molar, and volumetric flow rates are valid)
+    phase='l' : {'l', 'g', 's'}, optional
+        Either gas ("g"), liquid ("l"), or solid ("s").
 
-    **phase:** [str] 'l' for liquid, 'g' for gas, or 's' for solid.
+    T=298.15 : float, optional
+        Temperature (K).
 
-    **T:** [float] Temperature (K).
+    P=101325 : float, optional
+        Pressure (Pa).
 
-    **P:** [float] Pressure (Pa).
-
-    **price:** [float] (USD/kg).
+    price=0 : float, optional
+        Price in USD/kg.
     
-    ****flow_pairs:** Compound-flow pairs
+    **flow_pairs : float
+                   Compound-flow pairs
 
-**Class Properties**
-
-    **species** = Species(): [Species] Contains pure component thermodynamic properties for computing overall properties of Stream instances.
-
-**Examples**
-
+    Examples
+    --------
     Before making a stream, set the species using a Species object:
 
     .. code-block:: python
@@ -573,18 +580,6 @@ class Stream(metaclass=metaStream):
             else: raise TypeError(f"link must be a Stream object, not a "
                                   "'{type(stream).__name__}' object.")
     
-    # def __getattr__(self, key):
-    #     if self._link is MissingStream:
-    #         if self.source and self.source._ins[0] is not MissingStream:
-    #             self.source._link_streams()
-    #             try: return object.__getattribute__(self, key)
-    #             except: raise AttributeError(f'{repr(self.source)}.ins[0] is missing stream')
-    #         raise AttributeError(f'{self}.link is missing stream')
-    #     elif not self._source_link:
-    #         raise AttributeError(f'{repr(self.link.source)} must be simulated first')
-    #     else:
-    #         raise AttributeError(f"'{type(self).__name__}' has no attribute '{key}'")
-    
     @property
     def species(self):
         """[Species] Contains pure component thermodynamic properties for computing overall properties of Stream instances."""
@@ -622,7 +617,7 @@ class Stream(metaclass=metaStream):
     def MW(self):
         """Molecular weight of all species (array g/mol):     
 
-        from biosteam import *
+        >>> from biosteam import *
         >>> Stream.species = Species('Water', 'Ethanol')
         >>> Stream.MW
         tuple_array([18.01528, 46.06844])
@@ -633,14 +628,15 @@ class Stream(metaclass=metaStream):
     
     @property
     def indices(self):
-        """Return flow indices of specified species.
+        """Return indices of specified species.
 
-        **Parameters**
+        Parameters
+        ----------
+        IDs : iterable
+              Species IDs or CAS numbers.
 
-             **IDs:** [iterable] species IDs or CAS numbers.
-
-        Example
-
+        Examples
+        --------
         Indices by ID:
         
         >>> from biosteam import *
@@ -661,12 +657,13 @@ class Stream(metaclass=metaStream):
     def index(self):
         """Return index of specified compound.
 
-        **Parameters**
+        Parameters
+        ----------
+        ID: str
+            Compound ID
 
-             **ID:** [str] compound ID
-
-        Example
-
+        Examples
+        --------
         Index by ID:
         
         >>> from biosteam import *
@@ -1154,12 +1151,13 @@ class Stream(metaclass=metaStream):
     def quantity(self, prop_ID):
         """Return a property as a Quantity object as described in the `pint package <https://pint.readthedocs.io/en/latest/>`__ 
 
-        **Parameters**
+        Parameters
+        ----------
+        prop_ID : str
+                  Name of the property (e.g. 'mol', 'H', 'k' ...)
 
-             **prop_ID:** [str] name of the property (e.g. 'mol', 'H', 'k' ...)
-
-        Example:
-
+        Examples
+        --------
         >>> from biosteam import *
         >>> Stream.species = Species('Ethanol', 'Water')
         >>> s1 = Stream(Ethanol=2)
@@ -1176,16 +1174,17 @@ class Stream(metaclass=metaStream):
     def derivative(self, prop_ID, var_ID, index=None):
         """Return the derivative of property 'prop_ID' and variable 'var_ID'. If the property given by var_ID is an array, use index to specify which element.
 
-         **Parameters**
+        Parameters
+        ----------
+        prop_ID : str
+                  Name of the property (e.g. 'rho', 'Cp', 'H', 'volnet' ...)
+        var_ID : str
+                 Name of the variable (e.g 'T', 'P', 'molnet' ...)
+        index : array_like, optional
+                Indices if the variable is an array
 
-             **prop_ID:** [str] Name of the property (e.g. 'rho', 'Cp', 'H', 'volnet' ...)
-
-             **var_ID:** [str] Name of the variable (e.g 'T', 'P', 'molnet' ...)
-
-             **index:** [array_like or None] Optional indices if the variable is an array
-
-        **Example**
-
+        Examples
+        --------
         >>> from biosteam import *
         >>> Stream.species = Species('Ethanol', 'Water')
         >>> s1 = Stream(Ethanol=2)
@@ -1256,19 +1255,21 @@ class Stream(metaclass=metaStream):
     def copyflow(self, stream, species=None, *, remove=False, exclude=False):
         """Copy flow rates of stream to self.
         
-        **Parameters**
+        Parameters
+        ----------
+        stream : Stream
+            Flow rates will be copied from here.
+        species=None : iterable[str], defaults to all species.
+            Species IDs. 
+        remove=False: bool, optional
+            If True, copied species will be removed from `stream`.
+        exclude=False: bool, optional
+            If True, exclude `species` when copying.
         
-            **stream:** [Stream] Flow rates will be copied from here.
-            
-            **species:** iterable[str] Species IDs. Defaults to all species.
-            
-            **remove:** [bool] If True, copied species will be removed from `stream`.
-            
-            **exclude:** [bool] If True, exclude `species` when copying.
-            
-        .. Note::
-            
-            Species flow rates that are not copied will be set to zero.
+        Notes
+        -----
+        
+        Species that are not included will be set to zero.
         
         """
         assert self._species is stream._species, ('species must be the same to '
@@ -1320,14 +1321,17 @@ class Stream(metaclass=metaStream):
     def bubble_T(self):
         """Bubble point at current composition and pressure.
 
-        **Returns**
-
-            **T:** [float] Bubble point temperature (T).
-
-            **y:** [numpy ndarray] Vapor phase composition.
-            
-            **indices:** [list] Indices of species in equilibrium
-
+        Returns
+        -------
+        T : float
+            Bubble point temperature (T).
+        y : numpy.ndarray
+            Vapor phase composition.
+        indices : list[int]
+                  Indices of species in equilibrium
+        
+        Examples
+        --------
         >>> from biosteam import *
         >>> stream = Stream(flow=(0.6, 0.4),
         ...                 species=Species('Ethanol', 'Water'))
@@ -1352,14 +1356,17 @@ class Stream(metaclass=metaStream):
     def bubble_P(self):
         """Bubble point at current composition and temperature.
 
-        **Returns**
+        Returns
+        -------
+        P : float
+            Bubble point pressure (Pa).
+        y : numpy.ndarray
+            Vapor phase composition.
+        indices : list[int]
+                  Indices of species in equilibrium.
 
-            **P:** [float] Bubble point pressure (Pa).
-
-            **y:** [numpy ndarray] Vapor phase composition.
-            
-            **indices:** [list] Indices of species in equilibrium
-
+        Examples
+        --------
         >>> from biosteam import *
         >>> s1 = Stream(flow=(0.703, 0.297), T=352.28,
                         species=Species('Ethanol', 'Water'))
@@ -1384,14 +1391,18 @@ class Stream(metaclass=metaStream):
     def dew_T(self):
         """Dew point at current composition and pressure.
         
-        **Returns**
+        Returns
+        -------
+        T : float
+            Dew point temperature (K).
+        x : numpy.ndarray
+            Liquid phase composition.
+        indices : list[int]
+                  Indices of species in equilibrium
 
-            **T:** [float] Dew point temperature (K).
-
-            **x:** [numpy array] Liquid phase composition.
-            
-            **indices:** [list] Indices of species in equilibrium
-
+        Examples
+        --------
+        >>> from biosteam import Stream, Species
         >>> stream = Stream(flow=(0.5, 0.5),
         ...                 species=Species('Ethanol', 'Water'))
         >>> stream.dew_T()
@@ -1415,14 +1426,17 @@ class Stream(metaclass=metaStream):
     def dew_P(self):
         """Dew point at current composition and temperature.
         
-        **Returns**
+        Returns
+        -------
+        P : float
+            Dew point pressure (Pa).
+        x : numpy.ndarray
+            Liquid phase composition.
+        indices : list[int]
+                  Indices of species in equilibrium.
 
-            **P:** [float] Dew point pressure (Pa).
-
-            **x:** [numpy array] Liquid phase composition.
-            
-            **indices:** [list] Indices of species in equilibrium
-
+        Examples
+        --------
         >>> from biosteam import *
         >>> stream = Stream(flow=(0.703, 0.297), T=352.28,
         ...                 species=Species('Ethanol', 'Water'))
@@ -1448,19 +1462,21 @@ class Stream(metaclass=metaStream):
     def Re(self, L, A=None):
         """Return Reynolds number.
 
-        **Parameters**
+        Parameters
+        ----------
+        L : float
+            Characteristic length (m).
+        A=None : float, optional
+            Cross-sectional area (m^2). If A is None, assume flow through a cylindrical pipe.
 
-             **L:** [float] Characteristic lenght (m)
-
-             **A:** [float] Cross-sectional area (m^2). If A is None, assume flow through a cylindrical pipe.
-
-        Example
-
+        Examples
+        --------
         >>> from biosteam import *
         >>> Stream.species = Species('Ethanol', 'Water')
         >>> s1 = Stream(Water=200)
         >>> s1.Re(0.2, 0.031416)
         27639.956372923512
+        
         """
         volnet = self.volnet/3600 # m3/s
         if A is None:  # Assume pipe
@@ -1472,25 +1488,27 @@ class Stream(metaclass=metaStream):
     def _helpdata(cls, prop):
         """Return information related to a property.
 
-        **Parameters**
+        Parameters
+        ----------
+        prop : str
+               Name or description of a property.
 
-             **prop:** [str] name or description of a property
+        Returns
+        --------
+        ID : str
+             Name of the property
+        description : str
+                      Description of the property
+        dependency : str
+                     TP dependency
+        units : str
+                Units of measure
+        datatype : str
+                   object type returned by property.
 
-        Return
-
-             **out:** tupple[str] where elements are:
-                  * **ID:** [str] name of the property
-
-                  * **Description:** [str] description of the property
-
-                  * **Dependency:** [str] TP dependency
-
-                  * **Units:** [str] units of measure
-
-                  * **Datatype:** [str] type returned by property
-
-        Example
-
+        Examples
+        --------
+        >>> from biosteam import Stream
         >>> Stream._helplist('k')
         ('k', 'thermal conductivity', 'TP', 'W/m/K', 'float')
 
@@ -1519,12 +1537,14 @@ class Stream(metaclass=metaStream):
     def help(cls, prop):
         """Print information related to a property.
 
-        **Parameters**
+        Parameters
+        ----------
+        prop : str
+               Name or description of a property.
 
-             **prop:** [str] name or description of a property     
-
-        Example
-
+        Examples
+        --------
+        >>> from biosteam import Stream
         >>> Stream.help('rho')
         rho: [float] Density as a function of T and P (kg/m^3).
         >>> Stream.help('density')
@@ -1538,22 +1558,27 @@ class Stream(metaclass=metaStream):
     def T_equilibrium(streams, T_guess=None, Q_in=0, approximate=True):
         """Bring all streams to temperature equilibrium.
 
-        **Parameters**
-
-            **streams:** [Stream] All streams
+        Parameters
+        ----------
+        streams : iterable[Stream]
+            All streams in temperature equilibrium.
         
-            **T_guess:** [float] Equilibrium temperature guess (K)
+        T_guess=None : float, optional
+            Equilibrium temperature guess (K).
 
-            **Q_in:** [float] Heat addition to streams (kJ/hr)     
+        Q_in=0 : float, optional
+            Heat addition to streams (kJ/hr).
             
-            **approximate:** [bool] If True, approximate energy balance with constant heat capacity
+        approximate=True : bool
+            If True, approximate energy balance with constant heat capacity.
 
-        **Return**
+        Returns
+        -------
+        T : float
+            New temperature (K).
 
-             **T:** [float] New temperature (K)
-
-        **Example**
-
+        Examples
+        --------
         >>> from biosteam import *
         >>> Stream.species = Species('Water', 'Ethanol')
         >>> s1 = Stream(Water=2, T=300)
@@ -1601,18 +1626,17 @@ class Stream(metaclass=metaStream):
 
     @staticmethod
     def sum(s_sum, streams):
-        """Mixes streams and sets resulting mass and energy in 's_sum'. Assumes the same pressure as streams[0], and no phase equilibrium. If 's_sum' is a Stream object, it assumes the phase does not change.
+        """Mixes streams and sets resulting mass and energy in 's_sum'. Assumes the same pressure as streams[0], and no phase equilibrium. 
 
-        **Parameters** 
+        Parameters
+        ----------
+        s_sum : Stream
+                Container for the resulting mixture of streams.
+        streams : iterable[Stream]
+                  Stream objects to be mixed
 
-             **s_sum:** [Stream] Container for the resulting mixture of streams
-
-             **streams:** [tuple] Stream objects to be mixed
-
-        .. Note:: Ignores contents of `s_sum` as if it was empty
-
-        **Example**
-
+        Examples
+        --------
         >>> from biosteam import *
         >>> Stream.species = Species('Water', 'Ethanol')
         >>> s1 = Stream(Water=2, T=300)
@@ -1675,9 +1699,10 @@ class Stream(metaclass=metaStream):
     def disable_phases(self, phase):
         """Cast stream into a Stream object.
         
-        **Parameters**
-        
-            **phase:** {'s', 'l', 'g'} desired phase of stream
+        Parameters
+        ----------
+        phase : {'s', 'l', 'g'}
+                Desired phase of stream
             
         """
         self._phase = phase
@@ -1686,26 +1711,21 @@ class Stream(metaclass=metaStream):
     def VLE(self):
         """A callable VLE object for vapor-liquid equilibrium.
 
-        **Parameters**
-        
-            **Specify two:**
-                * **P:** [float] Operating pressure (Pa)
-                * **Q:** [float] Energy input (kJ/hr)
-                * **T:** [float] Operating temperature (K)
-                * **V:** [float] Molar vapor fraction
-                * **x:** [numpy array] Molar composition of liquid (for binary mixture)
-                * **y:** [numpy array] Molar composition of vapor (for binary mixture)
-
-            **Optional:**
-            
-                **species_IDs:** [tuple] IDs of species in equilibrium.
-                     
-                **LNK:** tuple[str] Light non-keys that remain as a vapor.
-        
-                **HNK:** tuple[str] Heavy non-keys that remain as a liquid.
-
-        .. Note:
-           LNK and HNK are not taken into account for equilibrium. Parameters not specified are None by default.
+        Parameters
+        ----------
+        Specify two:
+            * **P:** Operating pressure (Pa)
+            * **Q:** Energy input (kJ/hr)
+            * **T:** Operating temperature (K)
+            * **V:** Molar vapor fraction
+            * **x:** Molar composition of liquid (for binary mixture)
+            * **y:** Molar composition of vapor (for binary mixture)
+        species_IDs=None : tuple, optional
+            IDs of species in equilibrium.
+        LNK=None : tuple[str], optional
+            Light non-keys that remain as a vapor (disregards equilibrium).
+        LNK=None : tuple[str], optional
+            Heavy non-keys that remain as a liquid (disregards equilibrium).
 
         """
         self.enable_phases()

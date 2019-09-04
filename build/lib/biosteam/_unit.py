@@ -13,7 +13,7 @@ from ._flowsheet import find, save_digraph
 from ._graphics import Graphics, default_graphics
 from ._stream import Stream
 from ._heat_utility import HeatUtility
-from ._utils import Ins, Outs, MissingStream, NotImplementedMethod
+from .utils import Ins, Outs, MissingStream, NotImplementedMethod
 from ._power_utility import PowerUtility
 from warnings import warn
 import biosteam as bst
@@ -67,7 +67,7 @@ def _ub_warning(key, value, units, ub, stacklevel, source):
     
 class unit(type):
     """Unit metaclass for keeping track for Unit lines and graphics."""
-    def __new__(mcl, name, bases, dct, isabstract=False, unitdoc=True):
+    def __new__(mcl, name, bases, dct, isabstract=False):
         # Make new Unit class
         cls = type.__new__(mcl, name, bases, dct)
         
@@ -77,7 +77,7 @@ class unit(type):
         # Set line
         # default_line constitutes a new Unit class
         line = cls.line
-        if line in ('Unit', 'Mixer', 'Static', 'Splitter', 'Solids separator', 'Facility'):
+        if line in (None, 'Mixer', 'Static', 'Splitter', 'Solids separator', 'Facility'):
             line = cls.__name__.replace('_', ' ')
             # Set new graphics object for new line
             if '_graphics' not in dct: cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
@@ -86,16 +86,6 @@ class unit(type):
             cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
         
         cls.line = re.sub(r"\B([A-Z])", r" \1", line).capitalize()
-        
-        if unitdoc and cls.__doc__:
-            cls.__doc__ = cls.__doc__.replace('**Parameters**', 
-   "**Parameters**"
-"\n"    
-"\n        **ID:** [str] Unique identification. If set as '', a default ID will be chosen."
-"\n"
-"\n        **outs:** tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given."
-"\n"
-"\n        **ins:** tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.")
         
         if isabstract: return cls
         
@@ -108,72 +98,65 @@ class unit(type):
 # %% Unit Operation
 
 class Unit(metaclass=unit):
-    """Abstract parent class for Unit objects. Child objects must contain _run, _design and _cost methods to estimate stream outputs of a Unit and find design and cost information.  
+    """Abstract parent class for Unit objects. Child objects must contain `_run`, `_design` and `_cost` methods to estimate stream outputs of a Unit and find design and cost information.  
 
     **Parameters**
-
-        **ID:** [str] A unique identification. If ID is an empty string (i.e. '' ), a default ID will be chosen. If ID is None, unit will not be registered in flowsheet.
-
-        **ins:** tuple[str or Stream] Input streams or IDs to initialize input streams. If None, leave streams missing. If empty, default IDs will be given.
-
-        **outs:** tuple[str or Stream] Output streams or IDs to initialize output streams. If None, leave streams missing. If empty, default IDs will be given.
-                
-
-    **Class Definitions** 
     
-        **line** = [Defaults to the class name of the first child class]: [str] Name denoting the type of Unit class    
-        
-        **BM** = None: [float] Bare module factor (installation factor)
-        
-        **_run()**
-            Run simulation and update output streams.
+    ID='' : str, defaults to a unique ID
+        A unique identification. If ID is None, unit will not be
+        registered in flowsheet.
+    ins=None : tuple[str or Stream], defaults to missing streams
+        Input streams or IDs to initialize input streams.
+        If empty, default IDs will be given.
+    outs=() : tuple[str or Stream], defaults to new streams
+        Output streams or IDs to initialize output streams. If None, 
+        leave streams missing.
 
-        **_design()**
-            Add design requirements to "_Design" dictionary attribute.
-
-        **_cost()**
-            Add itemized purchse costs to results "_Cost" dictionary attribute.
-            
-        .. Note::
-           
-           The `_run` method is called during recycle loop convergence. The `_design` and `_cost` methods are called in the given order for generating results.
-        
-        **_units** = {}: [dict] Default units for results Operation and Design
-        
-        **_N_ins** = 1: [int] Expected number of input streams
-
-        **_N_outs** = 2: [int] Expected number of output streams
-
-        **_N_heat_utilities** = 0: [int] Number of heat utilities  
-
-        **_has_power_utility** = False: [bool] If True, a PowerUtility object is created for every instance.
-        
-        **_has_cost** = True: [bool] Should be True if it has any associated cost
+    **Abstract class attributes**
     
-        **_graphics** = <Graphics>: [biosteam Graphics] Settings for diagram representation.
+    line=None : str
+        Name denoting the type of Unit class. Defaults to the class
+        name of the first child class.
+    BM=None : float
+        Bare module factor (installation factor).
+    _units={} : dict
+        Units of measure for results Operation and Design.
+    _N_ins=1 : int
+        Expected number of input streams.
+    _N_outs=2 : int
+        Expected number of output streams.
+    _N_heat_utilities=0: int
+        Number of heat utilities created with each instance
+    _has_power_utility=False : bool
+        If True, a PowerUtility object is created with each instance.
+    _has_cost=True : bool
+        Should be True if it has any associated cost.
+    _graphics : biosteam.Graphics, abstract, optional
+        Settings for diagram representation.
 
-    **ins**
-        
-        list of input streams
-        
-    **outs**
+    **Abstract class methods**
     
-        list of output streams
+    _run()
+        Run simulation and update output streams.
+    _design()
+        Add design requirements to "_Design" dictionary attribute.
+    _cost()
+        Add itemized purchse costs to results "_Cost" dictionary attribute.
     
-    **Examples**
+    Examples
+    --------
+    :doc:`tutorial/Creating a Unit`
     
-        :doc:`Creating a Unit`
-        
-        :doc:`Using -pipe- notation`
-        
-        :doc:`Inheriting from Unit`
-        
-        :doc:`Unit decorators`
+    :doc:`tutorial/Using -pipe- notation`
+    
+    :doc:`tutorial/Inheriting from Unit`
+    
+    :doc:`tutorial/Unit decorators`
     
     """ 
     ### Abstract Attributes ###
     
-    #: [float] Bare module factor (installation factor).
+    # [float] Bare module factor (installation factor).
     BM = None
     
     # [dict] Default units for construction
@@ -198,7 +181,7 @@ class Unit(metaclass=unit):
     _graphics = default_graphics
     
     # [str] The general type of unit, regardless of class
-    line = 'Unit'
+    line = None
 
     ### Other defaults ###
 
@@ -432,33 +415,18 @@ class Unit(metaclass=unit):
             series.name = ID
             return series
 
-    # def __getattr__(self, name):
-    #     if name is '_results':
-    #         warn(DeprecationWarning("'_results' dictionary will be deprecated in favor of attributes '_Design', '_Cost', and '_GHGs'"))
-    #         self._results = results = {'Design': self._Design,
-    #                                    'Cost': self._Cost,
-    #                                    'GHG': self._GHGs}
-    #         return results
-    #     elif name in ('_Cost', '_Design') and hasattr(self, '_results'):
-    #         warn(DeprecationWarning("'_results' dictionary will be deprecated in favor of attributes '_Design', '_Cost', and '_GHGs'"))
-    #         self._Cost = self._results['Cost']
-    #         self._Design = self._results['Design']
-    #         self._GHGs = self._results['GHG']
-    #     else:
-    #         raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
-
     def _checkbounds(self, key, value, units, bounds):
         """Issue a warning if value is out of bounds.
         
-        **Parameters**
-        
-            **key:** [str] Name of value.
-            
-            **value:** [float]
-            
-            **units:** [str] Units of value
-            
-            **bounds:** iterable[float, float] Upper and lower bounds.
+        Parameters
+        ----------
+        key : str
+              Name of value.
+        value : float
+        units : str
+                Units of value        
+        bounds : iterable[float, float]
+                 Upper and lower bounds.
             
         """
         # Warn when value is out of bounds
@@ -473,16 +441,16 @@ class Unit(metaclass=unit):
     def _lb_warning(self, key, value, units, lb):
         """Warn that value is below lower bound.
         
-         **Parameters**
-        
-            **key:** [str] Name of value.
-            
-            **value:** [float]
-            
-            **units:** [str] Units of value.
-            
-            **lb:** [float] lower bound.
-        
+        Parameters
+        ----------
+        key : str
+              Name of value.
+        value : float
+        units : str 
+                Units of value.
+        lb : float
+             Lower bound.
+    
         """
         _lb_warning(key, value, units, lb, 4, self)
 
@@ -541,9 +509,10 @@ class Unit(metaclass=unit):
     def _neighborhood(self, radius=1):
         """Return all neighboring units within given radius.
         
-        **Parameters**
-        
-            **radius:**[int] Maxium number streams between neighbors.
+        Parameters
+        ----------
+        radius : int
+                 Maxium number streams between neighbors.
         
         """
         radius -= 1
@@ -566,15 +535,15 @@ class Unit(metaclass=unit):
     def diagram(self, radius=0, file=None, format='png'):
         """Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of the unit and all neighboring units within given radius.
         
-        **Parameters**
-        
-            **radius:** [int] Maxium number streams between neighbors.
-        
-            **file:** Must be one of the following:
-                * [str] File name to save diagram.
-                * [None] Display diagram in console.
-        
-            **format:** Format of file.
+        Parameters
+        ----------
+        radius : int
+                 Maxium number streams between neighbors.
+        file : Must be one of the following:
+            * [str] File name to save diagram.
+            * [None] Display diagram in console.
+        format : str
+                 Format of file.
         
         """
         if radius > 0:

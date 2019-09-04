@@ -12,21 +12,19 @@ from .decorators import cost
 class CrushingMill(SolidsSeparator):
     """Create CrushingMill object.
     
-    **Parameters**
-    
-        **moisture_content:** Fraction of water in Baggasse
-    
-    **ins**
-    
+    Parameters
+    ----------
+    ins
         [0] Shredded sugar cane
         
         [1] Recycle water
     
-    **outs**
-    
+    outs
         [0] Bagasse
         
         [1] Juice
+    moisture_content : float
+                       Fraction of water in Baggasse.
     
     """
     

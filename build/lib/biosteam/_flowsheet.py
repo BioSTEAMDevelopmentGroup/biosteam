@@ -5,7 +5,7 @@ As BioSTEAM objects are created, they are automatically registered. The `find` o
 """
 from graphviz import Digraph
 from IPython import display
-from ._utils import Register, search_register
+from .utils import Register, search_register
 
 __all__ = ('find', 'Flowsheet')
 
@@ -148,10 +148,12 @@ class Flowsheet:
     def diagram(self, kind='surface'):
         """Display all units and attached streams.
         
-        **kind:** Must be one of the following:
-                * **'thorough':** Thoroughly display every unit.
-                * **'surface':** Display units and recycle systems.
-                * **'minimal':** Minimally display flowsheet as a box with feeds and products.
+        Parameters
+        ----------
+        kind='surface' : Must be one of the following
+            * **'thorough':** Thoroughly display every unit.
+            * **'surface':** Display units and recycle systems.
+            * **'minimal':** Minimally display flowsheet as a box with feeds and products.
         
         """
         if kind == 'thorough':
@@ -242,9 +244,10 @@ class Flowsheet:
     def __call__(self, ID):
         """Return requested biosteam item.
     
-        **Parameters**
-    
-             **ID:** [str] ID of the requested item.
+        Parameters
+        ----------
+        ID : str
+             ID of the requested item.
     
         """
         ID = ID.replace(' ', '_')

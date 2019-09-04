@@ -13,9 +13,10 @@ __all__ = ('ChilledWaterPackage',)
 class ChilledWaterPackage(Facility):
     """Create a chilled water package that is cost based on flow rate of chilled water.
     
-    **Parameters**
-    
-        **Duty:** Chilled water duty (kJ/hr)
+    Parameters
+    ----------
+    Duty : float
+        Chilled water duty (kJ/hr)
     
     """
     _N_heat_utilities = 1

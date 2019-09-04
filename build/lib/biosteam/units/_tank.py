@@ -33,9 +33,9 @@ class StorageTank(Static, Tank):
         V &= \\tau Q \\\\
         C_{fob}^{2007} &= 250000 + 94.2 V (2*10^3 < V < 50*10^3 m^3) \\\\
 
-    **References**
-
-        [1] Apostolakou, A. A., Kookos, I. K., Marazioti, C., & Angelopoulos, K. C. (2009). Techno-economic analysis of a biodiesel production process from vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031. https://doi.org/10.1016/j.fuproc.2009.04.017
+    References
+    ----------
+    [1] Apostolakou, A. A., Kookos, I. K., Marazioti, C., & Angelopoulos, K. C. (2009). Techno-economic analysis of a biodiesel production process from vegetable oils. Fuel Processing Technology, 90(7–8), 1023–1031. https://doi.org/10.1016/j.fuproc.2009.04.017
 
     """
     line = 'Storage tank'
@@ -69,8 +69,8 @@ class MixTank(Tank):
        C_{fob}^{2007} &= 12080 * V^{0.525} (0.1 < V < 30 m^3)
 
     References
-
-         [1] I.K. Kookos, Preliminary Chemical Process Synthesis and Design, Tziolas Publishing, Thessalonika, Greece, 2008 (book in Greek).
+    ----------
+    [1] I.K. Kookos, Preliminary Chemical Process Synthesis and Design, Tziolas Publishing, Thessalonika, Greece, 2008 (book in Greek).
 
     """
     line = 'Mix tank'

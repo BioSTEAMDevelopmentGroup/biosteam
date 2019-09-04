@@ -11,7 +11,7 @@ from ._stream import Stream
 from ._facility import Facility
 from ._unit import Unit
 from ._report import save_report
-from ._utils import colors, MissingStream, strtuple, \
+from .utils import colors, MissingStream, strtuple, \
                     conditional_wegstein, conditional_aitken
 import biosteam as bst
 
@@ -132,15 +132,18 @@ class system(type):
 class System(metaclass=system):
     """Create a System object that can iteratively run each element in a network of BioSTREAM objects until the recycle stream is converged. A network can have function, Unit and/or System objects. When the network contains an inner System object, it converges/solves it in each loop/iteration.
 
-    **Parameters**
-
-         **ID:** [str] A unique identification. If ID is None, instance will not be registered in flowsheet.
-
-         **network:** tuple[Unit, function and/or System] A network that is run element by element until the recycle converges.
-
-         **recycle:** [Stream] A tear stream for the recycle loop.
-         
-         **facilities:** tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the network simulation.
+    Parameters
+    ----------
+    ID : str
+         A unique identification. If ID is None, instance will not be
+         registered in flowsheet.
+    network : tuple[Unit, function and/or System]
+        A network that is run element by element until the recycle converges.
+    recycle=None : Stream, optional
+        A tear stream for the recycle loop.
+    facilities=() : tuple[Unit, function, and/or System], optional
+        Offsite facilities that are simulated only after
+        completing the network simulation.
 
     """
     ### Class attributes ###
@@ -416,18 +419,16 @@ class System(metaclass=system):
     def diagram(self, kind='surface', file=None, format='png'):
         """Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of the system.
         
-        **Parameters**
-        
-            **kind:** Must be one of the following:
-                * **'thorough':** Thoroughly display every unit within the network
-                * **'surface':** Display only surface elements listed in the network
-                * **'minimal':** Minimally display the network as a box
-        
-            **file:** Must be one of the following:
-                * [str] File name to save diagram.
-                * [None] Display diagram in console.
-        
-            **format:** File format.
+        Parameters
+        ----------
+        kind='surface' : {'thorough', 'surface', 'minimal'}:
+            * **'thorough':** Display every unit within the network.
+            * **'surface':** Display only elements listed in the network.
+            * **'minimal':** Display network as a box.
+        file=None : str, display in console by default
+            File name to save diagram.
+        format='png' : str
+            File format (e.g. "png", "svg").
         
         """
         if kind == 'thorough':
@@ -443,15 +444,17 @@ class System(metaclass=system):
     def _iter_run(self, mol):
         """Run the system at specified recycle molar flow rate.
         
-        **Parameters**
-        
-            **mol:** [array] Recycle molar flow rates.
+        Parameters
+        ----------
+        mol : numpy.ndarray
+              Recycle molar flow rates.
             
-        **Returns**
-        
-            **rmol:** [array] New recycle molar flow rates.
-            
-            **unconverged:** [bool] True if recycle has not converged.
+        Returns
+        -------
+        rmol : numpy.ndarray
+               New recycle molar flow rates.
+        unconverged : bool
+                      True if recycle has not converged.
             
         """
         recycle = self.recycle
@@ -509,15 +512,16 @@ class System(metaclass=system):
     def set_spec(self, getter, setter, solver=newton, **kwargs):
         """Wrap a solver around the converge method.
 
-        **Parameters**
-
-             **getter:** [function] Returns objective value.
-
-             **setter:** [function] Changes independent variable.
-             
-             **solver:** [function] Solves objective function.
-
-             **kwargs:** [dict] Key word arguments passed to solver.
+        Parameters
+        ----------
+        getter : function
+            Returns objective value.
+        setter : function
+            Changes independent variable.
+        solver=scipy.optimize.newton : function
+            Solves objective function.
+        **kwargs
+            Key word arguments passed to solver.
 
         """
         converge = self._converge

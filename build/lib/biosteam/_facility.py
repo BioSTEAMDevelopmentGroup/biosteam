@@ -5,7 +5,7 @@ Created on Sat Jul 13 02:24:35 2019
 @author: yoelr
 """
 from ._unit import Unit
-from ._utils import NotImplementedMethod
+from .utils import NotImplementedMethod
 
 __all__ = ('Facility',)
 

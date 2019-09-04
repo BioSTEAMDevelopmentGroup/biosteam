@@ -18,11 +18,14 @@ do_nothing = lambda: None
 class Block:
     """Create a Block object that can simulate the element and the system downstream. The block can also generate Parameter objects that can update the system state.
     
-    **Parameters**
-    
-        **element:** [Unit or Stream] Element in the system.
+    Parameters
+    ----------
+    element : Unit or Stream
+              Element in the system.
         
-        **system:** [System] If None, ignore downstream.
+    system=None : System, optional
+        System affected by element. In other words, element should affect
+        downstream operations in the system.
         
     """
     

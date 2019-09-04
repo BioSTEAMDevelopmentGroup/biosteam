@@ -14,21 +14,18 @@ __all__ = ('RotaryVacuumFilter', 'RVF')
 class RotaryVacuumFilter(SolidsSeparator):
     """Create a RotaryVacuumFilter object.
     
-    **Parameters**
-        
-        **moisture_content:** Fraction of moisture in retentate
-    
-    **ins**
-     
+    Parameters
+    ----------
+    ins
         [0] Feed
         
         [1] Wash water
-     
-    **outs**
-    
+    outs
         [0] Retentate
         
         [1] Permeate
+    moisture_content : float
+                       Fraction of water in retentate.
     
     """
     _has_power_utility = True

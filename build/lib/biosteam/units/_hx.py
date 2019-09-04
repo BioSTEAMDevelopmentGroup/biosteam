@@ -48,13 +48,15 @@ class HX(Unit, isabstract=True):
 
     **Abstract methods**
     
-        **_get_streams()** Should return two input streams and two output streams that exchange heat.
+    _get_streams()
+        Should return two input streams and two output streams that exchange heat.
 
     **Abstract attributes**
     
-        **_duty:** [float] The heat transfer requirement (kJ/hr)
-        
-        **U:** [float] Enforced overall heat transfer coefficent (kW/m^2/K)
+    _duty : float
+        The heat transfer requirement (kJ/hr)
+    U : float
+        Enforced overall heat transfer coefficent (kW/m^2/K)
 
     """
     line = 'Heat Exchanger'
@@ -421,27 +423,23 @@ class HX(Unit, isabstract=True):
 class HXutility(HX):
     """Create a heat exchanger that changes temperature of the output stream using a heat utility.
 
-    **Parameters**
-
-        User defines at least one:
-            * T: [float] Temperature of output stream (K).
-            * V: [float] Vapor fraction of output stream.
-        
-        **rigorous:** [bool] If true, calculate vapor liquid equilibrium
-        
-        **U:** Enforced overall heat transfer coefficent (kW/m^2/K)
-
-    **ins**
-    
+    Parameters
+    ----------
+    ins
         [0] Input stream
-        
-    **outs**
-    
+    outs
         [0] Output stream
+    Define at least one:
+        * T: [float] Temperature of output stream (K).
+        * V: [float] Vapor fraction of output stream.
+    rigorous=False : bool
+        If true, calculate vapor liquid equilibrium
+    U=None : float, optional
+        Enforced overall heat transfer coefficent (kW/m^2/K)
 
-    **Examples**
-    
-        :doc:`HXutility Example`
+    Examples
+    --------
+    :doc:`notebooks/HXutility Example`
     
     """
     
@@ -524,39 +522,33 @@ class HXutility(HX):
 class HXprocess(HX):
     """Counter current heat exchanger for process fluids. Condenses/boils latent fluid until sensible fluid reaches pinch temperature.
     
-    **Parameters**
-        
-        **U:** Enforced overall heat transfer coefficent (kW/m^2/K)
-    
-        **fluid_type:** [str] Must be one of the following:
-            * **None:** Rigorously transfers heat until pinch temperature **-not implemented yet-**
-            * **'ss':** Sensible-sensible fluids. Heat is exchanged until the pinch temperature is reached.
-            * **'ll':** Latent-latent fluids. Heat is exchanged until one fluid completely changes phase.
-            * **'ls':** Latent-sensible fluids. Heat is exchanged until either the pinch temperature is reached or the latent fluid completely changes phase.
-    
-        **Optional**
-        
-            **species_IDs:** tuple[str] IDs of species in thermodynamic equilibrium
-            
-            **LNK:** tuple[str] IDs of light non-keys assumed to remain as a vapor
-            
-            **HNK:** tuple[str] IDs of heavy non-keys assumed to remain as a liquid
-    
-    **ins**
-        
+    Parameters
+    ----------
+    ins  
         [0] Input process fluid 1
         
-        [1] Input process fluid 2
-        
-    **outs**
-        
+        [1] Input process fluid 2  
+    outs
         [0] Output process fluid 1
         
         [1] Output process fluid 2
+    U=None : float, optional
+        Enforced overall heat transfer coefficent (kW/m^2/K)
+    fluid_type : {None, 'ss', 'll', 'ls'}
+        * **None:** Rigorously transfers heat until pinch temperature -not implemented yet-
+        * **'ss':** Sensible-sensible fluids. Heat is exchanged until the pinch temperature is reached.
+        * **'ll':** Latent-latent fluids. Heat is exchanged until one fluid completely changes phase.
+        * **'ls':** Latent-sensible fluids. Heat is exchanged until either the pinch temperature is reached or the latent fluid completely changes phase.
+    species_IDs=None : tuple, optional
+        IDs of species in equilibrium.
+    LNK=None : tuple[str], optional
+        Light non-keys that remain as a vapor (disregards equilibrium).
+    LNK=None : tuple[str], optional
+        Heavy non-keys that remain as a liquid (disregards equilibrium).
     
-    **Examples**
-    
-        :doc:`HXprocess Example`
+    Examples
+    --------
+    :doc:`notebooks/HXprocess Example`
     
     """
     _N_heat_utilities = 0

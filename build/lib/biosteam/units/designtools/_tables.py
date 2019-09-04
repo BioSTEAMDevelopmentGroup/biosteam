@@ -8,11 +8,13 @@ __all__ = ('GTable', 'HNATable', 'FinalValue',
 def GTable(DRho, Hlr):
     """Return the allowable downflow (baffle liquid load) in gph/ft2, usually used for vertical vessel.
     
-    **Parameters**
-    
-        DRho: [float] Density difference between light liquid and vapor (lb/ft^3 ?)
+    Parameters
+    ----------
+    DRho : float
+        Density difference between light liquid and vapor (lb/ft^3 ?)
         
-        Hlr: [float] Height of liquid level above the interphase of light liquid and heavy liquid (ft)
+    Hlr : float
+        Height of liquid level above the interphase of light liquid and heavy liquid (ft)
     
     """
 

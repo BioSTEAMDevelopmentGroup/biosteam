@@ -7,7 +7,7 @@ Created on Sat Aug 18 13:26:29 2018
 from scipy import integrate
 from math import log
 from .. import _Q
-from .._utils import DisplayUnits
+from ..utils import DisplayUnits
 
 __all__ = ('Compound',)
 
@@ -38,25 +38,27 @@ def _integral_average(func, Xi, Xf):
 class Compound:
     """Abstract class, Compound, for making objects that contain pure component thermodynamic and transport properties. The enthalpy property, H, ignores excess ethalpies and calculates based on latent heats and the heat capacity at a constant pressure of 101325 Pa. It is suitable for solids and liquids which are weak functions of pressure
 
-    **Parameters**
+    Parameters
+    ----------
+    IDs : str
+          A unique identification
+    T=298.15 : float
+        Temperature (K)
+    P=101325 : float
+        Pressure (Pa)
+    phase='l' : {'s', 'l', 'g'}
+        Solid, liquid or gas.
 
-         **IDs:** [str] A unique identification
+    Attributes
+    ----------
+    
+    phase_ref='l': Reference phase
 
-         **T:** [float] Temperature (K)
+    H_ref=0: Reference enthalpy (kJ/hr)
 
-         **P:** [float] Pressure (Pa)
-
-         **phase:** [str] 'l'(iquid) or 'g'(as)           
-
-    **Class Attributes**
-
-         **phase_ref** = 'l': Reference phase
-
-         **H_ref** = 0: Reference enthalpy (kJ/hr)
-
-         **T_ref** = 298.15: Reference temperature (K)
+    T_ref=298.15: Reference temperature (K)
          
-         **P_ref** = 101325: Reference pressure (Pa)
+    P_ref=101325: Reference pressure (Pa)
 
     """
     #: [DisplayUnits] Units of measure for IPython display
@@ -96,9 +98,10 @@ class Compound:
     def quantity(self, prop_ID):
         """Return a material property as a Quantity object as described in the `pint package <https://pint.readthedocs.io/en/latest/>`__ 
 
-        **Parameters**
-
-             **prop_ID:** *[str]* name of the property (e.g. 'mol', 'H', 'k' ...)
+        Parameters
+        ----------
+        prop_ID : str
+            Name of the property (e.g. 'mol', 'H', 'k' ...)
              
         """
         return _Q(getattr(self, prop_ID), self.units[prop_ID])
@@ -210,13 +213,14 @@ class Compound:
     def Factory(cls, ID, const_prop_molar_dct={}, state_dep_prop_molar_dct={}):
         """Make new child class with constant and temperature dependent properties.
 
-        **Parameters**
-
-             **ID:** *[str]* ID of new Compound object
-
-             **const_prop_molar_dct:** *[dict]* constant properties to set to new object
-
-             **state_dep_prop_molar_dct:** *[dict]* methods that will turn into Python properties for the new object
+        Parameters
+        ----------
+        ID : str
+            ID of new Compound object
+        const_prop_molar_dct : dict
+            Constant properties to set to new object
+        state_dep_prop_molar_dct : dict
+            Methods that will turn into Python properties for the new object
 
         """
         child = type(ID, (cls,), {})

@@ -11,7 +11,7 @@ from ._species import Species, WorkingSpecies
 from ._stream import Stream, nonzero_species, MassFlow, \
                             mol_flow_dim, mass_flow_dim, vol_flow_dim, \
                             phases, phase_index, flow
-from ._utils import fraction, tuple_array, \
+from .utils import fraction, tuple_array, \
                     PropertyFactory, property_array
 from ._exceptions import EquilibriumError, DimensionError
 from . import _Q
@@ -67,19 +67,24 @@ def VolumetricFlow(self, value):
 class MixedStream(Stream):
     """An extension of the :doc:`Stream` class. All inherited properties and methods are supported. Create a MixedStream object that can manage mixtures of solid ('s'), liquid ('l'), LIQUID ('L'), and vapor ('g') phases. A MixedStream object is capable of vapor-liquid equilibrium (VLE) and liquid-LIQUID equilibrium (LLE).
 
-    **Parameters**
+    Parameters
+    ----------
+    ID="" : str, defaults to a unique ID
+        A unique identification. If ID is None, stream will not be
+        registered in flowsheet.
 
-         **ID:** [str] ID of the stream. If ID is '', a default ID will be chosen.
+    species=None : Species, defaults to Stream.species
 
-         **species:** [Species] Species object for the stream. If None, assume same as class' Species object.
+    T=298.15 : float, optional
+        Temperature (K)
 
-         **T:** [float] Temperature (K)
+    P=101325 : float, optional
+        Pressure (Pa)
 
-         **P:** [float] Pressure (Pa)
-
-    **Examples**
-
-         :doc:`MixedStream objects and thermodynamic equilibrium`
+    Examples
+    --------
+    :doc:`tutorial/MixedStream objects and thermodynamic equilibrium`
+    
     """
     __slots__ = ()
     def __init__(self, ID='', species=None, T=298.15, P=101325):
@@ -143,9 +148,10 @@ class MixedStream(Stream):
     def _setflows(self, mol):
         """ Set molar, mass and volumetric flow rates for all phases.
         
-        **Parameters**
-        
-            **mol_array:** Array of molar flow rates (kmol/hr) with species by column and phases ('s', 'l', 'L', 'g') by row.
+        Parameters
+        ----------
+            mol : array_like
+                  Array of molar flow rates (kmol/hr) with species by column and phases ('s', 'l', 'L', 'g') by row.
         
         """
         species = self._species
@@ -417,6 +423,7 @@ class MixedStream(Stream):
     # Other properties
     @property
     def mu(self):
+        """Hydraulic viscosity as a function of T and P (Pa*s)."""
         # Katti, P.K.; Chaudhri, M.M. (1964). "Viscosities of Binary Mixtures of Benzyl Acetate with Dioxane, Aniline, and m-Cresol". Journal of Chemical and Engineering Data. 9 (1964): 442–443.
         # molnet = self.molnet
         # if self.molnet == 0: return 0
@@ -538,19 +545,21 @@ class MixedStream(Stream):
     def copyflow(self, stream, species=None, remove=False, exclude=False):
         """Copy flow rates of stream to self.
         
-        **Parameters**
+        Parameters
+        ----------
+        stream : Stream
+                 Flow rates will be copied from here.
+        species = None : iterable[str], defaults to all species.
+                         Species IDs. 
+        remove = False : bool, optional
+                 If True, copied species will be removed from `stream`.
+        exclude = False : bool, optional
+                          If True, exclude `species` when copying.
         
-            **stream:** [Stream] Flow rates will be copied from here.
-            
-            **species:** iterable[str] Species IDs. Defaults to all species.
-            
-            **remove:** [bool] If True, copied species will be removed from `stream`.
-            
-            **exclude:** [bool] If True, exclude `species` when copying.
-            
-        .. Note::
-            
-            Species flow rates that are not copied will be set to zero.
+        Notes
+        -----
+        
+        Species that are not included will be set to zero.
         
         """
         assert self._species is stream._species, ('species must be the same to '
@@ -596,9 +605,10 @@ class MixedStream(Stream):
     def disable_phases(self, phase):
         """Cast stream into a Stream object.
         
-        **Parameters**
-        
-            **phase:** {'s', 'l', 'g'} desired phase of stream
+        Parameters
+        ----------
+        phase : {'s', 'l', 'g'}
+                Desired phase of stream.
             
         """
         self.__class__ = Stream
@@ -611,26 +621,21 @@ class MixedStream(Stream):
     def VLE(self):
         """A callable VLE object for vapor-liquid equilibrium.
 
-        **Parameters**
-        
-            **Specify two:**
-                * **P:** [float] Operating pressure (Pa)
-                * **Q:** [float] Energy input (kJ/hr)
-                * **T:** [float] Operating temperature (K)
-                * **V:** [float] Molar vapor fraction
-                * **x:** [numpy array] Molar composition of liquid (for binary mixture)
-                * **y:** [numpy array] Molar composition of vapor (for binary mixture)
-
-            **Optional:**
-            
-                **species_IDs:** [tuple] IDs of species in equilibrium.
-                     
-                **LNK:** tuple[str] Light non-keys that remain as a vapor.
-        
-                **HNK:** tuple[str] Heavy non-keys that remain as a liquid.
-
-        .. Note:
-           LNK and HNK are not taken into account for equilibrium. Parameters not specified are None by default.
+        Parameters
+        ----------
+        Specify two:
+            * **P:** Operating pressure (Pa)
+            * **Q:** Energy input (kJ/hr)
+            * **T:** Operating temperature (K)
+            * **V:** Molar vapor fraction
+            * **x:** Molar composition of liquid (for binary mixture)
+            * **y:** Molar composition of vapor (for binary mixture)
+        species_IDs=None : tuple, optional
+            IDs of species in equilibrium.
+        LNK=None : tuple[str], optional
+            Light non-keys that remain as a vapor (disregards equilibrium).
+        LNK=None : tuple[str], optional
+            Heavy non-keys that remain as a liquid (disregards equilibrium).
 
         """
         return self._VLE
@@ -640,28 +645,26 @@ class MixedStream(Stream):
             P=None, T=None, Q=0):
         """Perform LIQUID-liquid equilibrium.
 
-        **Optional Parameters**
-
-            **species_IDs:** *tuple[str]* IDs of equilibrium species
-            
-            **split:** *tuple[float]* Initial guess split fractions of each specie to the 'liquid'
-
-            **lNK:** *tuple[str]* Species assumed to completely remain in the 'liquid' phase.
-
-            **LNK:** *tuple[str]* Species assumed to completely remain in the 'LIQUID' phase.
-
-            **solvents:** *tuple[str]* Species corresponding to specified solvent_split
-
-            **solvent_split:** *tuple[float]* Split fractions of each specie to the 'liquid' phase.                
-            
-            **Q:** *[float]* Energy input (kJ/hr)
-            
-            **T:** *[float]* Operating temperature (K)
-            
-            **P:** *[float]* Operating pressure (Pa)    
-
-        .. Note:
-           lNK and LNK are not taken into account for equilibrium. Assumes constant pressure and temperatrue if none are provided.
+        Parameters
+        ----------
+        species_IDs=None : tuple[str], optional
+            IDs of equilibrium species
+        split=None : tuple[float], optional
+            Initial guess split fractions of each specie to the 'liquid'
+        lNK=() : tuple[str], optional
+            Species assumed to completely remain in the 'liquid' phase.
+        LNK=() : tuple[str], optional
+            Species assumed to completely remain in the 'LIQUID' phase.
+        solvents=() : tuple[str], optional
+            Species corresponding to specified solvent_split
+        solvent_split=() : tuple[float], optional
+            Split fractions of each specie to the 'liquid' phase.                
+        Q=0 : float, optional
+            Energy input (kJ/hr).
+        T=None : float, defaults to stream temperature
+            Operating temperature (K).
+        P=None : float, defaults to stream pressure
+            Operating pressure (Pa).
 
         """
         ### Set Up ###

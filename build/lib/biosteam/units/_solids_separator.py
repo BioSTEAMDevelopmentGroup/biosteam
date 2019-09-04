@@ -11,19 +11,18 @@ import biosteam as bst
 class SolidsSeparator(Splitter):
     """Create SolidsSeparator object.
     
-    **Parameters**
-    
-        **moisture_content:** Fraction of water in solids
-    
-    **ins**
-    
+    Parameters
+    ----------
+    ins
         [:] Input streams
-    
-    **outs**
-    
+    outs
         [0] Retentate
         
         [1] Permeate
+    split: array_like
+           Component splits to 0th output stream
+    moisture_content : float
+                       Fraction of water in solids
     
     """
     _N_ins = 2

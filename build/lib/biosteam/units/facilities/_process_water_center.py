@@ -19,8 +19,9 @@ cost = bst.units.decorators.cost
       CE=522, cost=250e3, S=451555, n=0.7, BM=1.7)
 class ProcessWaterCenter(Facility):
     """
-    **ins**
-    
+    Parameters
+    ----------
+    ins
         [0] Recycle water
         
         [1] Make-up water
@@ -29,8 +30,7 @@ class ProcessWaterCenter(Facility):
         
         [3] Cooling tower water
         
-    **outs**
-    
+    outs
         [0] Process water
         
         [1] Boiler water
