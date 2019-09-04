@@ -35,7 +35,7 @@ setup(
 					  'biorefineries/lipidcane/species/tripalmitin_liquid.xlsx', 
 					  'biorefineries/lipidcane/system', 
 					  'biorefineries/sugarcane/*',
-					  'biorefineries/cornstover/*', '
+					  'biorefineries/cornstover/*', 
 					  'biorefineries/cornstover/_humbird2011.xlsx',
                       ], },
     platforms=['Windows', 'Mac', 'Linux'],
