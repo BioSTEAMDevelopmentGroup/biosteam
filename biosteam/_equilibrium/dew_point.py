@@ -6,7 +6,7 @@ Created on Sun Jul 21 22:15:30 2019
 """
 
 from numpy import asarray, array
-from biosteam._utils import wegstein_secant, aitken_secant, wegstein, aitken
+from biosteam.utils import wegstein_secant, aitken_secant, wegstein, aitken
 
 __all__ = ('DewPoint',)
 

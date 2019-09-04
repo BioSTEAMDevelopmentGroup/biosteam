@@ -7,7 +7,7 @@ Created on Sat Jun  8 23:29:37 2019
 from .._unit import Unit
 from .._stream import Stream
 from .._mixed_stream import MixedStream
-from .._utils import MissingStream, Ins, Outs
+from ..utils import MissingStream, Ins, Outs
 from .._flowsheet import find
 
 __all__ = ('Junction',)

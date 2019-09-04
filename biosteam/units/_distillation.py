@@ -7,7 +7,7 @@ Created on Thu Aug 23 19:33:20 2018
 """
 import numpy as np
 from .. import Unit, MixedStream, Stream
-from .._utils import approx2step
+from ..utils import approx2step
 from scipy.optimize import brentq
 from ._hx import HXutility
 import matplotlib.pyplot as plt

@@ -21,12 +21,12 @@ setup(
     install_requires=['pint==0.9', 'ht==0.1.52', 'fluids==0.1.74',
                       'scipy', 'IPython', 'thermo==0.1.39', 'colorpalette>=0.2.3',
                       'array_collections==0.1.9', 'free_properties==0.1.9',
-                      'pandas', 'numpy', 'graphviz', 'matplotlib', 'lazypkg>=1.3',
+                      'pandas', 'numpy', 'graphviz', 'matplotlib', 'lazypkg>=1.4',
                       'chaospy'],
     python_requires=">=3.6",
     package_data=
         {'biosteam': ['_equilibrium/*', 'inspect/*', 'price/*', '_report/*',
-                      'my_units_defs.txt', '_utils/*', 'units/*', 'evaluation/*', 
+                      'my_units_defs.txt', 'utils/*', 'units/*', 'evaluation/*', 
                       'compounds/*', 'units/designtools/*', 'biorefineries/*',
 					  'units/facilities/*', 'units/decorators/*', 'reaction/*'
 					  'biorefineries/lipidcane/*', 
@@ -37,7 +37,6 @@ setup(
 					  'biorefineries/sugarcane/*',
 					  'biorefineries/cornstover/*', '
 					  'biorefineries/cornstover/_humbird2011.xlsx',
-					  'biorefineries/cornstover/montecarlo',
                       ], },
     platforms=['Windows', 'Mac', 'Linux'],
     author_email='yoelcortes@gmail.com',

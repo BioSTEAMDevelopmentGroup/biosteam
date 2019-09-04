@@ -6,7 +6,7 @@ Created on Sat Sep  1 17:35:28 2018
 """
 import numpy as np
 from .. import Stream, Unit
-from .._utils import MissingStream
+from ..utils import MissingStream
 
 __all__ = ('MassBalance',)
 

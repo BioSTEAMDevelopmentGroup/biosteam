@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from ._state import State
 from ._metric import Metric
-from biosteam._utils import TicToc
+from biosteam.utils import TicToc
 from scipy.stats import spearmanr
 
 __all__ = ('Model',)

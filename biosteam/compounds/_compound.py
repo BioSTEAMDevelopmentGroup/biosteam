@@ -7,7 +7,7 @@ Created on Sat Aug 18 13:26:29 2018
 from scipy import integrate
 from math import log
 from .. import _Q
-from .._utils import DisplayUnits
+from ..utils import DisplayUnits
 
 __all__ = ('Compound',)
 
