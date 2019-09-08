@@ -134,9 +134,11 @@ def results_table(units):
     for units in organized.values():
         # First table with units of measure
         u = units[0]
-        table = u.results()
+        table = u.results(include_utilities=False,
+                          include_total_cost=False)
         for u in units[1:]:
-            table[u.ID] = u.results(with_units=False)
+            table[u.ID] = u.results(with_units=False, include_utilities=False,
+                                   include_total_cost=False)
         table.columns.name = (u.line, '')
         tables.append(table)
         table = u.results()

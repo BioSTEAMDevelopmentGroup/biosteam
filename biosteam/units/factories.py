@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 
 _add_cost = decorators.add_cost
-_index = np.array(['Basis',
+_index = np.array(('Basis',
                    'Units',
                    'Size',
                    'Upper bound',
@@ -18,7 +18,8 @@ _index = np.array(['Basis',
                    'Cost (USD)',
                    'Exponent',
                    'Electricity (kW)',
-                   'Installation factor'])
+                   'Installation factor',
+                   'Number'))
 
 
 __all__ = ('df2unit', 'xl2dct', 'xl2mod')

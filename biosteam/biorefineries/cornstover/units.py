@@ -227,17 +227,17 @@ class SeedTrain(Unit):
 # %% Saccharification and fermentation
 
 @cost('Flow rate', 'Recirculation pumps', kW=20, S=340*_gpm2m3hr,
-      cost=47200, n=0.8, BM=2.3, CE=522)
+      cost=47200, n=0.8, BM=2.3, CE=522, N='N_recirculation_pumps')
 @cost('Reactor duty', 'Heat exchangers', CE=522, cost=23900,
-      S=5*_Gcal2kJ, n=0.7, BM=2.2) # Based on a similar heat exchanger
+      S=5*_Gcal2kJ, n=0.7, BM=2.2, N='N_reactors') # Based on a similar heat exchanger
 @cost('Reactor volume', 'Agitators', CE=522, cost=52500,
-      S=1e6*_gal2m3, n=0.5, kW=72, BM=1.5)
+      S=1e6*_gal2m3, n=0.5, kW=72, BM=1.5, N='N_reactors')
 @cost('Reactor volume', 'Reactors', CE=522, cost=844000,
-      S=1e6*_gal2m3, n=0.5, BM=1.5)
+      S=1e6*_gal2m3, n=0.5, BM=1.5, N='N_reactors')
 @cost('Flow rate', 'Transfer pumps', kW=48, S=352*_gpm2m3hr,
-      cost=47200/5, CE=522, n=0.8, BM=2.3)
+      cost=47200/5, CE=522, n=0.8, BM=2.3, N='N_transfer_pumps')
 @cost('Tank volume', 'Tanks', cost=3840e3/8, S=250e3*_gal2m3, 
-      CE=522, n=0.7, BM=2.0)
+      CE=522, n=0.7, BM=2.0, N='N_tanks')
 class SaccharificationAndCoFermentation(Unit):
     _N_ins = 3
     _N_outs = 3
@@ -358,24 +358,6 @@ class SaccharificationAndCoFermentation(Unit):
         duty = ethanol*-55680
         hu_fermentation(duty, effluent.T)
         Design['Reactor duty'] = -duty
-    
-    def _cost(self):
-        D = self._Design
-        C = self._Cost
-        kW = 0
-        N_dct = {'Recirculation pumps': self.N_recirculation_pumps,
-                 'Transfer pumps': self.N_transfer_pumps,
-                 'Agitators': self.N_reactors,
-                 'Reactors': self.N_reactors,
-                 'Heat exchangers': self.N_reactors,
-                 'Tanks': self.N_tanks}
-        for i, x in self.cost_items.items():
-            S = D[x._basis]
-            q = S/x.S
-            N = N_dct[i]
-            C[i] = N*bst.CE/x.CE*x.cost*q**x.n
-            kW += N*x.kW*q
-        self._power_utility(kW)
         
    
 # %% Lignin separation

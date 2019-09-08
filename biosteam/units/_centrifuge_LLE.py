@@ -18,7 +18,7 @@ __all__ = ('Centrifuge_LLE', 'SplitCentrifuge_LLE', 'RatioCentrifuge_LLE')
 # in Microalgae-Based Biofuels and Bioproducts, 2017
 
 @cost('Flow rate', units='m^3/hr', CE=525.4, cost=28100,
-      n=0.574, kW=3.66, ub=100, BM=2.03)
+      n=0.574, kW=3.66, ub=100, BM=2.03, N='Number of centrifuges')
 class Centrifuge_LLE(Unit):
     r"""Create an equlibrium based centrifuge with the option of having liquid non-keys and LIQUID non-keys completly separate into their respective phases.
 

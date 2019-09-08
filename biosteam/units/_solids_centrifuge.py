@@ -9,7 +9,8 @@ from .. import Stream
 from .decorators import cost
 from ._splitter import Splitter
 
-@cost('Solids loading', cost=68040, CE=567, n=0.50, ub=40, BM=2.03)
+@cost('Solids loading', cost=68040, CE=567, n=0.50, ub=40, BM=2.03,
+      N='Number of centrifuges')
 class SolidsCentrifuge(Splitter):
     """Create a solids centrifuge that separates out solids according to user defined split. Assume a continuous scroll solid bowl. 
     

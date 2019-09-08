@@ -35,11 +35,16 @@ class Transesterification(Unit):
     
     """
     _bounds = {'Volume': (0.1, 20)}
-    _units = {'Volume': 'm3'}
+    _units = {'Volume': 'm^3'}
     _tau = 1
     _N_ins = 2
     _N_outs = 1
     _N_heat_utilities = 1
+
+    def _more_design_specs(self):
+        return (('Residence time', self.tau, 'hr'),
+                ('Conversion efficiency', self.efficiency, ''),
+                ('Working volume fraction', 0.8, ''))
 
     def __init__(self, ID='', ins=None, outs=(), *,
                  efficiency, methanol2lipid, T, catalyst_molfrac):
@@ -57,6 +62,14 @@ class Transesterification(Unit):
                 Stream.indices(['Lipid', 'Methanol', 'NaOCH3'])
         self._methanol2lipid = methanol2lipid
         self.T = T #: Operation temperature (K).
+    
+    @property
+    def tau(self):
+        """Residence time (hr)."""
+        return self._tau
+    @tau.setter
+    def tau(self, tau):
+        self._tau = tau
     
     @property
     def efficiency(self):

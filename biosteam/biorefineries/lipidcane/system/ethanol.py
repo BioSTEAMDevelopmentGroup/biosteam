@@ -15,7 +15,7 @@ from biosteam.units import Mixer, Splitter, HXutility, HXprocess, \
      Distillation, SolidsCentrifuge, MolecularSieve, MixTank, VentScrubber
 from biosteam.biorefineries.lipidcane.process_settings import price
 
-__all__ = ('ethanol_sys',)
+__all__ = ('area_300',)
 
 
 # %% Species
@@ -126,7 +126,7 @@ D303._boiler.U = 1.85
 P303 = Pump('P303')
 
 # Superheat vapor for mol sieve
-H303 = HXutility('H303', T=115+273.15, V=0)
+H303 = HXutility('H303', T=115+273.15, V=1)
 
 # Molecular sieve
 U301 = MolecularSieve('U301',
@@ -194,8 +194,8 @@ EtOH_end_network=(P303, H304, T302, P304,
 (P303-0, F301-1)-M305
 EtOH_process_water_network=(M305,)    
 
-ethanol_sys = System('ethanol_sys',
-                     network=(EtOH_start_network
-                            + (purification_recycle,)
-                            + EtOH_end_network
-                            + EtOH_process_water_network))
+area_300 = System('area 300',
+                  network=(EtOH_start_network
+                         + (purification_recycle,)
+                         + EtOH_end_network
+                         + EtOH_process_water_network))

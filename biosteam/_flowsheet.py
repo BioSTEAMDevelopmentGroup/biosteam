@@ -10,11 +10,11 @@ from .utils import Register, search_register
 __all__ = ('find', 'Flowsheet')
 
 
-def make_digraph(units, streams):
+def make_digraph(units, streams, **graph_attrs):
     """Return digraph of units and streams."""
     # Create a digraph and set direction left to right
     f = Digraph(format='svg')
-    f.attr(rankdir='LR')
+    f.attr(rankdir='LR', **graph_attrs)
     # Set up unit nodes
     UD = {}  # Contains full description (ID and line) by ID
     for u in units:
@@ -39,7 +39,6 @@ def make_digraph(units, streams):
     f.attr('graph', splines='normal', overlap='orthoyx',
            outputorder='edgesfirst', nodesep='0.15', maxiter='1000000')
     f.attr('edge', dir='foward')
-    
     for s in streams:
         if not s: continue  # Ignore stream
 
@@ -145,7 +144,7 @@ class Flowsheet:
     def ID(self):
         return self._ID
     
-    def diagram(self, kind='surface'):
+    def diagram(self, kind='surface', file=None, format='svg', **graph_attrs):
         """Display all units and attached streams.
         
         Parameters
@@ -157,25 +156,25 @@ class Flowsheet:
         
         """
         if kind == 'thorough':
-            return self._thorough_diagram()
+            return self._thorough_diagram(file, format, **graph_attrs)
         elif kind == 'surface':
-            return self._surface_diagram()
+            return self._surface_diagram(file, format, **graph_attrs)
         elif kind == 'minimal':
-            return self._minimal_diagram()
+            return self._minimal_diagram(file, format, **graph_attrs)
         else:
             raise ValueError(f"kind must be either 'thorough', 'surface', or 'minimal'.")
     
-    def _thorough_diagram(self, file=None, format='svg'):
+    def _thorough_diagram(self, file, format, **graph_attrs):
         units = list(self.unit)
         units.reverse()
         streams = set()
         for u in units:
             streams.update(u._ins)
             streams.update(u._outs)
-        f = make_digraph(units, streams)
+        f = make_digraph(units, streams, **graph_attrs)
         save_digraph(f, file, format)
     
-    def _minimal_diagram(self):
+    def _minimal_diagram(self, file, format, **graph_attrs):
         from . import _system, Stream
         streams = list(self.stream)
         feeds = set(filter(_system._isfeed, streams))
@@ -190,9 +189,9 @@ class Flowsheet:
                            product, None)
         unit = _system._systemUnit(self.ID, feed, product)
         unit.line = 'flowsheet'
-        unit.diagram(1)
+        unit.diagram(1, file, format, **graph_attrs)
         
-    def _surface_diagram(self, file=None, format='svg'):
+    def _surface_diagram(self, file, format, **graph_attrs):
         from . import _system, Stream
         units = set(self.unit)
         StrUnit = _system._streamUnit
@@ -236,7 +235,7 @@ class Flowsheet:
                 units.add(subsystem_unit)
         
         sys = _system.System(None, units)
-        sys._thorough_diagram(file, format)
+        sys._thorough_diagram(file, format, **graph_attrs)
         for i in refresh_units:
             i._ins[:] = i._ins
             i._outs[:] = i._outs

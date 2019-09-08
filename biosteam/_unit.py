@@ -111,6 +111,8 @@ class Unit(metaclass=unit):
     outs=() : tuple[str or Stream], defaults to new streams
         Output streams or IDs to initialize output streams. If None, 
         leave streams missing.
+    species=None : Species or WorkingSpecies, defaults to Stream.species
+        Species object to initialize input and output streams.
 
     **Abstract class attributes**
     
@@ -196,39 +198,39 @@ class Unit(metaclass=unit):
         
     ### Initialize ###
     
-    def __init__(self, ID='', ins=None, outs=()):
-        self._init_ins(ins)
-        self._init_outs(outs)
+    def __init__(self, ID='', ins=None, outs=(), species=()):
+        self._init_ins(ins, species)
+        self._init_outs(outs, species)
         self._init_results()
         self._init_heat_utils()
         self._init_power_util()
         self.ID = ID
 
-    def _init_ins(self, ins):
+    def _init_ins(self, ins, species):
         """Initialize input streams."""
         if ins is None:
             self._ins = Ins(self, (MissingStream for i in range(self._N_ins)))
         elif isinstance(ins, Stream):
             self._ins = Ins(self, (ins,))
         elif isinstance(ins, str):
-            self._ins = Ins(self, (Stream(ins),))
+            self._ins = Ins(self, (Stream(ins, species=species),))
         elif not ins:
-            self._ins = Ins(self, (Stream('') for i in range(self._N_ins)))
+            self._ins = Ins(self, (Stream('', species=species) for i in range(self._N_ins)))
         else:
-            self._ins = Ins(self, (i if isinstance(i, Stream) else Stream(i) for i in ins))
+            self._ins = Ins(self, (i if isinstance(i, Stream) else Stream(i, species=species) for i in ins))
     
-    def _init_outs(self, outs):
+    def _init_outs(self, outs, species):
         """Initialize output streams."""
         if outs is None:
             self._outs = Outs(self, (MissingStream for i in range(self._N_outs)))
         elif not outs:
-            self._outs = Outs(self, (Stream('') for i in range(self._N_outs)))
+            self._outs = Outs(self, (Stream('', species=species) for i in range(self._N_outs)))
         elif isinstance(outs, Stream):
             self._outs = Outs(self, (outs,))
         elif isinstance(outs, str):
-            self._outs = Outs(self, (Stream(outs),))
+            self._outs = Outs(self, (Stream(outs, species=species),))
         else:
-            self._outs = Outs(self, (i if isinstance(i, Stream) else Stream(i) for i in outs))        
+            self._outs = Outs(self, (i if isinstance(i, Stream) else Stream(i, species=species) for i in outs))        
     
     def _init_results(self):
         """Initialize attributes to store results."""
@@ -293,6 +295,7 @@ class Unit(metaclass=unit):
     # Abstract methods
     _design   = NotImplementedMethod
     _cost     = NotImplementedMethod
+    _more_design_specs = NotImplementedMethod
     
     # Summary
     def _summary(self):
@@ -324,38 +327,45 @@ class Unit(metaclass=unit):
         _try_method(self._run)
         _try_method(self._summary)
 
-    def results(self, with_units=True):
+    def results(self, with_units=True, include_utilities=True,
+                include_total_cost=True):
         """Return key results from simulation as a DataFrame if `with_units` is True or as a Series otherwise."""
         ID = self.ID
         keys = []; addkey = keys.append
         vals = []; addval = vals.append
         if with_units:
-            if self._power_utility:
-                i = self._power_utility
-                addkey(('Power', 'Rate'))
-                addkey(('Power', 'Cost'))
-                addval(('kW', i.rate))
-                addval(('USD/hr', i.cost))
-            if self._heat_utilities:
-                for i in self._heat_utilities:
-                    addkey((i.ID, 'Duty'))
-                    addkey((i.ID, 'Flow'))
-                    addkey((i.ID, 'Cost'))
-                    addval(('kJ/hr', i.duty))
-                    addval(('kmol/hr', i.flow))
+            if include_utilities:
+                if self._power_utility:
+                    i = self._power_utility
+                    addkey(('Power', 'Rate'))
+                    addkey(('Power', 'Cost'))
+                    addval(('kW', i.rate))
                     addval(('USD/hr', i.cost))
+                if self._heat_utilities:
+                    for i in self._heat_utilities:
+                        addkey((i.ID, 'Duty'))
+                        addkey((i.ID, 'Flow'))
+                        addkey((i.ID, 'Cost'))
+                        addval(('kJ/hr', i.duty))
+                        addval(('kmol/hr', i.flow))
+                        addval(('USD/hr', i.cost))
             units = self._units
             Cost = self._Cost
             for ki, vi in self._Design.items():
                 addkey(('Design', ki))
                 addval((units.get(ki, ''), vi))
+            if self._more_design_specs:
+                for ki, vi, ui in self._more_design_specs():
+                    addkey(('Design', ki))
+                    addval((ui, vi))
             for ki, vi in Cost.items():
                 addkey(('Cost', ki))
                 addval(('USD', vi))
-            addkey(('Purchase cost', ''))
-            addval(('USD', self.purchase_cost))
-            addkey(('Utility cost', ''))
-            addval(('USD/hr', self.utility_cost))
+            if include_total_cost:
+                addkey(('Purchase cost', ''))
+                addval(('USD', self.purchase_cost))
+                addkey(('Utility cost', ''))
+                addval(('USD/hr', self.utility_cost))
             if self._GHGs:
                 a, b = self._totalGHG
                 GHG_units =  self._GHG_units
@@ -375,23 +385,28 @@ class Unit(metaclass=unit):
             df.columns.name = self.line
             return df
         else:
-            if self._power_utility:
-                i = self._power_utility
-                addkey(('Power', 'Rate'))
-                addkey(('Power', 'Cost'))
-                addval(i.rate)
-                addval(i.cost)
-            if self._heat_utilities:
-                for i in self._heat_utilities:
-                    addkey((i.ID, 'Duty'))
-                    addkey((i.ID, 'Flow'))
-                    addkey((i.ID, 'Cost'))
-                    addval(i.duty)
-                    addval(i.flow)
+            if include_utilities:
+                if self._power_utility:
+                    i = self._power_utility
+                    addkey(('Power', 'Rate'))
+                    addkey(('Power', 'Cost'))
+                    addval(i.rate)
                     addval(i.cost)
+                if self._heat_utilities:
+                    for i in self._heat_utilities:
+                        addkey((i.ID, 'Duty'))
+                        addkey((i.ID, 'Flow'))
+                        addkey((i.ID, 'Cost'))
+                        addval(i.duty)
+                        addval(i.flow)
+                        addval(i.cost)
             for ki, vi in self._Design.items():
                 addkey(('Design', ki))
                 addval(vi)
+            if self._more_design_specs:
+                for ki, vi, ui in self._more_design_specs():
+                    addkey(('Design', ki))
+                    addval(vi)
             for ki, vi in self._Cost.items():
                 addkey(('Cost', ki))
                 addval(vi)    
@@ -407,10 +422,11 @@ class Unit(metaclass=unit):
                 addval(a)
                 addkey(('Total ' + b_key, ''))
                 addval(b)
-            addkey(('Purchase cost', ''))
-            addval(self.purchase_cost)
-            addkey(('Utility cost', ''))
-            addval(self.utility_cost)
+            if include_total_cost:
+                addkey(('Purchase cost', ''))
+                addval(self.purchase_cost)
+                addkey(('Utility cost', ''))
+                addval(self.utility_cost)
             series = pd.Series(vals, pd.MultiIndex.from_tuples(keys))
             series.name = ID
             return series
@@ -537,7 +553,7 @@ class Unit(metaclass=unit):
         return neighborhood
 
     def diagram(self, radius=0, upstream=True, downstream=True, 
-                file=None, format='png'):
+                file=None, format='png', **graph_attrs):
         """Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of the unit and all neighboring units within given radius.
         
         Parameters
@@ -559,7 +575,7 @@ class Unit(metaclass=unit):
             neighborhood = self._neighborhood(radius, upstream, downstream)
             neighborhood.add(self)
             sys = bst.System('', neighborhood)
-            return sys.diagram('thorough', file, format)
+            return sys.diagram('thorough', file, format, **graph_attrs)
         
         graphics = self._graphics
 
@@ -567,7 +583,7 @@ class Unit(metaclass=unit):
         f = Digraph(name='unit', filename='unit', format='svg')
         f.attr('graph', ratio='0.5', splines='normal', outputorder='edgesfirst',
                nodesep='1.1', ranksep='0.8', maxiter='1000')  # Specifications
-        f.attr(rankdir='LR')  # Left to right
+        f.attr(rankdir='LR', **graph_attrs)  # Left to right
 
         # If many streams, keep streams close
         if (len(self.ins) >= 3) or (len(self.outs) >= 3):

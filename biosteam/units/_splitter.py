@@ -132,7 +132,7 @@ class Splitter(Unit):
                            Ethanol  0.1
 
     """
-    _N_outs = 2
+    _N_outs = 6
     
     @property
     def split(self):
@@ -154,6 +154,7 @@ class Splitter(Unit):
         top._mol[:] = net_mol * self._split
         bot._mol[:] = net_mol - top._mol
 
+Splitter._N_outs = 2
 
 class InvSplitter(Unit):
     """Create a splitter that sets the input stream based on output streams. Must have only one input stream. The output streams will become the same temperature, pressure and phase as the input.

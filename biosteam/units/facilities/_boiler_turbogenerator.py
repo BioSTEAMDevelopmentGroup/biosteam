@@ -41,6 +41,9 @@ class BoilerTurbogenerator(Facility):
     
     
     """
+    boiler_blowdown = 0.03
+    RO_rejection = 0.25
+    _N_outs = _N_ins = 2
     _N_heat_utilities = 2
     _has_power_utility = True
     _units = {'Flow rate': 'kg/hr',
@@ -50,10 +53,14 @@ class BoilerTurbogenerator(Facility):
                  boiler_efficiency=0.80,
                  turbogenerator_efficiency=0.85):
         Unit.__init__(self, ID, ins, outs)
+        self.makeup_water = makeup_water = Stream('boiler makeup water', species=lps.species)
+        loss = Stream.proxy('rejected water and blowdown', makeup_water)
+        self._ins.append(makeup_water)
+        self._outs.append(loss)
         self.boiler_efficiency = boiler_efficiency
         self.turbogenerator_efficiency = turbogenerator_efficiency
         self.steam_utilities = set()
-        self.steam_demand = Stream(None, species=Species('Water'), P=lps.P, T=lps.T, phase='g')
+        self.steam_demand = Stream(None, species=lps.species, P=lps.P, T=lps.T, phase='g')
     
     def _run(self): pass
     
@@ -100,11 +107,15 @@ class BoilerTurbogenerator(Facility):
         hu_cooling(cooling, steam.T)
         hu_steam.ID = 'Low pressure steam'
         hu_steam.cost = -sum([i.cost for i in steam_utilities])
-        Design['Work'] = electricity/3600        
+        Design['Work'] = electricity/3600
+        
+        self.makeup_water._mol[0] = self.total_steam * self.boiler_blowdown * 1/(1-self.RO_rejection)
 
     def _end_decorated_cost_(self):
         self._power_utility(self._power_utility.rate - self._Design['Work'])
 
+
+BoilerTurbogenerator._N_outs = BoilerTurbogenerator._N_ins = 1
 # Simulation of ethanol production from sugarcane
 # in Brazil: economic study of an autonomous
 # distillery

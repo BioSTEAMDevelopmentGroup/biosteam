@@ -339,7 +339,7 @@ class System(metaclass=system):
         self._cached_downstream_systems[unit] = system
         return system
     
-    def _minimal_diagram(self, file, format='svg'):
+    def _minimal_diagram(self, file, format, **graph_attrs):
         """Minimally display the network as a box."""
         outs = []
         ins = []
@@ -359,9 +359,9 @@ class System(metaclass=system):
         _streamUnit('\n'.join([i.ID for i in outs]),
                     product, None)
         unit = _systemUnit(self.ID, feed, product)
-        unit.diagram(1, file, format)
+        unit.diagram(1, file, format, **graph_attrs)
 
-    def _surface_diagram(self, file, format='svg'):
+    def _surface_diagram(self, file, format, **graph_attrs):
         """Display only surface elements listed in the network."""
         # Get surface items to make nodes and edges
         units = set()  
@@ -404,19 +404,19 @@ class System(metaclass=system):
                 subsystem_unit = _systemUnit(i.ID, ins, outs)
                 units.add(subsystem_unit)
                 
-        System(None, units)._thorough_diagram(file, format)
+        System(None, units)._thorough_diagram(file, format, **graph_attrs)
         # Reconnect how it was
         for u in refresh_units:
             u._ins[:] = u._ins
             u._outs[:] = u._outs
       
-    def _thorough_diagram(self, file=None, format='svg'):
+    def _thorough_diagram(self, file, format, **graph_attrs):
         """Thoroughly display every unit within the network."""
         # Create a digraph and set direction left to right
-        f = make_digraph(self.units, self.streams)
+        f = make_digraph(self.units, self.streams, **graph_attrs)
         save_digraph(f, file, format)
         
-    def diagram(self, kind='surface', file=None, format='png'):
+    def diagram(self, kind='surface', file=None, format='png', **graph_attrs):
         """Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of the system.
         
         Parameters
@@ -432,11 +432,11 @@ class System(metaclass=system):
         
         """
         if kind == 'thorough':
-            return self._thorough_diagram(file, format)
+            return self._thorough_diagram(file, format, **graph_attrs)
         elif kind == 'surface':
-            return self._surface_diagram(file, format)
+            return self._surface_diagram(file, format, **graph_attrs)
         elif kind == 'minimal':
-            return self._minimal_diagram(file, format)
+            return self._minimal_diagram(file, format, **graph_attrs)
         else:
             raise ValueError(f"kind must be either 'thorough', 'surface', or 'minimal'")
             

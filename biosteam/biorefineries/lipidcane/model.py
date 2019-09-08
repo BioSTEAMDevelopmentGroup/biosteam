@@ -49,12 +49,15 @@ def set_lipid_extraction_rate(lipid_extraction_rate):
     Mill_split[Lipid_index] = lipid_extraction_rate
     
 # Transesterification efficiency (both tanks)
-trans_reactors = [lc.system.biodiesel.R401, lc.system.biodiesel.R402]
-for Ri in trans_reactors:
-    @param(element=Ri, distribution=triang(Ri.efficiency), kind='coupled')
-    def set_transesterification_efficiency(efficiency):
-        for i in trans_reactors:
-            i.efficiency = efficiency
+R401 = lc.system.biodiesel.R401
+@param(element=R401, distribution=triang(R401.efficiency), kind='coupled')
+def set_transesterification_401_efficiency(efficiency):
+    R401.efficiency = efficiency
+
+R402 = lc.system.biodiesel.R402
+@param(element=R402, distribution=triang(R402.efficiency), kind='coupled')
+def set_transesterification_402_efficiency(efficiency):
+    R402.efficiency = efficiency
 
 # Fermentation efficiency
 fermentation = lc.system.ethanol.R301

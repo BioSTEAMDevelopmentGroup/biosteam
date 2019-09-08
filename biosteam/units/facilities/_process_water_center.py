@@ -26,48 +26,28 @@ class ProcessWaterCenter(Facility):
         
         [1] Make-up water
         
-        [2] Boiler water
-        
-        [3] Cooling tower water
-        
     outs
         [0] Process water
-        
-        [1] Boiler water
-        
-        [2] Cooling tower water
     
     """
-    _N_ins = 4
-    _N_outs = 3
-    boiler_blowdown = 0.002
-    RO_rejection = 0.25
-    CT_evaporation = 0.01
-    CT_blowdown = 0.001
+    _N_ins = 2
+    _N_outs = 1
     _units = {'Makeup water flow rate': 'kg/hr',
               'Process water flow rate': 'kg/hr'}
-    def __init__(self, ID='', ins=None, outs=(), *, BT, CT):
+    def __init__(self, ID='', ins=None, outs=(),):
         Facility.__init__(self, ID, ins, outs)
-        self.BT = BT
-        self.CT = CT
         
     def _run(self):
-        s_recycle, s_makeup, s_BT, s_CT = self._ins
-        s_process, s_BT_, s_CT_ = self.outs
-        s_BT.link = s_BT_
-        s_CT.link = s_CT_
+        s_recycle, s_makeup = self._ins
+        s_process, = self.outs
         process_water = s_process.molnet
         recycle_water = s_recycle.molnet
-        wi = s_BT.index('7732-18-5')
-        s_BT.mol[wi] = BT_water = self.BT.total_steam * self.boiler_blowdown * 1/(1-self.RO_rejection)
-        wi = s_CT.index('7732-18-5')
-        s_CT.mol[wi] = CT_water = self.CT.cooling_water * (self.CT_evaporation + self.CT_blowdown)
         process_loss = process_water - recycle_water
         makeup_water = process_loss if process_loss > 0 else 0
         wi = s_makeup.index('7732-18-5')
         s_makeup.mol[wi] = makeup_water
         Design = self._Design
-        Design['Process water flow rate'] = (process_water + BT_water + CT_water)*18.015
-        Design['Makeup water flow rate'] = (makeup_water + BT_water + CT_water)*18.015
+        Design['Process water flow rate'] = process_water * 18.015
+        Design['Makeup water flow rate'] = makeup_water * 18.015
         
         

@@ -6,6 +6,11 @@ Created on Mon Apr 29 18:28:55 2019
 """
 from . import Facility
 from ..decorators import cost
+from .. import Static
+from ... import Stream
+import numpy as np
+from ... import HeatUtility
+
 # from copy import copy
 
 __all__ = ('CoolingTower',) #'CoolingTowerWithPowerDemand')
@@ -14,13 +19,19 @@ __all__ = ('CoolingTower',) #'CoolingTowerWithPowerDemand')
       S=557183, kW=1021, cost=283671, CE=551, n=0.8, BM=3.1)
 @cost('Flow rate', 'Cooling tower',
       S=557183, kW=1598, cost=1375e3, CE=551, n=0.7, BM=1.5)
-class CoolingTower(Facility):
+class CoolingTower(Facility, Static):
     """Create a cooling tower that is cost based on flow rate of cooling water."""
     _units = {'Flow rate': 'kmol/hr'}
     _N_heat_utilities = 1
-    _N_outs = _N_ins = 0
+    _N_outs = _N_ins = 2
+    evaporation = 0.01
+    blowdown = 0.001
     def __init__(self, ID=''):
-        Facility.__init__(self, ID, None, None)
+        water = HeatUtility.cooling_agents['Cooling water'].species
+        self.makeup_water = makeup_water = Stream('cooling tower makeup water', species=water)
+        loss = Stream.proxy('evaporation and blowdown', makeup_water)
+        super().__init__(ID, ('return cooling water', makeup_water),
+                         ('cooling water', loss), water)
         self.cooling_water_utilities = set()
         
     def _design(self):
@@ -31,13 +42,20 @@ class CoolingTower(Facility):
                 for hu in u._heat_utilities:
                     if hu.ID == 'Cooling water':
                         cwu.add(hu)
+        
+        used = self._ins[0]
+        
         #: Cooling water flow rate (kmol/hr)
-        self._Design['Flow rate'] = self.cooling_water = q = sum([i.flow for i in cwu])
+        used._mol[0] = \
+        self._Design['Flow rate'] = self.cooling_water = sum([i.flow for i in cwu])
+        used.T = np.array([i._used.T for i in cwu]).mean()
         hu = self._heat_utilities[0]
         cw = hu.cooling_agents['Cooling water']
+        self._outs[0].T = cw.T
         hu.ID = 'Cooling water'
-        hu.cost = -q*cw.price_kmol
+        hu.cost = -self.cooling_water*cw.price_kmol
         
+        self.makeup_water.mol[0] = self.cooling_water * (self.evaporation + self.blowdown)
 
    
 # class CoolingTowerWithPowerDemand(CoolingTower):

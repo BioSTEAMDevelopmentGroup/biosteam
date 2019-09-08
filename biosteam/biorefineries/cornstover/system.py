@@ -268,7 +268,7 @@ Q3.link_streams()
 JX = bst.Junction(Q3-0, 0-A201)
 
 # Superheat vapor for mol sieve
-P34 = bst.HXutility('P34', ins=P30-0, T=115+273.15)
+P34 = bst.HXutility('P34', ins=P30-0, T=115+273.15, V=1)
 
 # Molecular sieve
 P33 = bst.MolecularSieve('P33', ins=P34-0,

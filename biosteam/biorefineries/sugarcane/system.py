@@ -304,7 +304,7 @@ P30._boiler.U = 1.85
 Q3 = Pump('Q3')
 
 # Superheat vapor for mol sieve
-P34 = HXutility('P34', T=115+273.15, V=0)
+P34 = HXutility('P34', T=115+273.15, V=1)
 
 # Molecular sieve
 P33 = MolecularSieve('P33',

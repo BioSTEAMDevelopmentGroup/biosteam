@@ -18,7 +18,7 @@ from biosteam.biorefineries.lipidcane.process_settings import price
 from numpy import array
 
 
-__all__ = ('biodiesel_sys',)
+__all__ = ('area_400',)
 
 # %% Stream Settings
 
@@ -287,11 +287,11 @@ meoh_network = (H402, P411, T401, P401, T402, P402, T404, P404, S401)
 B401**(1**R401, 1**R402)
 
 # Complete System
-biodiesel_sys = System('biodiesel_sys',
-                       network=transesterification_network
-                               + (glycerol_recycle_sys, B401)
-                               + meoh_network
-                               + (T408, T409))
+area_400 = System('area_400',
+                  network=transesterification_network
+                          + (glycerol_recycle_sys, B401)
+                          + meoh_network
+                          + (T408, T409))
 
 # Initial conditions
 index = oil.indices(['Methanol', 'Glycerol', 'Water'])

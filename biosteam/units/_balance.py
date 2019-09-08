@@ -38,7 +38,8 @@ class MassBalance(Unit):
     _N_outs = 0
 
     def __init__(self, ID='', outs=(), ins=None,
-                 species=None, streams=None, exact=True, balance='flow'):
+                 species=None, streams=None,
+                 exact=True, balance='flow'):
         self.ID = ID
         self._init_ins(ins)
         self._init_outs(outs)

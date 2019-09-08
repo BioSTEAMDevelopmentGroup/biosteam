@@ -17,7 +17,7 @@ from biosteam.units import Mixer, EnzymeTreatment, CrushingMill, \
 from biosteam.biorefineries.lipidcane.species import pretreatment_species
 from biosteam.biorefineries.lipidcane.process_settings import price
 
-__all__ = ('pretreatment_sys', 'lipid_cane')
+__all__ = ('pretreatment_sys', 'lipid_cane', 'area_100', 'area_200')
 
 # %% Species
 
@@ -241,3 +241,9 @@ pretreatment_sys = System('pretreatment_sys',
                                    T208, C203, F201,))
 
 solidsmol = P202.outs[0].mol
+
+area_100 = System('area 100', network=(U101, U102, U103))
+units = pretreatment_sys.units.copy()
+for i in area_100.network: units.discard(i)
+area_200_network = sorted(units, key=lambda x: x.ID)
+area_200 = System('area 200', network=area_200_network)

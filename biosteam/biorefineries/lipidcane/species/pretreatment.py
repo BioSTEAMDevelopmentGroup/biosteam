@@ -56,7 +56,7 @@ sp.Cellulose.Hc = 17000
 sp.Lignin.Hc = 21000
 sp.Glucose.Hc = 2800e3
 sp.Sucrose.Hc = 5700e3
-sp.Lipid.Hc = 32e6
+sp.Lipid.Hc = 36e6
 
 
 # The dry heat values of cellulose, hemicellulose and lignin respectively are 17 MJ/kg (7,320 Btu/lb), 16.63 MJ/kg (7165 Btu/lb) and 21.13 MJ/kg (9,105 Btu/lb) [1]
