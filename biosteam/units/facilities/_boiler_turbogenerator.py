@@ -23,7 +23,7 @@ lps = HeatUtility.heating_agents['Low pressure steam']
 @cost('Flow rate', 'Deaerator',
       CE=551, cost=305e3, S=235803, n=0.6, BM=3.0)
 @cost('Flow rate', 'Boiler',
-      CE=551, cost=28550e3, kW=2752, S=238686, n=0.6, BM=1.8)
+      CE=551, cost=28550e3, kW=20, S=238686, n=0.6, BM=1.8)
 class BoilerTurbogenerator(Facility):
     """Create a Boiler_TurboGenerator object that will calculate electricity generation from burning the feed. It also takes into account how much steam is being produced, and the required cooling utility of the turbo generator. No emissions or mass balances are taken into account.
     
@@ -42,7 +42,7 @@ class BoilerTurbogenerator(Facility):
     
     """
     boiler_blowdown = 0.03
-    RO_rejection = 0.25
+    RO_rejection = 0
     _N_outs = _N_ins = 2
     _N_heat_utilities = 2
     _has_power_utility = True
@@ -53,8 +53,8 @@ class BoilerTurbogenerator(Facility):
                  boiler_efficiency=0.80,
                  turbogenerator_efficiency=0.85):
         Unit.__init__(self, ID, ins, outs)
-        self.makeup_water = makeup_water = Stream('boiler makeup water', species=lps.species)
-        loss = Stream.proxy('rejected water and blowdown', makeup_water)
+        self.makeup_water = makeup_water = Stream('boiler_makeup_water', species=lps.species)
+        loss = Stream.proxy('rejected_water_and_blowdown', makeup_water)
         self._ins.append(makeup_water)
         self._outs.append(loss)
         self.boiler_efficiency = boiler_efficiency

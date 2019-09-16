@@ -5,6 +5,7 @@ Created on Sat Jun 15 00:46:41 2019
 @author: yoelr
 """
 from .. import Unit, units
+from ..utils import format_unit_name
 from . import decorators
 import pandas as pd
 import numpy as np
@@ -48,10 +49,7 @@ def df2dct(df):
         else:
             name = name_sim
             sim = 'Static'
-        name = ''.join([i.capitalize() for i in name.split(' ')])
-        for i in name:
-            if not (i is ' ' or i.isalnum()):
-                name = name.replace(i, ' ')
+        name = format_unit_name(name)
         try:
             supercls = getattr(units, sim)
         except:

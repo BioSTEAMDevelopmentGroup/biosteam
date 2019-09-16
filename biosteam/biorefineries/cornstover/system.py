@@ -56,6 +56,8 @@ bst.Stream.species = pretreatment_species = bst.WorkingSpecies.subgroup(species,
          'ArabinoseOligomer', 'Mannose', 'MannoseOligomer',
          'Galactan', 'Galactose', 'GalactoseOligomer'])
 
+bst.Stream.default_ID_number = 100
+    
 # feed flow
 drycomposition = pretreatment_species.kwarray(
                  Glucan=0.3505, Xylan=0.1953, Lignin=0.1576,
@@ -66,16 +68,16 @@ moisture_content = pretreatment_species.kwarray(Water=0.20)
 netflow = 104167.0
 feedflow = netflow*(drycomposition*0.8 + moisture_content)
 
-feed = Stream('Cornstover',
-              feedflow,
-              units='kg/hr',
-              price=price['Feedstock'])
-process_water212 = Stream('S212',
-                          T=368.15,
-                          P=4.7*101325,
-                          Water=140000,
-                          units='kg/hr')
-rectifier_bottoms_product = Stream('S516',
+cornstover = Stream('cornstover',
+                    feedflow,
+                    units='kg/hr',
+                    price=price['Feedstock'])
+warm_process_water = Stream('warm_process_water',
+                         T=368.15,
+                         P=4.7*101325,
+                         Water=140000,
+                         units='kg/hr')
+rectifier_bottoms_product = Stream('',
                                    T=114+273.15,
                                    P=6.1*101325,
                                    Ethanol=18,
@@ -83,61 +85,67 @@ rectifier_bottoms_product = Stream('S516',
                                    Furfural=72,
                                    HMF=100,
                                    units='kg/hr')
-sulfuric_acid = Stream('Sulfuric acid',
+sulfuric_acid = Stream('sulfuric_acid',
                        P=5.4*101325,
                        T=294.15,
                        Water=139,
                        SulfuricAcid=1842,
                        units='kg/hr',
                        price=price['Sulfuric acid'])
-steam = Stream('Steam',
+steam = Stream('steam',
                phase='g',
                T=268+273.15,
                P=13*101325,
                Water=24534+3490,
                units='kg/hr')
-ammonia = Stream('Ammonia',
+ammonia = Stream('ammonia',
                  Ammonia=1051,
                  units='kg/hr',
                  phase='l',
                  price=price['Ammonia'])
-cellulase = Stream('Cellulase',
+cellulase = Stream('cellulase',
                    Cellulase=13836,
                    units='kg/hr',
                    price=price['Cellulase'])
 
 # %% Pretreatment system
 
-C100 = units.FeedStockHandling(ins=feed)
-T201 = units.SulfuricAcidTank201(ins=sulfuric_acid)
-A201 = units.SulfuricAcidMixer(ins=(rectifier_bottoms_product, T201-0))
-M1 = bst.Mixer(ins=(A201-0, process_water212, C100-0))
-M1_2 = units.SteamMixer(ins=(M1-0, steam), P=5.5*101325)
-PRS200 = units.PretreatmentReactorSystem(ins=M1_2-0)
-P1 = units.BlowdownDischargePump203(ins=PRS200-1)
-T208 = units.OligomerConversionTank208(ins=P1-0)
-T204 = units.Flash204(ins=T208-0, P=101325, Q=0)
-M2 = bst.Mixer(ins=(PRS200-0, T204-0))
-HX1 = units.WasteVaporCondenser244(ins=M2-0, T=99+273.15, V=0)
-M210 = units.AmmoniaMixer210(ins=(ammonia, process_water212))
-M3 = bst.Mixer(ins=(T204-1, M210-0))
-T209 = units.AmmoniaAdditionTank209(ins=M3-0)
-H301 = units.HydrolysateCooler301(ins=T209-0, T=48+273.15)
-A308 = units.EnzymeHydrolysateMixer308(ins=(H301-0, cellulase))
+U101 = units.FeedStockHandling('U101', ins=cornstover)
+
+bst.Stream.default_ID_number = 200
+
+T201 = units.SulfuricAcidTank('T201', ins=sulfuric_acid)
+M201 = units.SulfuricAcidMixer('M201', ins=(rectifier_bottoms_product, T201-0))
+M202 = bst.Mixer('M202', ins=(M201-0, warm_process_water, U101-0))
+M203 = units.SteamMixer('M203', ins=(M202-0, steam), P=5.5*101325)
+R201 = units.PretreatmentReactorSystem('R201', ins=M203-0)
+P201 = units.BlowdownDischargePump('P201', ins=R201-1)
+T202 = units.OligomerConversionTank('T202', ins=P201-0)
+F201 = units.PretreatmentFlash('F201', ins=T202-0, P=101325, Q=0)
+M204 = bst.Mixer('M204', ins=(R201-0, F201-0))
+H201 = units.WasteVaporCondenser('H201', ins=M204-0, T=99+273.15, V=0)
+M210 = units.AmmoniaMixer('M210', ins=(ammonia, warm_process_water))
+M205 = bst.Mixer('M205', ins=(F201-1, M210-0))
+T203 = units.AmmoniaAdditionTank('T203', ins=M205-0)
+
+bst.Stream.default_ID_number = 300
+
+H301 = units.HydrolysateCooler('H301', ins=T203-0, T=48+273.15)
+M301 = units.EnzymeHydrolysateMixer('M301', ins=(H301-0, cellulase))
 
 solids_indices = Stream.indices(['Glucan', 'Xylan', 'Lignin',
                                  'Ash', 'Acetate', 'Protein',
                                  'Extract', 'Arabinan', 'Mannan',
                                  'Sucrose'])
 
-sulfuric_acid_over_feed = sulfuric_acid.mol/feed.massnet
+sulfuric_acid_over_feed = sulfuric_acid.mol/cornstover.massnet
 def update_sulfuric_acid_loading():
     # Also plant air
-    feed_massnet = feed.massnet
+    feed_massnet = cornstover.massnet
     plant_air.mol[0] = 0.8 *feed_massnet
     sulfuric_acid.mol[:] = sulfuric_acid_over_feed * feed_massnet
 
-hydrolyzate = T204.outs[1]
+hydrolyzate = F201.outs[1]
 ammonia_over_hydrolyzate = ammonia.mol/310026.22446428984
 def update_ammonia_loading():
     ammonia.mol[:] = ammonia_over_hydrolyzate * hydrolyzate.massnet
@@ -147,17 +155,17 @@ cellulase_over_hydrolyzate = cellulase.mol/435396.4815414322
 def update_cellulase_and_nutrient_loading():
     cooled_hydrolyzate_massnet = cooled_hydrolyzate.massnet
     cellulase.mol[:] = cellulase_over_hydrolyzate * cooled_hydrolyzate_massnet
-    DAP310.mol[:] = DAP310_over_hydrolyzate * cooled_hydrolyzate_massnet
-    DAP312.mol[:] = DAP312_over_hydrolyzate * cooled_hydrolyzate_massnet
-    CSL309.mol[:] = CSL309_over_hydrolyzate * cooled_hydrolyzate_massnet
-    CSL311.mol[:] = CSL311_over_hydrolyzate * cooled_hydrolyzate_massnet
+    DAP1.mol[:] = DAP1_over_hydrolyzate * cooled_hydrolyzate_massnet
+    DAP2.mol[:] = DAP2_over_hydrolyzate * cooled_hydrolyzate_massnet
+    CSL1.mol[:] = CSL1_over_hydrolyzate * cooled_hydrolyzate_massnet
+    CSL2.mol[:] = CSL2_over_hydrolyzate * cooled_hydrolyzate_massnet
     
 ptsys = System('pretreatment',
-               network=(C100, T201, A201, M1, M1_2,
-                        PRS200, P1, T208, T204, M2,
-                        HX1, M210, M3, T209, T209,
+               network=(U101, T201, M201, M202, M203,
+                        R201, P201, T202, F201, M204,
+                        H201, M210, M205, T203, T203,
                         H301,
-                        A308))
+                        M301))
 
 # %% Fermentation system
 
@@ -172,158 +180,159 @@ bst.Stream.species = fermentation_species = bst.WorkingSpecies.subgroup(species,
          'Galactan', 'Galactose', 'GalactoseOligomer',
          'ArabinoseOligomer', 'MannoseOligomer'])
 
-process_water274 = Stream('S274',
-                          Water=150310,
-                          P=5*101325,
-                          T=33+273.15,
-                          units='kg/hr')
-DAP310 = Stream('DAP310',
+DAP1 = Stream('DAP1',
                 DAP=26,
                 units='kg/hr',
                 price=price['DAP'])
-DAP312 = Stream('DAP312',
+DAP2 = Stream('DAP2',
                 DAP=116,
                 units='kg/hr',
                 price=price['DAP'])
-DAP_storage = units.DapTank(ins=Stream('DAP_fresh'))
+DAP_storage = units.DAPTank('DAP_storage', ins=Stream('DAP_fresh'), outs='DAP')
 DAP_storage.link_streams()
-IS0 = bst.InvSplitter(ins=DAP_storage-0, outs=(DAP310, DAP312))
-CSL309 = Stream('CSL309',
+S301 = bst.InvSplitter('S301', ins=DAP_storage-0, outs=(DAP1, DAP2))
+CSL1 = Stream('CSL1',
                 CSL=211,
                 units='kg/hr',
                 price=price['CSL'])
-CSL311 = Stream('CSL311',
+CSL2 = Stream('CSL2',
                 CSL=948,
                 units='kg/hr',
                 price=price['CSL'])
-CSL_storage = units.CslTank(ins=Stream('CLS_fresh'))
+CSL_storage = units.CSLTank('CSL_storage', ins=Stream('CSL_fresh'), outs='CSL')
 CSL_storage.link_streams()
-IS1 = bst.InvSplitter(ins=CSL_storage-0, outs=(CSL309, CSL311))
-denaturant = Stream('Denaturant',
+S302 = bst.InvSplitter('S302', ins=CSL_storage-0, outs=(CSL1, CSL2))
+denaturant = Stream('denaturant',
                     Octane=230.69,
                     units='kg/hr',
                     price=price['Denaturant'])
-process_water524 = Stream('Stripping_water',
+stripping_water = Stream('stripping_water',
                           Water=26836,
                           units='kg/hr')
-DAP310_over_hydrolyzate = DAP310.mol/451077.22446428984
-DAP312_over_hydrolyzate = DAP312.mol/451077.22446428984
-CSL309_over_hydrolyzate = CSL309.mol/451077.22446428984
-CSL311_over_hydrolyzate = CSL311.mol/451077.22446428984
+DAP1_over_hydrolyzate = DAP1.mol/451077.22446428984
+DAP2_over_hydrolyzate = DAP2.mol/451077.22446428984
+CSL1_over_hydrolyzate = CSL1.mol/451077.22446428984
+CSL2_over_hydrolyzate = CSL2.mol/451077.22446428984
 
-J1 = bst.Junction(upstream=A308-0, downstream=Stream())
-M4 = bst.Mixer(ins=(J1-0, None))
-F300 = units.SaccharificationAndCoFermentation(ins=(M4-0, CSL311, DAP312))
-M5 = bst.Mixer(ins=(F300-2, CSL309, DAP310))
-F301 = units.SeedTrain(ins=M5-0)
-T301 = units.SeedHoldTank301(ins=F301-1)
-T301-0-1-M4
+J1 = bst.Junction(upstream=M301-0, downstream=Stream())
+M302 = bst.Mixer('M302', ins=(J1-0, None))
+R301 = units.SaccharificationAndCoFermentation('R301', ins=(M302-0, CSL2, DAP2))
+M303 = bst.Mixer('M303', ins=(R301-2, CSL1, DAP1))
+R302 = units.SeedTrain('R302', ins=M303-0)
+T301 = units.SeedHoldTank('T301', ins=R302-1)
+T301-0-1-M302
 
 fmsys = System('fermentation',
-               network=(J1, M4, F300, M5, F301, T301),
-               recycle=M4-0)
+               network=(J1, M302, R301, M303, R302, T301),
+               recycle=M302-0)
 
 # %% Ethanol purification
 
-M6 = bst.Mixer(ins=(F300-1, None))
-T306 = units.BeerTank306(ins=M6-0)
+M304 = bst.Mixer('M304', ins=(R302-0, R301-0))
+T302 = units.BeerTank('T302')
 
-M7 = bst.Mixer(ins=(F301-0, F300-0))
-T512 = bst.VentScrubber(ins=(process_water524, M7-0),
+bst.Stream.default_ID_number = 400
+
+M401 = bst.Mixer('M401', ins=(R301-1, None))
+M401-0-T302
+
+D401 = bst.VentScrubber('D401', ins=(stripping_water, M304-0),
                         gas=('CO2', 'NH3', 'O2'))
-T512-1-1-M6
+D401-1-1-M401
 
 # Heat up before beer column
 # Exchange heat with stillage
-P32 = bst.HXprocess('P32', ins=(T306-0, None),
+H401 = bst.HXprocess('H401', ins=(T302-0, None),
                     fluid_type='ss', U=1.28)
 
 # Beer column
 xbot = Ethanol_molfrac(0.00001)
 ytop = Ethanol_molfrac(0.50)
-P25 = bst.Distillation('P25', ins=P32-0,
+D402 = bst.Distillation('D402', ins=H401-0,
                        P=101325, y_top=ytop, x_bot=xbot,
                        k=1.25, LHK=('Ethanol', 'Water'))
-P25.tray_material = 'Stainless steel 304'
-P25.vessel_material = 'Stainless steel 304'
-P25.BM = 2.4
-P25._boiler.U = 1.85
-Q2 = bst.Pump('Q2', ins=P25-1)
-Q2-0-1-P32
+D402.tray_material = 'Stainless steel 304'
+D402.vessel_material = 'Stainless steel 304'
+D402.BM = 2.4
+D402._boiler.U = 1.85
+P401 = bst.Pump('P401', ins=D402-1)
+P401-0-1-H401
 
 # Mix ethanol Recycle (Set-up)
-P28 = bst.Mixer('P28', ins=(P25-0, None))
+M402 = bst.Mixer('M402', ins=(D402-0, None))
 
 ytop = Ethanol_molfrac(0.915)
-P30 = bst.Distillation('P30', ins=P28-0,
+D403 = bst.Distillation('D403', ins=M402-0,
                        P=101325, y_top=ytop, x_bot=xbot,
                        k=1.25, LHK=('Ethanol', 'Water'))
-P30.tray_material = 'Stainless steel 304'
-P30.vessel_material = 'Stainless steel 304'
-P30.is_divided = True
-P30._boiler.U = 1.85
-P30.BM = 2.8
-Q3 = bst.Pump('Q3', ins=P30-1)
-Q3.link_streams()
-JX = bst.Junction(Q3-0, 0-A201)
+D403.tray_material = 'Stainless steel 304'
+D403.vessel_material = 'Stainless steel 304'
+D403.is_divided = True
+D403._boiler.U = 1.85
+D403.BM = 2.8
+P402 = bst.Pump('P402', ins=D403-1)
+P402.link_streams()
+JX = bst.Junction(P402-0, 0-M201)
 
 # Superheat vapor for mol sieve
-P34 = bst.HXutility('P34', ins=P30-0, T=115+273.15, V=1)
+H402 = bst.HXutility('H402', ins=D403-0, T=115+273.15, V=1)
 
 # Molecular sieve
-P33 = bst.MolecularSieve('P33', ins=P34-0,
+U401 = bst.MolecularSieve('U401', ins=H402-0,
                          split=(2165.14/13356.04, 1280.06/1383.85),
                          order=('Ethanol', 'Water'))
 
-P33-0-1-P28
+U401-0-1-M402
 
 pure_recycle_sys = System('purification_recycle',
-                          network=(P28, P30, P34, P33),
-                          recycle=P28-0)
+                          network=(M402, D403, H402, U401),
+                          recycle=M402-0)
 
 # Condense ethanol product
-P41 = bst.HXutility('P41', ins=P33-1, V=0, T=350.)
-T2 = bst.StorageTank('T2', ins=P41-0)
-T2.line = 'Ethanol storage'
-T2.tau = 7*24
-Q4 = bst.Pump('Q4', ins=T2-0)
+H403 = bst.HXutility('H403', ins=U401-1, V=0, T=350.)
+
+IDnum_400 = bst.Stream.default_ID_number
+
+bst.Stream.default_ID_number = 700
+T701 = bst.StorageTank('T701', ins=H403-0)
+T701.line = 'Ethanol storage'
+T701.tau = 7*24
+P701 = bst.Pump('P701', ins=T701-0)
 
 # Storage for gasoline
-T3 = bst.StorageTank('T3', ins=denaturant)
-T3.tau = 7*24
-Q5 = bst.Pump('Q5', ins=T3-0)
+T702 = bst.StorageTank('T702', ins=denaturant)
+T702.tau = 7*24
+P702 = bst.Pump('P702', ins=T702-0)
 
 # Mix in denaturant
-P39 = bst.Mixer('P39', ins=(Q5-0, Q4-0))
-
-# Denatured ethanol product
-ethanol = Stream('Ethanol', price=price['Ethanol'])
-T4 = bst.MixTank('T4', ins=P39-0, outs=ethanol)
-T4.tau = 0.05
+ethanol = Stream('ethanol', price=price['Ethanol'])
+M701 = bst.MixTank('M701', ins=(P702-0, P701-0), outs=ethanol)
+M701.line = 'Mixer'
+M701.tau = 0.05
 
 gas_index = denaturant.index('Octane')
 def adjust_denaturant():
-    denaturant.mol[gas_index] = 0.011*Q4.outs[0].massnet/114.232
+    denaturant.mol[gas_index] = 0.011*P701.outs[0].massnet/114.232
 
-Q2.BM = Q3.BM = Q4.BM = Q5.BM = 3.1
-T2.BM = T3.BM = 1.7
+P401.BM = P402.BM = P701.BM = P702.BM = 3.1
+T701.BM = T702.BM = 1.7
 
-vent_stream = M7-0
-stripping_water_over_vent = process_water524.mol / 21202.490455845436
+vent_stream = M304-0
+stripping_water_over_vent = stripping_water.mol / 21202.490455845436
 def update_stripping_water():
-    process_water524.mol[:] = stripping_water_over_vent * vent_stream.massnet
+    stripping_water.mol[:] = stripping_water_over_vent * vent_stream.massnet
 
 puresys = System('purification',
-                 network=(M7,
+                 network=(M304,
                           update_stripping_water,
-                          T512, 
-                          M6, T306,
-                          P32, P25,
-                          P32, Q2, P32,
+                          D401, 
+                          M401, T302,
+                          H401, D402,
+                          H401, P401, H401,
                           pure_recycle_sys,
-                          Q3, P41, T2, Q4,
+                          P402, H403, T701, P701,
                           adjust_denaturant,
-                          T3, Q5, P39, T4, JX))
+                          T702, P702, M701, JX))
 
 # %% Lignin Separation
 bst.Stream.species = species
@@ -349,10 +358,12 @@ splits = [('Glucose', 19, 502),
           ('CellMass', 925, 19),
           ('OtherInsolubleSolids', 4489, 92)]
 
-S505 = units.PressureFilter505(ins=('', recycled_water),
-                               moisture_content=0.35,
-                               split=find_split(*zip(*splits)))
-J2 = bst.Junction(P32-1, 0-S505)
+bst.Stream.default_ID_number = IDnum_400
+
+S401 = units.PressureFilter('S401', ins=('', recycled_water),
+                            moisture_content=0.35,
+                            split=find_split(*zip(*splits)))
+J2 = bst.Junction(H401-1, 0-S401)
 
 # %% Waste water treatment
 
@@ -449,7 +460,7 @@ anaerobic_digestion = rxn.ParallelReaction([anaerobic_rxn(i) for i in organics] 
                                            [rxn.Reaction(f"H2SO4 -> H2S + 2O2", 'H2SO4', 1.)])
 
 
-# Note, nitogenous species included here, but most of it removed in anaerobic digester
+# Note, nitogenous species included here, but most of it removed in R601 digester
 # TODO: Add ammonium to reaction, make sure it can be a liquid, possibly add Henry's constant
 aerobic_digestion = rxn.ParallelReaction([i*0.74 + 0.22*growth(i.reactant)
                                           for i in combustion
@@ -476,32 +487,35 @@ splits = [('Ethanol', 1, 15),
           ('CellMass', 813, 280),
           ('OtherInsolubleSolids', 68, 23)]
 
-well_water = Stream(Water=1, T=15+273.15)
-M8 = bst.Mixer(ins=(S505-1, ''))
-J3 = bst.Junction(HX1-0, 1-M8)
+bst.Stream.default_ID_number = 600
 
-WWTC = units.WasteWaterSystemCost(ins=M8-0)
-anaerobic = units.AnaerobicDigestion(ins=(WWTC-0, well_water),
-                                     reactions=anaerobic_digestion,
-                                     sludge_split=find_split(*zip(*splits)))
+well_water = Stream('well_water', Water=1, T=15+273.15)
+M601 = bst.Mixer(ins=(S401-1, '', '', ''))
+J3 = bst.Junction(H201-0, 1-M601)
 
-air = Stream('Air lagoon', O2=51061, N2=168162, phase='g', units='kg/hr')
-caustic = Stream('WWT caustic', Water=2252, NaOH=2252,
+WWTC = units.WasteWaterSystemCost('WWTC', ins=M601-0)
+R601 = units.AnaerobicDigestion('R601', ins=(WWTC-0, well_water),
+                                 reactions=anaerobic_digestion,
+                                 sludge_split=find_split(*zip(*splits)))
+
+air = Stream('air_lagoon', O2=51061, N2=168162, phase='g', units='kg/hr')
+caustic = Stream('WWT_caustic', Water=2252, NaOH=2252,
                  units='kg/hr', price=price['Caustic']*0.5)
 # polymer = Stream('WWT polymer') # Empty in humbird report :-/
 
-M9 = bst.Mixer(ins=(anaerobic-1, None))
+M602 = bst.Mixer(ins=(R601-1, None))
 
 caustic_over_waste = caustic.mol / 2544300.6261793654
 air_over_waste = air.mol / 2544300.6261793654
-waste = M9-0
+waste = M602-0
 def update_aerobic_input_streams():
     waste_massnet = waste.massnet
     caustic.mol[:] = waste_massnet * caustic_over_waste
     air.mol[:] = waste_massnet * air_over_waste
 
-aerobic = units.AerobicDigestion(ins=(waste, air, caustic),
-                                 reactions=aerobic_digestion)
+R602 = units.AerobicDigestion('R602', ins=(waste, air, caustic),
+                              outs=('evaporated_water', ''),
+                              reactions=aerobic_digestion)
 
 splits = [('Ethanol', 0, 1),
           ('Water', 381300, 2241169),
@@ -525,73 +539,79 @@ splits = [('Ethanol', 0, 1),
           ('CellMass', 0, 19778),
           ('OtherInsolubleSolids', 0, 707)]
 
-S0 = bst.Splitter(ins=aerobic-1, split=find_split(*zip(*splits)))
+S601 = bst.Splitter('S601', ins=R602-1, split=find_split(*zip(*splits)))
 
-S1 = bst.Splitter(ins=S0-1, split=0.96)
+S602 = bst.Splitter('S602', ins=S601-1, split=0.96)
 
-M10 = bst.Mixer(ins=(S1-0, None))
-M10-0-1-M9
+M603 = bst.Mixer('M603', ins=(S602-0, None))
+M603-0-1-M602
 
-M11 = bst.Mixer(ins=(anaerobic-2, S1-1))
+M604 = bst.Mixer('M604', ins=(R601-2, S602-1))
 
 centrifuge_species = ('Water', 'Glucose', 'Xylose', 'OtherSugars', 'SugarOligomers', 'OrganicSolubleSolids', 'InorganicSolubleSolids', 'Furfurals', 'OtherOrganics', 'CO2', 'COxSOxNOxH2S', 'Cellulose', 'Xylan', 'OtherStructuralCarbohydrates', 'Lignin', 'Protein', 'CellMass', 'OtherInsolubleSolids')
 S623_flow = np.array([7708, 0, 0, 1, 1, 13, 75, 3, 0, 1, 1, 2, 25, 8, 2, 250, 52, 1523, 92])
 S616_flow = np.array([109098, 3, 6, 13, 9, 187, 1068, 46, 5, 8, 14, 31, 1, 0, 0, 13, 3, 80, 5])
 
-S2 = bst.Splitter(ins=M11-0, outs=('', 'Sludge'),
+S603 = bst.Splitter('S603', ins=M604-0, outs=('', 'sludge'),
                   split=find_split(centrifuge_species, S616_flow, S623_flow))
-S2-0-1-M10
+S603-0-1-M603
 
 brine_species = ('Water',  'Xylose', 'OtherSugars', 'SugarOligomers', 'OrganicSolubleSolids', 'InorganicSolubleSolids', 'Furfurals', 'OtherOrganics', 'CO2', 'COxSOxNOxH2S')
 S627_flow = np.array([4967, 1, 1, 1, 79, 4828, 1, 3, 44])
 S626_flow = np.array([376324, 0, 0,0, 0, 0,    0,  0, 0])
 
-S3 = bst.Splitter(ins=S0-0, outs=('treated_water', 'waste_brine'),
+S604 = bst.Splitter('S604', ins=S601-0, outs=('treated_water', 'waste_brine'),
                   split=find_split(brine_species, S626_flow, S627_flow))
 
-WWTsystem = System('aerobic digestion system',
-                   network=(M9, aerobic, S0, S1, M11, S2, M10),
-                   recycle=M9-0)
+WWTsystem = System('aerobic_digestion_system',
+                   network=(M602, R602, S601, S602, M604, S603, M603),
+                   recycle=M602-0)
 
 # %% Facilities
-M12 = bst.Mixer(ins=(S2-1, S505-0))
-BT = bst.facilities.BoilerTurbogenerator(ins=M12-0, 
+
+bst.Stream.default_ID_number = 500
+
+M501 = bst.Mixer(ins=(S603-1, S401-0))
+BT = bst.facilities.BoilerTurbogenerator('BT', ins=M501-0, 
                                          turbogenerator_efficiency=0.85)
+BT.outs[1].T = 373.15
 BT.cost_items['Turbogenerator'].n = 0.6
-CWP = bst.facilities.ChilledWaterPackage()
-CT = bst.facilities.CoolingTower()
-process_water = bst.Stream(ID='Process_water', species=bst.Species('Water'))
+
+bst.Stream.default_ID_number = 700
+
+CWP = bst.facilities.ChilledWaterPackage('CWP')
+CT = bst.facilities.CoolingTower('CT')
+CT.outs[1].T = 273.15 + 28
+process_water = bst.Stream(ID='process_water',
+                           species=bst.Species('Water'))
 
            # flow                # index
 process_water_data = ((caustic.mol,          caustic.index('Water')),
-                      (process_water524.mol, process_water524.index('Water')),
-                      (process_water212.mol, process_water212.index('Water')),
-                      (process_water274.mol, process_water274.index('Water')),
-                      (steam.mol,         steam.index('Water')))
+                      (stripping_water.mol, stripping_water.index('Water')),
+                      (warm_process_water.mol,  warm_process_water.index('Water')),
+                      (process_water.mol, process_water.index('Water')),
+                      (steam.mol,            steam.index('Water')),
+                      (BT.outs[1].mol,       BT.outs[1].index('Water')),
+                      (CT.outs[1].mol,       CT.outs[1].index('Water')))
 
 def update_water_loss():
     process_water.mol[0] = sum([i[j] for i, j in process_water_data])
         
 water = bst.Species('Water')
-Makeup_water = Stream('Makeup_water', species=water, price=price['Makeup water'])
-BT_water_makeup = Stream('BT_water_makeup', species=water, price=price['Makeup water'])
-CT_water_makeup = Stream('CT_water_makeup', species=water, price=price['Makeup water'])
+makeup_water = Stream('makeup_water', species=water, price=price['Makeup water'])
 
-PWC = bst.facilities.ProcessWaterCenter(ins=(S3-0, Makeup_water,
-                                             BT_water_makeup, CT_water_makeup),
-                                        outs=(process_water, 'BT_water', 'CT_water'),
-                                        BT=BT, CT=CT)
-PWC.CT_blowdown = 0.0015
-PWC.boiler_blowdown = 0.03
-PWC.RO_rejection = 0
-M8.ins.append(PWC.outs[1])
+PWC = bst.facilities.ProcessWaterCenter('PWC',
+                                        ins=(S604-0, makeup_water),
+                                        outs=(process_water,))
+J4 = bst.Junction(BT.outs[1], 2**M601)
+J5 = bst.Junction(CT.outs[1], 3**M601)
 
-substance = bst.Species('Substance', cls=bst.Substance)
-ash = Stream('Ash', species=substance,
+substance = bst.Species('substance', cls=bst.Substance)
+ash = Stream('ash', species=substance,
              price=price['Ash disposal'])
-lime = Stream('Lime', species=substance,
+lime = Stream('lime', species=substance,
              price=price['FGD lime'])
-boilerchems = Stream('Boiler_chemicals', species=substance,
+boilerchems = Stream('boiler_chemicals', species=substance,
                      price=price['Boiler chems'])
 boilerchems_mol = boilerchems._mol
 ash_mol = ash._mol
@@ -605,26 +625,27 @@ def update_lime_boilerchems_and_ash():
     boilerchems_mol[0] = 0.24620/865 * lime
 
 CIP = Stream('CIP', species=substance, flow=(126,))
-CIP_package = units.CIPpackage(ins=CIP)
+CIP_package = units.CIPpackage('CIP_package', ins=CIP)
 
-plant_air = Stream('Plant air', flow=(83333,), species=substance)
+plant_air = Stream('plant_air', flow=(83333,), species=substance)
 
-ADP = bst.facilities.AirDistributionPackage(ins=plant_air)
+ADP = bst.facilities.AirDistributionPackage('ADP', ins=plant_air)
 ADP.link_streams()
 
 
-FW = units.FireWaterTank(ins=Stream('Fire water', flow=(8343,),species=substance))
+FW = units.FireWaterTank('FT',
+                         ins=Stream('fire_water', flow=(8343,), species=substance))
 
 # %% Complete system
 
-cornstover_sys = System('corn stover system',
-                        network=(ptsys, fmsys, puresys, J2, S505,
-                                 J3, M8, WWTC, anaerobic,
+cornstover_sys = System('corn_stover_system',
+                        network=(ptsys, fmsys, puresys, J2, S401,
+                                 J3, J4, J5, M601, WWTC, R601,
                                  update_aerobic_input_streams,
-                                 WWTsystem, S3),
-                        facilities=(M12, CWP, BT, CT, update_water_loss,
+                                 WWTsystem, S604),
+                        facilities=(M501, CWP, BT, CT, update_water_loss,
                                     PWC, ADP, update_lime_boilerchems_and_ash,
-                                    CIP_package, IS0, IS1, DAP_storage,
+                                    CIP_package, S301, S302, DAP_storage,
                                     CSL_storage, FW))
 cornstover_sys.products.update((ash, boilerchems))
 baghouse_bags = Stream(ID='Baghouse_bags', species=substance, flow=(1,), price=11.1)
@@ -648,12 +669,12 @@ ethanol_tea = CornstoverTEA(
         labor_burden=0.90, property_insurance=0.007, maintenance=0.03)
 ethanol_tea.units.remove(BT)
 
-Area800 = bst.TEA.like(System('Area800', (BT,)),
+Area500 = bst.TEA.like(System('Area500', (M501, BT,)),
                        ethanol_tea)
-Area800.labor_cost = 0
-Area800.depreciation = 'MACRS20'
-Area800.OSBL_units = (BT,)
-cornstover_tea = bst.CombinedTEA([ethanol_tea, Area800], IRR=0.10)
+Area500.labor_cost = 0
+Area500.depreciation = 'MACRS7'
+Area500.OSBL_units = (BT,)
+cornstover_tea = bst.CombinedTEA([ethanol_tea, Area500], IRR=0.10)
 cornstover_sys._TEA = cornstover_tea
 ethanol.price = cornstover_tea.solve_price(ethanol, ethanol_tea)
 ethanol.price = cornstover_tea.solve_price(ethanol, ethanol_tea)
@@ -661,31 +682,30 @@ ethanol_price_USDgal = ethanol.price * ethanol_density_kggal
 
 # %% Areas
 
-Area100 = bst.TEA.like(System('Area100', (C100,)), ethanol_tea)
+Area100 = bst.TEA.like(System('Area100', (U101,)), ethanol_tea)
 Area200 = bst.TEA.like(System('Area200',
-                              (T201, A201, PRS200, P1,
-                               T208, T204, HX1, M210, T209)),
+                              (T201, M201, R201, P201,
+                               T202, F201, H201, M210, T203)),
                        ethanol_tea)
 Area300 = bst.TEA.like(System('Area300', 
-                              (H301, A308, F300,
-                               F301, T301, T306)),
+                              (H301, M301, R301,
+                               R302, T301, T302)),
                        ethanol_tea)
-Area400 = () # Cellulase production (empty for now)
-Area500 = bst.TEA.like(System('Area500', 
-                              (T512, P32, P25, Q2,
-                               P28, P30, Q3, P34,
-                               P33, P41, P39, S505)),
+Area400 = bst.TEA.like(System('Area400', 
+                              (D401, H401, D402, P401,
+                               M402, D403, P402, H402,
+                               U401, H403, M701, S401)),
                        ethanol_tea)
 Area600 = bst.TEA.like(System('Area600', (WWTC,)),
                        ethanol_tea)
 Area700 = bst.TEA.like(System('Area700',
-                              (T2, T3, Q4, Q5, FW,
+                              (T701, T702, P701, P702, M701, FW,
                                CSL_storage, DAP_storage)),
                        ethanol_tea) 
-Area900 = bst.TEA.like(System('Area900', (CWP, CT, PWC, ADP, CIP_package)),
+Area800 = bst.TEA.like(System('Area800', (CWP, CT, PWC, ADP, CIP_package)),
                        ethanol_tea)
-areas = (Area100, Area200, Area300, Area500,
-         Area600, Area700, Area800, Area900)
+areas = (Area100, Area200, Area300, Area400,
+         Area500, Area600, Area700, Area800)
 installation_costs = {i.system.ID: i.installation_cost/1e6
                       for i in areas}
 utility_costs = {i.system.ID: i.utility_cost/1e6
@@ -702,15 +722,15 @@ def get_utility(units, ID, attr):
 
 get_rate = lambda units: sum([i._power_utility.rate
                               for i in units
-                              if i._has_power_utility])
+                              if i._has_power_utility])/1e3
 
 get_ecost = lambda units: sum([i._power_utility.cost
                                for i in units
                                if i._has_power_utility])*24*350.4/1e6
 
-cooling_water_uses = {i.system.ID: 18.01528*get_utility(i.units, 'Cooling water', 'flow')/1e6
+cooling_water_uses = {i.system.ID: get_utility(i.units, 'Cooling water', 'duty')/1e6/4.182
                       for i in areas}
-electricity_uses = {i.system.ID: get_rate(i.units)/1e3/41 for i in areas}
+electricity_uses = {i.system.ID: get_rate(i.units)/41 for i in areas}
 
 electricity_costs = {i.system.ID: get_ecost(i.units) for i in areas}
 

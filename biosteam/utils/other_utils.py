@@ -8,7 +8,8 @@ This module includes arbitrary classes and functions.
 """
 import biosteam as bst
 
-__all__ = ('factor', 'checkbounds', 'approx2step', 'strtuple', 'Counter')
+__all__ = ('factor', 'checkbounds', 'approx2step', 'strtuple',
+           'Counter', 'format_unit_line', 'format_unit_name')
 
 class Counter:
     __slots__ = ('msg', 'N')
@@ -62,4 +63,37 @@ def strtuple(iterable):
     string = '(' + string + ')'
     return string
         
+def format_unit_line(line):
+    line = line.replace('_', ' ')
+    words = []
+    word = ''
+    for i in line:
+        if i.isupper():
+            words.append(word)
+            word = i
+        else:
+            word += i
+    words.append(word)
+    line = ''
+    for word in words:
+        N_letters = len(word)
+        if N_letters > 1:
+            line += word + ' '
+        else:
+            line += word
+    line = line.strip(' ')
+    first_word, *rest = line.split(' ')
+    words = [first_word[0].capitalize() + first_word[1:]]
+    for word in rest:
+        if not all([i.isupper() for i in word]):
+            word = word.lower()
+        words.append(word)
+    return ' '.join(words)
 
+def format_unit_name(name):
+    words = name.split(' ')
+    new_words = []
+    for i in words:
+        new_words.append(i[0].capitalize() + i[1:])
+    return ''.join(new_words)
+    

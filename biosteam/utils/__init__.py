@@ -15,6 +15,7 @@ from . import register
 from . import tictoc
 from . import solvers
 from . import not_implemented_method
+from . import network_utils
 
 from .not_implemented_method import *
 from .array_utils import *
@@ -26,12 +27,14 @@ from .plot_utils import *
 from .tictoc import *
 from .register import *
 from .solvers import *
+from .network_utils import *
 
 __all__ = ['array_utils', 'color_utils',
            'other_utils', 'stream_utils',
            'display_utils', 'plot_utils',
            'register', 'tictoc', 'solvers',
-           'not_implemented_method']
+           'not_implemented_method',
+           'network_utils']
 __all__.extend(plot_utils.__all__)
 __all__.extend(not_implemented_method.__all__)
 __all__.extend(solvers.__all__)
@@ -42,3 +45,4 @@ __all__.extend(other_utils.__all__)
 __all__.extend(stream_utils.__all__)
 __all__.extend(register.__all__)
 __all__.extend(tictoc.__all__)
+__all__.extend(network_utils.__all__)

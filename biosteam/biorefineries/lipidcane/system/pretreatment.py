@@ -35,13 +35,13 @@ psp2 = ('Ash', 'CaO', 'Cellulose', 'Flocculant', 'Glucose',
 
 f1 = (2000.042, 26986.69 , 2007.067, 15922.734, 14459.241,
       10035.334, 5017.667, 22746.761, 234157.798)
-lipid_cane = Stream('lipid cane', f1, psp1, units='kg/hr',
+lipid_cane = Stream('lipid_cane', f1, psp1, units='kg/hr',
                     price=price['Lipid cane'])
 
 enzyme = Stream('enzyme', Cellulose=100, Water=900, units='kg/hr',
                 price=price['Protease'])
 
-imbibition_water = Stream('imbibition water',
+imbibition_water = Stream('imbibition_water',
                           Water=87023.35,
                           T = 338.15, units='kg/hr')
 
@@ -54,15 +54,19 @@ lime = Stream('lime', CaO=333.00, Water=2200.00, units='kg/hr',
 polymer = Stream('polymer', Flocculant=0.83, units='kg/hr',
                  price=price['Polymer'])  # to T205
 
-rvf_wash_water = Stream('rvf wash water',
+rvf_wash_water = Stream('rvf_wash_water',
                         Water=16770, units='kg/hr',
                         T=363.15)  # to C202
 
-oil_wash_water = Stream('oil wash water',
+oil_wash_water = Stream('oil_wash_water',
                         Water=1350, units='kg/hr',
                         T=358.15)  # to T207
 
 # %% Units
+
+Stream.default_ID = 'd'
+Stream.default_ID_number = 0
+# Stream.default_ID_number = 100
 
 # Feed the shredder
 U101 = ConveyingBelt('U101', ins=lipid_cane)
@@ -71,8 +75,10 @@ U101.cost_items['Conveying belt'].ub = 2500
 # Separate metals
 U102 = MagneticSeparator('U102', ins=U101.outs)
 
-# Shred fresh cane
+# Shredded cane
 U103 = Shredder('U103', ins=U102.outs)
+
+# Stream.default_ID_number = 200
 
 # Hydrolyze starch
 T201 = EnzymeTreatment('T201', T=323.15)  # T=50
@@ -135,7 +141,7 @@ C201 = Clarifier('C201',
 
 # Remove solids as filter cake
 C202 = RVF('C202', 
-           outs=('filter cake', ''),
+           outs=('filte_cake', ''),
            moisture_content=0.80,
            split=(0.85, 0.85, 0.85, 0.01, 0.85, 0.85, 0.01),
            order=('Ash', 'CaO', 'Cellulose', 'Glucose',
@@ -155,7 +161,7 @@ del split, index
 H203 = HXutility('H203', T=343.15)
 
 # Screen out small fibers from sugar stream
-S202 = VibratingScreen('S202', outs=('', 'fiber fines'),
+S202 = VibratingScreen('S202', outs=('', 'fiber_fines'),
                       split=1-np.array((0, 0, 0, 1, 0.002, 0, 0,0, 0, 0.002, 0.002)),
                       order=psp2)
 sugar = S202-0
@@ -242,8 +248,8 @@ pretreatment_sys = System('pretreatment_sys',
 
 solidsmol = P202.outs[0].mol
 
-area_100 = System('area 100', network=(U101, U102, U103))
+area_100 = System('area_100', network=(U101, U102, U103))
 units = pretreatment_sys.units.copy()
 for i in area_100.network: units.discard(i)
 area_200_network = sorted(units, key=lambda x: x.ID)
-area_200 = System('area 200', network=area_200_network)
+area_200 = System('area_200', network=area_200_network)

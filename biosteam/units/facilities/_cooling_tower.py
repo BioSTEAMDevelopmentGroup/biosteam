@@ -28,10 +28,10 @@ class CoolingTower(Facility, Static):
     blowdown = 0.001
     def __init__(self, ID=''):
         water = HeatUtility.cooling_agents['Cooling water'].species
-        self.makeup_water = makeup_water = Stream('cooling tower makeup water', species=water)
-        loss = Stream.proxy('evaporation and blowdown', makeup_water)
-        super().__init__(ID, ('return cooling water', makeup_water),
-                         ('cooling water', loss), water)
+        self.makeup_water = makeup_water = Stream('cooling_tower_makeup_water', species=water)
+        loss = Stream.proxy('evaporation_and_blowdown', makeup_water)
+        super().__init__(ID, ('return_cooling_water', makeup_water),
+                         ('cooling_water', loss), water)
         self.cooling_water_utilities = set()
         
     def _design(self):
@@ -48,13 +48,11 @@ class CoolingTower(Facility, Static):
         #: Cooling water flow rate (kmol/hr)
         used._mol[0] = \
         self._Design['Flow rate'] = self.cooling_water = sum([i.flow for i in cwu])
-        used.T = np.array([i._used.T for i in cwu]).mean()
         hu = self._heat_utilities[0]
         cw = hu.cooling_agents['Cooling water']
         self._outs[0].T = cw.T
         hu.ID = 'Cooling water'
         hu.cost = -self.cooling_water*cw.price_kmol
-        
         self.makeup_water.mol[0] = self.cooling_water * (self.evaporation + self.blowdown)
 
    

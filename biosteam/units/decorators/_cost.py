@@ -93,7 +93,7 @@ def _cost(self):
             q = S/x.S
             F = q/N
             C[i] = N*bst.CE/x.CE*x.cost*F**x.n
-            kW += x.kW*q
+            kW += N*x.kW*q
         else:
             F = S/x.S
             C[i] = bst.CE/x.CE*x.cost*F**x.n

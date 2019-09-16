@@ -45,10 +45,10 @@ class Static(Unit):
         o.P = i.P
         o._phase = i._phase
             
-    def _info(self, T, P, flow, fraction):
+    def _info(self, T, P, flow, fraction, N):
         """Information on unit."""
         self.link_streams()
-        return super()._info(T, P, flow, fraction)
+        return super()._info(T, P, flow, fraction, N)
     
     
     

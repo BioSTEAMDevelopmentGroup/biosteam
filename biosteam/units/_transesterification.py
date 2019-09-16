@@ -73,6 +73,7 @@ class Transesterification(Unit):
     
     @property
     def efficiency(self):
+        """Transesterification efficiency."""
         return self.reaction.X[0]
     @efficiency.setter
     def efficiency(self, efficiency):

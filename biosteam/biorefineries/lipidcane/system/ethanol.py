@@ -20,6 +20,7 @@ __all__ = ('area_300',)
 
 # %% Species
 
+# Stream.default_ID_number = 300
 Stream.species = ethanol_species
 sp_c = ('Glucose', 'H3PO4', 'Sucrose', 'Water')
 sp_r = ('Ethanol', 'Glucose', 'H3PO4', 'Water', 'DryYeast')
@@ -86,7 +87,7 @@ T301.line = 'Beer tank'
 D301 = VentScrubber('D301', ins=(stripping_water, R301-0), gas=('CO2',))
 
 # Separate 99% of yeast
-C301 = SolidsCentrifuge('C301', outs=('', 'Recycle yeast'),
+C301 = SolidsCentrifuge('C301', outs=('', 'recycle_yeast'),
                        split=(1, 0.99999, 1, 0.96, 0.01),
                        order=('Ethanol', 'Glucose', 'H3PO4', 
                               'Water', 'DryYeast'),
@@ -98,7 +99,7 @@ P301 = Pump('P301')
 
 # Heat up before beer column
 # Exchange heat with stillage
-H302 = HXprocess('H302', outs=('', 'Stillage'),
+H302 = HXprocess('H302', outs=('', 'stillage'),
                 fluid_type='ss', U=1.28)
 
 # Beer column
@@ -153,7 +154,7 @@ T304.tau = 0.10
 M304 = Mixer('M304')
 
 # Recycle water to Process Condensate Tank
-M305 = Mixer('M305', outs='recycle water')
+M305 = Mixer('M305', outs='recycle_water')
 
 # Yeast mixing
 T305 = MixTank('T305')
@@ -194,7 +195,7 @@ EtOH_end_network=(P303, H304, T302, P304,
 (P303-0, F301-1)-M305
 EtOH_process_water_network=(M305,)    
 
-area_300 = System('area 300',
+area_300 = System('area_300',
                   network=(EtOH_start_network
                          + (purification_recycle,)
                          + EtOH_end_network

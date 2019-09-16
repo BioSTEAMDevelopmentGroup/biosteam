@@ -159,7 +159,6 @@ Splitter._N_outs = 2
 class InvSplitter(Unit):
     """Create a splitter that sets the input stream based on output streams. Must have only one input stream. The output streams will become the same temperature, pressure and phase as the input.
     """
-    line = 'Splitter'
     _graphics = Splitter._graphics
     def _run(self):
         feed = self.ins[0]
@@ -171,7 +170,7 @@ class InvSplitter(Unit):
             out.T = T
             out.P = P
             out.phase = phase 
-    
+InvSplitter.line = 'Splitter'
 
 
         

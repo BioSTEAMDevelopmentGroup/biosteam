@@ -15,26 +15,46 @@ tea = lc.lipidcane_tea
 ethanol = lc.system.ethanol.ethanol
 biodiesel = lc.system.biodiesel.biodiesel
 lipid_cane = lc.system.pretreatment.lipid_cane
+
 etoh_prodcost = [0]
 def get_biodiesel_prodcost():
     bd, etoh_prodcost[0] = tea.production_cost(biodiesel, ethanol)
     return bd
 get_etoh_prodcost = lambda: etoh_prodcost[0]
 get_FCI = lambda: tea._FCI_cached
+
 etoh_prod = [0]
 def get_biodiesel_prod():
     bd, etoh_prod[0] = np.array([biodiesel.massnet, ethanol.massnet]) * tea._annual_factor
     return bd
 get_etoh_prod = lambda: etoh_prod[0]
 
+BT = lc.system.biorefinery.BT
+lc_sys = lc.lipidcane_sys
+def get_steam():
+    return sum([i.flow for i in BT.steam_utilities])*18.01528*tea._annual_factor/1000
+
+power_utils = ([i._power_utility for i in lc_sys.units if (i._power_utility and i is not BT)])
+excess_electricity = [0]
+def get_consumed_electricity():
+    factor =  tea._annual_factor/1000
+    electricity_generated = -BT._power_utility.rate * factor
+    consumed_electricity = sum([i.rate for i in power_utils]) * factor
+    excess_electricity[0] = electricity_generated - consumed_electricity
+    return consumed_electricity
+get_excess_electricity = lambda: excess_electricity[0]
+
 metrics = (Metric('Internal rate of return', '', lc.lipidcane_tea.solve_IRR),
            Metric('Biodiesel production cost', 'USD/yr', get_biodiesel_prodcost),
            Metric('Ethanol production cost', 'USD/yr', get_etoh_prodcost),
            Metric('Fixed capital investment', 'USD', get_FCI),
            Metric('Biodiesel production', 'kg/hr', get_biodiesel_prod),
-           Metric('Ethanol production', 'kg/hr', get_etoh_prod))
+           Metric('Ethanol production', 'kg/hr', get_etoh_prod),
+           Metric('Steam', 'MT/yr', get_steam),
+           Metric('Consumed electricity', 'MWhr/yr', get_consumed_electricity),
+           Metric('Excess electricity', 'MWhr/yr', get_excess_electricity))
 
-lipidcane_model = Model(lc.lipidcane_sys, metrics)
+lipidcane_model = Model(lc_sys, metrics)
 lipidcane_model.load_default_parameters(lipid_cane)
 param = lipidcane_model.parameter
 

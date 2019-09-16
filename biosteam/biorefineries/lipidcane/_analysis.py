@@ -34,12 +34,12 @@ model_sc.table.to_excel('Monte Carlo sugarcane.xlsx')
 
 # %% Spearman's correlation
 
-samples = model_lc_lf.sample(N_spearman_samples, rule)
-model_lc_lf.load_samples(samples)
-model_lc_lf.evaluate()
-spearman = model_lc_lf.spearman(
-                metric_names=('Internal rate of return',))
-spearman.to_excel("Spearman correlation lipidcane.xlsx")
+# samples = model_lc_lf.sample(N_spearman_samples, rule)
+# model_lc_lf.load_samples(samples)
+# model_lc_lf.evaluate()
+# spearman = model_lc_lf.spearman(
+#                 metric_names=('Internal rate of return',))
+# spearman.to_excel("Spearman correlation lipidcane.xlsx")
 
 
 

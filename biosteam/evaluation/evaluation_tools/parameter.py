@@ -89,7 +89,7 @@ def add_all_stream_price_params(model, shape):
     
 def add_power_utility_price_param(model, shape):
     if bst.PowerUtility.price:
-        @model.parameter(element='Electricity', units='USD/kW',
+        @model.parameter(element='Electricity', units='USD/kWhr',
                          distribution=shape(bst.PowerUtility.price))
         def set_price(price):
             bst.PowerUtility.price = price 

@@ -21,13 +21,15 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
-__all__ = ('lipidcane_sys', 'lipidcane_tea', 'area_500', 'area_600', 'area_700')
+__all__ = ('lipidcane_sys', 'lipidcane_tea', 'area_500', 'area_600')
 
 # %% Facilities
 Stream.species = pretreatment_species
-emission = Stream('Emission')
+emission = Stream('emission')
 water = Species('Water',)
 stream = find.stream
+
+# Stream.default_ID_number = 500
 
 BT = BoilerTurbogenerator('BT',
                           ins=U202-0, # Bagasse from conveyor belt
@@ -35,34 +37,36 @@ BT = BoilerTurbogenerator('BT',
                           boiler_efficiency=0.80,
                           turbogenerator_efficiency=0.85)
 
+Stream.default_ID_number = 600
+
 Stream.species = water
 CT = CoolingTower('CT')
 process_water_streams = (stream.biodiesel_wash_water,
                          stream.cooling_tower_makeup_water,
                          stream.boiler_makeup_water)
-makeup_water = Stream('makeup water', price=0.000254)
-process_water = Stream('process water')
-
+makeup_water = Stream('makeup_water', price=0.000254)
+process_water = Stream('process_water')
+pws_indices = [i.index('Water') for i in process_water_streams]
+pws_flow_index_pairs = tuple(zip([i._mol for i in process_water_streams], pws_indices))
 def update_water():
-    process_water._mol[0] = sum([i.getflow('Water') for i in process_water_streams])
+    process_water._mol[0] = sum([i[j] for i,j in pws_flow_index_pairs])
 
 CWP = ChilledWaterPackage('CWP')
 PWC = ProcessWaterCenter('PWC',
-                         ins=('recycle water', makeup_water),
+                         ins=('recycle_water', makeup_water),
                          outs=process_water)
         
 S601 = Splitter('S601', ins=process_water, outs=process_water_streams,
                 split=(1,), order=('Water',))
 UO = find.unit
-area_500 = System('area 500', (BT,))
-area_600 = System('area 600', (CT, CWP, PWC, S601))
-area_700 = System('area 700', (UO.T401, UO.T303, UO.T402, UO.T403, UO.T202))
+area_500 = System('area_500', (BT,))
+area_600 = System('area_600', (CT, CWP, PWC, S601))
 
 # %% Set up system
 connect_sugar = Junction(sugar, sugar_solution, ('Water', 'Glucose', 'Sucrose'))
 connect_lipid = Junction(lipid, oil, ('Lipid',))
 
-lipidcane_sys = System('lipid cane system',
+lipidcane_sys = System('lipid_cane_system',
                        network=pretreatment_sys.network
                              + (connect_sugar, connect_lipid)
                              + area_300.network
@@ -81,4 +85,4 @@ lipidcane_tea = LipidcaneTEA(system=lipidcane_sys, IRR=0.15, duration=(2018, 203
                              supplies=0.20, maintenance=0.01, administration=0.005)
 set_lipid_fraction(0.10)
 lipidcane_sys.simulate()
-lipidcane_tea.solve_IRR()
+lipidcane_tea.IRR = lipidcane_tea.solve_IRR()

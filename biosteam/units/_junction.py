@@ -19,6 +19,8 @@ def _getstreams(self):
     except ValueError as error:
         N_ins = len(self._ins)
         N_outs = len(self._outs)
+        print(self._ins)
+        print(self._outs)
         if N_ins != 1:
             raise RuntimeError(f'a Junction object must have 1 input stream, not {N_ins}')
         elif N_outs != 1:
@@ -137,8 +139,8 @@ class Junction(Unit):
         self._upindex = upstream.indices(IDs)
         self._downindex = downstream.indices(IDs)
     
-    def _info(self, T, P, flow, fraction):
-        info = super()._info(T, P, flow, fraction)
+    def _info(self, T, P, flow, fraction, N):
+        info = super()._info(T, P, flow, fraction, N)
         return info[:info.index(':')+1] + info[info.index('\n'):]
     
     def __repr__(self):

@@ -4,7 +4,6 @@ Created on Sat Aug 18 14:40:28 2018
 
 @author: yoelr
 """
-import re
 import numpy as np
 import pandas as pd
 from graphviz import Digraph
@@ -13,27 +12,14 @@ from ._flowsheet import find, save_digraph
 from ._graphics import Graphics, default_graphics
 from ._stream import Stream
 from ._heat_utility import HeatUtility
-from .utils import Ins, Outs, MissingStream, NotImplementedMethod
+from .utils import Ins, Outs, MissingStream, NotImplementedMethod, \
+                   _add_upstream_neighbors, _add_downstream_neighbors, \
+                   format_unit_line
 from ._power_utility import PowerUtility
 from warnings import warn
 import biosteam as bst
 
 __all__ = ('Unit',)
-
-# %% Unit neighbors
-
-def _add_upstream_neighbors(unit, set):
-    """Add upsteam neighboring units to set."""
-    for s in unit._ins:
-        u_source = s._source
-        if u_source: set.add(u_source)
-
-def _add_downstream_neighbors(unit, set):
-    """Add downstream neighboring units to set."""
-    for s in unit._outs:
-        u_sink = s._sink
-        if u_sink: set.add(u_sink)
-
 
 # %% Bounds checking
 
@@ -75,20 +61,18 @@ class unit(type):
         except NameError: return cls
         
         # Set line
-        # default_line constitutes a new Unit class
-        line = cls.line
-        if line in (None, 'Mixer', 'Static', 'Splitter', 'Solids separator', 'Facility'):
-            line = cls.__name__.replace('_', ' ')
-            # Set new graphics object for new line
-            if '_graphics' not in dct: cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
-        elif 'line' in dct and '_graphics' not in dct:
+        if 'line' not in dct:
+            line = cls.line
+            if '_graphics' not in dct or line in (None, 'Mixer', 'Static', 'Splitter', 'Solids separator', 'Facility'):
+                line = cls.__name__
+                # Set new graphics for specified line
+                cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
+            cls.line = format_unit_line(line)
+                
+        elif '_graphics' not in dct:
             # Set new graphics for specified line
             cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
-        
-        cls.line = re.sub(r"\B([A-Z])", r" \1", line).capitalize()
-        
-        if isabstract: return cls
-        
+        if isabstract: return cls        
         if not hasattr(cls, '_run'):
             raise NotImplementedError("'Unit' subclass must have a '_run' method unless the 'isabstract' keyword argument is True")
         
@@ -187,8 +171,11 @@ class Unit(metaclass=unit):
 
     ### Other defaults ###
 
-    # [list] Default ID starting letter and number
-    _default_ID = ['U', 1]
+    #: [str] Default ID for all units (class attribute)
+    default_ID = 'U'
+    
+    #: [int] Current number for default IDs (class attribute)
+    default_ID_number = 0
     
     # Default ID
     _ID = None 
@@ -479,18 +466,12 @@ class Unit(metaclass=unit):
     def ID(self, ID):
         if ID == '':
             # Select a default ID if requested
-            letter, number = self._default_ID
-            self._default_ID[1] += 1
-            ID = letter + str(number)
+            self.__class__.default_ID_number += 1
+            ID = self.default_ID + str(self.default_ID_number)
             self._ID = ID
-            find.unit[ID] = self
+            setattr(find.unit, ID, self)
         elif ID and ID != self._ID:
-            ID = ID.replace(' ', '_')
-            ID_words = ID.split('_')
-            if not all(word.isalnum() for word in ID_words):
-                raise ValueError('ID cannot have any special characters')
-            self._ID = ID
-            find.unit[ID] = self
+            setattr(find.unit, ID, self)
 
     # Input and output streams
     @property
@@ -504,7 +485,7 @@ class Unit(metaclass=unit):
 
     @property
     def _downstream_units(self):
-        """Return set of all units downstreasm."""
+        """Return set of all units downstream."""
         downstream_units = set()
         outer_periphery = set()
         _add_downstream = _add_downstream_neighbors
@@ -521,7 +502,7 @@ class Unit(metaclass=unit):
                 _add_downstream(unit, outer_periphery)
             new_length = len(downstream_units)
         return downstream_units
-
+        
     def _neighborhood(self, radius=1, upstream=True, downstream=True):
         """Return all neighboring units within given radius.
         
@@ -530,16 +511,16 @@ class Unit(metaclass=unit):
         radius : int
                  Maxium number streams between neighbors.
         downstream=True : bool, optional
-            Whether to show downstream operations
+            Whether to include downstream operations
         upstream=True : bool, optional
-            Whether to show upstream operations
+            Whether to include upstream operations
         
         """
         radius -= 1
         neighborhood = set()
         if radius < 0: return neighborhood
-        _add_upstream_neighbors(self, neighborhood)
-        _add_downstream_neighbors(self, neighborhood)
+        upstream and _add_upstream_neighbors(self, neighborhood)
+        downstream and _add_downstream_neighbors(self, neighborhood)
         direct_neighborhood = neighborhood
         for i in range(radius):
             neighbors = set()
@@ -747,7 +728,7 @@ class Unit(metaclass=unit):
         return self._H_out - self._H_in + self._Hf_out - self._Hf_in
     
     # Representation
-    def _info(self, T, P, flow, fraction):
+    def _info(self, T, P, flow, fraction, N):
         """Information on unit."""
         if self.ID:
             info = f'{type(self).__name__}: {self.ID}\n'
@@ -760,7 +741,7 @@ class Unit(metaclass=unit):
                 info += f'[{i}] {stream}\n'
                 i += 1
                 continue
-            stream_info = stream._info(T, P, flow, fraction)
+            stream_info = stream._info(T, P, flow, fraction, N)
             unit = stream._source
             index = stream_info.index('\n')
             source_info = f'  from  {type(unit).__name__}-{unit}\n' if unit else '\n'
@@ -773,7 +754,7 @@ class Unit(metaclass=unit):
                 info += f'[{i}] {stream}\n'
                 i += 1
                 continue
-            stream_info = stream._info(T, P, flow, fraction)
+            stream_info = stream._info(T, P, flow, fraction, N)
             unit = stream._sink
             index = stream_info.index('\n')
             sink_info = f'  to  {type(unit).__name__}-{unit}\n' if unit else '\n'
@@ -782,9 +763,9 @@ class Unit(metaclass=unit):
         info = info.replace('\n ', '\n    ')
         return info[:-1]
 
-    def show(self, T=None, P=None, flow=None, fraction=None):
+    def show(self, T=None, P=None, flow=None, fraction=None, N=None):
         """Prints information on unit."""
-        print(self._info(T, P, flow, fraction))
+        print(self._info(T, P, flow, fraction, N))
     
     def _ipython_display_(self):
         try: self.diagram()

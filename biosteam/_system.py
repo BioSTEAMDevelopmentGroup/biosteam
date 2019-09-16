@@ -12,7 +12,8 @@ from ._facility import Facility
 from ._unit import Unit
 from ._report import save_report
 from .utils import colors, MissingStream, strtuple, \
-                    conditional_wegstein, conditional_aitken
+                   conditional_wegstein, conditional_aitken, \
+                   build_network
 import biosteam as bst
 
 __all__ = ('System',)
@@ -160,6 +161,26 @@ class System(metaclass=system):
     # [dict] Cached downstream systems by (system, unit, with_facilities) keys
     _cached_downstream_systems = {} 
 
+    @classmethod
+    def from_feedstock(cls, ID, feedstock):
+        return NotImplemented
+        if not _isfeed(feedstock):
+            raise ValueError('feedstock must have no upstream units')
+        sink = feedstock.sink
+        all_units = sink._neighborhood(10000)
+        sources = [sink]
+        for i in all_units:
+            if any([i.source for i in i._ins]): continue
+            sources.append(i)
+        return build_network(sources)
+            
+    @classmethod
+    def from_area(cls, ID, sources, sinks=()):
+        return NotImplemented
+        network = build_network(sources, sinks)
+        system = cls(ID, network)
+        return system
+    
     def __init__(self, ID, network, recycle=None, facilities=()):
         
         #: Molar flow rate error (kmol/hr)
@@ -241,14 +262,7 @@ class System(metaclass=system):
              "recycle must be a Stream instance or None, not "
             f"{type(recycle).__name__}")
         self._recycle = recycle
-        
-        if ID:
-            ID = ID.replace(' ', '_')
-            ID_words = ID.split('_')
-            assert all(word.isalnum() for word in ID_words), ('ID cannot have any'
-                                                              'special characters')
-            self._ID = ID
-            find.system[ID] = self
+        if ID: setattr(find.system, ID, self)
     
     save_report = save_report
     
@@ -359,7 +373,7 @@ class System(metaclass=system):
         _streamUnit('\n'.join([i.ID for i in outs]),
                     product, None)
         unit = _systemUnit(self.ID, feed, product)
-        unit.diagram(1, file, format, **graph_attrs)
+        unit.diagram(1, file=file, format=format, **graph_attrs)
 
     def _surface_diagram(self, file, format, **graph_attrs):
         """Display only surface elements listed in the network."""

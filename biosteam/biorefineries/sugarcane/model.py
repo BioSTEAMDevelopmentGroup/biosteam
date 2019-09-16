@@ -11,15 +11,33 @@ import biosteam.biorefineries.sugarcane as sc
 __all__ = ('sugarcane_model',)
 
 tea = sc.sugarcane_sys.TEA
-Ethanol = sc.system.Ethanol
-get_prodcost = lambda: float(tea.production_cost(Ethanol))
+ethanol = sc.system.ethanol
+get_prodcost = lambda: float(tea.production_cost(ethanol))
 get_FCI = lambda: tea._FCI_cached
-get_prod = lambda: Ethanol.massnet * tea._annual_factor
+get_prod = lambda: ethanol.massnet * tea._annual_factor
+
+BT = sc.system.BT
+sc_sys = sc.sugarcane_sys
+def get_steam():
+    return sum([i.flow for i in BT.steam_utilities])*18.01528*tea._annual_factor/1000
+
+power_utils = ([i._power_utility for i in sc_sys.units if (i._power_utility and i is not BT)])
+excess_electricity = [0]
+def get_consumed_electricity():
+    factor = tea._annual_factor/1000
+    electricity_generated = -BT._power_utility.rate * factor
+    consumed_electricity = sum([i.rate for i in power_utils]) * factor
+    excess_electricity[0] = electricity_generated - consumed_electricity
+    return consumed_electricity
+get_excess_electricity = lambda: excess_electricity[0]
 
 metrics = (Metric('Internal rate of return', '%', sc.sugarcane_tea.solve_IRR),
            Metric('Ethanol production cost', 'USD/yr', get_prodcost),
            Metric('Fixed capital investment', 'USD', get_FCI),
-           Metric('Ethanol production', 'kg/hr', get_prod))
+           Metric('Ethanol production', 'kg/hr', get_prod),
+           Metric('Steam', 'MT/yr', get_steam),
+           Metric('Consumed electricity', 'MWhr/yr', get_consumed_electricity),
+           Metric('Excess electricity', 'MWhr/yr', get_excess_electricity))
 
 sugarcane_model = Model(sc.sugarcane_sys, metrics, skip=False)
 sugarcane_model.load_default_parameters(sc.system.Sugar_cane)

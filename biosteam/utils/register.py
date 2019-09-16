@@ -13,8 +13,8 @@ setattr_ = object.__setattr__
 
 def _reload(self):
     dict_ = getattr_(self, '__dict__')
-    # Dictionary will change size in for loop, so use list
-    for i, r in list(dict_.items()):
+    # Dictionary will change size in for loop, so use tuple
+    for i, r in tuple(dict_.items()):
         j = r()
         if not j:
             del dict_[i]
@@ -24,9 +24,11 @@ def _reload(self):
             dict_[s] = r
     _must_reload.remove(self)
 
+do_nothing = lambda: None
+
 def search_register(self, key):
-    ref =  getattr_(self, '__dict__').get(key)
-    return ref() if ref else ref 
+    if self in _must_reload: _reload(self)
+    return getattr_(self, '__dict__').get(key, do_nothing)()
 
 _must_reload = set()
 
@@ -36,15 +38,25 @@ class Register:
         if self in _must_reload: _reload(self)
         try: return getattr_(self, key)()
         except: return getattr_(self, key)
+    
     __getitem__ = __getattribute__
     
     def __bool__(self):
         return bool(getattr_(self, '__dict__'))
     
     def __setattr__(self, key, value):
+        """Register object."""
+        ID_words = key.split('_')
+        assert all(word.isalnum() for word in ID_words), (
+                'ID may only contain letters, numbers, and/or underscores; '
+                'no special characters or spaces')
+        value._ID = key
         setattr_(self, key, ref(value))
         _must_reload.add(self)
-    __setitem__ = __setattr__
+   
+    def __setitem__(self, key, value):
+        setattr_(self, key, ref(value))
+        _must_reload.add(self)
     
     def __iter__(self):
         if self in _must_reload: _reload(self)

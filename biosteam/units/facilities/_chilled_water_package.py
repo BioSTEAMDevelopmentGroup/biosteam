@@ -27,7 +27,7 @@ class ChilledWaterPackage(Facility, Static):
     _units = {'Duty': 'kJ/hr'}
     def __init__(self, ID=''):
         water = HeatUtility.cooling_agents['Chilled water'].species
-        super().__init__(ID, 'return chilled water', 'chilled water', water)
+        super().__init__(ID, 'return_chilled_water', 'chilled_water', water)
         self.chilled_water_utilities = set()
         
     def _design(self):

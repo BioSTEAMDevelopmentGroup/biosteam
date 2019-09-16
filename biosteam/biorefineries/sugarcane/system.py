@@ -34,27 +34,27 @@ sugar_cane_composition = {'Glucose': 0.0120811,
                           'Cellulose': 0.0611531,
                           'Hemicellulose': 0.036082,
                           'Water': 0.7}
-Sugar_cane = Stream('Sugar cane', units='kg/hr',
+Sugar_cane = Stream('sugar_cane', units='kg/hr',
                     **{i:j*333334 for i,j in sugar_cane_composition.items()},
                     price=price['Sugar cane'])
 
-enzyme = Stream('Enzyme', Cellulose=100, Water=900, units='kg/hr',
+enzyme = Stream('enzyme', Cellulose=100, Water=900, units='kg/hr',
                 price=price['Protease'])
 
-imbibition_water = Stream('Imbibition water',
+imbibition_water = Stream('imbibition_water',
                           Water=87023.35,
                           T = 338.15, units='kg/hr')
 
 H3PO4 = Stream('H3PO4', H3PO4=74.23, Water=13.10, units='kg/hr',
                price=price['H3PO4'])  # to P9
 
-lime = Stream('Lime', CaO=333.00, Water=2200.00, units='kg/hr',
+lime = Stream('lime', CaO=333.00, Water=2200.00, units='kg/hr',
               price=price['Lime'])  # to P5
 
-polymer = Stream('Polymer', Flocculant=0.83, units='kg/hr',
+polymer = Stream('polymer', Flocculant=0.83, units='kg/hr',
                  price=price['Polymer'])  # to P68
 
-wash_water = Stream('Water 1', Water=16770, units='kg/hr')  # to P14
+wash_water = Stream('water_1', Water=16770, units='kg/hr')  # to P14
 wash_water.T = 363.15
 
 S254 = Stream('S254', Ash=1, units='kg/hr')  # to P46
@@ -138,10 +138,10 @@ P14 = RVF('P14', ('S124', 'S116'),
 F8 = Pump('F8')
 
 # Get filter cake
-P46 = Mixer('P46', 'Filter cake')
+P46 = Mixer('P46', 'filter_cake')
 
 # Screen out small fibers from sugar stream
-P50 = VibratingScreen('P50', ('Sugar', 'Fiber fines'),
+P50 = VibratingScreen('P50', ('sugar', 'fiber_fines'),
                       split=(0.998, 0.998, 0.998, 1),
                       order=('Glucose', 'Sucrose', 'Water', 'Flocculant'))
 Sugar = P50-0
@@ -223,15 +223,15 @@ def Ethanol_molfrac(e: 'Ethanol mass fraction'):
 S134 = Stream('S134', Water=5000, units='kg/hr')
 
 # Gasoline
-denature = Stream('Denaturant', Octane=230.69,
+denature = Stream('denaturant', Octane=230.69,
                   units='kg/hr', price=price['Gasoline'])
 
 # Yeast
-S144 = Stream('Yeast', Water=24700, DryYeast=10300,
+S144 = Stream('yeast', Water=24700, DryYeast=10300,
               units='kg/hr')
 
 # Ethanol product
-Ethanol = Stream('Ethanol', price=price['Ethanol'])
+ethanol = Stream('ethanol', price=price['Ethanol'])
 
 
 # %% Units
@@ -264,7 +264,7 @@ T1.tau = 4
 scrubber = VentScrubber('Scrubber', ins=(S134, P24-0), gas=('CO2',))
 
 # Separate 99% of yeast
-P19 = SolidsCentrifuge('P19', outs=('', 'Recycle yeast'),
+P19 = SolidsCentrifuge('P19', outs=('', 'recycle_yeast'),
                        split=(1, 0.99999, 1, 0.96, 0.01),
                        order=('Ethanol', 'Glucose', 'H3PO4', 
                               'Water', 'DryYeast'),
@@ -276,7 +276,7 @@ Q1 = Pump('Q1')
 
 # Heat up before beer column
 # Exchange heat with stillage
-P32 = HXprocess('P32', outs=('', 'Stillage'),
+P32 = HXprocess('P32', outs=('', 'stillage'),
                 fluid_type='ss', U=1.28)
 
 # Beer column
@@ -324,7 +324,7 @@ T3.tau = 6*24
 Q5 = Pump('Q5')
 
 # Denatured ethanol product
-T4 = MixTank('T4', outs=Ethanol)
+T4 = MixTank('T4', outs=ethanol)
 T4.tau = 0.10
 
 # Add denaturant
@@ -390,29 +390,22 @@ BT = BoilerTurbogenerator('BT',
 
 Stream.species = water
 CT = CoolingTower('CT')
-process_water_streams = (stream.Water_1, stream.Imbibition_water, stream.S134)
-recycle_water_streams = (stream.Water_4,)
-makeup_water = Stream('Makeup water', price=0.000254)
-BT_makeup_water = Stream('BT makeup water', price=0.000254)
-CT_makeup_water = Stream('CT makeup water', price=0.000254)
-process_water = Stream('Process water')
-recycle_water = Stream('Recycle water')
+process_water_streams = (stream.water_1, stream.imbibition_water, stream.S134)
+recycle_water_streams = ()
+makeup_water = Stream('makeup_water', price=0.000254)
+process_water = Stream('process_water')
 pws_indices = [i.index('Water') for i in process_water_streams]
 pws_flow_index_pairs = tuple(zip([i._mol for i in process_water_streams], pws_indices))
-rws_indices = [i.index('Water') for i in recycle_water_streams]
-rws_flow_index_pairs = tuple(zip([i._mol for i in recycle_water_streams], pws_indices))
 def update_water():
     process_water._mol[0] = sum([i[j] for i,j in pws_flow_index_pairs])
-    recycle_water._mol[0] = sum([i[j] for i,j in rws_flow_index_pairs])
 
 CWP = ChilledWaterPackage('CWP')
 PWC = ProcessWaterCenter('PWC',
-                         ins=(recycle_water, makeup_water, BT_makeup_water, CT_makeup_water),
-                         outs=(process_water, BT_makeup_water, CT_makeup_water),
-                         BT=BT, CT=CT)
+                         ins=('', makeup_water),
+                         outs=(process_water,))
 
 # %% Set up system
-sugarcane_sys = System('sugar cane system',
+sugarcane_sys = System('sugar_cane_system',
                        network=(pretreatment_sys.network
                               + ethanol_sys.network),
                        facilities=(CWP, BT, CT, update_water, PWC))

@@ -125,7 +125,6 @@ def plot_montecarlo_across_coordinate(xs, ys,
     """
     q05, q25, q50, q75, q95 = percentiles = np.percentile(ys, [5,25,50,75,95], axis=0)
 
-    # Create line graph vs lipid fraction
     plt.plot(xs, q50, '-',
              color=dark_color,
              linewidth=1.5) # Median

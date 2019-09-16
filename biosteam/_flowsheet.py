@@ -246,13 +246,13 @@ class Flowsheet:
         Parameters
         ----------
         ID : str
-             ID of the requested item.
+              ID of the requested item.
     
         """
         ID = ID.replace(' ', '_')
         obj = (search_register(self.stream, ID)
-               or search_register(self.unit, ID)
-               or search_register(self.system, ID))
+                or search_register(self.unit, ID)
+                or search_register(self.system, ID))
         if not obj: raise LookupError(f"no registered item '{ID}'")
         return obj
     

@@ -24,6 +24,7 @@ __all__ = ('area_400',)
 
 # Set species library
 Stream.species = biodiesel_species
+# Stream.default_ID_number = 400
 
 
 # %% Fresh Streams
@@ -43,7 +44,7 @@ catalyst = Stream('catalyst', NaOCH3=0.25,
                   # price=0.25*price['NaOCH3'] + 0.75*Methanol.price)
 
 # Water to remove glycerol
-biodiesel_wash_water = Stream('biodiesel wash water', Water=13.6, T=273.15+60, 
+biodiesel_wash_water = Stream('biodiesel_wash_water', Water=13.6, T=273.15+60, 
                price=price['Water'])
 
 # Acid to neutralize catalyst after second centrifuge
@@ -59,7 +60,7 @@ HCl2 = Stream('HCl2', HCl=0.21, Water=0.79,
 NaOH = Stream('NaOH', NaOH=1, price=price['NaOH'])
 
 # Products
-crude_glycerol = Stream('crude glycerol',
+crude_glycerol = Stream('crude_glycerol',
                         price=price['Crude glycerol'])
 biodiesel = Stream('biodiesel',
                    price=price['Biodiesel'])
