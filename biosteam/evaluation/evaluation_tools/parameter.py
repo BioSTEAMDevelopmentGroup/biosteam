@@ -151,6 +151,7 @@ def add_stream_price_param(model, stream, shape):
 def _cost(model, ID, item, line, shape):
     key = 'cost'
     mid = float(item[key])
+    if not mid: return None
     distribution = shape(mid)
     name = 'base cost'
     if ID!=line: ID = ID + ' ' + name
@@ -160,6 +161,7 @@ def _cost(model, ID, item, line, shape):
 def _exp(model, ID, item, line, shape):
     key = 'n'
     mid = float(item[key])
+    if not mid: return None
     distribution = shape(mid)
     name = 'exponent'
     if ID!=line: ID = ID + ' ' + name

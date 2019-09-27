@@ -35,7 +35,7 @@ class CostItem:
     BM : float
         Bare module factor (installation factor).
     N : str
-        Name for number of parallel units.
+        Attribute name for number of parallel units.
     """
     __slots__ = ('_basis', '_units', 'S', 'ub', 'CE',
                  'cost', 'n', 'kW', 'BM', 'N')
@@ -73,7 +73,8 @@ class CostItem:
              +f" cost  {self.cost:.3g}\n"
              +f" n     {self.n:.3g}\n"
              +f" kW    {self.kW:.3g}\n"
-             +f" BM    {self.BM:.3g}")
+             +f" BM    {self.BM:.3g}\n"
+            +(f" N     '{self.N}'" if self.N else ""))
     show = _ipython_display_
 
 def _cost(self):
@@ -90,10 +91,9 @@ def _cost(self):
             kW += x.kW*q
         elif x.N:
             N = getattr(self, x.N)
-            q = S/x.S
-            F = q/N
+            F = S/x.S
             C[i] = N*bst.CE/x.CE*x.cost*F**x.n
-            kW += N*x.kW*q
+            kW += N*x.kW*F
         else:
             F = S/x.S
             C[i] = bst.CE/x.CE*x.cost*F**x.n
@@ -146,7 +146,7 @@ def cost(basis, ID=None, *, CE, cost, n, S=1, ub=0, kW=0, BM=1, units=None, fsiz
     fsize = None : function, optional
         Accepts a Unit object argument and returns the size parameter. If None, defaults to function predefined for given name and units of measure.
     N : str
-        Name for number of parallel units.
+        Attribute name for number of parallel units.
         
     Examples
     --------

@@ -226,15 +226,15 @@ class SeedTrain(Unit):
 
 # %% Saccharification and fermentation
 
-@cost('Flow rate', 'Recirculation pumps', kW=20, S=340*_gpm2m3hr,
+@cost('Flow rate', 'Recirculation pumps', kW=30, S=340*_gpm2m3hr,
       cost=47200, n=0.8, BM=2.3, CE=522, N='N_recirculation_pumps')
 @cost('Reactor duty', 'Heat exchangers', CE=522, cost=23900,
       S=5*_Gcal2kJ, n=0.7, BM=2.2, N='N_reactors') # Based on a similar heat exchanger
 @cost('Reactor volume', 'Agitators', CE=522, cost=52500,
-      S=1e6*_gal2m3, n=0.5, kW=72, BM=1.5, N='N_reactors')
+      S=1e6*_gal2m3, n=0.5, kW=90, BM=1.5, N='N_reactors')
 @cost('Reactor volume', 'Reactors', CE=522, cost=844000,
       S=1e6*_gal2m3, n=0.5, BM=1.5, N='N_reactors')
-@cost('Flow rate', 'Transfer pumps', kW=48, S=352*_gpm2m3hr,
+@cost('Flow rate', 'Transfer pumps', kW=58, S=352*_gpm2m3hr,
       cost=47200/5, CE=522, n=0.8, BM=2.3, N='N_transfer_pumps')
 @cost('Tank volume', 'Tanks', cost=3840e3/8, S=250e3*_gal2m3, 
       CE=522, n=0.7, BM=2.0, N='N_tanks')
@@ -355,7 +355,7 @@ class SaccharificationAndCoFermentation(Unit):
         ei = effluent.index('Ethanol')
         ethanol = (sum([i._mol[ei] for i in self.outs])
                    - sum([i._mol[ei] for i in self.ins]))
-        duty = ethanol*-55680
+        duty = ethanol*-5568
         hu_fermentation(duty, effluent.T)
         Design['Reactor duty'] = -duty
         

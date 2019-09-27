@@ -66,29 +66,57 @@ def plot_vertial_line(x, color='grey'):
 
 def plot_single_points(xs, ys, color=dark_color):
     """Plot single points and return patch artist."""
+    if xs is None:
+        xs = tuple(range(len(ys)))
     return plt.scatter(xs, ys, marker='o', s=50, color=color, zorder=1e6, edgecolor='black') 
+
+def plot_bars(scenarios, ys, colors, edgecolors, labels):
+    barwidth = 0.50
+    N_scenarios = len(scenarios)
+    N_labels = len(labels)
+    positions = N_labels * np.arange(N_scenarios, dtype=float)
+    data = (ys, colors, edgecolors, labels)
+    for y, color, edgecolor, label in zip(*data):
+        plt.bar(positions, y, barwidth,
+                align='center', label=label,
+                color=color, edgecolor=edgecolor)
+        positions += barwidth
+    
+    plt.xticks(positions-barwidth*(N_labels+1)/2, scenarios)
+    plt.tight_layout()
+    plt.legend()
 
 def plot_montecarlo(data, 
                     light_color=light_color,
                     dark_color=dark_color,
-                    position=0):
+                    positions=None,
+                    **kwargs):
     """Return box plot of Monte Carlo evaluation.
     
     Parameters
     ----------
-    data : numpy.ndarray(ndim=1)
+    data : numpy.ndarray or pandas.DataFrame
         Metric values with uncertainty.
-    light_color : numpy.ndarray
+    light_colors : Iterable(numpy.ndarray)
         RGB normalized to 1. Defaults to brown.
-    dark_color : numpy.ndarray
+    dark_colors : Iterable(numpy.ndarray)
         RGB normalized to 1. Defaults to brown.
-        
+    **kwargs :
+        Additional arguments for pyplot.boxplot
+    
     Returns
     -------
     bx : Patch
     
     """
-    bx = plt.boxplot(x=data, positions=[position], patch_artist=True,
+    if isinstance(data, pd.DataFrame):
+        if 'labels' not in kwargs:
+            kwargs['labels'] = data.columns
+    if not positions:
+        positions = tuple(range(data.shape[-1]))
+    if data.ndim == 2:
+        data = data.transpose()
+    bx = plt.boxplot(x=data, positions=positions, patch_artist=True,
                      widths=0.8, whis=[5, 95],
                      boxprops={'facecolor':light_color,
                                'edgecolor':dark_color},
@@ -98,6 +126,7 @@ def plot_montecarlo(data,
                                    'markerfacecolor': light_color,
                                    'markeredgecolor': dark_color,
                                    'markersize':6})
+    
     return bx
 
 def plot_montecarlo_across_coordinate(xs, ys, 

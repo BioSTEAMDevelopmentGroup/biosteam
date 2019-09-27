@@ -42,7 +42,6 @@ class CoolingTower(Facility, Static):
                 for hu in u._heat_utilities:
                     if hu.ID == 'Cooling water':
                         cwu.add(hu)
-        
         used = self._ins[0]
         
         #: Cooling water flow rate (kmol/hr)

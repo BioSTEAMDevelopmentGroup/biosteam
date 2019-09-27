@@ -22,7 +22,7 @@ setup(
                       'scipy', 'IPython', 'thermo==0.1.39', 'colorpalette>=0.2.3',
                       'array_collections==0.1.9', 'free_properties==0.1.9',
                       'pandas', 'numpy', 'graphviz', 'matplotlib', 'lazypkg>=1.4',
-                      'chaospy'],
+                      'chaospy==3.0.11'],
     python_requires=">=3.6",
     package_data=
         {'biosteam': ['_equilibrium/*', 'inspect/*', 'price/*', '_report/*',

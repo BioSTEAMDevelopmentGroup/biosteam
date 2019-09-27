@@ -23,7 +23,7 @@ The :doc:`Species` object defines the working compounds of the biorefinery. When
    tutorial/MixedStream objects and thermodynamic equilibrium
    tutorial/Creating a Unit
    units/notebooks/examples
-   tutorial/Find unit operations and manage flowsheets
+   tutorial/Managing flowsheets
    tutorial/Using -pipe- notation
    tutorial/Techno-economic analysis of a biorefinery
    tutorial/Inheriting from Unit

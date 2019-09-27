@@ -44,15 +44,15 @@ def get_consumed_electricity():
     return consumed_electricity
 get_excess_electricity = lambda: excess_electricity[0]
 
-metrics = (Metric('Internal rate of return', '', lc.lipidcane_tea.solve_IRR),
-           Metric('Biodiesel production cost', 'USD/yr', get_biodiesel_prodcost),
-           Metric('Ethanol production cost', 'USD/yr', get_etoh_prodcost),
-           Metric('Fixed capital investment', 'USD', get_FCI),
-           Metric('Biodiesel production', 'kg/hr', get_biodiesel_prod),
-           Metric('Ethanol production', 'kg/hr', get_etoh_prod),
-           Metric('Steam', 'MT/yr', get_steam),
-           Metric('Consumed electricity', 'MWhr/yr', get_consumed_electricity),
-           Metric('Excess electricity', 'MWhr/yr', get_excess_electricity))
+metrics = (Metric('Internal rate of return', lc.lipidcane_tea.solve_IRR),
+           Metric('Biodiesel production cost', get_biodiesel_prodcost, 'USD/yr'),
+           Metric('Ethanol production cost', get_etoh_prodcost, 'USD/yr'),
+           Metric('Fixed capital investment', get_FCI, 'USD'),
+           Metric('Biodiesel production', get_biodiesel_prod, 'kg/hr'),
+           Metric('Ethanol production', get_etoh_prod, 'kg/hr'),
+           Metric('Steam', get_steam, 'MT/yr'),
+           Metric('Consumed electricity', get_consumed_electricity, 'MWhr/yr'),
+           Metric('Excess electricity', get_excess_electricity, 'MWhr/yr'))
 
 lipidcane_model = Model(lc_sys, metrics)
 lipidcane_model.load_default_parameters(lipid_cane)

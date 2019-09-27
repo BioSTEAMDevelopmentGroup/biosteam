@@ -785,10 +785,7 @@ class Unit(metaclass=unit):
         self._ins.clear()
     
     def __str__(self):
-        if self.ID:
-            return self.ID
-        else:
-            return type(self).__name__
+        return self.ID or type(self).__name__
 
     def __repr__(self):
         if self.ID:

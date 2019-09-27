@@ -31,13 +31,13 @@ def get_consumed_electricity():
     return consumed_electricity
 get_excess_electricity = lambda: excess_electricity[0]
 
-metrics = (Metric('Internal rate of return', '%', sc.sugarcane_tea.solve_IRR),
-           Metric('Ethanol production cost', 'USD/yr', get_prodcost),
-           Metric('Fixed capital investment', 'USD', get_FCI),
-           Metric('Ethanol production', 'kg/hr', get_prod),
-           Metric('Steam', 'MT/yr', get_steam),
-           Metric('Consumed electricity', 'MWhr/yr', get_consumed_electricity),
-           Metric('Excess electricity', 'MWhr/yr', get_excess_electricity))
+metrics = (Metric('Internal rate of return', sc.sugarcane_tea.solve_IRR, '%'),
+           Metric('Ethanol production cost', get_prodcost, 'USD/yr'),
+           Metric('Fixed capital investment', get_FCI, 'USD'),
+           Metric('Ethanol production', get_prod, 'kg/hr'),
+           Metric('Steam', get_steam, 'MT/yr'),
+           Metric('Consumed electricity', get_consumed_electricity, 'MWhr/yr'),
+           Metric('Excess electricity', get_excess_electricity, 'MWhr/yr'))
 
 sugarcane_model = Model(sc.sugarcane_sys, metrics, skip=False)
 sugarcane_model.load_default_parameters(sc.system.Sugar_cane)
