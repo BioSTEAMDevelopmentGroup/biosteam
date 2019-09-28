@@ -86,6 +86,9 @@ biosteam/evaluation/_name.py
 biosteam/evaluation/_parameter.py
 biosteam/evaluation/_state.py
 biosteam/evaluation/_variable.py
+biosteam/evaluation/evaluation_tools/__init__.py
+biosteam/evaluation/evaluation_tools/parameter.py
+biosteam/evaluation/evaluation_tools/plot.py
 biosteam/inspect/__init__.py
 biosteam/inspect/_separation.py
 biosteam/price/__init__.py
