@@ -38,7 +38,8 @@ class MassBalance(Unit):
     _N_outs = 0
 
     def __init__(self, ID='', outs=(), ins=None,
-                 species=None, streams=None, exact=True, balance='flow'):
+                 species=None, streams=None,
+                 exact=True, balance='flow'):
         self.ID = ID
         self._init_ins(ins)
         self._init_outs(outs)
@@ -51,7 +52,7 @@ class MassBalance(Unit):
             raise ValueError(
                 "balance type must be one of the following: 'flow', 'fraction'")
 
-        # Cach correct solver and make sure linear system of equations is square to achieve exact solution
+        # Catch correct solver and make sure linear system of equations is square to achieve exact solution
         if exact:
             solver = np.linalg.solve
             species_IDs = species
@@ -159,7 +160,7 @@ class MassBalance(Unit):
                 i += 1
                 b = (A_ * x_guess).sum()*f + O
                 x_new = solver(A, b)
-                not_converged = sum(((x_new - x_guess)/x_new)**2) > 0.00001
+                not_converged = sum(((x_new - x_guess)/x_new)**2) > 0.0001
                 x_guess = x_new
 
             # Set flow rates for input streams

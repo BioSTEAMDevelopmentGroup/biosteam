@@ -8,12 +8,14 @@ import biosteam as bst
 
 bst.CE = 525
 
-# kg/hr
-factor = 1/907.18474
+
+factor = 1/907.18474 # ton/hr to kg/hr
 ethanol_density_kgL = 0.789 # kg/L
 liter_per_gallon = 3.78541
 ethanol_cost = 2.15 # USD/gal
 ethanol_density_kggal = liter_per_gallon * ethanol_density_kgL # kg/gal
+enzyme_price = 0.507 # USD/kg
+
 
 price = {'Ethanol': ethanol_cost/ethanol_density_kggal,
          'Feedstock': 46.8 * factor,
@@ -31,10 +33,10 @@ price = {'Ethanol': ethanol_cost/ethanol_density_kggal,
          'Ash disposal': -28.86 * factor,
          'Electricity': 0.0572, # USD/kWh
          'Denaturant': 0.756,
-         'Cellulase': 0.21} 
+         'Enzyme': enzyme_price} 
 bst.PowerUtility.price = price['Electricity']
 _ha = bst.HeatUtility.heating_agents['Low pressure steam']
-_ha.efficiency = 0.80
+_ha.efficiency = 0.85
 _ha.T = 529.2
 _ha.P = 44e5
 _ha.price_kmol = 0.30626

@@ -12,7 +12,8 @@ from ._facility import Facility
 from ._unit import Unit
 from ._report import save_report
 from .utils import colors, MissingStream, strtuple, \
-                    conditional_wegstein, conditional_aitken
+                   conditional_wegstein, conditional_aitken, \
+                   build_network
 import biosteam as bst
 
 __all__ = ('System',)
@@ -160,6 +161,26 @@ class System(metaclass=system):
     # [dict] Cached downstream systems by (system, unit, with_facilities) keys
     _cached_downstream_systems = {} 
 
+    @classmethod
+    def from_feedstock(cls, ID, feedstock):
+        return NotImplemented
+        if not _isfeed(feedstock):
+            raise ValueError('feedstock must have no upstream units')
+        sink = feedstock.sink
+        all_units = sink._neighborhood(10000)
+        sources = [sink]
+        for i in all_units:
+            if any([i.source for i in i._ins]): continue
+            sources.append(i)
+        return build_network(sources)
+            
+    @classmethod
+    def from_area(cls, ID, sources, sinks=()):
+        return NotImplemented
+        network = build_network(sources, sinks)
+        system = cls(ID, network)
+        return system
+    
     def __init__(self, ID, network, recycle=None, facilities=()):
         
         #: Molar flow rate error (kmol/hr)
@@ -241,14 +262,8 @@ class System(metaclass=system):
              "recycle must be a Stream instance or None, not "
             f"{type(recycle).__name__}")
         self._recycle = recycle
-        
-        if ID:
-            ID = ID.replace(' ', '_')
-            ID_words = ID.split('_')
-            assert all(word.isalnum() for word in ID_words), ('ID cannot have any'
-                                                              'special characters')
-            self._ID = ID
-            find.system[ID] = self
+        if ID: setattr(find.system, ID, self)
+        else: self._ID = ""
     
     save_report = save_report
     
@@ -339,7 +354,7 @@ class System(metaclass=system):
         self._cached_downstream_systems[unit] = system
         return system
     
-    def _minimal_diagram(self, file, format='svg'):
+    def _minimal_diagram(self, file, format, **graph_attrs):
         """Minimally display the network as a box."""
         outs = []
         ins = []
@@ -359,9 +374,9 @@ class System(metaclass=system):
         _streamUnit('\n'.join([i.ID for i in outs]),
                     product, None)
         unit = _systemUnit(self.ID, feed, product)
-        unit.diagram(1, file, format)
+        unit.diagram(1, file=file, format=format, **graph_attrs)
 
-    def _surface_diagram(self, file, format='svg'):
+    def _surface_diagram(self, file, format, **graph_attrs):
         """Display only surface elements listed in the network."""
         # Get surface items to make nodes and edges
         units = set()  
@@ -404,19 +419,19 @@ class System(metaclass=system):
                 subsystem_unit = _systemUnit(i.ID, ins, outs)
                 units.add(subsystem_unit)
                 
-        System(None, units)._thorough_diagram(file, format)
+        System(None, units)._thorough_diagram(file, format, **graph_attrs)
         # Reconnect how it was
         for u in refresh_units:
             u._ins[:] = u._ins
             u._outs[:] = u._outs
       
-    def _thorough_diagram(self, file=None, format='svg'):
+    def _thorough_diagram(self, file, format, **graph_attrs):
         """Thoroughly display every unit within the network."""
         # Create a digraph and set direction left to right
-        f = make_digraph(self.units, self.streams)
+        f = make_digraph(self.units, self.streams, **graph_attrs)
         save_digraph(f, file, format)
         
-    def diagram(self, kind='surface', file=None, format='png'):
+    def diagram(self, kind='surface', file=None, format='png', **graph_attrs):
         """Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of the system.
         
         Parameters
@@ -432,11 +447,11 @@ class System(metaclass=system):
         
         """
         if kind == 'thorough':
-            return self._thorough_diagram(file, format)
+            return self._thorough_diagram(file, format, **graph_attrs)
         elif kind == 'surface':
-            return self._surface_diagram(file, format)
+            return self._surface_diagram(file, format, **graph_attrs)
         elif kind == 'minimal':
-            return self._minimal_diagram(file, format)
+            return self._minimal_diagram(file, format, **graph_attrs)
         else:
             raise ValueError(f"kind must be either 'thorough', 'surface', or 'minimal'")
             

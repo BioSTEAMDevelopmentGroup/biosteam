@@ -17,7 +17,7 @@ from biosteam.units import Mixer, EnzymeTreatment, CrushingMill, \
 from biosteam.biorefineries.lipidcane.species import pretreatment_species
 from biosteam.biorefineries.lipidcane.process_settings import price
 
-__all__ = ('pretreatment_sys', 'Lipid_cane')
+__all__ = ('pretreatment_sys', 'lipid_cane', 'area_100', 'area_200')
 
 # %% Species
 
@@ -35,146 +35,151 @@ psp2 = ('Ash', 'CaO', 'Cellulose', 'Flocculant', 'Glucose',
 
 f1 = (2000.042, 26986.69 , 2007.067, 15922.734, 14459.241,
       10035.334, 5017.667, 22746.761, 234157.798)
-Lipid_cane = Stream('Lipid cane', f1, psp1, units='kg/hr',
+lipid_cane = Stream('lipid_cane', f1, psp1, units='kg/hr',
                     price=price['Lipid cane'])
 
-enzyme = Stream('Enzyme', Cellulose=100, Water=900, units='kg/hr',
+enzyme = Stream('enzyme', Cellulose=100, Water=900, units='kg/hr',
                 price=price['Protease'])
 
-imbibition_water = Stream('Imbibition water',
+imbibition_water = Stream('imbibition_water',
                           Water=87023.35,
                           T = 338.15, units='kg/hr')
 
 H3PO4 = Stream('H3PO4', H3PO4=74.23, Water=13.10, units='kg/hr',
-               price=price['H3PO4'])  # to P9
+               price=price['H3PO4'])  # to T203
 
-lime = Stream('Lime', CaO=333.00, Water=2200.00, units='kg/hr',
+lime = Stream('lime', CaO=333.00, Water=2200.00, units='kg/hr',
               price=price['Lime'])  # to P5
 
-polymer = Stream('Polymer', Flocculant=0.83, units='kg/hr',
-                 price=price['Polymer'])  # to P68
+polymer = Stream('polymer', Flocculant=0.83, units='kg/hr',
+                 price=price['Polymer'])  # to T205
 
-wash_water = Stream('Water 1', Water=16770, units='kg/hr')  # to P14
-wash_water.T = 363.15
+rvf_wash_water = Stream('rvf_wash_water',
+                        Water=16770, units='kg/hr',
+                        T=363.15)  # to C202
 
-lipid_wash = Stream('Water 2', Water=1350, units='kg/hr')  # to P75
-lipid_wash.T = 358.15
-
-S254 = Stream('S254', Ash=1, units='kg/hr')  # to P46
+oil_wash_water = Stream('oil_wash_water',
+                        Water=1350, units='kg/hr',
+                        T=358.15)  # to T207
 
 # %% Units
 
+Stream.default_ID = 'd'
+Stream.default_ID_number = 0
+# Stream.default_ID_number = 100
+
 # Feed the shredder
-F1 = ConveyingBelt('F1', ins=Lipid_cane)
-F1.cost_items['Conveying belt'].ub = 2500
+U101 = ConveyingBelt('U101', ins=lipid_cane)
+U101.cost_items['Conveying belt'].ub = 2500
 
 # Separate metals
-F2 = MagneticSeparator('F2', ins=F1.outs)
+U102 = MagneticSeparator('U102', ins=U101.outs)
 
-# Shred fresh cane
-F3 = Shredder('F3', ins=F2.outs)
+# Shredded cane
+U103 = Shredder('U103', ins=U102.outs)
+
+# Stream.default_ID_number = 200
 
 # Hydrolyze starch
-P137 = EnzymeTreatment('P137', T=323.15)  # T=50
+T201 = EnzymeTreatment('T201', T=323.15)  # T=50
 
 # Finely crush lipid cane
-Mill = CrushingMill('Mill',
+U201 = CrushingMill('U201',
                     split=(0.92, 0.92, 0.04, 0.92, 0.92, 0.04, 0.1, 1),
                     order=('Ash', 'Cellulose', 'Glucose', 'Hemicellulose',
                            'Lignin', 'Sucrose', 'Lipid', 'Solids'),
                     moisture_content=0.5)
 
 # Convey out bagasse
-F4 = ConveyingBelt('F4', ins=Mill.outs[0], outs='Bagasse')
+U202 = ConveyingBelt('U202', ins=U201.outs[0], outs='Bagasse')
 
 # Mix in water
-P21 = Mixer('P21')
+M201 = Mixer('M201')
 
 # Screen out fibers
-P56 = VibratingScreen('P56',
-                      split=(0.35, 0.35, 0.88, 0.35, 0.35, 0.88, 0, 0.88, 0.88),
-                      order=psp1)
+S201 = VibratingScreen('S201',
+                       split=(0.35, 0.35, 0.88, 0.35,
+                              0.35, 0.88, 0, 0.88, 0.88),
+                       order=psp1)
 
 # Store juice before treatment
-P1 = StorageTank('P1')
-P1.tau = 12
+T202 = StorageTank('T202')
+T202.tau = 12
 
 # Heat up before adding acid
-P3 = HXutility('P3', T=343.15)
+H201 = HXutility('H201', T=343.15)
 
 # Mix in acid
-P9 = MixTank('P9')
+T203 = MixTank('T203')
 
 # Pump acid solution
-F5 = Pump('F5')
+P201 = Pump('P201')
 
 # Mix lime solution
-F6 = MixTank('F6')
-F6.tau = 1
-F7 = Pump('F7')
+T204 = MixTank('T204')
+T204.tau = 1
+P202 = Pump('P202')
 
 # Blend acid lipid solution with lime
-P5 = MixTank('P5')
+T205 = MixTank('T205')
 
 # Mix recycle
-P4 = Mixer('P4')
+M202 = Mixer('M202')
 
 # Heat before adding flocculant
-P7 = HXutility('P7', T=372.15)
+H202 = HXutility('H202', T=372.15)
 
 # Mix in flocculant
-P68 = MixTank('P68')
-P68.tau = 1/4
+T206 = MixTank('T206')
+T206.tau = 1/4
 
 # Separate residual solids
-P12 = Clarifier('P12',
+C201 = Clarifier('C201',
                 split=(0, 0, 0, 0.522, 0.522, 0, 0,
                        0.98, 0.522, 0.522, 0.522),
                 order=psp2)
 
 # Remove solids as filter cake
-P14 = RVF('P14', 
-          moisture_content=0.80,
-          split=(0.85, 0.85, 0.85, 0.01, 0.85, 0.85, 0.01),
-          order=('Ash', 'CaO', 'Cellulose', 'Glucose',
-                 'Hemicellulose', 'Lignin', 'Sucrose'))
-F8 = Pump('F8')
-
-# Get filter cake
-P46 = Mixer('P46', outs='Filter cake')
+C202 = RVF('C202', 
+           outs=('filte_cake', ''),
+           moisture_content=0.80,
+           split=(0.85, 0.85, 0.85, 0.01, 0.85, 0.85, 0.01),
+           order=('Ash', 'CaO', 'Cellulose', 'Glucose',
+                  'Hemicellulose', 'Lignin', 'Sucrose'))
+P203 = Pump('P203')
 
 # Separate oil and sugar
-P10 = MixTank('P10', outs=('', ''))
+T207 = MixTank('T207', outs=('', ''))
 split = np.zeros(len(pretreatment_species), float)
 index = pretreatment_species.indices(('Lipid', 'Water'))
 split[index] = (1, 0.0001)
-P10._split = split
-P10._run = lambda : Splitter._run(P10)
+T207._split = split
+T207._run = lambda : Splitter._run(T207)
 del split, index
 
 # Cool the oil
-P49 = HXutility('P49', T=343.15)
+H203 = HXutility('H203', T=343.15)
 
 # Screen out small fibers from sugar stream
-P50 = VibratingScreen('P50', outs=('Sugar', 'Fiber fines'),
+S202 = VibratingScreen('S202', outs=('', 'fiber_fines'),
                       split=1-np.array((0, 0, 0, 1, 0.002, 0, 0,0, 0, 0.002, 0.002)),
                       order=psp2)
-Sugar = P50-0
-P50.mesh_opening = 2
+sugar = S202-0
+S202.mesh_opening = 2
 
 # Add distilled water to wash lipid
-P75 = MixTank('P75')
-P75.tau = 2
+T208 = MixTank('T208')
+T208.tau = 2
 
 # Centrifuge out water
-P76 = SplitCentrifuge_LLE('P76',
-                          split=(0.99, 0.01),
-                          order=('Lipid', 'Water'))
+C203 = SplitCentrifuge_LLE('C203',
+                           split=(0.99, 0.01),
+                           order=('Lipid', 'Water'))
 
 # Vacume out water
-P69 = SplitFlash('P69', T=347.15, P=2026.5,
+F201 = SplitFlash('F201', T=347.15, P=2026.5,
                  split=(0.0001, 0.999), order=('Lipid', 'Water'))
-Lipid = P69.outs[1]
+lipid = F201.outs[1]
 
 # %% Process specifications
 
@@ -182,10 +187,10 @@ Lipid = P69.outs[1]
 _enzyme_mass = enzyme.mass[[9, 12]]
 _CaO_Water_mass = lime.mass[[7, 12]]
 _H3PO4_Water_mass = H3PO4.mass[[1, 12]]
-last_lipidcane_massnet = int(Lipid_cane.massnet)
+last_lipidcane_massnet = int(lipid_cane.massnet)
 def correct_flows():
     global last_lipidcane_massnet
-    massnet = Lipid_cane.massnet
+    massnet = lipid_cane.massnet
     if int(massnet) != last_lipidcane_massnet:
         # correct enzyme, lime, phosphoric acid, and imbibition water
         _enzyme_mass[:] = 0.003 * massnet * np.array([0.1, 0.9])
@@ -196,52 +201,55 @@ def correct_flows():
 
 # Specifications within a system
 def correct_lipid_wash_water():
-    lipid_wash.mol[12] = P49.outs[0].mol[-2]*100/11
+    oil_wash_water.mol[12] = H202.outs[0].mol[-2]*100/11
 
 solids_index = Stream.indices(['Ash', 'CaO', 'Cellulose', 'Hemicellulose', 'Lignin'])
 def correct_wash_water():
     solids = solidsmol[solids_index].sum()
-    wash_water.mol[12] = 0.0574*solids
+    rvf_wash_water.mol[12] = 0.0574*solids
 
 imbibition_water_mass = imbibition_water.mass.item(12)
 
 
 # %% Pretreatment system set-up
 
-(P137-0, P21-0)-Mill-1-P56-0-P1
-(P56-1, imbibition_water)-P21
+(U103-0, enzyme)-T201
+(T201-0, M201-0)-U201-1-S201-0-T202
+(S201-1, imbibition_water)-M201
+crushing_mill_recycle_sys = System('crushing_mill_recycle_sys',
+                               network=(U201, S201, M201),
+                               recycle=M201-0)
 
-crushing_mill_recycle = System('crushing_mill_recycle',
-                               network=(Mill, P56, P21),
-                               recycle=P21-0)
+T202-0-H201
+(H201-0, H3PO4)-T203-P201
+(P201-0, lime-T204-0)-T205-P202
+(P202-0, P203-0)-M202-H202
+(H202-0, polymer)-T206-C201
+(C201-1, rvf_wash_water)-C202-1-P203
+clarification_recycle_sys = System('clarification_recycle_sys',
+                                   network=(M202, H202, T206, C201, C202, P203),
+                                   recycle=C202-1)
 
-(F7-0, F8-0)-P4-P7
-(P7-0, polymer)-P68-P12
-(P12-1, wash_water)-P14-1-F8
-clarification_recycle = System('clarification_recycle',
-                               network=(P4, P7, P68, P12, P14, F8),
-                               recycle=P14-1)
-
-(F3-0, enzyme)-P137
-P1-0-P3
-(P3-0, H3PO4)-P9-F5
-(F5-0, lime-F6-0)-P5-F7
-P12-0-P10-0-P49
-(P49-0, lipid_wash)-P75-P76-0-P69
-(P14-0, S254)-P46
-P10-1-P50
+C201-0-T207-0-H203
+(H203-0, oil_wash_water)-T208-C203-0-F201
+T207-1-S202
 
 pretreatment_sys = System('pretreatment_sys',
-                          network=(F1, F2, F3,
-                                   correct_flows, P137,
-                                   crushing_mill_recycle,
-                                   F4, P1, P3, P9,
-                                   F5, F6, P5, F7,
+                          network=(U101, U102, U103,
+                                   correct_flows, T201,
+                                   crushing_mill_recycle_sys,
+                                   U202, T202, H201, T203,
+                                   P201, T204, T205, P202,
                                    correct_wash_water,
-                                   clarification_recycle,
-                                   P10, P49,
+                                   clarification_recycle_sys,
+                                   T207, H203, S202,
                                    correct_lipid_wash_water,
-                                   P75, P76,
-                                   P69, P46, P50))
+                                   T208, C203, F201,))
 
-solidsmol = F7.outs[0].mol
+solidsmol = P202.outs[0].mol
+
+area_100 = System('area_100', network=(U101, U102, U103))
+units = pretreatment_sys.units.copy()
+for i in area_100.network: units.discard(i)
+area_200_network = sorted(units, key=lambda x: x.ID)
+area_200 = System('area_200', network=area_200_network)

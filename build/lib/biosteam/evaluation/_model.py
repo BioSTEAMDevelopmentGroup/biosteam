@@ -15,10 +15,10 @@ __all__ = ('Model',)
 
 # %% Functions
 
-paramindex = lambda params: pd.MultiIndex.from_arrays(
-                                ([f.element_name for f in params], 
-                                 [f.name for f in params]),
-                                names=('Element', 'Parameter'))
+varindices = lambda vars: [var.index for var in vars]
+varcolumns = lambda vars: pd.MultiIndex.from_tuples(
+                                 varindices(vars),
+                                 names=('Element', 'Variable'))
 
     
 # %% Grid of simulation blocks
@@ -43,29 +43,27 @@ class Model(State):
                  '_metrics', # tuple[Metric] Metrics to be evaluated by model
                  '_index',   # list[int] Order of sample evaluation for performance
                  '_samples', # [array] Argument sample space
-                 '_setters', # list[function] Cached parameter setters
-                 '_repeats') # [bool] True if parameter states repeat
+                 '_setters') # list[function] Cached parameter setters
     
     def __init__(self, system, metrics, skip=False):
         super().__init__(system, skip)
         self.metrics = metrics
-        self._repeats = self._setters = self._samples = self._table = None
+        self._setters = self._samples = self._table = None
         
     def copy(self):
         """Return copy."""
         copy = super().copy()
         copy._metrics = self._metrics
-        if self._model:
-            copy._repeats = self._repeats
+        if self._update:
             copy._setters = self._setters
             copy._table = self._table.copy()
         else:
-            copy._repeats = copy._setters = copy._samples = copy._table = None
+            copy._setters = copy._samples = copy._table = None
         return copy
     
     def _erase(self):
         """Erase cached data."""
-        self._setters = self._model = self._table = self._samples = None
+        self._setters = self._update = self._table = self._samples = None
     
     @property
     def metrics(self):
@@ -75,7 +73,8 @@ class Model(State):
     def metrics(self, metrics):
         for i in metrics:
             if not isinstance(i, Metric):
-                raise ValueError(f"metrics must be '{Metric.__name__}' objects, not '{type(i).__name__}'")
+                raise ValueError(f"metrics must be '{Metric.__name__}' "
+                                 f"objects, not '{type(i).__name__}'")
         self._metrics = tuple(metrics)
     
     @property
@@ -83,17 +82,15 @@ class Model(State):
         """[DataFrame] Table of the sample space with results in the final column."""
         return self._table
     
-    def load_samples(self, samples, has_repeats=None):
+    def load_samples(self, samples):
         """Load samples for evaluation
         
         Parameters
         ----------
         samples : numpy.ndarray, dim=2
-        has_repeats=None : bool, optional
-            True if parameter values are repeated throughout samples.
         
         """
-        if not self._model: self._loadmodel()
+        if not self._update: self._loadparams()
         params = self._params
         paramlen = len(params)
         if not isinstance(samples, np.ndarray):
@@ -103,53 +100,51 @@ class Model(State):
         elif samples.shape[1] != paramlen:
             raise ValueError(f'number of parameters in samples ({samples.shape[1]}) must be equal to the number of parameters ({len(params)})')
         key = lambda x: samples[x][i]
-        index = list(range(len(samples)))
+        N_samples = len(samples)
+        index = list(range(N_samples))
         for i in range(paramlen-1,  -1, -1):
             if not params[i].system: break
             index.sort(key=key)
         self._index = index
-        self._table = pd.DataFrame(samples, columns=paramindex(params))
+        empty_metric_data = np.zeros((N_samples, len(self.metrics)))
+        self._table = pd.DataFrame(np.hstack((samples, empty_metric_data)),
+                                   columns=varcolumns(tuple(params)+self.metrics))
         self._samples = samples
-        if has_repeats is None:
-            try:
-                j = samples[0]
-                for i in samples[1:]:
-                    if any(i==j):
-                        self._repeats = True
-                        break
-            except: pass
-        else:
-            self._repeats = has_repeats
         
-    def evaluate(self, default=None):
-        """Evaluate metric over the argument sample space and save values to ``table``."""
+    def evaluate(self, thorough=True):
+        """Evaluate metric over the argument sample space and save values to ``table``.
+        
+        Parameters
+        ----------
+        thorough : bool
+            If True, simulate the whole system with each sample.
+            If False, simulate only the affected parts of the system.
+        
+        """
         # Setup before simulation
         funcs = [i.getter for i in self._metrics]
         values = []
         add = values.append
         samples = self._samples
         if samples is None: raise ValueError('must load samples or distribution before evaluating')
-        if self._repeats:
-            model = self._model
-            for i in self._index: 
-                try: 
-                    model(samples[i])
-                    add([i() for i in funcs])
-                except Exception as err:
-                    if default: add(default)
-                    else: raise err            
-        else:
+        if thorough:
             if self._setters:
                 setters = self._setters
             else:
                 self._setters = setters = [p.setter for p in self._params]
-            sim = self._system.simulate
+            simulate = self._system.simulate
+            zip_ = zip
             for i in self._index:
-                for f, s in zip(setters, samples[i]): f(s)
-                sim()
+                for f, s in zip_(setters, samples[i]): f(s)
+                simulate()
                 add([i() for i in funcs])
-        names = [i.name for i in self._metrics]
-        for k, v in zip(names, zip(*values)): self.table[k] = v
+        else:
+            update = self._update
+            for i in self._index: 
+                update(samples[i])
+                add([i() for i in funcs])    
+        cols = varindices(self._metrics)
+        for k, v in zip_(cols, zip_(*values)): self.table[k] = v
     
     def evaluate_across_coordinate(self, f_coordinate, name,
                                    lb, ub, xlfile,
@@ -179,7 +174,7 @@ class Model(State):
         """
         # Load samples
         samples = self.sample(N_samples, 'L')
-        self.load_samples(samples, has_repeats=False)
+        self.load_samples(samples)
         
         # Points to evaluate
         coordinate = np.linspace(lb, ub, N_points)
@@ -190,7 +185,7 @@ class Model(State):
             data = np.zeros([N_samples, N_points])
             dct[key] = data
             return data
-        for i in self.metrics: new_data(i.name)
+        for i in self.metrics: new_data(i.index)
         
         # Initialize timer
         if notify:
@@ -217,23 +212,25 @@ class Model(State):
         with pd.ExcelWriter(xlfile) as writer:
             for metric in metric_data:
                 data[:] = metric_data[metric]
-                data.to_excel(writer, sheet_name=metric)
+                data.to_excel(writer, sheet_name=metric[-1])
     
-    def spearman(self, metric_names=(), excluded_params=()):
+    def spearman(self, metrics=(), excluded_params=()):
         """Return DataFrame of Spearman's rank correlation for metrics vs parameters.
         
         Parameters
         ----------
-        metric_names=() : Iterable[str], defaults to all metrics
+        metrics=() : Iterable[Metric], defaults to all metrics
             Names of metrics to be be correlated with parameters.
         excluded_params=() : Iterable[str], optional
             Names of parameters to exclude.
         """
         data = self.table
         param_cols = list(data)
-        all_metric_names = [i.name for i in self.metrics]
-        if not metric_names: 
+        all_metric_names = varindices(self.metrics)
+        if not metrics: 
             metric_names = all_metric_names
+        else:
+            metric_names = varindices(metrics)
         params = list(self._params)
         for i in excluded_params:
             for j in params:
@@ -245,7 +242,7 @@ class Model(State):
                     param_cols.remove(j)
                     break
         
-        for i in all_metric_names: param_cols.remove((i, ''))
+        for i in all_metric_names: param_cols.remove(i)
         param_descriptions = [i.describe() for i in params]
         allrhos = []
         for name in metric_names:

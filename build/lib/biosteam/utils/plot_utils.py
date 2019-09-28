@@ -20,15 +20,15 @@ def make_patch(pos, width, height, Patch, handlepatch, kwargs):
     return patch
 
 class DoubleColor:
-    __slots__ = ('leftpatches', 'rightpatches', 'Patch', 'patches', 'boxed')
+    __slots__ = ('leftpatches', 'rightpatches', 'Patch', 'patches', 'both')
     
     def __init__(self, leftpatches, rightpatches, morepatches=None,
-                 shape='Rectangle', boxed=True):
+                 shape='Rectangle', both={}):
         self.leftpatches = leftpatches
         self.rightpatches = rightpatches
         self.Patch = getattr(patches, shape)
         self.patches = morepatches or []
-        self.boxed = boxed
+        self.both = both
         
     def legend_artist(self, legend, handle, fontsize, patch):
         x0, y0 = patch.xdescent, patch.ydescent
@@ -43,18 +43,24 @@ class DoubleColor:
             patch.add_artist(rpatch)
         for patch in self.patches:
             patch.legend_artist(legend, handle, fontsize, patch)
-        if self.boxed:
+        both = self.both
+        if both:
+            if 'fill' not in both:
+                both['fill'] = False
+            if 'edgecolor' not in both:
+                both['edgecolor'] = 'k'
             patch.add_artist(patches.Rectangle(leftpos, width*2, height,
-                transform=patch.get_transform(), fill=False, edgecolor='black', alpha=0.5))
+                transform=patch.get_transform(), **both))
         return lpatch
 
 
 class DoubleColorCircle:
-    __slots__ = ('left', 'right')
+    __slots__ = ('left', 'right', 'both')
     
-    def __init__(self, left, right):
+    def __init__(self, left, right, both):
         self.left = left
         self.right = right
+        self.both = both
         
     def legend_artist(self, legend, handle, fontsize, patch):
         x0, y0 = patch.xdescent, patch.ydescent
@@ -70,6 +76,15 @@ class DoubleColorCircle:
                                 transform=patch.get_transform())
         patch.add_artist(leftpatch)
         patch.add_artist(rightpatch)
+        both = self.both
+        if both:
+            if 'fill' not in both:
+                both['fill'] = False
+            if 'edgecolor' not in both:
+                both['edgecolor'] = 'k'
+            patch.add_artist(patches.Arc(pos, width/2, width/2,
+                                         transform=patch.get_transform(),
+                                         **both))
         return leftpatch
 
 
@@ -128,19 +143,21 @@ class DoubleColorLegend(Legend):
     def add_box(self, name,
                 leftcolor=colors.orange_tint.RGBn, 
                 rightcolor=colors.blue_tint.RGBn,
-                outlined=True):  
+                both={}):  
         self.handler_map[name] = DoubleColor([{'facecolor': leftcolor}],
                                              [{'facecolor': rightcolor}],
-                                             None, 'Rectangle', boxed=outlined)
+                                             None, 'Rectangle', both=both)
 
     def add_circle(self, name,
                    leftcolor=colors.orange_shade.RGBn,
-                   rightcolor=colors.blue_shade.RGBn):
+                   rightcolor=colors.blue_shade.RGBn,
+                   both={}):
         self.handler_map[name] = DoubleColorCircle(
                    {'color': leftcolor,
                     'edgecolor': 'black'},
                    {'color': rightcolor,
-                    'edgecolor': 'black'})
+                    'edgecolor': 'black'},
+                    both=both)
     
     # def add2key(self, key, patch, side='left'):
     #     db = self.handler_map[key]

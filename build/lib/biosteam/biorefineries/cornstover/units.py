@@ -202,13 +202,13 @@ class SeedTrain(Unit):
         vent.copyflow(effluent, ('CO2', 'NH3', 'O2'), remove=True)
 
     def _design(self): 
-        maxvol = self.outs[0].volnet*self.tau_turnover
+        maxvol = self.outs[1].volnet*self.tau_turnover
         vol = maxvol*10**-self.N_stages
         Design = self._Design
         for i in range(1, self.N_stages+1):
             Design[f'Stage #{i} reactor volume'] = vol
             vol *= 10 
-        Design['Flow rate'] = self.outs[0].massnet
+        Design['Flow rate'] = sum([i.massnet for i in self.outs])
         self._heat_utilities[0](self._Hnet, self.T)
 
     def _cost(self):
@@ -226,18 +226,18 @@ class SeedTrain(Unit):
 
 # %% Saccharification and fermentation
 
-@cost('Flow rate', 'Recirculation pumps', kW=20, S=340*_gpm2m3hr,
-      cost=47200, n=0.8, BM=2.3, CE=522)
+@cost('Flow rate', 'Recirculation pumps', kW=30, S=340*_gpm2m3hr,
+      cost=47200, n=0.8, BM=2.3, CE=522, N='N_recirculation_pumps')
 @cost('Reactor duty', 'Heat exchangers', CE=522, cost=23900,
-      S=5*_Gcal2kJ, n=0.7, BM=2.2) # Based on a similar heat exchanger
+      S=5*_Gcal2kJ, n=0.7, BM=2.2, N='N_reactors') # Based on a similar heat exchanger
 @cost('Reactor volume', 'Agitators', CE=522, cost=52500,
-      S=1e6*_gal2m3, n=0.5, kW=72, BM=1.5)
+      S=1e6*_gal2m3, n=0.5, kW=90, BM=1.5, N='N_reactors')
 @cost('Reactor volume', 'Reactors', CE=522, cost=844000,
-      S=1e6*_gal2m3, n=0.5, BM=1.5)
-@cost('Flow rate', 'Transfer pumps', kW=48, S=352*_gpm2m3hr,
-      cost=47200/5, CE=522, n=0.8, BM=2.3)
+      S=1e6*_gal2m3, n=0.5, BM=1.5, N='N_reactors')
+@cost('Flow rate', 'Transfer pumps', kW=58, S=352*_gpm2m3hr,
+      cost=47200/5, CE=522, n=0.8, BM=2.3, N='N_transfer_pumps')
 @cost('Tank volume', 'Tanks', cost=3840e3/8, S=250e3*_gal2m3, 
-      CE=522, n=0.7, BM=2.0)
+      CE=522, n=0.7, BM=2.0, N='N_tanks')
 class SaccharificationAndCoFermentation(Unit):
     _N_ins = 3
     _N_outs = 3
@@ -355,27 +355,9 @@ class SaccharificationAndCoFermentation(Unit):
         ei = effluent.index('Ethanol')
         ethanol = (sum([i._mol[ei] for i in self.outs])
                    - sum([i._mol[ei] for i in self.ins]))
-        duty = ethanol*-55680
+        duty = ethanol*-5568
         hu_fermentation(duty, effluent.T)
         Design['Reactor duty'] = -duty
-    
-    def _cost(self):
-        D = self._Design
-        C = self._Cost
-        kW = 0
-        N_dct = {'Recirculation pumps': self.N_recirculation_pumps,
-                 'Transfer pumps': self.N_transfer_pumps,
-                 'Agitators': self.N_reactors,
-                 'Reactors': self.N_reactors,
-                 'Heat exchangers': self.N_reactors,
-                 'Tanks': self.N_tanks}
-        for i, x in self.cost_items.items():
-            S = D[x._basis]
-            q = S/x.S
-            N = N_dct[i]
-            C[i] = N*bst.CE/x.CE*x.cost*q**x.n
-            kW += N*x.kW*q
-        self._power_utility(kW)
         
    
 # %% Lignin separation
@@ -410,7 +392,7 @@ class SaccharificationAndCoFermentation(Unit):
       cost=75200, CE=521.9, S=31815, n=0.6, kW=112, BM=1.6)
 @cost('Flow rate', 'Dry air pressure filter (2)',
       cost=405000, CE=521.9, S=31815, n=0.6, kW=1044, BM=1.6)
-class PressureFilter505(bst.SolidsSeparator):
+class PressureFilter(bst.SolidsSeparator):
     _units = {'Flow rate': 'kg/hr'}
     
     def _design(self):
@@ -461,12 +443,11 @@ class AnaerobicDigestion(bst.Unit):
         feed, cool_water = self.ins
         biogas, waste, sludge, hot_water = self.outs
         biogas.phase = 'g'
-        cool_feed = bst.Stream.proxy(None, feed)
         hot_water.link = cool_water
-        biogas.T = waste.T = sludge.T = hot_water.T = cool_feed.T = 35+273.15
+        biogas.T = waste.T = sludge.T = T = 35+273.15
         hot_water.T = feed.T - 5
-        cool_water.mol[:] *= (feed.H - cool_feed.H)/(hot_water.H - cool_water.H)
-        sludge.copylike(cool_feed)
+        cool_water.mol[:] *= (feed.H - feed.H_at(T=T))/(hot_water.H - cool_water.H)
+        sludge.copyflow(feed)
         self.reactions(sludge.mol)
         self.mixed_stream.copyflow(sludge)
         self.mixed_stream.VLE(P=101325, Q=0)
@@ -504,6 +485,7 @@ class AerobicDigestion(bst.Unit):
     _N_ins = 3
     _N_outs = 2
     purchase_cost = installation_cost = 0
+    evaporation = 4/355
     
     def __init__(self, ID='', ins=None, outs=(), *, reactions):
         Unit.__init__(self, ID, ins, outs)
@@ -517,8 +499,11 @@ class AerobicDigestion(bst.Unit):
         water.mol[:] += air.mol
         water.mol[:] += caustic.mol
         self.reactions(water.mol)
-        vent.copyflow(water, ('CO2', 'O2', 'N2'), remove=True)
-        vent.recieve_vent(water)
+        vent.copyflow(water, ('CO2', 'O2', 'N2'))
+        wi = vent.index('Water')
+        water_mol = water.mol[wi]
+        vent.mol[wi] = water_mol * self.evaporation
+        water.mol[:] -= vent.mol
         
 @cost('Flow rate', units='kg/hr',
       S=63, cost=421e3, CE=522, BM=1.8, n=0.6)

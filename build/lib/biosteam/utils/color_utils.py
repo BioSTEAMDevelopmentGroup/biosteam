@@ -14,7 +14,7 @@ __all__ = ('colors',)
 # %% Classes for coloring
 
 # BioSTEAM console
-ansicolor = Color.ansicolor
+ansicolor = Color.from_ansi
 colors = Palette()
 colors.dim = ansicolor('dim', '\x1b[37m\x1b[22m')
 colors.reset = ansicolor('reset', '\x1b[0m')
@@ -31,14 +31,17 @@ colors.blue_dark = colors.blue.shade(70)
 colors.orange = Color('orange', 255*np.array([0.976, 0.561, 0.376]))
 colors.orange_tint = colors.orange.tint(50)
 colors.orange_shade = colors.orange.shade(50)
-
-# Contrast colors
 colors.red = Color('red', (241, 119, 127))
-colors.red_tint = colors.red.tint(25)
+colors.red_tint = colors.red.tint(50)
 colors.red_shade = colors.red.shade(25)
 colors.red_dark = colors.red.shade(45)
+
+# Contrast colors
+colors.green = Color('green', '#33CC33')
+colors.green_tint =colors. green.tint(20).shade(15)
+colors.green_shade = colors.green.shade(50).tint(40).shade(30)
 colors.purple = Color('purple', 255*np.array([0.635, 0.502, 0.725]))
-colors.purple_tint = colors.purple.tint(50)
+colors.purple_tint = colors.purple.tint(60)
 colors.purple_shade = colors.purple.shade(25)
 colors.purple_dark = colors.purple.shade(75)
 

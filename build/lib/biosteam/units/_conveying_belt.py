@@ -7,7 +7,7 @@ Created on Mon Mar  4 11:10:49 2019
 from .decorators import cost
 from ._static import Static
 
-@cost('Flow rate', CE=567, cost=813, ub=500, n=0.38)
+@cost('Flow rate', CE=567, cost=813, ub=500, n=0.38, N='Number of conveyors')
 class ConveyingBelt(Static):
     length = 40 #: ft
     height = 20 #: ft

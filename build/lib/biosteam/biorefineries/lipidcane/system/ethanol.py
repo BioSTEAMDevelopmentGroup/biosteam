@@ -15,185 +15,188 @@ from biosteam.units import Mixer, Splitter, HXutility, HXprocess, \
      Distillation, SolidsCentrifuge, MolecularSieve, MixTank, VentScrubber
 from biosteam.biorefineries.lipidcane.process_settings import price
 
-__all__ = ('ethanol_sys',)
+__all__ = ('area_300',)
 
 
 # %% Species
 
+# Stream.default_ID_number = 300
 Stream.species = ethanol_species
 sp_c = ('Glucose', 'H3PO4', 'Sucrose', 'Water')
 sp_r = ('Ethanol', 'Glucose', 'H3PO4', 'Water', 'DryYeast')
 
 # %% Other
 
-Ethanol_MW = ethanol_species.Ethanol.MW
-Water_MW = ethanol_species.Water.MW
+MW_etoh = ethanol_species.Ethanol.MW
+MW_water = ethanol_species.Water.MW
 
 def Ethanol_molfrac(e: 'Ethanol mass fraction'):
     """Return ethanol mol fraction in a ethanol water mixture"""
-    return e/Ethanol_MW / (e/Ethanol_MW + (1-e)/Water_MW)
+    return e/MW_etoh / (e/MW_etoh + (1-e)/MW_water)
 
 
 # %% Input Streams
 
 # Fresh water
-S134 = Stream('S134', Water=5000, units='kg/hr')
+stripping_water = Stream('stripping_water', Water=5000, units='kg/hr')
 
 # Gasoline
-denature = Stream('Denaturant', Octane=230.69,
+denaturant = Stream('denaturant', Octane=230.69,
                   units='kg/hr', price=price['Gasoline'])
 
 # Yeast
-S144 = Stream('Yeast', Water=24700, DryYeast=10300,
-              units='kg/hr')
+yeast = Stream('yeast', Water=24700, DryYeast=10300,
+               units='kg/hr')
 
 # Sugar Stream (from Pretreatment section)
-Sugar_solution = Stream('Sugar_solution', Glucose=1888.23, H3PO4=0,
+sugar_solution = Stream('sugar_solution', Glucose=1888.23, H3PO4=0,
                         Sucrose=21399.94, Water=264523.53,
                         units='kg/hr', T=99+273.15)
 
 # Ethanol product
-Ethanol = Stream('Ethanol', price=price['Ethanol'])
+ethanol = Stream('ethanol', price=price['Ethanol'])
 
 
 # %% Units
 
 # Split sugar solution
-P16 = Splitter('P16',
+S301 = Splitter('S301',
                split=0.265)
 
 # Concentrate sugars
-P15 = MultiEffectEvaporator('P15',
+F301 = MultiEffectEvaporator('F301',
                             component='Water', # component being evaporated
                             P=(101325, 73581, 50892, 32777, 20000),
                             V=0.95248) # fraction evaporated
-P15.components['condenser'].U = 1.85
+F301.components['condenser'].U = 1.85
 # Note: value of steam ~ 6.86 for the following 
 # (101325, 73580.467, 50891.17, 32777.406, 19999.925, 11331.5),
 
 # Mix sugar solutions
-P17 = Mixer('P17')
+M301 = Mixer('M301')
 
 # Cool for fermentation
-P51 = HXutility('P51', T=295.15)
+H301 = HXutility('H301', T=295.15)
 
 # Ethanol Production
-P24 = Fermentation('P24', outs=('', 'CO2'), tau=10, efficiency=0.90, N=8) 
-T1 = StorageTank('T1')
-T1.tau = 4
-T1.line = 'Beer tank'
+R301 = Fermentation('R301', outs=('CO2', ''), tau=10, efficiency=0.90, N=8) 
+T301 = StorageTank('T301')
+T301.tau = 4
+T301.line = 'Beer tank'
 
-scrubber = VentScrubber('Scrubber', ins=(S134, P24-0), gas=('CO2',))
+D301 = VentScrubber('D301', ins=(stripping_water, R301-0), gas=('CO2',))
 
 # Separate 99% of yeast
-P19 = SolidsCentrifuge('P19', outs=('', 'Recycle yeast'),
+C301 = SolidsCentrifuge('C301', outs=('', 'recycle_yeast'),
                        split=(1, 0.99999, 1, 0.96, 0.01),
                        order=('Ethanol', 'Glucose', 'H3PO4', 
                               'Water', 'DryYeast'),
                        solids=('DryYeast',))
 
 # Mix in Water
-P23 = Mixer('P23', 'S147')
-Q1 = Pump('Q1')
+M302 = Mixer('M302')
+P301 = Pump('P301')
 
 # Heat up before beer column
 # Exchange heat with stillage
-P32 = HXprocess('P32', outs=('', 'Stillage'),
+H302 = HXprocess('H302', outs=('', 'stillage'),
                 fluid_type='ss', U=1.28)
 
 # Beer column
 xbot = Ethanol_molfrac(0.00001)
 ytop = Ethanol_molfrac(0.574)
-P25 = Distillation('P25', P=101325,
+D302 = Distillation('D302', P=101325,
                    y_top=ytop, x_bot=xbot, k=1.20,
                    LHK=('Ethanol', 'Water'))
-P25.tray_material = 'Stainless steel 316'
-P25.vessel_material = 'Stainless steel 316'
-P25._boiler.U = 1.85
-Q2 = Pump('Q2')
+D302.tray_material = 'Stainless steel 316'
+D302.vessel_material = 'Stainless steel 316'
+D302._boiler.U = 1.85
+P302 = Pump('P302')
 
 # Mix ethanol Recycle (Set-up)
-P28 = Mixer('P28', 'S150')
+M303 = Mixer('M303')
 
 ytop = Ethanol_molfrac(0.9061726)
-P30 = Distillation('P30', P=101325,
+D303 = Distillation('D303', P=101325,
                     y_top=ytop, x_bot=xbot, k=1.20,
                     LHK=('Ethanol', 'Water'))
-P30.tray_material = 'Stainless steel 316'
-P30.vessel_material = 'Stainless steel 316'
-P30.is_divided = True
-P30._boiler.U = 1.85
-Q3 = Pump('Q3')
+D303.tray_material = 'Stainless steel 316'
+D303.vessel_material = 'Stainless steel 316'
+D303.is_divided = True
+D303._boiler.U = 1.85
+P303 = Pump('P303')
 
 # Superheat vapor for mol sieve
-P34 = HXutility('P34', T=115+273.15, V=0)
+H303 = HXutility('H303', T=115+273.15, V=1)
 
 # Molecular sieve
-P33 = MolecularSieve('P33',
+U301 = MolecularSieve('U301',
                      split=(2165.14/13356.04, 1280.06/1383.85),
                      order=('Ethanol', 'Water'))
 
 # Condense ethanol product
-P41 = HXutility('P41', 'S149', V=0, T=350.)
-T2 = StorageTank('T2')
-T2.line = 'Ethanol storage'
-T2.tau = 6*24
-Q4 = Pump('Q4')
+H304 = HXutility('H304', 'S149', V=0, T=350.)
+T302 = StorageTank('T302')
+T302.line = 'Ethanol storage'
+T302.tau = 6*24
+P304 = Pump('P304')
 
 # Storage for gasoline
-T3 = StorageTank('T3')
-T3.tau = 6*24
-Q5 = Pump('Q5')
+T303 = StorageTank('T303')
+T303.tau = 6*24
+P305 = Pump('P305')
 
-# Denatured ethanol product
-T4 = MixTank('T4', outs=Ethanol)
-T4.tau = 0.10
+# denaturantd ethanol product
+T304 = MixTank('T304', outs=ethanol)
+T304.tau = 0.10
 
 # Add denaturant
-P39 = Mixer('P39')
+M304 = Mixer('M304')
 
 # Recycle water to Process Condensate Tank
-P35_0 = Mixer('P34', outs='Water_4')
+M305 = Mixer('M305', outs='recycle_water')
 
 # Yeast mixing
-T5 = MixTank('T5')
-T5.tau = 0.1
-S144-T5
+T305 = MixTank('T305')
+T305.tau = 0.1
+yeast-T305
 
 # Multi-effect evaporator pumps
-Q6 = Pump('Q6')
+P306 = Pump('P306')
 
 
 # %% Set up EtOH system
 
-Sugar_solution-P16-1-P15-0-Q6
-(P16-0, Q6-0)-P17-P51
-(P51-0, S144-T5-0)-P24-1-T1-0-P19
-(P19-0, scrubber-1)-P23-Q1
-(Q1-0, Q2-0)-P32-0-P25-1-Q2
-EtOH_start_network = (P16, P15, Q6, P17, P51, T5, P24, T1,
-                      P19, scrubber, P23, Q1, P32, P25, Q2, P32)
+sugar_solution-S301-1-F301-0-P306
+(S301-0, P306-0)-M301-H301
+(H301-0, yeast-T305-0)-R301-1-T301-0-C301
+(C301-0, D301-1)-M302-P301
+(P301-0, P302-0)-H302-0-D302-1-P302
+EtOH_start_network = (S301, F301, P306, M301, H301, T305, R301, T301,
+                      C301, D301, M302, P301, H302, D302, P302, H302)
 
-(P25-0, P33-0)-P28-0-P30-0-P34-P33
-P30-1-Q3
-purification_recycle = System('purification_recycle',
-                           network=(P28, P30, P34, P33),
-                           recycle=P28-0)
+(D302-0, U301-0)-M303-0-D303-0-H303-U301
+D303-1-P303
+ethanol_recycle_sys = System('ethanol_recycle_sys',
+                           network=(M303, D303, H303, U301),
+                           recycle=M303-0)
 
 gas_index = ethanol_species.IDs.index('Octane')
 def adjust_denaturant():
-    denature.mol[gas_index] = 0.011*Q4.outs[0].massnet/114.232
+    denaturant.mol[gas_index] = 0.011*P304.outs[0].massnet/114.232
     
-P33-1-P41-0-T2-0-Q4
-denature-T3-Q5
-(Q5-0, Q4-0)-P39-T4
-EtOH_end_network=(Q3, P41, T2, Q4, adjust_denaturant, T3, Q5, P39, T4)
+U301-1-H304-0-T302-0-P304
+denaturant-T303-P305
+(P305-0, P304-0)-M304-T304
+EtOH_end_network=(P303, H304, T302, P304,
+                  adjust_denaturant, T303,
+                  P305, M304, T304)
 
-(Q3-0, P15-1)-P35_0
-EtOH_process_water_network=(P35_0,)    
+(P303-0, F301-1)-M305
+EtOH_process_water_network=(M305,)    
 
-ethanol_sys = System('ethanol_sys',
-                     network=(EtOH_start_network
-                            + (purification_recycle,)
-                            + EtOH_end_network
-                            + EtOH_process_water_network))
+area_300 = System('area_300',
+                  network=(EtOH_start_network
+                         + (ethanol_recycle_sys,)
+                         + EtOH_end_network
+                         + EtOH_process_water_network))

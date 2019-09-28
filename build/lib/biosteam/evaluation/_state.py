@@ -37,11 +37,11 @@ def parameter(system, element, setter, kind, name, distribution, units):
         return Block(element, None).parameter(setter, simulate, name, distribution=distribution, units=units)
     raise ValueError(f"kind must be either 'coupled', 'isolated', 'design', or 'cost' (not {kind}).")
 
-def modelfunction_with_skipping(params):
+def create_update_function_with_skipping(params):
     cached = None
     zip_= zip
     params = tuple(params)
-    def model(sample): 
+    def update(sample): 
         nonlocal cached
         try:
             sim = None
@@ -56,12 +56,12 @@ def modelfunction_with_skipping(params):
         except Exception as Error:
             cached = None
             raise Error
-    return model
+    return update
 
-def modelfunction(params):
+def create_update_function(params):
     zip_= zip
     params = tuple(params)
-    def model(sample): 
+    def update(sample): 
         sim = None
         for p, x in zip_(params, sample):
             p.setter(x)
@@ -69,7 +69,7 @@ def modelfunction(params):
             if p.system: sim = p.simulate 
             else: p.simulate()
         if sim: sim()
-    return model
+    return update
 
 
 # %%
@@ -80,14 +80,13 @@ class State:
     Parameters
     ----------
     system : System
-        Reflects the model state.
     skip=False : bool
         If True, skip simulation for repeated states
     
     """
-    __slots__ = ('_system', # [System] Reflects the model state.
+    __slots__ = ('_system', # [System]
                  '_params', # list[Parameter] All parameters.
-                 '_model', # [function] Model function.
+                 '_update', # [function] Updates system state.
                  '_skip') # [bool] If True, skip simulation for repeated states
     
     load_default_parameters = load_default_parameters
@@ -95,7 +94,7 @@ class State:
     def __init__(self, system, skip=False):
         self._system = system
         self._params = []
-        self._model = None
+        self._update = None
         self._skip = skip
     
     def __len__(self):
@@ -106,13 +105,13 @@ class State:
         copy = self.__new__(type(self))
         copy._params = list(self._params)
         copy._system = self._system
-        copy._model = self._model
+        copy._update = self._update
         copy._skip = self._skip
         return copy
     
     def get_parameters(self):
         """Return parameters."""
-        if not self._model: self._loadmodel()
+        if not self._update: self._loadparams()
         return tuple(self._params)
     
     def get_distribution_summary(self):
@@ -146,7 +145,7 @@ class State:
     
     def parameter(self, setter=None, element=None, kind='isolated',
                   name=None, distribution=None, units=None):
-        """Define parameter and add to model.
+        """Define and register parameter.
         
         Parameters
         ----------    
@@ -172,7 +171,8 @@ class State:
         If kind is 'coupled', account for downstream operations. Otherwise, only account for given element. If kind is 'design' or 'cost', element must be a Unit object.
         
         """
-        if not setter: return lambda setter: self.parameter(setter, element, kind, name, distribution, units)
+        if not setter: return lambda setter: self.parameter(setter, element, kind,
+                                                            name, distribution, units)
         param = parameter(self._system, element, setter, kind, name, distribution, units)
         self._params.append(param)
         self._erase()
@@ -217,27 +217,25 @@ class State:
         +-------+-------------------------------------------------+
             
         """
-        if not self._model: self._loadmodel()
+        if not self._update: self._loadparams()
         return J(*[i.distribution for i in self._params]).sample(N, rule).transpose()
     
     def _erase(self):
         """Erase cached data."""
-        self._model = None
+        self._update = None
     
-    def _loadmodel(self):
-        length = len( self._system._unitnetwork)
+    def _loadparams(self):
+        """Load parameters."""
+        length = len(self._system._unitnetwork)
         index =  self._system._unitnetwork.index
-        self._params.sort(key=lambda x: index(param_unit(x))
-                                        if x.system else length)
-        if self._skip:
-            self._model = modelfunction_with_skipping(self._params)
-        else:
-            self._model = modelfunction(self._params)
+        self._params.sort(key=lambda x: index(param_unit(x)) if x.system else length)
+        self._update = (create_update_function_with_skipping if self._skip 
+                        else create_update_function)(self._params)
     
     def __call__(self, sample):
         """Update state given sample of parameters."""
-        if not self._model: self._loadmodel()
-        return self._model(np.asarray(sample))
+        if not self._update: self._loadparams()
+        return self._update(np.asarray(sample))
     
     def _repr(self):
         return f'{type(self).__name__}: {self._system}'
@@ -246,7 +244,7 @@ class State:
         return '<' + self._repr() + '>'
     
     def _info(self):
-        if not self._model: self._loadmodel()
+        if not self._update: self._loadparams()
         if not self._params: return f'{self._repr()}\n (No parameters)'
         lines = []
         lenghts_block = []

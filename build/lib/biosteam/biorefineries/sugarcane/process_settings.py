@@ -6,12 +6,14 @@ Created on Tue May 28 11:11:08 2019
 """
 
 from biosteam import PowerUtility, HeatUtility, find, Flowsheet
+import biosteam
 
 __all__ = ('price',)
 
 # %% Process settings
 
-find.set_flowsheet(Flowsheet('Sugarcane'))
+biosteam.CE = 567 # 2013
+find.set_flowsheet(Flowsheet('sugarcane'))
 PowerUtility.price = 0.065
 _ha = HeatUtility.heating_agents['Low pressure steam']
 _ha.efficiency = 0.90

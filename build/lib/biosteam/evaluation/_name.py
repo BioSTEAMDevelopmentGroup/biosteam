@@ -5,9 +5,9 @@ Created on Tue May 14 14:35:55 2019
 @author: yoelr
 """
 import re
-__all__ = ('elementname',)
+__all__ = ('element_name',)
 
-def elementname(element):
+def element_name(element):
     if element:
         if isinstance(element, type):
             return re.sub(r"\B([A-Z])", r" \1", element.__name__.replace('_', ' ')).capitalize()
@@ -16,4 +16,4 @@ def elementname(element):
         else:
             return element.line + '-' + element.ID.replace('_', ' ')
     else:
-        return 'None'
+        return ''

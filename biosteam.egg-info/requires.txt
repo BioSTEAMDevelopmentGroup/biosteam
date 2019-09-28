@@ -12,4 +12,4 @@ numpy
 graphviz
 matplotlib
 lazypkg>=1.4
-chaospy
+chaospy==3.0.11

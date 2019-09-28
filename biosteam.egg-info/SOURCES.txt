@@ -29,12 +29,12 @@ biosteam/_report/__init__.py
 biosteam/_report/plot.py
 biosteam/_report/table.py
 biosteam/biorefineries/__init__.py
-biosteam/biorefineries/cornstover/Monte Carlo cornstover.xlsx
-biosteam/biorefineries/cornstover/Spearman correlation cornstover.xlsx
 biosteam/biorefineries/cornstover/__init__.py
 biosteam/biorefineries/cornstover/_analysis.py
 biosteam/biorefineries/cornstover/_humbird2011.xlsx
-biosteam/biorefineries/cornstover/_plot.py
+biosteam/biorefineries/cornstover/_plot_bars.py
+biosteam/biorefineries/cornstover/_plot_spearman.py
+biosteam/biorefineries/cornstover/_plot_uncertainty.py
 biosteam/biorefineries/cornstover/model.py
 biosteam/biorefineries/cornstover/process_settings.py
 biosteam/biorefineries/cornstover/species.py
@@ -46,7 +46,9 @@ biosteam/biorefineries/lipidcane/Monte Carlo sugarcane.xlsx
 biosteam/biorefineries/lipidcane/Spearman correlation lipidcane.xlsx
 biosteam/biorefineries/lipidcane/__init__.py
 biosteam/biorefineries/lipidcane/_analysis.py
-biosteam/biorefineries/lipidcane/_plot.py
+biosteam/biorefineries/lipidcane/_plot_spearman.py
+biosteam/biorefineries/lipidcane/_plot_uncertainty.py
+biosteam/biorefineries/lipidcane/distribution_summary.xlsx
 biosteam/biorefineries/lipidcane/model.py
 biosteam/biorefineries/lipidcane/process_settings.py
 biosteam/biorefineries/lipidcane/tea.py
@@ -63,6 +65,8 @@ biosteam/biorefineries/lipidcane/system/ethanol.py
 biosteam/biorefineries/lipidcane/system/pretreatment.py
 biosteam/biorefineries/lipidcane/utils/__init__.py
 biosteam/biorefineries/lipidcane/utils/composition.py
+biosteam/biorefineries/sugarcane/Monte Carlo across lipid fraction.xlsx
+biosteam/biorefineries/sugarcane/Monte Carlo sugarcane.xlsx
 biosteam/biorefineries/sugarcane/__init__.py
 biosteam/biorefineries/sugarcane/model.py
 biosteam/biorefineries/sugarcane/process_settings.py
@@ -79,6 +83,7 @@ biosteam/evaluation/_model.py
 biosteam/evaluation/_name.py
 biosteam/evaluation/_parameter.py
 biosteam/evaluation/_state.py
+biosteam/evaluation/_variable.py
 biosteam/inspect/__init__.py
 biosteam/inspect/_separation.py
 biosteam/price/__init__.py
@@ -135,6 +140,7 @@ biosteam/utils/__init__.py
 biosteam/utils/array_utils.py
 biosteam/utils/color_utils.py
 biosteam/utils/display_units.py
+biosteam/utils/network_utils.py
 biosteam/utils/not_implemented_method.py
 biosteam/utils/other_utils.py
 biosteam/utils/plot_utils.py

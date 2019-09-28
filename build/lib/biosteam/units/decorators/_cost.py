@@ -34,10 +34,13 @@ class CostItem:
         Electricity rate.
     BM : float
         Bare module factor (installation factor).
-    
+    N : str
+        Attribute name for number of parallel units.
     """
-    __slots__ = ('_basis', '_units', 'S', 'ub', 'CE', 'cost', 'n', 'kW', 'BM')
-    def __init__(self, basis, units, S, ub, CE, cost, n, kW, BM):
+    __slots__ = ('_basis', '_units', 'S', 'ub', 'CE',
+                 'cost', 'n', 'kW', 'BM', 'N')
+    def __init__(self, basis, units, S, ub, CE, cost, n, kW, BM, N):
+        if ub and not N: N='#'
         self._basis = basis
         self._units = units
         self.S = S
@@ -47,6 +50,7 @@ class CostItem:
         self.n = n
         self.kW = kW
         self.BM = BM
+        self.N = N
     
     __getitem__ = object.__getattribute__
     __setitem__ = object.__setattr__
@@ -69,7 +73,8 @@ class CostItem:
              +f" cost  {self.cost:.3g}\n"
              +f" n     {self.n:.3g}\n"
              +f" kW    {self.kW:.3g}\n"
-             +f" BM    {self.BM:.3g}")
+             +f" BM    {self.BM:.3g}\n"
+            +(f" N     '{self.N}'" if self.N else ""))
     show = _ipython_display_
 
 def _cost(self):
@@ -79,11 +84,16 @@ def _cost(self):
     for i, x in self.cost_items.items():
         S = D[x._basis]
         if x.ub:
-            D['#'+i] = N = ceil(S/x.ub)
+            D[x.N] = N = ceil(S/x.ub)
             q = S/x.S
             F = q/N
             C[i] = N*bst.CE/x.CE*x.cost*F**x.n
             kW += x.kW*q
+        elif x.N:
+            N = getattr(self, x.N)
+            F = S/x.S
+            C[i] = N*bst.CE/x.CE*x.cost*F**x.n
+            kW += N*x.kW*F
         else:
             F = S/x.S
             C[i] = bst.CE/x.CE*x.cost*F**x.n
@@ -108,7 +118,7 @@ def installation_cost(self):
     C = self._Cost
     return sum([C[i]*j.BM for i,j in self.cost_items.items()])
 
-def cost(basis, ID=None, *, CE, cost, n, S=1, ub=0, kW=0, BM=1, units=None, fsize=None):    
+def cost(basis, ID=None, *, CE, cost, n, S=1, ub=0, kW=0, BM=1, units=None, fsize=None, N=None):    
     r"""Add item (free-on-board) purchase cost based on exponential scale up:
     
     Parameters
@@ -135,6 +145,8 @@ def cost(basis, ID=None, *, CE, cost, n, S=1, ub=0, kW=0, BM=1, units=None, fsiz
         Units of measure.
     fsize = None : function, optional
         Accepts a Unit object argument and returns the size parameter. If None, defaults to function predefined for given name and units of measure.
+    N : str
+        Attribute name for number of parallel units.
         
     Examples
     --------
@@ -142,9 +154,9 @@ def cost(basis, ID=None, *, CE, cost, n, S=1, ub=0, kW=0, BM=1, units=None, fsiz
     
     """
     
-    return lambda cls: add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, fsize)
+    return lambda cls: add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, fsize, N)
 
-def add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, fsize):
+def add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, fsize, N):
     if kW: cls._has_power_utility = True
     if basis in cls._units:
         if fsize:
@@ -164,10 +176,10 @@ def add_cost(cls, ID, basis, units, S, ub, CE, cost, n, kW, BM, fsize):
             raise ValueError("must pass an 'ID' for purchase cost item")
         if ID in cls.cost_items:
             raise ValueError(f"ID '{ID}' already in use")
-        cls.cost_items[ID] = CostItem(basis, units, S, ub, CE, cost, n, kW, BM)
+        cls.cost_items[ID] = CostItem(basis, units, S, ub, CE, cost, n, kW, BM, N)
     else:
         ID = ID or cls.line
-        cls.cost_items = {ID: CostItem(basis, units, S, ub, CE, cost, n, kW, BM)}
+        cls.cost_items = {ID: CostItem(basis, units, S, ub, CE, cost, n, kW, BM, N)}
         if '_cost' not in cls.__dict__:
             if hasattr(cls, '_end_decorated_cost_'):
                 cls._cost = _extended_cost

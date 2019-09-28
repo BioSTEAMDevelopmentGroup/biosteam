@@ -53,7 +53,7 @@ def VolumetricFlow(self, value):
         c.phase = phase
         mol[0] = value/(c.Vm * 1000)
     else:
-        mol[0] = 0.
+        self.data[1][0] = 0.
 
 # %% MixedStream (4 phase flow)
 
@@ -795,7 +795,7 @@ class MixedStream(Stream):
         LIQUID_mol[LNK_index] = LNK_mol
         LIQUID_mol[solvent_index] = Kmol - liquid_mol[solvent_index]
 
-    def _info(self, T, P, flow, fraction):
+    def _info(self, T, P, flow, fraction, N):
         """Return string with all specifications."""
         units = self.units
         basic_info = self._info_header() + '\n'
@@ -803,8 +803,8 @@ class MixedStream(Stream):
             nonzero, species = self.nonzero_species
         else:
             return basic_info + f' link: {self._link}'
-        T_units, P_units, flow_units, fraction = [(i if i is not None else j) for i, j in
-                                                  zip((T, P, flow, fraction), self.display_units)]
+        T_units, P_units, flow_units, fraction, N = [(i if i is not None else j) for i, j in
+                                                  zip((T, P, flow, fraction, N), self.display_units)]
         phases = self.phase
         basic_info += self._info_phaseTP(phases, T_units, P_units)
         len_ = len(nonzero)
@@ -868,8 +868,12 @@ class MixedStream(Stream):
             flowrates = ''
             l = len(nonzero)
             lengths = [len(sp) for sp in species]
+            _N = N - 1
             for i in range(l-1):
                 spaces = ' ' * (maxlen - lengths[i])
+                if i == _N:
+                    flowrates += '...\n' + new_line_spaces
+                    break
                 flowrates += f'{species[i]} ' + spaces + \
                     f' {flow_nonzero[i]:.3g}\n' + new_line_spaces
             spaces = ' ' * (maxlen - lengths[l-1])

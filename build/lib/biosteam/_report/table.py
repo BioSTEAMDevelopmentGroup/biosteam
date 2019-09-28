@@ -134,9 +134,11 @@ def results_table(units):
     for units in organized.values():
         # First table with units of measure
         u = units[0]
-        table = u.results()
+        table = u.results(include_utilities=False,
+                          include_total_cost=False)
         for u in units[1:]:
-            table[u.ID] = u.results(with_units=False)
+            table[u.ID] = u.results(with_units=False, include_utilities=False,
+                                   include_total_cost=False)
         table.columns.name = (u.line, '')
         tables.append(table)
         table = u.results()
@@ -255,7 +257,7 @@ def power_utilities_table(units):
 
 # %% Streams
 
-def stream_table(streams, flow='kg/min', **props) -> 'DataFrame':
+def stream_table(streams, flow='kg/hr', **props) -> 'DataFrame':
     """Return a stream table as a pandas DataFrame object.
 
     Parameters
@@ -330,11 +332,6 @@ def stream_table(streams, flow='kg/min', **props) -> 'DataFrame':
         p = _Q(p, units[attr]); p.ito(unit); p = p.magnitude
         prop_molar_keys[i] = f'{attr} ({unit})'
         i += 1
-    
-    # Add spaces for readability
-    species = list(species).copy()
-    for i in range(m):
-        species[i] = '- ' + species[i]
     
     # Make data frame object
     index = ('Source', 'Sink', 'Phase')  + tuple(prop_molar_keys) + (f'flow ({flow})', 'Composition:') + tuple(species)

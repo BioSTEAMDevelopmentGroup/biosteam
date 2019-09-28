@@ -17,6 +17,7 @@ class Tank(Unit, isabstract=True):
     """Abstract Tank class."""
     _units = {'Total volume': 'm^3'}
     _N_outs = 1
+    
     @property
     def tau(self):
         """Residence time (hr)."""
@@ -43,13 +44,16 @@ class StorageTank(Static, Tank):
     #: [float] residence time (hr)
     _tau = 4*7*24
 
+    def _more_design_specs(self):
+        return (('Residence time', self.tau/24, 'days'),)
+
     def _design(self):
         V = self._tau*self._volnet_out
-        self._Design['N'] = N = np.ceil(V/50e3)
+        self._Design['Number of tanks'] = N = np.ceil(V/50e3)
         self._Design['Total volume'] = V/N
 
     def _cost(self):
-        N = self._Design['N']
+        N = self._Design['Number of tanks']
         V = self._Design['Total volume']
         if V < 2e3:
             self._Cost['Tank'] = N * (65000 + 158.7*(V/N)) * bst.CE/525.4
@@ -58,7 +62,8 @@ class StorageTank(Static, Tank):
         else:    
             raise DesignError(f"Volume is out of bounds for costing")
 
-@cost('Total volume', cost=12080, CE=525.4, n=0.525, kW=0.0985, ub=30)
+@cost('Total volume', cost=12080, CE=525.4, n=0.525, kW=0.0985, ub=30,
+      N='Number of tanks')
 class MixTank(Tank):
     """Create a mixing tank with volume based on residence time.
 
@@ -81,6 +86,10 @@ class MixTank(Tank):
     
     #: Fraction of working volume
     _V_wf = 0.8
+    
+    def _more_design_specs(self):
+        return (('Residence time', self.tau, 'hr'),
+                ('Working volume fraction', self.working_volume_fraction, ''))
     
     @property
     def working_volume_fraction(self):

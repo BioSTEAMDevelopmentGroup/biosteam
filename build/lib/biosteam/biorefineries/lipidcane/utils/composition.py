@@ -8,7 +8,7 @@ This module defines the composition_balance function, which performs mass energy
 """
 from biosteam import Stream
 from biosteam.biorefineries.lipidcane.species import pretreatment_species
-from biosteam.biorefineries.lipidcane.system.pretreatment import Lipid_cane
+from biosteam.biorefineries.lipidcane.system.pretreatment import lipid_cane
 from array_collections import tuple_array
 
 __all__ = ('set_lipid_fraction',)
@@ -20,13 +20,13 @@ fiber_IDs = ('Lignin', 'Cellulose', 'Hemicellulose')
 lipid_IDs = ('Lipid',)
 water_IDs = ('Water',)
 
-indices = Lipid_cane.indices
+indices = lipid_cane.indices
 carbs_index = indices(carbs_IDs)
 fiber_index = indices(fiber_IDs)
 lipid_index = indices(lipid_IDs)
 water_index = indices(water_IDs)
 
-lc = Lipid_cane
+lc = lipid_cane
 mol     = lc.mol
 carbs   = Stream('Carbs', mol[carbs_index], carbs_IDs)
 fiber   = Stream('Fiber', mol[fiber_index], fiber_IDs)

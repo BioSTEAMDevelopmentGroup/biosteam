@@ -11,7 +11,7 @@ __all__ = ('Static',)
 class Static(Unit):
     """A Static Unit object expects only one input stream (the `feed`) and only one output stream (the `product`). The static metaclass makes the `feed` and `product` share data on material flow rates. Therefore `feed`.mol and `product`.mol will always be equal. For Static subclasses, the `product`'s T, P, and phase will be equal to the `feed`'s upon simulation if no `_run` method is implemented."""
     _N_ins = _N_outs = 1
-    def _init_outs(self, outs):
+    def _init_outs(self, outs, species):
         """Initialize output streams."""
         if outs is None:
             self._outs = Outs(self, (Stream.proxy(None) for i in self._N_outs))
@@ -45,10 +45,10 @@ class Static(Unit):
         o.P = i.P
         o._phase = i._phase
             
-    def _info(self, T, P, flow, fraction):
+    def _info(self, T, P, flow, fraction, N):
         """Information on unit."""
         self.link_streams()
-        return super()._info(T, P, flow, fraction)
+        return super()._info(T, P, flow, fraction, N)
     
     
     

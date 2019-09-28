@@ -34,6 +34,7 @@ class Model(State):
         Metrics to be evaluated by model.
     skip=False : bool
         If True, skip simulation for repeated states.
+    
     Examples
     --------
     :doc:`../tutorial/Advanced simulation`

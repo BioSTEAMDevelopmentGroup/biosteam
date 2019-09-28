@@ -353,7 +353,7 @@ class TEA:
         # CF: Cash flow
         # DF: Discount factor
         # NPV: Net present value
-        # CNPV: Cummulative NPV
+        # CNPV: Cumulative NPV
         TDC = self.TDC
         FCI = self._FCI(TDC)
         WC = self.WC_over_FCI * FCI
@@ -416,7 +416,7 @@ class TEA:
                                      'Cash flow',
                                      'Discount factor',
                                      'Net present value (NPV)',
-                                     'Cummulative NPV'))
+                                     'Cumulative NPV'))
     @property
     def NPV(self):
         """Net present value."""

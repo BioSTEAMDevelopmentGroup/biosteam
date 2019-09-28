@@ -14,11 +14,11 @@ from .designtools import size_batch
 from ..reaction import Reaction
 
 @cost('Reactor volume', 'Cleaning in place', CE=521.9,
-      cost=421e3, S=3785, n=0.6, BM=1.8)
+      cost=421e3, S=3785, n=0.6, BM=1.8, N='N')
 @cost('Reactor volume', 'Agitators', CE=521.9, cost=52500,
-      S=3785, n=0.5, kW=22.371, BM=1.5)
+      S=3785, n=0.5, kW=22.371, BM=1.5, N='N')
 @cost('Reactor volume', 'Reactors', CE=521.9, cost=844000,
-      S=3785, n=0.5, BM=1.5)
+      S=3785, n=0.5, BM=1.5, N='N')
 class Fermentation(Unit):
     """Create a Fermentation object which models large-scale batch fermentation for the production of 1st generation ethanol using yeast [1, 2, 3, 4]. A compound with CAS 'Yeast' must be present in species. Only sucrose and glucose are taken into account for conversion. Conversion is based on reaction time, `tau`. Cleaning and unloading time, `tau_0`, fraction of working volume, `V_wf`, and number of reactors, `N_reactors`, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3]. 
     
@@ -86,6 +86,11 @@ class Fermentation(Unit):
                          113.4, # Xm
                          0.45,  # Y_PS
                          0.18)  # a
+    
+    def _more_design_specs(self):
+        return (('Cleaning and unloading time', self.tau_0, 'hr'),
+                ('Working volume fraction', self.working_volume_fraction, ''),
+                ('Number of reactors', self.N, ''))
     
     def __init__(self, ID='', ins=None, outs=(), *, 
                  tau,  N, efficiency=0.9, iskinetic=False):
@@ -230,7 +235,7 @@ class Fermentation(Unit):
             self.autoselect_N = False
             self._N = self.N_at_minimum_capital_cost
             self.autoselect_N = True
-        Design['Number of reactors'] = N = self._N
+        N = self._N
         Design.update(size_batch(v_0, tau, tau_0, N, self._V_wf))
         hx = self._cooler
         hx.outs[0]._mol[:] = self.outs[0].mol/N 
@@ -241,10 +246,6 @@ class Fermentation(Unit):
         hu.duty *= N
         hu.cost *= N
         hu.flow *= N
+        self._Cost['Coolers'] = self._cooler._Cost['Heat exchanger'] * self._N
         
-    def _end_decorated_cost_(self):
-        N = self._Design['Number of reactors']
-        Cost = self._Cost
-        Cost['Coolers'] = self._cooler._Cost['Heat exchanger']
-        for i in Cost: Cost[i] *= N
     

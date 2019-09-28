@@ -5,12 +5,13 @@ Created on Sat Jun 15 00:46:41 2019
 @author: yoelr
 """
 from .. import Unit, units
+from ..utils import format_unit_name
 from . import decorators
 import pandas as pd
 import numpy as np
 
 _add_cost = decorators.add_cost
-_index = np.array(['Basis',
+_index = np.array(('Basis',
                    'Units',
                    'Size',
                    'Upper bound',
@@ -18,7 +19,8 @@ _index = np.array(['Basis',
                    'Cost (USD)',
                    'Exponent',
                    'Electricity (kW)',
-                   'Installation factor'])
+                   'Installation factor',
+                   'Number'))
 
 
 __all__ = ('df2unit', 'xl2dct', 'xl2mod')
@@ -47,10 +49,7 @@ def df2dct(df):
         else:
             name = name_sim
             sim = 'Static'
-        name = ''.join([i.capitalize() for i in name.split(' ')])
-        for i in name:
-            if not (i is ' ' or i.isalnum()):
-                name = name.replace(i, ' ')
+        name = format_unit_name(name)
         try:
             supercls = getattr(units, sim)
         except:

@@ -287,10 +287,10 @@ class VLE:
         self._lever_rule(x, y)
         
     def TP(self, T, P):
-        if self._N == 1: self._TP_compound(T, P)
         stream = self._stream
         self.T = stream.T = T
         self.P = self._stream.P = P
+        if self._N == 1: return self._TP_compound(T, P)
         # Setup bounderies
         P_dew, x_dew = self._dew_point.solve_Px(self._zs, T)
         P_bubble, y_bubble = self._bubble_point.solve_Py(self._zs, T)
@@ -317,9 +317,9 @@ class VLE:
             self.Q = stream.H/self._massnet
         
     def TV(self, T, V):
-        if self._N == 1: self._TV_compound(T, V)
         stream = self._stream
         self.T = stream.T = T
+        if self._N == 1: return self._TV_compound(T, V)
         P_dew, x_dew = self._dew_point.solve_Px(self._zs, T)
         P_bubble, y_bubble = self._bubble_point.solve_Py(self._zs, T)
         if V == 1:
@@ -342,9 +342,9 @@ class VLE:
             self.Q = stream.H/self._massnet
 
     def TQ(self, T, Q):
-        if self._N == 1: self._TQ_compound(T, Q)
         stream = self._stream
         stream.T = T
+        if self._N == 1: return self._TQ_compound(T, Q)
         
         # Setup bounderies
         P_dew, x_dew = self._dew_point.solve_Px(self._zs, T)
@@ -389,13 +389,14 @@ class VLE:
         self.T = T
     
     def PV(self, P, V):
-        if self._N == 1: self._PV_compound(P, V)
+        stream = self._stream
+        stream.P = P
+        if self._N == 1: return self._PV_compound(P, V)
+        
         # Setup bounderies
         T_dew, x_dew = self._dew_point.solve_Tx(self._zs, P)
         T_bubble, y_bubble = self._bubble_point.solve_Ty(self._zs, P)
         
-        stream = self._stream
-        stream.P = P
         index = self._index
         mol = self._mol
         vapor_mol = self._vapor_mol
@@ -424,13 +425,14 @@ class VLE:
             self.Q = stream.H/self._massnet
     
     def PQ(self, P, Q):
-        if self._N == 1: self._PQ_compound(P, Q)
+        stream = self._stream
+        stream.P = P
+        if self._N == 1: return self._PQ_compound(P, Q)
+        
         # Setup bounderies
         T_dew, x_dew = self._dew_point.solve_Tx(self._zs, P)
         T_bubble, y_bubble = self._bubble_point.solve_Ty(self._zs, P)
         
-        stream = self._stream
-        stream.P = P
         index = self._index
         mol = self._mol
         vapor_mol = self._vapor_mol

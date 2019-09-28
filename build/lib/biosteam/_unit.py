@@ -4,7 +4,6 @@ Created on Sat Aug 18 14:40:28 2018
 
 @author: yoelr
 """
-import re
 import numpy as np
 import pandas as pd
 from graphviz import Digraph
@@ -13,27 +12,14 @@ from ._flowsheet import find, save_digraph
 from ._graphics import Graphics, default_graphics
 from ._stream import Stream
 from ._heat_utility import HeatUtility
-from .utils import Ins, Outs, MissingStream, NotImplementedMethod
+from .utils import Ins, Outs, MissingStream, NotImplementedMethod, \
+                   _add_upstream_neighbors, _add_downstream_neighbors, \
+                   format_unit_line
 from ._power_utility import PowerUtility
 from warnings import warn
 import biosteam as bst
 
 __all__ = ('Unit',)
-
-# %% Unit neighbors
-
-def _add_upstream_neighbors(unit, set):
-    """Add upsteam neighboring units to set."""
-    for s in unit._ins:
-        u_source = s._source
-        if u_source: set.add(u_source)
-
-def _add_downstream_neighbors(unit, set):
-    """Add downstream neighboring units to set."""
-    for s in unit._outs:
-        u_sink = s._sink
-        if u_sink: set.add(u_sink)
-
 
 # %% Bounds checking
 
@@ -75,20 +61,18 @@ class unit(type):
         except NameError: return cls
         
         # Set line
-        # default_line constitutes a new Unit class
-        line = cls.line
-        if line in (None, 'Mixer', 'Static', 'Splitter', 'Solids separator', 'Facility'):
-            line = cls.__name__.replace('_', ' ')
-            # Set new graphics object for new line
-            if '_graphics' not in dct: cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
-        elif 'line' in dct and '_graphics' not in dct:
+        if 'line' not in dct:
+            line = cls.line
+            if '_graphics' not in dct or line in (None, 'Mixer', 'Static', 'Splitter', 'Solids separator', 'Facility'):
+                line = cls.__name__
+                # Set new graphics for specified line
+                cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
+            cls.line = format_unit_line(line)
+                
+        elif '_graphics' not in dct:
             # Set new graphics for specified line
             cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
-        
-        cls.line = re.sub(r"\B([A-Z])", r" \1", line).capitalize()
-        
-        if isabstract: return cls
-        
+        if isabstract: return cls        
         if not hasattr(cls, '_run'):
             raise NotImplementedError("'Unit' subclass must have a '_run' method unless the 'isabstract' keyword argument is True")
         
@@ -111,6 +95,8 @@ class Unit(metaclass=unit):
     outs=() : tuple[str or Stream], defaults to new streams
         Output streams or IDs to initialize output streams. If None, 
         leave streams missing.
+    species=None : Species or WorkingSpecies, defaults to Stream.species
+        Species object to initialize input and output streams.
 
     **Abstract class attributes**
     
@@ -185,8 +171,11 @@ class Unit(metaclass=unit):
 
     ### Other defaults ###
 
-    # [list] Default ID starting letter and number
-    _default_ID = ['U', 1]
+    #: [str] Default ID for all units (class attribute)
+    default_ID = 'U'
+    
+    #: [int] Current number for default IDs (class attribute)
+    default_ID_number = 0
     
     # Default ID
     _ID = None 
@@ -196,39 +185,39 @@ class Unit(metaclass=unit):
         
     ### Initialize ###
     
-    def __init__(self, ID='', ins=None, outs=()):
-        self._init_ins(ins)
-        self._init_outs(outs)
+    def __init__(self, ID='', ins=None, outs=(), species=()):
+        self._init_ins(ins, species)
+        self._init_outs(outs, species)
         self._init_results()
         self._init_heat_utils()
         self._init_power_util()
         self.ID = ID
 
-    def _init_ins(self, ins):
+    def _init_ins(self, ins, species):
         """Initialize input streams."""
         if ins is None:
             self._ins = Ins(self, (MissingStream for i in range(self._N_ins)))
         elif isinstance(ins, Stream):
             self._ins = Ins(self, (ins,))
         elif isinstance(ins, str):
-            self._ins = Ins(self, (Stream(ins),))
+            self._ins = Ins(self, (Stream(ins, species=species),))
         elif not ins:
-            self._ins = Ins(self, (Stream('') for i in range(self._N_ins)))
+            self._ins = Ins(self, (Stream('', species=species) for i in range(self._N_ins)))
         else:
-            self._ins = Ins(self, (i if isinstance(i, Stream) else Stream(i) for i in ins))
+            self._ins = Ins(self, (i if isinstance(i, Stream) else Stream(i, species=species) for i in ins))
     
-    def _init_outs(self, outs):
+    def _init_outs(self, outs, species):
         """Initialize output streams."""
         if outs is None:
             self._outs = Outs(self, (MissingStream for i in range(self._N_outs)))
         elif not outs:
-            self._outs = Outs(self, (Stream('') for i in range(self._N_outs)))
+            self._outs = Outs(self, (Stream('', species=species) for i in range(self._N_outs)))
         elif isinstance(outs, Stream):
             self._outs = Outs(self, (outs,))
         elif isinstance(outs, str):
-            self._outs = Outs(self, (Stream(outs),))
+            self._outs = Outs(self, (Stream(outs, species=species),))
         else:
-            self._outs = Outs(self, (i if isinstance(i, Stream) else Stream(i) for i in outs))        
+            self._outs = Outs(self, (i if isinstance(i, Stream) else Stream(i, species=species) for i in outs))        
     
     def _init_results(self):
         """Initialize attributes to store results."""
@@ -293,6 +282,7 @@ class Unit(metaclass=unit):
     # Abstract methods
     _design   = NotImplementedMethod
     _cost     = NotImplementedMethod
+    _more_design_specs = NotImplementedMethod
     
     # Summary
     def _summary(self):
@@ -324,38 +314,45 @@ class Unit(metaclass=unit):
         _try_method(self._run)
         _try_method(self._summary)
 
-    def results(self, with_units=True):
+    def results(self, with_units=True, include_utilities=True,
+                include_total_cost=True):
         """Return key results from simulation as a DataFrame if `with_units` is True or as a Series otherwise."""
         ID = self.ID
         keys = []; addkey = keys.append
         vals = []; addval = vals.append
         if with_units:
-            if self._power_utility:
-                i = self._power_utility
-                addkey(('Power', 'Rate'))
-                addkey(('Power', 'Cost'))
-                addval(('kW', i.rate))
-                addval(('USD/hr', i.cost))
-            if self._heat_utilities:
-                for i in self._heat_utilities:
-                    addkey((i.ID, 'Duty'))
-                    addkey((i.ID, 'Flow'))
-                    addkey((i.ID, 'Cost'))
-                    addval(('kJ/hr', i.duty))
-                    addval(('kmol/hr', i.flow))
+            if include_utilities:
+                if self._power_utility:
+                    i = self._power_utility
+                    addkey(('Power', 'Rate'))
+                    addkey(('Power', 'Cost'))
+                    addval(('kW', i.rate))
                     addval(('USD/hr', i.cost))
+                if self._heat_utilities:
+                    for i in self._heat_utilities:
+                        addkey((i.ID, 'Duty'))
+                        addkey((i.ID, 'Flow'))
+                        addkey((i.ID, 'Cost'))
+                        addval(('kJ/hr', i.duty))
+                        addval(('kmol/hr', i.flow))
+                        addval(('USD/hr', i.cost))
             units = self._units
             Cost = self._Cost
             for ki, vi in self._Design.items():
                 addkey(('Design', ki))
                 addval((units.get(ki, ''), vi))
+            if self._more_design_specs:
+                for ki, vi, ui in self._more_design_specs():
+                    addkey(('Design', ki))
+                    addval((ui, vi))
             for ki, vi in Cost.items():
                 addkey(('Cost', ki))
                 addval(('USD', vi))
-            addkey(('Purchase cost', ''))
-            addval(('USD', self.purchase_cost))
-            addkey(('Utility cost', ''))
-            addval(('USD/hr', self.utility_cost))
+            if include_total_cost:
+                addkey(('Purchase cost', ''))
+                addval(('USD', self.purchase_cost))
+                addkey(('Utility cost', ''))
+                addval(('USD/hr', self.utility_cost))
             if self._GHGs:
                 a, b = self._totalGHG
                 GHG_units =  self._GHG_units
@@ -375,23 +372,28 @@ class Unit(metaclass=unit):
             df.columns.name = self.line
             return df
         else:
-            if self._power_utility:
-                i = self._power_utility
-                addkey(('Power', 'Rate'))
-                addkey(('Power', 'Cost'))
-                addval(i.rate)
-                addval(i.cost)
-            if self._heat_utilities:
-                for i in self._heat_utilities:
-                    addkey((i.ID, 'Duty'))
-                    addkey((i.ID, 'Flow'))
-                    addkey((i.ID, 'Cost'))
-                    addval(i.duty)
-                    addval(i.flow)
+            if include_utilities:
+                if self._power_utility:
+                    i = self._power_utility
+                    addkey(('Power', 'Rate'))
+                    addkey(('Power', 'Cost'))
+                    addval(i.rate)
                     addval(i.cost)
+                if self._heat_utilities:
+                    for i in self._heat_utilities:
+                        addkey((i.ID, 'Duty'))
+                        addkey((i.ID, 'Flow'))
+                        addkey((i.ID, 'Cost'))
+                        addval(i.duty)
+                        addval(i.flow)
+                        addval(i.cost)
             for ki, vi in self._Design.items():
                 addkey(('Design', ki))
                 addval(vi)
+            if self._more_design_specs:
+                for ki, vi, ui in self._more_design_specs():
+                    addkey(('Design', ki))
+                    addval(vi)
             for ki, vi in self._Cost.items():
                 addkey(('Cost', ki))
                 addval(vi)    
@@ -407,10 +409,11 @@ class Unit(metaclass=unit):
                 addval(a)
                 addkey(('Total ' + b_key, ''))
                 addval(b)
-            addkey(('Purchase cost', ''))
-            addval(self.purchase_cost)
-            addkey(('Utility cost', ''))
-            addval(self.utility_cost)
+            if include_total_cost:
+                addkey(('Purchase cost', ''))
+                addval(self.purchase_cost)
+                addkey(('Utility cost', ''))
+                addval(self.utility_cost)
             series = pd.Series(vals, pd.MultiIndex.from_tuples(keys))
             series.name = ID
             return series
@@ -463,18 +466,12 @@ class Unit(metaclass=unit):
     def ID(self, ID):
         if ID == '':
             # Select a default ID if requested
-            letter, number = self._default_ID
-            self._default_ID[1] += 1
-            ID = letter + str(number)
+            self.__class__.default_ID_number += 1
+            ID = self.default_ID + str(self.default_ID_number)
             self._ID = ID
-            find.unit[ID] = self
+            setattr(find.unit, ID, self)
         elif ID and ID != self._ID:
-            ID = ID.replace(' ', '_')
-            ID_words = ID.split('_')
-            if not all(word.isalnum() for word in ID_words):
-                raise ValueError('ID cannot have any special characters')
-            self._ID = ID
-            find.unit[ID] = self
+            setattr(find.unit, ID, self)
 
     # Input and output streams
     @property
@@ -488,7 +485,7 @@ class Unit(metaclass=unit):
 
     @property
     def _downstream_units(self):
-        """Return set of all units downstreasm."""
+        """Return set of all units downstream."""
         downstream_units = set()
         outer_periphery = set()
         _add_downstream = _add_downstream_neighbors
@@ -505,40 +502,49 @@ class Unit(metaclass=unit):
                 _add_downstream(unit, outer_periphery)
             new_length = len(downstream_units)
         return downstream_units
-
-    def _neighborhood(self, radius=1):
+        
+    def _neighborhood(self, radius=1, upstream=True, downstream=True):
         """Return all neighboring units within given radius.
         
         Parameters
         ----------
         radius : int
                  Maxium number streams between neighbors.
+        downstream=True : bool, optional
+            Whether to include downstream operations
+        upstream=True : bool, optional
+            Whether to include upstream operations
         
         """
         radius -= 1
         neighborhood = set()
         if radius < 0: return neighborhood
-        _add_upstream_neighbors(self, neighborhood)
-        _add_downstream_neighbors(self, neighborhood)
+        upstream and _add_upstream_neighbors(self, neighborhood)
+        downstream and _add_downstream_neighbors(self, neighborhood)
         direct_neighborhood = neighborhood
         for i in range(radius):
             neighbors = set()
             for neighbor in direct_neighborhood:
-                _add_upstream_neighbors(neighbor, neighbors)
-                _add_downstream_neighbors(neighbor, neighbors)
+                upstream and _add_upstream_neighbors(neighbor, neighbors)
+                downstream and _add_downstream_neighbors(neighbor, neighbors)
             if neighbors == direct_neighborhood: break
             direct_neighborhood = neighbors
             neighborhood.update(direct_neighborhood)
         
         return neighborhood
 
-    def diagram(self, radius=0, file=None, format='png'):
+    def diagram(self, radius=0, upstream=True, downstream=True, 
+                file=None, format='png', **graph_attrs):
         """Display a `Graphviz <https://pypi.org/project/graphviz/>`__ diagram of the unit and all neighboring units within given radius.
         
         Parameters
         ----------
         radius : int
                  Maxium number streams between neighbors.
+        downstream=True : bool, optional
+            Whether to show downstream operations
+        upstream=True : bool, optional
+            Whether to show upstream operations
         file : Must be one of the following:
             * [str] File name to save diagram.
             * [None] Display diagram in console.
@@ -547,10 +553,10 @@ class Unit(metaclass=unit):
         
         """
         if radius > 0:
-            neighborhood = self._neighborhood(radius)
+            neighborhood = self._neighborhood(radius, upstream, downstream)
             neighborhood.add(self)
             sys = bst.System('', neighborhood)
-            return sys.diagram('thorough', file, format)
+            return sys.diagram('thorough', file, format, **graph_attrs)
         
         graphics = self._graphics
 
@@ -558,7 +564,7 @@ class Unit(metaclass=unit):
         f = Digraph(name='unit', filename='unit', format='svg')
         f.attr('graph', ratio='0.5', splines='normal', outputorder='edgesfirst',
                nodesep='1.1', ranksep='0.8', maxiter='1000')  # Specifications
-        f.attr(rankdir='LR')  # Left to right
+        f.attr(rankdir='LR', **graph_attrs)  # Left to right
 
         # If many streams, keep streams close
         if (len(self.ins) >= 3) or (len(self.outs) >= 3):
@@ -722,7 +728,7 @@ class Unit(metaclass=unit):
         return self._H_out - self._H_in + self._Hf_out - self._Hf_in
     
     # Representation
-    def _info(self, T, P, flow, fraction):
+    def _info(self, T, P, flow, fraction, N):
         """Information on unit."""
         if self.ID:
             info = f'{type(self).__name__}: {self.ID}\n'
@@ -735,7 +741,7 @@ class Unit(metaclass=unit):
                 info += f'[{i}] {stream}\n'
                 i += 1
                 continue
-            stream_info = stream._info(T, P, flow, fraction)
+            stream_info = stream._info(T, P, flow, fraction, N)
             unit = stream._source
             index = stream_info.index('\n')
             source_info = f'  from  {type(unit).__name__}-{unit}\n' if unit else '\n'
@@ -748,7 +754,7 @@ class Unit(metaclass=unit):
                 info += f'[{i}] {stream}\n'
                 i += 1
                 continue
-            stream_info = stream._info(T, P, flow, fraction)
+            stream_info = stream._info(T, P, flow, fraction, N)
             unit = stream._sink
             index = stream_info.index('\n')
             sink_info = f'  to  {type(unit).__name__}-{unit}\n' if unit else '\n'
@@ -757,9 +763,9 @@ class Unit(metaclass=unit):
         info = info.replace('\n ', '\n    ')
         return info[:-1]
 
-    def show(self, T=None, P=None, flow=None, fraction=None):
+    def show(self, T=None, P=None, flow=None, fraction=None, N=None):
         """Prints information on unit."""
-        print(self._info(T, P, flow, fraction))
+        print(self._info(T, P, flow, fraction, N))
     
     def _ipython_display_(self):
         try: self.diagram()
@@ -779,10 +785,7 @@ class Unit(metaclass=unit):
         self._ins.clear()
     
     def __str__(self):
-        if self.ID:
-            return self.ID
-        else:
-            return type(self).__name__
+        return self.ID or type(self).__name__
 
     def __repr__(self):
         if self.ID:

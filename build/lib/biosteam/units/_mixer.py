@@ -53,6 +53,7 @@ class Mixer(Unit):
     """
     _has_cost = False
     _N_outs = 1
-    _N_ins = 2
+    _N_ins = 5
     def _run(self): Stream.sum(self.outs[0], self.ins)
 
+Mixer._N_ins = 2

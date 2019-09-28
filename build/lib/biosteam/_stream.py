@@ -390,8 +390,11 @@ class Stream(metaclass=metaStream):
     ### Class attributes for working species ###    
     _cls_species = _MW = None
     
-    # [list] Default starting letter and current number for ID (class attribute)
-    _default_ID = ['d', 1]
+    #: [str] Default ID for all streams (class attribute)
+    default_ID = 'd'
+    
+    #: [int] Current number for default IDs (class attribute)
+    default_ID_number = 0
     
     #: [bool] If True, approximate energy balance. False otherwise.
     lazy_energy_balance = True
@@ -399,7 +402,8 @@ class Stream(metaclass=metaStream):
     #: [DisplayUnits] Units of measure for IPython display
     display_units = DisplayUnits(T='K', P='Pa',
                                  flow=('kmol/hr', 'kg/hr', 'm3/hr'),
-                                 fraction=False)
+                                 fraction=False,
+                                 N=5)
 
     def __init__(self, ID='', flow=(), species=(), units='kmol/hr',
                  phase='l', T=298.15, P=101325, *, price=0, **flow_pairs):
@@ -594,19 +598,12 @@ class Stream(metaclass=metaStream):
     def ID(self, ID):
         if ID == '':
             # Select a default ID
-            letter, number = self._default_ID
-            self._default_ID[1] += 1
-            num = str(number)
-            ID = letter + num
+            self.__class__.default_ID_number += 1
+            ID = self.default_ID + str(self.default_ID_number)
             self._ID = ID
-            find.stream[ID] = self
+            setattr(find.stream, ID, self)
         elif ID and ID != self._ID:
-            ID = ID.replace(' ', '_')
-            ID_words = ID.split('_')
-            if not all([word.isalnum() for word in ID_words]):
-                raise ValueError('ID cannot have any special characters')
-            self._ID = ID
-            find.stream[ID] = self
+            setattr(find.stream, ID, self)
 
     @property
     def cost(self):
@@ -1762,7 +1759,7 @@ class Stream(metaclass=metaStream):
         return f" phase: '{phases}', T: {T:.5g} {T_units}, P: {P:.6g} {P_units}\n"
 
     # Representation
-    def _info(self, T, P, flow, fraction):
+    def _info(self, T, P, flow, fraction, N):
         """Return string with all specifications."""
         units = self.units
         basic_info = self._info_header() + '\n'
@@ -1770,8 +1767,8 @@ class Stream(metaclass=metaStream):
             nonzero, species = self.nonzero_species
         else:
             return basic_info + f' link: {self._link}'
-        T_units, P_units, flow_units, fraction = [(i if i is not None else j) for i, j in
-                                                  zip((T, P, flow, fraction), self.display_units)]
+        T_units, P_units, flow_units, fraction, N = [(i if i is not None else j) for i, j in
+                                                     zip((T, P, flow, fraction, N), self.display_units)]
         basic_info += self._info_phaseTP(self._phase, T_units, P_units)
         len_ = len(nonzero)
         if len_ == 0:
@@ -1813,20 +1810,42 @@ class Stream(metaclass=metaStream):
         flowrates = ''
         lengths = [len(sp) for sp in species]
         maxlen = max(lengths) + 1
+        _N = N - 1
         for i in range(len_-1):
             spaces = ' ' * (maxlen - lengths[i])
+            if i == _N:
+                flowrates += '...\n' + new_line_spaces
+                break
             flowrates += species[i] + spaces + f' {flow[i]:.3g}\n' + new_line_spaces
         spaces = ' ' * (maxlen - lengths[len_-1])
         flowrates += species[len_-1] + spaces + f' {flow[len_-1]:.3g}'
-        
         return (basic_info 
               + beginning
               + flowrates
               + end.replace('*', new_line_spaces + 'net' + (maxlen-4)*' ' + '  '))
 
-    def show(self, T=None, P=None, flow=None, fraction=None):
-        """Print all specifications."""
-        print(self._info(T, P, flow, fraction))
+    def show(self, T=None, P=None, flow=None, fraction=None, N=None):
+        """Print all specifications.
+        
+        Parameters
+        ----------
+        T: str, optional
+            Temperature units.
+        P: str, optional
+            Pressure units.
+        flow: str, optional
+            Flow rate units.
+        fraction: bool, optional
+            Display flows as net flow rate and fractions (i.e composition).
+        N: int, optional
+            Number of compounds to display.
+        
+        Notes
+        -----
+        Default values are stored in `Stream.display_units`.
+        
+        """
+        print(self._info(T, P, flow, fraction, N))
     _ipython_display_ = show
 
     def _disconnect(self):
