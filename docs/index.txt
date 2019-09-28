@@ -17,8 +17,7 @@ The :doc:`Species` object defines the working compounds of the biorefinery. When
 Installation
 ============
 
-Get the latest version of BioSTEAM from
-https://pypi.python.org/pypi/biosteam/
+Get the latest version of BioSTEAM `here <https://pypi.python.org/pypi/biosteam/>`__.
 
 If you have an installation of Python with pip, simple install it with:
 
