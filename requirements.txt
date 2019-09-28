@@ -13,4 +13,5 @@ pandas
 numpy
 graphviz
 matplotlib
+numpydoc
 nbsphinx
