@@ -93,13 +93,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">7. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis of a biorefinery.html">8. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">9. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">10. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Stoichiometric reactions.html">11. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Advanced simulation.html">12. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -196,11 +197,11 @@
 <span class="kn">from</span> <span class="nn">..reaction</span> <span class="k">import</span> <span class="n">Reaction</span>
 
 <div class="viewcode-block" id="Fermentation"><a class="viewcode-back" href="../../../units/Fermentation.html#biosteam.units.Fermentation">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Reactor volume&#39;</span><span class="p">,</span> <span class="s1">&#39;Cleaning in place&#39;</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">521.9</span><span class="p">,</span>
-      <span class="n">cost</span><span class="o">=</span><span class="mf">421e3</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mi">3785</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">1.8</span><span class="p">)</span>
+      <span class="n">cost</span><span class="o">=</span><span class="mf">421e3</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mi">3785</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">1.8</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="s1">&#39;N&#39;</span><span class="p">)</span>
 <span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Reactor volume&#39;</span><span class="p">,</span> <span class="s1">&#39;Agitators&#39;</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">521.9</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mi">52500</span><span class="p">,</span>
-      <span class="n">S</span><span class="o">=</span><span class="mi">3785</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mf">22.371</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+      <span class="n">S</span><span class="o">=</span><span class="mi">3785</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mf">22.371</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="s1">&#39;N&#39;</span><span class="p">)</span>
 <span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Reactor volume&#39;</span><span class="p">,</span> <span class="s1">&#39;Reactors&#39;</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">521.9</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mi">844000</span><span class="p">,</span>
-      <span class="n">S</span><span class="o">=</span><span class="mi">3785</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+      <span class="n">S</span><span class="o">=</span><span class="mi">3785</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="s1">&#39;N&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Fermentation</span><span class="p">(</span><span class="n">Unit</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a Fermentation object which models large-scale batch fermentation for the production of 1st generation ethanol using yeast [1, 2, 3, 4]. A compound with CAS &#39;Yeast&#39; must be present in species. Only sucrose and glucose are taken into account for conversion. Conversion is based on reaction time, `tau`. Cleaning and unloading time, `tau_0`, fraction of working volume, `V_wf`, and number of reactors, `N_reactors`, are attributes that can be changed. Cost of a reactor is based on the NREL batch fermentation tank cost assuming volumetric scaling with a 6/10th exponent [3]. </span>
 <span class="sd">    </span>
@@ -268,6 +269,11 @@
                          <span class="mf">113.4</span><span class="p">,</span> <span class="c1"># Xm</span>
                          <span class="mf">0.45</span><span class="p">,</span>  <span class="c1"># Y_PS</span>
                          <span class="mf">0.18</span><span class="p">)</span>  <span class="c1"># a</span>
+    
+    <span class="k">def</span> <span class="nf">_more_design_specs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">((</span><span class="s1">&#39;Cleaning and unloading time&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau_0</span><span class="p">,</span> <span class="s1">&#39;hr&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="s1">&#39;Working volume fraction&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_volume_fraction</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="s1">&#39;Number of reactors&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">N</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
     
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="o">*</span><span class="p">,</span> 
                  <span class="n">tau</span><span class="p">,</span>  <span class="n">N</span><span class="p">,</span> <span class="n">efficiency</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span> <span class="n">iskinetic</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -412,7 +418,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">autoselect_N</span> <span class="o">=</span> <span class="kc">False</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">N_at_minimum_capital_cost</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">autoselect_N</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Number of reactors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_N</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_N</span>
         <span class="n">Design</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">size_batch</span><span class="p">(</span><span class="n">v_0</span><span class="p">,</span> <span class="n">tau</span><span class="p">,</span> <span class="n">tau_0</span><span class="p">,</span> <span class="n">N</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_V_wf</span><span class="p">))</span>
         <span class="n">hx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cooler</span>
         <span class="n">hx</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">mol</span><span class="o">/</span><span class="n">N</span> 
@@ -423,12 +429,8 @@
         <span class="n">hu</span><span class="o">.</span><span class="n">duty</span> <span class="o">*=</span> <span class="n">N</span>
         <span class="n">hu</span><span class="o">.</span><span class="n">cost</span> <span class="o">*=</span> <span class="n">N</span>
         <span class="n">hu</span><span class="o">.</span><span class="n">flow</span> <span class="o">*=</span> <span class="n">N</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span><span class="p">[</span><span class="s1">&#39;Coolers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cooler</span><span class="o">.</span><span class="n">_Cost</span><span class="p">[</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_N</span></div>
         
-    <span class="k">def</span> <span class="nf">_end_decorated_cost_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;Number of reactors&#39;</span><span class="p">]</span>
-        <span class="n">Cost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span>
-        <span class="n">Cost</span><span class="p">[</span><span class="s1">&#39;Coolers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cooler</span><span class="o">.</span><span class="n">_Cost</span><span class="p">[</span><span class="s1">&#39;Heat exchanger&#39;</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">Cost</span><span class="p">:</span> <span class="n">Cost</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*=</span> <span class="n">N</span></div>
     
 </pre></div>
 

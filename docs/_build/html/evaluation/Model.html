@@ -95,13 +95,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../units/notebooks/examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">7. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis of a biorefinery.html">8. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">9. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">10. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Stoichiometric reactions.html">11. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Advanced simulation.html">12. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -214,7 +215,7 @@
 <span id="model"></span><h1>Model<a class="headerlink" href="#module-biosteam.evaluation" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.evaluation.Model">
-<em class="property">class </em><code class="descclassname">biosteam.evaluation.</code><code class="descname">Model</code><span class="sig-paren">(</span><em>system</em>, <em>skip=False</em>, <em>**metrics</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_model.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Model" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.evaluation.</code><code class="descname">Model</code><span class="sig-paren">(</span><em>system</em>, <em>metrics</em>, <em>skip=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_model.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Model" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Model object that allows for evaluation over a sample space.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -224,23 +225,33 @@
 <dt><strong>system</strong> <span class="classifier-delimiter">:</span> <span class="classifier">System</span></dt>
 <dd><p class="first last">Should reflect the model state.</p>
 </dd>
+<dt><strong>metrics</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple[Metric]</span></dt>
+<dd><p class="first last">Metrics to be evaluated by model.</p>
+</dd>
 <dt><strong>skip=False</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
 <dd><p class="first last">If True, skip simulation for repeated states.</p>
 </dd>
-<dt><strong>**metrics</strong> <span class="classifier-delimiter">:</span> <span class="classifier">function</span></dt>
-<dd><p class="first last">ID-metric pairs.</p>
-</dd>
+<dt><strong>Examples</strong></dt>
+<dd></dd>
+<dt><strong>——–</strong></dt>
+<dd></dd>
+<dt><strong>:doc:`../tutorial/Advanced simulation`</strong></dt>
+<dd></dd>
 </dl>
 </td>
 </tr>
 </tbody>
 </table>
-<p class="rubric">Examples</p>
-<p><a class="reference internal" href="../tutorial/Advanced simulation.html"><span class="doc">Advanced simulation</span></a></p>
+<dl class="method">
+<dt id="biosteam.evaluation.Model.copy">
+<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_model.html#Model.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Model.copy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return copy.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="biosteam.evaluation.Model.metrics">
 <code class="descname">metrics</code><a class="headerlink" href="#biosteam.evaluation.Model.metrics" title="Permalink to this definition">¶</a></dt>
-<dd><p>dict[str: function] ID-metric pairs.</p>
+<dd><p>tuple[Metric] Metrics to be evaluated by model.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -251,20 +262,108 @@
 
 <dl class="method">
 <dt id="biosteam.evaluation.Model.load_samples">
-<code class="descname">load_samples</code><span class="sig-paren">(</span><em>samples</em>, <em>has_repeats=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_model.html#Model.load_samples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Model.load_samples" title="Permalink to this definition">¶</a></dt>
+<code class="descname">load_samples</code><span class="sig-paren">(</span><em>samples</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_model.html#Model.load_samples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Model.load_samples" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load samples for evaluation</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>samples</strong> <span class="classifier-delimiter">:</span> <span class="classifier">numpy.ndarray, dim=2</span></dt>
+<dd></dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.evaluation.Model.evaluate">
-<code class="descname">evaluate</code><span class="sig-paren">(</span><em>default=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_model.html#Model.evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Model.evaluate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Evaluate metric over the argument sample space and save values to <cite>table</cite>.</p>
+<code class="descname">evaluate</code><span class="sig-paren">(</span><em>thorough=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_model.html#Model.evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Model.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate metric over the argument sample space and save values to <code class="docutils literal notranslate"><span class="pre">table</span></code>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>thorough</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
+<dd><p class="first last">If True, simulate the whole system with each sample.
+If False, simulate only the affected parts of the system.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.evaluation.Model.evaluate_across_coordinate">
+<code class="descname">evaluate_across_coordinate</code><span class="sig-paren">(</span><em>f_coordinate</em>, <em>name</em>, <em>lb</em>, <em>ub</em>, <em>xlfile</em>, <em>N_samples=1000</em>, <em>N_points=20</em>, <em>rule='L'</em>, <em>notify=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_model.html#Model.evaluate_across_coordinate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Model.evaluate_across_coordinate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Evaluate across coordinate and save sample metrics.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>f_coordinate</strong> <span class="classifier-delimiter">:</span> <span class="classifier">function</span></dt>
+<dd><p class="first last">Should change state of system given the coordinate.</p>
+</dd>
+<dt><strong>lb</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Lower bound of coordinate.</p>
+</dd>
+<dt><strong>ub</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
+<dd><p class="first last">Upper bound of coordinate.</p>
+</dd>
+<dt><strong>xlfile</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Name of file to save. File must end with “.xlsx”</p>
+</dd>
+<dt><strong>N_samples=1000</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int, optional</span></dt>
+<dd><p class="first last">Number of samples at each coordinate.</p>
+</dd>
+<dt><strong>N_points=20</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int, optional</span></dt>
+<dd><p class="first last">Number of lipid fractions evaluated.</p>
+</dd>
+<dt><strong>rule=’L’</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
+<dd><p class="first last">Sampling rule.</p>
+</dd>
+<dt><strong>notify=True</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional</span></dt>
+<dd><p class="first last">If True, notify elapsed time after each coordinate evaluation.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="biosteam.evaluation.Model.spearman">
+<code class="descname">spearman</code><span class="sig-paren">(</span><em>metrics=()</em>, <em>excluded_params=()</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_model.html#Model.spearman"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Model.spearman" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return DataFrame of Spearman’s rank correlation for metrics vs parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>metrics=()</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Iterable[Metric], defaults to all metrics</span></dt>
+<dd><p class="first last">Names of metrics to be be correlated with parameters.</p>
+</dd>
+<dt><strong>excluded_params=()</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Iterable[str], optional</span></dt>
+<dd><p class="first last">Names of parameters to exclude.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.evaluation.Model.__call__">
 <code class="descname">__call__</code><span class="sig-paren">(</span><em>sample</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_model.html#Model.__call__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Model.__call__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return dictionary of metric values.</p>
+<dd><p>Return list of metric values.</p>
 </dd></dl>
 
 <dl class="method">
@@ -280,9 +379,40 @@
 </dd></dl>
 
 <dl class="method">
+<dt id="biosteam.evaluation.Model.load_default_parameters">
+<code class="descname">load_default_parameters</code><span class="sig-paren">(</span><em>feedstock</em>, <em>shape=&lt;function triang&gt;</em>, <em>bounded_shape=&lt;function bounded_triang&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.evaluation.Model.load_default_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load all default parameters, including coefficients of cost items, stream prices, electricity price, heat utility prices, feedstock flow rate, and number of operating days.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><strong>feedstock</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Stream</span></dt>
+<dd><p class="first last">Main feedstock of process.</p>
+</dd>
+<dt><strong>shape</strong> <span class="classifier-delimiter">:</span> <span class="classifier">function, optional</span></dt>
+<dd><p class="first last">Should take in baseline value and return a chaospy.Dist object or
+None. Default function returns a chaospy.Triangle object with bounds
+at +- 10% of baseline value. The distribution is applied to all
+parameters except exponential factor “n” of cost items.</p>
+</dd>
+<dt><strong>bounded_shape</strong> <span class="classifier-delimiter">:</span> <span class="classifier">function, optional</span></dt>
+<dd><p class="first last">Should take in baseline value and return a chaospy.Dist object or
+None. Default function returns a chaospy.Triangle object with bounds
+at +- 0.1 of baseline value or minimum 0 and maximum 1. The 
+distribution is applied to exponential factor “n” of cost items.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="biosteam.evaluation.Model.parameter">
 <code class="descname">parameter</code><span class="sig-paren">(</span><em>setter=None</em>, <em>element=None</em>, <em>kind='isolated'</em>, <em>name=None</em>, <em>distribution=None</em>, <em>units=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.evaluation.Model.parameter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Define parameter and add to model.</p>
+<dd><p>Define and register parameter.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -323,7 +453,7 @@
 <dl class="method">
 <dt id="biosteam.evaluation.Model.sample">
 <code class="descname">sample</code><span class="sig-paren">(</span><em>N</em>, <em>rule</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.evaluation.Model.sample" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sample from parameter distribution.</p>
+<dd><p>Return N samples from parameter distribution at given rule.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -333,10 +463,55 @@
 <dd><p class="first last">Number of samples.</p>
 </dd>
 <dt><strong>rule</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd><p class="first last">Sampling rule (e.g. “L” for latin hypercube sampling).</p>
+<dd><p class="first last">Sampling rule.</p>
 </dd>
 </dl>
 </td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Use the following <code class="docutils literal notranslate"><span class="pre">rule</span></code> flag for sampling:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="13%" />
+<col width="88%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">key</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">C</span></code></td>
+<td>Roots of the first order Chebyshev polynomials.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">NC</span></code></td>
+<td>Chebyshev nodes adjusted to ensure nested.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">K</span></code></td>
+<td>Korobov lattice.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">R</span></code></td>
+<td>Classical (Pseudo-)Random samples.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">RG</span></code></td>
+<td>Regular spaced grid.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">NG</span></code></td>
+<td>Nested regular spaced grid.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">L</span></code></td>
+<td>Latin hypercube samples.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">S</span></code></td>
+<td>Sobol low-discrepancy sequence.</td>
+</tr>
+<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">H</span></code></td>
+<td>Halton low-discrepancy sequence.</td>
+</tr>
+<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">M</span></code></td>
+<td>Hammersley low-discrepancy sequence.</td>
 </tr>
 </tbody>
 </table>

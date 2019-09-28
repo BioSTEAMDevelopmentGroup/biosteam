@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>9. Unit decorators &mdash; BioSTEAM 0.1 documentation</title>
+  <title>10. Unit decorators &mdash; BioSTEAM 0.1 documentation</title>
   
 
   
@@ -44,8 +44,8 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="10. Stoichiometric reactions" href="Stoichiometric reactions.html" />
-    <link rel="prev" title="8. Inheriting from Unit" href="Inheriting from Unit.html" /> 
+    <link rel="next" title="11. Stoichiometric reactions" href="Stoichiometric reactions.html" />
+    <link rel="prev" title="9. Inheriting from Unit" href="Inheriting from Unit.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -95,16 +95,17 @@
 <li class="toctree-l1"><a class="reference internal" href="MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">3. Creating a Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../units/notebooks/examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">9. Unit decorators</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#cost-decorator">9.1. cost decorator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Biorefineries.html">7. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">8. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">9. Inheriting from Unit</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">10. Unit decorators</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#cost-decorator">10.1. cost decorator</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">11. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">12. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -167,7 +168,7 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-      <li>9. Unit decorators</li>
+      <li>10. Unit decorators</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -370,9 +371,9 @@ div.nboutput div.output_area.stderr {
 }
 </style>
 <div class="section" id="Unit-decorators">
-<h1>9. Unit decorators<a class="headerlink" href="#Unit-decorators" title="Permalink to this headline">¶</a></h1>
+<h1>10. Unit decorators<a class="headerlink" href="#Unit-decorators" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="cost-decorator">
-<h2>9.1. cost decorator<a class="headerlink" href="#cost-decorator" title="Permalink to this headline">¶</a></h2>
+<h2>10.1. cost decorator<a class="headerlink" href="#cost-decorator" title="Permalink to this headline">¶</a></h2>
 <p>The cost decorator adds a free on board purchase cost based on the
 exponential scale up equation:</p>
 <div class="math">
@@ -571,6 +572,7 @@ CostItem: Flow rate (kg/hr)
  n     0.6
  kW    3e+03
  BM    1.39
+
 </pre></div></div>
 </div>
 <p>Any option can be changed:</p>
@@ -717,7 +719,7 @@ CostItem: Flow rate (kg/hr)
       <td>1e+06</td>
     </tr>
     <tr>
-      <th>#Shredder</th>
+      <th>NaN</th>
       <td></td>
       <td>2</td>
     </tr>
@@ -766,10 +768,10 @@ Accounting and Capital Cost Estimation (Chapter 16)</li>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="Stoichiometric reactions.html" class="btn btn-neutral float-right" title="10. Stoichiometric reactions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="Stoichiometric reactions.html" class="btn btn-neutral float-right" title="11. Stoichiometric reactions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="Inheriting from Unit.html" class="btn btn-neutral float-left" title="8. Inheriting from Unit" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="Inheriting from Unit.html" class="btn btn-neutral float-left" title="9. Inheriting from Unit" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

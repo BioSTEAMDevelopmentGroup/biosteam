@@ -22,7 +22,7 @@ nums = tuple(range(1, 9))
 positions = (0,)
 data = pd.read_excel('Monte Carlo cornstover.xlsx', header=[0, 1])
 MESP = np.array(data[('Biorefinery', 'Minimum ethanol selling price')])
-bx = plot_montecarlo(MESP, light_color, dark_color, positions)
+bx = plot_montecarlo(MESP, light_color, dark_color, positions, transpose=True)
 sc = plot_single_points(positions, (2.15,), dot_color)
 
 plt.ylim(1.65, 2.65)
@@ -44,7 +44,7 @@ humbird_electricity = 41 * np.array((0.02, 0.14, 0.06, 0.05,
                                      0.18, 0.003, 0.03, 0.08, 0.44))
 electricity_data = data[electricity_cols]  #/ humbird_electricity
 electricity_data[('Biorefinery', 'Excess electricity')] /= 1000
-plot_montecarlo(electricity_data, light_color, dark_color)
+plot_montecarlo(electricity_data, light_color, dark_color, transpose=True)
 plot_single_points(positions, humbird_electricity, dot_color)
 plt.xticks(positions, xmarks + ['Excess'])
 
@@ -55,6 +55,6 @@ units = '10^6 USD'
 installation_cols = [(i, 'Installation cost') for i in areas[1:]]
 humbird_installation = np.array([24.2, 32.9, 31.2, 22.3, 49.4, 5, 66, 6.9])
 installation_data = data[installation_cols] / 1e6
-plot_montecarlo(installation_data, light_color, dark_color)
+plot_montecarlo(installation_data, light_color, dark_color, transpose=True)
 plot_single_points(positions[:-2], humbird_installation[1:], dot_color)
 plt.xticks(positions[:-1], xmarks[1:])

@@ -95,13 +95,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">7. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis of a biorefinery.html">8. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">9. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">10. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Stoichiometric reactions.html">11. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Advanced simulation.html">12. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -229,7 +230,7 @@
 <span id="mixtank"></span><h1>MixTank<a class="headerlink" href="#module-biosteam.units" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.units.MixTank">
-<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">MixTank</code><span class="sig-paren">(</span><em>ID=''</em>, <em>ins=None</em>, <em>outs=()</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_tank.html#MixTank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.MixTank" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">MixTank</code><span class="sig-paren">(</span><em>ID=''</em>, <em>ins=None</em>, <em>outs=()</em>, <em>species=()</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_tank.html#MixTank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.MixTank" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a mixing tank with volume based on residence time.</p>
 <div class="math">
 <p><img src="../_images/math/ffd2499da9bd8afa85bc676ece5d9d7fdfad7c57.png" alt="V &amp;= \frac{\tau* Q}{0.8}
@@ -245,7 +246,7 @@ C_{fob}^{2007} &amp;= 12080 * V^{0.525} (0.1 &lt; V &lt; 30 m^3)"/></p>
 
 <dl class="method">
 <dt id="biosteam.units.MixTank.diagram">
-<code class="descname">diagram</code><span class="sig-paren">(</span><em>radius=0</em>, <em>file=None</em>, <em>format='png'</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.MixTank.diagram" title="Permalink to this definition">¶</a></dt>
+<code class="descname">diagram</code><span class="sig-paren">(</span><em>radius=0</em>, <em>upstream=True</em>, <em>downstream=True</em>, <em>file=None</em>, <em>format='png'</em>, <em>**graph_attrs</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.MixTank.diagram" title="Permalink to this definition">¶</a></dt>
 <dd><p>Display a <a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz</a> diagram of the unit and all neighboring units within given radius.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -254,6 +255,12 @@ C_{fob}^{2007} &amp;= 12080 * V^{0.525} (0.1 &lt; V &lt; 30 m^3)"/></p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
 <dt><strong>radius</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
 <dd><p class="first last">Maxium number streams between neighbors.</p>
+</dd>
+<dt><strong>downstream=True</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional</span></dt>
+<dd><p class="first last">Whether to show downstream operations</p>
+</dd>
+<dt><strong>upstream=True</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional</span></dt>
+<dd><p class="first last">Whether to show upstream operations</p>
 </dd>
 <dt><strong>file</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Must be one of the following:</span></dt>
 <dd><ul class="first last simple">
@@ -279,13 +286,13 @@ C_{fob}^{2007} &amp;= 12080 * V^{0.525} (0.1 &lt; V &lt; 30 m^3)"/></p>
 
 <dl class="method">
 <dt id="biosteam.units.MixTank.results">
-<code class="descname">results</code><span class="sig-paren">(</span><em>with_units=True</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.MixTank.results" title="Permalink to this definition">¶</a></dt>
+<code class="descname">results</code><span class="sig-paren">(</span><em>with_units=True</em>, <em>include_utilities=True</em>, <em>include_total_cost=True</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.MixTank.results" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return key results from simulation as a DataFrame if <cite>with_units</cite> is True or as a Series otherwise.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.units.MixTank.show">
-<code class="descname">show</code><span class="sig-paren">(</span><em>T=None</em>, <em>P=None</em>, <em>flow=None</em>, <em>fraction=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.MixTank.show" title="Permalink to this definition">¶</a></dt>
+<code class="descname">show</code><span class="sig-paren">(</span><em>T=None</em>, <em>P=None</em>, <em>flow=None</em>, <em>fraction=None</em>, <em>N=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.MixTank.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prints information on unit.</p>
 </dd></dl>
 

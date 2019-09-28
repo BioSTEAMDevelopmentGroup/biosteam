@@ -93,13 +93,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">7. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis of a biorefinery.html">8. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">9. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">10. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Stoichiometric reactions.html">11. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Advanced simulation.html">12. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -199,6 +200,7 @@
     <span class="sd">&quot;&quot;&quot;Abstract Tank class.&quot;&quot;&quot;</span>
     <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Total volume&#39;</span><span class="p">:</span> <span class="s1">&#39;m^3&#39;</span><span class="p">}</span>
     <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">1</span>
+    
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">tau</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Residence time (hr).&quot;&quot;&quot;</span>
@@ -225,13 +227,16 @@
     <span class="c1">#: [float] residence time (hr)</span>
     <span class="n">_tau</span> <span class="o">=</span> <span class="mi">4</span><span class="o">*</span><span class="mi">7</span><span class="o">*</span><span class="mi">24</span>
 
+    <span class="k">def</span> <span class="nf">_more_design_specs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">((</span><span class="s1">&#39;Residence time&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau</span><span class="o">/</span><span class="mi">24</span><span class="p">,</span> <span class="s1">&#39;days&#39;</span><span class="p">),)</span>
+
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tau</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_volnet_out</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">V</span><span class="o">/</span><span class="mf">50e3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;Number of tanks&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">V</span><span class="o">/</span><span class="mf">50e3</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;Total volume&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">V</span><span class="o">/</span><span class="n">N</span>
 
     <span class="k">def</span> <span class="nf">_cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">]</span>
+        <span class="n">N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;Number of tanks&#39;</span><span class="p">]</span>
         <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;Total volume&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">V</span> <span class="o">&lt;</span> <span class="mf">2e3</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_Cost</span><span class="p">[</span><span class="s1">&#39;Tank&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">N</span> <span class="o">*</span> <span class="p">(</span><span class="mi">65000</span> <span class="o">+</span> <span class="mf">158.7</span><span class="o">*</span><span class="p">(</span><span class="n">V</span><span class="o">/</span><span class="n">N</span><span class="p">))</span> <span class="o">*</span> <span class="n">bst</span><span class="o">.</span><span class="n">CE</span><span class="o">/</span><span class="mf">525.4</span>
@@ -240,7 +245,8 @@
         <span class="k">else</span><span class="p">:</span>    
             <span class="k">raise</span> <span class="n">DesignError</span><span class="p">(</span><span class="n">f</span><span class="s2">&quot;Volume is out of bounds for costing&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="MixTank"><a class="viewcode-back" href="../../../units/MixTank.html#biosteam.units.MixTank">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Total volume&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mi">12080</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">525.4</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.525</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mf">0.0985</span><span class="p">,</span> <span class="n">ub</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+<div class="viewcode-block" id="MixTank"><a class="viewcode-back" href="../../../units/MixTank.html#biosteam.units.MixTank">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Total volume&#39;</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mi">12080</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mf">525.4</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.525</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mf">0.0985</span><span class="p">,</span> <span class="n">ub</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+      <span class="n">N</span><span class="o">=</span><span class="s1">&#39;Number of tanks&#39;</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">MixTank</span><span class="p">(</span><span class="n">Tank</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a mixing tank with volume based on residence time.</span>
 
@@ -263,6 +269,10 @@
     
     <span class="c1">#: Fraction of working volume</span>
     <span class="n">_V_wf</span> <span class="o">=</span> <span class="mf">0.8</span>
+    
+    <span class="k">def</span> <span class="nf">_more_design_specs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">((</span><span class="s1">&#39;Residence time&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tau</span><span class="p">,</span> <span class="s1">&#39;hr&#39;</span><span class="p">),</span>
+                <span class="p">(</span><span class="s1">&#39;Working volume fraction&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">working_volume_fraction</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
     
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">working_volume_fraction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

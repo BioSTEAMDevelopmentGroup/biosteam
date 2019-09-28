@@ -239,7 +239,8 @@
       " cost  2.5e+06\n",
       " n     0.6\n",
       " kW    3e+03\n",
-      " BM    1.39\n"
+      " BM    1.39\n",
+      "\n"
      ]
     }
    ],
@@ -398,7 +399,7 @@
        "      <td>1e+06</td>\n",
        "    </tr>\n",
        "    <tr>\n",
-       "      <th>#Shredder</th>\n",
+       "      <th>NaN</th>\n",
        "      <td></td>\n",
        "      <td>2</td>\n",
        "    </tr>\n",
@@ -429,7 +430,7 @@
        "Power         Rate           kW    6e+03\n",
        "              Cost       USD/hr      469\n",
        "Design        Flow rate   kg/hr    1e+06\n",
-       "              #Shredder                2\n",
+       "              NaN                      2\n",
        "Cost          Shredder      USD 6.38e+06\n",
        "Purchase cost               USD 6.38e+06\n",
        "Utility cost             USD/hr      469"

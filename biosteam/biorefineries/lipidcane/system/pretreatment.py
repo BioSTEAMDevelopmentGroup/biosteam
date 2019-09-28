@@ -216,7 +216,7 @@ imbibition_water_mass = imbibition_water.mass.item(12)
 (U103-0, enzyme)-T201
 (T201-0, M201-0)-U201-1-S201-0-T202
 (S201-1, imbibition_water)-M201
-crushing_mill_recycle = System('crushing_mill_recycle',
+crushing_mill_recycle_sys = System('crushing_mill_recycle_sys',
                                network=(U201, S201, M201),
                                recycle=M201-0)
 
@@ -226,9 +226,9 @@ T202-0-H201
 (P202-0, P203-0)-M202-H202
 (H202-0, polymer)-T206-C201
 (C201-1, rvf_wash_water)-C202-1-P203
-clarification_recycle = System('clarification_recycle',
-                               network=(M202, H202, T206, C201, C202, P203),
-                               recycle=C202-1)
+clarification_recycle_sys = System('clarification_recycle_sys',
+                                   network=(M202, H202, T206, C201, C202, P203),
+                                   recycle=C202-1)
 
 C201-0-T207-0-H203
 (H203-0, oil_wash_water)-T208-C203-0-F201
@@ -237,11 +237,11 @@ T207-1-S202
 pretreatment_sys = System('pretreatment_sys',
                           network=(U101, U102, U103,
                                    correct_flows, T201,
-                                   crushing_mill_recycle,
+                                   crushing_mill_recycle_sys,
                                    U202, T202, H201, T203,
                                    P201, T204, T205, P202,
                                    correct_wash_water,
-                                   clarification_recycle,
+                                   clarification_recycle_sys,
                                    T207, H203, S202,
                                    correct_lipid_wash_water,
                                    T208, C203, F201,))

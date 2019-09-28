@@ -94,13 +94,14 @@
 <li class="toctree-l1"><a class="reference internal" href="tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="units/notebooks/examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Biorefineries.html">7. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis of a biorefinery.html">8. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">9. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">10. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Stoichiometric reactions.html">11. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Advanced simulation.html">12. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -212,6 +213,21 @@
 <p class="caption"><span class="caption-text"><strong>Figure 1.</strong> A simplified UML class diagram depicts the core classes of BioSTEAM.</span></p>
 </div>
 <p>The <a class="reference internal" href="Species.html"><span class="doc">Species</span></a> object defines the working compounds of the biorefinery. When a Species object is created, it identifies compounds by name and stores pure chemical properties as <a class="reference internal" href="compounds/Chemical.html"><span class="doc">Chemical</span></a> objects. <a class="reference internal" href="Stream.html"><span class="doc">Stream</span></a> objects define material flows, and estimate mixture properties and thermodynamic equilibrium. Before estimating equilibrium, a Stream object is cast to a <a class="reference internal" href="MixedStream.html"><span class="doc">MixedStream</span></a> object to enable multiple phases. A <a class="reference internal" href="Unit.html"><span class="doc">Unit</span></a> object stores input and output Stream objects in the <cite>ins</cite> and <cite>outs</cite> attributes respectively. A <a class="reference internal" href="System.html"><span class="doc">System</span></a> object serves to define a <cite>network</cite> of unit operations, functions, and subsystems, as well as a <cite>recycle</cite> stream (if any). When a System object is simulated, each network element is run sequentially within an iterative solver until the recycle stream converges (in both component flow rates and temperature). A <a class="reference internal" href="TEA.html"><span class="doc">TEA</span></a> object can perform cashflow analysis on a system given a set of options. Adjustments can be made to the available heating and cooling agents of the <a class="reference internal" href="HeatUtility.html"><span class="doc">HeatUtility</span></a> class (e.g., steam pressure, cooling water temperature, price) as well as the electricity price of the <a class="reference internal" href="PowerUtility.html"><span class="doc">PowerUtility</span></a> class.</p>
+</div>
+<div class="section" id="installation">
+<h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<p>Get the latest version of BioSTEAM from
+<a class="reference external" href="https://pypi.python.org/pypi/biosteam/">https://pypi.python.org/pypi/biosteam/</a></p>
+<p>If you have an installation of Python with pip, simple install it with:</p>
+<blockquote>
+<div>$ pip install biosteam</div></blockquote>
+<p>To get the git version, run:</p>
+<blockquote>
+<div>$ git clone git://github.com/yoelcortes/biosteam</div></blockquote>
+<p>BioSTEAM uses <a class="reference external" href="http://www.graphviz.org/">Graphviz</a> to for making flowsheets. To properly install Graphviz in an anaconda distribution, please run the following line:</p>
+<blockquote>
+<div>$ conda install graphviz</div></blockquote>
+<p>You may also need to add Graphviz to your system path on Windows by following these <a class="reference external" href="https://bobswift.atlassian.net/wiki/spaces/GVIZ/pages/20971549/How+to+install+Graphviz+software">instructions</a>.</p>
 <div class="toctree-wrapper compound">
 <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
@@ -219,13 +235,14 @@
 <li class="toctree-l1"><a class="reference internal" href="tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="units/notebooks/examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Biorefineries.html">7. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis of a biorefinery.html">8. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">9. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">10. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Stoichiometric reactions.html">11. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Advanced simulation.html">12. Advanced simulation</a></li>
 </ul>
 </div>
 <div class="toctree-wrapper compound">

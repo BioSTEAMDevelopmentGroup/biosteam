@@ -93,13 +93,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">7. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis of a biorefinery.html">8. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">9. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">10. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Stoichiometric reactions.html">11. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Advanced simulation.html">12. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -316,9 +317,11 @@
     <span class="k">for</span> <span class="n">units</span> <span class="ow">in</span> <span class="n">organized</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
         <span class="c1"># First table with units of measure</span>
         <span class="n">u</span> <span class="o">=</span> <span class="n">units</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">table</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">results</span><span class="p">(</span><span class="n">include_utilities</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                          <span class="n">include_total_cost</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
-            <span class="n">table</span><span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">results</span><span class="p">(</span><span class="n">with_units</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">table</span><span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">results</span><span class="p">(</span><span class="n">with_units</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">include_utilities</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                   <span class="n">include_total_cost</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="n">table</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">line</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
         <span class="n">tables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
         <span class="n">table</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
@@ -437,7 +440,7 @@
 
 <span class="c1"># %% Streams</span>
 
-<span class="k">def</span> <span class="nf">stream_table</span><span class="p">(</span><span class="n">streams</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="s1">&#39;kg/min&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">props</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;DataFrame&#39;</span><span class="p">:</span>
+<span class="k">def</span> <span class="nf">stream_table</span><span class="p">(</span><span class="n">streams</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="s1">&#39;kg/hr&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">props</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s1">&#39;DataFrame&#39;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Return a stream table as a pandas DataFrame object.</span>
 
 <span class="sd">    Parameters</span>
@@ -512,11 +515,6 @@
         <span class="n">p</span> <span class="o">=</span> <span class="n">_Q</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">units</span><span class="p">[</span><span class="n">attr</span><span class="p">]);</span> <span class="n">p</span><span class="o">.</span><span class="n">ito</span><span class="p">(</span><span class="n">unit</span><span class="p">);</span> <span class="n">p</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">magnitude</span>
         <span class="n">prop_molar_keys</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">f</span><span class="s1">&#39;</span><span class="si">{attr}</span><span class="s1"> (</span><span class="si">{unit}</span><span class="s1">)&#39;</span>
         <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
-    
-    <span class="c1"># Add spaces for readability</span>
-    <span class="n">species</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">species</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
-        <span class="n">species</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;- &#39;</span> <span class="o">+</span> <span class="n">species</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
     
     <span class="c1"># Make data frame object</span>
     <span class="n">index</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Source&#39;</span><span class="p">,</span> <span class="s1">&#39;Sink&#39;</span><span class="p">,</span> <span class="s1">&#39;Phase&#39;</span><span class="p">)</span>  <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">prop_molar_keys</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">f</span><span class="s1">&#39;flow (</span><span class="si">{flow}</span><span class="s1">)&#39;</span><span class="p">,</span> <span class="s1">&#39;Composition:&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>

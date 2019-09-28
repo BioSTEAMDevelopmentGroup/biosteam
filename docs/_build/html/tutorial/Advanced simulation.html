@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>11. Advanced simulation &mdash; BioSTEAM 0.1 documentation</title>
+  <title>12. Advanced simulation &mdash; BioSTEAM 0.1 documentation</title>
   
 
   
@@ -45,7 +45,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Species" href="../Species.html" />
-    <link rel="prev" title="10. Stoichiometric reactions" href="Stoichiometric reactions.html" /> 
+    <link rel="prev" title="11. Stoichiometric reactions" href="Stoichiometric reactions.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -95,22 +95,23 @@
 <li class="toctree-l1"><a class="reference internal" href="MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">3. Creating a Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../units/notebooks/examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">11. Advanced simulation</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#Create-a-model-object">11.1. Create a model object</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Add-design-parameters">11.2. Add design parameters</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Add-cost-parameters">11.3. Add cost parameters</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Add-isolated-parameters">11.4. Add isolated parameters</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Add-coupled-parameters">11.5. Add coupled parameters</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Evaluate-metric-given-a-sample">11.6. Evaluate metric given a sample</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Evaluate-metric-across-samples">11.7. Evaluate metric across samples</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Evaluate-multiple-metrics">11.8. Evaluate multiple metrics</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Behind-the-scenes">11.9. Behind the scenes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Biorefineries.html">7. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">8. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">9. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">10. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">11. Stoichiometric reactions</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">12. Advanced simulation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Create-a-model-object">12.1. Create a model object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Add-design-parameters">12.2. Add design parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Add-cost-parameters">12.3. Add cost parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Add-isolated-parameters">12.4. Add isolated parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Add-coupled-parameters">12.5. Add coupled parameters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Evaluate-metric-given-a-sample">12.6. Evaluate metric given a sample</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Evaluate-metric-across-samples">12.7. Evaluate metric across samples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Evaluate-multiple-metrics">12.8. Evaluate multiple metrics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Behind-the-scenes">12.9. Behind the scenes</a></li>
 </ul>
 </li>
 </ul>
@@ -175,7 +176,7 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-      <li>11. Advanced simulation</li>
+      <li>12. Advanced simulation</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -378,28 +379,19 @@ div.nboutput div.output_area.stderr {
 }
 </style>
 <div class="section" id="Advanced-simulation">
-<h1>11. Advanced simulation<a class="headerlink" href="#Advanced-simulation" title="Permalink to this headline">¶</a></h1>
+<h1>12. Advanced simulation<a class="headerlink" href="#Advanced-simulation" title="Permalink to this headline">¶</a></h1>
 <p>In essence, a Model object is able to change the state of the system
 given a sample and evaluate certain metrics.</p>
 <div class="figure" id="id1">
 <img alt="Model Simple UML" src="../_images/Model_Simple_UML.png" />
 <p class="caption"><span class="caption-text">Simple Model</span></p>
 </div>
-<p>Model objects are able to cut simulation time in half by sorting the
+<p>Model objects are able to drastically cut simulation time by sorting the
 samples to minimize perturbations to the system between simulations.
 This decreases the number of iterations required to solve recycle
-systems. The algorithm first orders parameters from downstream
-parameters to upstream. Then, the samples are sorted across each
-parameter starting from downstream parameters to upstream. Parameters
-that affect upstream mass and energy balances are considered highly
-coupled to the system and should be sorted last to minimize the changes
-between each sample, while parameters affecting only downstream
-operations are sorted first as they will not perturb the system
-significantly. Parameters that do not affect mass or energy balances are
-not sorted as it would provide no computational advantage. The following
-examples show how Model objects can be used.</p>
+systems. The following examples show how Model objects can be used.</p>
 <div class="section" id="Create-a-model-object">
-<h2>11.1. Create a model object<a class="headerlink" href="#Create-a-model-object" title="Permalink to this headline">¶</a></h2>
+<h2>12.1. Create a model object<a class="headerlink" href="#Create-a-model-object" title="Permalink to this headline">¶</a></h2>
 <p><strong>Model objects are used to evaluate metrics around multiple parameters
 of a system.</strong></p>
 <p>Create a Model object of the lipidcane biorefinery with internal rate of
@@ -413,8 +405,8 @@ return as a metric:</p>
 <span></span><span class="kn">from</span> <span class="nn">biosteam.biorefineries</span> <span class="k">import</span> <span class="n">lipidcane</span> <span class="k">as</span> <span class="n">lc</span>
 <span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
 <span class="n">solve_IRR</span> <span class="o">=</span> <span class="n">lc</span><span class="o">.</span><span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">solve_IRR</span>
-<span class="n">model</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">evaluation</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="n">system</span><span class="o">=</span><span class="n">lc</span><span class="o">.</span><span class="n">lipidcane_sys</span><span class="p">,</span>
-                             <span class="n">IRR</span><span class="o">=</span><span class="n">solve_IRR</span><span class="p">)</span>
+<span class="n">metrics</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Metric</span><span class="p">(</span><span class="s1">&#39;IRR&#39;</span><span class="p">,</span> <span class="n">solve_IRR</span><span class="p">),</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="n">lc</span><span class="o">.</span><span class="n">lipidcane_sys</span><span class="p">,</span> <span class="n">metrics</span><span class="p">)</span>
 
 </pre></div>
 </div>
@@ -435,14 +427,14 @@ return as a metric:</p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Model: IRR
+Model: Biorefinery IRR
  (No parameters)
 </pre></div></div>
 </div>
-<p>Note: Here we defined only one metric, but more are possible.</p>
+<p>Note: Here we defined only one metric, but more metrics are possible.</p>
 </div>
 <div class="section" id="Add-design-parameters">
-<h2>11.2. Add design parameters<a class="headerlink" href="#Add-design-parameters" title="Permalink to this headline">¶</a></h2>
+<h2>12.2. Add design parameters<a class="headerlink" href="#Add-design-parameters" title="Permalink to this headline">¶</a></h2>
 <p><strong>A design parameter is a Unit attribute that changes design
 requirements but does not affect mass and energy balances.</strong></p>
 <p>Add number of fermentation reactors as a “design” parameter:</p>
@@ -452,10 +444,10 @@ requirements but does not affect mass and energy balances.</strong></p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">U34</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">unit</span><span class="o">.</span><span class="n">U34</span> <span class="c1"># The Fermentation Unit</span>
-<span class="nd">@model</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">element</span><span class="o">=</span><span class="n">U34</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;design&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Number of reactors&#39;</span><span class="p">)</span>
+<span></span><span class="n">R301</span> <span class="o">=</span> <span class="n">bst</span><span class="o">.</span><span class="n">find</span><span class="o">.</span><span class="n">unit</span><span class="o">.</span><span class="n">R301</span> <span class="c1"># The Fermentation Unit</span>
+<span class="nd">@model</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">element</span><span class="o">=</span><span class="n">R301</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;design&#39;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Number of reactors&#39;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">set_N_reactors</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
-    <span class="n">U34</span><span class="o">.</span><span class="n">N</span> <span class="o">=</span> <span class="n">N</span>
+    <span class="n">R301</span><span class="o">.</span><span class="n">N</span> <span class="o">=</span> <span class="n">N</span>
 </pre></div>
 </div>
 </div>
@@ -476,7 +468,7 @@ requirements but does not affect mass and energy balances.</strong></p>
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>&lt;Parameter: [Fermentation-U34] Number of reactors&gt;
+<span></span>&lt;Parameter: [Fermentation-R301] Number of reactors&gt;
 </pre></div>
 </div>
 </div>
@@ -488,9 +480,9 @@ requirements but does not affect mass and energy balances.</strong></p>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="n">set_N_reactors</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Puchase cost at 5 reactors: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">U34</span><span class="o">.</span><span class="n">purchase_cost</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Puchase cost at 5 reactors: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">R301</span><span class="o">.</span><span class="n">purchase_cost</span><span class="p">))</span>
 <span class="n">set_N_reactors</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Puchase cost at 8 reactors: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">U34</span><span class="o">.</span><span class="n">purchase_cost</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Puchase cost at 8 reactors: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">R301</span><span class="o">.</span><span class="n">purchase_cost</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -499,13 +491,13 @@ requirements but does not affect mass and energy balances.</strong></p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Puchase cost at 5 reactors: 2280551.033686497
-Puchase cost at 8 reactors: 2743307.107553875
+Puchase cost at 5 reactors: 2489477.4197166027
+Puchase cost at 8 reactors: 2989917.5467727524
 </pre></div></div>
 </div>
 </div>
 <div class="section" id="Add-cost-parameters">
-<h2>11.3. Add cost parameters<a class="headerlink" href="#Add-cost-parameters" title="Permalink to this headline">¶</a></h2>
+<h2>12.3. Add cost parameters<a class="headerlink" href="#Add-cost-parameters" title="Permalink to this headline">¶</a></h2>
 <p><strong>A cost parameter is a Unit attribute that affects cost but does not
 change design requirements.</strong></p>
 <p>Add the fermentation unit base cost as a “cost” parameter:</p>
@@ -515,9 +507,9 @@ change design requirements.</strong></p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="nd">@model</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">element</span><span class="o">=</span><span class="n">U34</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;cost&#39;</span><span class="p">)</span> <span class="c1"># Note: name argument not given this time</span>
+<span></span><span class="nd">@model</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">element</span><span class="o">=</span><span class="n">R301</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;cost&#39;</span><span class="p">)</span> <span class="c1"># Note: name argument not given this time</span>
 <span class="k">def</span> <span class="nf">set_base_cost</span><span class="p">(</span><span class="n">cost</span><span class="p">):</span>
-    <span class="n">U34</span><span class="o">.</span><span class="n">cost_items</span><span class="p">[</span><span class="s1">&#39;Reactors&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">cost</span> <span class="o">=</span> <span class="n">cost</span>
+    <span class="n">R301</span><span class="o">.</span><span class="n">cost_items</span><span class="p">[</span><span class="s1">&#39;Reactors&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">cost</span> <span class="o">=</span> <span class="n">cost</span>
 </pre></div>
 </div>
 </div>
@@ -527,11 +519,11 @@ change design requirements.</strong></p>
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">original</span> <span class="o">=</span> <span class="n">U34</span><span class="o">.</span><span class="n">cost_items</span><span class="p">[</span><span class="s1">&#39;Reactors&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">cost</span>
+<span></span><span class="n">original</span> <span class="o">=</span> <span class="n">R301</span><span class="o">.</span><span class="n">cost_items</span><span class="p">[</span><span class="s1">&#39;Reactors&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">cost</span>
 <span class="n">set_base_cost</span><span class="p">(</span><span class="mf">10e6</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Purchase cost at 10 million USD: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">U34</span><span class="o">.</span><span class="n">purchase_cost</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Purchase cost at 10 million USD: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">R301</span><span class="o">.</span><span class="n">purchase_cost</span><span class="p">))</span>
 <span class="n">set_base_cost</span><span class="p">(</span><span class="mf">844e3</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Purchase cost at 844,000 USD: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">U34</span><span class="o">.</span><span class="n">purchase_cost</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Purchase cost at 844,000 USD: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">R301</span><span class="o">.</span><span class="n">purchase_cost</span><span class="p">))</span>
 </pre></div>
 </div>
 </div>
@@ -540,8 +532,8 @@ change design requirements.</strong></p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Purchase cost at 10 million USD: 21891940.298625156
-Purchase cost at 844,000 USD: 2743307.107553875
+Purchase cost at 10 million USD: 23792335.704496454
+Purchase cost at 844,000 USD: 2989917.5467727524
 </pre></div></div>
 </div>
 <p>If the name was not defined, it defaults to the setter’s signature:</p>
@@ -561,13 +553,13 @@ Purchase cost at 844,000 USD: 2743307.107553875
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>&lt;Parameter: [Fermentation-U34] Cost&gt;
+<span></span>&lt;Parameter: [Fermentation-R301] Cost&gt;
 </pre></div>
 </div>
 </div>
 </div>
 <div class="section" id="Add-isolated-parameters">
-<h2>11.4. Add isolated parameters<a class="headerlink" href="#Add-isolated-parameters" title="Permalink to this headline">¶</a></h2>
+<h2>12.4. Add isolated parameters<a class="headerlink" href="#Add-isolated-parameters" title="Permalink to this headline">¶</a></h2>
 <p><strong>An isolated parameter should not affect Unit objects in any way.</strong></p>
 <p>Add feedstock price as a “isolated” parameter:</p>
 <div class="nbinput nblast docutils container">
@@ -576,16 +568,16 @@ Purchase cost at 844,000 USD: 2743307.107553875
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">Lipid_cane</span> <span class="o">=</span> <span class="n">lc</span><span class="o">.</span><span class="n">Lipid_cane</span> <span class="c1"># The feedstock stream</span>
-<span class="nd">@model</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">element</span><span class="o">=</span><span class="n">Lipid_cane</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;isolated&#39;</span><span class="p">)</span>
+<span></span><span class="n">lipid_cane</span> <span class="o">=</span> <span class="n">lc</span><span class="o">.</span><span class="n">lipid_cane</span> <span class="c1"># The feedstock stream</span>
+<span class="nd">@model</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">element</span><span class="o">=</span><span class="n">lipid_cane</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;isolated&#39;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">set_feed_price</span><span class="p">(</span><span class="n">feedstock_price</span><span class="p">):</span>
-    <span class="n">Lipid_cane</span><span class="o">.</span><span class="n">price</span> <span class="o">=</span> <span class="n">feedstock_price</span>
+    <span class="n">lipid_cane</span><span class="o">.</span><span class="n">price</span> <span class="o">=</span> <span class="n">feedstock_price</span>
 </pre></div>
 </div>
 </div>
 </div>
 <div class="section" id="Add-coupled-parameters">
-<h2>11.5. Add coupled parameters<a class="headerlink" href="#Add-coupled-parameters" title="Permalink to this headline">¶</a></h2>
+<h2>12.5. Add coupled parameters<a class="headerlink" href="#Add-coupled-parameters" title="Permalink to this headline">¶</a></h2>
 <p><strong>A coupled parameter affects mass and energy balances of the system.</strong></p>
 <p>Add lipid fraction as a “coupled” parameter:</p>
 <div class="nbinput nblast docutils container">
@@ -594,7 +586,7 @@ Purchase cost at 844,000 USD: 2743307.107553875
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="n">set_lipid_fraction</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">lc</span><span class="o">.</span><span class="n">set_lipid_fraction</span><span class="p">,</span> <span class="n">element</span><span class="o">=</span><span class="n">Lipid_cane</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;coupled&#39;</span><span class="p">)</span>
+<span></span><span class="n">set_lipid_fraction</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">lc</span><span class="o">.</span><span class="n">set_lipid_fraction</span><span class="p">,</span> <span class="n">element</span><span class="o">=</span><span class="n">lipid_cane</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;coupled&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -616,8 +608,8 @@ Purchase cost at 844,000 USD: 2743307.107553875
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-IRR at 10% lipid: 0.20411406235730115
-IRR at 5% lipid: 0.14360210728640255
+IRR at 10% lipid: 0.2005808257733235
+IRR at 5% lipid: 0.15921216999065335
 </pre></div></div>
 </div>
 <p>Add fermentation efficiency as a “coupled” parameter:</p>
@@ -627,15 +619,15 @@ IRR at 5% lipid: 0.14360210728640255
 </pre></div>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
-<span></span><span class="nd">@model</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">element</span><span class="o">=</span><span class="n">U34</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;coupled&#39;</span><span class="p">)</span>
+<span></span><span class="nd">@model</span><span class="o">.</span><span class="n">parameter</span><span class="p">(</span><span class="n">element</span><span class="o">=</span><span class="n">R301</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;coupled&#39;</span><span class="p">)</span>
 <span class="k">def</span> <span class="nf">set_fermentation_efficiency</span><span class="p">(</span><span class="n">efficiency</span><span class="p">):</span>
-    <span class="n">U34</span><span class="o">.</span><span class="n">efficiency</span> <span class="o">=</span> <span class="n">efficiency</span>
+    <span class="n">R301</span><span class="o">.</span><span class="n">efficiency</span> <span class="o">=</span> <span class="n">efficiency</span>
 </pre></div>
 </div>
 </div>
 </div>
 <div class="section" id="Evaluate-metric-given-a-sample">
-<h2>11.6. Evaluate metric given a sample<a class="headerlink" href="#Evaluate-metric-given-a-sample" title="Permalink to this headline">¶</a></h2>
+<h2>12.6. Evaluate metric given a sample<a class="headerlink" href="#Evaluate-metric-given-a-sample" title="Permalink to this headline">¶</a></h2>
 <p><strong>The model can be called to evaluate a sample of parameters.</strong></p>
 <p>All parameters are stored in the model with highly coupled parameters
 first:</p>
@@ -654,13 +646,13 @@ first:</p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Model: IRR
+Model: Biorefinery IRR
  Element:           Parameter:
- Stream-Lipid cane  Lipid fraction
- Fermentation-U34   Efficiency
+ Stream-lipid cane  Lipid fraction
+ Fermentation-R301  Efficiency
                     Number of reactors
                     Cost
- Stream-Lipid cane  Feedstock price
+ Stream-lipid cane  Feedstock price
 </pre></div></div>
 </div>
 <p>Get all parameters as ordered in the model:</p>
@@ -680,11 +672,11 @@ Model: IRR
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>(&lt;Parameter: [Stream-Lipid cane] Lipid fraction&gt;,
- &lt;Parameter: [Fermentation-U34] Efficiency&gt;,
- &lt;Parameter: [Fermentation-U34] Number of reactors&gt;,
- &lt;Parameter: [Fermentation-U34] Cost&gt;,
- &lt;Parameter: [Stream-Lipid cane] Feedstock price&gt;)
+<span></span>(&lt;Parameter: [Stream-lipid cane] Lipid fraction&gt;,
+ &lt;Parameter: [Fermentation-R301] Efficiency&gt;,
+ &lt;Parameter: [Fermentation-R301] Number of reactors&gt;,
+ &lt;Parameter: [Fermentation-R301] Cost&gt;,
+ &lt;Parameter: [Stream-lipid cane] Feedstock price&gt;)
 </pre></div>
 </div>
 </div>
@@ -705,13 +697,13 @@ Model: IRR
 </pre></div>
 </div>
 <div class="output_area highlight-none notranslate"><div class="highlight"><pre>
-<span></span>{&#39;IRR&#39;: 0.12228739790785803}
+<span></span>[0.11942692089697049]
 </pre></div>
 </div>
 </div>
 </div>
 <div class="section" id="Evaluate-metric-across-samples">
-<h2>11.7. Evaluate metric across samples<a class="headerlink" href="#Evaluate-metric-across-samples" title="Permalink to this headline">¶</a></h2>
+<h2>12.7. Evaluate metric across samples<a class="headerlink" href="#Evaluate-metric-across-samples" title="Permalink to this headline">¶</a></h2>
 <p>Evaluate at give parameter values:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
@@ -753,19 +745,19 @@ Model: IRR
   <thead>
     <tr>
       <th>Element</th>
-      <th>Stream-Lipid cane</th>
-      <th colspan="3" halign="left">Fermentation-U34</th>
-      <th>Stream-Lipid cane</th>
-      <th>IRR</th>
+      <th>Stream-lipid cane</th>
+      <th colspan="3" halign="left">Fermentation-R301</th>
+      <th>Stream-lipid cane</th>
+      <th>Biorefinery</th>
     </tr>
     <tr>
-      <th>Parameter</th>
+      <th>Variable</th>
       <th>Lipid fraction</th>
       <th>Efficiency</th>
       <th>Number of reactors</th>
       <th>Cost</th>
       <th>Feedstock price</th>
-      <th></th>
+      <th>IRR</th>
     </tr>
   </thead>
   <tbody>
@@ -776,7 +768,7 @@ Model: IRR
       <td>8</td>
       <td>1e+05</td>
       <td>0.04</td>
-      <td>0.127</td>
+      <td>0.119</td>
     </tr>
     <tr>
       <th>1</th>
@@ -785,7 +777,7 @@ Model: IRR
       <td>7</td>
       <td>1e+05</td>
       <td>0.04</td>
-      <td>0.14</td>
+      <td>0.131</td>
     </tr>
     <tr>
       <th>2</th>
@@ -794,7 +786,7 @@ Model: IRR
       <td>8</td>
       <td>1e+05</td>
       <td>0.042</td>
-      <td>0.179</td>
+      <td>0.167</td>
     </tr>
   </tbody>
 </table>
@@ -802,10 +794,10 @@ Model: IRR
 </div>
 <p>Note that coupled parameters are on the left most columns, and are
 ordered from upstream to downstream (e.g. &lt;Stream: Lipid cane&gt; is
-upstream from &lt;Fermentation: U34&gt;)</p>
+upstream from &lt;Fermentation: R301&gt;)</p>
 </div>
 <div class="section" id="Evaluate-multiple-metrics">
-<h2>11.8. Evaluate multiple metrics<a class="headerlink" href="#Evaluate-multiple-metrics" title="Permalink to this headline">¶</a></h2>
+<h2>12.8. Evaluate multiple metrics<a class="headerlink" href="#Evaluate-multiple-metrics" title="Permalink to this headline">¶</a></h2>
 <p>Reset the metrics to include total utility cost:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
@@ -814,14 +806,12 @@ upstream from &lt;Fermentation: U34&gt;)</p>
 </div>
 <div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre>
 <span></span><span class="k">def</span> <span class="nf">total_utility_cost</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;Return utility costs in USD/yr&quot;&quot;&quot;</span>
-    <span class="n">utility_costs</span> <span class="o">=</span> <span class="n">lc</span><span class="o">.</span><span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">utility_cost</span> <span class="c1"># USD/hr</span>
-    <span class="n">conversion_factor</span> <span class="o">=</span> <span class="mi">24</span> <span class="o">*</span> <span class="n">lc</span><span class="o">.</span><span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">options</span><span class="p">[</span><span class="s1">&#39;Operating days&#39;</span><span class="p">]</span>
-    <span class="k">return</span> <span class="n">utility_costs</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span> <span class="o">*</span> <span class="n">conversion_factor</span>
+    <span class="sd">&quot;&quot;&quot;Return utility costs in 10^6 USD/yr&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">lc</span><span class="o">.</span><span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">utility_cost</span> <span class="o">/</span> <span class="mi">10</span><span class="o">**</span><span class="mi">6</span>
 
-<span class="c1"># This time use detailed names for appearance</span>
-<span class="n">model</span><span class="o">.</span><span class="n">reset_metrics</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="s1">&#39;Internal rate of return (%)&#39;</span><span class="p">:</span> <span class="n">lc</span><span class="o">.</span><span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">solve_IRR</span><span class="p">,</span>
-                       <span class="s1">&#39;Utility cost (USD/yr)&#39;</span><span class="p">:</span> <span class="n">total_utility_cost</span><span class="p">})</span>
+<span class="c1"># This time use detailed names and units for appearance</span>
+<span class="n">model</span><span class="o">.</span><span class="n">metrics</span> <span class="o">=</span> <span class="p">(</span><span class="n">bst</span><span class="o">.</span><span class="n">Metric</span><span class="p">(</span><span class="s1">&#39;Internal rate of return&#39;</span><span class="p">,</span> <span class="n">lc</span><span class="o">.</span><span class="n">lipidcane_tea</span><span class="o">.</span><span class="n">solve_IRR</span><span class="p">,</span> <span class="s1">&#39;%&#39;</span><span class="p">),</span>
+                 <span class="n">bst</span><span class="o">.</span><span class="n">Metric</span><span class="p">(</span><span class="s1">&#39;Utility cost&#39;</span><span class="p">,</span> <span class="n">total_utility_cost</span><span class="p">,</span> <span class="s1">&#39;USD/yr&#39;</span><span class="p">))</span>
 <span class="n">model</span>
 </pre></div>
 </div>
@@ -831,14 +821,14 @@ upstream from &lt;Fermentation: U34&gt;)</p>
 </div>
 <div class="output_area docutils container">
 <div class="highlight"><pre>
-Model: Internal rate of return (%)
-       Utility cost (USD/yr)
+Model: Biorefinery internal rate of return (%)
+       Biorefinery utility cost (USD/yr)
  Element:           Parameter:
- Stream-Lipid cane  Lipid fraction
- Fermentation-U34   Efficiency
+ Stream-lipid cane  Lipid fraction
+ Fermentation-R301  Efficiency
                     Number of reactors
                     Cost
- Stream-Lipid cane  Feedstock price
+ Stream-lipid cane  Feedstock price
 </pre></div></div>
 </div>
 <div class="nbinput docutils container">
@@ -876,21 +866,21 @@ Model: Internal rate of return (%)
   <thead>
     <tr>
       <th>Element</th>
-      <th>Stream-Lipid cane</th>
-      <th colspan="3" halign="left">Fermentation-U34</th>
-      <th>Stream-Lipid cane</th>
-      <th>Internal rate of return (%)</th>
-      <th>Utility cost (USD/yr)</th>
+      <th>Stream-lipid cane</th>
+      <th colspan="3" halign="left">Fermentation-R301</th>
+      <th>Stream-lipid cane</th>
+      <th colspan="3" halign="left">Biorefinery</th>
     </tr>
     <tr>
-      <th>Parameter</th>
+      <th>Variable</th>
       <th>Lipid fraction</th>
       <th>Efficiency</th>
       <th>Number of reactors</th>
       <th>Cost</th>
       <th>Feedstock price</th>
-      <th></th>
-      <th></th>
+      <th>IRR</th>
+      <th>Internal rate of return</th>
+      <th>Utility cost</th>
     </tr>
   </thead>
   <tbody>
@@ -901,8 +891,9 @@ Model: Internal rate of return (%)
       <td>8</td>
       <td>1e+05</td>
       <td>0.04</td>
-      <td>0.0978</td>
-      <td>-1.77e+07</td>
+      <td>0.119</td>
+      <td>0.119</td>
+      <td>-17.6</td>
     </tr>
     <tr>
       <th>1</th>
@@ -912,7 +903,8 @@ Model: Internal rate of return (%)
       <td>1e+05</td>
       <td>0.04</td>
       <td>0.131</td>
-      <td>-1.64e+07</td>
+      <td>0.131</td>
+      <td>-16.9</td>
     </tr>
     <tr>
       <th>2</th>
@@ -921,8 +913,9 @@ Model: Internal rate of return (%)
       <td>8</td>
       <td>1e+05</td>
       <td>0.042</td>
-      <td>0.175</td>
-      <td>-2.37e+07</td>
+      <td>0.167</td>
+      <td>0.167</td>
+      <td>-25</td>
     </tr>
   </tbody>
 </table>
@@ -930,7 +923,7 @@ Model: Internal rate of return (%)
 </div>
 </div>
 <div class="section" id="Behind-the-scenes">
-<h2>11.9. Behind the scenes<a class="headerlink" href="#Behind-the-scenes" title="Permalink to this headline">¶</a></h2>
+<h2>12.9. Behind the scenes<a class="headerlink" href="#Behind-the-scenes" title="Permalink to this headline">¶</a></h2>
 <div class="figure" id="id2">
 <img alt="Model UML" src="../_images/Model_UML.png" />
 <p class="caption"><span class="caption-text">Model UML Diagram</span></p>
@@ -956,7 +949,7 @@ Parameter object by passing its simulation method.</p>
         <a href="../Species.html" class="btn btn-neutral float-right" title="Species" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="Stoichiometric reactions.html" class="btn btn-neutral float-left" title="10. Stoichiometric reactions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="Stoichiometric reactions.html" class="btn btn-neutral float-left" title="11. Stoichiometric reactions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

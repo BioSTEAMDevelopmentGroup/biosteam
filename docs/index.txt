@@ -14,6 +14,27 @@ Overview
 
 The :doc:`Species` object defines the working compounds of the biorefinery. When a Species object is created, it identifies compounds by name and stores pure chemical properties as :doc:`compounds/Chemical` objects. :doc:`Stream` objects define material flows, and estimate mixture properties and thermodynamic equilibrium. Before estimating equilibrium, a Stream object is cast to a :doc:`MixedStream` object to enable multiple phases. A :doc:`Unit` object stores input and output Stream objects in the `ins` and `outs` attributes respectively. A :doc:`System` object serves to define a `network` of unit operations, functions, and subsystems, as well as a `recycle` stream (if any). When a System object is simulated, each network element is run sequentially within an iterative solver until the recycle stream converges (in both component flow rates and temperature). A :doc:`TEA` object can perform cashflow analysis on a system given a set of options. Adjustments can be made to the available heating and cooling agents of the :doc:`HeatUtility` class (e.g., steam pressure, cooling water temperature, price) as well as the electricity price of the :doc:`PowerUtility` class.
 
+Installation
+============
+
+Get the latest version of BioSTEAM from
+https://pypi.python.org/pypi/biosteam/
+
+If you have an installation of Python with pip, simple install it with:
+
+    $ pip install biosteam
+
+To get the git version, run:
+
+    $ git clone git://github.com/yoelcortes/biosteam
+
+BioSTEAM uses `Graphviz <http://www.graphviz.org/>`__ to for making flowsheets. To properly install Graphviz in an anaconda distribution, please run the following line:
+
+    $ conda install graphviz
+
+You may also need to add Graphviz to your system path on Windows by following these `instructions <https://bobswift.atlassian.net/wiki/spaces/GVIZ/pages/20971549/How+to+install+Graphviz+software>`__.
+
+
 .. toctree::
    :maxdepth: 1
    :numbered:
@@ -25,6 +46,7 @@ The :doc:`Species` object defines the working compounds of the biorefinery. When
    units/notebooks/examples
    tutorial/Managing flowsheets
    tutorial/Using -pipe- notation
+   tutorial/Biorefineries
    tutorial/Techno-economic analysis of a biorefinery
    tutorial/Inheriting from Unit
    tutorial/Unit decorators

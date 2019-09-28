@@ -93,13 +93,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../units/notebooks/examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Biorefineries.html">7. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Techno-economic analysis of a biorefinery.html">8. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Inheriting from Unit.html">9. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Unit decorators.html">10. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Stoichiometric reactions.html">11. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Advanced simulation.html">12. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -187,12 +188,15 @@
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">Facility</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Static</span>
 <span class="kn">from</span> <span class="nn">..decorators</span> <span class="k">import</span> <span class="n">cost</span>
+<span class="kn">from</span> <span class="nn">...</span> <span class="k">import</span> <span class="n">HeatUtility</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;ChilledWaterPackage&#39;</span><span class="p">,)</span>
 
 <div class="viewcode-block" id="ChilledWaterPackage"><a class="viewcode-back" href="../../../../units/facilities.html#biosteam.units.facilities.ChilledWaterPackage">[docs]</a><span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Duty&#39;</span><span class="p">,</span> <span class="n">S</span><span class="o">=-</span><span class="mi">14</span><span class="o">*</span><span class="mi">4184000</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mi">3400</span><span class="o">*</span><span class="mf">0.7457</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mf">1375e3</span><span class="p">,</span> <span class="n">CE</span><span class="o">=</span><span class="mi">551</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">ChilledWaterPackage</span><span class="p">(</span><span class="n">Facility</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">ChilledWaterPackage</span><span class="p">(</span><span class="n">Facility</span><span class="p">,</span> <span class="n">Static</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a chilled water package that is cost based on flow rate of chilled water.</span>
 <span class="sd">    </span>
 <span class="sd">    Parameters</span>
@@ -205,7 +209,8 @@
     <span class="n">_N_ins</span> <span class="o">=</span> <span class="n">_N_outs</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Duty&#39;</span><span class="p">:</span> <span class="s1">&#39;kJ/hr&#39;</span><span class="p">}</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
-        <span class="n">Facility</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">water</span> <span class="o">=</span> <span class="n">HeatUtility</span><span class="o">.</span><span class="n">cooling_agents</span><span class="p">[</span><span class="s1">&#39;Chilled water&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">species</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">ID</span><span class="p">,</span> <span class="s1">&#39;return_chilled_water&#39;</span><span class="p">,</span> <span class="s1">&#39;chilled_water&#39;</span><span class="p">,</span> <span class="n">water</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">chilled_water_utilities</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         
     <span class="k">def</span> <span class="nf">_design</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -216,8 +221,12 @@
                 <span class="k">for</span> <span class="n">hu</span> <span class="ow">in</span> <span class="n">u</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">hu</span><span class="o">.</span><span class="n">ID</span> <span class="o">==</span> <span class="s1">&#39;Chilled water&#39;</span><span class="p">:</span> <span class="n">cwu</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">hu</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;Duty&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">duty</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">duty</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cwu</span><span class="p">])</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">duty</span><span class="p">,</span> <span class="mi">330</span><span class="p">)</span></div>
-        
+        <span class="n">hu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">hu</span><span class="p">(</span><span class="n">duty</span><span class="p">,</span> <span class="mi">330</span><span class="p">)</span>
+        <span class="n">used</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">used</span><span class="o">.</span><span class="n">_mol</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">flow</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cwu</span><span class="p">])</span>
+        <span class="n">used</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">_used</span><span class="o">.</span><span class="n">T</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cwu</span><span class="p">])</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">hu</span><span class="o">.</span><span class="n">cooling_agents</span><span class="p">[</span><span class="s1">&#39;Chilled water&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">T</span></div>
         
 </pre></div>
 

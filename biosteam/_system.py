@@ -263,6 +263,7 @@ class System(metaclass=system):
             f"{type(recycle).__name__}")
         self._recycle = recycle
         if ID: setattr(find.system, ID, self)
+        else: self._ID = ""
     
     save_report = save_report
     

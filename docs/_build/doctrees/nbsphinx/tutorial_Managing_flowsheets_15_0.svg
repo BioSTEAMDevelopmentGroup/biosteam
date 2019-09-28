@@ -1,0 +1,31 @@
+<svg height="128pt" viewBox="0.00 0.00 247.59 128.04" width="248pt" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g class="graph" id="graph0" transform="scale(1 1) rotate(0) translate(4 124.036)">
+<title>unit</title>
+<polygon fill="white" points="-4,4 -4,-124.036 243.593,-124.036 243.593,4 -4,4" stroke="none"/>
+<!-- M0
+Mixer&#45;&gt;d1 -->
+<g class="edge" id="edge1"><title>M0
+Mixer:e-&gt;d1:w</title>
+<path d="M138.889,-60.0182C164.313,-60.0182 170.669,-60.0182 196.093,-60.0182" fill="none" stroke="black"/>
+</g>
+<!-- M0
+Mixer -->
+<g class="node" id="node1"><title>M0
+Mixer</title>
+<defs>
+<linearGradient gradientUnits="userSpaceOnUse" id="l_0" x1="35.0462" x2="138.686" y1="-60.0182" y2="-60.0182">
+<stop offset="0" style="stop-color:white;stop-opacity:1.;"/>
+<stop offset="1" style="stop-color:#cdcdcd;stop-opacity:1.;"/>
+</linearGradient>
+</defs>
+<polygon fill="url(#l_0)" points="138.686,-60.0182 35.0462,-113.999 35.0462,-6.03686 138.686,-60.0182" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="69.5929" y="-63.8182">M0</text>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="69.5929" y="-48.8182">Mixer</text>
+</g>
+<!-- d1 -->
+<g class="node" id="node2"><title>d1</title>
+<polygon fill="#79dae8" points="221.093,-75.5182 196.093,-75.5182 196.093,-44.5182 221.093,-44.5182 221.093,-38.5182 239.093,-60.0182 221.093,-81.5182 221.093,-75.5182" stroke="black"/>
+<text font-family="Times New Roman,serif" font-size="14.00" text-anchor="middle" x="217.593" y="-56.3182">d1</text>
+</g>
+</g>
+</svg>

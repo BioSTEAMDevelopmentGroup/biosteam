@@ -25,7 +25,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "Model objects are able to cut simulation time in half by sorting the samples to minimize perturbations to the system between simulations. This decreases the number of iterations required to solve recycle systems. The algorithm first orders parameters from downstream parameters to upstream. Then, the samples are sorted across each parameter starting from downstream parameters to upstream. Parameters that affect upstream mass and energy balances are considered highly coupled to the system and should be sorted last to minimize the changes between each sample, while parameters affecting only downstream operations are sorted first as they will not perturb the system significantly. Parameters that do not affect mass or energy balances are not sorted as it would provide no computational advantage. The following examples show how Model objects can be used.\n"
+    "Model objects are able to drastically cut simulation time by sorting the samples to minimize perturbations to the system between simulations. This decreases the number of iterations required to solve recycle systems. The following examples show how Model objects can be used.\n"
    ]
   },
   {
@@ -58,8 +58,8 @@
     "from biosteam.biorefineries import lipidcane as lc\n",
     "import biosteam as bst\n",
     "solve_IRR = lc.lipidcane_tea.solve_IRR\n",
-    "model = bst.evaluation.Model(system=lc.lipidcane_sys,\n",
-    "                             IRR=solve_IRR)\n"
+    "metrics = bst.Metric('IRR', solve_IRR),\n",
+    "model = bst.Model(lc.lipidcane_sys, metrics)\n"
    ]
   },
   {
@@ -78,7 +78,7 @@
      "name": "stdout",
      "output_type": "stream",
      "text": [
-      "Model: IRR\n",
+      "Model: Biorefinery IRR\n",
       " (No parameters)\n"
      ]
     }
@@ -91,7 +91,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "Note: Here we defined only one metric, but more are possible."
+    "Note: Here we defined only one metric, but more metrics are possible."
    ]
   },
   {
@@ -121,10 +121,10 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "U34 = bst.find.unit.U34 # The Fermentation Unit\n",
-    "@model.parameter(element=U34, kind='design', name='Number of reactors')\n",
+    "R301 = bst.find.unit.R301 # The Fermentation Unit\n",
+    "@model.parameter(element=R301, kind='design', name='Number of reactors')\n",
     "def set_N_reactors(N):\n",
-    "    U34.N = N"
+    "    R301.N = N"
    ]
   },
   {
@@ -142,7 +142,7 @@
     {
      "data": {
       "text/plain": [
-       "<Parameter: [Fermentation-U34] Number of reactors>"
+       "<Parameter: [Fermentation-R301] Number of reactors>"
       ]
      },
      "execution_count": 4,
@@ -170,16 +170,16 @@
      "name": "stdout",
      "output_type": "stream",
      "text": [
-      "Puchase cost at 5 reactors: 2280551.033686497\n",
-      "Puchase cost at 8 reactors: 2743307.107553875\n"
+      "Puchase cost at 5 reactors: 2489477.4197166027\n",
+      "Puchase cost at 8 reactors: 2989917.5467727524\n"
      ]
     }
    ],
    "source": [
     "set_N_reactors(5)\n",
-    "print('Puchase cost at 5 reactors: ' + str(U34.purchase_cost))\n",
+    "print('Puchase cost at 5 reactors: ' + str(R301.purchase_cost))\n",
     "set_N_reactors(8)\n",
-    "print('Puchase cost at 8 reactors: ' + str(U34.purchase_cost))"
+    "print('Puchase cost at 8 reactors: ' + str(R301.purchase_cost))"
    ]
   },
   {
@@ -209,9 +209,9 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "@model.parameter(element=U34, kind='cost') # Note: name argument not given this time\n",
+    "@model.parameter(element=R301, kind='cost') # Note: name argument not given this time\n",
     "def set_base_cost(cost):\n",
-    "    U34.cost_items['Reactors'].cost = cost"
+    "    R301.cost_items['Reactors'].cost = cost"
    ]
   },
   {
@@ -223,17 +223,17 @@
      "name": "stdout",
      "output_type": "stream",
      "text": [
-      "Purchase cost at 10 million USD: 21891940.298625156\n",
-      "Purchase cost at 844,000 USD: 2743307.107553875\n"
+      "Purchase cost at 10 million USD: 23792335.704496454\n",
+      "Purchase cost at 844,000 USD: 2989917.5467727524\n"
      ]
     }
    ],
    "source": [
-    "original = U34.cost_items['Reactors'].cost\n",
+    "original = R301.cost_items['Reactors'].cost\n",
     "set_base_cost(10e6)\n",
-    "print('Purchase cost at 10 million USD: ' + str(U34.purchase_cost))\n",
+    "print('Purchase cost at 10 million USD: ' + str(R301.purchase_cost))\n",
     "set_base_cost(844e3)\n",
-    "print('Purchase cost at 844,000 USD: ' + str(U34.purchase_cost))"
+    "print('Purchase cost at 844,000 USD: ' + str(R301.purchase_cost))"
    ]
   },
   {
@@ -251,7 +251,7 @@
     {
      "data": {
       "text/plain": [
-       "<Parameter: [Fermentation-U34] Cost>"
+       "<Parameter: [Fermentation-R301] Cost>"
       ]
      },
      "execution_count": 8,
@@ -292,10 +292,10 @@
    },
    "outputs": [],
    "source": [
-    "Lipid_cane = lc.Lipid_cane # The feedstock stream\n",
-    "@model.parameter(element=Lipid_cane, kind='isolated')\n",
+    "lipid_cane = lc.lipid_cane # The feedstock stream\n",
+    "@model.parameter(element=lipid_cane, kind='isolated')\n",
     "def set_feed_price(feedstock_price):\n",
-    "    Lipid_cane.price = feedstock_price"
+    "    lipid_cane.price = feedstock_price"
    ]
   },
   {
@@ -325,7 +325,7 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "set_lipid_fraction = model.parameter(lc.set_lipid_fraction, element=Lipid_cane, kind='coupled')"
+    "set_lipid_fraction = model.parameter(lc.set_lipid_fraction, element=lipid_cane, kind='coupled')"
    ]
   },
   {
@@ -337,8 +337,8 @@
      "name": "stdout",
      "output_type": "stream",
      "text": [
-      "IRR at 10% lipid: 0.20411406235730115\n",
-      "IRR at 5% lipid: 0.14360210728640255\n"
+      "IRR at 10% lipid: 0.2005808257733235\n",
+      "IRR at 5% lipid: 0.15921216999065335\n"
      ]
     }
    ],
@@ -362,9 +362,9 @@
    "metadata": {},
    "outputs": [],
    "source": [
-    "@model.parameter(element=U34, kind='coupled')\n",
+    "@model.parameter(element=R301, kind='coupled')\n",
     "def set_fermentation_efficiency(efficiency):\n",
-    "    U34.efficiency = efficiency"
+    "    R301.efficiency = efficiency"
    ]
   },
   {
@@ -397,13 +397,13 @@
      "name": "stdout",
      "output_type": "stream",
      "text": [
-      "Model: IRR\n",
+      "Model: Biorefinery IRR\n",
       " Element:           Parameter:\n",
-      " Stream-Lipid cane  Lipid fraction\n",
-      " Fermentation-U34   Efficiency\n",
+      " Stream-lipid cane  Lipid fraction\n",
+      " Fermentation-R301  Efficiency\n",
       "                    Number of reactors\n",
       "                    Cost\n",
-      " Stream-Lipid cane  Feedstock price\n"
+      " Stream-lipid cane  Feedstock price\n"
      ]
     }
    ],
@@ -426,11 +426,11 @@
     {
      "data": {
       "text/plain": [
-       "(<Parameter: [Stream-Lipid cane] Lipid fraction>,\n",
-       " <Parameter: [Fermentation-U34] Efficiency>,\n",
-       " <Parameter: [Fermentation-U34] Number of reactors>,\n",
-       " <Parameter: [Fermentation-U34] Cost>,\n",
-       " <Parameter: [Stream-Lipid cane] Feedstock price>)"
+       "(<Parameter: [Stream-lipid cane] Lipid fraction>,\n",
+       " <Parameter: [Fermentation-R301] Efficiency>,\n",
+       " <Parameter: [Fermentation-R301] Number of reactors>,\n",
+       " <Parameter: [Fermentation-R301] Cost>,\n",
+       " <Parameter: [Stream-lipid cane] Feedstock price>)"
       ]
      },
      "execution_count": 14,
@@ -457,7 +457,7 @@
     {
      "data": {
       "text/plain": [
-       "{'IRR': 0.12228739790785803}"
+       "[0.11942692089697049]"
       ]
      },
      "execution_count": 15,
@@ -509,19 +509,19 @@
        "  <thead>\n",
        "    <tr>\n",
        "      <th>Element</th>\n",
-       "      <th>Stream-Lipid cane</th>\n",
-       "      <th colspan=\"3\" halign=\"left\">Fermentation-U34</th>\n",
-       "      <th>Stream-Lipid cane</th>\n",
-       "      <th>IRR</th>\n",
+       "      <th>Stream-lipid cane</th>\n",
+       "      <th colspan=\"3\" halign=\"left\">Fermentation-R301</th>\n",
+       "      <th>Stream-lipid cane</th>\n",
+       "      <th>Biorefinery</th>\n",
        "    </tr>\n",
        "    <tr>\n",
-       "      <th>Parameter</th>\n",
+       "      <th>Variable</th>\n",
        "      <th>Lipid fraction</th>\n",
        "      <th>Efficiency</th>\n",
        "      <th>Number of reactors</th>\n",
        "      <th>Cost</th>\n",
        "      <th>Feedstock price</th>\n",
-       "      <th></th>\n",
+       "      <th>IRR</th>\n",
        "    </tr>\n",
        "  </thead>\n",
        "  <tbody>\n",
@@ -532,7 +532,7 @@
        "      <td>8</td>\n",
        "      <td>1e+05</td>\n",
        "      <td>0.04</td>\n",
-       "      <td>0.127</td>\n",
+       "      <td>0.119</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>1</th>\n",
@@ -541,7 +541,7 @@
        "      <td>7</td>\n",
        "      <td>1e+05</td>\n",
        "      <td>0.04</td>\n",
-       "      <td>0.14</td>\n",
+       "      <td>0.131</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>2</th>\n",
@@ -550,24 +550,24 @@
        "      <td>8</td>\n",
        "      <td>1e+05</td>\n",
        "      <td>0.042</td>\n",
-       "      <td>0.179</td>\n",
+       "      <td>0.167</td>\n",
        "    </tr>\n",
        "  </tbody>\n",
        "</table>\n",
        "</div>"
       ],
       "text/plain": [
-       "Element   Stream-Lipid cane Fermentation-U34                           \\\n",
-       "Parameter    Lipid fraction       Efficiency Number of reactors  Cost   \n",
-       "0                      0.05             0.85                  8 1e+05   \n",
-       "1                      0.05              0.9                  7 1e+05   \n",
-       "2                      0.09             0.95                  8 1e+05   \n",
+       "Element  Stream-lipid cane Fermentation-R301                           \\\n",
+       "Variable    Lipid fraction        Efficiency Number of reactors  Cost   \n",
+       "0                     0.05              0.85                  8 1e+05   \n",
+       "1                     0.05               0.9                  7 1e+05   \n",
+       "2                     0.09              0.95                  8 1e+05   \n",
        "\n",
-       "Element   Stream-Lipid cane   IRR  \n",
-       "Parameter   Feedstock price        \n",
-       "0                      0.04 0.127  \n",
-       "1                      0.04  0.14  \n",
-       "2                     0.042 0.179  "
+       "Element  Stream-lipid cane Biorefinery  \n",
+       "Variable   Feedstock price         IRR  \n",
+       "0                     0.04       0.119  \n",
+       "1                     0.04       0.131  \n",
+       "2                    0.042       0.167  "
       ]
      },
      "execution_count": 16,
@@ -589,7 +589,7 @@
    "cell_type": "markdown",
    "metadata": {},
    "source": [
-    "Note that coupled parameters are on the left most columns, and are ordered from upstream to downstream (e.g. <Stream: Lipid cane> is upstream from <Fermentation: U34>)"
+    "Note that coupled parameters are on the left most columns, and are ordered from upstream to downstream (e.g. <Stream: Lipid cane> is upstream from <Fermentation: R301>)"
    ]
   },
   {
@@ -615,27 +615,25 @@
      "name": "stdout",
      "output_type": "stream",
      "text": [
-      "Model: Internal rate of return (%)\n",
-      "       Utility cost (USD/yr)\n",
+      "Model: Biorefinery internal rate of return (%)\n",
+      "       Biorefinery utility cost (USD/yr)\n",
       " Element:           Parameter:\n",
-      " Stream-Lipid cane  Lipid fraction\n",
-      " Fermentation-U34   Efficiency\n",
+      " Stream-lipid cane  Lipid fraction\n",
+      " Fermentation-R301  Efficiency\n",
       "                    Number of reactors\n",
       "                    Cost\n",
-      " Stream-Lipid cane  Feedstock price\n"
+      " Stream-lipid cane  Feedstock price\n"
      ]
     }
    ],
    "source": [
     "def total_utility_cost():\n",
-    "    \"\"\"Return utility costs in USD/yr\"\"\"\n",
-    "    utility_costs = lc.lipidcane_tea.utility_cost # USD/hr\n",
-    "    conversion_factor = 24 * lc.lipidcane_tea.options['Operating days']\n",
-    "    return utility_costs.sum() * conversion_factor\n",
+    "    \"\"\"Return utility costs in 10^6 USD/yr\"\"\"\n",
+    "    return lc.lipidcane_tea.utility_cost / 10**6\n",
     "\n",
-    "# This time use detailed names for appearance\n",
-    "model.reset_metrics(**{'Internal rate of return (%)': lc.lipidcane_tea.solve_IRR,\n",
-    "                       'Utility cost (USD/yr)': total_utility_cost})\n",
+    "# This time use detailed names and units for appearance\n",
+    "model.metrics = (bst.Metric('Internal rate of return', lc.lipidcane_tea.solve_IRR, '%'),\n",
+    "                 bst.Metric('Utility cost', total_utility_cost, 'USD/yr'))\n",
     "model"
    ]
   },
@@ -665,21 +663,21 @@
        "  <thead>\n",
        "    <tr>\n",
        "      <th>Element</th>\n",
-       "      <th>Stream-Lipid cane</th>\n",
-       "      <th colspan=\"3\" halign=\"left\">Fermentation-U34</th>\n",
-       "      <th>Stream-Lipid cane</th>\n",
-       "      <th>Internal rate of return (%)</th>\n",
-       "      <th>Utility cost (USD/yr)</th>\n",
+       "      <th>Stream-lipid cane</th>\n",
+       "      <th colspan=\"3\" halign=\"left\">Fermentation-R301</th>\n",
+       "      <th>Stream-lipid cane</th>\n",
+       "      <th colspan=\"3\" halign=\"left\">Biorefinery</th>\n",
        "    </tr>\n",
        "    <tr>\n",
-       "      <th>Parameter</th>\n",
+       "      <th>Variable</th>\n",
        "      <th>Lipid fraction</th>\n",
        "      <th>Efficiency</th>\n",
        "      <th>Number of reactors</th>\n",
        "      <th>Cost</th>\n",
        "      <th>Feedstock price</th>\n",
-       "      <th></th>\n",
-       "      <th></th>\n",
+       "      <th>IRR</th>\n",
+       "      <th>Internal rate of return</th>\n",
+       "      <th>Utility cost</th>\n",
        "    </tr>\n",
        "  </thead>\n",
        "  <tbody>\n",
@@ -690,8 +688,9 @@
        "      <td>8</td>\n",
        "      <td>1e+05</td>\n",
        "      <td>0.04</td>\n",
-       "      <td>0.0978</td>\n",
-       "      <td>-1.77e+07</td>\n",
+       "      <td>0.119</td>\n",
+       "      <td>0.119</td>\n",
+       "      <td>-17.6</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>1</th>\n",
@@ -701,7 +700,8 @@
        "      <td>1e+05</td>\n",
        "      <td>0.04</td>\n",
        "      <td>0.131</td>\n",
-       "      <td>-1.64e+07</td>\n",
+       "      <td>0.131</td>\n",
+       "      <td>-16.9</td>\n",
        "    </tr>\n",
        "    <tr>\n",
        "      <th>2</th>\n",
@@ -710,25 +710,26 @@
        "      <td>8</td>\n",
        "      <td>1e+05</td>\n",
        "      <td>0.042</td>\n",
-       "      <td>0.175</td>\n",
-       "      <td>-2.37e+07</td>\n",
+       "      <td>0.167</td>\n",
+       "      <td>0.167</td>\n",
+       "      <td>-25</td>\n",
        "    </tr>\n",
        "  </tbody>\n",
        "</table>\n",
        "</div>"
       ],
       "text/plain": [
-       "Element   Stream-Lipid cane Fermentation-U34                           \\\n",
-       "Parameter    Lipid fraction       Efficiency Number of reactors  Cost   \n",
-       "0                      0.05             0.85                  8 1e+05   \n",
-       "1                      0.05              0.9                  7 1e+05   \n",
-       "2                      0.09             0.95                  8 1e+05   \n",
+       "Element  Stream-lipid cane Fermentation-R301                           \\\n",
+       "Variable    Lipid fraction        Efficiency Number of reactors  Cost   \n",
+       "0                     0.05              0.85                  8 1e+05   \n",
+       "1                     0.05               0.9                  7 1e+05   \n",
+       "2                     0.09              0.95                  8 1e+05   \n",
        "\n",
-       "Element   Stream-Lipid cane Internal rate of return (%) Utility cost (USD/yr)  \n",
-       "Parameter   Feedstock price                                                    \n",
-       "0                      0.04                      0.0978             -1.77e+07  \n",
-       "1                      0.04                       0.131             -1.64e+07  \n",
-       "2                     0.042                       0.175             -2.37e+07  "
+       "Element  Stream-lipid cane Biorefinery                                       \n",
+       "Variable   Feedstock price         IRR Internal rate of return Utility cost  \n",
+       "0                     0.04       0.119                   0.119        -17.6  \n",
+       "1                     0.04       0.131                   0.131        -16.9  \n",
+       "2                    0.042       0.167                   0.167          -25  "
       ]
      },
      "execution_count": 18,

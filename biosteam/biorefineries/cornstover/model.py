@@ -9,7 +9,7 @@ from biosteam.evaluation import Model, Metric
 from biosteam.biorefineries.cornstover.system import \
     cornstover_sys, ethanol_tea, cornstover_tea, \
     ethanol, cornstover, R301, ethanol_density_kggal, \
-    areas, BT
+    areas, BT, Area700
 
 get_MESP = lambda: cornstover_tea.solve_price(ethanol, ethanol_tea) * ethanol_density_kggal
 get_FCI = lambda: sum([i._FCI_cached for i in cornstover_tea.TEAs])
@@ -27,7 +27,7 @@ metrics =[Metric('Minimum ethanol selling price', get_MESP, 'USD/gal'),
 
 def electricity_rate_function(tea):
     power_utilities = [i._power_utility for i in tea.units if i._has_power_utility]
-    if tea.system.ID == 'Area700':
+    if tea is Area700:
         boiler_item = BT.cost_items['Boiler']
         Design = BT._Design
         return lambda: boiler_item.kW/boiler_item.S * Design['Flow rate']/1e3

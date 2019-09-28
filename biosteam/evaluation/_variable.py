@@ -33,7 +33,7 @@ class Variable:
         return (self.element_name, self.name)
     
     def describe(self, number_format='.3g') -> str:
-        """Return description of parameter."""
+        """Return description of variable."""
         name = self.name
         if not name.isupper():
             name = name.casefold()

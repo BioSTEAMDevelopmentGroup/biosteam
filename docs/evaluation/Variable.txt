@@ -1,0 +1,8 @@
+Variable
+========
+
+.. module:: biosteam.evaluation
+
+.. autoclass:: Variable
+   :members:
+   :special-members: __call__

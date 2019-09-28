@@ -90,6 +90,7 @@ def plot_montecarlo(data,
                     light_color=light_color,
                     dark_color=dark_color,
                     positions=None,
+                    transpose=False,
                     **kwargs):
     """Return box plot of Monte Carlo evaluation.
     
@@ -112,10 +113,12 @@ def plot_montecarlo(data,
     if isinstance(data, pd.DataFrame):
         if 'labels' not in kwargs:
             kwargs['labels'] = data.columns
+    if transpose: data = data.transpose()
     if not positions:
-        positions = tuple(range(data.shape[-1]))
-    if data.ndim == 2:
-        data = data.transpose()
+        if data.ndim == 1: 
+            positions = (0,)
+        else:
+            positions = tuple(range(data.shape[0]))
     bx = plt.boxplot(x=data, positions=positions, patch_artist=True,
                      widths=0.8, whis=[5, 95],
                      boxprops={'facecolor':light_color,

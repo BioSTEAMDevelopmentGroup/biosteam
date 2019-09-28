@@ -93,13 +93,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../units/notebooks/examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Biorefineries.html">7. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Techno-economic analysis of a biorefinery.html">8. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">9. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">10. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Stoichiometric reactions.html">11. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Advanced simulation.html">12. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -189,7 +190,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">_Q</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">._utils</span> <span class="k">import</span> <span class="n">property_array</span><span class="p">,</span> <span class="n">PropertyFactory</span><span class="p">,</span> <span class="n">DisplayUnits</span><span class="p">,</span> \
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">property_array</span><span class="p">,</span> <span class="n">PropertyFactory</span><span class="p">,</span> <span class="n">DisplayUnits</span><span class="p">,</span> \
                     <span class="n">tuple_array</span><span class="p">,</span> <span class="n">fraction</span><span class="p">,</span> <span class="n">Sink</span><span class="p">,</span> <span class="n">Source</span><span class="p">,</span> <span class="n">MissingStream</span>
 <span class="kn">from</span> <span class="nn">._flowsheet</span> <span class="k">import</span> <span class="n">find</span>
 <span class="kn">from</span> <span class="nn">._species</span> <span class="k">import</span> <span class="n">Species</span><span class="p">,</span> <span class="n">WorkingSpecies</span>
@@ -572,8 +573,11 @@
     <span class="c1">### Class attributes for working species ###    </span>
     <span class="n">_cls_species</span> <span class="o">=</span> <span class="n">_MW</span> <span class="o">=</span> <span class="kc">None</span>
     
-    <span class="c1"># [list] Default starting letter and current number for ID (class attribute)</span>
-    <span class="n">_default_ID</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;d&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="c1">#: [str] Default ID for all streams (class attribute)</span>
+    <span class="n">default_ID</span> <span class="o">=</span> <span class="s1">&#39;d&#39;</span>
+    
+    <span class="c1">#: [int] Current number for default IDs (class attribute)</span>
+    <span class="n">default_ID_number</span> <span class="o">=</span> <span class="mi">0</span>
     
     <span class="c1">#: [bool] If True, approximate energy balance. False otherwise.</span>
     <span class="n">lazy_energy_balance</span> <span class="o">=</span> <span class="kc">True</span>
@@ -581,7 +585,8 @@
     <span class="c1">#: [DisplayUnits] Units of measure for IPython display</span>
     <span class="n">display_units</span> <span class="o">=</span> <span class="n">DisplayUnits</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="s1">&#39;K&#39;</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="s1">&#39;Pa&#39;</span><span class="p">,</span>
                                  <span class="n">flow</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">,</span> <span class="s1">&#39;kg/hr&#39;</span><span class="p">,</span> <span class="s1">&#39;m3/hr&#39;</span><span class="p">),</span>
-                                 <span class="n">fraction</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                                 <span class="n">fraction</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                 <span class="n">N</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="p">(),</span> <span class="n">species</span><span class="o">=</span><span class="p">(),</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;kmol/hr&#39;</span><span class="p">,</span>
                  <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;l&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mf">298.15</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">price</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">flow_pairs</span><span class="p">):</span>
@@ -776,19 +781,12 @@
     <span class="k">def</span> <span class="nf">ID</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">ID</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
             <span class="c1"># Select a default ID</span>
-            <span class="n">letter</span><span class="p">,</span> <span class="n">number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_ID</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_default_ID</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="n">num</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
-            <span class="n">ID</span> <span class="o">=</span> <span class="n">letter</span> <span class="o">+</span> <span class="n">num</span>
+            <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">default_ID_number</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">ID</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default_ID</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default_ID_number</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="n">ID</span>
-            <span class="n">find</span><span class="o">.</span><span class="n">stream</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">find</span><span class="o">.</span><span class="n">stream</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">ID</span> <span class="ow">and</span> <span class="n">ID</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span><span class="p">:</span>
-            <span class="n">ID</span> <span class="o">=</span> <span class="n">ID</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
-            <span class="n">ID_words</span> <span class="o">=</span> <span class="n">ID</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="n">word</span><span class="o">.</span><span class="n">isalnum</span><span class="p">()</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">ID_words</span><span class="p">]):</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;ID cannot have any special characters&#39;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_ID</span> <span class="o">=</span> <span class="n">ID</span>
-            <span class="n">find</span><span class="o">.</span><span class="n">stream</span><span class="p">[</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="n">find</span><span class="o">.</span><span class="n">stream</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">cost</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1944,7 +1942,7 @@
         <span class="k">return</span> <span class="n">f</span><span class="s2">&quot; phase: &#39;</span><span class="si">{phases}</span><span class="s2">&#39;, T: </span><span class="si">{T:.5g}</span><span class="s2"> </span><span class="si">{T_units}</span><span class="s2">, P: </span><span class="si">{P:.6g}</span><span class="s2"> </span><span class="si">{P_units}</span><span class="se">\n</span><span class="s2">&quot;</span>
 
     <span class="c1"># Representation</span>
-    <span class="k">def</span> <span class="nf">_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">fraction</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">fraction</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return string with all specifications.&quot;&quot;&quot;</span>
         <span class="n">units</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">units</span>
         <span class="n">basic_info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_info_header</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
@@ -1952,8 +1950,8 @@
             <span class="n">nonzero</span><span class="p">,</span> <span class="n">species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nonzero_species</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">basic_info</span> <span class="o">+</span> <span class="n">f</span><span class="s1">&#39; link: </span><span class="si">{self._link}</span><span class="s1">&#39;</span>
-        <span class="n">T_units</span><span class="p">,</span> <span class="n">P_units</span><span class="p">,</span> <span class="n">flow_units</span><span class="p">,</span> <span class="n">fraction</span> <span class="o">=</span> <span class="p">[(</span><span class="n">i</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span>
-                                                  <span class="nb">zip</span><span class="p">((</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">fraction</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">display_units</span><span class="p">)]</span>
+        <span class="n">T_units</span><span class="p">,</span> <span class="n">P_units</span><span class="p">,</span> <span class="n">flow_units</span><span class="p">,</span> <span class="n">fraction</span><span class="p">,</span> <span class="n">N</span> <span class="o">=</span> <span class="p">[(</span><span class="n">i</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">j</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span>
+                                                     <span class="nb">zip</span><span class="p">((</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">fraction</span><span class="p">,</span> <span class="n">N</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">display_units</span><span class="p">)]</span>
         <span class="n">basic_info</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_info_phaseTP</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_phase</span><span class="p">,</span> <span class="n">T_units</span><span class="p">,</span> <span class="n">P_units</span><span class="p">)</span>
         <span class="n">len_</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nonzero</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">len_</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -1995,20 +1993,42 @@
         <span class="n">flowrates</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
         <span class="n">lengths</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span> <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="n">species</span><span class="p">]</span>
         <span class="n">maxlen</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">lengths</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">_N</span> <span class="o">=</span> <span class="n">N</span> <span class="o">-</span> <span class="mi">1</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">len_</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
             <span class="n">spaces</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="p">(</span><span class="n">maxlen</span> <span class="o">-</span> <span class="n">lengths</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">_N</span><span class="p">:</span>
+                <span class="n">flowrates</span> <span class="o">+=</span> <span class="s1">&#39;...</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">new_line_spaces</span>
+                <span class="k">break</span>
             <span class="n">flowrates</span> <span class="o">+=</span> <span class="n">species</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">spaces</span> <span class="o">+</span> <span class="n">f</span><span class="s1">&#39; </span><span class="si">{flow[i]:.3g}</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">new_line_spaces</span>
         <span class="n">spaces</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="p">(</span><span class="n">maxlen</span> <span class="o">-</span> <span class="n">lengths</span><span class="p">[</span><span class="n">len_</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">flowrates</span> <span class="o">+=</span> <span class="n">species</span><span class="p">[</span><span class="n">len_</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">spaces</span> <span class="o">+</span> <span class="n">f</span><span class="s1">&#39; </span><span class="si">{flow[len_-1]:.3g}</span><span class="s1">&#39;</span>
-        
         <span class="k">return</span> <span class="p">(</span><span class="n">basic_info</span> 
               <span class="o">+</span> <span class="n">beginning</span>
               <span class="o">+</span> <span class="n">flowrates</span>
               <span class="o">+</span> <span class="n">end</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="n">new_line_spaces</span> <span class="o">+</span> <span class="s1">&#39;net&#39;</span> <span class="o">+</span> <span class="p">(</span><span class="n">maxlen</span><span class="o">-</span><span class="mi">4</span><span class="p">)</span><span class="o">*</span><span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="s1">&#39;  &#39;</span><span class="p">))</span>
 
-<div class="viewcode-block" id="Stream.show"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Print all specifications.&quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">fraction</span><span class="p">))</span></div>
+<div class="viewcode-block" id="Stream.show"><a class="viewcode-back" href="../../Stream.html#biosteam.Stream.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flow</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Print all specifications.</span>
+<span class="sd">        </span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        T: str, optional</span>
+<span class="sd">            Temperature units.</span>
+<span class="sd">        P: str, optional</span>
+<span class="sd">            Pressure units.</span>
+<span class="sd">        flow: str, optional</span>
+<span class="sd">            Flow rate units.</span>
+<span class="sd">        fraction: bool, optional</span>
+<span class="sd">            Display flows as net flow rate and fractions (i.e composition).</span>
+<span class="sd">        N: int, optional</span>
+<span class="sd">            Number of compounds to display.</span>
+<span class="sd">        </span>
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Default values are stored in `Stream.display_units`.</span>
+<span class="sd">        </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_info</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">flow</span><span class="p">,</span> <span class="n">fraction</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span></div>
     <span class="n">_ipython_display_</span> <span class="o">=</span> <span class="n">show</span>
 
     <span class="k">def</span> <span class="nf">_disconnect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

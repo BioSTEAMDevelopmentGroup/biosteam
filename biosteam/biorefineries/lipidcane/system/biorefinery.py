@@ -66,7 +66,7 @@ area_600 = System('area_600', (CT, CWP, PWC, S601))
 connect_sugar = Junction(sugar, sugar_solution, ('Water', 'Glucose', 'Sucrose'))
 connect_lipid = Junction(lipid, oil, ('Lipid',))
 
-lipidcane_sys = System('lipid_cane_system',
+lipidcane_sys = System('lipidcane_sys',
                        network=pretreatment_sys.network
                              + (connect_sugar, connect_lipid)
                              + area_300.network

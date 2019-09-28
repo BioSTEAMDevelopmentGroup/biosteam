@@ -39,7 +39,7 @@ def find_split(IDs, flow0, flow1):
 
 # %% Streams
 
-bst.find.set_flowsheet(bst.Flowsheet('Cornstover'))
+bst.find.set_flowsheet(bst.Flowsheet('cornstover'))
 synonym = species.set_synonym 
 synonym('CaO', 'Lime')
 synonym('H2O', 'Water')
@@ -167,7 +167,7 @@ def update_cellulase_and_nutrient_loading():
     CSL1.mol[:] = CSL1_over_hydrolyzate * cooled_hydrolyzate_massnet
     CSL2.mol[:] = CSL2_over_hydrolyzate * cooled_hydrolyzate_massnet
     
-ptsys = System('pretreatment',
+pretreatment_sys = System('pretreatment_sys',
                network=(U101, T201, M201, M202, M203,
                         R201, P201, T202, F201, M204,
                         H201, M210, M205, T203, T203,
@@ -229,7 +229,7 @@ R302 = units.SeedTrain('R302', ins=M303-0)
 T301 = units.SeedHoldTank('T301', ins=R302-1)
 T301-0-1-M302
 
-fmsys = System('fermentation',
+fermentation_sys = System('fermentation_sys',
                network=(update_cellulase_and_nutrient_loading,
                         J1, M302, R301, M303, R302, T301),
                recycle=M302-0)
@@ -292,9 +292,9 @@ U401 = bst.MolecularSieve('U401', ins=H402-0,
 
 U401-0-1-M402
 
-pure_recycle_sys = System('purification_recycle',
-                          network=(M402, D403, H402, U401),
-                          recycle=M402-0)
+ethanol_recycle_sys = System('ethanol_recycle_sys',
+                             network=(M402, D403, H402, U401),
+                             recycle=M402-0)
 
 # Condense ethanol product
 H403 = bst.HXutility('H403', ins=U401-1, V=0, T=350.)
@@ -337,7 +337,7 @@ puresys = System('purification',
                           M401, T302,
                           H401, D402,
                           H401, P401, H401,
-                          pure_recycle_sys,
+                          ethanol_recycle_sys,
                           P402, H403, T701, P701,
                           adjust_denaturant,
                           T702, P702, M701, JX))
@@ -571,9 +571,9 @@ S626_flow = np.array([376324, 0, 0,0, 0, 0,    0,  0, 0])
 S604 = bst.Splitter('S604', ins=S601-0, outs=('treated_water', 'waste_brine'),
                   split=find_split(brine_species, S626_flow, S627_flow))
 
-WWTsystem = System('aerobic_digestion_system',
-                   network=(M602, R602, S601, S602, M604, S603, M603),
-                   recycle=M602-0)
+aerobic_digestion_sys = System('aerobic_digestion_sys',
+                               network=(M602, R602, S601, S602, M604, S603, M603),
+                               recycle=M602-0)
 
 # %% Facilities
 
@@ -645,11 +645,11 @@ FW = units.FireWaterTank('FT',
 
 # %% Complete system
 
-cornstover_sys = System('corn_stover_system',
-                        network=(ptsys, fmsys, puresys, J2, S401,
+cornstover_sys = System('cornstover_sys',
+                        network=(pretreatment_sys, fermentation_sys, puresys, J2, S401,
                                  J3, J4, J5, M601, WWTC, R601,
                                  update_aerobic_input_streams,
-                                 WWTsystem, S604),
+                                 aerobic_digestion_sys, S604),
                         facilities=(M501, CWP, BT, CT, update_water_loss,
                                     PWC, ADP, update_lime_boilerchems_and_ash,
                                     CIP_package, S301, S302, DAP_storage,
@@ -658,7 +658,7 @@ cornstover_sys.products.update((ash, boilerchems))
 baghouse_bags = Stream(ID='Baghouse_bags', species=substance, flow=(1,), price=11.1)
 cornstover_sys.feeds.add(lime)
 cornstover_sys.feeds.add(baghouse_bags)
-WWTsystem.converge_method = 'Fixed point'
+aerobic_digestion_sys.converge_method = 'Fixed point'
 for i in range(8): cornstover_sys.simulate()
 ethanol_tea = CornstoverTEA(
         system=cornstover_sys, IRR=0.10, duration=(2007, 2037),
@@ -674,7 +674,7 @@ ethanol_tea = CornstoverTEA(
         labor_burden=0.90, property_insurance=0.007, maintenance=0.03)
 ethanol_tea.units.remove(BT)
 
-Area700 = bst.TEA.like(System('Area700', (M501, BT,)),
+Area700 = bst.TEA.like(System(None, (M501, BT,)),
                        ethanol_tea)
 Area700.labor_cost = 0
 Area700.depreciation = 'MACRS7'
@@ -687,27 +687,27 @@ ethanol_price_USDgal = ethanol.price * ethanol_density_kggal
 
 # %% Areas
 
-Area100 = bst.TEA.like(System('Area100', (U101,)), ethanol_tea)
-Area200 = bst.TEA.like(System('Area200',
+Area100 = bst.TEA.like(System(None, (U101,)), ethanol_tea)
+Area200 = bst.TEA.like(System(None,
                               (T201, M201, R201, P201,
                                T202, F201, H201, M210, T203)),
                        ethanol_tea)
-Area300 = bst.TEA.like(System('Area300', 
+Area300 = bst.TEA.like(System(None, 
                               (H301, M301, R301,
                                R302, T301, T302)),
                        ethanol_tea)
-Area400 = bst.TEA.like(System('Area400', 
+Area400 = bst.TEA.like(System(None, 
                               (D401, H401, D402, P401,
                                M402, D403, P402, H402,
                                U401, H403, M701, S401)),
                        ethanol_tea)
-Area500 = bst.TEA.like(System('Area500', (WWTC,)),
+Area500 = bst.TEA.like(System(None, (WWTC,)),
                        ethanol_tea)
-Area600 = bst.TEA.like(System('Area600',
+Area600 = bst.TEA.like(System(None,
                               (T701, T702, P701, P702, M701, FW,
                                CSL_storage, DAP_storage)),
                        ethanol_tea) 
-Area800 = bst.TEA.like(System('Area800', (CWP, CT, PWC, ADP, CIP_package)),
+Area800 = bst.TEA.like(System(None, (CWP, CT, PWC, ADP, CIP_package)),
                        ethanol_tea)
 areas = (Area100, Area200, Area300, Area400,
          Area500, Area600, Area700, Area800)

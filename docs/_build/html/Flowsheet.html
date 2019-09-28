@@ -95,13 +95,14 @@
 <li class="toctree-l1"><a class="reference internal" href="tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="units/notebooks/examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Biorefineries.html">7. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis of a biorefinery.html">8. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">9. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">10. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Stoichiometric reactions.html">11. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Advanced simulation.html">12. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -205,14 +206,14 @@
 <div class="section" id="find">
 <h1>find<a class="headerlink" href="#find" title="Permalink to this headline">¶</a></h1>
 <p>As BioSTEAM objects are created, they are automatically registered. The <cite>find</cite> object allows the user to find any Unit, Stream or System instance.  When <cite>find</cite> is called, it simply looks up the item and returns it.</p>
-<p><a class="reference internal" href="tutorial/Find unit operations and manage flowsheets.html"><span class="doc">Find unit operations and manage flowsheets</span></a></p>
+<p><a class="reference internal" href="tutorial/Managing flowsheets.html"><span class="doc">Managing flowsheets</span></a></p>
 <span class="target" id="module-biosteam"></span><dl class="class">
 <dt id="biosteam.Flowsheet">
 <em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">Flowsheet</code><span class="sig-paren">(</span><em>ID</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_flowsheet.html#Flowsheet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Flowsheet" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Flowsheet object which stores references to all stream, unit, and system objects.</p>
 <dl class="attribute">
 <dt id="biosteam.Flowsheet.flowsheet">
-<code class="descname">flowsheet</code><em class="property"> = Register:  &lt;Flowsheet: Default&gt;</em><a class="headerlink" href="#biosteam.Flowsheet.flowsheet" title="Permalink to this definition">¶</a></dt>
+<code class="descname">flowsheet</code><em class="property"> = Register:  &lt;Flowsheet: default&gt;</em><a class="headerlink" href="#biosteam.Flowsheet.flowsheet" title="Permalink to this definition">¶</a></dt>
 <dd><p>[Register] All flowsheets.</p>
 </dd></dl>
 
@@ -236,7 +237,7 @@
 
 <dl class="method">
 <dt id="biosteam.Flowsheet.diagram">
-<code class="descname">diagram</code><span class="sig-paren">(</span><em>kind='surface'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_flowsheet.html#Flowsheet.diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Flowsheet.diagram" title="Permalink to this definition">¶</a></dt>
+<code class="descname">diagram</code><span class="sig-paren">(</span><em>kind='surface'</em>, <em>file=None</em>, <em>format='svg'</em>, <em>**graph_attrs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_flowsheet.html#Flowsheet.diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.Flowsheet.diagram" title="Permalink to this definition">¶</a></dt>
 <dd><p>Display all units and attached streams.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />

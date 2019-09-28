@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>8. Inheriting from Unit &mdash; BioSTEAM 0.1 documentation</title>
+  <title>9. Inheriting from Unit &mdash; BioSTEAM 0.1 documentation</title>
   
 
   
@@ -44,8 +44,8 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="9. Unit decorators" href="Unit decorators.html" />
-    <link rel="prev" title="7. Techno-economic analysis of a biorefinery" href="Techno-economic analysis of a biorefinery.html" /> 
+    <link rel="next" title="10. Unit decorators" href="Unit decorators.html" />
+    <link rel="prev" title="8. Techno-economic analysis of a biorefinery" href="Techno-economic analysis of a biorefinery.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -95,19 +95,20 @@
 <li class="toctree-l1"><a class="reference internal" href="MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">3. Creating a Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../units/notebooks/examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">8. Inheriting from Unit</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#Abstract-attributes-and-methods">8.1. Abstract attributes and methods</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Subclass-example">8.2. Subclass example</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Simulation-test">8.3. Simulation test</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Graphviz-attributes">8.4. Graphviz attributes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Biorefineries.html">7. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">8. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">9. Inheriting from Unit</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Abstract-attributes-and-methods">9.1. Abstract attributes and methods</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Subclass-example">9.2. Subclass example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Simulation-test">9.3. Simulation test</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Graphviz-attributes">9.4. Graphviz attributes</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">10. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">11. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">12. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -170,7 +171,7 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-      <li>8. Inheriting from Unit</li>
+      <li>9. Inheriting from Unit</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -373,9 +374,9 @@ div.nboutput div.output_area.stderr {
 }
 </style>
 <div class="section" id="Inheriting-from-Unit">
-<h1>8. Inheriting from Unit<a class="headerlink" href="#Inheriting-from-Unit" title="Permalink to this headline">¶</a></h1>
+<h1>9. Inheriting from Unit<a class="headerlink" href="#Inheriting-from-Unit" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="Abstract-attributes-and-methods">
-<h2>8.1. Abstract attributes and methods<a class="headerlink" href="#Abstract-attributes-and-methods" title="Permalink to this headline">¶</a></h2>
+<h2>9.1. Abstract attributes and methods<a class="headerlink" href="#Abstract-attributes-and-methods" title="Permalink to this headline">¶</a></h2>
 <div class="figure">
 <img alt="Unit UML Diagram" src="../_images/UML_Unit.png" />
 </div>
@@ -413,7 +414,7 @@ requirements.</li>
 </ul>
 </div>
 <div class="section" id="Subclass-example">
-<h2>8.2. Subclass example<a class="headerlink" href="#Subclass-example" title="Permalink to this headline">¶</a></h2>
+<h2>9.2. Subclass example<a class="headerlink" href="#Subclass-example" title="Permalink to this headline">¶</a></h2>
 <p>The following example depicts inheritance from Unit by creating a new
 Boiler class:</p>
 <div class="nbinput nblast docutils container">
@@ -534,7 +535,7 @@ Boiler class:</p>
 </div>
 </div>
 <div class="section" id="Simulation-test">
-<h2>8.3. Simulation test<a class="headerlink" href="#Simulation-test" title="Permalink to this headline">¶</a></h2>
+<h2>9.3. Simulation test<a class="headerlink" href="#Simulation-test" title="Permalink to this headline">¶</a></h2>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [2]:
@@ -696,7 +697,7 @@ outs...
 </div>
 </div>
 <div class="section" id="Graphviz-attributes">
-<h2>8.4. Graphviz attributes<a class="headerlink" href="#Graphviz-attributes" title="Permalink to this headline">¶</a></h2>
+<h2>9.4. Graphviz attributes<a class="headerlink" href="#Graphviz-attributes" title="Permalink to this headline">¶</a></h2>
 <p>All <a class="reference external" href="https://graphviz.readthedocs.io/en/stable/manual.html">graphviz</a>
 attributes for generating a diagram are stored in <code class="docutils literal notranslate"><span class="pre">_graphics</span></code> as a
 Graphics object. One Graphics object is generated for each Unit
@@ -870,10 +871,10 @@ suggested; best to keep diagrams simple.</strong></p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="Unit decorators.html" class="btn btn-neutral float-right" title="9. Unit decorators" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="Unit decorators.html" class="btn btn-neutral float-right" title="10. Unit decorators" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="Techno-economic analysis of a biorefinery.html" class="btn btn-neutral float-left" title="7. Techno-economic analysis of a biorefinery" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="Techno-economic analysis of a biorefinery.html" class="btn btn-neutral float-left" title="8. Techno-economic analysis of a biorefinery" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

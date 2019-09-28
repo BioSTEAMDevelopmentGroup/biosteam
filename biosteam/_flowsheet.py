@@ -286,7 +286,7 @@ class MainFlowsheet(Flowsheet):
     
 #: [find] Find BioSTEAM objects by ID.
 find = object.__new__(MainFlowsheet)
-find.set_flowsheet(Flowsheet('Default'))
+find.set_flowsheet(Flowsheet('default'))
     
 
 # %% Attempt at contantly rendered digraph

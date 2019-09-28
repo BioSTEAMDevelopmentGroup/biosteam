@@ -185,7 +185,7 @@ class Model(State):
             data = np.zeros([N_samples, N_points])
             dct[key] = data
             return data
-        for i in self.metrics: new_data(i.name)
+        for i in self.metrics: new_data(i.index)
         
         # Initialize timer
         if notify:
@@ -212,7 +212,7 @@ class Model(State):
         with pd.ExcelWriter(xlfile) as writer:
             for metric in metric_data:
                 data[:] = metric_data[metric]
-                data.to_excel(writer, sheet_name=metric)
+                data.to_excel(writer, sheet_name=metric[-1])
     
     def spearman(self, metrics=(), excluded_params=()):
         """Return DataFrame of Spearman's rank correlation for metrics vs parameters.

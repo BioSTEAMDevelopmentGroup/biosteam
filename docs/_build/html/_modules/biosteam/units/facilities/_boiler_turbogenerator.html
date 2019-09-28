@@ -93,13 +93,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../units/notebooks/examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Biorefineries.html">7. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Techno-economic analysis of a biorefinery.html">8. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Inheriting from Unit.html">9. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Unit decorators.html">10. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Stoichiometric reactions.html">11. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/Advanced simulation.html">12. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -205,7 +206,7 @@
 <span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;Deaerator&#39;</span><span class="p">,</span>
       <span class="n">CE</span><span class="o">=</span><span class="mi">551</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mf">305e3</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mi">235803</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">3.0</span><span class="p">)</span>
 <span class="nd">@cost</span><span class="p">(</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">,</span> <span class="s1">&#39;Boiler&#39;</span><span class="p">,</span>
-      <span class="n">CE</span><span class="o">=</span><span class="mi">551</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mf">28550e3</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mi">2752</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mi">238686</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">1.8</span><span class="p">)</span>
+      <span class="n">CE</span><span class="o">=</span><span class="mi">551</span><span class="p">,</span> <span class="n">cost</span><span class="o">=</span><span class="mf">28550e3</span><span class="p">,</span> <span class="n">kW</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="mi">238686</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">BM</span><span class="o">=</span><span class="mf">1.8</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">BoilerTurbogenerator</span><span class="p">(</span><span class="n">Facility</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create a Boiler_TurboGenerator object that will calculate electricity generation from burning the feed. It also takes into account how much steam is being produced, and the required cooling utility of the turbo generator. No emissions or mass balances are taken into account.</span>
 <span class="sd">    </span>
@@ -223,6 +224,9 @@
 <span class="sd">    </span>
 <span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">boiler_blowdown</span> <span class="o">=</span> <span class="mf">0.03</span>
+    <span class="n">RO_rejection</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">_N_outs</span> <span class="o">=</span> <span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">_N_heat_utilities</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">_has_power_utility</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">_units</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">:</span> <span class="s1">&#39;kg/hr&#39;</span><span class="p">,</span>
@@ -230,12 +234,18 @@
     
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">ins</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="p">(),</span> <span class="o">*</span><span class="p">,</span>
                  <span class="n">boiler_efficiency</span><span class="o">=</span><span class="mf">0.80</span><span class="p">,</span>
-                 <span class="n">turbogenerator_efficiency</span><span class="o">=</span><span class="mf">0.85</span><span class="p">):</span>
+                 <span class="n">turbogenerator_efficiency</span><span class="o">=</span><span class="mf">0.85</span><span class="p">,</span>
+                 <span class="n">side_steam</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">makeup_water</span> <span class="o">=</span> <span class="n">makeup_water</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="s1">&#39;boiler_makeup_water&#39;</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">lps</span><span class="o">.</span><span class="n">species</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">Stream</span><span class="o">.</span><span class="n">proxy</span><span class="p">(</span><span class="s1">&#39;rejected_water_and_blowdown&#39;</span><span class="p">,</span> <span class="n">makeup_water</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">makeup_water</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">boiler_efficiency</span> <span class="o">=</span> <span class="n">boiler_efficiency</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">turbogenerator_efficiency</span> <span class="o">=</span> <span class="n">turbogenerator_efficiency</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">steam_utilities</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">steam_demand</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;Water&#39;</span><span class="p">),</span> <span class="n">P</span><span class="o">=</span><span class="n">lps</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">lps</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">steam_demand</span> <span class="o">=</span> <span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">species</span><span class="o">=</span><span class="n">lps</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="n">lps</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">lps</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">phase</span><span class="o">=</span><span class="s1">&#39;g&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">side_steam</span> <span class="o">=</span> <span class="n">side_steam</span>
     
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="k">pass</span>
     
@@ -255,6 +265,8 @@
         <span class="n">emission</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">hu_cooling</span><span class="p">,</span> <span class="n">hu_steam</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span>
         <span class="n">H_steam</span> <span class="o">=</span> <span class="n">steam</span><span class="o">.</span><span class="n">H</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">side_steam</span><span class="p">:</span> 
+            <span class="n">H_steam</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">side_steam</span><span class="o">.</span><span class="n">H</span>
         <span class="n">feed_Hc</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">Hc</span>
         
         <span class="c1"># This is simply for the mass balance (no special purpose)</span>
@@ -263,13 +275,13 @@
         <span class="c1"># A percent of bagasse is water, so remove latent heat of vaporization</span>
         <span class="n">feed_massnet</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">massnet</span>
         <span class="n">moisture_content</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">_mass</span><span class="p">[</span><span class="n">feed</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;7732-18-5&#39;</span><span class="p">)]</span><span class="o">/</span><span class="n">feed_massnet</span>
-        <span class="n">H_content</span> <span class="o">=</span> <span class="n">feed_Hc</span><span class="o">*</span><span class="n">B_eff</span> <span class="o">-</span> <span class="n">feed_massnet</span><span class="o">*</span><span class="mi">2260</span><span class="o">*</span><span class="n">moisture_content</span>
+        <span class="n">H_content</span> <span class="o">=</span> <span class="n">feed_Hc</span><span class="o">*</span><span class="n">B_eff</span> <span class="o">-</span> <span class="n">feed_massnet</span><span class="o">*</span><span class="mi">3000</span><span class="o">*</span><span class="n">moisture_content</span>
         
         <span class="c1"># Heat available for the turbogenerator</span>
         <span class="n">H_electricity</span> <span class="o">=</span> <span class="n">H_content</span> <span class="o">-</span> <span class="n">H_steam</span> 
         
         <span class="c1">#: [float] Total steam produced by the boiler (kmol/hr)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">total_steam</span> <span class="o">=</span> <span class="n">H_content</span><span class="o">/</span><span class="mi">70000</span> <span class="c1"># Superheat steam with 70000 kJ/kmol</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">total_steam</span> <span class="o">=</span> <span class="n">H_content</span><span class="o">/</span><span class="mi">60000</span> <span class="c1"># Superheat steam with 70000 kJ/kmol</span>
         <span class="n">Design</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span>
         <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Flow rate&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_steam</span> <span class="o">*</span> <span class="mf">18.01528</span>
         
@@ -282,11 +294,15 @@
         <span class="n">hu_cooling</span><span class="p">(</span><span class="n">cooling</span><span class="p">,</span> <span class="n">steam</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="n">hu_steam</span><span class="o">.</span><span class="n">ID</span> <span class="o">=</span> <span class="s1">&#39;Low pressure steam&#39;</span>
         <span class="n">hu_steam</span><span class="o">.</span><span class="n">cost</span> <span class="o">=</span> <span class="o">-</span><span class="nb">sum</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">cost</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">steam_utilities</span><span class="p">])</span>
-        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Work&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">electricity</span><span class="o">/</span><span class="mi">3600</span>        
+        <span class="n">Design</span><span class="p">[</span><span class="s1">&#39;Work&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">electricity</span><span class="o">/</span><span class="mi">3600</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">makeup_water</span><span class="o">.</span><span class="n">_mol</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">total_steam</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">boiler_blowdown</span> <span class="o">*</span> <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">RO_rejection</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_end_decorated_cost_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_power_utility</span><span class="o">.</span><span class="n">rate</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_Design</span><span class="p">[</span><span class="s1">&#39;Work&#39;</span><span class="p">])</span></div>
 
+
+<span class="n">BoilerTurbogenerator</span><span class="o">.</span><span class="n">_N_outs</span> <span class="o">=</span> <span class="n">BoilerTurbogenerator</span><span class="o">.</span><span class="n">_N_ins</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="c1"># Simulation of ethanol production from sugarcane</span>
 <span class="c1"># in Brazil: economic study of an autonomous</span>
 <span class="c1"># distillery</span>

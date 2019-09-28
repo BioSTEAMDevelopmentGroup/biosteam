@@ -177,7 +177,7 @@ EtOH_start_network = (S301, F301, P306, M301, H301, T305, R301, T301,
 
 (D302-0, U301-0)-M303-0-D303-0-H303-U301
 D303-1-P303
-purification_recycle = System('purification_recycle',
+ethanol_recycle_sys = System('ethanol_recycle_sys',
                            network=(M303, D303, H303, U301),
                            recycle=M303-0)
 
@@ -197,6 +197,6 @@ EtOH_process_water_network=(M305,)
 
 area_300 = System('area_300',
                   network=(EtOH_start_network
-                         + (purification_recycle,)
+                         + (ethanol_recycle_sys,)
                          + EtOH_end_network
                          + EtOH_process_water_network))

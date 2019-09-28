@@ -95,13 +95,14 @@
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="notebooks/examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Find unit operations and manage flowsheets.html">5. Find unit operations and manage flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis of a biorefinery.html">7. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">8. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">9. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Stoichiometric reactions.html">10. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Advanced simulation.html">11. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">7. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis of a biorefinery.html">8. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">9. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">10. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Stoichiometric reactions.html">11. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Advanced simulation.html">12. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -231,12 +232,12 @@
 <p>&#64;author: yoelr</p>
 <dl class="class">
 <dt id="biosteam.units.facilities.Facility">
-<em class="property">class </em><code class="descclassname">biosteam.units.facilities.</code><code class="descname">Facility</code><span class="sig-paren">(</span><em>ID=''</em>, <em>ins=None</em>, <em>outs=()</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/_facility.html#Facility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.Facility" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.units.facilities.</code><code class="descname">Facility</code><span class="sig-paren">(</span><em>ID=''</em>, <em>ins=None</em>, <em>outs=()</em>, <em>species=()</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/_facility.html#Facility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.Facility" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="class">
 <dt id="biosteam.units.facilities.ProcessWaterCenter">
-<em class="property">class </em><code class="descclassname">biosteam.units.facilities.</code><code class="descname">ProcessWaterCenter</code><span class="sig-paren">(</span><em>ID=''</em>, <em>ins=None</em>, <em>outs=()</em>, <em>*</em>, <em>BT</em>, <em>CT</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/facilities/_process_water_center.html#ProcessWaterCenter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.ProcessWaterCenter" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.units.facilities.</code><code class="descname">ProcessWaterCenter</code><span class="sig-paren">(</span><em>ID=''</em>, <em>ins=None</em>, <em>outs=()</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/facilities/_process_water_center.html#ProcessWaterCenter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.ProcessWaterCenter" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -244,14 +245,10 @@
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
 <dt><strong>ins</strong></dt>
 <dd><p class="first">[0] Recycle water</p>
-<p>[1] Make-up water</p>
-<p>[2] Boiler water</p>
-<p class="last">[3] Cooling tower water</p>
+<p class="last">[1] Make-up water</p>
 </dd>
 <dt><strong>outs</strong></dt>
-<dd><p class="first">[0] Process water</p>
-<p>[1] Boiler water</p>
-<p class="last">[2] Cooling tower water</p>
+<dd><p class="first last">[0] Process water</p>
 </dd>
 </dl>
 </td>
@@ -281,7 +278,7 @@
 
 <dl class="class">
 <dt id="biosteam.units.facilities.BoilerTurbogenerator">
-<em class="property">class </em><code class="descclassname">biosteam.units.facilities.</code><code class="descname">BoilerTurbogenerator</code><span class="sig-paren">(</span><em>ID=''</em>, <em>ins=None</em>, <em>outs=()</em>, <em>*</em>, <em>boiler_efficiency=0.8</em>, <em>turbogenerator_efficiency=0.85</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/facilities/_boiler_turbogenerator.html#BoilerTurbogenerator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.BoilerTurbogenerator" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.units.facilities.</code><code class="descname">BoilerTurbogenerator</code><span class="sig-paren">(</span><em>ID=''</em>, <em>ins=None</em>, <em>outs=()</em>, <em>*</em>, <em>boiler_efficiency=0.8</em>, <em>turbogenerator_efficiency=0.85</em>, <em>side_steam=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/facilities/_boiler_turbogenerator.html#BoilerTurbogenerator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.BoilerTurbogenerator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Boiler_TurboGenerator object that will calculate electricity generation from burning the feed. It also takes into account how much steam is being produced, and the required cooling utility of the turbo generator. No emissions or mass balances are taken into account.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -315,7 +312,7 @@
 
 <dl class="class">
 <dt id="biosteam.units.facilities.AirDistributionPackage">
-<em class="property">class </em><code class="descclassname">biosteam.units.facilities.</code><code class="descname">AirDistributionPackage</code><span class="sig-paren">(</span><em>ID=''</em>, <em>ins=None</em>, <em>outs=()</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/facilities/_air_distribution_package.html#AirDistributionPackage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">biosteam.units.facilities.</code><code class="descname">AirDistributionPackage</code><span class="sig-paren">(</span><em>ID=''</em>, <em>ins=None</em>, <em>outs=()</em>, <em>species=()</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/facilities/_air_distribution_package.html#AirDistributionPackage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.facilities.AirDistributionPackage" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>

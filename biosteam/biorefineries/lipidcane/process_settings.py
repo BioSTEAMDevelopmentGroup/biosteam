@@ -13,7 +13,7 @@ __all__ = ('price',)
 # %% Process settings
 
 biosteam.CE = 567 # 2013
-find.set_flowsheet(Flowsheet('Lipidcane'))
+find.set_flowsheet(Flowsheet('lipidcane'))
 PowerUtility.price = 0.065
 _ha = HeatUtility.heating_agents['Low pressure steam']
 _ha.efficiency = 0.85

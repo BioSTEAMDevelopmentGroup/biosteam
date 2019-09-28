@@ -110,7 +110,7 @@ annotate_line('Excess electricity', 4, lipid_fraction, ys,
 # Plot sugarcane values and SuperPro values
 x_superpro = [0, 2, 5, 10]
 data_sc = pd.read_excel('Monte Carlo sugarcane.xlsx', header=[0,1])
-get_metric = lambda name: np.asarray(data_sc[name]).flatten()
+get_metric = lambda name: np.asarray(data_sc['Biorefinery', name]).flatten()
 
 # IRR
 plt.sca(IRR_ax)
