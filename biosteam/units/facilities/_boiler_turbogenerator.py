@@ -41,6 +41,7 @@ class BoilerTurbogenerator(Facility):
     
     
     """
+    duty_over_mol = 50000 # Superheat steam with 50000 kJ/kmol
     boiler_blowdown = 0.03
     RO_rejection = 0
     _N_outs = _N_ins = 2
@@ -77,11 +78,12 @@ class BoilerTurbogenerator(Facility):
                 for hu in u._heat_utilities:
                     if hu.ID == 'Low pressure steam':
                         steam_utilities.add(hu)
-        steam._mol[0] = sum([i.flow for i in steam_utilities])
+        steam._mol[0] = steam_mol = sum([i.flow for i in steam_utilities])
+        duty_over_mol = self.duty_over_mol = 50000
         feed = self._ins[0]
         emission = self._outs[0]
         hu_cooling, hu_steam = self._heat_utilities
-        H_steam = steam.H
+        H_steam = steam_mol * duty_over_mol
         if self.side_steam: 
             H_steam += self.side_steam.H
         feed_Hc = feed.Hc
@@ -92,13 +94,16 @@ class BoilerTurbogenerator(Facility):
         # A percent of bagasse is water, so remove latent heat of vaporization
         feed_massnet = feed.massnet
         moisture_content = feed._mass[feed.index('7732-18-5')]/feed_massnet
-        H_content = feed_Hc*B_eff - feed_massnet*3000*moisture_content
-        
-        # Heat available for the turbogenerator
-        H_electricity = H_content - H_steam 
+        H_content = feed_Hc*B_eff - feed_massnet*2300*moisture_content
         
         #: [float] Total steam produced by the boiler (kmol/hr)
-        self.total_steam = H_content/60000 # Superheat steam with 70000 kJ/kmol
+        self.total_steam = H_content/duty_over_mol
+        
+        self.makeup_water._mol[0] = makeup_mol = self.total_steam * self.boiler_blowdown * 1/(1-self.RO_rejection)
+        
+        # Heat available for the turbogenerator
+        H_electricity = H_content - H_steam - makeup_mol*17757
+        
         Design = self._Design
         Design['Flow rate'] = self.total_steam * 18.01528
         
@@ -113,7 +118,7 @@ class BoilerTurbogenerator(Facility):
         hu_steam.cost = -sum([i.cost for i in steam_utilities])
         Design['Work'] = electricity/3600
         
-        self.makeup_water._mol[0] = self.total_steam * self.boiler_blowdown * 1/(1-self.RO_rejection)
+        
 
     def _end_decorated_cost_(self):
         self._power_utility(self._power_utility.rate - self._Design['Work'])

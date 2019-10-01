@@ -104,6 +104,7 @@ addchemical('DAP', 'Diammonium Phosphate')
 addchemical('AmmoniumAcetate')
 addchemical('NH4SO4', 'AmmoniumSulfate')
 addchemical('NaNO3', 'SodiumNitrate')
+addchemical('Oil', 'Oleic Acid', phase='l')
 addchemical('HMF')
 
 # Will remain in the vapor phase
@@ -137,7 +138,6 @@ sp.Acetate.Hf = -103373
 copy('Tar', 'Xylose')
 
 # Species taken from previous study
-addchemical('Oil', 'Oleic Acid', phase='l')
 addfrom(lcspecies, 'CaO')
 addfrom(lcspecies, 'Ash')
 addfrom(lcspecies, 'NaOH')

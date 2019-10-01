@@ -11,7 +11,8 @@ from biosteam.utils.plot_utils import DoubleColorCircle, DoubleColorLegend
 from biosteam import colors
 
 __all__ = ('plot_montecarlo', 'plot_montecarlo_across_coordinate',
-           'annotate_line', 'plot_single_points', 'plot_spearman')
+           'annotate_line', 'plot_single_points', 'plot_spearman',
+           'plot_horizontal_line')
 
 def plot_spearman(rhos, top=None):
     """Display Spearman's rank correlation plot.
@@ -59,6 +60,10 @@ def plot_spearman(rhos, top=None):
 
 light_color = colors.brown_tint.RGBn
 dark_color = colors.brown_shade.RGBn
+
+def plot_horizontal_line(y, color='grey', **kwargs):
+    """Plot horizontal line."""
+    plt.axhline(y=y, color=color, **kwargs) 
 
 def plot_vertial_line(x, color='grey'):
     """Plot vertical line."""
