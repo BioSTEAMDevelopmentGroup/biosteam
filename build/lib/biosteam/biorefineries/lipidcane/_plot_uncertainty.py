@@ -127,7 +127,7 @@ TCI = get_metric('Fixed capital investment')  * 1.05 / 1e6 # Account for working
 plot_single_points(x_superpro, [158.5, 172.9, 178.3, 195.0])
 plot_montecarlo(TCI)
 plot_vertial_line(1)
-plt.ylim(0, 240)
+plt.ylim(0, 260)
 set_x_axis(False)
 
 # Production

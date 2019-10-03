@@ -6,14 +6,17 @@ Created on Wed Mar 20 18:40:05 2019
 """
 from ..utils import bounded_wegstein, wegstein, aitken, \
                      bounded_aitken, IQ_interpolation
+from numba import njit
 import numpy as np
 
 __all__ = ('VLE', 'V_2N', 'V_3N', 'V_error')
 
+@njit
 def V_error(V, zs, Ks):
     """Vapor fraction error."""
     return (zs*(Ks-1.)/(1.+V*(Ks-1.))).sum()
 
+@njit
 def V_2N(zs, Ks):
     """Solution for 2 component flash vessel."""
     z1, z2 = zs
@@ -21,7 +24,7 @@ def V_2N(zs, Ks):
     return (-K1*z1 - K2*z2 + z1 + z2)/(K1*K2*z1 + K1*K2 *
                                        z2 - K1*z1 - K1*z2
                                        - K2*z1 - K2*z2 + z1 + z2)
-    
+@njit    
 def V_3N(zs, Ks):
     """Solution for 3 component flash vessel."""
     z1, z2, z3 = zs

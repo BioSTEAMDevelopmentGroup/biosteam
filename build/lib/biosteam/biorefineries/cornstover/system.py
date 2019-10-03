@@ -735,6 +735,6 @@ get_ecost = lambda units: sum([i._power_utility.cost
 
 cooling_water_uses = {i.system.ID: get_utility(i.units, 'Cooling water', 'duty')/1e6/4.182
                       for i in areas}
-electricity_uses = {i.system.ID: get_rate(i.units)/41 for i in areas}
+electricity_uses = {i: get_rate(j.units)/41 for i,j in enumerate(areas)}
 electricity_costs = {i.system.ID: get_ecost(i.units) for i in areas}
 

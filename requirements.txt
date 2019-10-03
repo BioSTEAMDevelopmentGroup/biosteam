@@ -4,11 +4,11 @@ fluids==0.1.74
 pint==0.9
 scipy
 IPython
-thermo==0.1.39
 colorpalette==0.3.0
 array_collections==0.1.9
 free_properties==0.1.9
 chaospy==3.0.11
+coolprop
 pandas
 numpy
 graphviz
