@@ -243,6 +243,15 @@ biosteam/thermo/Vapor Pressure/Table 2-8 Vapor Pressure of Inorganic and Organic
 biosteam/thermo/Vapor Pressure/VDI PPDS Boiling temperatures at different pressures.tsv
 biosteam/thermo/Vapor Pressure/Wagner Collection Poling.tsv
 biosteam/thermo/Vapor Pressure/Wagner Original McGarry.tsv
+biosteam/thermo/Viscosity/Dutt Prasad 3 term.tsv
+biosteam/thermo/Viscosity/MagalhaesLJ.tsv
+biosteam/thermo/Viscosity/Table 2-312 Vapor Viscosity of Inorganic and Organic Substances.tsv
+biosteam/thermo/Viscosity/Table 2-313 Viscosity of Inorganic and Organic Liquids.tsv
+biosteam/thermo/Viscosity/VDI PPDS Dynamic viscosity of gases polynomials.tsv
+biosteam/thermo/Viscosity/VDI PPDS Dynamic viscosity of saturated liquids polynomials.tsv
+biosteam/thermo/Viscosity/Viswanath Natarajan Dynamic 2 term Exponential.tsv
+biosteam/thermo/Viscosity/Viswanath Natarajan Dynamic 2 term.tsv
+biosteam/thermo/Viscosity/Viswanath Natarajan Dynamic 3 term.tsv
 biosteam/units/__init__.py
 biosteam/units/_balance.py
 biosteam/units/_centrifuge_LLE.py
