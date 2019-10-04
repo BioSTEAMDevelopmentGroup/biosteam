@@ -4,7 +4,7 @@ Created on Sat Aug 18 13:50:03 2018
 
 @author: yoelr
 """
-from thermo.chemical import Chemical as TChem
+from ..thermo.chemical import Chemical as TChem
 from ._compound import Compound
 import numpy as np
 import re

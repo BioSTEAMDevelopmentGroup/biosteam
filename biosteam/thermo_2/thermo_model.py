@@ -14,13 +14,12 @@ class ThermoModel:
     
     @property
     def name(self):
-        return self.evaluate.__name__.replace('_', ' ')
+        return self.evaluate.__name__
     
     def __repr__(self):
         return f"<{type(self).__name__}: {self.name}>"
 
-
-makefast = lambda method: njit(method) if method and not isinstance(method, CPUDispatcher) else method
+makefast = lambda method: njit(method) if isinstance(method, CPUDispatcher) else method
 
 class TDependentModel(ThermoModel):
     __slots__ = ('evaluate', 'integrate', 'integrate_over_T',
@@ -33,14 +32,14 @@ class TDependentModel(ThermoModel):
                  isaccurate=True):
         if compile:
             self.evaluate = njit(evaluate)
-            self.integrate = makefast(integrate)
-            self.integrate_over_T = makefast(integrate_over_T)
-            self.differentiate = makefast(differentiate)
+            if integrate: self.integrate = makefast(integrate)
+            if integrate_over_T: self.integrate_over_T = makefast(integrate_over_T)
+            if differentiate: self.differentiate = makefast(differentiate)
         else:
             self.evaluate = evaluate
-            self.integrate = integrate
-            self.integrate_over_T = integrate_over_T
-            self.differentiate = differentiate
+            if integrate: self.integrate = integrate
+            if integrate_over_T: self.integrate_over_T = integrate_over_T
+            if differentiate: self.differentiate = differentiate
         self.Tmin = Tmin
         self.Tmax = Tmax
         self.isaccurate = isaccurate
@@ -65,21 +64,21 @@ class TPDependentModel(ThermoModel):
                  'differentiate_T', 'differentiate_P',
                  'isaccurate')
     def __init__(self, evaluate, Tmin, Tmax, Pmin, Pmax,
-                 differentiate_T=None, differentiate_P=None,
                  integrate_T=None, integrate_P=None,
+                 differentiate_T=None, differentiate_P=None,
                  compile=True, isaccurate=True):        
         if compile:
             self.evaluate = njit(evaluate)
-            self.integrate_T = makefast(integrate_T)
-            self.differentiate_T = makefast(differentiate_T)
-            self.integrate_P = makefast(integrate_P)
-            self.differentiate_P = makefast(differentiate_P)
+            if integrate_T: self.integrate_T = makefast(integrate_T)
+            if integrate_P: self.integrate_P = makefast(integrate_P)
+            if differentiate_T: self.differentiate_T = makefast(differentiate_T)
+            if differentiate_P: self.differentiate_P = makefast(differentiate_P)
         else:
             self.evaluate = evaluate
-            self.integrate_T = integrate_T
-            self.differentiate_T = differentiate_T
-            self.integrate_P = integrate_P
-            self.differentiate_P = differentiate_P
+            if integrate_T: self.integrate_T = integrate_T
+            if integrate_P: self.integrate_P = integrate_P
+            if differentiate_T: self.differentiate_T = differentiate_T
+            if differentiate_P: self.differentiate_P = differentiate_P
         self.Tmin = Tmin
         self.Tmax = Tmax
         self.Pmin = Pmin

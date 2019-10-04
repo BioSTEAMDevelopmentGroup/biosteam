@@ -8,7 +8,7 @@ from .. import Stream, Unit, MixedStream, PowerUtility
 from math import pi, ceil
 import numpy as np
 from scipy.optimize import brentq, newton
-from thermo import activity
+from ..thermo import activity
 from .designtools import vacuum_system, HNATable, FinalValue, \
                           VesselWeightAndWallThickness, Kvalue
 from .._equilibrium import V_3N, V_2N, V_error

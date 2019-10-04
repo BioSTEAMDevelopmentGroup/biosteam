@@ -84,8 +84,8 @@ class TDependentModelHandler(ThermoModelHandler):
         integral = 0
         for model in self.models:
             if not hasattr(model, 'integrate_over_T'): continue
-            lb_satisfied = Ta > model.Tmin
-            ub_satisfied = Tb < model.Tmax
+            lb_satisfied = Ta >= model.Tmin
+            ub_satisfied = Tb <= model.Tmax
             if lb_satisfied:
                 if ub_satisfied:
                     return integral + model.integrate_over_T(Ta, Tb)
@@ -107,10 +107,10 @@ class TPDependentModelHandler(ThermoModelHandler):
     Tmax = TDependentModelHandler.Tmax
     @property
     def Pmin(self):
-        return min([i.Tmin for i in self.models])
+        return min([i.Pmin for i in self.models])
     @property
     def Pmax(self):
-        return max([i.Tmax for i in self.models])
+        return max([i.Pmax for i in self.models])
     
     def evaluate(self, T, P=101325.):
         active_model = self.active_model
@@ -150,33 +150,9 @@ class TPDependentModelHandler(ThermoModelHandler):
                     return active_model.differentiate_P(T, P)
             raise ValueError(f"no valid model at T={T:.2f} K and P={P:5g} Pa")
 
-    # def integrate_T(self, Ta, Tb, P):
-    #     active_model = self.active_model
-    #     if (active_model.Tmin < Ta and active_model.Tmax > Tb
-    #         and active_model.Pmin < P < active_model.Pmax):
-    #         return active_model.integrate_T(Ta, Tb, P)
-    #     else:
-    #         other_models = [i for i in self.models if i is not active_model]
-    #         for active_model in other_models:
-    #             if (active_model.Tmin < Ta and active_model.Tmax > Tb
-    #                 and active_model.Pmin < P < active_model.Pmax):
-    #                 self.active_model = active_model
-    #                 try: return active_model.integrate_T(Ta, Tb, P)
-    #                 except: pass
-    #         raise ValueError(f"no valid model between T={Ta:.2f} to {Tb:.2f} K")
+    def integrate_T(self, Ta, Tb, P):
+        return NotImplemented
             
-    # def integrate_P(self, Pa, Pb, T):
-    #     active_model = self.active_model
-    #     if (active_model.Pmin < Pa and active_model.Pmax > Pb) and (active_model.Tmin < T < active_model.Tmax):
-    #         return active_model.integrate_T(Pa, Pb, T)
-    #     else:
-    #         other_models = [i for i in self.models if i is not active_model]
-    #         for active_model in other_models:
-    #             if (active_model.Pmin < Pa and active_model.Pmax > Pb
-    #                 and active_model.Tmin < T < active_model.Tmax):
-    #                 self.active_model = active_model
-    #                 try: return active_model.integrate_T(Pa, Pb, T)
-    #                 except: pass
-    #         raise ValueError(f"no valid model between P={Pa:5g} to {Pb:5g} Pa and T={T:.2f} K")
-
+    def integrate_P(self, Pa, Pb, T):
+        return NotImplemented
     

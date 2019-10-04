@@ -1530,9 +1530,7 @@ class Chemical(object): # pragma: no cover
         2389540.219347256
         '''
         Hvamp = self.Hvapm
-        if Hvamp:
-            return property_molar_to_mass(Hvamp, self.MW)
-        return None
+        return property_molar_to_mass(Hvamp, self.MW)
 
     @property
     def Cpsm(self):
@@ -1622,9 +1620,7 @@ class Chemical(object): # pragma: no cover
         [234.40150347679008, 238.01856793835751, 241.63563239992484, 245.25269686149224, 248.86976132305958]
         '''
         Cpsm = self.HeatCapacitySolid(self.T)
-        if Cpsm:
-            return property_molar_to_mass(Cpsm, self.MW)
-        return None
+        return property_molar_to_mass(Cpsm, self.MW)
 
     @property
     def Cpl(self):
@@ -1649,9 +1645,7 @@ class Chemical(object): # pragma: no cover
         812.1024585274956
         '''
         Cplm = self.HeatCapacityLiquid(self.T)
-        if Cplm:
-            return property_molar_to_mass(Cplm, self.MW)
-        return None
+        return property_molar_to_mass(Cplm, self.MW)
 
     @property
     def Cpg(self):
@@ -1670,9 +1664,7 @@ class Chemical(object): # pragma: no cover
         1967.6698314620658
         '''
         Cpgm = self.HeatCapacityGas(self.T)
-        if Cpgm:
-            return property_molar_to_mass(Cpgm, self.MW)
-        return None
+        return property_molar_to_mass(Cpgm, self.MW)
 
     @property
     def Cvgm(self):
@@ -1688,9 +1680,7 @@ class Chemical(object): # pragma: no cover
         27.13366316134193
         '''
         Cpgm = self.HeatCapacityGas(self.T)
-        if Cpgm:
-            return Cpgm - R
-        return None
+        return Cpgm - R
 
     @property
     def Cvg(self):
@@ -1706,9 +1696,7 @@ class Chemical(object): # pragma: no cover
         1506.1471795798861
         '''
         Cvgm = self.Cvgm
-        if Cvgm:
-            return property_molar_to_mass(Cvgm, self.MW)
-        return None
+        return property_molar_to_mass(Cvgm, self.MW)
 
     @property
     def isentropic_exponent(self):
@@ -1722,9 +1710,7 @@ class Chemical(object): # pragma: no cover
         1.405237786321222
         '''
         Cp, Cv = self.Cpg, self.Cvg
-        if all((Cp, Cv)):
-            return isentropic_exponent(Cp, Cv)
-        return None
+        return isentropic_exponent(Cp, Cv)
 
     @property
     def Vms(self):
@@ -1793,9 +1779,7 @@ class Chemical(object): # pragma: no cover
         7869.999999999994
         '''
         Vms = self.Vms
-        if Vms:
-            return Vm_to_rho(Vms, self.MW)
-        return None
+        return Vm_to_rho(Vms, self.MW)
 
     @property
     def rhol(self):
@@ -1813,9 +1797,7 @@ class Chemical(object): # pragma: no cover
         876.9946785618097
         '''
         Vml = self.Vml
-        if Vml:
-            return Vm_to_rho(Vml, self.MW)
-        return None
+        return Vm_to_rho(Vml, self.MW)
 
     @property
     def rhog(self):
@@ -1847,9 +1829,7 @@ class Chemical(object): # pragma: no cover
         the density prediction.
         '''
         Vmg = self.Vmg
-        if Vmg:
-            return Vm_to_rho(Vmg, self.MW)
-        return None
+        return Vm_to_rho(Vmg, self.MW)
 
     @property
     def rhosm(self):
@@ -1866,9 +1846,7 @@ class Chemical(object): # pragma: no cover
         112760.75925577903
         '''
         Vms = self.Vms
-        if Vms:
-            return 1./Vms
-        return None
+        return 1./Vms
 
     @property
     def rholm(self):
@@ -1885,9 +1863,7 @@ class Chemical(object): # pragma: no cover
         29937.20179186975
         '''
         Vml = self.Vml
-        if Vml:
-            return 1./Vml
-        return None
+        return 1./Vml
 
     @property
     def rhogm(self):
@@ -1904,9 +1880,7 @@ class Chemical(object): # pragma: no cover
         42.01349946063116
         '''
         Vmg = self.Vmg
-        if Vmg:
-            return 1./Vmg
-        return None
+        return 1./Vmg
 
     @property
     def Zs(self):
@@ -1923,9 +1897,7 @@ class Chemical(object): # pragma: no cover
         0.00036248477437931853
         '''
         Vms = self.Vms
-        if Vms:
-            return Z(self.T, self.P, Vms)
-        return None
+        return Z(self.T, self.P, Vms)
 
     @property
     def Zl(self):
@@ -1942,9 +1914,7 @@ class Chemical(object): # pragma: no cover
         0.0007385375470263454
         '''
         Vml = self.Vml
-        if Vml:
-            return Z(self.T, self.P, Vml)
-        return None
+        return Z(self.T, self.P, Vml)
 
     @property
     def Zg(self):
@@ -1961,9 +1931,7 @@ class Chemical(object): # pragma: no cover
         11.140084184207813
         '''
         Vmg = self.Vmg
-        if Vmg:
-            return Z(self.T, self.P, Vmg)
-        return None
+        return Z(self.T, self.P, Vmg)
 
     @property
     def SGs(self):

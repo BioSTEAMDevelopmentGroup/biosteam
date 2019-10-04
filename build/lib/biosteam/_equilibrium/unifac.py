@@ -5,14 +5,13 @@ Created on Mon Apr 16 08:58:41 2018
 
 @author: Yoel Rene Cortes-Pena
 """
-from thermo.utils import log, exp
-import thermo.unifac
+from math import log, exp
 import os
 
 __all__ = ('Dortmund',)
 
 # %% Data
-folder = os.path.join(os.path.dirname(thermo.unifac.__file__), 'Phase Change')
+folder = os.path.join(os.path.dirname(__file__), '..\\thermo\\Phase Change')
 
 class UNIFAC_subgroup:
     __slots__ = ('group', 'main_group_id', 'main_group', 'R', 'Q')
