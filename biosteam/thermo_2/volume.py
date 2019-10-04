@@ -38,7 +38,7 @@ import os
 import numpy as np
 from scipy.interpolate import interp1d
 import pandas as pd
-
+from numba import njit
 from .utils import R
 from .utils import log, exp
 from .utils import Vm_to_rho, rho_to_Vm, mixing_simple, none_and_length_check
@@ -84,7 +84,7 @@ _CRC_virial_data_values = CRC_virial_data.values
 
 ### Critical-properties based
 
-def YenWoodsModel(Tc, Vc, Zc, Tmin, Tmax, Pmin=10e4, Pmax=10e5):
+def YenWoodsModel(Tc, Vc, Zc, Tmin, Tmax, Pmin=100., Pmax=10e6):
     r'''Return a TPDependentModel object that calculates saturation liquid volume [m^3/mol],
     using the Yen and Woods [1]_ CSP method and a chemical's critical properties.
 
@@ -138,7 +138,7 @@ def YenWoodsModel(Tc, Vc, Zc, Tmin, Tmax, Pmin=10e4, Pmax=10e5):
         return Vc/(1 + A*(1-Tr)**(1/3.) + B*(1-Tr)**(2/3.) + D*(1-Tr)**(4./3.))
     return TPDependentModel(Yen_Woods_saturation, Tmin, Tmax, Pmin, Pmax)
 
-def RackettModel(Tc, Pc, Zc, Tmin, Tmax, Pmin=10e4, Pmax=10e5):
+def RackettModel(Tc, Pc, Zc, Tmin, Tmax, Pmin=100., Pmax=10e6):
     r'''Return a TPDependentModel object that calculates saturation liquid volume [m^3/mol], using Rackett CSP method and
     critical properties.
 
@@ -181,7 +181,7 @@ def RackettModel(Tc, Pc, Zc, Tmin, Tmax, Pmin=10e4, Pmax=10e5):
     return TPDependentModel(Rackett, Tmin, Tmax, Pmin, Pmax)
 
 
-def YamadaGunnModel(Tc, Pc, omega, Tmin, Tmax, Pmin=10e4, Pmax=10e5):
+def YamadaGunnModel(Tc, Pc, omega, Tmin, Tmax, Pmin=100., Pmax=10e6):
     r'''Return a TPDependentModel object that calculates saturation liquid volume [m^3/mol], using Yamada and Gunn CSP method
     and a chemical's critical properties and acentric factor.
 
@@ -223,7 +223,7 @@ def YamadaGunnModel(Tc, Pc, omega, Tmin, Tmax, Pmin=10e4, Pmax=10e5):
     return TPDependentModel(Yamada_Gunn, Tmin, Tmax, Pmin, Pmax)
 
 
-def TownsendHalesModel(Tc, Vc, omega, Tmin, Tmax, Pmin=10e4, Pmax=10e5):
+def TownsendHalesModel(Tc, Vc, omega, Tmin, Tmax, Pmin=100., Pmax=10e6):
     r'''Return a TPDependentModel object that calculates saturation liquid volume [m^3/mol], using the Townsend and Hales CSP method as modified from the original Riedel equation. Uses chemical critical volume and temperature, as well as acentric factor
 
     The density of a liquid is given by:
@@ -265,7 +265,7 @@ Bhirud_normal_lnU0_interp = interp1d(Bhirud_normal_Trs, Bhirud_normal_lnU0s, kin
 Bhirud_normal_lnU1_interp = interp1d(Bhirud_normal_Trs, Bhirud_normal_lnU1, kind='cubic')
 
 
-def BhirudNormalModel(Tc, Pc, omega, Tmin, Tmax, Pmin=10e4, Pmax=10e5):
+def BhirudNormalModel(Tc, Pc, omega, Tmin, Tmax, Pmin=100., Pmax=10e6):
     r'''Return a TPDependentModel object that calculates saturation liquid volume [m^3/mol] using the Bhirud [1]_ CSP method.
     Uses Critical temperature and pressure and acentric factor.
 
@@ -320,8 +320,8 @@ def BhirudNormalModel(Tc, Pc, omega, Tmin, Tmax, Pmin=10e4, Pmax=10e5):
     return TPDependentModel(Bhirud_normal, Tmin, Tmax, Pmin, Pmax)
 
 
-def COSTALDModel(Tc, Vc, omega, Tmin, Tmax, Pmin=10e4, Pmax=10e5):
-    r'''Return a TPDependentModel object that calculates saturation liquid volume [m^3/mol] using the COSTALD CSP method.
+def CostaldModel(Tc, Vc, omega, Tmin, Tmax, Pmin=100., Pmax=10e6):
+    r'''Return a TPDependentModel object that calculates saturation liquid volume [m^3/mol] using the Costald CSP method.
 
     A popular and accurate estimation method. If possible, fit parameters are
     used; alternatively critical properties work well.
@@ -363,17 +363,17 @@ def COSTALDModel(Tc, Vc, omega, Tmin, Tmax, Pmin=10e4, Pmax=10e5):
        Saturated Densities of Liquids and Their Mixtures." AIChE Journal
        25, no. 4 (1979): 653-663. doi:10.1002/aic.690250412
     '''
-    def COSTALD(T, P):
+    def Costald(T, P):
         Tr = T/Tc
         V_delta = (-0.296123 + 0.386914*Tr - 0.0427258*Tr**2
             - 0.0480645*Tr**3)/(Tr - 1.00001)
         V_0 = 1 - 1.52816*(1-Tr)**(1/3.) + 1.43907*(1-Tr)**(2/3.) \
             - 0.81446*(1-Tr) + 0.190454*(1-Tr)**(4/3.)
         return Vc*V_0*(1-omega*V_delta)
-    return TPDependentModel(COSTALD, Tmin, Tmax, Pmin, Pmax)
+    return TPDependentModel(Costald, Tmin, Tmax, Pmin, Pmax)
 
 
-def CampbellThodosModel(Tb, Tc, Pc, M, dipole=None, hydroxyl=False, Pmin=10e4, Pmax=10e5, *, Tmin, Tmax,):
+def CampbellThodosModel(Tb, Tc, Pc, M, dipole=None, hydroxyl=False, Pmin=100., Pmax=10e6, *, Tmin, Tmax,):
     r'''Return a TPDependentModel object that calculates saturation liquid volume [m^3/mol] using the Campbell-Thodos [1]_
     CSP method.
 
@@ -458,7 +458,8 @@ def CampbellThodosModel(Tb, Tc, Pc, M, dipole=None, hydroxyl=False, Pmin=10e4, P
         return Vs
     return TPDependentModel(Campbell_Thodos, Tmin, Tmax, Pmin, Pmax)
 
-def SNM0Model(T, Tc, Vc, omega, delta_SRK=None, *, Tmin, Tmax, Pmin=10e4, Pmax=10e5):
+
+def SNM0Model(Tc, Vc, omega, delta_SRK=None, *, Tmin, Tmax, Pmin=100., Pmax=10e6):
     r'''Return a TPDependentModel object that calculates saturation liquid volume [m^3/mol] using the Mchaweh, Moshfeghian
     model [1]_. Designed for simple calculations.
 
@@ -548,7 +549,7 @@ def CRCInorganicModel(rho0, k, Tm, MW, Tmin, Tmax, Pmin=0, Pmax=1e15):
     def CRC_inorganic(T, P): return (rho0 - k*(T-Tm))*f
     return TPDependentModel(CRC_inorganic, Tmin, Tmax)
 
-def VDI_PPDSModel(A, B, C, D, Tc, rhoc, MW, Tmin, Tmax, Pmin=10e4, Pmax=10e5):
+def VDI_PPDSModel(A, B, C, D, Tc, rhoc, MW, Tmin, Tmax, Pmin=100., Pmax=10e6):
     k = MW / 1e9
     Vc = rhoc * k
     A *= k
@@ -613,33 +614,49 @@ def VolumeLiquid(CAS, MW=None, Tb=None, Tc=None, Pc=None, Vc=None, Zc=None,
         _, C1, C2, C3, C4, Tmin, Tmax = _Perry_l_data_values[Perry_l_data.index.get_loc(CAS)].tolist()
         models.append(ModelEQ105(C1, C2, C3, C4, Tmin, Tmax, vol=True))
     if Tc and Pc and CAS in COSTALD_data.index and not np.isnan(COSTALD_data.at[CAS, 'Z_RA']):
-        Zc = float(COSTALD_data.at[CAS, 'Z_RA'])
-        models.append(RackettModel(Tc, Pc, Zc, Tmin, Tmax))
+        Zc_ = float(COSTALD_data.at[CAS, 'Z_RA'])
+        models.append(RackettModel(Tc, Pc, Zc_, Tmin, Tmax))
         # Roughly data at STP; not guaranteed however; not used for Trange
     if Tc and CAS in COSTALD_data.index:
         Vc = float(COSTALD_data.at[CAS, 'Vchar'])
         omega = float(COSTALD_data.at[CAS, 'omega_SRK'])
         Tmin = 0
         Tmax = Tc
-        models.append(COSTALDModel(Tc, Vc, omega, Tmin, Tmax))
+        models.append(CostaldModel(Tc, Vc, omega, Tmin, Tmax))
     if CAS in VDI_PPDS_2.index:
-        _, MW, Tc, rhoc, A, B, C, D = _VDI_PPDS_2_values[VDI_PPDS_2.index.get_loc(CAS)].tolist()
+        _, MW, Tc_, rhoc, A, B, C, D = _VDI_PPDS_2_values[VDI_PPDS_2.index.get_loc(CAS)].tolist()
         Tmin = 0. # TODO: Add better Tmin
-        models.append(VDI_PPDSModel(A, B, C, D, Tc, rhoc, MW, Tmin, Tc))
+        models.append(VDI_PPDSModel(A, B, C, D, Tc_, rhoc, MW, Tmin, Tc_))
     if CAS in _VDISaturationDict:
         Ts, Vls = VDI_tabular_data(CAS, 'Volume (l)')
         models.append(InterpolatedTPDependentModel(Ts, Vls, Tmin=Ts[0], Tmax=Ts[-1]))
+    if all((Tc, Pc, omega)):
+        models.insert(0, CostaldCompressedModel(Psat, Tc, Pc, omega, models[0].evaluate, 50, 500))
+        if eos: models.insert(0, EOS)
+    if all((Tc, Vc, Zc)):
+        models.append(YenWoodsModel(Tc, Vc, Zc, 0, Tc))
+    if all((Tc, Pc, Zc)):
+        models.append(RackettModel(Tc, Pc, Zc, 0, Tc))
+    if all((Tc, Pc, omega)):
+        models.append(YamadaGunnModel(Tc, Pc, omega, 0, Tc))
+        models.append(BhirudNormalModel(Tc, Pc, omega, 0, Tc))
+    if all((Tc, Vc, omega)):
+        models.append(TownsendHalesModel(Tc, Vc, omega, 0, Tc))
+        models.append(RackettModel(Tc, Vc, omega, 0, Tc))
+        if CAS in SNM0_data.index:
+            SNM0_delta_SRK = float(SNM0_data.at[CAS, 'delta_SRK'])
+            models.append(SNM0Model(Tc, Vc, omega, SNM0_delta_SRK))
+        models.append(SNM0Model(Tc, Vc, omega, Tmin=0, Tmax=Tc))
+    if all((Tc, Vc, omega, Tb, MW)):
+        models.append(CampbellThodosModel(Tb, Tc, Pc, MW, Tmin=0, Tmax=Tc))
     if CAS in CRC_inorg_l_const_data.index:
         Vl = float(CRC_inorg_l_const_data.at[CAS, 'Vm'])
         models.append(ConstantTPDependentModel(Vl, Tmin, Tmax))
-    if all((Tc, Pc, omega)):
-        models.insert(0, COSTALDCompressedModel(Psat, Tc, Pc, omega, models[0].evaluate, 50, 500))
-        if eos: models.append(EOS)
-    return TPDependentModelHandler(models, models[0])
+    return TPDependentModelHandler(models)
+        
 
 
-
-def COSTALDCompressedModel(Psat, Tc, Pc, omega, Vs, Tmin, Tmax, Pmin=0, Pmax=1e15):
+def CostaldCompressedModel(Psat, Tc, Pc, omega, Vs, Tmin, Tmax, Pmin=0, Pmax=1e15):
     r'''Return a TPDependentModel object that calculates saturation liquid volume [m^3/mol] using the COSTALD [1]_ CSP method and a chemical's critical properties.
 
     The molar volume of a liquid is given by:
@@ -696,16 +713,15 @@ def COSTALDCompressedModel(Psat, Tc, Pc, omega, Vs, Tmin, Tmax, Pmin=0, Pmax=1e1
     k = 0.0344483
     e = exp(f + g*omega + h*omega**2)
     C = j + k*omega
-    def COSTALD_compressed(T, P):
+    def Costald_compressed(T, P):
         tau = 1 - T/Tc
         B = Pc*(-1 + a*tau**(1/3.) + b*tau**(2/3.) + d*tau + e*tau**(4/3.))
         return Vs(T, P)*(1 - C*log((B + P)/(B + Psat(T))))
-    return TPDependentModel(COSTALD_compressed, Tmin, Tmax, Pmin, Pmax, compile=False)
+    return TPDependentModel(Costald_compressed, Tmin, Tmax, Pmin, Pmax, compile=False)
 
 
 ### Gases
-
-
+@njit
 def ideal_gas(T, P):
     r'''Calculates ideal gas molar volume.
     The molar volume of an ideal gas is given by:
@@ -732,6 +748,44 @@ def ideal_gas(T, P):
     '''
     return R*T/P
 
+Tmin = 0; Tmax = 10e6
+Pmin = 0; Pmax = 10e15
+
+ideal_gas_model = TPDependentModel(ideal_gas,
+                                   Tmin, Tmax,
+                                   Pmin, Pmax,
+                                   isaccurate=False)
+
+def TsonopoulosExtendedModel(Tc, Pc, omega, a=0, b=0, species_type='', dipole=0, order=0):
+    def Tsonopoulos_extended(T, P):
+        return ideal_gas(T, P) + BVirial_Tsonopoulos_extended(T, Tc, Pc, omega, a, b,
+                                                              species_type, dipole, order)
+    return TPDependentModel(Tsonopoulos_extended, Tmin, Tmax, Pmin, Pmax)
+ 
+def TsonopoulosModel(Tc, Pc, omega):
+    def Tsonopoulos(T, P):
+        return ideal_gas(T, P) + BVirial_Tsonopoulos(T, Tc, Pc, omega)
+    return TPDependentModel(Tsonopoulos, Tmin, Tmax, Pmin, Pmax)
+
+def AbbottModel(Tc, Pc, omega):
+    def Abbott(T, P):
+        return ideal_gas(T, P) + BVirial_Abbott(T, Tc, Pc, omega)
+    return TPDependentModel(Abbott, Tmin, Tmax, Pmin, Pmax)
+
+def PitzerCurlModel(Tc, Pc, omega):
+    def Pitzer_Curl(T, P):
+        return ideal_gas(T, P) + BVirial_Pitzer_Curl(T, Tc, Pc, omega)
+    return TPDependentModel(Pitzer_Curl, Tmin, Tmax, Pmin, Pmax)
+    
+def CRCVirialModel(a1, a2, a3, a4, a5):
+    def CRC_virial(T, P):
+        t = 298.15/T - 1.
+        return ideal_gas(T, P) + (a1 + a2*t + a3*t**2 + a4*t**3 + a5*t**4)/1e6
+    return TPDependentModel(CRC_virial, Tmin, Tmax, Pmin, Pmax)
+
+def EOSModel(eos):
+    def EOS(T, P): return eos[0].to_TP(T, P).V_g
+    return TPDependentModel(EOS, Tmin, Tmax, Pmin, Pmax)
 
 #PR = 'PR'
 CRC_VIRIAL = 'CRC_VIRIAL'
@@ -746,309 +800,29 @@ volume_gas_methods = [COOLPROP, EOS, CRC_VIRIAL, TSONOPOULOS_EXTENDED, TSONOPOUL
 '''Holds all methods available for the VolumeGas class, for use in
 iterating over them.'''
 
-"""
-class VolumeGas(TPDependentProperty):
-    r'''Class for dealing with gas molar volume as a function of
-    temperature and pressure.
+def VolumeGas(CAS, Tc=None, Pc=None, omega=None, eos=None):
+    models = []
+    # no point in getting Tmin, Tmax
+    if all((Tc, Pc, omega)):
+        if eos: models.append(EOSModel(eos))
+        models.extend((TsonopoulosExtendedModel(Tc, Pc, omega),
+                       TsonopoulosModel(Tc, Pc, omega),
+                       AbbottModel(Tc, Pc, omega),
+                       PitzerCurlModel(Tc, Pc, omega)))
+    if CAS in CRC_virial_data.index:
+        a1, a2, a3, a4, a5 = _CRC_virial_data_values[CRC_virial_data.index.get_loc(CAS)].tolist()[1:]
+        models.append(CRCVirialModel(a1, a2, a3, a4, a5))
+    models.append(ideal_gas_model)
+    return TPDependentModelHandler(models)
+    # if has_CoolProp and CAS in coolprop_dict:
+    #     methods_P.append(COOLPROP)
+    #     self.CP_f = coolprop_fluids[self.CASRN]
 
-    All considered methods are both temperature and pressure dependent. Included
-    are four CSP methods for calculating second virial coefficients, one
-    source of polynomials for calculating second virial coefficients, one
-    equation of state (Peng-Robinson), and the ideal gas law.
-
-    Parameters
-    ----------
-    CASRN : str, optional
-        The CAS number of the chemical
-    MW : float, optional
-        Molecular weight, [g/mol]
-    Tc : float, optional
-        Critical temperature, [K]
-    Pc : float, optional
-        Critical pressure, [Pa]
-    omega : float, optional
-        Acentric factor, [-]
-    dipole : float, optional
-        Dipole, [debye]
-
-    Notes
-    -----
-    A string holding each method's name is assigned to the following variables
-    in this module, intended as the most convenient way to refer to a method.
-    To iterate over all methods, use the list stored in
-    :obj:`volume_gas_methods`.
-
-    **PR**:
-        Peng-Robinson Equation of State. See the appropriate module for more
-        information.
-    **CRC_VIRIAL**:
-        Short polynomials, for 105 fluids from [1]_.  The full expression is:
-
-        .. math::
-            B = \sum_1^4 a_i\left[T_0/298.15-1\right]^{i-1}
-
-    **TSONOPOULOS_EXTENDED**:
-        CSP method for second virial coefficients, described in
-        :obj:`thermo.virial.BVirial_Tsonopoulos_extended`
-    **TSONOPOULOS**:
-        CSP method for second virial coefficients, described in
-        :obj:`thermo.virial.BVirial_Tsonopoulos`
-    **ABBOTT**:
-        CSP method for second virial coefficients, described in
-        :obj:`thermo.virial.BVirial_Abbott`. This method is the simplest CSP
-        method implemented.
-    **PITZER_CURL**:
-        CSP method for second virial coefficients, described in
-        :obj:`thermo.virial.BVirial_Pitzer_Curl`.
-    **COOLPROP**:
-        CoolProp external library; with select fluids from its library.
-        Range is limited to that of the equations of state it uses, as
-        described in [2]_. Very slow, but unparalled in accuracy for pressure
-        dependence.
-
-    See Also
-    --------
-    :obj:`thermo.virial.BVirial_Pitzer_Curl`
-    :obj:`thermo.virial.BVirial_Abbott`
-    :obj:`thermo.virial.BVirial_Tsonopoulos`
-    :obj:`thermo.virial.BVirial_Tsonopoulos_extended`
-
-    References
-    ----------
-    .. [1] Haynes, W.M., Thomas J. Bruno, and David R. Lide. CRC Handbook of
-       Chemistry and Physics. [Boca Raton, FL]: CRC press, 2014.
-    .. [2] Bell, Ian H., Jorrit Wronski, Sylvain Quoilin, and Vincent Lemort.
-       "Pure and Pseudo-Pure Fluid Thermophysical Property Evaluation and the
-       Open-Source Thermophysical Property Library CoolProp." Industrial &
-       Engineering Chemistry Research 53, no. 6 (February 12, 2014):
-       2498-2508. doi:10.1021/ie4033999. http://www.coolprop.org/
-    '''
-    name = 'Gas molar volume'
-    units = 'mol/m^3'
-    interpolation_T = None
-    '''No interpolation transformation by default.'''
-    interpolation_P = None
-    '''No interpolation transformation by default.'''
-    interpolation_property = None
-    '''No interpolation transformation by default.'''
-    interpolation_property_inv = None
-    '''No interpolation transformation by default.'''
-    tabular_extrapolation_permitted = True
-    '''Allow tabular extrapolation by default.'''
-    property_min = 0
-    '''Mimimum valid value of gas molar volume. It should normally be well
-    above this.'''
-    property_max = 1E10
-    '''Maximum valid value of gas molar volume. Set roughly at an ideal gas
-    at 1 Pa and 2 billion K.'''
-
-    Pmax = 1E9  # 1 GPa
-    '''Maximum pressure at which no method can calculate gas molar volume
-    above.'''
-    Pmin = 0
-    '''Minimum pressure at which no method can calculate gas molar volume
-    under.'''
-    ranked_methods = []
-    '''Default rankings of the low-pressure methods.'''
-    ranked_methods_P = [COOLPROP, EOS, TSONOPOULOS_EXTENDED, TSONOPOULOS, ABBOTT,
-                        PITZER_CURL, CRC_VIRIAL, IDEAL]
-    '''Default rankings of the pressure-dependent methods.'''
-
-
-    def __init__(self, CASRN='', MW=None, Tc=None, Pc=None, omega=None,
-                 dipole=None, eos=None):
-        # Only use TPDependentPropoerty functions here
-        self.CASRN = CASRN
-        self.MW = MW
-        self.Tc = Tc
-        self.Pc = Pc
-        self.omega = omega
-        self.dipole = dipole
-        self.eos = eos
-
-        self.Tmin = 0
-        '''Minimum temperature at which no method can calculate the
-        gas molar volume under.'''
-        self.Tmax = 2E9
-        '''Maximum temperature at which no method can calculate the
-        gas molar volume above.'''
-
-        self.tabular_data = {}
-        '''tabular_data, dict: Stored (Ts, properties) for any
-        tabular data; indexed by provided or autogenerated name.'''
-        self.tabular_data_interpolators = {}
-        self.tabular_data_interpolators = {}
-        '''tabular_data_interpolators, dict: Stored (extrapolator,
-        spline) tuples which are interp1d instances for each set of tabular
-        data; indexed by tuple of (name, interpolation_T,
-        interpolation_property, interpolation_property_inv) to ensure that
-        if an interpolation transform is altered, the old interpolator which
-        had been created is no longer used.'''
-
-        self.tabular_data_P = {}
-        '''tabular_data_P, dict: Stored (Ts, Ps, properties) for any
-        tabular data; indexed by provided or autogenerated name.'''
-        self.tabular_data_interpolators_P = {}
-        '''tabular_data_interpolators_P, dict: Stored (extrapolator,
-        spline) tuples which are interp2d instances for each set of tabular
-        data; indexed by tuple of (name, interpolation_T, interpolation_P,
-        interpolation_property, interpolation_property_inv) to ensure that
-        if an interpolation transform is altered, the old interpolator which
-        had been created is no longer used.'''
-
-        self.sorted_valid_methods_P = []
-        '''sorted_valid_methods_P, list: Stored methods which were found valid
-        at a specific temperature; set by `TP_dependent_property`.'''
-        self.user_methods_P = []
-        '''user_methods_P, list: Stored methods which were specified by the user
-        in a ranked order of preference; set by `TP_dependent_property`.'''
-
-        self.all_methods_P = set()
-        '''Set of all high-pressure methods available for a given CASRN and
-        properties; filled by :obj:`load_all_methods`.'''
-
-        self.load_all_methods()
-
-    def load_all_methods(self):
-        r'''Method which picks out coefficients for the specified chemical
-        from the various dictionaries and DataFrames storing it. All data is
-        stored as attributes. This method also sets obj:`all_methods_P` as a
-        set of methods for which the data exists for.
-
-        Called on initialization only. See the source code for the variables at
-        which the coefficients are stored. The coefficients can safely be
-        altered once the class is initialized. This method can be called again
-        to reset the parameters.
-        '''
-        methods_P = [IDEAL]
-        # no point in getting Tmin, Tmax
-        if all((self.Tc, self.Pc, self.omega)):
-            methods_P.extend([TSONOPOULOS_EXTENDED, TSONOPOULOS, ABBOTT,
-                            PITZER_CURL])
-            if self.eos:
-                methods_P.append(EOS)
-        if self.CASRN in CRC_virial_data.index:
-            methods_P.append(CRC_VIRIAL)
-            self.CRC_VIRIAL_coeffs = _CRC_virial_data_values[CRC_virial_data.index.get_loc(self.CASRN)].tolist()[1:]
-        if has_CoolProp and self.CASRN in coolprop_dict:
-            methods_P.append(COOLPROP)
-            self.CP_f = coolprop_fluids[self.CASRN]
-        self.all_methods_P = set(methods_P)
-
-    def calculate_P(self, T, P, method):
-        r'''Method to calculate pressure-dependent gas molar volume at
-        temperature `T` and pressure `P` with a given method.
-
-        This method has no exception handling; see `TP_dependent_property`
-        for that.
-
-        Parameters
-        ----------
-        T : float
-            Temperature at which to calculate molar volume, [K]
-        P : float
-            Pressure at which to calculate molar volume, [K]
-        method : str
-            Name of the method to use
-
-        Returns
-        -------
-        Vm : float
-            Molar volume of the gas at T and P, [m^3/mol]
-        '''
-        if method == EOS:
-            self.eos[0] = self.eos[0].to_TP(T=T, P=P)
-            Vm = self.eos[0].V_g
-        elif method == TSONOPOULOS_EXTENDED:
-            B = BVirial_Tsonopoulos_extended(T, self.Tc, self.Pc, self.omega, dipole=self.dipole)
-            Vm = ideal_gas(T, P) + B
-        elif method == TSONOPOULOS:
-            B = BVirial_Tsonopoulos(T, self.Tc, self.Pc, self.omega)
-            Vm = ideal_gas(T, P) + B
-        elif method == ABBOTT:
-            B = BVirial_Abbott(T, self.Tc, self.Pc, self.omega)
-            Vm = ideal_gas(T, P) + B
-        elif method == PITZER_CURL:
-            B = BVirial_Pitzer_Curl(T, self.Tc, self.Pc, self.omega)
-            Vm = ideal_gas(T, P) + B
-        elif method == CRC_VIRIAL:
-            a1, a2, a3, a4, a5 = self.CRC_VIRIAL_coeffs
-            t = 298.15/T - 1.
-            B = (a1 + a2*t + a3*t**2 + a4*t**3 + a5*t**4)/1E6
-            Vm = ideal_gas(T, P) + B
-        elif method == IDEAL:
-            Vm = ideal_gas(T, P)
-        elif method == COOLPROP:
-            Vm = 1./PropsSI('DMOLAR', 'T', T, 'P', P, self.CASRN)
-        elif method in self.tabular_data:
-            Vm = self.interpolate_P(T, P, method)
-        return Vm
-
-    def test_method_validity_P(self, T, P, method):
-        r'''Method to check the validity of a pressure and temperature
-        dependent gas molar volume method. For the four CSP methods that
-        calculate second virial coefficient, the method is considered valid for
-        all temperatures and pressures, with validity checking based on the
-        result only. For **CRC_VIRIAL**, there is no limit but there should
-        be one; at some conditions, a negative volume will result!
-        For **COOLPROP**, the fluid must be both a gas at the given conditions
-        and under the maximum pressure of the fluid's EOS.
-
-        For the equation of state **PR**, the determined phase must be a gas.
-        For **IDEAL**, there are no limits.
-
-        For tabular data, extrapolation outside of the range is used if
-        :obj:`tabular_extrapolation_permitted` is set; if it is, the
-        extrapolation is considered valid for all temperatures and pressures.
-
-        It is not guaranteed that a method will work or give an accurate
-        prediction simply because this method considers the method valid.
-
-        Parameters
-        ----------
-        T : float
-            Temperature at which to test the method, [K]
-        P : float
-            Pressure at which to test the method, [Pa]
-        method : str
-            Name of the method to test
-
-        Returns
-        -------
-        validity : bool
-            Whether or not a method is valid
-        '''
-        validity = True
-        if T < 0 or P < 0:
-            validity = False
-        elif method in [TSONOPOULOS_EXTENDED, TSONOPOULOS, ABBOTT,
-                        PITZER_CURL, CRC_VIRIAL, IDEAL]:
-            pass
-            # Would be nice to have a limit on CRC_VIRIAL
-        elif method == EOS:
-            eos = self.eos[0]
-            # Some EOSs do not implement Psat, and so we must assume Vmg is
-            # unavailable
-            try:
-                if T < eos.Tc and P > eos.Psat(T):
-                    validity = False
-            except:
-                validity = False
-        elif method == COOLPROP:
-            validity = PhaseSI('T', T, 'P', P, self.CASRN) in ['gas', 'supercritical_gas', 'supercritical', 'supercritical_liquid']
-        elif method in self.tabular_data:
-            if not self.tabular_extrapolation_permitted:
-                Ts, Ps, properties = self.tabular_data[method]
-                if T < Ts[0] or T > Ts[-1] or P < Ps[0] or P > Ps[-1]:
-                    validity = False
-        else:
-            raise Exception('Method not valid')
-        return validity
 
 ### Solids
 
-def Goodman(T, Tt, rhol):
-    r'''Calculates solid density at T using the simple relationship
+def GoodmanModel(Tt, Vl):
+    r'''Calculates solid volume at T using the simple relationship
     by a member of the DIPPR.
 
     The molar volume of a solid is given by:
@@ -1063,22 +837,17 @@ def Goodman(T, Tt, rhol):
         Temperature of fluid [K]
     Tt : float
         Triple temperature of fluid [K]
-    rhol : float
-        Liquid density, [m^3/mol]
+    Vl : float
+        Liquid volume, [m^3/mol]
 
     Returns
     -------
-    rhos : float
+    Vs : float
         Solid volume, [m^3/mol]
 
     Notes
     -----
     Works to the next solid transition temperature or to approximately 0.3Tt.
-
-    Examples
-    --------
-    >>> Goodman(281.46, 353.43, 7.6326)
-    8.797191839062899
 
     References
     ----------
@@ -1087,8 +856,8 @@ def Goodman(T, Tt, rhol):
        Density and Liquid Density at the Triple Point." Journal of Chemical &
        Engineering Data 49, no. 6 (2004): 1512-14. doi:10.1021/je034220e.
     '''
-    rhos = (1.28 - 0.16*(T/Tt))*(rhol)
-    return rhos
+    def Goodman(T): return (1.28 - 0.16*(T/Tt))*Vl
+    return TPDependentModel(Goodman, Tmin, Tmax, Pmin, Pmax)
 
 
 GOODMAN = 'GOODMAN'
@@ -1098,7 +867,7 @@ volume_solid_methods = [GOODMAN, CRC_INORG_S]
 iterating over them.'''
 
 
-class VolumeSolid(TDependentProperty):
+def VolumeSolid(CAS):
     r'''Class for dealing with solid molar volume as a function of temperature.
     Consists of one constant value source, and one simple estimator based on
     liquid molar volume.
@@ -1136,149 +905,8 @@ class VolumeSolid(TDependentProperty):
     .. [1] Haynes, W.M., Thomas J. Bruno, and David R. Lide. CRC Handbook of
        Chemistry and Physics. [Boca Raton, FL]: CRC press, 2014.
     '''
-    name = 'Solid molar volume'
-    units = 'mol/m^3'
-    interpolation_T = None
-    '''No interpolation transformation by default.'''
-    interpolation_property = None
-    '''No interpolation transformation by default.'''
-    interpolation_property_inv = None
-    '''No interpolation transformation by default.'''
-    tabular_extrapolation_permitted = True
-    '''Allow tabular extrapolation by default.'''
-    property_min = 0
-    '''Molar volume cannot be under 0.'''
-    property_max = 2e-3
-    '''Maximum value of Heat capacity; arbitrarily set to 0.002, as the largest
-    in the data is 0.00136.'''
-
-    ranked_methods = [CRC_INORG_S]  # GOODMAN
-    '''Default rankings of the available methods.'''
-
-    def __init__(self, CASRN='', MW=None, Tt=None, Vml_Tt=None):
-        self.CASRN = CASRN
-        self.MW = MW
-        self.Tt = Tt
-        self.Vml_Tt = Vml_Tt
-
-        self.Tmin = 0
-        '''Minimum temperature at which no method can calculate the
-        solid molar volume under.'''
-        self.Tmax = 1E4
-        '''Maximum temperature at which no method can calculate the
-        solid molar volume above; assumed 10 000 K even under ultra-high pressure.'''
-
-        self.tabular_data = {}
-        '''tabular_data, dict: Stored (Ts, properties) for any
-        tabular data; indexed by provided or autogenerated name.'''
-        self.tabular_data_interpolators = {}
-        '''tabular_data_interpolators, dict: Stored (extrapolator,
-        spline) tuples which are interp1d instances for each set of tabular
-        data; indexed by tuple of (name, interpolation_T,
-        interpolation_property, interpolation_property_inv) to ensure that
-        if an interpolation transform is altered, the old interpolator which
-        had been created is no longer used.'''
-
-        self.sorted_valid_methods = []
-        '''sorted_valid_methods, list: Stored methods which were found valid
-        at a specific temperature; set by `T_dependent_property`.'''
-        self.user_methods = []
-        '''user_methods, list: Stored methods which were specified by the user
-        in a ranked order of preference; set by `T_dependent_property`.'''
-
-        self.all_methods = set()
-        '''Set of all methods available for a given CASRN and properties;
-        filled by :obj:`load_all_methods`.'''
-
-        self.load_all_methods()
-
-
-    def load_all_methods(self):
-        r'''Method which picks out coefficients for the specified chemical
-        from the various dictionaries and DataFrames storing it. All data is
-        stored as attributes. This method also sets :obj:`Tmin`, :obj:`Tmax`,
-        and :obj:`all_methods` as a set of methods for which the data exists for.
-
-        Called on initialization only. See the source code for the variables at
-        which the coefficients are stored. The coefficients can safely be
-        altered once the class is initialized. This method can be called again
-        to reset the parameters.
-        '''
-        methods = []
-        if self.CASRN in CRC_inorg_s_const_data.index:
-            methods.append(CRC_INORG_S)
-            self.CRC_INORG_S_Vm = float(CRC_inorg_s_const_data.at[self.CASRN, 'Vm'])
-#        if all((self.Tt, self.Vml_Tt, self.MW)):
-#            self.rhol_Tt = Vm_to_rho(self.Vml_Tt, self.MW)
-#            methods.append(GOODMAN)
-        self.all_methods = set(methods)
-
-    def calculate(self, T, method):
-        r'''Method to calculate the molar volume of a solid at tempearture `T`
-        with a given method.
-
-        This method has no exception handling; see `T_dependent_property`
-        for that.
-
-        Parameters
-        ----------
-        T : float
-            Temperature at which to calculate molar volume, [K]
-        method : str
-            Name of the method to use
-
-        Returns
-        -------
-        Vms : float
-            Molar volume of the solid at T, [m^3/mol]
-        '''
-        if method == CRC_INORG_S:
-            Vms = self.CRC_INORG_S_Vm
-#        elif method == GOODMAN:
-#            Vms = Goodman(T, self.Tt, self.rhol_Tt)
-        elif method in self.tabular_data:
-            Vms = self.interpolate(T, method)
-        return Vms
-
-    def test_method_validity(self, T, method):
-        r'''Method to check the validity of a method. Follows the given
-        ranges for all coefficient-based methods. For tabular data,
-        extrapolation outside of the range is used if
-        :obj:`tabular_extrapolation_permitted` is set; if it is, the
-        extrapolation is considered valid for all temperatures.
-
-        It is not guaranteed that a method will work or give an accurate
-        prediction simply because this method considers the method valid.
-
-        Parameters
-        ----------
-        T : float
-            Temperature at which to test the method, [K]
-        method : str
-            Name of the method to test
-
-        Returns
-        -------
-        validity : bool
-            Whether or not a method is valid
-        '''
-        validity = True
-        if T < 0:
-            validity = False
-        elif method == CRC_INORG_S:
-            pass
-            # Assume the solid density value is good at any possible T
-#        elif method == GOODMAN:
-#            if T < self.Tt*0.3:
-#                validity = False
-        elif method in self.tabular_data:
-            # if tabular_extrapolation_permitted, good to go without checking
-            if not self.tabular_extrapolation_permitted:
-                Ts, properties = self.tabular_data[method]
-                if T < Ts[0] or T > Ts[-1]:
-                    validity = False
-        else:
-            raise Exception('Method not valid')
-        return validity
-
-"""
+    models = []
+    if CAS in CRC_inorg_s_const_data.index:
+        CRC_INORG_S_Vm = float(CRC_inorg_s_const_data.at[CAS, 'Vm'])
+        models.append(ConstantTPDependentModel(CRC_INORG_S_Vm, Tmin, Tmax, Pmin, Pmax))
+    return TPDependentModelHandler(models)

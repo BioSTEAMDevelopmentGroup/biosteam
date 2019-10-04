@@ -6,7 +6,7 @@ Created on Mon Sep 30 12:37:43 2019
 """
 from biosteam.thermo_2.heat_capacity import HeatCapacityGas, HeatCapacityLiquid, HeatCapacitySolid
 from biosteam.thermo_2.vapor_pressure import VaporPressure
-from biosteam.thermo_2.volume import VolumeLiquid
+from biosteam.thermo_2.volume import VolumeSolid, VolumeLiquid, VolumeGas
 from biosteam import Chemical
 water = Chemical('Water')
 Cpg = HeatCapacityGas(water.CAS, water.MW, water.similarity_variable, False)
@@ -15,9 +15,10 @@ Cpl = HeatCapacityLiquid(water.CAS, water.Tc, water.omega,
                          water.Cpgm)
 Cps = HeatCapacitySolid(water.CAS, water.similarity_variable, water.MW)
 VP = VaporPressure(water.CAS)
+Vs = VolumeSolid(water.CAS)
 Vl = VolumeLiquid(water.CAS, Tc=water.Tc, Pc=water.Pc, Tb=water.Tb, Vc=water.Vc, Zc=water.Zc,
                   dipole=water.dipole, Psat=VP)
-
+Vg = VolumeGas(water.CAS)
 
 # import os
 # import julia

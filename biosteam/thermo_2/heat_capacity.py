@@ -510,8 +510,7 @@ def HeatCapacityGas(CAS, MW=None, similarity_variable=None, cyclic_aliphatic=Non
         models.append(LastovkaShawModel(MW, similarity_variable, cyclic_aliphatic, Tmin=Tmin, Tmax=Tmax))
     if not models:
         raise ValueError(f"no gas heat capacity models available for CAS {CAS}")
-    active_model = models[0]
-    return TDependentModelHandler(models, active_model)
+    return TDependentModelHandler(models)
     
 ### Heat capacities of liquids
 
@@ -815,15 +814,7 @@ def HeatCapacityLiquid(CAS, Tc=None, omega=None, MW=None, similarity_variable=No
             models.append(ZabranskyCubicModel(*args))
     if CAS in zabransky_dict_iso_p:
         models.append(ZabranskyQuasiPolynomialModel(*zabransky_dict_iso_p[CAS]))
-    if CAS in Poling_data:
-        Tmin, Tmax, A, B, C, D, E, Cpg, Cpl = Poling_data[CAS]
-        if not np.isnan(Cpg):
-            models.append(ConstantTDependentModel(Cpl, Tmin, Tmax))
-    if CAS in CRC_standard_data:
-        Cpl = CRC_standard_data[CAS][-5]
-        if not np.isnan(Cpl):
-            models.append(ConstantTDependentModel(Cpl, Tmin=0, Tmax=1e6))
-    # Saturation functions
+    # Saturation models
     if CAS in zabransky_dict_sat_s:
         for args in zabransky_dict_sat_s[CAS]:
             models.append(ZabranskyCubicModel(*args))
@@ -836,17 +827,26 @@ def HeatCapacityLiquid(CAS, Tc=None, omega=None, MW=None, similarity_variable=No
         Ts, Cpls = VDI_tabular_data(CAS, 'Cp (l)')
         models.append(InterpolatedTDependentModel(Ts, Cpls, Ts[0], Ts[-1]))
     if Tc and omega and Cpgm:
-        models.append(RowlinsonBondiModel(Tc, omega, Cpgm, Tmin, Tmax))
-        models.append(RowlinsonPolingModel(Tc, omega, Cpgm, Tmin, Tmax))
+        models.append(RowlinsonBondiModel(Tc, omega, Cpgm, 200, Tc))
+        models.append(RowlinsonPolingModel(Tc, omega, Cpgm, 200, Tc))
+    # Constant models
+    if CAS in Poling_data:
+        Tmin, Tmax, A, B, C, D, E, Cpg, Cpl = Poling_data[CAS]
+        if not np.isnan(Cpg):
+            models.append(ConstantTDependentModel(Cpl, Tmin, Tmax))
+    if CAS in CRC_standard_data:
+        Cpl = CRC_standard_data[CAS][-5]
+        if not np.isnan(Cpl):
+            models.append(ConstantTDependentModel(Cpl, Tmin=0, Tmax=Tc))
+    # Other
+    if MW and similarity_variable:
+        models.append(DadgostarShawModel(similarity_variable, MW, Tmin, Tmax))
     # TODO: Implement coolprop
     # if has_CoolProp and CAS in coolprop_dict:
     #     methods.append(COOLPROP)
     #     self.CP_f = coolprop_fluids[CAS]
     #     Tmins.append(self.CP_f.Tt); Tmaxs.append(self.CP_f.Tc)
-    if MW and similarity_variable:
-        models.append(DadgostarShawModel(similarity_variable, MW, Tmin, Tmax))
-    active_model = models[0]
-    return TDependentModelHandler(models, active_model)
+    return TDependentModelHandler(models)
 
 ### Solid
 
@@ -962,7 +962,6 @@ def HeatCapacitySolid(CAS, similarity_variable, MW):
             models.append(ConstantTDependentModel(float(Cpc), 200, 350))
     if similarity_variable and MW:
         models.append(LastovkaSolidModel(similarity_variable, MW, Tmin, Tmax))
-    active_model = models[0]
-    return TDependentModelHandler(models, active_model)
+    return TDependentModelHandler(models)
     
 

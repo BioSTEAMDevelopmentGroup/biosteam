@@ -11,7 +11,7 @@ import os
 __all__ = ('Dortmund',)
 
 # %% Data
-folder = os.path.join(os.path.dirname(__file__), '..\\thermo\\Phase Change')
+folder = os.path.join(os.path.dirname(__file__), r'..\thermo\Phase Change')
 
 class UNIFAC_subgroup:
     __slots__ = ('group', 'main_group_id', 'main_group', 'R', 'Q')

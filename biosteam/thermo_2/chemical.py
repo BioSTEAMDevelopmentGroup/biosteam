@@ -98,7 +98,7 @@ def phase_property(func):
     return property(phaseprop)
 
 
-class Chemical(object): # pragma: no cover
+class Chemical:
     '''Creates a Chemical object which contains basic information such as 
     molecular weight and the structure of the species, as well as thermodynamic
     and transport properties as a function of temperature and pressure.
@@ -1323,7 +1323,7 @@ class Chemical(object): # pragma: no cover
         >>> Chemical('iron').Vs
         7.09593392630242e-06
         '''
-        return self.VolumeSolid.evaluate(self.T)
+        return self.VolumeSolid.evaluate(self.T, self.P)
 
     @property
     def Vl(self):

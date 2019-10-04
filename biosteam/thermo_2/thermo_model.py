@@ -19,7 +19,7 @@ class ThermoModel:
     def __repr__(self):
         return f"<{type(self).__name__}: {self.name}>"
 
-makefast = lambda method: njit(method) if isinstance(method, CPUDispatcher) else method
+asfast = lambda method: method if isinstance(method, CPUDispatcher) else njit(method)
 
 class TDependentModel(ThermoModel):
     __slots__ = ('evaluate', 'integrate', 'integrate_over_T',
@@ -31,10 +31,10 @@ class TDependentModel(ThermoModel):
                  compile=True,
                  isaccurate=True):
         if compile:
-            self.evaluate = njit(evaluate)
-            if integrate: self.integrate = makefast(integrate)
-            if integrate_over_T: self.integrate_over_T = makefast(integrate_over_T)
-            if differentiate: self.differentiate = makefast(differentiate)
+            self.evaluate = asfast(evaluate)
+            if integrate: self.integrate = asfast(integrate)
+            if integrate_over_T: self.integrate_over_T = asfast(integrate_over_T)
+            if differentiate: self.differentiate = asfast(differentiate)
         else:
             self.evaluate = evaluate
             if integrate: self.integrate = integrate
@@ -68,11 +68,11 @@ class TPDependentModel(ThermoModel):
                  differentiate_T=None, differentiate_P=None,
                  compile=True, isaccurate=True):        
         if compile:
-            self.evaluate = njit(evaluate)
-            if integrate_T: self.integrate_T = makefast(integrate_T)
-            if integrate_P: self.integrate_P = makefast(integrate_P)
-            if differentiate_T: self.differentiate_T = makefast(differentiate_T)
-            if differentiate_P: self.differentiate_P = makefast(differentiate_P)
+            self.evaluate = asfast(evaluate)
+            if integrate_T: self.integrate_T = asfast(integrate_T)
+            if integrate_P: self.integrate_P = asfast(integrate_P)
+            if differentiate_T: self.differentiate_T = asfast(differentiate_T)
+            if differentiate_P: self.differentiate_P = asfast(differentiate_P)
         else:
             self.evaluate = evaluate
             if integrate_T: self.integrate_T = integrate_T
@@ -100,6 +100,33 @@ class TPDependentModel(ThermoModel):
         
     _ipython_display_ = show
 
+class NotImplementedModel(ThermoModel):
+    __slots__ = ('handler',)
+    def __init__(self, handler):
+        self.handler = handler
+    
+    def get_active_model(self):
+        handler = self.handler
+        models = handler.models
+        if models:
+            active_model = models[0]
+            handler.active_model = active_model
+            return active_model
+    
+    def __getattr__(self, attr):
+        active_model = self.get_active_model()
+        if active_model:
+            return active_model
+        else: 
+            raise NotImplementedError("no thermo model available")
+    
+    def __repr__(self):
+        try:
+            return super().__repr__()
+        except:
+            return f"<{type(self).__name__}>"
+
+    
 def SimpleTDependentModel(evaluate, Tmin=0, Tmax=1e6):
     def integrate(Ta, Tb): return evaluate((Tb+Ta)/2)*(Tb - Ta)
     def integrate_over_T(Ta, Tb): return evaluate((Tb+Ta)/2)*log(Tb/Ta)    

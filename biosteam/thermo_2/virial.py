@@ -25,6 +25,7 @@ from __future__ import division
 __all__ = ['BVirial_Pitzer_Curl', 'BVirial_Abbott', 'BVirial_Tsonopoulos',
            'BVirial_Tsonopoulos_extended']
 
+from numba import njit
 from scipy.misc import derivative
 from .utils import log
 from .utils import R
@@ -32,7 +33,7 @@ from .utils import R
 
 ### Second Virial Coefficients
 
-
+@njit
 def BVirial_Pitzer_Curl(T, Tc, Pc, omega, order=0):
     r'''Calculates the second virial coefficient using the model in [1]_.
     Designed for simple calculations.
@@ -145,7 +146,7 @@ def BVirial_Pitzer_Curl(T, Tc, Pc, omega, order=0):
     Br = B0 + omega*B1
     return Br*R*Tc/Pc
 
-
+@njit
 def BVirial_Abbott(T, Tc, Pc, omega, order=0):
     r'''Calculates the second virial coefficient using the model in [1]_.
     Simple fit to the Lee-Kesler equation.
@@ -256,7 +257,7 @@ def BVirial_Abbott(T, Tc, Pc, omega, order=0):
     Br = B0 + omega*B1
     return Br*R*Tc/Pc
 
-
+@njit
 def BVirial_Tsonopoulos(T, Tc, Pc, omega, order=0):
     r'''Calculates the second virial coefficient using the model in [1]_.
 
@@ -370,9 +371,8 @@ def BVirial_Tsonopoulos(T, Tc, Pc, omega, order=0):
     Br = (B0+omega*B1)
     return Br*R*Tc/Pc
 
-
-def BVirial_Tsonopoulos_extended(T, Tc, Pc, omega, a=0, b=0, species_type='', 
-                                 dipole=0, order=0):
+@njit
+def BVirial_Tsonopoulos_extended(T, Tc, Pc, omega, a, b, species_type, dipole, order):
     r'''Calculates the second virial coefficient using the
     comprehensive model in [1]_. See the notes for the calculation of `a` and
     `b`.

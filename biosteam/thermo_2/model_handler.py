@@ -4,22 +4,34 @@ Created on Mon Sep 30 23:02:53 2019
 
 @author: yoelr
 """
+from .thermo_model import NotImplementedModel
+
+def select_default_model(handler, models):
+    if models: 
+        return models[0]
+    else:
+        return NotImplementedModel(handler)
 
 class ThermoModelHandler:
     __slots__ = ('models', 'active_model')
-    def __init__(self, models, active_model):
+    def __init__(self, models):
         self.models = models
-        self.active_model = active_model
+        self.active_model = select_default_model(self, models)
     
     def __repr__(self):
         return f"<{type(self).__name__}: {', '.join([i.name for i in self.models])}>"
        
     def show(self):
         active = self.active_model
-        name = lambda model:(f"{model.name} -> active") if model is active else model.name
-        models = ("\n ").join([name(i) for i in self.models])
+        if isinstance(active, NotImplementedModel):
+            active = active.get_active_model()
+        if active:
+            name = lambda model:(f"{model.name} -> active") if model is active else model.name
+            models = ("\n").join([f'[{i}] {name(model)}' for i, model in enumerate(self.models)])
+        else:
+            models = " (no models available)"
         print(f"{type(self).__name__}: \n"
-              f" {models}")
+              f"{models}")
         
     _ipython_display_ = show
         

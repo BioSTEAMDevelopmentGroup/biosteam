@@ -423,7 +423,4 @@ def VaporPressure(CAS, Tb=None, Tc=None, Pc=None, omega=None, eos=None, models=N
         Tmax = Tc
         if eos:
             models.append(EOSModel(eos, Tmin, Tmax))
-    if not models:
-        raise ValueError(f"no vapor pressure models available for CAS {CAS}")
-    acting_model = models[0]
-    return TDependentModelHandler(models, acting_model)
+    return TDependentModelHandler(models)
