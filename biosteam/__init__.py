@@ -7,7 +7,7 @@ Created on Sat Oct 28 17:28:09 2017
 """
 __all__ = ['Species', 'WorkingSpecies', 'Stream', 'MixedStream',
            'Unit', 'System', 'TEA', 'CombinedTEA', 'PowerUtility', 'HeatUtility',
-           'find', 'Flowsheet', 'CE', 'biorefineries', 'thermo']
+           'find', 'Flowsheet', 'CE', 'biorefineries']
 
 from lazypkg import LazyPkg
 from . import biorefineries
