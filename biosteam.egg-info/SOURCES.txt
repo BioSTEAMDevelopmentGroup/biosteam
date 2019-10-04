@@ -236,6 +236,7 @@ biosteam/thermo/Thermal Conductivity/Table 2-314 Vapor Thermal Conductivity of I
 biosteam/thermo/Thermal Conductivity/Table 2-315 Thermal Conductivity of Inorganic and Organic Liquids.tsv
 biosteam/thermo/Thermal Conductivity/VDI PPDS Thermal conductivity of gases.tsv
 biosteam/thermo/Thermal Conductivity/VDI PPDS Thermal conductivity of saturated liquids.tsv
+biosteam/thermo/Triple Properties/Staveley 1981.tsv
 biosteam/thermo/Vapor Pressure/Antoine Collection Poling.tsv
 biosteam/thermo/Vapor Pressure/Antoine Extended Collection Poling.tsv
 biosteam/thermo/Vapor Pressure/Table 2-8 Vapor Pressure of Inorganic and Organic Liquids.tsv

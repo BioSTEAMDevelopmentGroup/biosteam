@@ -12,7 +12,7 @@ setup(
     name='biosteam',
     packages=['biosteam'],
     license='MIT',
-    version='0.9.0.7',
+    version='0.9.0.8',
     description='The Biorefinery Simulation and Techno-Economic Analysis Modules',
     long_description=open('README.rst').read(),
     #ext_modules=cythonize('biosteam/equilibrium/unifac.pyx'),
@@ -46,7 +46,7 @@ setup(
                       'thermo/Triple Properties/*', 
                       'thermo/Thermal Conductivity/*', 
                       'thermo/Vapor Pressure/*', 
-                      'thermo/Viscosity/*'
+                      'thermo/Viscosity/*',
                       'units/*',
                       'units/designtools/*',
                       'units/facilities/*',
