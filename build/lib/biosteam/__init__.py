@@ -6,14 +6,11 @@ Created on Sat Oct 28 17:28:09 2017
 @author: Yoel Rene Cortes-Pena
 """
 __all__ = ['Species', 'WorkingSpecies', 'Stream', 'MixedStream',
-            'Unit', 'System', 'TEA', 'CombinedTEA', 'PowerUtility', 'HeatUtility',
-            'find', 'Flowsheet', 'CE', 'biorefineries']
+           'Unit', 'System', 'TEA', 'CombinedTEA', 'PowerUtility', 'HeatUtility',
+           'find', 'Flowsheet', 'CE', 'biorefineries', 'thermo']
 
 from lazypkg import LazyPkg
 from . import biorefineries
-LazyPkg(__name__, ['_equilibrium', 'utils', 'units', 'evaluation',
-                   'inspect', 'compounds', 'reaction'],
-        unsearchable=biorefineries.__all__)
 
 #: Chemical engineering plant cost index (defaults to 567.5 at 2017)
 CE = 567.5 
@@ -44,6 +41,7 @@ del np, pd, os, UnitRegistry
 
 # %% Initialize BioSTEAM 
 
+from . import thermo
 from ._species import Species, WorkingSpecies
 from ._stream import Stream
 from ._mixed_stream import MixedStream
@@ -55,5 +53,7 @@ from ._tea import CombinedTEA, TEA
 from ._flowsheet import Flowsheet, find
 
 
-
+LazyPkg(__name__, ['_equilibrium', 'utils', 'units', 'evaluation',
+                   'inspect', 'compounds', 'reaction'],
+        unsearchable=biorefineries.__all__)
 
