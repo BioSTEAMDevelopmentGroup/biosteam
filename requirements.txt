@@ -10,6 +10,7 @@ free_properties==0.1.9
 chaospy==3.0.11
 coolprop
 pandas
+numba
 numpy
 graphviz
 matplotlib
