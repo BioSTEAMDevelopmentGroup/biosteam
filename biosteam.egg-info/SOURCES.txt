@@ -23,7 +23,7 @@ biosteam/_equilibrium/__init__.py
 biosteam/_equilibrium/_unifac.pyx
 biosteam/_equilibrium/bubble_point.py
 biosteam/_equilibrium/dew_point.py
-biosteam/_equilibrium/unifac.py
+biosteam/_equilibrium/dortmund.py
 biosteam/_equilibrium/vle.py
 biosteam/_report/__init__.py
 biosteam/_report/plot.py
