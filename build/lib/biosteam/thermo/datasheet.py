@@ -28,7 +28,7 @@ __all__ = ['tabulate_solid', 'tabulate_liq', 'tabulate_gas',
 from collections import OrderedDict
 import numpy as np
 import pandas as pd
-from thermo.chemical import Chemical
+from .chemical import Chemical
 
 
 def tabulate_solid(chemical, Tmin=None, Tmax=None, pts=10):
