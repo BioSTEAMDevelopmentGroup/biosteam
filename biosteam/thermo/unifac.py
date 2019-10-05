@@ -34,9 +34,10 @@ from .utils import log, exp
 
 folder = os.path.join(os.path.dirname(__file__), 'Phase Change')
 
+# %% Data
 
-class UNIFAC_subgroup(object):
-    __slots__ = ['group', 'main_group_id', 'main_group', 'R', 'Q']
+class UNIFAC_subgroup:
+    __slots__ = ('group', 'main_group_id', 'main_group', 'R', 'Q')
     def __init__(self, group, main_group_id, main_group, R, Q):
         self.group = group
         self.main_group_id = main_group_id
@@ -44,10 +45,8 @@ class UNIFAC_subgroup(object):
         self.R = R
         self.Q = Q
 
-
-
 # http://www.ddbst.com/published-parameters-unifac.html#ListOfMainGroups
-#UFMG[No.] = ('Maingroup Name', subgroups)
+# UFMG[No.] = ('Maingroup Name', subgroups)
 UFMG = {}
 UFMG[1] = ('CH2', [1, 2, 3, 4])
 UFMG[2] = ('C=C', [5, 6, 7, 8, 70])
@@ -103,7 +102,6 @@ UFMG[51] = ('NCO', [109])
 UFMG[55] = ('SULFONES', [118, 119])
 UFMG[84] = ('IMIDAZOL', [178])
 UFMG[85] = ('BTI', [179])
-
 
 UFSG = {}
 # UFSG[subgroup ID] = (subgroup formula, main group ID, subgroup R, subgroup Q)
@@ -222,8 +220,7 @@ UFSG[119] = UNIFAC_subgroup('CH2CHSU', 55, 'SULFONES', 2.4595, 1.808)
 UFSG[178] = UNIFAC_subgroup('IMIDAZOL', 84, 'IMIDAZOL', 2.026, 0.868)
 UFSG[179] = UNIFAC_subgroup('BTI', 85, 'BTI', 5.774, 4.932)
 
-
-# http://www.ddbst.com/PublishedParametersUNIFACDO.html#ListOfSubGroupsAndTheirGroupSurfacesAndVolumes
+# http://www.ddbst.com/Published**Parameters**UNIFACDO.html#ListOfSubGroupsAndTheirGroupSurfacesAndVolumes
 #  subgroup = (subgroup, #maingroup, maingroup, R, Q)
 DOUFSG = {}
 DOUFSG[1] = UNIFAC_subgroup('CH3', 1, 'CH2', 0.6325, 1.0608)
@@ -315,7 +312,7 @@ DOUFSG[86] = UNIFAC_subgroup('NMP', 46, 'CY-CONC', 3.981, 3.2)
 DOUFSG[87] = UNIFAC_subgroup('NEP', 46, 'CY-CONC', 3.7543, 2.892)
 DOUFSG[88] = UNIFAC_subgroup('NIPP', 46, 'CY-CONC', 3.5268, 2.58)
 DOUFSG[89] = UNIFAC_subgroup('NTBP', 46, 'CY-CONC', 3.2994, 2.352)
-# Is 90 missing? 
+# Is 90 missing?
 DOUFSG[91] = UNIFAC_subgroup('CONH2', 47, 'CONR', 1.4515, 1.248)
 DOUFSG[92] = UNIFAC_subgroup('CONHCH3', 47, 'CONR', 1.5, 1.08)
 # 93, 98, 99 missing but inteaction parameters are available.
@@ -343,14 +340,14 @@ DOUFSG[189] = UNIFAC_subgroup('C4H8N+', 87, 'PYRROL', 2.7986, 2.7744)
 DOUFSG[195] = UNIFAC_subgroup('BF4-', 89, 'BF4', 4.62, 1.1707)
 DOUFSG[196] = UNIFAC_subgroup('C5H5N+', 90, 'PYRIDIN', 2.4878, 2.474)
 DOUFSG[197] = UNIFAC_subgroup('OTF-', 91, 'OTF', 3.3854, 2.009)
-# 122, 123, 124, 201 Added Rev. 6
+# 122, 123, 124, 201 Added Rev.  6
 DOUFSG[122] = UNIFAC_subgroup('CH3S', 61, 'SULFIDES', 1.6130, 1.3680)
 DOUFSG[123] = UNIFAC_subgroup('CH2S', 61, 'SULFIDES', 1.3863, 1.0600)
 DOUFSG[124] = UNIFAC_subgroup('CHS', 61, 'SULFIDES', 1.1589, 0.7480)
 DOUFSG[201] = UNIFAC_subgroup('-S-S-', 93, 'DISULFIDES', 1.0678, 2.2440)
 
 #  subgroup = (group, (subgroup ids))
-# http://www.ddbst.com/PublishedParametersUNIFACDO.html#ListOfMainGroups
+# http://www.ddbst.com/Published**Parameters**UNIFACDO.html#ListOfMainGroups
 DOUFMG = {}
 DOUFMG[1] = ('CH2', [1, 2, 3, 4])
 DOUFMG[2] = ('C=C', [5, 6, 7, 8, 70])
@@ -400,7 +397,8 @@ DOUFMG[45] = ('CHCL3', [50])
 DOUFMG[46] = ('CY-CONC', [86, 87, 88, 89])
 DOUFMG[47] = ('CONR', [91, 92, 100])
 DOUFMG[48] = ('CONR2', [101, 102, 103])
-DOUFMG[49] = ('HCONR', [93, 94]) # Added in Further Development of Modified UNIFAC (Dortmund):  Revision and Extension 5
+# Added in Further Development of Modified UNIFAC (Dortmund):  Revision and Extension 5
+DOUFMG[49] = ('HCONR', [93, 94])
 DOUFMG[52] = ('ACS', [104, 105, 106])
 DOUFMG[53] = ('EPOXIDES', [107, 108, 109, 119, 153])
 DOUFMG[55] = ('CARBONAT', [112, 113, 114])
@@ -414,7 +412,6 @@ DOUFMG[91] = ('OTF', [197])
 # Added Rev 6
 DOUFMG[61] = ('SULFIDES', [122, 123, 124])
 DOUFMG[93] = ('DISULFIDES', [201])
-
 
 NISTUFMG = {}
 # From Kang and Diky and Chirico and Magee and Muzny and Abdulagatov and Kazakov and Frenkel - 2011 - A new method for evaluation of UNIFAC interaction parameters
@@ -455,7 +452,8 @@ NISTUFMG[33] = ('BR', [130], 'Bromides')
 NISTUFMG[34] = ('C≡C', [13, 14], 'Triplebonded alkyl chains')
 NISTUFMG[35] = ('DMSO', [153], 'Dimethylsulfoxide')
 NISTUFMG[36] = ('ACRY', [90], 'Acrylic')
-NISTUFMG[37] = ('ClC=C', [108], 'Chlorine attached to double bonded alkyl chain')
+NISTUFMG[37] = (
+    'ClC=C', [108], 'Chlorine attached to double bonded alkyl chain')
 NISTUFMG[38] = ('ACF', [118], 'Fluoroaromatics')
 NISTUFMG[39] = ('DMF', [161, 162, 163, 164, 165], 'Amides')
 NISTUFMG[40] = ('CF2', [111, 112, 113, 114, 115, 116, 117], 'Fluorines')
@@ -463,14 +461,16 @@ NISTUFMG[41] = ('COO', [58], 'Esters')
 NISTUFMG[42] = ('SiH2', [197, 198, 199, 200], 'Silanes')
 NISTUFMG[43] = ('SiO', [201, 202, 203], 'Siloxanes')
 NISTUFMG[44] = ('NMP', [195], 'N-Methyl-2-pyrrolidone')
-NISTUFMG[45] = ('CClF', [120, 121, 122, 123, 124, 125, 126, 127], 'Chloro-Fluorides')
+NISTUFMG[45] = ('CClF', [120, 121, 122, 123, 124,
+                         125, 126, 127], 'Chloro-Fluorides')
 NISTUFMG[46] = ('CONCH2', [166, 167, 168, 169], 'Amides')
 NISTUFMG[47] = ('OCCOH', [39, 40, 41], 'Oxygenated Alcohols')
 NISTUFMG[48] = ('CH2S', [142, 143, 144, 145], 'Sulfides')
 NISTUFMG[49] = ('MORPHOLIN', [196], 'Morpholine')
 NISTUFMG[50] = ('THIOPHENE', [147, 148, 149], 'Thiophene')
 NISTUFMG[51] = ('CH2(cy)', [27, 28, 29], 'Cyclic hydrocarbon chains')
-NISTUFMG[52] = ('C=C(cy)', [30, 31, 32], 'Cyclic unsaturated hydrocarbon chains')
+NISTUFMG[52] = ('C=C(cy)', [30, 31, 32],
+                'Cyclic unsaturated hydrocarbon chains')
 # Added
 
 NISTUFSG = {}
@@ -576,7 +576,8 @@ NISTUFSG[79] = UNIFAC_subgroup('c-CH', 42, 'c-CH2', 0.3479, 0.1071)
 NISTUFSG[80] = UNIFAC_subgroup('c-C', 42, 'c-CH2', 0.347, 0)
 NISTUFSG[27] = UNIFAC_subgroup('CH2-O-CH2', 43, 'c-CH2O', 1.7023, 1.8784)
 NISTUFSG[83] = UNIFAC_subgroup('CH2-O-[CH2-O]1/2', 43, 'c-CH2O', 1.4046, 1.4)
-NISTUFSG[84] = UNIFAC_subgroup('[O-CH2]1/2-O-[CH2-O]1/2', 43, 'c-CH2O', 1.0413, 1.0116)
+NISTUFSG[84] = UNIFAC_subgroup(
+    '[O-CH2]1/2-O-[CH2-O]1/2', 43, 'c-CH2O', 1.0413, 1.0116)
 NISTUFSG[43] = UNIFAC_subgroup('HCOOH', 44, 'HCOOH', 0.8, 1.2742)
 NISTUFSG[50] = UNIFAC_subgroup('CHCl3', 45, 'CHCl3', 2.45, 2.8912)
 NISTUFSG[86] = UNIFAC_subgroup('c-CON-CH3', 46, 'c-CONC', 3.981, 3.2)
@@ -677,7 +678,6 @@ NISTUFSG[202] = UNIFAC_subgroup('c-CH=C', 95, 'c-C=C', 0.8616, 0.644)
 NISTUFSG[203] = UNIFAC_subgroup('c-C=C', 95, 'c-C=C', 0.5498, 0.244)
 NISTUFSG[204] = UNIFAC_subgroup('Glycerol', 96, 'Glycerol', 5.4209, 4.4227)
 
-
 PSRKSG = {}
 PSRKSG[1] = UNIFAC_subgroup('CH3', 1, 'CH2', 0.9011, 0.8480)
 PSRKSG[2] = UNIFAC_subgroup('CH2', 1, 'CH2', 0.6744, 0.5400)
@@ -690,7 +690,7 @@ PSRKSG[8] = UNIFAC_subgroup('CH=C', 2, 'C=C', 0.8886, 0.6760)
 PSRKSG[9] = UNIFAC_subgroup('ACH', 3, 'ACH', 0.5313, 0.4000)
 PSRKSG[10] = UNIFAC_subgroup('AC', 3, 'ACH', 0.3652, 0.1200)
 PSRKSG[11] = UNIFAC_subgroup('ACCH3', 4, 'ACCH2', 1.2663, 0.9680)
-PSRKSG[12] = UNIFAC_subgroup('ACCH2', 4, 'ACCH2', 1.0396, 0.6600)
+PSRKSG[12] = UNIFAC_subgroup('ACCH2', 4, 'AC ', 1.0396, 0.6600)
 PSRKSG[13] = UNIFAC_subgroup('ACCH', 4, 'ACCH2', 0.8121, 0.3480)
 PSRKSG[14] = UNIFAC_subgroup('OH', 5, 'OH', 1.0000, 1.2000)
 PSRKSG[15] = UNIFAC_subgroup('CH3OH', 6, 'CH3OH', 1.4311, 1.4320)
@@ -830,11 +830,11 @@ PSRKSG[148] = UNIFAC_subgroup('O3', 84, 'O3', 1.1000, 1.2700)
 PSRKSG[149] = UNIFAC_subgroup('CLNO', 85, 'CLNO', 1.4800, 1.3400)
 PSRKSG[152] = UNIFAC_subgroup('CNH2', 14, 'CNH2', 0.9147, 0.6140)
 
-
 UFIP = {i: {} for i in list(range(1, 52)) + [55, 84, 85]}
 with open(os.path.join(folder, 'UNIFAC original interaction parameters.tsv')) as f:
     for line in f:
-        maingroup1, maingroup2, interaction_parameter = line.strip('\n').split('\t')
+        maingroup1, maingroup2, interaction_parameter = line.strip(
+            '\n').split('\t')
         # Index by both int, order maters, to only one parameter.
         UFIP[int(maingroup1)][int(maingroup2)] = float(interaction_parameter)
 
@@ -842,14 +842,16 @@ DOUFIP2006 = {i: {} for i in DOUFMG.keys()}
 with open(os.path.join(folder, 'UNIFAC modified Dortmund interaction parameters 2006.tsv')) as f:
     for line in f:
         maingroup1, maingroup2, a, b, c = line.strip('\n').split('\t')
-        DOUFIP2006[int(maingroup1)][int(maingroup2)] = (float(a), float(b), float(c))
+        DOUFIP2006[int(maingroup1)][int(maingroup2)] = (
+            float(a), float(b), float(c))
 
 DOUFIP2016 = {i: {} for i in list(DOUFMG.keys())+[50, 77, 98, 99]}
 # Some of the groups have no public parameters unfortunately
 with open(os.path.join(folder, 'UNIFAC modified Dortmund interaction parameters.tsv')) as f:
     for line in f:
         maingroup1, maingroup2, a, b, c = line.strip('\n').split('\t')
-        DOUFIP2016[int(maingroup1)][int(maingroup2)] = (float(a), float(b), float(c))
+        DOUFIP2016[int(maingroup1)][int(maingroup2)] = (
+            float(a), float(b), float(c))
 
 
 #NISTUFIP = {i: {} for i in list(NISTUFMG.keys())}
@@ -857,17 +859,20 @@ NISTUFIP = {i: {} for i in range(400)}
 
 with open(os.path.join(folder, 'UNIFAC modified NIST 2015 interaction parameters.tsv')) as f:
     for line in f:
-        maingroup1, maingroup2, a, b, c, Tmin, Tmax = line.strip('\n').split('\t')
-        NISTUFIP[int(maingroup1)][int(maingroup2)] = (float(a), float(b), float(c))
+        maingroup1, maingroup2, a, b, c, Tmin, Tmax = line.strip(
+            '\n').split('\t')
+        NISTUFIP[int(maingroup1)][int(maingroup2)] = (
+            float(a), float(b), float(c))
 
 PSRKIP = {i: {} for i in range(400)}
 
 with open(os.path.join(folder, 'PSRK interaction parameters.tsv')) as f:
     for line in f:
         maingroup1, maingroup2, a, b, c = line.strip('\n').split('\t')
-        PSRKIP[int(maingroup1)][int(maingroup2)] = (float(a), float(b), float(c))
+        PSRKIP[int(maingroup1)][int(maingroup2)] = (
+            float(a), float(b), float(c))
 
-
+# %% Functions
 
 
 DDBST_UNIFAC_assignments = {}

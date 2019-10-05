@@ -1,17 +1,40 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Mon Apr 16 08:58:41 2018
+'''Chemical Engineering Design Library (ChEDL). Utilities for process modeling.
+Copyright (C) 2017, Caleb Bell <Caleb.Andrew.Bell@gmail.com>
 
-@author: Yoel Rene Cortes-Pena
-"""
-from math import log, exp
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.'''
+
+from __future__ import division
+
+__all__ = ['UNIFAC', 'UNIFAC_psi', 'DOUFMG', 'DOUFSG', 'UFSG', 'UFMG', 
+           'DOUFIP2016', 'DOUFIP2006', 'UFIP', 'DDBST_UNIFAC_assignments', 
+           'DDBST_MODIFIED_UNIFAC_assignments', 'DDBST_PSRK_assignments',
+           'UNIFAC_RQ', 'Van_der_Waals_volume', 'Van_der_Waals_area',
+           'load_group_assignments_DDBST', 'DDBST_UNIFAC_assignments', 
+           'DDBST_MODIFIED_UNIFAC_assignments', 'DDBST_PSRK_assignments',
+           'PSRKIP', 'PSRKSG']
 import os
+from .utils import log, exp
 
-__all__ = ('Dortmund',)
+folder = os.path.join(os.path.dirname(__file__), 'Phase Change')
 
 # %% Data
-folder = os.path.join(os.path.dirname(__file__), r'..\thermo\Phase Change')
 
 class UNIFAC_subgroup:
     __slots__ = ('group', 'main_group_id', 'main_group', 'R', 'Q')
@@ -807,20 +830,6 @@ PSRKSG[148] = UNIFAC_subgroup('O3', 84, 'O3', 1.1000, 1.2700)
 PSRKSG[149] = UNIFAC_subgroup('CLNO', 85, 'CLNO', 1.4800, 1.3400)
 PSRKSG[152] = UNIFAC_subgroup('CNH2', 14, 'CNH2', 0.9147, 0.6140)
 
-# %% UNIFAC LL
-# # TODO: UNIFAC_LL_set_up since subgroup numbers are not the same in some cases
-# UFLLIP = {i: {} for i in list(range(1, 52)) + [55, 84, 85]}
-# # with open(os.path.join(folder, 'unifac_ll_ip.tsv')) as f: #TODO: add file to path instead
-# #    for line in f:
-# f = '1\tCH2\t2\tC=C\t74.54\t292.3\n1\tCH2\t3\tACH\t-114.8\t156.5\n1\tCH2\t4\tACCH2\t-115.7\t104.4\n1\tCH2\t5\tOH\t644.6\t328.2\n1\tCH2\t6\t1-Propan\t329.6\t-136.7\n1\tCH2\t7\t2-Propan\t310.7\t-131.9\n1\tCH2\t8\tH2O\t1300\t342.4\n1\tCH2\t9\tACOH\t2255\t-159.8\n1\tCH2\t10\tCH2CO\t472.6\t66.56\n1\tCH2\t11\tCHO\t158.1\t146.1\n1\tCH2\t12\tFurfural\t383\t14.78\n1\tCH2\t13\tCOOH\t139.4\t1744\n1\tCH2\t14\tCOOC\t972.4\t-320.1\n1\tCH2\t15\tCH2CO\t662.1\t1571\n1\tCH2\t16\tCCl\t42.14\t73.8\n1\tCH2\t17\tCCl2\t-243.9\t27.9\n1\tCH2\t18\tCCl3\t7.5\t21.23\n1\tCH2\t19\tCCl4\t-5.55\t89.97\n1\tCH2\t20\tACCl\t924.8\t-59.06\n1\tCH2\t21\tCCN\t696.8\t29.08\n1\tCH2\t22\tACNH2\t902.2\t175.8\n1\tCH2\t23\tCNO2\t556.7\t94.34\n1\tCH2\t24\tACNO2\t575.7\t193.6\n1\tCH2\t25\tDOH\t527.5\t108.5\n1\tCH2\t26\tDEOH\t269.2\t81.49\n1\tCH2\t27\tPYR\t-300\t-128.8\n1\tCH2\t28\tTCE\t-63.6\t147.3\n1\tCH2\t29\tMFA\t928.3\t-11.91\n1\tCH2\t30\tDMFA\t331\t14.91\n1\tCH2\t31\tTMS\t561.4\t67.84\n1\tCH2\t32\tDMSO\t956.5\t36.42\n2\tC=C\t3\tACH\t340.7\t-94.78\n2\tC=C\t4\tACCH2\t4102\t-269.7\n2\tC=C\t5\tOH\t724.4\t470.7\n2\tC=C\t6\t1-Propan\t1731\t-135.7\n2\tC=C\t7\t2-Propan\t1731\t-135.7\n2\tC=C\t8\tH2O\t896\t220.6\n2\tC=C\t10\tCH2CO\t343.7\t306.1\n2\tC=C\t11\tCHO\t-214.7\t517\n2\tC=C\t13\tCOOH\t1647\t-48.52\n2\tC=C\t14\tCOOC\t-577.5\t485.6\n2\tC=C\t15\tCH2CO\t289.3\t76.44\n2\tC=C\t16\tCCl\t99.61\t-24.36\n2\tC=C\t17\tCCl2\t337.1\t-52.71\n2\tC=C\t18\tCCl3\t4583\t-185.1\n2\tC=C\t19\tCCl4\t5831\t-293.7\n2\tC=C\t21\tCCN\t405.9\t34.78\n2\tC=C\t23\tCNO2\t425.7\t375.4\n2\tC=C\t29\tMFA\t500.7\t176.7\n2\tC=C\t30\tDMFA\t115.4\t132.1\n2\tC=C\t31\tTMS\t784.4\t42.73\n2\tC=C\t32\tDMSO\t265.4\t60.82\n3\tACH\t4\tACCH2\t167\t-146.8\n3\tACH\t5\tOH\t703.9\t-9.21\n3\tACH\t6\t1-Propan\t511.5\t-223\n3\tACH\t7\t2-Propan\t577.3\t-252\n3\tACH\t8\tH2O\t859.4\t372.8\n3\tACH\t9\tACOH\t1649\t-473.2\n3\tACH\t10\tCH2CO\t593.7\t-78.31\n3\tACH\t11\tCHO\t362.3\t-75.3\n3\tACH\t12\tFurfural\t31.14\t-10.44\n3\tACH\t13\tCOOH\t461.8\t75.49\n3\tACH\t14\tCOOC\t6\t114.8\n3\tACH\t15\tCH2CO\t32.14\t52.13\n3\tACH\t16\tCCl\t-18.81\t4.68\n3\tACH\t18\tCCl3\t-231.9\t288.5\n3\tACH\t19\tCCl4\t3000\t-4.7\n3\tACH\t20\tACCl\t-878.1\t777.8\n3\tACH\t21\tCCN\t29.13\t56.41\n3\tACH\t22\tACNH2\t1.64\t-218.9\n3\tACH\t23\tCNO2\t-1.77\t113.6\n3\tACH\t24\tACNO2\t-11.19\t7.18\n3\tACH\t25\tDOH\t358.9\t247.3\n3\tACH\t26\tDEOH\t363.5\t-50.71\n3\tACH\t27\tPYR\t-578.2\t-225.3\n3\tACH\t29\tMFA\t364.2\t-80.48\n3\tACH\t30\tDMFA\t-58.1\t-17.78\n3\tACH\t31\tTMS\t21.97\t59.16\n3\tACH\t32\tDMSO\t84.16\t29.77\n4\tACCH2\t5\tOH\t4000\t1.27\n4\tACCH2\t6\t1-Propan\t136.6\t-162.6\n4\tACCH2\t7\t2-Propan\t906.8\t-273.6\n4\tACCH2\t8\tH2O\t5695\t203.7\n4\tACCH2\t9\tACOH\t292.6\t-470.4\n4\tACCH2\t10\tCH2CO\t916.7\t-73.87\n4\tACCH2\t11\tCHO\t1218\t223.2\n4\tACCH2\t12\tFurfural\t715.6\t-184.9\n4\tACCH2\t13\tCOOH\t339.1\t147.3\n4\tACCH2\t14\tCOOC\t5688\t-170\n4\tACCH2\t15\tCH2CO\t213.1\t65.69\n4\tACCH2\t16\tCCl\t-114.1\t122.9\n4\tACCH2\t18\tCCl3\t-12.14\t33.61\n4\tACCH2\t19\tCCl4\t-141.3\t134.7\n4\tACCH2\t20\tACCl\t-107.3\t-47.13\n4\tACCH2\t21\tCCN\t1208\t-53.29\n4\tACCH2\t22\tACNH2\t689.6\t-15.41\n4\tACCH2\t23\tCNO2\t3629\t-97.05\n4\tACCH2\t24\tACNO2\t-175.6\t-127.1\n4\tACCH2\t25\tDOH\t337.7\t453.4\n4\tACCH2\t26\tDEOH\t1023\t-30.28\n4\tACCH2\t27\tPYR\t-390.7\t-124.6\n4\tACCH2\t31\tTMS\t238\t26.59\n4\tACCH2\t32\tDMSO\t132.2\t55.97\n5\tOH\t6\t1-Propan\t937.3\t-281.1\n5\tOH\t7\t2-Propan\t991.3\t-268.8\n5\tOH\t8\tH2O\t28.73\t-122.4\n5\tOH\t9\tACOH\t-195.5\t-63.15\n5\tOH\t10\tCH2CO\t67.07\t216\n5\tOH\t11\tCHO\t1409\t-431.3\n5\tOH\t12\tFurfural\t-140.3\t444.7\n5\tOH\t13\tCOOH\t-104\t118.4\n5\tOH\t14\tCOOC\t195.6\t180.6\n5\tOH\t15\tCH2CO\t262.5\t137.1\n5\tOH\t16\tCCl\t62.05\t455.1\n5\tOH\t17\tCCl2\t272.2\t669.2\n5\tOH\t18\tCCl3\t-61.57\t418.4\n5\tOH\t19\tCCl4\t-41.75\t713.5\n5\tOH\t20\tACCl\t-597.1\t1989\n5\tOH\t21\tCCN\t-189.3\t2011\n5\tOH\t22\tACNH2\t-348.2\t529\n5\tOH\t23\tCNO2\t-30.7\t483.8\n5\tOH\t24\tACNO2\t-159\t332.6\n5\tOH\t25\tDOH\t536.6\t-289.3\n5\tOH\t26\tDEOH\t53.37\t-99.56\n5\tOH\t27\tPYR\t183.3\t-319.2\n5\tOH\t28\tTCE\t-44.44\t837.9\n6\t1-Propan\t8\tH2O\t-61.29\t247\n6\t1-Propan\t9\tACOH\t-153.2\t-547.2\n6\t1-Propan\t10\tCH2CO\t-47.41\t401.7\n6\t1-Propan\t11\tCHO\t-344.1\t643.4\n6\t1-Propan\t12\tFurfural\t299.3\t-94.64\n6\t1-Propan\t13\tCOOH\t244.4\t728.7\n6\t1-Propan\t14\tCOOC\t19.57\t-76.64\n6\t1-Propan\t15\tCH2CO\t1970\t-218.1\n6\t1-Propan\t16\tCCl\t-166.4\t351.5\n6\t1-Propan\t17\tCCl2\t128.6\t-186.1\n6\t1-Propan\t18\tCCl3\t1544\t-465.7\n6\t1-Propan\t19\tCCl4\t224.6\t-260.3\n6\t1-Propan\t23\tCNO2\t150.8\t264.7\n7\t2-Propan\t8\tH2O\t5.89\t104.9\n7\t2-Propan\t9\tACOH\t-153.2\t-547.2\n7\t2-Propan\t10\tCH2CO\t353.8\t-127.6\n7\t2-Propan\t11\tCHO\t-338.6\t231.4\n7\t2-Propan\t12\tFurfural\t-241.8\t732.3\n7\t2-Propan\t13\tCOOH\t-57.98\t349.1\n7\t2-Propan\t14\tCOOC\t487.1\t-152.8\n7\t2-Propan\t15\tCH2CO\t1970\t-218.1\n7\t2-Propan\t16\tCCl\t-166.4\t351.5\n7\t2-Propan\t17\tCCl2\t507.8\t-401.6\n7\t2-Propan\t18\tCCl3\t1544\t-465.7\n7\t2-Propan\t19\tCCl4\t-207\t512.2\n7\t2-Propan\t23\tCNO2\t150.8\t264.7\n8\tH2O\t9\tACOH\t344.5\t-595.9\n8\tH2O\t10\tCH2CO\t-171.8\t634.8\n8\tH2O\t11\tCHO\t-349.9\t623.7\n8\tH2O\t12\tFurfural\t66.95\t211.6\n8\tH2O\t13\tCOOH\t-465.7\t652.3\n8\tH2O\t14\tCOOC\t-6.32\t385.9\n8\tH2O\t15\tCH2CO\t64.42\t212.8\n8\tH2O\t16\tCCl\t315.9\t770\n8\tH2O\t17\tCCl2\t370.7\t740.4\n8\tH2O\t18\tCCl3\t356.8\t793.2\n8\tH2O\t19\tCCl4\t502.9\t1205\n8\tH2O\t20\tACCl\t-97.27\t390.7\n8\tH2O\t21\tCCN\t198.3\t63.48\n8\tH2O\t22\tACNH2\t-109.8\t-239.8\n8\tH2O\t23\tCNO2\t1539\t13.32\n8\tH2O\t24\tACNO2\t32.92\t439.9\n8\tH2O\t25\tDOH\t-269.2\t-424.3\n8\tH2O\t27\tPYR\t-873.6\t203\n8\tH2O\t28\tTCE\t1429\t1153\n8\tH2O\t29\tMFA\t-364.2\t-311\n8\tH2O\t30\tDMFA\t-117.4\t-262.6\n8\tH2O\t31\tTMS\t18.41\t1.11\n9\tACOH\t10\tCH2CO\t-825.7\t-568\n9\tACOH\t14\tCOOC\t-898.3\t-337.3\n9\tACOH\t19\tCCl4\t4894\t1616\n9\tACOH\t22\tACNH2\t-851.6\t-860.3\n9\tACOH\t24\tACNO2\t-16.13\t-230.4\n9\tACOH\t25\tDOH\t-538.6\t523\n9\tACOH\t27\tPYR\t-637.3\t-222.7\n10\tCH2CO\t11\tCHO\t-37.36\t128\n10\tCH2CO\t12\tFurfural\t120.3\t48.93\n10\tCH2CO\t13\tCOOH\t1247\t-101.3\n10\tCH2CO\t14\tCOOC\t258.7\t58.84\n10\tCH2CO\t15\tCH2CO\t5.202\t52.38\n10\tCH2CO\t16\tCCl\t1000\t483.9\n10\tCH2CO\t17\tCCl2\t-301\t550.6\n10\tCH2CO\t18\tCCl3\t12.01\t342.2\n10\tCH2CO\t19\tCCl4\t-10.88\t550\n10\tCH2CO\t20\tACCl\t902.6\t190.5\n10\tCH2CO\t21\tCCN\t430.6\t-349.2\n10\tCH2CO\t22\tACNH2\t1010\t857.7\n10\tCH2CO\t23\tCNO2\t400\t377\n10\tCH2CO\t24\tACNO2\t-328.6\t211.6\n10\tCH2CO\t25\tDOH\t211.6\t82.77\n10\tCH2CO\t28\tTCE\t148\t417.4\n11\tCHO\t12\tFurfural\t1724\t-311.6\n11\tCHO\t13\tCOOH\t0.75\t1051\n11\tCHO\t14\tCOOC\t-245.8\t1090\n11\tCHO\t16\tCCl\t751.8\t-47.51\n12\tFurfural\t13\tCOOH\t1919\t-115.7\n12\tFurfural\t14\tCOOC\t57.7\t-46.13\n12\tFurfural\t17\tCCl2\t-347.9\t808.8\n12\tFurfural\t18\tCCl3\t-249.3\t203.1\n12\tFurfural\t19\tCCl4\t61.59\t70.14\n12\tFurfural\t25\tDOH\t-278.2\t-75.23\n12\tFurfural\t27\tPYR\t-208.4\t-201.9\n12\tFurfural\t28\tTCE\t-13.91\t123.2\n12\tFurfural\t30\tDMFA\t173.8\t-281.9\n13\tCOOH\t14\tCOOC\t-117.6\t1417\n13\tCOOH\t15\tCH2CO\t-96.62\t1402\n13\tCOOH\t16\tCCl\t19.77\t337.1\n13\tCOOH\t17\tCCl2\t1670\t437.7\n13\tCOOH\t18\tCCl3\t48.15\t370.4\n13\tCOOH\t19\tCCl4\t43.83\t438.1\n13\tCOOH\t20\tACCl\t874.3\t1349\n13\tCOOH\t22\tACNH2\t942.2\t681.4\n13\tCOOH\t23\tCNO2\t446.3\t152.4\n13\tCOOH\t25\tDOH\t572.7\t-1707\n13\tCOOH\t28\tTCE\t-2.16\t639.7\n14\tCOOC\t15\tCH2CO\t-235.7\t461.3\n14\tCOOC\t17\tCCl2\t108.9\t-132.9\n14\tCOOC\t18\tCCl3\t-209.7\t176.5\n14\tCOOC\t19\tCCl4\t54.57\t129.5\n14\tCOOC\t20\tACCl\t629\t-246.3\n14\tCOOC\t21\tCCN\t-149.2\t2.41\n14\tCOOC\t25\tDOH\t343.1\t29.86\n15\tCH2CO\t16\tCCl\t301.1\t225.4\n15\tCH2CO\t17\tCCl2\t137.8\t-197.7\n15\tCH2CO\t18\tCCl3\t-154.3\t-20.93\n15\tCH2CO\t19\tCCl4\t47.67\t113.9\n15\tCH2CO\t23\tCNO2\t95.18\t-94.49\n16\tCCl\t17\tCCl2\t110.5\t-21.35\n16\tCCl\t18\tCCl3\t249.2\t-157.1\n16\tCCl\t19\tCCl4\t62.42\t11.8\n17\tCCl2\t19\tCCl4\t56.33\t17.97\n18\tCCl3\t19\tCCl4\t-30.1\t51.9\n18\tCCl3\t21\tCCN\t70.04\t-15.62\n18\tCCl3\t22\tACNH2\t-75.5\t-216.3\n18\tCCl3\t27\tPYR\t18.98\t-114.7\n19\tCCl4\t20\tACCl\t475.8\t-255.4\n19\tCCl4\t21\tCCN\t492\t-54.86\n19\tCCl4\t22\tACNH2\t1302\t8455\n19\tCCl4\t23\tCNO2\t490.9\t-34.68\n19\tCCl4\t24\tACNO2\t534.7\t514.6\n20\tACCl\t21\tCCN\t346.2\t-465.2\n20\tACCl\t23\tCNO2\t-154.5\t794.4\n20\tACCl\t25\tDOH\t124.8\t-241.7\n20\tACCl\t27\tPYR\t-387.7\t-906.5\n21\tCCN\t27\tPYR\t134.3\t-169.7\n22\tACNH2\t24\tACNO2\t0\t175.8\n22\tACNH2\t25\tDOH\t125.3\t164.4\n22\tACNH2\t27\tPYR\t924.5\t-944.9\n23\tCNO2\t25\tDOH\t139.8\t481.3\n24\tACNO2\t25\tDOH\t963\t-246'
-# for line in f.split('\n'):
-#     maingroup1, _, maingroup2, __, interaction_parameter12, interaction_parameter21 = line.split(
-#         '\t')
-#     # Index by both int, order maters, to only one parameter.
-#     UFLLIP[int(maingroup1)][int(maingroup2)] = float(interaction_parameter12)
-#     UFLLIP[int(maingroup2)][int(maingroup1)] = float(interaction_parameter21)
-# del f
-
 UFIP = {i: {} for i in list(range(1, 52)) + [55, 84, 85]}
 with open(os.path.join(folder, 'UNIFAC original interaction parameters.tsv')) as f:
     for line in f:
@@ -863,173 +872,455 @@ with open(os.path.join(folder, 'PSRK interaction parameters.tsv')) as f:
         PSRKIP[int(maingroup1)][int(maingroup2)] = (
             float(a), float(b), float(c))
 
+# %% Functions
 
-# %% Activity Coefficients
 
-class Dortmund:
-    __slots__ = ('_species', 'chemgroups', 'rs', 'qs', 'groupcounts')
-    subgroups = DOUFSG
-    interactions = DOUFIP2016
-    cached = {}
-    
-    def __init__(self, *species):
-        self._species = self.chemgroups = self.rs = self.qs = self.groupcounts = None
-        if species: self.species = species
-    
-    @property
-    def species(self):
-        return self._species
-    
-    @species.setter
-    def species(self, species):
-        if self._species != species:
-            self._species = species
-            species = tuple(species)
-            if species in self.cached:
-                self.chemgroups, self.rs, self.qs, self.groupcounts = self.cached[species]
-            else:
-                self._load_species(species)
-                
-    
-    def __call__(self, xs, T):
-        """Return UNIFAC coefficients.
+DDBST_UNIFAC_assignments = {}
+DDBST_MODIFIED_UNIFAC_assignments = {}
+DDBST_PSRK_assignments = {}
+
+def load_group_assignments_DDBST():
+    '''Data is stored in the format
+    InChI key\tbool bool bool \tsubgroup count ...\tsubgroup count \tsubgroup count...
+    where the bools refer to whether or not the original UNIFAC, modified
+    UNIFAC, and PSRK group assignments were completed correctly.
+    The subgroups and their count have an indefinite length.
+    '''
+    # Do not allow running multiple times
+    if DDBST_UNIFAC_assignments:
+        return None
+    with open(os.path.join(folder, 'DDBST UNIFAC assignments.tsv')) as f:
+        _group_assignments = [DDBST_UNIFAC_assignments, DDBST_MODIFIED_UNIFAC_assignments, DDBST_PSRK_assignments]
+        for line in f.readlines():
+            key, valids, original, modified, PSRK = line.split('\t')
+            # list of whether or not each method was correctly identified or not
+            valids = [True if i == '1' else False for i in valids.split(' ')]
+            for groups, storage, valid in zip([original, modified, PSRK], _group_assignments, valids):
+                if valid:
+                    groups = groups.rstrip().split(' ')
+                    d_data = {}
+                    for i in range(int(len(groups)/2)):
+                        d_data[int(groups[i*2])] = int(groups[i*2+1])
+                    storage[key] = d_data
+
+
+def UNIFAC_RQ(groups, subgroup_data=None):
+    r'''Calculates UNIFAC parameters R and Q for a chemical, given a dictionary
+    of its groups, as shown in [1]_. Most UNIFAC methods use the same subgroup
+    values; however, a dictionary of `UNIFAC_subgroup` instances may be 
+    specified as an optional second parameter.
+
+    .. math::
+        r_i = \sum_{k=1}^{n} \nu_k R_k 
         
-        Parameters
-        ----------
-        xs : array_like
-            Molar fractions
-        T : float
-            Temperature (K)
+        q_i = \sum_{k=1}^{n}\nu_k Q_k
+
+    Parameters
+    ----------
+    groups : dict[count]
+        Dictionary of numeric subgroup IDs : their counts
+    subgroup_data : None or dict[UNIFAC_subgroup]
+        Optional replacement for standard subgroups; leave as None to use the
+        original UNIFAC subgroup r and q values.
+
+    Returns
+    -------
+    R : float
+        R UNIFAC parameter (normalized Van der Waals Volume)  [-]
+    Q : float
+        Q UNIFAC parameter (normalized Van der Waals Area)  [-]
+
+    Notes
+    -----
+    These parameters have some predictive value for other chemical properties.
+
+    Examples
+    --------
+    Hexane
+    
+    >>> UNIFAC_RQ({1:2, 2:4})
+    (4.4998000000000005, 3.856)
+    
+    References
+    ----------
+    .. [1] Gmehling, Jurgen. Chemical Thermodynamics: For Process Simulation.
+       Weinheim, Germany: Wiley-VCH, 2012.
+    '''
+    if subgroup_data is not None:
+        subgroups = subgroup_data
+    else:
+        subgroups = UFSG
+    ri = 0.
+    qi = 0.
+    for group, count in groups.items():
+        ri += subgroups[group].R*count
+        qi += subgroups[group].Q*count
+    return ri, qi
+
+
+def Van_der_Waals_volume(R):
+    r'''Calculates a species Van der Waals molar volume with the UNIFAC method,
+    given a species's R parameter.
+
+    .. math::
+        V_{wk} = 15.17R_k
         
-        """
-        groupcounts = self.groupcounts
-        gckeys = tuple(groupcounts)
-        xs_chemgroups = tuple(zip(xs, self.chemgroups))
-        # Sum the denominator for calculating Xs
-        sum_ = sum
-        group_sum = sum_([count*x for x, g in xs_chemgroups for count in g.values()])
+    Parameters
+    ----------
+    R : float
+        R UNIFAC parameter (normalized Van der Waals Volume)  [-]
+
+    Returns
+    -------
+    V_vdw : float
+        Unnormalized Van der Waals volume, [m^3/mol]
+
+    Notes
+    -----
+    The volume was originally given in cm^3/mol, but is converted to SI here.
+
+    Examples
+    --------    
+    >>> Van_der_Waals_volume(4.4998)
+    6.826196599999999e-05
     
-        # Caclulate each numerator for calculating Xs
-        group_count_xs = {}
-        for group in gckeys:
-            tot_numerator = sum_([x*g[group] for x, g in xs_chemgroups if group in g])
-            group_count_xs[group] = tot_numerator/group_sum
+    References
+    ----------
+    .. [1] Wei, James, Morton M. Denn, John H. Seinfeld, Arup Chakraborty, 
+       Jackie Ying, Nicholas Peppas, and George Stephanopoulos. Molecular 
+       Modeling and Theory in Chemical Engineering. Academic Press, 2001.
+    '''
+    return R*1.517e-05
+
+
+def Van_der_Waals_area(Q):
+    r'''Calculates a species Van der Waals molar surface area with the UNIFAC 
+    method, given a species's Q parameter.
+
+    .. math::
+        A_{wk} = 2.5\times 10^9 Q_k
+        
+    Parameters
+    ----------
+    Q : float
+        Q UNIFAC parameter (normalized Van der Waals Area)  [-]
+
+    Returns
+    -------
+    A_vdw : float
+        Unnormalized Van der Waals surface area, [m^2/mol]
+
+    Notes
+    -----
+    The volume was originally given in cm^2/mol, but is converted to SI here.
+
+    Examples
+    --------    
+    >>> Van_der_Waals_area(3.856)
+    964000.0
     
-        loggammacs = self.loggammacs(self.qs, self.rs, xs)
-        subgroups = self.subgroups
-        Q_sum_term = sum_([subgroups[group].Q*group_count_xs[group] for group in gckeys])
-        area_fractions = {group: subgroups[group].Q*group_count_xs[group]/Q_sum_term
-                          for group in gckeys}
+    References
+    ----------
+    .. [1] Wei, James, Morton M. Denn, John H. Seinfeld, Arup Chakraborty, 
+       Jackie Ying, Nicholas Peppas, and George Stephanopoulos. Molecular 
+       Modeling and Theory in Chemical Engineering. Academic Press, 2001.
+    '''
+    return Q*250000.0
+
+
+def UNIFAC_psi(T, subgroup1, subgroup2, subgroup_data, interaction_data, 
+               modified=False):
+    r'''Calculates the interaction parameter psi(m, n) for two UNIFAC 
+    subgroups, given the system temperature, the UNIFAC subgroups considered 
+    for the variant of UNIFAC used, the interaction parameters for the 
+    variant of UNIFAC used, and whether or not the temperature dependence is 
+    modified from the original form, as shown below.
+
+    Original temperature dependence:
+        
+    .. math::
+        \Psi_{mn} = \exp\left(\frac{-a_{mn}}{T}\right)
+        
+    Modified temperature dependence:
+        
+    .. math::
+        \Psi_{mn} = \exp\left(\frac{-a_{mn} - b_{mn}T - c_{mn}T^2}{T}\right)
+        
+    Parameters
+    ----------
+    T : float
+        Temperature of the system, [K]
+    subgroup1 : int
+        First UNIFAC subgroup for identifier, [-]
+    subgroup2 : int
+        Second UNIFAC subgroup for identifier, [-]
+    subgroup_data : dict[UNIFAC_subgroup]
+        Normally provided as inputs to `UNIFAC`.
+    interaction_data : dict[dict[tuple(a_mn, b_mn, c_mn)]]
+        Normally provided as inputs to `UNIFAC`.
+    modified : bool
+        True if the modified temperature dependence is used by the interaction
+        parameters, otherwise False
+
+    Returns
+    -------
+    psi : float
+        UNIFAC interaction parameter term, [-]
+
+    Notes
+    -----
+    UNIFAC interaction parameters are asymmetric. No warning is raised if an
+    interaction parameter is missing.
+
+    Examples
+    --------
+    >>> from .unifac import UFSG, UFIP, DOUFSG, DOUFIP2006
     
-        psi = self.psi
-        interactions = self.interactions
-        UNIFAC_psis = {k: {m: (psi(T, m, k, subgroups, interactions))
-                           for m in gckeys} for k in gckeys}
+    >>> UNIFAC_psi(307, 18, 1, UFSG, UFIP)
+    0.9165248264184787
     
-        loggamma_groups = {}
-        for k in gckeys:
-            sum1, sum2 = 0., 0.
-            for m in gckeys:
-                sum1 += area_fractions[m]*UNIFAC_psis[k][m]
-                sum3 = sum_([area_fractions[n]*UNIFAC_psis[m][n]
-                            for n in groupcounts])
-                sum2 -= area_fractions[m]*UNIFAC_psis[m][k]/sum3
-            loggamma_groups[k] = subgroups[k].Q*(1. - log(sum1) + sum2)
+    >>> UNIFAC_psi(373.15, 9, 78, DOUFSG, DOUFIP2006, modified=True)
+    1.3703140538273264
     
-        loggammars = []
-        for groups in self.chemgroups:
-            gkeys = groups.keys()
-            chem_group_sum = sum_(groups.values())
-            chem_group_count_xs = {group: count/chem_group_sum
-                                   for group, count in groups.items()}
+    References
+    ----------
+    .. [1] Gmehling, Jurgen. Chemical Thermodynamics: For Process Simulation.
+       Weinheim, Germany: Wiley-VCH, 2012.
+    .. [2] Fredenslund, Aage, Russell L. Jones, and John M. Prausnitz. "Group
+       Contribution Estimation of Activity Coefficients in Nonideal Liquid 
+       Mixtures." AIChE Journal 21, no. 6 (November 1, 1975): 1086-99. 
+       doi:10.1002/aic.690210607.
+    '''
+    main1 = subgroup_data[subgroup1].main_group_id
+    main2 = subgroup_data[subgroup2].main_group_id
+    if modified:
+        try:
+            a, b, c = interaction_data[main1][main2]
+        except:
+            return 1.
+        return exp((-a/T -b - c*T))
+    else:
+        try:
+            return exp(-interaction_data[main1][main2]/T)
+        except:
+            return 1.
+
+
+def UNIFAC(T, xs, chemgroups, cached=None, subgroup_data=None, 
+           interaction_data=None, modified=False):
+    r'''Calculates activity coefficients using the UNIFAC model (optionally 
+    modified), given a mixture's temperature, liquid mole fractions, 
+    and optionally the subgroup data and interaction parameter data of your 
+    choice. The default is to use the original UNIFAC model, with the latest 
+    parameters published by DDBST. The model supports modified forms (Dortmund, 
+    NIST) when the `modified` parameter is True.
+            
+    Parameters
+    ----------
+    T : float
+        Temperature of the system, [K]
+    xs : list[float]
+        Mole fractions of all species in the system in the liquid phase, [-]
+    chemgroups : list[dict]
+        List of dictionaries of subgroup IDs and their counts for all species 
+        in the mixture, [-]
+    subgroup_data : dict[UNIFAC_subgroup]
+        UNIFAC subgroup data; available dictionaries in this module are UFSG
+        (original), DOUFSG (Dortmund), or NISTUFSG ([4]_).
+    interaction_data : dict[dict[tuple(a_mn, b_mn, c_mn)]]
+        UNIFAC interaction parameter data; available dictionaries in this 
+        module are UFIP (original), DOUFIP2006 (Dortmund parameters as 
+        published by 2006), DOUFIP2016 (Dortmund parameters as published by 
+        2016), and NISTUFIP ([4]_).
+    modified : bool
+        True if using the modified form and temperature dependence, otherwise
+        False.
+
+    Returns
+    -------
+    gammas : list[float]
+        Activity coefficients of all species in the mixture, [-]
+
+    Notes
+    -----
+    The actual implementation of UNIFAC is formulated slightly different than
+    the formulas above for computational efficiency. DDBST switched to using 
+    the more efficient forms in their publication, but the numerical results
+    are identical.
     
-            Q_sum_term = sum_([subgroups[group].Q*chem_group_count_xs[group]
-                               for group in gkeys])
-            chem_area_fractions = {group: subgroups[group].Q*chem_group_count_xs[group]/Q_sum_term
-                                   for group in gkeys}
-            chem_loggamma_groups = {}
-            for k in gkeys:
-                sum1, sum2 = 0., 0.
-                for m in groups:
-                    sum1 += chem_area_fractions[m]*UNIFAC_psis[k][m]
-                    sum3 = sum_([chem_area_fractions[n]
-                                * UNIFAC_psis[m][n] for n in groups])
-                    sum2 -= chem_area_fractions[m]*UNIFAC_psis[m][k]/sum3
+    The model is as follows:
+        
+    .. math::
+        \ln \gamma_i =  \ln \gamma_i^c + \ln \gamma_i^r
+        
+    **Combinatorial component**
     
-                chem_loggamma_groups[k] = subgroups[k].Q*(1. - log(sum1) + sum2)
+    .. math::
+        \ln \gamma_i^c = \ln \frac{\phi_i}{x_i} + \frac{z}{2} q_i 
+        \ln\frac{\theta_i}{\phi_i} + L_i - \frac{\phi_i}{x_i}
+        \sum_{j=1}^{n} x_j L_j
+        
+        \theta_i = \frac{x_i q_i}{\sum_{j=1}^{n} x_j q_j} 
+        
+         \phi_i = \frac{x_i r_i}{\sum_{j=1}^{n} x_j r_j}
+         
+          L_i = 5(r_i - q_i)-(r_i-1)
+   
+    **Residual component**
     
-            tot = sum_([count*(loggamma_groups[group] - chem_loggamma_groups[group])
-                       for group, count in groups.items()])
-            loggammars.append(tot)
+    .. math::
+        \ln \gamma_i^r = \sum_{k}^n \nu_k^{(i)} \left[ \ln \Gamma_k
+        - \ln \Gamma_k^{(i)} \right]
+        
+        \ln \Gamma_k = Q_k \left[1 - \ln \sum_m \Theta_m \Psi_{mk} - \sum_m 
+        \frac{\Theta_m \Psi_{km}}{\sum_n \Theta_n \Psi_{nm}}\right]
+        
+        \Theta_m = \frac{Q_m X_m}{\sum_{n} Q_n X_n}
+        
+        X_m = \frac{ \sum_j \nu^j_m x_j}{\sum_j \sum_n \nu_n^j x_j}
+        
+    **R and Q**
     
-        return [exp(sum_(ij)) for ij in zip(loggammacs, loggammars)]
+    .. math::
+        r_i = \sum_{k=1}^{n} \nu_k R_k 
+        
+        q_i = \sum_{k=1}^{n}\nu_k Q_k
     
-    def _load_species(self, species):
-        self.chemgroups = chemgroups = [s.UNIFAC_Dortmund_groups for s in species]
-        self.rs = rs = []
-        self.qs = qs = []
-        self.groupcounts = groupcounts = {}
-        subgroups = self.subgroups
+    The newer forms of UNIFAC (Dortmund, NIST) calculate the combinatorial
+    part slightly differently:
+        
+    .. math::
+        \ln \gamma_i^c = 1 - {V'}_i + \ln({V'}_i) - 5q_i \left(1
+        - \frac{V_i}{F_i}+ \ln\left(\frac{V_i}{F_i}\right)\right)
+        
+        V'_i = \frac{r_i^{3/4}}{\sum_j r_j^{3/4}x_j}
+        
+    
+    This is more clear when looking at the full rearranged form as in [3]_.
+
+    Examples
+    --------
+    >>> UNIFAC(T=333.15, xs=[0.5, 0.5], chemgroups=[{1:2, 2:4}, {1:1, 2:1, 18:1}])
+    [1.4276025835624173, 1.3646545010104225]
+    
+    >>> UNIFAC(373.15, [0.2, 0.3, 0.2, 0.2], 
+    ... [{9:6}, {78:6}, {1:1, 18:1}, {1:1, 2:1, 14:1}],
+    ... subgroup_data=DOUFSG, interaction_data=DOUFIP2006, modified=True)
+    [1.186431113706829, 1.440280133911197, 1.204479833499608, 1.9720706090299824]
+
+    References
+    ----------
+    .. [1] Gmehling, Jurgen. Chemical Thermodynamics: For Process Simulation.
+       Weinheim, Germany: Wiley-VCH, 2012.
+    .. [2] Fredenslund, Aage, Russell L. Jones, and John M. Prausnitz. "Group
+       Contribution Estimation of Activity Coefficients in Nonideal Liquid 
+       Mixtures." AIChE Journal 21, no. 6 (November 1, 1975): 1086-99. 
+       doi:10.1002/aic.690210607.
+    .. [3] Jakob, Antje, Hans Grensemann, Jürgen Lohmann, and Jürgen Gmehling. 
+       "Further Development of Modified UNIFAC (Dortmund):  Revision and 
+       Extension 5." Industrial & Engineering Chemistry Research 45, no. 23 
+       (November 1, 2006): 7924-33. doi:10.1021/ie060355c.
+    .. [4] Kang, Jeong Won, Vladimir Diky, and Michael Frenkel. "New Modified 
+       UNIFAC Parameters Using Critically Evaluated Phase Equilibrium Data." 
+       Fluid Phase Equilibria 388 (February 25, 2015): 128-41. 
+       doi:10.1016/j.fluid.2014.12.042.
+    '''
+    cmps = range(len(xs))
+    if subgroup_data is None:
+        subgroups = UFSG
+    else:
+        subgroups = subgroup_data
+    if interaction_data is None:
+        interactions = UFIP
+    else:
+        interactions = interaction_data
+
+    # Obtain r and q values using the subgroup values
+    if not cached:
+        rs = []
+        qs = []
         for groups in chemgroups:
             ri = 0.
             qi = 0.
             for group, count in groups.items():
                 ri += subgroups[group].R*count
                 qi += subgroups[group].Q*count
-                if group in groupcounts: groupcounts[group] += count
-                else: groupcounts[group] = count
             rs.append(ri)
             qs.append(qi)
-        self.cached[species] = (chemgroups, rs, qs, groupcounts)
+        
 
-    def loggammacs(self, qs, rs, xs):
-        rsxs = 0.; qsxs = 0.; rsxs2 = 0.; rs_34 = []; loggammacs = []
-        for xi, ri, qi in zip(xs, rs, qs):
-            rsxs += ri*xi
-            qsxs += qi*xi
-            ri_34 = ri**0.75
-            rs_34.append(ri_34)
-            rsxs2 += ri_34*xi
-        for qi, ri, ri_34 in zip(qs, rs, rs_34):
-            Vi = ri/rsxs
-            Fi = qi/qsxs
-            Vi2 = ri_34/rsxs2
-            loggammacs.append(1. - Vi2 + log(Vi2) - 5.*qi*(1. - Vi/Fi + log(Vi/Fi)))
-        return loggammacs
-    
-    def psi(self, T, subgroup1, subgroup2, subgroup_data, interaction_data):
-        try: a, b, c = interaction_data[subgroup_data[subgroup1].main_group_id] \
-                                       [subgroup_data[subgroup2].main_group_id]
-        except: return 1.
-        return exp((-a/T - b - c*T))
-    
-    def __repr__(self):
-        return f"{type(self).__name__}({', '.join([i.ID for i in self.species])})"
-    
-    
-# def UNIFAC(self, xs, T):
-#     return UNIFAC_Coeffictients(self, xs, T, UFSG, UFIP, UNIFAC_psi, loggammacs_UNIFAC)
+        group_counts = {}
+        for groups in chemgroups:
+            for group, count in groups.items():
+                if group in group_counts:
+                    group_counts[group] += count
+                else:
+                    group_counts[group] = count
+    else:
+        rs, qs, group_counts = cached
 
-# def UNIFAC_LL(self, xs, T):
-#     """For LLE"""
-#     return UNIFAC_Coeffictients(self, xs, T, UFSG, UFLLIP, UNIFAC_psi, loggammacs_UNIFAC)
+    # Sum the denominator for calculating Xs
+    group_sum = sum(count*xs[i] for i in cmps for count in chemgroups[i].values())
 
-# def loggammacs_UNIFAC(qs, rs, xs):
-#     rsxs = sum([ri*xi for ri, xi in zip(rs, xs)])
-#     Vis = [ri/rsxs for ri in rs]
-#     qsxs = sum([qi*xi for qi, xi in zip(qs, xs)])
-#     Fis = [qi/qsxs for qi in qs]
+    # Caclulate each numerator for calculating Xs
+    group_count_xs = {}
+    for group in group_counts:
+        tot_numerator = sum(chemgroups[i][group]*xs[i] for i in cmps if group in chemgroups[i])        
+        group_count_xs[group] = tot_numerator/group_sum
 
-#     loggammacs = [1. - Visi + log(Visi) - 5.*qsi*(1. - Visi/Fisi + log(Visi/Fisi))
-#                   for Visi, Fisi, qsi in zip(Vis, Fis, qs)]
-#     return loggammacs
+    rsxs = sum([rs[i]*xs[i] for i in cmps])
+    Vis = [rs[i]/rsxs for i in cmps]
+    qsxs = sum([qs[i]*xs[i] for i in cmps])
+    Fis = [qs[i]/qsxs for i in cmps]
 
-# def UNIFAC_psi(T, subgroup1, subgroup2, subgroup_data, interaction_data):
-#     try:
-#         return exp(-interaction_data[subgroup_data[subgroup1].main_group_id] \
-#                                     [subgroup_data[subgroup2].main_group_id]/T)
-#     except:
-#         return 1
+    if modified:
+        rsxs2 = sum([rs[i]**0.75*xs[i] for i in cmps])
+        Vis2 = [rs[i]**0.75/rsxs2 for i in cmps]
+        loggammacs = [1. - Vis2[i] + log(Vis2[i]) - 5.*qs[i]*(1. - Vis[i]/Fis[i]
+                      + log(Vis[i]/Fis[i])) for i in cmps]
+    else:
+        loggammacs = [1. - Vis[i] + log(Vis[i]) - 5.*qs[i]*(1. - Vis[i]/Fis[i]
+                      + log(Vis[i]/Fis[i])) for i in cmps]
 
+    Q_sum_term = sum([subgroups[group].Q*group_count_xs[group] for group in group_counts])
+    area_fractions = {group: subgroups[group].Q*group_count_xs[group]/Q_sum_term
+                      for group in group_counts.keys()}
+
+    UNIFAC_psis = {k: {m:(UNIFAC_psi(T, m, k, subgroups, interactions, modified=modified))
+                   for m in group_counts} for k in group_counts}
+
+    loggamma_groups = {}
+    for k in group_counts:
+        sum1, sum2 = 0., 0.
+        for m in group_counts:
+            sum1 += area_fractions[m]*UNIFAC_psis[k][m]
+            sum3 = sum(area_fractions[n]*UNIFAC_psis[m][n] for n in group_counts)
+            sum2 -= area_fractions[m]*UNIFAC_psis[m][k]/sum3
+        loggamma_groups[k] = subgroups[k].Q*(1. - log(sum1) + sum2)
+
+
+    loggammars = []
+    for groups in chemgroups:
+        chem_loggamma_groups = {}
+        chem_group_sum = sum(groups.values())
+        chem_group_count_xs = {group: count/chem_group_sum for group, count in groups.items()}
+                               
+        Q_sum_term = sum([subgroups[group].Q*chem_group_count_xs[group] for group in groups])
+        chem_area_fractions = {group: subgroups[group].Q*chem_group_count_xs[group]/Q_sum_term
+                               for group in groups.keys()}
+        for k in groups:
+            sum1, sum2 = 0., 0.
+            for m in groups:
+                sum1 += chem_area_fractions[m]*UNIFAC_psis[k][m]
+                sum3 = sum(chem_area_fractions[n]*UNIFAC_psis[m][n] for n in groups)
+                sum2 -= chem_area_fractions[m]*UNIFAC_psis[m][k]/sum3
+
+            chem_loggamma_groups[k] = subgroups[k].Q*(1. - log(sum1) + sum2)
+
+        tot = sum([count*(loggamma_groups[group] - chem_loggamma_groups[group])
+                   for group, count in groups.items()])
+        loggammars.append(tot)
+
+    return [exp(loggammacs[i]+loggammars[i]) for i in cmps]
 
 

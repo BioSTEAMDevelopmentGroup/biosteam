@@ -47,7 +47,7 @@ from .miscdata import _VDISaturationDict, VDI_tabular_data
 from .dippr import ModelEQ105
 from .electrochem import _Laliberte_Density_ParametersDict, LaliberteDensityModel
 from .coolprop import has_CoolProp, PropsSI, PhaseSI, coolprop_fluids, coolprop_dict, CoolProp_T_dependent_property
-from .thermo_model import TPDependentModel, InterpolatedTPDependentModel, ConstantTPDependentModel
+from .thermo_model import TPDependentModel, TInterpolatedTPDependentModel, ConstantTPDependentModel
 from .model_handler import TPDependentModelHandler
 from .eos import PR78
 
@@ -629,7 +629,7 @@ def VolumeLiquid(CAS, MW=None, Tb=None, Tc=None, Pc=None, Vc=None, Zc=None,
         models.append(VDI_PPDSModel(A, B, C, D, Tc_, rhoc, MW, Tmin, Tc_))
     if CAS in _VDISaturationDict:
         Ts, Vls = VDI_tabular_data(CAS, 'Volume (l)')
-        models.append(InterpolatedTPDependentModel(Ts, Vls, Tmin=Ts[0], Tmax=Ts[-1]))
+        models.append(TInterpolatedTPDependentModel(Ts, Vls, Tmin=Ts[0], Tmax=Ts[-1]))
     if all((Tc, Pc, omega)):
         models.insert(0, CostaldCompressedModel(Psat, Tc, Pc, omega, models[0].evaluate, 50, 500))
         if eos: models.insert(0, EOS)
