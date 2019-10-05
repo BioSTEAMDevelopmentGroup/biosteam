@@ -41,7 +41,6 @@ del np, pd, os, UnitRegistry
 
 # %% Initialize BioSTEAM 
 
-from . import thermo
 from ._species import Species, WorkingSpecies
 from ._stream import Stream
 from ._mixed_stream import MixedStream
