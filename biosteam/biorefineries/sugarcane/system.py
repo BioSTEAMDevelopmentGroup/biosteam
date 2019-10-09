@@ -360,7 +360,7 @@ purification_recycle = System('purification_recycle',
 
 gas_index = sugarcane_species.IDs.index('Octane')
 def adjust_denaturant():
-    denature.mol[gas_index] = 0.011*Q4.outs[0].massnet/114.232
+    denature.mol[gas_index] = 0.021*Q4.outs[0].massnet/114.232
     
 P33-1-P41-0-T2-0-Q4
 denature-T3-Q5

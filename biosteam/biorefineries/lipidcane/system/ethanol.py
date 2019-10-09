@@ -183,7 +183,7 @@ ethanol_recycle_sys = System('ethanol_recycle_sys',
 
 gas_index = ethanol_species.IDs.index('Octane')
 def adjust_denaturant():
-    denaturant.mol[gas_index] = 0.011*P304.outs[0].massnet/114.232
+    denaturant.mol[gas_index] = 0.021*P304.outs[0].massnet/114.232
     
 U301-1-H304-0-T302-0-P304
 denaturant-T303-P305

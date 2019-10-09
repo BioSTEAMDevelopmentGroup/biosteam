@@ -11,8 +11,8 @@ Humbird, D., Davis, R., Tao, L., Kinchin, C., Hsu, D., Aden, A., Dudgeon, D. (20
 import os
 import sys
 from biosteam.units.factories import xl2mod
-path = os.path.dirname(os.path.realpath(__file__)) + '\\'
-xl2mod(path + '_humbird2011.xlsx', sys.modules[__name__])
+path = os.path.join(os.path.dirname(os.path.realpath(__file__), '_humbird2011.xlsx')
+xl2mod(path, sys.modules[__name__])
 del sys, xl2mod, os, path
 
 from biosteam.utils.solvers import aitken_secant
@@ -99,7 +99,7 @@ class PretreatmentReactorSystem(Unit):
     Rxn('Galactan -> HMF + 2 H2O',                   'Galactan', 0.0030),
     Rxn('Mannan + H2O -> MannoseOligomer',           'Mannan',   0.0030),
     Rxn('Mannan -> HMF + 2 H2O',                     'Mannan',   0.0030),
-    Rxn('Sucrose -> HMF + Glucose + 2H2O',           'Sucrose',  0.0030),
+    Rxn('Sucrose -> HMF + Glucose + 2H2O',           'Sucrose',  1.0000),
     Rxn('Xylan + H2O -> Xylose',                     'Xylan',    0.9000),
     Rxn('Xylan + H2O -> XyloseOligomer',             'Xylan',    0.0024),
     Rxn('Xylan -> Furfural + 2 H2O',                 'Xylan',    0.0050),
@@ -180,9 +180,9 @@ class SeedTrain(Unit):
         Unit.__init__(self, ID, ins, outs)
         self.reactions = ParallelRxn([
     #   Reaction definition                             Reactant    Conversion
-    Rxn('Glucose -> 2 Ethanol + 2 CO2',                 'Glucose',   0.9500),
+    Rxn('Glucose -> 2 Ethanol + 2 CO2',                 'Glucose',   0.9000),
     Rxn('Glucose + 8.463 CSL + 0.018 DAP -> 6 Z_mobilis + 2.4 H2O',
-                                                        'Glucose',   0.0200),
+                                                        'Glucose',   0.0400),
     Rxn('Glucose + 2 H2O -> 2 Glycerol + O2',           'Glucose',   0.0040),
     Rxn('Glucose + 2 CO2 -> 2 SuccinicAcid + O2',       'Glucose',   0.0060),
     Rxn('3 Xylose -> 5 Ethanol + 5 CO2',                'Xylose',    0.8000),
