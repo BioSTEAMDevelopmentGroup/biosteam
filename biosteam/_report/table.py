@@ -62,7 +62,7 @@ def save_report(system, file='report.xlsx', **stream_properties):
     try:
         system.diagram('thorough', file='diagram', format='png')
     except:
-        warn(RuntimeWarning('failed to generate diagram through graphviz.'), stacklevel=2)
+        warn(RuntimeWarning('failed to generate diagram through graphviz'), stacklevel=2)
     else:
         flowsheet = writer.book.add_worksheet('Flowsheet')
         flowsheet.insert_image('A1', 'diagram.png')

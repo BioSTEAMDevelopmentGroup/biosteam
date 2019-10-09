@@ -11,7 +11,7 @@ Humbird, D., Davis, R., Tao, L., Kinchin, C., Hsu, D., Aden, A., Dudgeon, D. (20
 import os
 import sys
 from biosteam.units.factories import xl2mod
-path = os.path.join(os.path.dirname(os.path.realpath(__file__), '_humbird2011.xlsx')
+path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '_humbird2011.xlsx')
 xl2mod(path, sys.modules[__name__])
 del sys, xl2mod, os, path
 

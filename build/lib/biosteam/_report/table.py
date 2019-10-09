@@ -59,12 +59,13 @@ def save_report(system, file='report.xlsx', **stream_properties):
     """
     writer = ExcelWriter(file)
     units = list(system._costunits)
-    # try:
-    system.diagram('thorough', file='diagram', format='png')
-    flowsheet = writer.book.add_worksheet('Flowsheet')
-    flowsheet.insert_image('A1', 'diagram.png')
-    # except:
-    #     warn(RuntimeWarning('Failed to generate diagram through graphviz. Please check graphviz installation.'), stacklevel=2)
+    try:
+        system.diagram('thorough', file='diagram', format='png')
+    except:
+        warn(RuntimeWarning('failed to generate diagram through graphviz'), stacklevel=2)
+    else:
+        flowsheet = writer.book.add_worksheet('Flowsheet')
+        flowsheet.insert_image('A1', 'diagram.png')
     
     if system._TEA:
         # Cost table
@@ -104,7 +105,8 @@ def save_report(system, file='report.xlsx', **stream_properties):
     results = results_table(units)
     _save(results, writer, 'Design requirements')
     writer.save()
-    os.remove("diagram.png")
+    try: os.remove("diagram.png")
+    except: pass
 
 save_system_results = save_report
 

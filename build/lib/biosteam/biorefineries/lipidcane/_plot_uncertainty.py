@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from biosteam.utils import DoubleColorLegend
 from biosteam.evaluation.evaluation_tools import plot_single_points, \
-     plot_montecarlo_across_coordinate, plot_montecarlo, plot_vertial_line, annotate_line
+     plot_montecarlo_across_coordinate, plot_montecarlo, plot_vertical_line, annotate_line
 from biosteam import colors
 
 # %% Constants
@@ -117,7 +117,7 @@ plt.sca(IRR_ax)
 plot_single_points(x_superpro, [13.5, 13.7, 15.2, 17.5])
 IRR = get_metric('Internal rate of return') * 100 # To percent
 plot_montecarlo(IRR)
-plot_vertial_line(1)
+plot_vertical_line(1)
 plt.ylim(0, 30)
 set_x_axis(False)
 
@@ -126,7 +126,7 @@ plt.sca(TCI_ax)
 TCI = get_metric('Fixed capital investment')  * 1.05 / 1e6 # Account for working capital
 plot_single_points(x_superpro, [158.5, 172.9, 178.3, 195.0])
 plot_montecarlo(TCI)
-plot_vertial_line(1)
+plot_vertical_line(1)
 plt.ylim(0, 260)
 set_x_axis(False)
 
@@ -140,7 +140,7 @@ plot_montecarlo(ethanol_production,
                 colors.orange_shade.RGBn)
 plt.ylim(0, 200)
 set_x_axis(False)
-plot_vertial_line(1)
+plot_vertical_line(1)
 
 # Production cost
 plt.sca(production_cost_ax)
@@ -150,7 +150,7 @@ ethanol_production_cost = get_metric('Ethanol production cost') / ethanol_produc
 plot_montecarlo(ethanol_production_cost,
                 colors.orange_tint.RGBn,
                 colors.orange_shade.RGBn)
-plot_vertial_line(1)
+plot_vertical_line(1)
 plt.ylim(0, 1.2)
 set_x_axis(False)
 production_cost_ax.set_yticks(np.linspace(0, 1, 6))
@@ -160,7 +160,7 @@ plt.sca(steam_ax)
 plot_single_points([0, 10], [686.056, 656.000])
 steam = get_metric('Steam')/1000
 plot_montecarlo(steam)
-plot_vertial_line(1)
+plot_vertical_line(1)
 plt.ylim(0, 800)
 plt.yticks(np.arange(0, 800, 200))
 set_x_axis(True)
@@ -178,7 +178,7 @@ plot_montecarlo(consumed_electricity,
 plot_montecarlo(excess_electricity,
                 colors.red_tint.RGBn,
                 colors.red_shade.RGBn)
-plot_vertial_line(1)
+plot_vertical_line(1)
 plt.ylim(0, 575)
 plt.yticks(np.arange(0, 600, 100))
 set_x_axis(True)

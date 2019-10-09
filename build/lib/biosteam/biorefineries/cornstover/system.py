@@ -320,7 +320,7 @@ M701.tau = 0.05
 
 gas_index = denaturant.index('Octane')
 def adjust_denaturant():
-    denaturant.mol[gas_index] = 0.011*P701.outs[0].massnet/114.232
+    denaturant.mol[gas_index] = 0.0215*P701.outs[0].massnet/114.232
 
 P401.BM = P402.BM = P701.BM = P702.BM = 3.1
 T701.BM = T702.BM = 1.7

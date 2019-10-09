@@ -65,9 +65,9 @@ def plot_horizontal_line(y, color='grey', **kwargs):
     """Plot horizontal line."""
     plt.axhline(y=y, color=color, **kwargs) 
 
-def plot_vertial_line(x, color='grey'):
+def plot_vertical_line(x, color='grey', **kwargs):
     """Plot vertical line."""
-    plt.axvline(x=x, color=color) 
+    plt.axvline(x=x, color=color, **kwargs) 
 
 def plot_single_points(xs, ys, color=dark_color):
     """Plot single points and return patch artist."""
@@ -75,11 +75,11 @@ def plot_single_points(xs, ys, color=dark_color):
         xs = tuple(range(len(ys)))
     return plt.scatter(xs, ys, marker='o', s=50, color=color, zorder=1e6, edgecolor='black') 
 
-def plot_bars(scenarios, ys, colors, edgecolors, labels):
+def plot_bars(scenarios, ys, colors, edgecolors, labels, positions=None):
     barwidth = 0.50
     N_scenarios = len(scenarios)
     N_labels = len(labels)
-    positions = N_labels * np.arange(N_scenarios, dtype=float)
+    if positions is None: positions = N_labels * np.arange(N_scenarios, dtype=float)
     data = (ys, colors, edgecolors, labels)
     for y, color, edgecolor, label in zip(*data):
         plt.bar(positions, y, barwidth,
