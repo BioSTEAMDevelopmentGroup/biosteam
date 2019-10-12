@@ -13,7 +13,7 @@ model_lc = lc.model.lipidcane_model
 model_sc = sc.model.sugarcane_model
 model_lc_lf = lc.model.lipidcane_model_with_lipidfraction_parameter
 np.random.seed(1234)
-N_spearman_samples = 1
+N_spearman_samples = 5000
 N_coordinate_samples = 1000
 N_coordinates = 20
 rule = 'L'
@@ -34,12 +34,12 @@ model_sc.table.to_excel('Monte Carlo sugarcane.xlsx')
 
 # %% Spearman's correlation
 
-# samples = model_lc_lf.sample(N_spearman_samples, rule)
-# model_lc_lf.load_samples(samples)
-# model_lc_lf.evaluate()
-# spearman = model_lc_lf.spearman(
-#                 metric_names=('Internal rate of return',))
-# spearman.to_excel("Spearman correlation lipidcane.xlsx")
+samples = model_lc_lf.sample(N_spearman_samples, rule)
+model_lc_lf.load_samples(samples)
+model_lc_lf.evaluate()
+IRR_metric = model_lc_lf.metrics[0]
+spearman = model_lc_lf.spearman(metrics=(IRR_metric,))
+spearman.to_excel("Spearman correlation lipidcane.xlsx")
 
 
 

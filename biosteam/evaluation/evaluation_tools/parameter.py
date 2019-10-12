@@ -34,7 +34,8 @@ def bounded_triang(mid, lb=0, ub=1, proportion=0, addition=0.1):
 # %% Fill model with parameters
 
 def load_default_parameters(self, feedstock, shape=triang,
-                            bounded_shape=bounded_triang):
+                            bounded_shape=bounded_triang,
+                            operating_days=False):
     """Load all default parameters, including coefficients of cost items, stream prices, electricity price, heat utility prices, feedstock flow rate, and number of operating days.
     
     Parameters
@@ -51,6 +52,8 @@ def load_default_parameters(self, feedstock, shape=triang,
         None. Default function returns a chaospy.Triangle object with bounds
         at +- 0.1 of baseline value or minimum 0 and maximum 1. The 
         distribution is applied to exponential factor "n" of cost items.
+    operating_days : bool, optional
+        If True, include operating days
     """
     bounded_shape = bounded_shape or shape
     add_all_cost_item_params(self, shape, bounded_shape)
@@ -58,7 +61,7 @@ def load_default_parameters(self, feedstock, shape=triang,
     add_power_utility_price_param(self, shape)
     add_heat_utility_price_params(self, shape)
     add_flow_rate_param(self, feedstock, shape)
-    add_basic_TEA_params(self, shape)
+    add_basic_TEA_params(self, shape, operating_days)
 
 def add_all_cost_item_params(model, shape, exp_shape):
     system = model._system
@@ -121,13 +124,14 @@ def add_flow_rate_param(model, feed, shape):
     def set_flow_rate(flow_rate):
         feed.mol[:] *= flow_rate/feed.massnet
     
-def add_basic_TEA_params(model, shape):
+def add_basic_TEA_params(model, shape, operating_days):
     param = model.parameter
     TEA = model._system.TEA
     
-    @param(element='TEA', distribution=shape(TEA.operating_days))
-    def set_operating_days(operating_days):
-        TEA.operating_days = operating_days
+    if operating_days:
+        @param(element='TEA', distribution=shape(TEA.operating_days))
+        def set_operating_days(operating_days):
+            TEA.operating_days = operating_days
         
     @param(element='TEA', distribution=shape(TEA.income_tax))
     def set_income_tax(income_tax):

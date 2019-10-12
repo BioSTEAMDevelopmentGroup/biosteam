@@ -79,7 +79,7 @@ class BoilerTurbogenerator(Facility):
                     if hu.ID == 'Low pressure steam':
                         steam_utilities.add(hu)
         steam._mol[0] = steam_mol = sum([i.flow for i in steam_utilities])
-        duty_over_mol = self.duty_over_mol = 50000
+        duty_over_mol = self.duty_over_mol
         feed = self._ins[0]
         emission = self._outs[0]
         hu_cooling, hu_steam = self._heat_utilities

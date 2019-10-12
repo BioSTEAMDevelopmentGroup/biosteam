@@ -7,10 +7,12 @@ Created on Mon Sep  2 01:28:21 2019
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from biosteam.utils import DoubleColorLegend
+from biosteam.utils import DoubleColorCircle
 from biosteam.evaluation.evaluation_tools import plot_single_points, \
      plot_montecarlo_across_coordinate, plot_montecarlo, plot_vertical_line, annotate_line
 from biosteam import colors
+from matplotlib.patches import Patch
+from matplotlib.lines import Line2D
 
 # %% Constants
      
@@ -34,11 +36,13 @@ def set_x_axis(with_labels=True):
 readxl = lambda sheet: pd.read_excel('Monte Carlo across lipid fraction.xlsx',
                                      sheet_name=sheet)
 
+fig = plt.figure()
+
 # IRR
 IRR_ax = plt.subplot(3, 2, 1)
 IRR = readxl('Internal rate of return') * 100 # To percent
 lipid_fraction = np.array(IRR.columns) * 100
-plt.ylabel('Internal rate of return [%]')
+plt.ylabel('Internal rate of return (%)')
 ys = plot_montecarlo_across_coordinate(lipid_fraction, IRR)[2] # p50
 annotate_line('IRR', 3, lipid_fraction, ys,
               dy=6, dy_text=0.8, position='over')
@@ -46,7 +50,7 @@ annotate_line('IRR', 3, lipid_fraction, ys,
 # TCI
 TCI_ax = plt.subplot(3, 2, 3)
 TCI = readxl('Fixed capital investment') * 1.05 / 1e6 # Account for working capital
-plt.ylabel('Total capital investment [$10^6 \cdot \mathrm{USD}$]')
+plt.ylabel('Total capital investment ($10^6 \cdot \mathrm{USD}$)')
 ys = plot_montecarlo_across_coordinate(lipid_fraction, TCI)[2]
 annotate_line('TCI', 3, lipid_fraction, ys, 
               dy=25, dy_text=2, position='over')
@@ -55,7 +59,7 @@ annotate_line('TCI', 3, lipid_fraction, ys,
 production_ax = plt.subplot(3, 2, 2)
 ethanol_production = readxl('Ethanol production') / (1e6*rho_etoh)
 biodiesel_production = readxl('Biodiesel production') / (1e6*rho_bd)
-plt.ylabel('Production [$10^6 \cdot \mathrm{litter} \cdot \mathrm{yr}^{-1}$]')
+plt.ylabel('Production ($10^6 \cdot \mathrm{litter} \cdot \mathrm{yr}^{-1}$)')
 ys = plot_montecarlo_across_coordinate(lipid_fraction, ethanol_production,
                                        colors.orange_tint.RGBn,
                                        colors.orange_shade.RGBn)[2]
@@ -71,7 +75,7 @@ annotate_line('Biodiesel', 4, lipid_fraction, ys,
 production_cost_ax = plt.subplot(3, 2, 4)
 ethanol_production_cost = readxl('Ethanol production cost') / ethanol_production / 1e6
 biodiesel_production_cost = readxl('Biodiesel production cost') / biodiesel_production / 1e6
-plt.ylabel('Production cost [$\mathrm{USD} \cdot \mathrm{liter}^{-1}$]')
+plt.ylabel('Production cost ($\mathrm{USD} \cdot \mathrm{liter}^{-1}$)')
 plot_montecarlo_across_coordinate(lipid_fraction, ethanol_production_cost,
                                   colors.orange_tint.RGBn,
                                   colors.orange_shade.RGBn)
@@ -82,7 +86,7 @@ plot_montecarlo_across_coordinate(lipid_fraction, biodiesel_production_cost,
 # Steam
 steam_ax = plt.subplot(3, 2, 5)
 steam = readxl('Steam')/1000
-plt.ylabel('Steam [$10^{3} \cdot \mathrm{MT} \cdot \mathrm{yr}^{-1}$]')
+plt.ylabel('Steam ($10^{3} \cdot \mathrm{MT} \cdot \mathrm{yr}^{-1}$)')
 ys = plot_montecarlo_across_coordinate(lipid_fraction, steam)[2]
 annotate_line('Steam', 8, lipid_fraction, ys, 
               dy=150, dy_text=20, position='over')
@@ -92,7 +96,7 @@ annotate_line('Steam', 8, lipid_fraction, ys,
 electricity_ax = plt.subplot(3, 2, 6)
 consumed_electricity = readxl('Consumed electricity')/1000
 excess_electricity = readxl('Excess electricity')/1000
-plt.ylabel('Electricity [$\mathrm{GWhr} \cdot \mathrm{yr}^{-1}$]')
+plt.ylabel('Electricity ($\mathrm{GWhr} \cdot \mathrm{yr}^{-1}$)')
 ys = plot_montecarlo_across_coordinate(lipid_fraction, consumed_electricity,
                                        colors.purple_tint.RGBn,
                                        colors.purple_shade.RGBn)[2]
@@ -100,11 +104,11 @@ annotate_line('Consumed electricity', 7.5, lipid_fraction, ys,
               dy=90, dy_text=20, position='over',
               color=colors.purple_shade.RGBn)
 ys = plot_montecarlo_across_coordinate(lipid_fraction, excess_electricity,
-                                       colors.red_tint.RGBn,
-                                       colors.red_shade.RGBn)[2]
+                                       colors.yellow_tint.RGBn,
+                                       colors.yellow_shade.RGBn)[2]
 annotate_line('Excess electricity', 4, lipid_fraction, ys, 
               dy=150, dy_text=20, position='over',
-              color=colors.red_shade.RGBn)
+              color=colors.yellow_shade.RGBn)
 
 
 # Plot sugarcane values and SuperPro values
@@ -164,20 +168,20 @@ plot_vertical_line(1)
 plt.ylim(0, 800)
 plt.yticks(np.arange(0, 800, 200))
 set_x_axis(True)
-plt.xlabel('Lipid content [%]')
+plt.xlabel('Lipid content (%)')
 
 # Electricity
 plt.sca(electricity_ax)
 plot_single_points([0, 10], [50.187, 62.644], colors.purple_shade.RGBn)
-plot_single_points([0, 10], [110, 260], colors.red_shade.RGBn)
+plot_single_points([0, 10], [110, 260], colors.yellow_shade.RGBn)
 consumed_electricity = get_metric('Consumed electricity')/1000
 excess_electricity = get_metric('Excess electricity')/1000
 plot_montecarlo(consumed_electricity,
                 colors.purple_tint.RGBn,
                 colors.purple_shade.RGBn)
 plot_montecarlo(excess_electricity,
-                colors.red_tint.RGBn,
-                colors.red_shade.RGBn)
+                colors.yellow_tint.RGBn,
+                colors.yellow_shade.RGBn)
 plot_vertical_line(1)
 plt.ylim(0, 575)
 plt.yticks(np.arange(0, 600, 100))
@@ -198,24 +202,25 @@ production_cost_ax.set_zorder(1e6)
 
 
 plt.sca(production_ax)
-legend = DoubleColorLegend()
-both = {'edgecolor': colors.neutral_shade.RGBn} 
-legend.add_box('BioSTEAM',
-               colors.neutral_tint.RGBn,
-               colors.neutral_tint.RGBn,
-               both=both)
-legend.add_circle('SuperPro (Huang 2016)',
-                  colors.neutral_shade.RGBn,
-                  colors.neutral_shade.RGBn,
-                  both=both)
-legend.legend()
+BioSTEAM_patch = Patch(facecolor=colors.neutral_tint.RGBn, 
+                       edgecolor=colors.neutral_shade.RGBn,
+                       label='BioSTEAM')
+Baseline_circle = Line2D([0], [0], marker='o',
+                         color='w',
+                         label='Baseline',
+                         markerfacecolor=colors.neutral_shade.RGBn,
+                         markersize=10)
+production_ax.legend(handles=[BioSTEAM_patch, Baseline_circle])
+
+fig.align_ylabels([IRR_ax, TCI_ax, steam_ax, IRR_ax])
+fig.align_ylabels([production_ax, production_cost_ax, electricity_ax])
 
 # plt.sca(electricity_ax)
 # legend = DoubleColorLegend()
 # legend.add_box('BioSTEAM',
 #                leftcolor=colors.purple_tint.RGBn, 
-#                rightcolor=colors.red_tint.RGBn)
+#                rightcolor=colors.yellow_tint.RGBn)
 # legend.add_circle('SuperPro (Huang 2016)',
 #                   leftcolor=colors.purple_shade.RGBn, 
-#                   rightcolor=colors.red_shade.RGBn)
+#                   rightcolor=colors.yellow_shade.RGBn)
 # legend.legend()

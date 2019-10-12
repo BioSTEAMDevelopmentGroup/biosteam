@@ -14,6 +14,26 @@ from biosteam import colors
 from biosteam.evaluation.evaluation_tools import plot_single_points, plot_horizontal_line, \
                                                  plot_montecarlo, plot_vertical_line
 
+data = pd.read_excel('Monte Carlo cornstover.xlsx', header=[0, 1])
+
+# %% Plot MESP
+# plt.figure()
+
+# posistions_MESP = (0,)
+# MESP_data = data[('Biorefinery', 'Minimum ethanol selling price')]
+# bx_MESP = plot_montecarlo(MESP_data,
+#                           colors.blue_tint.RGBn,
+#                           colors.blue_shade.RGBn, 
+#                           posistions_MESP, transpose=False)
+# dot_MESP = plot_single_points(posistions_MESP, [2.15], s=125, color=colors.red_dark.RGBn)
+# plt.ylabel('MESP ($\mathrm{USD} \cdot \mathrm{gal}^{-1}$)')
+# plt.ylim(1.5, 2.50)
+# bx_patch = Patch(facecolor=colors.blue_tint.RGBn, edgecolor=colors.blue_shade.RGBn)
+# plt.legend([bx_patch, dot_MESP], ['BioSTEAM', 'Baseline'])
+# plt.xticks([], [])
+                                                 
+# %% Setup of subplots
+
 # light_color = colors.blue_tint.RGBn
 # dark_color = colors.blue_shade.RGBn
 # dot_color = colors.purple_shade.RGBn
@@ -25,15 +45,17 @@ plt.sca(metric_over_baseline_ax)
 
 # %% Plot MESP and ethanol sales
 
-positions_economic = (16, 17)
-data = pd.read_excel('Monte Carlo cornstover.xlsx', header=[0, 1])
-economic_data = np.array(data[[('Biorefinery', 'Minimum ethanol selling price'),
-                               ('Biorefinery', 'Ethanol sales')]])
-economic_data[:, 0] *= 100/2.15
-economic_data[:, 1] *= 100/131e6
-bx_economic = plot_montecarlo(economic_data,
-                              colors.blue_tint.RGBn,
-                              colors.blue_shade.RGBn, positions_economic, transpose=False)
+positions_other = (16, 17, 18)
+other_index = [('Biorefinery', 'Steam demand'),
+               ('Biorefinery', 'Ethanol production'),
+               ('Biorefinery', 'Minimum ethanol selling price')]
+other_data = np.array(data[other_index])
+other_data[:, 0] *= 100./234784.
+other_data[:, 1] *= 100./22273.
+other_data[:, 2] *= 100./2.15
+bx_other = plot_montecarlo(other_data,
+                           colors.blue_tint.RGBn,
+                           colors.blue_shade.RGBn, positions_other, transpose=False)
 
 # %% Plot electricity
 
@@ -82,14 +104,14 @@ plt.text(12, y_text, "Installation cost", color=colors.purple_shade.RGBn,
          horizontalalignment='center', fontsize=12, fontweight='bold')
 # plt.text(16, y_text, "Ethanol\nsales", color=colors.red_shade.RGBn,
 #           horizontalalignment='center', fontsize=12, fontweight='bold')
-plt.text(16.5, 0.975*y_text, "Economic\nindicators", color=colors.blue_shade.RGBn,
-          horizontalalignment='center', fontsize=12, fontweight='bold')
+# plt.text(16.0, y_text, "MESP", color=colors.blue_shade.RGBn,
+#           horizontalalignment='center', fontsize=12, fontweight='bold')
 
-plt.xlim(-0.5, 17.5)
+plt.xlim(-0.5, 18.5)
 plt.ylabel("Metric over baseline (%)")
 area_marks = [i.replace(' ', '\n') for i in areas]
-xmarks = area_marks + ['Excess\nProduced'] + area_marks[1:] 
-plt.xticks(positions_electricity + positions_installation + positions_economic, xmarks + ['Ethanol\nsales', 'MESP'])
+xmarks = area_marks + ['Excess'] + area_marks[1:] + ['Steam\ndemand', '    Ethanol\n    prod.', '      MESP']
+plt.xticks(positions_electricity + positions_installation + positions_other, xmarks)
 metric_over_baseline_ax.set_zorder(1e6)
 
 plt.sca(relative_baseline_magnitude_ax)
@@ -122,8 +144,9 @@ plt.hlines([1], [-0.5], [15.5], color='k')
 relative_baseline_magnitude_ax.spines['top'].set_visible(False)
 relative_baseline_magnitude_ax.spines['right'].set_visible(False)
 plt.yticks([], [])
+plt.xticks([], [])
 plt.ylim(0, 1)
-plt.xlim(-0.5, 17.5)
+plt.xlim(-0.5, 18.5)
 plt.text(-0.25, 0.70, "Relative baseline magnitude", color=colors.neutral_shade.RGBn,
          horizontalalignment='left', fontsize=12, fontweight='bold')
 plt.subplots_adjust(hspace=.0)
