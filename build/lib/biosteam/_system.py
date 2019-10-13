@@ -206,14 +206,14 @@ class System(metaclass=system):
         
         #: tuple[Unit, function and/or System] A network that is run element by element until the recycle converges.
         self.network = tuple(network)
-        inst = isinstance
+        isa = isinstance
         for i in network:
             if i in units: continue
-            if inst(i, Unit): 
+            if isa(i, Unit): 
                 units.append(i)
                 streams.update(i._ins)
                 streams.update(i._outs)
-            elif inst(i, System):
+            elif isa(i, System):
                 units.extend(i._unitnetwork)
                 subsystems.add(i)
                 streams.update(i.streams)
@@ -221,7 +221,7 @@ class System(metaclass=system):
         
         # link all unit operations with linked streams
         for u in units:
-            if inst(u, bst.Static): u.link_streams()
+            if isa(u, bst.Static): u.link_streams()
         
         #: set[Unit] All units within the system
         self.units = units = set(units)
@@ -235,12 +235,12 @@ class System(metaclass=system):
         #: tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the network simulation.
         self.facilities = tuple(facilities)
         for i in facilities:
-            if inst(i, Unit):
+            if isa(i, Unit):
                 units.add(i)
                 streams.update(i._ins + i._outs)
                 if i._cost: costunits.add(i)
-                if inst(i, Facility): i._system = self
-            elif inst(i, System):
+                if isa(i, Facility): i._system = self
+            elif isa(i, System):
                 units.update(i.units)
                 streams.update(i.streams)
                 subsystems.add(i)
@@ -258,7 +258,7 @@ class System(metaclass=system):
         if recycle is None:
             self._converge = self._run
         else:
-            assert isinstance(recycle, Stream), (
+            assert isa(recycle, Stream), (
              "recycle must be a Stream instance or None, not "
             f"{type(recycle).__name__}")
         self._recycle = recycle
@@ -309,24 +309,24 @@ class System(metaclass=system):
         unit_found = False
         downstream_units = unit._downstream_units
         network = []
-        inst = isinstance
+        isa = isinstance
         for i in self.network:
             if unit_found:
-                if inst(i, System):
+                if isa(i, System):
                     for u in i.units:
                         if u in downstream_units:
                             network.append(i)
                             break
                 elif i in downstream_units:
                     network.append(i)
-                elif (not inst(i, Unit)
+                elif (not isa(i, Unit)
                       or i.line == 'Balance'):
                     network.append(i)
             else:
                 if unit is i:
                     unit_found = True
                     network.append(unit)
-                elif inst(i, System) and unit in i.units:
+                elif isa(i, System) and unit in i.units:
                         unit_found = True   
                         network.append(i)
         return network
@@ -341,9 +341,9 @@ class System(metaclass=system):
             downstream_facilities = self.facilities            
         else:
             unit_found = False
-            inst = isinstance
+            isa = isinstance
             for pos, i in enumerate(self.facilities):
-                if unit is i or (inst(i, System) and unit in i.units):
+                if unit is i or (isa(i, System) and unit in i.units):
                     downstream_facilities = self.facilities[pos:]
                     unit_found = True
                     break
@@ -489,11 +489,11 @@ class System(metaclass=system):
         
     def _run(self):
         """Rigorous run each element of the system."""
-        inst = isinstance
+        isa = isinstance
         _try = _try_method
         for a in self.network:
-            if inst(a, Unit): _try(a._run)
-            elif inst(a, System): a._converge()
+            if isa(a, Unit): _try(a._run)
+            elif isa(a, System): a._converge()
             else: a() # Assume it is a function
     
     # Methods for convering the recycle stream
@@ -592,9 +592,9 @@ class System(metaclass=system):
         self._converge()
         _try = _try_method
         for u in self._network_costunits: _try(u._summary)
-        inst = isinstance
+        isa = isinstance
         for i in self.facilities:
-            if inst(i, (Unit, System)): i.simulate()
+            if isa(i, (Unit, System)): i.simulate()
             else: i() # Assume it is a function
         
     # Debugging

@@ -366,6 +366,7 @@ class Unit(metaclass=unit):
                 addval((a_unit, a))
                 addkey(('Total ' + b_key, ''))
                 addval((b_unit, b))
+            if not keys: return None
             df = pd.DataFrame(vals,
                               pd.MultiIndex.from_tuples(keys),
                               ('Units', ID))
@@ -414,6 +415,7 @@ class Unit(metaclass=unit):
                 addval(self.purchase_cost)
                 addkey(('Utility cost', ''))
                 addval(self.utility_cost)
+            if not keys: return None
             series = pd.Series(vals, pd.MultiIndex.from_tuples(keys))
             series.name = ID
             return series

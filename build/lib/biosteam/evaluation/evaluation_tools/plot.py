@@ -14,7 +14,7 @@ __all__ = ('plot_montecarlo', 'plot_montecarlo_across_coordinate',
            'annotate_line', 'plot_single_points', 'plot_spearman',
            'plot_horizontal_line')
 
-def plot_spearman(rhos, top=None):
+def plot_spearman(rhos, top=None, name=None):
     """Display Spearman's rank correlation plot.
     
     Parameters
@@ -31,7 +31,7 @@ def plot_spearman(rhos, top=None):
     """
     # Sort parameters for plot
     abs_ = abs
-    name = rhos.name
+    if not name: name = rhos.name
     rhos, index = zip(*sorted(zip(rhos, rhos.index),
                               key=lambda x: abs_(x[0])))
     if top:
@@ -69,11 +69,11 @@ def plot_vertical_line(x, color='grey', **kwargs):
     """Plot vertical line."""
     plt.axvline(x=x, color=color, **kwargs) 
 
-def plot_single_points(xs, ys, color=dark_color):
+def plot_single_points(xs, ys, color=dark_color, s=50, zorder=1e6, edgecolor='black', **kwargs):
     """Plot single points and return patch artist."""
     if xs is None:
         xs = tuple(range(len(ys)))
-    return plt.scatter(xs, ys, marker='o', s=50, color=color, zorder=1e6, edgecolor='black') 
+    return plt.scatter(xs, ys, marker='o', s=s, color=color, zorder=zorder, edgecolor=edgecolor, **kwargs) 
 
 def plot_bars(scenarios, ys, colors, edgecolors, labels, positions=None):
     barwidth = 0.50

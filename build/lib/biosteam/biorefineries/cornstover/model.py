@@ -14,7 +14,8 @@ from biosteam.biorefineries.cornstover.system import \
 get_MESP = lambda: cornstover_tea.solve_price(ethanol, ethanol_tea) * ethanol_density_kggal
 get_FCI = lambda: sum([i._FCI_cached for i in cornstover_tea.TEAs])
 get_coproduct_credit = lambda: sum([i._utility_cost_cached for i in cornstover_tea.TEAs])
-get_ethanol_sales = lambda: ethanol.cost * ethanol_tea._annual_factor
+get_ethanol_production = lambda: ethanol.massnet
+get_steam_demand = lambda: BT.steam_demand.massnet
 pws = [i._power_utility for i in cornstover_sys.units
        if i._power_utility and i._power_utility.rate > 0]
 get_excess_electricity = lambda: BT._Design['Work'] - sum([i.rate for i in pws])
@@ -22,7 +23,8 @@ get_excess_electricity = lambda: BT._Design['Work'] - sum([i.rate for i in pws])
 metrics =[Metric('Minimum ethanol selling price', get_MESP, 'USD/gal'),
           Metric('Fixed capital investment', get_FCI, 'USD'),
           Metric('Co-product credit', get_coproduct_credit, 'USD/yr'),
-          Metric('Ethanol sales', get_ethanol_sales, 'USD/yr'),
+          Metric('Ethanol production', get_ethanol_production, 'kg/hr'),
+          Metric('Steam demand', get_steam_demand, 'kg/hr'),
           Metric('Excess electricity', get_excess_electricity, 'kW')]
 
 def electricity_rate_function(tea):
@@ -49,7 +51,7 @@ for i, tea in enumerate(areas, 1):
          Metric('Installation cost', installation_cost_function(tea), '10^6 USD', Area)))
 
 cornstover_model = Model(cornstover_sys, metrics)
-cornstover_model.load_default_parameters(cornstover)
+cornstover_model.load_default_parameters(cornstover, operating_days=False)
 param = cornstover_model.parameter
 
 # Add saccharification as a parameter

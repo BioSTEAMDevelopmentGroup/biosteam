@@ -36,12 +36,18 @@ def replace_label_text(label_text):
     name, distribution = label_text.split(' (')
     lb, mid, ub = eval('(' + distribution)
     if 'efficiency' in name:
-        distribution = f" ({lb:.2f}, {mid:.2f}, {ub:.2f})"
+        distribution = f" [{lb:.2f}, {mid:.2f}, {ub:.2f}]"
     else:
-        distribution = f" ({lb:.3g}, {mid:.3g}, {ub:.3g})"
+        distribution = f" [{lb:.3g}, {mid:.3g}, {ub:.3g}]"
     pos = name.find(' [')
     if pos != -1:
-        units = name[pos:]
+        units = str(name[pos:])
+        if units == ' (USD/kg)':
+            units = ' ($\mathrm{USD} \cdot \mathrm{kg}^{-1}$)'
+        elif units == ' (USD/kWhr)':
+            units = ' ($\mathrm{USD} \cdot \mathrm{kWhr}^{-1}$)'
+        elif units == ' (kg/hr)':
+            units = ' ($\mathrm{kg} \cdot \mathrm{hr}^{-1}$)'
         name = name[:pos]
     else:
         units = ''
@@ -57,7 +63,7 @@ rhos = pd.read_excel('Spearman correlation lipidcane.xlsx',
 rhos = rhos[(rhos.abs()>0.050)] 
 
 # Plot and fix axis labels
-fig, ax = plot_spearman(rhos, top=15)
+fig, ax = plot_spearman(rhos, top=10)
 labels = [item.get_text() for item in ax.get_yticklabels()]
 new_labels = [replace_label_text(i) for i in labels]
 ax.set_yticklabels(new_labels)

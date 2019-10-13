@@ -30,6 +30,7 @@ biosteam/_report/table.py
 biosteam/biorefineries/__init__.py
 biosteam/biorefineries/cornstover/Monte Carlo cornstover.xlsx
 biosteam/biorefineries/cornstover/Spearman correlation cornstover.xlsx
+biosteam/biorefineries/cornstover/Spearman correlation lipidcane.xlsx
 biosteam/biorefineries/cornstover/__init__.py
 biosteam/biorefineries/cornstover/_analysis.py
 biosteam/biorefineries/cornstover/_humbird2011.xlsx
