@@ -426,12 +426,12 @@ class TEA:
         """Return AOC at given FCI"""
         return self._FOC(FCI) + self.VOC
     
-    def production_cost(self, *products, with_annual_depreciation=True):
-        """Return production cost of products.
+    def production_cost(self, products, with_annual_depreciation=True):
+        """Return production cost of products [USD/yr].
         
         Parameters
         ----------
-        *products : Stream
+        products : Iterable[Stream]
                     Main products of the system
         with_annual_depreciation=True : bool, optional
         
@@ -445,18 +445,27 @@ class TEA:
         market_values = np.array([i.cost for i in products])
         total_market_value = market_values.sum()
         weights = market_values/total_market_value
+        return weights * self.total_production_cost(products, with_annual_depreciation)
+        
+    def total_production_cost(self, products, with_annual_depreciation):
+        """Return total production cost of products [USD/yr].
+        
+        Parameters
+        ----------
+        products : Iterable[Stream]
+                    Main products of the system
+        with_annual_depreciation=True : bool, optional
+        
+        """
         coproducts = self.system.products.difference(products)
         coproduct_sales = sum([s.cost for s in coproducts if s.price]) * self._annual_factor
         if with_annual_depreciation:
             TDC = self.TDC
             annual_depreciation = TDC/(self.duration[1]-self.duration[0])
             AOC = self._AOC(self._FCI(TDC))
-            return weights*(AOC 
-                            + coproduct_sales
-                            - total_market_value
-                            + annual_depreciation)
+            return AOC + coproduct_sales + annual_depreciation
         else:
-            return weights*(self.AOC + coproduct_sales - total_market_value)
+            return self.AOC + coproduct_sales
     
     @property
     def cashflow(self):
@@ -601,7 +610,6 @@ class CombinedTEA(TEA):
         #: Guess sales for solve_price method
         self._sales = 0
     
-    
     @property
     def operating_days(self):
         v_all = [i.operating_days for i in self.TEAs]
@@ -612,8 +620,7 @@ class CombinedTEA(TEA):
     def operating_days(self, operating_days):
         vector = np.zeros(len(self.TEAs))
         vector[:] = operating_days
-        for i, j in zip(self.TEAs, vector):
-            i.operating_days = j
+        for i, j in zip(self.TEAs, vector): i.operating_days = j
     @property
     def startup_months(self):
         v_all = [i.startup_months for i in self.TEAs]
@@ -624,8 +631,7 @@ class CombinedTEA(TEA):
     def startup_months(self, startup_months):
         vector = np.zeros(len(self.TEAs))
         vector[:] = startup_months
-        for i, j in zip(self.TEAs, vector):
-            i.startup_months = j
+        for i, j in zip(self.TEAs, vector): i.startup_months = j
     @property
     def income_tax(self):
         v_all = [i.income_tax for i in self.TEAs]
@@ -636,8 +642,7 @@ class CombinedTEA(TEA):
     def income_tax(self, income_tax):
         vector = np.zeros(len(self.TEAs))
         vector[:] = income_tax
-        for i, j in zip(self.TEAs, vector):
-            i.income_tax = j
+        for i, j in zip(self.TEAs, vector): i.income_tax = j
     @property
     def cashflow(self):
         return sum([i.cashflow for i in self.TEAs])
@@ -734,6 +739,30 @@ class CombinedTEA(TEA):
         """Return NPV with additional sales."""
         return TEA._NPV_with_sales(sales, NPV, coefficients, discount_factors)
     
+    def production_cost(self, products, with_annual_depreciation=True):
+        """Return production cost of products [USD/yr].
+        
+        Parameters
+        ----------
+        products : Iterable[Stream]
+                    Main products of the system
+        with_annual_depreciation=True : bool, optional
+        
+        Notes
+        -----
+        If there is more than one main product, The production cost is
+        proportionally allocated to each of the main products with respect to
+        their marketing values. The marketing value of each product is
+        determined by the annual production multiplied by its selling price.
+        """
+        market_values = np.array([i.cost for i in products])
+        total_market_value = market_values.sum()
+        weights = market_values/total_market_value
+        total_production_cost = 0
+        for TEA in self.TEAs:
+            total_production_cost += TEA.total_production_cost(products, with_annual_depreciation)
+        return weights * total_production_cost
+    
     def solve_IRR(self):
         """Return the IRR at the break even point (NPV = 0) through cash flow analysis."""
         try:
@@ -750,17 +779,20 @@ class CombinedTEA(TEA):
                                       for i in self.TEAs],))
         return self._IRR
     
-    def solve_price(self, stream, TEA):
+    def solve_price(self, stream, TEA=None):
         """Return the price (USD/kg) of stream at the break even point (NPV = 0) through cash flow analysis. 
         
         Parameters
         ----------
         stream : Stream
                  Stream with variable selling price.
-        TEA : TEA
+        TEA : TEA, optional
               Stream should belong here.
             
         """
+        if not TEA:
+            for TEA in self.TEAs:
+                if stream in TEA.system.feeds or stream in TEA.system.products: break
         price2cost = TEA._price2cost(stream)
         IRR = self.IRR
         NPV = sum([i._NPV_at_IRR(IRR, i.cashflow) for i in self.TEAs])

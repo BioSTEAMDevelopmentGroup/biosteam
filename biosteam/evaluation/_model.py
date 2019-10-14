@@ -166,7 +166,7 @@ class Model(State):
         N_samples=1000 : int, optional
             Number of samples at each coordinate.
         N_points=20 : int, optional
-            Number of lipid fractions evaluated.
+            Number of points between lb and ub evaluated.
         rule='L' : str
             Sampling rule.
         notify=True : bool, optional

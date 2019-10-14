@@ -7,6 +7,7 @@ Created on Sat Nov 17 09:48:34 2018
 import numpy as np
 import pandas as pd
 from warnings import warn
+from .._tea import TEA, CombinedTEA
 from .._stream import Stream, mol_flow_dim, mass_flow_dim, vol_flow_dim
 from .. import _Q
 from .._exceptions import DimensionError
@@ -62,19 +63,25 @@ def save_report(system, file='report.xlsx', **stream_properties):
     try:
         system.diagram('thorough', file='diagram', format='png')
     except:
+        diagram_completed = False
         warn(RuntimeWarning('failed to generate diagram through graphviz'), stacklevel=2)
     else:
         flowsheet = writer.book.add_worksheet('Flowsheet')
         flowsheet.insert_image('A1', 'diagram.png')
+        diagram_completed = True
     
     if system._TEA:
-        # Cost table
-        cost = cost_table(system)
-        cost.to_excel(writer, 'Itemized costs')
+        tea = system._TEA
+        if isinstance(tea, CombinedTEA):
+            costs = [cost_table(i) for i in tea.TEAs]
+            _save(costs, writer, 'Itemized costs')
+        else:
+            # Cost table
+            cost = cost_table(tea)
+            cost.to_excel(writer, 'Itemized costs')
         
         # Cash flow
-        TEA = system._TEA
-        TEA.get_cashflow().to_excel(writer, 'Cash flow')
+        tea.get_cashflow().to_excel(writer, 'Cash flow')
     else:
         warn(RuntimeWarning(f'Cannot find TEA object in {repr(system)}. Ignoring TEA sheets.'), stacklevel=2)
     
@@ -105,8 +112,7 @@ def save_report(system, file='report.xlsx', **stream_properties):
     results = results_table(units)
     _save(results, writer, 'Design requirements')
     writer.save()
-    try: os.remove("diagram.png")
-    except: pass
+    if diagram_completed: os.remove("diagram.png")
 
 save_system_results = save_report
 
@@ -135,9 +141,12 @@ def results_table(units):
     tables = []
     for units in organized.values():
         # First table with units of measure
-        u = units[0]
-        table = u.results(include_utilities=False,
-                          include_total_cost=False)
+        table = None
+        while (table is None) and units:
+            u, *units = units
+            table = u.results(include_utilities=False,
+                              include_total_cost=False)
+        if table is None: continue
         for u in units[1:]:
             table[u.ID] = u.results(with_units=False, include_utilities=False,
                                    include_total_cost=False)
@@ -146,7 +155,7 @@ def results_table(units):
         table = u.results()
     return tables
     
-def cost_table(system):
+def cost_table(tea):
     """Return a cost table as a pandas DataFrame object.
 
     Parameters
@@ -155,24 +164,14 @@ def cost_table(system):
         
     Returns
     -------
-    costtable : DataFrame
+    table : DataFrame
 
     """
     columns = ('Unit operation',
               f'Purchase cost (10^6 USD)',
               f'Utility cost (10^6 USD/yr)')
-    units = system.units
-    units = system._costunits
-    units = sorted(units, key=lambda x: x.line)
-    
-    # Initialize data
-    try:
-        TEA = system.TEA
-    except AttributeError as AE:
-        if not hasattr(system, 'TEA'):
-            raise ValueError('Cannot find TEA object related to system. A TEA object of the system must be created first.')
-        else: raise AE
-    operating_days = TEA.operating_days
+    units = tea.units
+    operating_days = tea.operating_days
     N_units = len(units)
     array = np.empty((N_units, 3), dtype=object)
     IDs = []
@@ -189,7 +188,7 @@ def cost_table(system):
         IDs.append(unit.ID)
     
     df = DataFrame(array, columns=columns, index=IDs)    
-    if not TEA.lang_factor:
+    if not tea.lang_factor:
         df['Installation cost (10^6 USD)'] = [u.installation_cost for u in units]
     
     return df

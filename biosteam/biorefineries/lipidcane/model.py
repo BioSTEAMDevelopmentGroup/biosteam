@@ -17,8 +17,9 @@ biodiesel = lc.system.biodiesel.biodiesel
 lipid_cane = lc.system.pretreatment.lipid_cane
 
 etoh_prodcost = [0]
+products = (biodiesel, ethanol)
 def get_biodiesel_prodcost():
-    bd, etoh_prodcost[0] = tea.production_cost(biodiesel, ethanol)
+    bd, etoh_prodcost[0] = tea.production_cost(products)
     return bd
 get_etoh_prodcost = lambda: etoh_prodcost[0]
 get_FCI = lambda: tea._FCI_cached

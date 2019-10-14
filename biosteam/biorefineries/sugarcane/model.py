@@ -12,7 +12,8 @@ __all__ = ('sugarcane_model',)
 
 tea = sc.sugarcane_sys.TEA
 ethanol = sc.system.ethanol
-get_prodcost = lambda: float(tea.production_cost(ethanol))
+products = (ethanol,)
+get_prodcost = lambda: float(tea.production_cost(products))
 get_FCI = lambda: tea._FCI_cached
 get_prod = lambda: ethanol.massnet * tea._annual_factor
 
