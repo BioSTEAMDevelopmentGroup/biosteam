@@ -17,7 +17,7 @@ class Metric(Variable):
     units : str
         Metric units of measure.
     getter : function
-        Should take no arguments and return metric value.
+        Should take no arguments and return the metric value.
     element : str
         Element corresponding to metric
     

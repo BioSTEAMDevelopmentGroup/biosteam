@@ -124,10 +124,11 @@ class Model(State):
         """
         # Setup before simulation
         funcs = [i.getter for i in self._metrics]
-        values = []
-        add = values.append
         samples = self._samples
-        if samples is None: raise ValueError('must load samples or distribution before evaluating')
+        if samples is None:
+            raise ValueError('must load samples or distribution before evaluating')
+        index = self._index
+        values = [None] * len(index)
         if thorough:
             if self._setters:
                 setters = self._setters
@@ -135,15 +136,16 @@ class Model(State):
                 self._setters = setters = [p.setter for p in self._params]
             simulate = self._system.simulate
             zip_ = zip
-            for i in self._index:
+            for i in index:
                 for f, s in zip_(setters, samples[i]): f(s)
                 simulate()
-                add([i() for i in funcs])
+                values[i] = [i() for i in funcs]
         else:
             update = self._update
-            for i in self._index: 
+            for i in index: 
                 update(samples[i])
-                add([i() for i in funcs])    
+                values[i] = [i() for i in funcs]
+        
         cols = varindices(self._metrics)
         for k, v in zip_(cols, zip_(*values)): self.table[k] = v
     
@@ -221,7 +223,7 @@ class Model(State):
         Parameters
         ----------
         metrics=() : Iterable[Metric], defaults to all metrics
-            Names of metrics to be be correlated with parameters.
+            Metrics to be be correlated with parameters.
         excluded_params=() : Iterable[str], optional
             Names of parameters to exclude.
         """

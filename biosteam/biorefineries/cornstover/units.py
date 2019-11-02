@@ -295,27 +295,25 @@ class SaccharificationAndCoFermentation(Unit):
     Rxn('Glucan + H2O -> Glucose',            'Glucan',   0.9000),
     Rxn('Cellobiose + H2O -> Glucose',        'Cellobiose',  1.0000)])
     
-        self.substrate_loss = ParallelRxn([
-    # Losses
-    Rxn('Glucose -> 2 LacticAcid',                      'Glucose',   0.0300),
-    Rxn('3 Xylose -> 5 LacticAcid',                     'Xylose',    0.0300),
-    Rxn('3 Arabinose -> 5 LacticAcid',                  'Arabinose', 0.0300),
-    Rxn('Galactose -> 2 LacticAcid',                    'Galactose', 0.0300),
-    Rxn('Mannose -> 2 LacticAcid',                      'Mannose',   0.0300),])
-    
         self.cofermentation = ParallelRxn([
     #   Reaction definition                             Reactant    Conversion
-    Rxn('Glucose -> 2 Ethanol + 2 CO2',                 'Glucose',   0.9500),
-    Rxn('Glucose + 0.047 CSL + 0.018 DAP -> 6 Z_mobilis + 2.4 H2O',
-                                                        'Glucose',   0.0200),
-    Rxn('Glucose + 2 H2O -> 2 Glycerol + O2',           'Glucose',   0.0040),
-    Rxn('Glucose + 2 CO2 -> 2 SuccinicAcid + O2',       'Glucose',   0.0060),
-    Rxn('3 Xylose -> 5 Ethanol + 5 CO2',                'Xylose',    0.8500),
+    Rxn('Glucose -> 2 Ethanol + 2 CO2',                             'Glucose',   0.9500),
+    Rxn('Glucose + 0.047 CSL + 0.018 DAP -> 6 Z_mobilis + 2.4 H2O', 'Glucose',   0.0200),
+    Rxn('Glucose + 2 H2O -> 2 Glycerol + O2',                       'Glucose',   0.0040),
+    Rxn('Glucose + 2 CO2 -> 2 SuccinicAcid + O2',                   'Glucose',   0.0060),
+    Rxn('3 Xylose -> 5 Ethanol + 5 CO2',                            'Xylose',    0.8500),
     Rxn('Xylose + 0.039 CSL + 0.015 DAP -> 5 Z_mobilis + 2 H2O',
-                                                        'Xylose',    0.0190),
-    Rxn('3 Xylose + 5 H2O -> 5 Glycerol + 2.5 O2',      'Xylose',    0.0030),
-    Rxn('Xylose + H2O -> Xylitol + 0.5 O2',             'Xylose',    0.0460),
-    Rxn('3 Xylose + 5 CO2 -> 5 SuccinicAcid + 2.5 O2',  'Xylose',    0.0090)])
+                                                                    'Xylose',    0.0190),
+    Rxn('3 Xylose + 5 H2O -> 5 Glycerol + 2.5 O2',                  'Xylose',    0.0030),
+    Rxn('Xylose + H2O -> Xylitol + 0.5 O2',                         'Xylose',    0.0460),
+    Rxn('3 Xylose + 5 CO2 -> 5 SuccinicAcid + 2.5 O2',              'Xylose',    0.0090),
+    # Losses
+    Rxn('Glucose -> 2 LacticAcid',                                  'Glucose',   0.0300),
+    Rxn('3 Xylose -> 5 LacticAcid',                                 'Xylose',    0.0300),
+    Rxn('3 Arabinose -> 5 LacticAcid',                              'Arabinose', 0.0300),
+    Rxn('Galactose -> 2 LacticAcid',                                'Galactose', 0.0300),
+    Rxn('Mannose -> 2 LacticAcid',                                  'Mannose',   0.0300),
+    ])
     
         self.CSL2constituents = Rxn(
         'CSL -> 0.5 H2O + 0.25 LacticAcid + 0.25 Protein', 'CSL',    1.0000)
@@ -334,7 +332,6 @@ class SaccharificationAndCoFermentation(Unit):
         self.saccharification(ss.mol)
         sidedraw.mol[:] = ss.mol*self.saccharified_slurry_split
         effluent.mol[:] = ss.mol - sidedraw.mol + CSL.mol + DAP.mol
-        self.substrate_loss(effluent.mol)
         self.cofermentation(effluent.mol)
         self.CSL2constituents(effluent.mass)
         vent.copyflow(effluent, ('CO2', 'NH3', 'O2'), remove=True)

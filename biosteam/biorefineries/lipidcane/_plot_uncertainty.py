@@ -42,7 +42,7 @@ fig = plt.figure()
 IRR_ax = plt.subplot(3, 2, 1)
 IRR = readxl('Internal rate of return') * 100 # To percent
 lipid_fraction = np.array(IRR.columns) * 100
-plt.ylabel('Internal rate of return (%)')
+plt.ylabel('Internal rate of return [%]')
 ys = plot_montecarlo_across_coordinate(lipid_fraction, IRR)[2] # p50
 annotate_line('IRR', 3, lipid_fraction, ys,
               dy=6, dy_text=0.8, position='over')
@@ -50,7 +50,7 @@ annotate_line('IRR', 3, lipid_fraction, ys,
 # TCI
 TCI_ax = plt.subplot(3, 2, 3)
 TCI = readxl('Fixed capital investment') * 1.05 / 1e6 # Account for working capital
-plt.ylabel('Total capital investment ($10^6 \cdot \mathrm{USD}$)')
+plt.ylabel('Total capital investment [$10^6 \cdot \mathrm{USD}$]')
 ys = plot_montecarlo_across_coordinate(lipid_fraction, TCI)[2]
 annotate_line('TCI', 3, lipid_fraction, ys, 
               dy=25, dy_text=2, position='over')
@@ -59,7 +59,7 @@ annotate_line('TCI', 3, lipid_fraction, ys,
 production_ax = plt.subplot(3, 2, 2)
 ethanol_production = readxl('Ethanol production') / (1e6*rho_etoh)
 biodiesel_production = readxl('Biodiesel production') / (1e6*rho_bd)
-plt.ylabel('Production ($10^6 \cdot \mathrm{litter} \cdot \mathrm{yr}^{-1}$)')
+plt.ylabel('Production [$10^6 \cdot \mathrm{litter} \cdot \mathrm{yr}^{-1}$]')
 ys = plot_montecarlo_across_coordinate(lipid_fraction, ethanol_production,
                                        colors.orange_tint.RGBn,
                                        colors.orange_shade.RGBn)[2]
@@ -75,7 +75,7 @@ annotate_line('Biodiesel', 4, lipid_fraction, ys,
 production_cost_ax = plt.subplot(3, 2, 4)
 ethanol_production_cost = readxl('Ethanol production cost') / ethanol_production / 1e6
 biodiesel_production_cost = readxl('Biodiesel production cost') / biodiesel_production / 1e6
-plt.ylabel('Production cost ($\mathrm{USD} \cdot \mathrm{liter}^{-1}$)')
+plt.ylabel('Production cost [$\mathrm{USD} \cdot \mathrm{liter}^{-1}$]')
 plot_montecarlo_across_coordinate(lipid_fraction, ethanol_production_cost,
                                   colors.orange_tint.RGBn,
                                   colors.orange_shade.RGBn)
@@ -86,7 +86,7 @@ plot_montecarlo_across_coordinate(lipid_fraction, biodiesel_production_cost,
 # Steam
 steam_ax = plt.subplot(3, 2, 5)
 steam = readxl('Steam')/1000
-plt.ylabel('Steam ($10^{3} \cdot \mathrm{MT} \cdot \mathrm{yr}^{-1}$)')
+plt.ylabel('Steam [$10^{3} \cdot \mathrm{MT} \cdot \mathrm{yr}^{-1}$]')
 ys = plot_montecarlo_across_coordinate(lipid_fraction, steam)[2]
 annotate_line('Steam', 8, lipid_fraction, ys, 
               dy=150, dy_text=20, position='over')
@@ -96,7 +96,7 @@ annotate_line('Steam', 8, lipid_fraction, ys,
 electricity_ax = plt.subplot(3, 2, 6)
 consumed_electricity = readxl('Consumed electricity')/1000
 excess_electricity = readxl('Excess electricity')/1000
-plt.ylabel('Electricity ($\mathrm{GWhr} \cdot \mathrm{yr}^{-1}$)')
+plt.ylabel('Electricity [$\mathrm{GWhr} \cdot \mathrm{yr}^{-1}$]')
 ys = plot_montecarlo_across_coordinate(lipid_fraction, consumed_electricity,
                                        colors.purple_tint.RGBn,
                                        colors.purple_shade.RGBn)[2]
@@ -123,6 +123,7 @@ IRR = get_metric('Internal rate of return') * 100 # To percent
 plot_montecarlo(IRR)
 plot_vertical_line(1)
 plt.ylim(0, 30)
+plt.yticks(np.arange(0, 31, 30/5))
 set_x_axis(False)
 
 # TCI
@@ -132,6 +133,7 @@ plot_single_points(x_superpro, [158.5, 172.9, 178.3, 195.0])
 plot_montecarlo(TCI)
 plot_vertical_line(1)
 plt.ylim(0, 260)
+plt.yticks(np.arange(0, 260, 260/5))
 set_x_axis(False)
 
 # Production
@@ -143,6 +145,7 @@ plot_montecarlo(ethanol_production,
                 colors.orange_tint.RGBn,
                 colors.orange_shade.RGBn)
 plt.ylim(0, 200)
+plt.yticks(np.arange(0, 201, 200/5))
 set_x_axis(False)
 plot_vertical_line(1)
 
@@ -156,8 +159,8 @@ plot_montecarlo(ethanol_production_cost,
                 colors.orange_shade.RGBn)
 plot_vertical_line(1)
 plt.ylim(0, 1.2)
+plt.yticks(np.arange(0, 1.2, 1.2/5))
 set_x_axis(False)
-production_cost_ax.set_yticks(np.linspace(0, 1, 6))
 
 # Steam
 plt.sca(steam_ax)
@@ -166,9 +169,9 @@ steam = get_metric('Steam')/1000
 plot_montecarlo(steam)
 plot_vertical_line(1)
 plt.ylim(0, 800)
-plt.yticks(np.arange(0, 800, 200))
+plt.yticks(np.arange(0, 800, 800/5))
 set_x_axis(True)
-plt.xlabel('Lipid content (%)')
+plt.xlabel('Feedstock lipid content [%]')
 
 # Electricity
 plt.sca(electricity_ax)
@@ -184,22 +187,26 @@ plot_montecarlo(excess_electricity,
                 colors.yellow_shade.RGBn)
 plot_vertical_line(1)
 plt.ylim(0, 575)
-plt.yticks(np.arange(0, 600, 100))
+plt.yticks(np.arange(0, 575, 575/5))
 set_x_axis(True)
-plt.xlabel('Lipid content [%]')
+plt.xlabel('Feedstock lipid content [%]')
 
 
 plt.subplots_adjust(hspace=.0)
+plt.subplots_adjust(wspace=0.3)
 TCI_ax.set_yticks(np.linspace(0, 200, 5))
 IRR_ax.tick_params(axis="x", direction="inout", length=4)
-IRR_ax.set_zorder(1e6)
+IRR_ax.set_zorder(2)
 TCI_ax.tick_params(axis="x", direction="inout", length=4)
-TCI_ax.set_zorder(1e6)
+TCI_ax.set_zorder(1)
 production_ax.tick_params(axis="x", direction="inout", length=4)
-production_ax.set_zorder(1e6)
+production_ax.set_zorder(2)
 production_cost_ax.tick_params(axis="x", direction="inout", length=4)
-production_cost_ax.set_zorder(1e6)
-
+production_cost_ax.set_zorder(1)
+axs = [TCI_ax, IRR_ax, production_ax, production_cost_ax, electricity_ax, steam_ax]
+for ax in axs:
+    ax.tick_params(axis='y', right=True, direction="in", length=4)
+    
 
 plt.sca(production_ax)
 BioSTEAM_patch = Patch(facecolor=colors.neutral_tint.RGBn, 
@@ -210,7 +217,10 @@ Baseline_circle = Line2D([0], [0], marker='o',
                          label='Baseline',
                          markerfacecolor=colors.neutral_shade.RGBn,
                          markersize=10)
-production_ax.legend(handles=[BioSTEAM_patch, Baseline_circle])
+legend = production_ax.legend(handles=[BioSTEAM_patch, Baseline_circle])
+frame = legend.get_frame()
+frame.set_linewidth(0.0)
+frame.set_facecolor('none')
 
 fig.align_ylabels([IRR_ax, TCI_ax, steam_ax, IRR_ax])
 fig.align_ylabels([production_ax, production_cost_ax, electricity_ax])

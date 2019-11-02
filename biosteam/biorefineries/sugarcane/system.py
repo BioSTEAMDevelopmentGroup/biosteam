@@ -422,6 +422,6 @@ sugarcane_tea = LipidcaneTEA(system=sugarcane_sys, IRR=0.15, duration=(2018, 203
                              property_tax=0.001, property_insurance=0.005,
                              supplies=0.20, maintenance=0.01, administration=0.005)
 sugarcane_sys.simulate()
-sugarcane_tea.solve_IRR()
+sugarcane_tea.IRR = sugarcane_tea.solve_IRR()
 
 

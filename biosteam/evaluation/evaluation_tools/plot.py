@@ -48,7 +48,7 @@ def plot_spearman(rhos, top=None, name=None):
                        edgecolors=colors.blue_dark.RGBn)
     
     ax.set_xlim(-1, 1)
-    ax.set_xlabel(f"{name} " + r"$\mathrm{\rho}_{spearman}$")
+    ax.set_xlabel(f"Spearman's correlation with {name}")
     ax.set_yticks([i[0]+i[1]/2 for i in yranges])
     ax.set_yticklabels(index)
     ax.grid(False)

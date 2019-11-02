@@ -260,11 +260,15 @@ class ReactionSet:
         cmps = self.reactants
         maxcmplen = max([8, *[len(i) for i in cmps]]) + 2
         Xs = self.X
-        outs += "\n stoichiometry" + " "*(maxrxnlen - 13) + "reactant" + " "*(maxcmplen - 8) + '  X[%]'
-        for rxn, cmp, X in zip(rxns, cmps, Xs):
+        N = len(Xs)
+        maxnumspace = max(len(str(N)) + 1, 5)
+        outs += f"\nindex" + " "*(max(2, maxnumspace-3)) + "stoichiometry" + " "*(maxrxnlen - 13) + "reactant" + " "*(maxcmplen - 8) + '  X[%]'
+        for N, rxn, cmp, X in zip(range(N), rxns, cmps, Xs):
             rxn_spaces = " "*(maxrxnlen - len(rxn))
             cmp_spaces = " "*(maxcmplen - len(cmp))
-            outs += f"\n {rxn}{rxn_spaces}{cmp}{cmp_spaces}{X*100: >6.2f}"
+            num = str(N)
+            numspace = (maxnumspace - len(num)) * " "
+            outs += f"\n[{N}]{numspace}{rxn}{rxn_spaces}{cmp}{cmp_spaces}{X*100: >6.2f}"
         print(outs)
     _ipython_display_ = show
         

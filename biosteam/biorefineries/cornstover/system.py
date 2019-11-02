@@ -659,7 +659,7 @@ baghouse_bags = Stream(ID='Baghouse_bags', species=substance, flow=(1,), price=1
 cornstover_sys.feeds.add(lime)
 cornstover_sys.feeds.add(baghouse_bags)
 aerobic_digestion_sys.converge_method = 'Fixed point'
-for i in range(8): cornstover_sys.simulate()
+for i in range(3): cornstover_sys.simulate()
 ethanol_tea = CornstoverTEA(
         system=cornstover_sys, IRR=0.10, duration=(2007, 2037),
         depreciation='MACRS7', income_tax=0.35, operating_days=350.4,
