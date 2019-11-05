@@ -29,7 +29,7 @@ data = pd.read_excel('Monte Carlo cornstover.xlsx', header=[0, 1])
 # plt.ylabel('MESP ($\mathrm{USD} \cdot \mathrm{gal}^{-1}$)')
 # plt.ylim(1.5, 2.50)
 # bx_patch = Patch(facecolor=colors.blue_tint.RGBn, edgecolor=colors.blue_shade.RGBn)
-# plt.legend([bx_patch, dot_MESP], ['BioSTEAM', 'Baseline'])
+# plt.legend([bx_patch, dot_MESP], ['BioSTEAM', 'benchmark'])
 # plt.xticks([], [])
                                                  
 # %% Setup of subplots
@@ -40,8 +40,8 @@ data = pd.read_excel('Monte Carlo cornstover.xlsx', header=[0, 1])
 nums = tuple(range(1, 9))
 
 fig, axes = plt.subplots(ncols=1, nrows=2, constrained_layout=True, gridspec_kw=dict(height_ratios=[1, 4]))
-relative_baseline_magnitude_ax, metric_over_baseline_ax = axes
-plt.sca(metric_over_baseline_ax)
+benchmark_magnitude_ax, metric_over_benchmark_ax = axes
+plt.sca(metric_over_benchmark_ax)
 
 # %% Plot MESP and ethanol sales
 
@@ -108,13 +108,14 @@ plt.text(12, y_text, "Installation cost", color=colors.purple_shade.RGBn,
 #           horizontalalignment='center', fontsize=12, fontweight='bold')
 
 plt.xlim(-0.5, 18.5)
-plt.ylabel("Metric over baseline (%)")
+plt.ylabel("Metric over benchmark [%]")
 area_marks = [i.replace(' ', '\n') for i in areas]
 xmarks = area_marks + ['Excess'] + area_marks[1:] + ['Steam\ndemand', '    Ethanol\n    prod.', '      MESP']
-plt.xticks(positions_electricity + positions_installation + positions_other, xmarks)
-metric_over_baseline_ax.set_zorder(1e6)
+xticks = positions_electricity + positions_installation + positions_other
+plt.xticks(xticks, xmarks)
+metric_over_benchmark_ax.set_zorder(1e6)
 
-plt.sca(relative_baseline_magnitude_ax)
+plt.sca(benchmark_magnitude_ax)
 plt.fill_between([-0.5, 15.5], 0, 1, color=colors.neutral_tint.tint(85).RGBn)
 
 electricity_areas = humbird_electricity.copy()
@@ -141,15 +142,21 @@ plot_vertical_line(15.5, color=colors.grey_tint.RGBn)
 
 plot_vertical_line(-0.5, color='k')
 plt.hlines([1], [-0.5], [15.5], color='k')
-relative_baseline_magnitude_ax.spines['top'].set_visible(False)
-relative_baseline_magnitude_ax.spines['right'].set_visible(False)
+benchmark_magnitude_ax.spines['top'].set_visible(False)
+benchmark_magnitude_ax.spines['right'].set_visible(False)
+benchmark_magnitude_ax.tick_params(axis="x", direction="inout", length=4)
+benchmark_magnitude_ax.set_zorder(2)
+metric_over_benchmark_ax.set_zorder(1)
 plt.yticks([], [])
-plt.xticks([], [])
+plt.xticks(xticks[:-3], [])
 plt.ylim(0, 1)
 plt.xlim(-0.5, 18.5)
-plt.text(-0.25, 0.70, "Relative baseline magnitude", color=colors.neutral_shade.RGBn,
+plt.text(-0.25, 0.70, "Benchmark magnitude", color=colors.neutral_shade.RGBn,
          horizontalalignment='left', fontsize=12, fontweight='bold')
 plt.subplots_adjust(hspace=.0)
+
+for ax in axes:
+    ax.tick_params(axis='y', right=True, direction="in", length=4)
 
 
 # plot_vertical_line(15.5, color=colors.purple.tint(20).shade(10).RGBn, ls='-.')
@@ -163,6 +170,6 @@ plt.subplots_adjust(hspace=.0)
 # light_box = Patch(color=colors.neutral_tint.RGBn)
 # line = Line2D([0], [0], color=colors.neutral_shade.RGBn)
 # dark_box = Patch(color=colors.neutral_shade.RGBn)
-# plt.legend([(light_box, line), dark_box], ["Metric over baseline (%)", "Relative baseline magnintude"])
+# plt.legend([(light_box, line), dark_box], ["Metric over benchmark (%)", "Relative benchmark magnintude"])
 
 # leg1 = ax.legend([bx_economic['boxes'][0]], ['MESP'], loc="upper left")

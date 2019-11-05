@@ -63,7 +63,7 @@ class unit(type):
         # Set line
         if 'line' not in dct:
             line = cls.line
-            if '_graphics' not in dct or line in (None, 'Mixer', 'Static', 'Splitter', 'Solids separator', 'Facility'):
+            if '_graphics' not in dct or line in ('Unit', 'Mixer', 'Static', 'Splitter', 'Solids separator', 'Facility'):
                 line = cls.__name__
                 # Set new graphics for specified line
                 cls._graphics = Graphics.box(cls._N_ins, cls._N_outs)
@@ -167,7 +167,7 @@ class Unit(metaclass=unit):
     _graphics = default_graphics
     
     # [str] The general type of unit, regardless of class
-    line = None
+    line = 'Unit'
 
     ### Other defaults ###
 

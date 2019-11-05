@@ -49,8 +49,10 @@ _MACRS = {'MACRS5': np.array([.2000, .3200, .1920,
         
 def initial_loan_principal(loan, interest):
     principal = 0
+    k = 1. + interest
     for loan_i in loan:
-        principal = loan_i + principal * interest
+        principal += loan_i 
+        principal *= k
     return principal
 
 def final_loan_principal(payment, principal, interest, years):
@@ -61,7 +63,7 @@ def final_loan_principal(payment, principal, interest, years):
 def solve_payment(payment, loan, interest, years):
     principal = initial_loan_principal(loan, interest)
     return wegstein_secant(final_loan_principal,
-                           payment, payment+1., 1e-4, 1e-4,
+                           payment, payment+10., 1e-4, 1e-4,
                            args=(principal, interest, years))
 
 
@@ -344,8 +346,8 @@ class TEA:
         # C_WC: Working capital
         # D: Depreciation
         # L: Loan revenue
-        # LI: Loan interest
-        # LIP: Loan interest payment
+        # LI: Loan interest payment
+        # LIP: Loan payment
         # LP: Loan principal
         # C: Annual operating cost (excluding depreciation)
         # S: Sales
@@ -389,11 +391,10 @@ class TEA:
             f_interest = (1.+interest)
             LIP[start:end] = solve_payment(loan.sum()/years * f_interest,
                                            loan, interest, years)
-            LI[0] = L[0] * interest
-            LP[0] = L[0] + LI[0] - LIP[0]
-            for i in range(1, end):
-                LI[i] = LP[i-1] * interest 
-                LP[i] = L[i] - LIP[i] + LI[i]
+            loan_principal = 0
+            for i in range(end):
+                LI[i] = li = (loan_principal + L[i]) * interest 
+                LP[i] = loan_principal = loan_principal - LIP[i] + li + L[i]
             CF[:] =  NE + D + L - C_FC - C_WC - LIP
         else:
             CF[:] = NE + D - C_FC - C_WC
@@ -407,8 +408,8 @@ class TEA:
                                      'Working capital',
                                      'Depreciation',
                                      'Loan',
-                                     'Loan interest',
                                      'Loan interest payment',
+                                     'Loan payment',
                                      'Loan principal',
                                      'Annual operating cost (excluding depreciation)',
                                      'Sales',

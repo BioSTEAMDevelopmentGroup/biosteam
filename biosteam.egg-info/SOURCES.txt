@@ -38,6 +38,7 @@ biosteam/biorefineries/cornstover/_plot_bars.py
 biosteam/biorefineries/cornstover/_plot_spearman.py
 biosteam/biorefineries/cornstover/_plot_uncertainty_bottom.py
 biosteam/biorefineries/cornstover/_plot_uncertainty_top.py
+biosteam/biorefineries/cornstover/distribution_summary.xlsx
 biosteam/biorefineries/cornstover/model.py
 biosteam/biorefineries/cornstover/process_settings.py
 biosteam/biorefineries/cornstover/species.py
@@ -71,6 +72,7 @@ biosteam/biorefineries/lipidcane/utils/composition.py
 biosteam/biorefineries/sugarcane/Monte Carlo across lipid fraction.xlsx
 biosteam/biorefineries/sugarcane/Monte Carlo sugarcane.xlsx
 biosteam/biorefineries/sugarcane/__init__.py
+biosteam/biorefineries/sugarcane/distribution_summary.xlsx
 biosteam/biorefineries/sugarcane/model.py
 biosteam/biorefineries/sugarcane/process_settings.py
 biosteam/biorefineries/sugarcane/species.py

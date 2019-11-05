@@ -129,7 +129,8 @@ class Dortmund:
             qs.append(qi)
         self.cached[species] = (chemgroups, rs, qs, groupcounts)
 
-    def loggammacs(self, qs, rs, xs):
+    @staticmethod
+    def loggammacs(qs, rs, xs):
         rsxs = 0.; qsxs = 0.; rsxs2 = 0.; rs_34 = []; loggammacs = []
         for xi, ri, qi in zip(xs, rs, qs):
             rsxs += ri*xi
@@ -144,7 +145,8 @@ class Dortmund:
             loggammacs.append(1. - Vi2 + log(Vi2) - 5.*qi*(1. - Vi/Fi + log(Vi/Fi)))
         return loggammacs
     
-    def psi(self, T, subgroup1, subgroup2, subgroup_data, interaction_data):
+    @staticmethod
+    def psi(T, subgroup1, subgroup2, subgroup_data, interaction_data):
         try: a, b, c = interaction_data[subgroup_data[subgroup1].main_group_id] \
                                        [subgroup_data[subgroup2].main_group_id]
         except: return 1.

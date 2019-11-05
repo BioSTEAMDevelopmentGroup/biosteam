@@ -33,21 +33,21 @@ replacement_labels = {
 
 def replace_label_text(label_text):
     """Replace label text for graph."""
-    name, distribution = label_text.split(' (')
-    lb, mid, ub = eval('(' + distribution)
+    name, distribution = label_text.split(' [')
+    lb, mid, ub = eval('[' + distribution)
     if 'efficiency' in name:
-        distribution = f" [{lb:.2f}, {mid:.2f}, {ub:.2f}]"
+        distribution = f" ({lb:.2f}, {mid:.2f}, {ub:.2f})"
     else:
-        distribution = f" [{lb:.3g}, {mid:.3g}, {ub:.3g}]"
-    pos = name.find(' [')
+        distribution = f" ({lb:.3g}, {mid:.3g}, {ub:.3g})"
+    pos = name.find(' (')
     if pos != -1:
-        units = str(name[pos:])
-        if units == ' (USD/kg)':
-            units = ' ($\mathrm{USD} \cdot \mathrm{kg}^{-1}$)'
-        elif units == ' (USD/kWhr)':
-            units = ' ($\mathrm{USD} \cdot \mathrm{kWhr}^{-1}$)'
-        elif units == ' (kg/hr)':
-            units = ' ($\mathrm{kg} \cdot \mathrm{hr}^{-1}$)'
+        units = str(name[pos:]).replace('(', '[').replace(')', ']')
+        if units == ' [USD/kg]':
+            units = ' [$\mathrm{USD} \cdot \mathrm{kg}^{-1}$]'
+        elif units == ' [USD/kWhr]':
+            units = ' [$\mathrm{USD} \cdot \mathrm{kWhr}^{-1}$]'
+        elif units == ' [kg/hr]':
+            units = ' [$\mathrm{kg} \cdot \mathrm{hr}^{-1}$]'
         name = name[:pos]
     else:
         units = ''
@@ -57,8 +57,8 @@ def replace_label_text(label_text):
 
 # Get data
 rhos = pd.read_excel('Spearman correlation lipidcane.xlsx',
-                      header=[0])['Internal rate of return']
-
+                      header=[0])["('Biorefinery', 'Internal rate of return')"]
+rhos.name = 'IRR'
 # Sort most important
 rhos = rhos[(rhos.abs()>0.050)] 
 
