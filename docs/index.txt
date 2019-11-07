@@ -63,6 +63,7 @@ You may also need to add Graphviz to your system path on Windows by following th
    HeatUtility
    System
    TEA
+   CombinedTEA
    Flowsheet
    compounds/compounds
    units/units
