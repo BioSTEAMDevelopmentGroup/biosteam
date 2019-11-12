@@ -14,7 +14,6 @@ __all__ = ('price',)
 
 biosteam.CE = 567 # 2013
 find.set_flowsheet(Flowsheet('lipidcane'))
-PowerUtility.price = 0.065
 _ha = HeatUtility.heating_agents['Low pressure steam']
 _ha.efficiency = 0.85
 _ha.T = 529.2
@@ -25,7 +24,8 @@ HeatUtility.cooling_agents['Cooling water'].price_kmol = 0
 HeatUtility.cooling_agents['Chilled water'].price_kJ = 0
 
 # Raw material price (USD/kg)
-price = {'Lipid cane': 0.03455, # 70% m.c
+price = {'Electricity': 0.065,
+         'Lipid cane': 0.03455, # 70% m.c
          'Methanol': 0.547,
          'Water': 0.000353,
          'HCl': 0.205,
@@ -43,7 +43,7 @@ price = {'Lipid cane': 0.03455, # 70% m.c
          'Waste': -0.33,
          'Gasoline': 0.756} # 2 USD/gal
 
-
+PowerUtility.price = price['Electricity']
                 
                 
 

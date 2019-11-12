@@ -95,7 +95,7 @@ def add_power_utility_price_param(model, shape):
         @model.parameter(element='Electricity', units='USD/kWhr',
                          distribution=shape(bst.PowerUtility.price))
         def set_price(price):
-            bst.PowerUtility.price = price 
+            bst.PowerUtility.price = price
 
 def add_heat_utility_price_params(model, shape):
     named_agents = (*bst.HeatUtility.cooling_agents.items(),
