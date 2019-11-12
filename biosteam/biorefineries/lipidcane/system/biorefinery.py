@@ -21,7 +21,7 @@ import warnings
 
 warnings.filterwarnings('ignore')
 
-__all__ = ('lipidcane_sys', 'lipidcane_tea', 'area_500', 'area_600')
+__all__ = ('lipidcane_sys', 'lipidcane_tea', 'area_500', 'area_600', 'BT')
 
 # %% Facilities
 Stream.species = pretreatment_species

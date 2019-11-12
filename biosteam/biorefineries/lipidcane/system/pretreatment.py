@@ -17,7 +17,7 @@ from biosteam.units import Mixer, EnzymeTreatment, CrushingMill, \
 from biosteam.biorefineries.lipidcane.species import pretreatment_species
 from biosteam.biorefineries.lipidcane.process_settings import price
 
-__all__ = ('pretreatment_sys', 'lipid_cane', 'area_100', 'area_200')
+__all__ = ('pretreatment_sys', 'lipid_cane', 'lipidcane', 'area_100', 'area_200')
 
 # %% Species
 
@@ -35,8 +35,8 @@ psp2 = ('Ash', 'CaO', 'Cellulose', 'Flocculant', 'Glucose',
 
 f1 = (2000.042, 26986.69 , 2007.067, 15922.734, 14459.241,
       10035.334, 5017.667, 22746.761, 234157.798)
-lipid_cane = Stream('lipid_cane', f1, psp1, units='kg/hr',
-                    price=price['Lipid cane'])
+lipidcane = lipid_cane = Stream('lipid_cane', f1, psp1, units='kg/hr',
+                                price=price['Lipid cane'])
 
 enzyme = Stream('enzyme', Cellulose=100, Water=900, units='kg/hr',
                 price=price['Protease'])

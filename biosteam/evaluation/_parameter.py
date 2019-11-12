@@ -26,14 +26,16 @@ class Parameter(Variable):
                    Parameter distribution.
     units : str
             Units of parameter.
+    baseline : float
+        Baseline value of parameter.
     
     """
     __slots__ = ('name', 'setter', 'simulate', 'element',
-                 'system', 'distribution', 'units')
+                 'system', 'distribution', 'units', 'baseline')
     
     def __init__(self, name, setter, simulate,
                  element, system, distribution,
-                 units):
+                 units, baseline):
         self.name = name.replace('_', ' ').capitalize()
         self.setter = setter
         self.simulate = simulate
@@ -41,6 +43,7 @@ class Parameter(Variable):
         self.system = system
         self.distribution = distribution
         self.units = units
+        self.baseline = baseline
     
     def __call__(self, value):
         self.setter(value)

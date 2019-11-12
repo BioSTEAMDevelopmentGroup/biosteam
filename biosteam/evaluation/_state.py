@@ -20,13 +20,16 @@ def param_unit(param):
     if isinstance(element, Unit): return element
     elif isinstance(element, Stream): return element._sink
 
-def parameter(system, element, setter, kind, name, distribution, units):
+def parameter(system, element, setter, kind, name, distribution, units, baseline):
     if kind is 'coupled':
-        return Block(element, system).parameter(setter, name=name, distribution=distribution, units=units)
+        return Block(element, system).parameter(setter, name=name,
+                    distribution=distribution, units=units, baseline=baseline)
     elif kind is 'isolated':
-        return Block(element, None).parameter(setter, name=name, distribution=distribution, units=units)
+        return Block(element, None).parameter(setter, name=name,
+                    distribution=distribution, units=units, baseline=baseline)
     elif kind is 'design':
-        return Block(element, None).parameter(setter, element._summary, name, distribution=distribution, units=units)
+        return Block(element, None).parameter(setter, element._summary,
+                    name, distribution=distribution, units=units, baseline=baseline)
     elif kind is 'cost':
         if hasattr(element, '_end'):
             def simulate():
@@ -34,7 +37,8 @@ def parameter(system, element, setter, kind, name, distribution, units):
                 element._end()
         else:
             simulate = element._cost
-        return Block(element, None).parameter(setter, simulate, name, distribution=distribution, units=units)
+        return Block(element, None).parameter(setter, simulate, name,
+                    distribution=distribution, units=units, baseline=baseline)
     raise ValueError(f"kind must be either 'coupled', 'isolated', 'design', or 'cost' (not {kind}).")
 
 def create_update_function_with_skipping(params):
@@ -52,7 +56,7 @@ def create_update_function_with_skipping(params):
                 if p.system: sim = p.simulate 
                 else: p.simulate()
             if sim: sim()
-            cached = sample
+            cached = sample.copy()
         except Exception as Error:
             cached = None
             raise Error
@@ -144,7 +148,7 @@ class State:
         return tables_by_shape
     
     def parameter(self, setter=None, element=None, kind='isolated',
-                  name=None, distribution=None, units=None):
+                  name=None, distribution=None, units=None, baseline=None):
         """Define and register parameter.
         
         Parameters
@@ -164,16 +168,20 @@ class State:
                        Parameter distribution.
         units : str
                 Parameter units of measure
-            
+        baseline : float
+            Baseline value of parameter.
+        
         Notes
         -----
         
         If kind is 'coupled', account for downstream operations. Otherwise, only account for given element. If kind is 'design' or 'cost', element must be a Unit object.
         
         """
-        if not setter: return lambda setter: self.parameter(setter, element, kind,
-                                                            name, distribution, units)
-        param = parameter(self._system, element, setter, kind, name, distribution, units)
+        if not setter:
+            return lambda setter: self.parameter(setter, element, kind, name,
+                                                 distribution, units, baseline)
+        param = parameter(self._system, element, setter, kind,
+                          name, distribution, units, baseline)
         self._params.append(param)
         self._erase()
         return param
@@ -235,7 +243,7 @@ class State:
     def __call__(self, sample):
         """Update state given sample of parameters."""
         if not self._update: self._loadparams()
-        return self._update(np.asarray(sample))
+        return self._update(np.asarray(sample, dtype=float))
     
     def _repr(self):
         return f'{type(self).__name__}: {self._system}'
