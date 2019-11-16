@@ -2,7 +2,7 @@ lazypkg>=1.4
 ht==0.1.52
 fluids==0.1.74
 pint==0.9
-scipy==1.1.0
+scipy==1.3.1
 IPython==7.9.0
 colorpalette==0.3.0
 array_collections==0.1.9
