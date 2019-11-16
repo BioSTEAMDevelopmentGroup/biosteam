@@ -55,9 +55,8 @@ The :doc:`Species` object defines the working compounds of the biorefinery. When
 
 Licence
 -------
-We intend to keep BioSTEAM perpetually open source and to use a liberal
-open source license. Any contributions to the project must be licensed under
-these terms. All of the code in BioSTEAM is available under the
+We intend to keep BioSTEAM perpetually open source with a liberal
+open source license. All of the code in BioSTEAM is available under the
 University of Illinois/NCSA Open Source License, which boils down to this:
 
 * You can freely distribute BioSTEAM.
@@ -66,11 +65,12 @@ University of Illinois/NCSA Open Source License, which boils down to this:
 * You can't use our names to promote your BioSTEAM derived products.
 * There's no warranty on BioSTEAM at all.
 
-We believe this fosters the widest adoption of BioSTEAM because it allows
+Any contributions to the project must be licensed under these terms.
+We believe this fosters the widest adoption of BioSTEAM as it allows
 commercial products to be derived from BioSTEAM with few restrictions and
 without a requirement for making any derived works also open source
-(i.e. BioSTEAM license is not a "copyleft" license like the GPL).
-If further clarification is needed, we suggest that you read the
+(i.e. not a "copyleft" license). If further clarification is needed,
+ we suggest that you read the
 `License <https://github.com/yoelcortes/biosteam/blob/master/LICENSE.txt>`__.
 
 Indices and tables
