@@ -35,10 +35,11 @@ def IQ_interpolation(f, x0, x1, y0, y1, x, yval, xtol, ytol):
     dx1 = dx0 = x1-x0
     f0 = yval-y0    
     if not (x0 < x < x1 or x1 < x < x0):
-        try:
+        dy = y1-y0
+        if dy:
             # False position
-            x = x0 + f0*dx0/(y1-y0)
-        except ZeroDivisionError:
+            x = x0 + f0*dx0/dy
+        else:
             # Bisection
             x = (x0+x1)/2
     yval_ub = yval + ytol
@@ -69,17 +70,13 @@ def IQ_interpolation(f, x0, x1, y0, y1, x, yval, xtol, ytol):
             f1_d02 = f1/d02
             f2_d01 = f2/d01
             x = x0*f1_d02*f2_d01 - x1*f0_d12*f2_d01 + x2*f0_d12*f1_d02
-            assert x0 < x < x1 or x1 < x < x0
         except:
-            try:
-                # False position
-                x = x0 + f0*dx1/(y1-y0)
-            except:
-                # Bisection
-                x = (x0+x1)/2
-            else:
-                # Overshoot to prevent getting stuck
-                x = x + 0.1*(x1 + x0 - 2.*x)*(dx1/dx0)**3
+            # False position
+            x = x0 + f0*dx1/(y1-y0)
+            # Overshoot to prevent getting stuck
+            x = x + 0.1*(x1 + x0 - 2.*x)*(dx1/dx0)**3
+        if not (x0 < x < x1 or x1 < x < x0):
+            x = (x0+x1)/2
         dx0 = dx1
     return x
 

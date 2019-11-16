@@ -11,6 +11,7 @@ from scipy.optimize import brentq, newton
 from ..thermo import activity
 from .designtools import vacuum_system, HNATable, FinalValue, \
                           VesselWeightAndWallThickness, Kvalue
+from ..utils.solvers import IQ_interpolation
 from .._equilibrium import V_3N, V_2N, V_error
 from ._splitter import Splitter
 from ._hx import HX, HXutility
@@ -112,9 +113,9 @@ class Flash(Unit):
     @property
     def BM(self):
         SepType = self.SetType
-        if SepType is 'Vertical':
+        if SepType == 'Vertical':
             return self._BM_vertical
-        elif SepType is 'Horizontal':
+        elif SepType == 'Horizontal':
             return self._BM_horizontal
         else:
             raise AttributeError('SepType not defined')
@@ -706,6 +707,7 @@ class Evaporator_PQ(Unit):
         self._liquid_H = liquid.H
         self._no_ph_ch = no_ph_ch
         self._index = species.index(component)
+        self._V = 0.5
 
     def _run(self):
         feed = self.ins[0]
@@ -730,22 +732,23 @@ class Evaporator_PQ(Unit):
             Q = Q + boiler_vap.H - boiler_liq.H
 
         # Energy balance to find vapor fraction
-        def f(v):
-            vapor_Hf = vapor_H*(v*feed.mol[index])
-            liquid_Hf = liquid_H*((1-v)*feed.mol[index])
-            return (vapor_Hf + liquid_Hf + no_ph_ch_H) - feed_H - Q
+        f = feed.mol[index]
+        H_actual = lambda v:  vapor_H*(v*f) + liquid_H*((1-v)*f)
 
         # Final vapor fraction
-        v = newton(f, 0.5, tol=0.001)
+        V = self._V
+        H = feed_H + Q - no_ph_ch_H
+        V = IQ_interpolation(H_actual, 0, 1, liquid_H, vapor_H,
+                             V, H, xtol=1e-4, ytol=1e-3)
         liquid._mol[:] = no_ph_ch._mol
-        if v < 0:
-            v = 0
-        elif v > 1:
-            v = 1
-        vapor.mol[index] = v*feed.mol[index]
-        liquid.mol[index] = (1-v)*feed.mol[index]
+        if V < 0:
+            V = 0
+        elif V > 1:
+            V = 1
+        vapor.mol[index] = V*feed.mol[index]
+        liquid.mol[index] = (1-V)*feed.mol[index]
         self._Q = Q
-        self._V = v
+        self._V = V
 
 
 class Evaporator_PV(Unit):

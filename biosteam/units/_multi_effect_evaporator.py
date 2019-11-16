@@ -150,7 +150,6 @@ class MultiEffectEvaporator(Unit):
                                     xtol=0.0001, ytol=0.001)
         
         # Condensing vapor from last effector
-        
         outs_vap = evaporators[-1].outs[0]
         condenser.ins[:] = [outs_vap]
         condenser._run()

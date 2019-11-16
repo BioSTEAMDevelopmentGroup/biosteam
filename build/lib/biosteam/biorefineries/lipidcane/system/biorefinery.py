@@ -84,5 +84,5 @@ lipidcane_tea = LipidcaneTEA(system=lipidcane_sys, IRR=0.15, duration=(2018, 203
                              property_tax=0.001, property_insurance=0.005,
                              supplies=0.20, maintenance=0.01, administration=0.005)
 set_lipid_fraction(0.10)
-lipidcane_sys.simulate()
-lipidcane_tea.IRR = lipidcane_tea.solve_IRR()
+# lipidcane_sys.simulate()
+# lipidcane_tea.IRR = lipidcane_tea.solve_IRR()

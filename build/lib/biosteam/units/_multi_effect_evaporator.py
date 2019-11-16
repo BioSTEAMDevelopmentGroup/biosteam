@@ -7,10 +7,10 @@ Created on Thu Aug 23 21:43:13 2018
 import numpy as np
 import biosteam as bst
 from .. import Unit, Stream
-from scipy.optimize import brentq
 from . import Mixer, HXutility
 from ._flash import Evaporator_PV, Evaporator_PQ
 from .designtools import vacuum_system
+from ..utils.solvers import IQ_interpolation
 from warnings import warn
 import ht
 log = np.log
@@ -89,6 +89,8 @@ class MultiEffectEvaporator(Unit):
         Unit.__init__(self, ID, ins, outs)
         # Unpack
         out_wt_solids, liq = self.outs
+        self.V = V #: [float] Overall molar fraction of component evaporated.
+        self._V1 = V/2.
         
         # Create components
         self._N_evap = n = len(P) # Number of evaporators
@@ -106,7 +108,7 @@ class MultiEffectEvaporator(Unit):
         evap0._heat_utilities[0], condenser._heat_utilities[0] = self._heat_utilities
         mixer = Mixer(None, outs=Stream(None))
         
-        def V_error(v1):
+        def V_final(v1):
             # Run first evaporator
             v_test = v1
             evap0.V = v1
@@ -120,8 +122,8 @@ class MultiEffectEvaporator(Unit):
                 v_test += (1-v_test) * evap._V
                 # Put liquid first, then vapor side stream
                 ins = [evap.outs[1], evap.outs[0]]
-            return V - v_test
-        self._V_error = V_error
+            return v_test
+        self._V_final = V_final
         self.components = {'evaporators': evaporators,
                            'condenser': condenser,
                            'mixer': mixer}
@@ -139,7 +141,13 @@ class MultiEffectEvaporator(Unit):
         evaporators[0].ins[:] = [Stream.like(i, None) for i in ins]
         condenser = components['condenser']
         mixer = components['mixer']
-        brentq(self._V_error, 0.0001, 0.9909, xtol=0.0001)
+        V_final = self._V_final
+        x0 = 0.0001
+        x1 = 0.9910
+        y0 = V_final(x0)
+        y1 = V_final(x1)
+        self._V1 = IQ_interpolation(V_final, x0, x1, y0, y1, self._V1, self.V, 
+                                    xtol=0.0001, ytol=0.001)
         
         # Condensing vapor from last effector
         
