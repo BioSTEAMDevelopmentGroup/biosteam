@@ -28,17 +28,21 @@ def secant(f, x0, x1, xtol, ytol=5e-8, args=(), maxiter=50):
         y0 = y1
     raise SolverError(f'failed to converge after {maxiter} iterations')
 
+def interpolated(x0, x, x1):
+    return x if (x0 < x < x1 or x1 < x < x0) else (x0+x1)/2
+
 def IQ_interpolation(f, x0, x1, y0, y1, x, yval, xtol, ytol):
     """Inverse quadratic interpolation solver."""
     _abs = abs
     if y1 < 0.: x0, y0, x1, y1 = x1, y1, x0, y0
     dx1 = dx0 = x1-x0
-    f0 = yval-y0    
+    f0 = yval-y0
     if not (x0 < x < x1 or x1 < x < x0):
         dy = y1-y0
         if dy:
             # False position
             x = x0 + f0*dx0/dy
+            x = interpolated(x0, x, x1)
         else:
             # Bisection
             x = (x0+x1)/2
@@ -79,8 +83,7 @@ def IQ_interpolation(f, x0, x1, y0, y1, x, yval, xtol, ytol):
                 x = x + 0.1*(x1 + x0 - 2.*x)*(dx1/dx0)**3
             else:
                 x = (x0+x1)/2    
-        if not (x0 < x < x1 or x1 < x < x0):
-            x = (x0+x1)/2
+        x = interpolated(x0, x, x1)
         dx0 = dx1
     return x
 
