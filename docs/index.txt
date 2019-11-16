@@ -70,8 +70,7 @@ We believe this fosters the widest adoption of BioSTEAM as it allows
 commercial products to be derived from BioSTEAM with few restrictions and
 without a requirement for making any derived works also open source
 (i.e. not a "copyleft" license). If further clarification is needed,
- we suggest that you read the
-`License <https://github.com/yoelcortes/biosteam/blob/master/LICENSE.txt>`__.
+we suggest that you read the `License <https://github.com/yoelcortes/biosteam/blob/master/LICENSE.txt>`__.
 
 Indices and tables
 ------------------
