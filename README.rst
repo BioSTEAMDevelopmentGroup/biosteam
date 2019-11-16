@@ -72,10 +72,6 @@ This work was funded by the DOE Center for Advanced Bioenergy and Bioproducts In
 
 This material is based upon work supported by the National Science Foundation Graduate Research Fellowship Program under Grant No. DGE - 1144245
 
-Disclaimer
-----------
-
-The data and information within the software has been obtained from a wide variety of literature sources. While reasonable care has been exercised in the collection of data and testing of this software, the authors of the software disclaim any warranty, expressed or implied, as to the accuracy or reliability of the data or calculations contained therein. The results of calculations obtained from the software yield approximate results, which will not always be suitable for every application. The software is designed for use by trained professional personnel and is not a substitute for sound professional judgment. It is the sole responsibility of the user to validate the data presented by the software and to determine whether the results of this program are accurate and suitable for any specific purpose. No guarantee of accuracy or fitness for any purpose is expressed or implied. The authors strongly recommend that the data be checked against other sources and/or methods before use and application. The authors shall not be held liable for any direct, indirect, consequential or incidental damages incurred through use of the data or calculations. 
 
 Citation
 --------

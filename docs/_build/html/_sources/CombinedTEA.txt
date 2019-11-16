@@ -1,0 +1,7 @@
+CombinedTEA
+===========
+
+.. module:: biosteam
+
+.. autoclass:: CombinedTEA
+   :members:

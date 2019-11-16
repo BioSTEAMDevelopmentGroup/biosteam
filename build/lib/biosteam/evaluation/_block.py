@@ -56,11 +56,13 @@ class Block:
         self._element = element
         self._blocks[system, element] = self
     
-    def parameter(self, setter, simulate=None, name=None, distribution=None, units=None) -> Parameter:
+    def parameter(self, setter, simulate=None, name=None, distribution=None,
+                  units=None, baseline=None) -> Parameter:
         """Return a Parameter object."""
         if simulate is None: simulate = self._simulate
         if not name: name, = signature(setter).parameters.keys()
-        return Parameter(name, setter, simulate, self._element, self._system, distribution, units)
+        return Parameter(name, setter, simulate, self._element,
+                         self._system, distribution, units, baseline)
     
     @property
     def system(self):

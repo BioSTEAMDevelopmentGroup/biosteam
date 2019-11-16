@@ -57,7 +57,7 @@
           
 
           
-            <a href="../../../index.html" class="icon icon-home"> BioSTEAM
+            <a href="../../../home.html" class="icon icon-home"> BioSTEAM
           
 
           
@@ -89,18 +89,19 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Getting started.html">1. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/MixedStream objects and thermodynamic equilibrium.html">2. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">3. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">4. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">5. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">6. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">7. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis of a biorefinery.html">8. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">9. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">10. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Stoichiometric reactions.html">11. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Advanced simulation.html">12. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Installation.html">1. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Getting started.html">2. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/MixedStream objects and thermodynamic equilibrium.html">3. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">5. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">8. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis of a biorefinery.html">9. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">11. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Stoichiometric reactions.html">12. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Advanced simulation.html">13. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -112,6 +113,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../HeatUtility.html">HeatUtility</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../System.html">System</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../TEA.html">TEA</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../CombinedTEA.html">CombinedTEA</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Flowsheet.html">find</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../compounds/compounds.html">compounds</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../units/units.html">units</a></li>
@@ -132,7 +134,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../../index.html">BioSTEAM</a>
+          <a href="../../../home.html">BioSTEAM</a>
         
       </nav>
 
@@ -161,7 +163,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      <li><a href="../../../home.html">Docs</a> &raquo;</li>
         
           <li><a href="../../index.html">Module code</a> &raquo;</li>
         
@@ -190,6 +192,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">from</span> <span class="nn">warnings</span> <span class="k">import</span> <span class="n">warn</span>
+<span class="kn">from</span> <span class="nn">.._tea</span> <span class="k">import</span> <span class="n">TEA</span><span class="p">,</span> <span class="n">CombinedTEA</span>
 <span class="kn">from</span> <span class="nn">.._stream</span> <span class="k">import</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">mol_flow_dim</span><span class="p">,</span> <span class="n">mass_flow_dim</span><span class="p">,</span> <span class="n">vol_flow_dim</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">_Q</span>
 <span class="kn">from</span> <span class="nn">.._exceptions</span> <span class="k">import</span> <span class="n">DimensionError</span>
@@ -242,21 +245,28 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">writer</span> <span class="o">=</span> <span class="n">ExcelWriter</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
     <span class="n">units</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">system</span><span class="o">.</span><span class="n">_costunits</span><span class="p">)</span>
-    <span class="c1"># try:</span>
-    <span class="n">system</span><span class="o">.</span><span class="n">diagram</span><span class="p">(</span><span class="s1">&#39;thorough&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="s1">&#39;diagram&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">)</span>
-    <span class="n">flowsheet</span> <span class="o">=</span> <span class="n">writer</span><span class="o">.</span><span class="n">book</span><span class="o">.</span><span class="n">add_worksheet</span><span class="p">(</span><span class="s1">&#39;Flowsheet&#39;</span><span class="p">)</span>
-    <span class="n">flowsheet</span><span class="o">.</span><span class="n">insert_image</span><span class="p">(</span><span class="s1">&#39;A1&#39;</span><span class="p">,</span> <span class="s1">&#39;diagram.png&#39;</span><span class="p">)</span>
-    <span class="c1"># except:</span>
-    <span class="c1">#     warn(RuntimeWarning(&#39;Failed to generate diagram through graphviz. Please check graphviz installation.&#39;), stacklevel=2)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">system</span><span class="o">.</span><span class="n">diagram</span><span class="p">(</span><span class="s1">&#39;thorough&#39;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="s1">&#39;diagram&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;png&#39;</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">diagram_completed</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">warn</span><span class="p">(</span><span class="ne">RuntimeWarning</span><span class="p">(</span><span class="s1">&#39;failed to generate diagram through graphviz&#39;</span><span class="p">),</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">flowsheet</span> <span class="o">=</span> <span class="n">writer</span><span class="o">.</span><span class="n">book</span><span class="o">.</span><span class="n">add_worksheet</span><span class="p">(</span><span class="s1">&#39;Flowsheet&#39;</span><span class="p">)</span>
+        <span class="n">flowsheet</span><span class="o">.</span><span class="n">insert_image</span><span class="p">(</span><span class="s1">&#39;A1&#39;</span><span class="p">,</span> <span class="s1">&#39;diagram.png&#39;</span><span class="p">)</span>
+        <span class="n">diagram_completed</span> <span class="o">=</span> <span class="kc">True</span>
     
     <span class="k">if</span> <span class="n">system</span><span class="o">.</span><span class="n">_TEA</span><span class="p">:</span>
-        <span class="c1"># Cost table</span>
-        <span class="n">cost</span> <span class="o">=</span> <span class="n">cost_table</span><span class="p">(</span><span class="n">system</span><span class="p">)</span>
-        <span class="n">cost</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="s1">&#39;Itemized costs&#39;</span><span class="p">)</span>
+        <span class="n">tea</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">_TEA</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tea</span><span class="p">,</span> <span class="n">CombinedTEA</span><span class="p">):</span>
+            <span class="n">costs</span> <span class="o">=</span> <span class="p">[</span><span class="n">cost_table</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">tea</span><span class="o">.</span><span class="n">TEAs</span><span class="p">]</span>
+            <span class="n">_save</span><span class="p">(</span><span class="n">costs</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="s1">&#39;Itemized costs&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Cost table</span>
+            <span class="n">cost</span> <span class="o">=</span> <span class="n">cost_table</span><span class="p">(</span><span class="n">tea</span><span class="p">)</span>
+            <span class="n">cost</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="s1">&#39;Itemized costs&#39;</span><span class="p">)</span>
         
         <span class="c1"># Cash flow</span>
-        <span class="n">TEA</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">_TEA</span>
-        <span class="n">TEA</span><span class="o">.</span><span class="n">get_cashflow</span><span class="p">()</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="s1">&#39;Cash flow&#39;</span><span class="p">)</span>
+        <span class="n">tea</span><span class="o">.</span><span class="n">get_cashflow</span><span class="p">()</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="s1">&#39;Cash flow&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">warn</span><span class="p">(</span><span class="ne">RuntimeWarning</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;Cannot find TEA object in {repr(system)}. Ignoring TEA sheets.&#39;</span><span class="p">),</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
     
@@ -287,7 +297,7 @@
     <span class="n">results</span> <span class="o">=</span> <span class="n">results_table</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
     <span class="n">_save</span><span class="p">(</span><span class="n">results</span><span class="p">,</span> <span class="n">writer</span><span class="p">,</span> <span class="s1">&#39;Design requirements&#39;</span><span class="p">)</span>
     <span class="n">writer</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
-    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;diagram.png&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">diagram_completed</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s2">&quot;diagram.png&quot;</span><span class="p">)</span>
 
 <span class="n">save_system_results</span> <span class="o">=</span> <span class="n">save_report</span>
 
@@ -316,9 +326,12 @@
     <span class="n">tables</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">units</span> <span class="ow">in</span> <span class="n">organized</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
         <span class="c1"># First table with units of measure</span>
-        <span class="n">u</span> <span class="o">=</span> <span class="n">units</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">table</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">results</span><span class="p">(</span><span class="n">include_utilities</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                          <span class="n">include_total_cost</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">while</span> <span class="p">(</span><span class="n">table</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="n">units</span><span class="p">:</span>
+            <span class="n">u</span><span class="p">,</span> <span class="o">*</span><span class="n">units</span> <span class="o">=</span> <span class="n">units</span>
+            <span class="n">table</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">results</span><span class="p">(</span><span class="n">include_utilities</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                              <span class="n">include_total_cost</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">table</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">continue</span>
         <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
             <span class="n">table</span><span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">ID</span><span class="p">]</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">results</span><span class="p">(</span><span class="n">with_units</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">include_utilities</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                                    <span class="n">include_total_cost</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -327,7 +340,7 @@
         <span class="n">table</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">results</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">tables</span>
     
-<span class="k">def</span> <span class="nf">cost_table</span><span class="p">(</span><span class="n">system</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">cost_table</span><span class="p">(</span><span class="n">tea</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Return a cost table as a pandas DataFrame object.</span>
 
 <span class="sd">    Parameters</span>
@@ -336,24 +349,14 @@
 <span class="sd">        </span>
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    costtable : DataFrame</span>
+<span class="sd">    table : DataFrame</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">columns</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Unit operation&#39;</span><span class="p">,</span>
               <span class="n">f</span><span class="s1">&#39;Purchase cost (10^6 USD)&#39;</span><span class="p">,</span>
               <span class="n">f</span><span class="s1">&#39;Utility cost (10^6 USD/yr)&#39;</span><span class="p">)</span>
-    <span class="n">units</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">units</span>
-    <span class="n">units</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">_costunits</span>
-    <span class="n">units</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">units</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">line</span><span class="p">)</span>
-    
-    <span class="c1"># Initialize data</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">TEA</span> <span class="o">=</span> <span class="n">system</span><span class="o">.</span><span class="n">TEA</span>
-    <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">AE</span><span class="p">:</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">system</span><span class="p">,</span> <span class="s1">&#39;TEA&#39;</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Cannot find TEA object related to system. A TEA object of the system must be created first.&#39;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="n">AE</span>
-    <span class="n">operating_days</span> <span class="o">=</span> <span class="n">TEA</span><span class="o">.</span><span class="n">operating_days</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="n">tea</span><span class="o">.</span><span class="n">units</span>
+    <span class="n">operating_days</span> <span class="o">=</span> <span class="n">tea</span><span class="o">.</span><span class="n">operating_days</span>
     <span class="n">N_units</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">units</span><span class="p">)</span>
     <span class="n">array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">N_units</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
     <span class="n">IDs</span> <span class="o">=</span> <span class="p">[]</span>
@@ -370,7 +373,7 @@
         <span class="n">IDs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">unit</span><span class="o">.</span><span class="n">ID</span><span class="p">)</span>
     
     <span class="n">df</span> <span class="o">=</span> <span class="n">DataFrame</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">IDs</span><span class="p">)</span>    
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">TEA</span><span class="o">.</span><span class="n">lang_factor</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">tea</span><span class="o">.</span><span class="n">lang_factor</span><span class="p">:</span>
         <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Installation cost (10^6 USD)&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">u</span><span class="o">.</span><span class="n">installation_cost</span> <span class="k">for</span> <span class="n">u</span> <span class="ow">in</span> <span class="n">units</span><span class="p">]</span>
     
     <span class="k">return</span> <span class="n">df</span>

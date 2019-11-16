@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 from .utils import wegstein_secant, aitken_secant, secant
 from copy import copy as copy_
+from numba import njit
 
 __all__ = ('TEA', 'CombinedTEA')
 
@@ -46,7 +47,8 @@ _MACRS = {'MACRS5': np.array([.2000, .3200, .1920,
 
 
 # %% Utilities
-        
+    
+@njit    
 def initial_loan_principal(loan, interest):
     principal = 0
     k = 1. + interest
@@ -55,6 +57,7 @@ def initial_loan_principal(loan, interest):
         principal *= k
     return principal
 
+@njit
 def final_loan_principal(payment, principal, interest, years):
     for iter in range(years):
         principal += principal * interest - payment
@@ -65,6 +68,27 @@ def solve_payment(payment, loan, interest, years):
     return wegstein_secant(final_loan_principal,
                            payment, payment+10., 1e-4, 1e-4,
                            args=(principal, interest, years))
+
+@njit
+def net_earnings(D, C, S, start,
+                 FCI, TDC, VOC, FOC, sales,
+                 income_tax,
+                 depreciation,
+                 startup_time,
+                 startup_VOCfrac,
+                 startup_FOCfrac,
+                 startup_salesfrac):
+    end = start+len(depreciation)
+    D[start:end] = TDC*depreciation
+    w0 = startup_time
+    w1 = 1. - w0
+    C[start] = (w0*startup_VOCfrac*VOC + w1*VOC
+                + w0*startup_FOCfrac*FOC + w1*FOC)
+    S[start] = w0*startup_salesfrac*sales + w1*sales
+    start1 = start + 1
+    C[start1:] = VOC + FOC
+    S[start1:] = sales
+    return (S - C - D)*(1. - income_tax)
 
 
 # %% Techno-Economic Analysis
@@ -347,8 +371,8 @@ class TEA:
         # D: Depreciation
         # L: Loan revenue
         # LI: Loan interest payment
-        # LIP: Loan payment
-        # LP: Loan principal
+        # LP: Loan payment
+        # LPl: Loan principal
         # C: Annual operating cost (excluding depreciation)
         # S: Sales
         # NE: Net earnings
@@ -358,44 +382,43 @@ class TEA:
         # CNPV: Cumulative NPV
         TDC = self.TDC
         FCI = self._FCI(TDC)
-        WC = self.WC_over_FCI * FCI
         start = self._start
         years = self._years
-        self._duration_array = np.arange(-start+1, years+1, dtype=float)
-        length = start+years
-        C_D, C_FC, C_WC, D, L, LI, LIP, LP, C, S, NE, CF, DF, NPV, CNPV = data = np.zeros((15, length))
-        construction_schedule = self._construction_schedule
-        C_FC[:start] = FCI*construction_schedule
-        C_D[:start] = TDC*construction_schedule
-        depreciation = self._depreciation_array
-        D[start:start+len(depreciation)] = TDC*depreciation
-        C_WC[start-1] = WC
-        C_WC[-1] = -WC
         FOC = self._FOC(FCI)
         VOC = self.VOC
         sales = self.sales
+        self._duration_array = np.arange(-start+1, years+1, dtype=float)
+        length = start+years
+        C_D, C_FC, C_WC, D, L, LI, LP, LPl, C, S, NE, CF, DF, NPV, CNPV = data = np.zeros((15, length))
+        depreciation = self._depreciation_array
+        D[start:start+len(depreciation)] = TDC*depreciation
         w0 = self._startup_time
-        w1 = 1 - w0
+        w1 = 1. - w0
         C[start] = (w0*self.startup_VOCfrac*VOC + w1*VOC
                     + w0*self.startup_FOCfrac*FOC + w1*FOC)
         S[start] = w0*self.startup_salesfrac*sales + w1*sales
         start1 = start + 1
         C[start1:] = VOC + FOC
         S[start1:] = sales
-        NE[:] = (S - C - D)*(1 - self.income_tax)
+        NE[:] = (S - C - D)*(1. - self.income_tax)
+        WC = self.WC_over_FCI * FCI
+        C_D[:start] = TDC*self._construction_schedule
+        C_FC[:start] = FCI*self._construction_schedule
+        C_WC[start-1] = WC
+        C_WC[-1] = -WC
         if self.finance_interest:
             interest = self.finance_interest
             years = self.finance_years
             end = start+years
             L[:start] = loan = self.finance_fraction*(C_FC[:start]+C_WC[:start])
             f_interest = (1.+interest)
-            LIP[start:end] = solve_payment(loan.sum()/years * f_interest,
+            LP[start:end] = solve_payment(loan.sum()/years * f_interest,
                                            loan, interest, years)
             loan_principal = 0
             for i in range(end):
                 LI[i] = li = (loan_principal + L[i]) * interest 
-                LP[i] = loan_principal = loan_principal - LIP[i] + li + L[i]
-            CF[:] =  NE + D + L - C_FC - C_WC - LIP
+                LPl[i] = loan_principal = loan_principal - LP[i] + li + L[i]
+            CF[:] =  NE + D + L - C_FC - C_WC - LP
         else:
             CF[:] = NE + D - C_FC - C_WC
         DF[:] = 1/(1.+self.IRR)**self._duration_array
@@ -474,7 +497,7 @@ class TEA:
         # C_FC: Fixed capital
         # C_WC: Working capital
         # Loan: Money gained from loan
-        # LIP: Loan interest payment
+        # LP: Loan payment
         # D: Depreciation
         # C: Annual operating cost (excluding depreciation)
         # S: Sales
@@ -482,37 +505,31 @@ class TEA:
         # CF: Cash flow
         TDC = self.TDC
         FCI = self._FCI(TDC)
-        WC = self.WC_over_FCI * FCI
         start = self._start
         years = self._years
-        self._duration_array = np.arange(-start+1, years+1, dtype=float)
-        D, C_FC, C_WC, Loan, LIP, C, S = np.zeros((7, start+years))
-        construction_schedule = self._construction_schedule
-        C_FC[:start] = FCI*construction_schedule
-        depreciation = self._depreciation_array
-        D[start:start+len(depreciation)] = TDC*depreciation
-        C_WC[start-1] = WC
-        C_WC[-1] = -WC
         FOC = self._FOC(FCI)
         VOC = self.VOC
-        sales = self.sales
-        w0 = self._startup_time
-        w1 = 1 - w0
-        C[start] = (w0*self.startup_VOCfrac*VOC + w1*VOC
-                    + w0*self.startup_FOCfrac*FOC + w1*FOC)
-        S[start] = w0*self.startup_salesfrac*sales + w1*sales
-        start1 = start + 1
-        C[start1:] = VOC + FOC
-        S[start1:] = sales
-        NE = (S - C - D)*(1 - self.income_tax)
+        self._duration_array = np.arange(-start+1, years+1, dtype=float)
+        D, C_FC, C_WC, Loan, LP, C, S = np.zeros((7, start+years))
+        NE = net_earnings(D, C, S, start,
+                          FCI, TDC, VOC, FOC, self.sales,
+                          self.income_tax,
+                          self._depreciation_array,
+                          self._startup_time,
+                          self.startup_VOCfrac,
+                          self.startup_FOCfrac,
+                          self.startup_salesfrac)
+        WC = self.WC_over_FCI * FCI
+        C_FC[:start] = FCI*self._construction_schedule
+        C_WC[start-1] = WC
+        C_WC[-1] = -WC
         if self.finance_interest:
             interest = self.finance_interest
             years = self.finance_years
-            end = start+years
             Loan[:start] = loan = self.finance_fraction*(C_FC[:start]+C_WC[:start])
-            LIP[start:end] = solve_payment(loan.sum()/years * (1. + interest),
-                                           loan, interest, years)
-            return NE + D + Loan - C_FC - C_WC - LIP
+            LP[start:start+years] = solve_payment(loan.sum()/years * (1. + interest),
+                                                  loan, interest, years)
+            return NE + D + Loan - C_FC - C_WC - LP
         else:
             return NE + D - C_FC - C_WC
     
@@ -527,10 +544,10 @@ class TEA:
     def solve_IRR(self):
         """Return the IRR at the break even point (NPV = 0) through cash flow analysis."""
         try:
-            self._IRR = aitken_secant(self._NPV_at_IRR,
-                                      self._IRR, self._IRR+1e-6,
-                                      xtol=1e-6, maxiter=200,
-                                      args=(self.cashflow,))
+            self._IRR = wegstein_secant(self._NPV_at_IRR,
+                                        self._IRR, self._IRR+1e-6,
+                                        xtol=1e-6, maxiter=200,
+                                        args=(self.cashflow,))
         except:
             self._IRR = secant(self._NPV_at_IRR,
                                0.15, 0.15001,
@@ -561,10 +578,10 @@ class TEA:
         w0 = self._startup_time
         coefficients[self._start] =  w0*self.startup_VOCfrac + (1-w0)
         try:
-            self._sales = aitken_secant(self._NPV_with_sales,
-                                        self._sales, self._sales+1e-6,
-                                        xtol=1e-6, maxiter=200,
-                                        args=(NPV, coefficients, discount_factors))
+            self._sales = wegstein_secant(self._NPV_with_sales,
+                                          self._sales, self._sales+1e-6,
+                                          xtol=1e-6, maxiter=200,
+                                          args=(NPV, coefficients, discount_factors))
         except:
             self._sales = secant(self._NPV_with_sales,
                                  0, 1e-6,

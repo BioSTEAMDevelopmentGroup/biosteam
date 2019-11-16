@@ -653,7 +653,8 @@
     }
    ],
    "source": [
-    "lipidcane_tea.production_cost(bst.find('ethanol'), bst.find('biodiesel'))# USD/yr"
+    "products = [bst.find('ethanol'), bst.find('biodiesel')]\n",
+    "lipidcane_tea.production_cost(products)# USD/yr"
    ]
   },
   {

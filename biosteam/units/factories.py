@@ -29,12 +29,6 @@ def df2unit(clsname, cost_items, *, supercls=None, metacls=None):
     """Return Unit subclass from cost_options DataFrame."""
     superclasses = (supercls,) if supercls else (Unit,)
     if not metacls: metacls = type(supercls)
-    try: assert (np.asarray(cost_items.index)==_index).all(), "'cost_items' index is incorrect"
-    except Exception as err:
-        if not isinstance(cost_items, pd.DataFrame):
-            raise ValueError(f"'cost_items' must be a DataFrame, not '{type(cost_items).__name__}'")
-        else:
-            raise err
     cls = metacls.__new__(metacls, clsname, superclasses, {})
     for ID in cost_items:
         _add_cost(cls, ID, *cost_items[ID], None)

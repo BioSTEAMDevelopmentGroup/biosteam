@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
 '''Chemical Engineering Design Library (ChEDL). Utilities for process modeling.
 Copyright (C) 2016, Caleb Bell <Caleb.Andrew.Bell@gmail.com>
-
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction, including without limitation the rights
 to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 copies of the Software, and to permit persons to whom the Software is
 furnished to do so, subject to the following conditions:
-
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
-
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -68,12 +65,10 @@ _VDI_PPDS_11_values = VDI_PPDS_11.values
 def REFPROP(T, Tc, sigma0, n0, sigma1=0, n1=0, sigma2=0, n2=0):
     r'''Calculates air-liquid surface tension  using the REFPROP [1]_
     regression-based method. Relatively recent, and most accurate.
-
     .. math::
         \sigma(T)=\sigma_0\left(1-\frac{T}{T_c}\right)^{n_0}+
         \sigma_1\left(1-\frac{T}{T_c}\right)^{n_1}+
         \sigma_2\left(1-\frac{T}{T_c}\right)^{n_2}
-
     Parameters
     ----------
     T : float
@@ -92,27 +87,21 @@ def REFPROP(T, Tc, sigma0, n0, sigma1=0, n1=0, sigma2=0, n2=0):
         Third emperical coefficient of a fluid.
     n2 : float, optional
         Third emperical exponent of a fluid.
-
     Returns
     -------
     sigma : float
         Liquid surface tension, N/m
-
     Notes
     -----
     Function as implemented in [1]_. No example necessary; results match
     literature values perfectly.
     Form of function returns imaginary results when T > Tc; None is returned
     if this is the case.
-
-
     Examples
     --------
     Parameters for water at 298.15 K
-
     >>> REFPROP(298.15, 647.096, -0.1306, 2.471, 0.2151, 1.233)
     0.07205503890847453
-
     References
     ----------
     .. [1] Diky, Vladimir, Robert D. Chirico, Chris D. Muzny, Andrei F.
@@ -129,11 +118,9 @@ def REFPROP(T, Tc, sigma0, n0, sigma1=0, n1=0, sigma2=0, n2=0):
 def Somayajulu(T, Tc, A, B, C):
     r'''Calculates air-water surface tension  using the [1]_
     emperical (parameter-regressed) method. Well regressed, no recent data.
-
     .. math::
         \sigma=aX^{5/4}+bX^{9/4}+cX^{13/4}
         X=(T_c-T)/T_c
-
     Parameters
     ----------
     T : float
@@ -146,26 +133,21 @@ def Somayajulu(T, Tc, A, B, C):
         Regression parameter
     C : float
         Regression parameter
-
     Returns
     -------
     sigma : float
         Liquid surface tension, N/m
-
     Notes
     -----
     Presently untested, but matches expected values. Internal units are mN/m.
     Form of function returns imaginary results when T > Tc; None is returned
     if this is the case. Function is claimed valid from the triple to the
     critical point. Results can be evaluated beneath the triple point.
-
     Examples
     --------
     Water at 300 K
-
     >>> Somayajulu(300, 647.126, 232.713514, -140.18645, -4.890098)
     0.07166386387996757
-
     References
     ----------
     .. [1] Somayajulu, G. R. "A Generalized Equation for Surface Tension from
@@ -180,10 +162,8 @@ def Somayajulu(T, Tc, A, B, C):
 def Jasper(T, a, b):
     r'''Calculates surface tension of a fluid given two parameters, a linear
     fit in Celcius from [1]_ with data reprinted in [2]_.
-
     .. math::
         \sigma = a - bT
-
     Parameters
     ----------
     T : float
@@ -192,22 +172,18 @@ def Jasper(T, a, b):
         Parameter for equation. Chemical specific.
     b : float
         Parameter for equation. Chemical specific.
-
     Returns
     -------
     sigma: float
         Surface tension [N/m]
-
     Notes
     -----
     Internal units are mN/m, and degrees Celcius.
     This function has been checked against several references.
-
     Examples
     --------
     >>> Jasper(298.15, 24, 0.0773)
     0.0220675
-
     References
     ----------
     .. [1] Jasper, Joseph J. "The Surface Tension of Pure Liquid Compounds."
@@ -226,12 +202,9 @@ def Jasper(T, a, b):
 def Brock_Bird(T, Tb, Tc, Pc):
     r'''Calculates air-water surface tension  using the [1]_
     emperical method. Old and tested.
-
     .. math::
         \sigma = P_c^{2/3}T_c^{1/3}Q(1-T_r)^{11/9}
-
         Q = 0.1196 \left[ 1 + \frac{T_{br}\ln (P_c/1.01325)}{1-T_{br}}\right]-0.279
-
     Parameters
     ----------
     T : float
@@ -242,12 +215,10 @@ def Brock_Bird(T, Tb, Tc, Pc):
         Critical temperature of fluid [K]
     Pc : float
         Critical pressure of fluid [Pa]
-
     Returns
     -------
     sigma : float
         Liquid surface tension, N/m
-
     Notes
     -----
     Numerous arrangements of this equation are available.
@@ -255,20 +226,15 @@ def Brock_Bird(T, Tb, Tc, Pc):
     Nonpolar, Nonhydrocarbon Liquids
     The exact equation is not in the original paper.
     If the equation yields a negative result, return None.
-
     Examples
     --------
     p-dichloribenzene at 412.15 K, from DIPPR; value differs due to a slight
     difference in method.
-
     >>> Brock_Bird(412.15, 447.3, 685, 3.952E6)
     0.02208448325192495
-
     Chlorobenzene from Poling, as compared with a % error value at 293 K.
-
     >>> Brock_Bird(293.15, 404.75, 633.0, 4530000.0)
     0.032985686413713036
-
     References
     ----------
     .. [1] Brock, James R., and R. Byron Bird. "Surface Tension and the
@@ -288,11 +254,9 @@ def Pitzer(T, Tc, Pc, omega):
     r'''Calculates air-water surface tension using the correlation derived
     by [1]_ from the works of [2]_ and [3]_. Based on critical property CSP
     methods.
-
     .. math::
         \sigma = P_c^{2/3}T_c^{1/3}\frac{1.86 + 1.18\omega}{19.05}
         \left[ \frac{3.75 + 0.91 \omega}{0.291 - 0.08 \omega}\right]^{2/3} (1-T_r)^{11/9}
-
     Parameters
     ----------
     T : float
@@ -303,24 +267,19 @@ def Pitzer(T, Tc, Pc, omega):
         Critical pressure of fluid [Pa]
     omega : float
         Acentric factor for fluid, [-]
-
     Returns
     -------
     sigma : float
         Liquid surface tension, N/m
-
     Notes
     -----
     The source of this equation has not been reviewed.
     Internal units of presure are bar, surface tension of mN/m.
-
     Examples
     --------
     Chlorobenzene from Poling, as compared with a % error value at 293 K.
-
     >>> Pitzer(293., 633.0, 4530000.0, 0.249)
     0.03458453513446387
-
     References
     ----------
     .. [1] Poling, Bruce E. The Properties of Gases and Liquids. 5th edition.
@@ -343,10 +302,8 @@ def Pitzer(T, Tc, Pc, omega):
 def Sastri_Rao(T, Tb, Tc, Pc, chemicaltype=None):
     r'''Calculates air-water surface tension using the correlation derived by
     [1]_ based on critical property CSP methods and chemical classes.
-
     .. math::
         \sigma = K P_c^xT_b^y T_c^z\left[\frac{1-T_r}{1-T_{br}}\right]^m
-
     Parameters
     ----------
     T : float
@@ -357,24 +314,19 @@ def Sastri_Rao(T, Tb, Tc, Pc, chemicaltype=None):
         Critical temperature of fluid [K]
     Pc : float
         Critical pressure of fluid [Pa]
-
     Returns
     -------
     sigma : float
         Liquid surface tension, N/m
-
     Notes
     -----
     The source of this equation has not been reviewed.
     Internal units of presure are bar, surface tension of mN/m.
-
     Examples
     --------
     Chlorobenzene from Poling, as compared with a % error value at 293 K.
-
     >>> Sastri_Rao(293.15, 404.75, 633.0, 4530000.0)
     0.03234567739694441
-
     References
     ----------
     .. [1] Sastri, S. R. S., and K. K. Rao. "A Simple Method to Predict
@@ -399,14 +351,12 @@ def Sastri_Rao(T, Tb, Tc, Pc, chemicaltype=None):
 def Zuo_Stenby(T, Tc, Pc, omega):
     r'''Calculates air-water surface tension using the reference fluids
     methods of [1]_.
-
     .. math::
         \sigma^{(1)} = 40.520(1-T_r)^{1.287}
         \sigma^{(2)} = 52.095(1-T_r)^{1.21548}
         \sigma_r = \sigma_r^{(1)}+ \frac{\omega - \omega^{(1)}}
         {\omega^{(2)}-\omega^{(1)}} (\sigma_r^{(2)}-\sigma_r^{(1)})
         \sigma = T_c^{1/3}P_c^{2/3}[\exp{(\sigma_r)} -1]
-
     Parameters
     ----------
     T : float
@@ -417,25 +367,20 @@ def Zuo_Stenby(T, Tc, Pc, omega):
         Critical pressure of fluid [Pa]
     omega : float
         Acentric factor for fluid, [-]
-
     Returns
     -------
     sigma : float
         Liquid surface tension, N/m
-
     Notes
     -----
     Presently untested. Have not personally checked the sources.
     I strongly believe it is broken.
     The reference values for methane and n-octane are from the DIPPR database.
-
     Examples
     --------
     Chlorobenzene
-
     >>> Zuo_Stenby(293., 633.0, 4530000.0, 0.249)
     0.03345569011871088
-
     References
     ----------
     .. [1] Zuo, You-Xiang, and Erling H. Stenby. "Corresponding-States and
@@ -464,14 +409,10 @@ def Zuo_Stenby(T, Tc, Pc, omega):
 def Hakim_Steinberg_Stiel(T, Tc, Pc, omega, StielPolar=0):
     r'''Calculates air-water surface tension using the reference fluids methods
     of [1]_.
-
     .. math::
         \sigma = 4.60104\times 10^{-7} P_c^{2/3}T_c^{1/3}Q_p \left(\frac{1-T_r}{0.4}\right)^m
-
         Q_p = 0.1574+0.359\omega-1.769\chi-13.69\chi^2-0.51\omega^2+1.298\omega\chi
-
         m = 1.21+0.5385\omega-14.61\chi-32.07\chi^2-1.65\omega^2+22.03\omega\chi
-
     Parameters
     ----------
     T : float
@@ -484,23 +425,18 @@ def Hakim_Steinberg_Stiel(T, Tc, Pc, omega, StielPolar=0):
         Acentric factor for fluid, [-]
     StielPolar : float, optional
         Stiel Polar Factor, [-]
-
     Returns
     -------
     sigma : float
         Liquid surface tension, N/m
-
     Notes
     -----
     Original equation for m and Q are used. Internal units are atm and mN/m.
-
     Examples
     --------
     1-butanol, as compared to value in CRC Handbook of 0.02493.
-
     >>> Hakim_Steinberg_Stiel(298.15, 563.0, 4414000.0, 0.59, StielPolar=-0.07872)
     0.021907902575190447
-
     References
     ----------
     .. [1] Hakim, D. I., David Steinberg, and L. I. Stiel. "Generalized
@@ -521,11 +457,9 @@ def Hakim_Steinberg_Stiel(T, Tc, Pc, omega, StielPolar=0):
 
 def Miqueu(T, Tc, Vc, omega):
     r'''Calculates air-water surface tension using the methods of [1]_.
-
     .. math::
         \sigma = k T_c \left( \frac{N_a}{V_c}\right)^{2/3}
         (4.35 + 4.14 \omega)t^{1.26}(1+0.19t^{0.5} - 0.487t)
-
     Parameters
     ----------
     T : float
@@ -536,12 +470,10 @@ def Miqueu(T, Tc, Vc, omega):
         Critical volume of fluid [m^3/mol]
     omega : float
         Acentric factor for fluid, [-]
-
     Returns
     -------
     sigma : float
         Liquid surface tension, N/m
-
     Notes
     -----
     Uses Avogadro's constant and the Boltsman constant.
@@ -550,14 +482,11 @@ def Miqueu(T, Tc, Vc, omega):
     corrected nonetheless.
     Created with 31 normal fluids, none polar or hydrogen bonded. Has an
     AARD of 3.5%.
-
     Examples
     --------
     Bromotrifluoromethane, 2.45 mN/m
-
     >>> Miqueu(300., 340.1, 0.000199, 0.1687)
     0.003474099603581931
-
     References
     ----------
     .. [1] Miqueu, C, D Broseta, J Satherley, B Mendiboure, J Lachaise, and
@@ -575,11 +504,9 @@ def Miqueu(T, Tc, Vc, omega):
 def Aleem(T, MW, Tb, rhol, Hvap_Tb, Cpl):
     r'''Calculates vapor-liquid surface tension using the correlation derived by
     [1]_ based on critical property CSP methods.
-
     .. math::
         \sigma = \phi \frac{MW^{1/3}} {6N_A^{1/3}}\rho_l^{2/3}\left[H_{vap}
         + C_{p,l}(T_b-T)\right]
-
         \phi = 1 - 0.0047MW + 6.8\times 10^{-6} MW^2
             
     Parameters
@@ -596,12 +523,10 @@ def Aleem(T, MW, Tb, rhol, Hvap_Tb, Cpl):
         Mass enthalpy of vaporization at the normal boiling point [kg/m^3]
     Cpl : float
         Liquid heat capacity of the chemical at T [J/kg/K]
-
     Returns
     -------
     sigma : float
         Liquid-vapor surface tension [N/m]
-
     Notes
     -----
     Internal units of molecuar weight are kg/mol. This model is dimensionally
@@ -628,7 +553,6 @@ def Aleem(T, MW, Tb, rhol, Hvap_Tb, Cpl):
     >>> Aleem(T=90, MW=16.04246, Tb=111.6, rhol=458.7, Hvap_Tb=510870.,
     ... Cpl=2465.)
     0.01669970221165325
-
     References
     ----------
     .. [1] Aleem, W., N. Mellon, S. Sufian, M. I. A. Mutalib, and D. Subbarao.
@@ -644,7 +568,6 @@ def Aleem(T, MW, Tb, rhol, Hvap_Tb, Cpl):
 def Mersmann_Kind_surface_tension(T, Tm, Tb, Tc, Pc, n_associated=1):
     r'''Estimates the surface tension of organic liquid substances
     according to the method of [1]_.
-
     .. math::
         \sigma^* = \frac{\sigma n_{ass}^{1/3}} {(kT_c)^{1/3} T_{rm}P_c^{2/3}}
         
@@ -666,12 +589,10 @@ def Mersmann_Kind_surface_tension(T, Tm, Tb, Tc, Pc, n_associated=1):
     n_associated : float
         Number of associated molecules in a cluster (2 for alcohols, 1
         otherwise), [-]
-
     Returns
     -------
     sigma : float
         Liquid-vapor surface tension [N/m]
-
     Notes
     -----
     In the equation, all quantities must be in SI units. `k` is the boltzman
@@ -683,7 +604,6 @@ def Mersmann_Kind_surface_tension(T, Tm, Tb, Tc, Pc, n_associated=1):
         
     >>> Mersmann_Kind_surface_tension(298.15, 164.15, 328.25, 497.1, 3430000.0)
     0.016744309508833335
-
     References
     ----------
     .. [1] Mersmann, Alfons, and Matthias Kind. "Prediction of Mechanical and 
@@ -725,7 +645,6 @@ class SurfaceTension(TDependentProperty):
     '''Class for dealing with surface tension as a function of temperature.
     Consists of three coefficient-based methods and four data sources, one
     source of tabular information, and five corresponding-states estimators.
-
     Parameters
     ----------
     Tb : float, optional
@@ -754,12 +673,10 @@ class SurfaceTension(TDependentProperty):
     Cpl : float or callable, optional
         Mass heat capacity of the fluid at a pressure and temperature or 
         or callable for the same, [J/kg/K]
-
     Notes
     -----
     To iterate over all methods, use the list stored in
     :obj:`surface_tension_methods`.
-
     **STREFPROP**:
         The REFPROP coefficient-based method, documented in the function
         :obj:`REFPROP` for 115 fluids from [5]_.
@@ -789,7 +706,6 @@ class SurfaceTension(TDependentProperty):
     **VDI_TABULAR**:
         Tabular data in [6]_ along the saturation curve; interpolation is as
         set by the user or the default.
-
     See Also
     --------
     REFPROP
@@ -801,7 +717,6 @@ class SurfaceTension(TDependentProperty):
     Zuo_Stenby
     Miqueu
     Aleem
-
     References
     ----------
     .. [1] Somayajulu, G. R. "A Generalized Equation for Surface Tension from
@@ -897,7 +812,6 @@ class SurfaceTension(TDependentProperty):
         from the various dictionaries and DataFrames storing it. All data is
         stored as attributes. This method also sets :obj:`Tmin`, :obj:`Tmax`,
         and :obj:`all_methods` as a set of methods for which the data exists for.
-
         Called on initialization only. See the source code for the variables at
         which the coefficients are stored. The coefficients can safely be
         altered once the class is initialized. This method can be called again
@@ -971,17 +885,14 @@ class SurfaceTension(TDependentProperty):
     def calculate(self, T, method):
         r'''Method to calculate surface tension of a liquid at temperature `T`
         with a given method.
-
         This method has no exception handling; see `T_dependent_property`
         for that.
-
         Parameters
         ----------
         T : float
             Temperature at which to calculate surface tension, [K]
         method : str
             Name of the method to use
-
         Returns
         -------
         sigma : float
@@ -1027,17 +938,14 @@ class SurfaceTension(TDependentProperty):
         extrapolation outside of the range is used if
         :obj:`tabular_extrapolation_permitted` is set; if it is, the extrapolation
         is considered valid for all temperatures.
-
         It is not guaranteed that a method will work or give an accurate
         prediction simply because this method considers the method valid.
-
         Parameters
         ----------
         T : float
             Temperature at which to test the method, [K]
         method : str
             Name of the method to test
-
         Returns
         -------
         validity : bool
@@ -1082,11 +990,9 @@ class SurfaceTension(TDependentProperty):
 def Winterfeld_Scriven_Davis(xs, sigmas, rhoms):
     r'''Calculates surface tension of a liquid mixture according to
     mixing rules in [1]_ and also in [2]_.
-
     .. math::
         \sigma_M = \sum_i \sum_j \frac{1}{V_L^{L2}}\left(x_i V_i \right)
         \left( x_jV_j\right)\sqrt{\sigma_i\cdot \sigma_j}
-
     Parameters
     ----------
     xs : array-like
@@ -1095,31 +1001,25 @@ def Winterfeld_Scriven_Davis(xs, sigmas, rhoms):
         Surface tensions of all components, [N/m]
     rhoms : array-like
         Molar densities of all components, [mol/m^3]
-
     Returns
     -------
     sigma : float
         Air-liquid surface tension of mixture, [N/m]
-
     Notes
     -----
     DIPPR Procedure 7C: Method for the Surface Tension of Nonaqueous Liquid
     Mixtures
-
     Becomes less accurate as liquid-liquid critical solution temperature is
     approached. DIPPR Evaluation:  3-4% AARD, from 107 nonaqueous binary
     systems, 1284 points. Internally, densities are converted to kmol/m^3. The
     Amgat function is used to obtain liquid mixture density in this equation.
-
     Raises a ZeroDivisionError if either molar volume are zero, and a
     ValueError if a surface tensions of a pure component is negative.
-
     Examples
     --------
     >>> Winterfeld_Scriven_Davis([0.1606, 0.8394], [0.01547, 0.02877],
     ... [8610., 15530.])
     0.024967388450439824
-
     References
     ----------
     .. [1] Winterfeld, P. H., L. E. Scriven, and H. T. Davis. "An Approximate
@@ -1143,18 +1043,12 @@ def Winterfeld_Scriven_Davis(xs, sigmas, rhoms):
 def Diguilio_Teja(T, xs, sigmas_Tb, Tbs, Tcs):
     r'''Calculates surface tension of a liquid mixture according to
     mixing rules in [1]_.
-
     .. math::
         \sigma = 1.002855(T^*)^{1.118091} \frac{T}{T_b} \sigma_r
-
         T^*  = \frac{(T_c/T)-1}{(T_c/T_b)-1}
-
         \sigma_r = \sum x_i \sigma_i
-
         T_b = \sum x_i T_{b,i}
-
         T_c = \sum x_i T_{c,i}
-
     Parameters
     ----------
     T : float
@@ -1167,17 +1061,14 @@ def Diguilio_Teja(T, xs, sigmas_Tb, Tbs, Tcs):
         Boiling temperatures of all components, [K]
     Tcs : array-like
         Critical temperatures of all components, [K]
-
     Returns
     -------
     sigma : float
         Air-liquid surface tension of mixture, [N/m]
-
     Notes
     -----
     Simple model, however it has 0 citations. Gives similar results to the
     `Winterfeld_Scriven_Davis` model.
-
     Raises a ValueError if temperature is greater than the mixture's critical
     temperature or if the given temperature is negative, or if the mixture's
     boiling temperature is higher than its critical temperature.
@@ -1185,13 +1076,11 @@ def Diguilio_Teja(T, xs, sigmas_Tb, Tbs, Tcs):
     [1]_ claims a 4.63 percent average absolute error on 21 binary and 4 
     ternary non-aqueous systems. [1]_ also considered Van der Waals mixing 
     rules for `Tc`, but found it provided a higher error of 5.58%
-
     Examples
     --------
     >>> Diguilio_Teja(T=298.15, xs=[0.1606, 0.8394],
     ... sigmas_Tb=[0.01424, 0.02530], Tbs=[309.21, 312.95], Tcs=[469.7, 508.0])
     0.025716823875045505
-
     References
     ----------
     .. [1] Diguilio, Ralph, and Amyn S. Teja. "Correlation and Prediction of
@@ -1248,24 +1137,20 @@ class SurfaceTensionMixture(MixtureProperty):
     VolumeLiquids : list[VolumeLiquid], optional
         VolumeLiquid objects created for all species in the mixture, normally 
         created by :obj:`thermo.chemical.Chemical`.
-
     Notes
     -----
     To iterate over all methods, use the list stored in
     :obj:`surface_tension_mixture_methods`.
-
     **WINTERFELDSCRIVENDAVIS**:
         Mixing rule described in :obj:`Winterfeld_Scriven_Davis`.
     **DIGUILIOTEJA**:
         Mixing rule described in :obj:`Diguilio_Teja`.
     **SIMPLE**:
         Mixing rule described in :obj:`thermo.utils.mixing_simple`.
-
     See Also
     --------
     Winterfeld_Scriven_Davis
     Diguilio_Teja
-
     References
     ----------
     .. [1] Poling, Bruce E. The Properties of Gases and Liquids. 5th edition.
@@ -1316,7 +1201,6 @@ class SurfaceTensionMixture(MixtureProperty):
         All data are stored as attributes. This method also sets :obj:`Tmin`, 
         :obj:`Tmax`, and :obj:`all_methods` as a set of methods which should 
         work to calculate the property.
-
         Called on initialization only. See the source code for the variables at
         which the coefficients are stored. The coefficients can safely be
         altered once the class is initialized. This method can be called again
@@ -1335,10 +1219,8 @@ class SurfaceTensionMixture(MixtureProperty):
         r'''Method to calculate surface tension of a liquid mixture at 
         temperature `T`, pressure `P`, mole fractions `zs` and weight fractions
         `ws` with a given method.
-
         This method has no exception handling; see `mixture_property`
         for that.
-
         Parameters
         ----------
         T : float
@@ -1351,7 +1233,6 @@ class SurfaceTensionMixture(MixtureProperty):
             Weight fractions of all species in the mixture, [-]
         method : str
             Name of the method to use
-
         Returns
         -------
         sigma : float
@@ -1374,7 +1255,6 @@ class SurfaceTensionMixture(MixtureProperty):
         r'''Method to test the validity of a specified method for the given
         conditions. No methods have implemented checks or strict ranges of 
         validity.
-
         Parameters
         ----------
         T : float
@@ -1387,7 +1267,6 @@ class SurfaceTensionMixture(MixtureProperty):
             Weight fractions of all species in the mixture, [-]
         method : str
             Method name to use
-
         Returns
         -------
         validity : bool
@@ -1400,4 +1279,5 @@ class SurfaceTensionMixture(MixtureProperty):
             return True
         else:
             raise Exception('Method not valid')
+
 

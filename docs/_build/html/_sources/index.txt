@@ -1,38 +1,15 @@
+.. figure:: ./images/BioSTEAM_logo.png
 
-BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules
-=========================================================================
+Overview
+--------
 
 BioSTEAM is an open source process simulation package in Python for fast and flexible techno-economic analysis. BioSTEAM objects serve as basic building blocks to design and simulate a biorefinery. These include objects that handle material properties, material flows, unit operations, recycle loops and process specifications.
 
-
-Overview
-========
-
 .. figure:: ./images/UML.png
 
-   **Figure 1.** A simplified UML class diagram depicts the core classes of BioSTEAM.
+   A simplified UML class diagram of the core classes of BioSTEAM.
 
 The :doc:`Species` object defines the working compounds of the biorefinery. When a Species object is created, it identifies compounds by name and stores pure chemical properties as :doc:`compounds/Chemical` objects. :doc:`Stream` objects define material flows, and estimate mixture properties and thermodynamic equilibrium. Before estimating equilibrium, a Stream object is cast to a :doc:`MixedStream` object to enable multiple phases. A :doc:`Unit` object stores input and output Stream objects in the `ins` and `outs` attributes respectively. A :doc:`System` object serves to define a `network` of unit operations, functions, and subsystems, as well as a `recycle` stream (if any). When a System object is simulated, each network element is run sequentially within an iterative solver until the recycle stream converges (in both component flow rates and temperature). A :doc:`TEA` object can perform cashflow analysis on a system given a set of options. Adjustments can be made to the available heating and cooling agents of the :doc:`HeatUtility` class (e.g., steam pressure, cooling water temperature, price) as well as the electricity price of the :doc:`PowerUtility` class.
-
-Installation
-============
-
-Get the latest version of BioSTEAM from
-https://pypi.python.org/pypi/biosteam/
-
-If you have an installation of Python with pip, simple install it with:
-
-    $ pip install biosteam
-
-To get the git version, run:
-
-    $ git clone git://github.com/yoelcortes/biosteam
-
-BioSTEAM uses `Graphviz <http://www.graphviz.org/>`__ to for making flowsheets. To properly install Graphviz in an anaconda distribution, please run the following line:
-
-    $ conda install graphviz
-
-You may also need to add Graphviz to your system path on Windows by following these `instructions <https://bobswift.atlassian.net/wiki/spaces/GVIZ/pages/20971549/How+to+install+Graphviz+software>`__.
 
 
 .. toctree::
@@ -40,6 +17,7 @@ You may also need to add Graphviz to your system path on Windows by following th
    :numbered:
    :caption: Tutorial
    
+   Installation
    tutorial/Getting started
    tutorial/MixedStream objects and thermodynamic equilibrium
    tutorial/Creating a Unit
@@ -66,6 +44,7 @@ You may also need to add Graphviz to your system path on Windows by following th
    HeatUtility
    System
    TEA
+   CombinedTEA
    Flowsheet
    compounds/compounds
    units/units
@@ -73,10 +52,31 @@ You may also need to add Graphviz to your system path on Windows by following th
    reaction
    evaluation/evaluation
 
+Licence
+^^^^^^^
+We intend to keep BioSTEAM perpetually open source and to use a liberal
+open source license. As a contributor to the project, you agree that
+any contributions be licensed under the terms of the corresponding
+subproject. All of the code in BioSTEAM is available under the University
+of Illinois/NCSA Open Source License, which boils down to this:
+
+* You can freely distribute BioSTEAM 
+* You must retain the copyright notice if you redistribute BioSTEAM 
+* Binaries derived from BioSTEAM must reproduce the copyright notice (e.g. in an included readme file).
+* You can't use our names to promote your BioSTEAM derived products.
+* There's no warranty on BioSTEAM at all.
+
+We believe this fosters the widest adoption of BioSTEAM because it allows
+commercial products to be derived from BioSTEAM with few restrictions and
+without a requirement for making any derived works also open source
+(i.e. BioSTEAM license is not a "copyleft" license like the GPL). We
+suggest that you read the `License <https://github.com/yoelcortes/biosteam/blob/master/LICENSE.txt>`__. 
+if further clarification is needed.
 
 Indices and tables
-==================
+^^^^^^^^^^^^^^^^^^
 
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
