@@ -20,7 +20,7 @@ System.molar_tolerance = 1
 Ethanol_MW = species.Ethanol.MW
 Water_MW = species.H2O.MW
 
-def Ethanol_molfrac(e: 'Ethanol mass fraction'):
+def Ethanol_molfrac(e):
     """Return ethanol mol fraction in a ethanol water mixture"""
     return e/Ethanol_MW / (e/Ethanol_MW + (1-e)/Water_MW)
 

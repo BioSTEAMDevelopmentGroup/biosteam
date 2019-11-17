@@ -4,7 +4,7 @@ Created on Sun Feb 17 16:36:47 2019
 
 @author: yoelr
 """
-from ... import Stream, Species, HeatUtility, Unit
+from ... import Stream, HeatUtility, Unit
 from . import Facility
 from ..decorators import cost
 
@@ -35,11 +35,8 @@ class BoilerTurbogenerator(Facility):
         [0] Emission (burned feed)
     boiler_efficiency : float
         Fraction of heat transfered to steam.
-    
     turbo_generator_efficiency : float
         Fraction of steam heat converted to electricity.
-    
-    
     """
     duty_over_mol = 50000 # Superheat steam with 50000 kJ/kmol
     boiler_blowdown = 0.03
