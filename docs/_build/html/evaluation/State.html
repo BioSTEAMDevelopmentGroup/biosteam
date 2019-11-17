@@ -20,20 +20,11 @@
   <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
   
     
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'../',
-              VERSION:'0.1',
-              LANGUAGE:'None',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  true,
-              SOURCELINK_SUFFIX: '.txt'
-          };
-      </script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -58,7 +49,7 @@
           
 
           
-            <a href="../home.html" class="icon icon-home"> BioSTEAM
+            <a href="../index.html" class="icon icon-home"> BioSTEAM
           
 
           
@@ -90,19 +81,20 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../Installation.html">1. Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Getting started.html">2. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/MixedStream objects and thermodynamic equilibrium.html">3. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../units/notebooks/examples.html">5. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis of a biorefinery.html">9. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Stoichiometric reactions.html">12. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Advanced simulation.html">13. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/MixedStream objects and thermodynamic equilibrium.html">4. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../units/notebooks/examples.html">6. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">9. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis of a biorefinery.html">10. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -143,7 +135,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../home.html">BioSTEAM</a>
+          <a href="../index.html">BioSTEAM</a>
         
       </nav>
 
@@ -172,7 +164,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../home.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html">Docs</a> &raquo;</li>
         
           <li><a href="evaluation.html">evaluation</a> &raquo;</li>
         
@@ -218,181 +210,150 @@
 <span id="state"></span><h1>State<a class="headerlink" href="#module-biosteam.evaluation" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.evaluation.State">
-<em class="property">class </em><code class="descclassname">biosteam.evaluation.</code><code class="descname">State</code><span class="sig-paren">(</span><em>system</em>, <em>skip=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.evaluation.</code><code class="sig-name descname">State</code><span class="sig-paren">(</span><em class="sig-param">system</em>, <em class="sig-param">skip=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a State object that can update the <cite>system</cite> state given a sample of parameter states.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>system</strong> <span class="classifier-delimiter">:</span> <span class="classifier">System</span></dt>
-<dd></dd>
-<dt><strong>skip=False</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool</span></dt>
-<dd><p class="first last">If True, skip simulation for repeated states</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>system</strong><span class="classifier">System</span></dt><dd></dd>
+<dt><strong>skip=False</strong><span class="classifier">bool</span></dt><dd><p>If True, skip simulation for repeated states</p>
 </dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <dl class="method">
 <dt id="biosteam.evaluation.State.load_default_parameters">
-<code class="descname">load_default_parameters</code><span class="sig-paren">(</span><em>feedstock</em>, <em>shape=&lt;function triang&gt;</em>, <em>bounded_shape=&lt;function bounded_triang&gt;</em>, <em>operating_days=False</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.evaluation.State.load_default_parameters" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">load_default_parameters</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">feedstock</em>, <em class="sig-param">shape=&lt;function triang at 0x000001EEF8434C80&gt;</em>, <em class="sig-param">bounded_shape=&lt;function bounded_triang at 0x000001EEF8434D08&gt;</em>, <em class="sig-param">operating_days=False</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.evaluation.State.load_default_parameters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load all default parameters, including coefficients of cost items, stream prices, electricity price, heat utility prices, feedstock flow rate, and number of operating days.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>feedstock</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Stream</span></dt>
-<dd><p class="first last">Main feedstock of process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>feedstock</strong><span class="classifier">Stream</span></dt><dd><p>Main feedstock of process.</p>
 </dd>
-<dt><strong>shape</strong> <span class="classifier-delimiter">:</span> <span class="classifier">function, optional</span></dt>
-<dd><p class="first last">Should take in baseline value and return a chaospy.Dist object or
+<dt><strong>shape</strong><span class="classifier">function, optional</span></dt><dd><p>Should take in baseline value and return a chaospy.Dist object or
 None. Default function returns a chaospy.Triangle object with bounds
 at +- 10% of baseline value. The distribution is applied to all
 parameters except exponential factor “n” of cost items.</p>
 </dd>
-<dt><strong>bounded_shape</strong> <span class="classifier-delimiter">:</span> <span class="classifier">function, optional</span></dt>
-<dd><p class="first last">Should take in baseline value and return a chaospy.Dist object or
+<dt><strong>bounded_shape</strong><span class="classifier">function, optional</span></dt><dd><p>Should take in baseline value and return a chaospy.Dist object or
 None. Default function returns a chaospy.Triangle object with bounds
 at +- 0.1 of baseline value or minimum 0 and maximum 1. The 
 distribution is applied to exponential factor “n” of cost items.</p>
 </dd>
-<dt><strong>operating_days</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional</span></dt>
-<dd><p class="first last">If True, include operating days</p>
+<dt><strong>operating_days</strong><span class="classifier">bool, optional</span></dt><dd><p>If True, include operating days</p>
 </dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.evaluation.State.copy">
-<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.copy" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">copy</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return copy.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.evaluation.State.get_parameters">
-<code class="descname">get_parameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State.get_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.get_parameters" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_parameters</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State.get_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.get_parameters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return parameters.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.evaluation.State.get_distribution_summary">
-<code class="descname">get_distribution_summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State.get_distribution_summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.get_distribution_summary" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_distribution_summary</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State.get_distribution_summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.get_distribution_summary" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return dictionary of shape name-DataFrame pairs.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.evaluation.State.parameter">
-<code class="descname">parameter</code><span class="sig-paren">(</span><em>setter=None</em>, <em>element=None</em>, <em>kind='isolated'</em>, <em>name=None</em>, <em>distribution=None</em>, <em>units=None</em>, <em>baseline=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State.parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.parameter" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">parameter</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">setter=None</em>, <em class="sig-param">element=None</em>, <em class="sig-param">kind='isolated'</em>, <em class="sig-param">name=None</em>, <em class="sig-param">distribution=None</em>, <em class="sig-param">units=None</em>, <em class="sig-param">baseline=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State.parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.parameter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Define and register parameter.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>setter</strong> <span class="classifier-delimiter">:</span> <span class="classifier">function</span></dt>
-<dd><p class="first last">Should set parameter in the element.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>setter</strong><span class="classifier">function</span></dt><dd><p>Should set parameter in the element.</p>
 </dd>
-<dt><strong>element</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Unit or Stream</span></dt>
-<dd><p class="first last">Element in the system being altered.</p>
+<dt><strong>element</strong><span class="classifier">Unit or Stream</span></dt><dd><p>Element in the system being altered.</p>
 </dd>
-<dt><strong>kind</strong> <span class="classifier-delimiter">:</span> <span class="classifier">{‘coupled’, ‘isolated’, ‘design’, ‘cost’}</span></dt>
-<dd><ul class="first last simple">
-<li>‘coupled’: parameter is coupled to the system.</li>
-<li>‘isolated’: parameter does not affect the system but does affect the element (if any).</li>
-<li>‘design’: parameter only affects design and cost of the element.</li>
-<li>‘cost’: parameter only affects cost of the element.</li>
+<dt><strong>kind</strong><span class="classifier">{‘coupled’, ‘isolated’, ‘design’, ‘cost’}</span></dt><dd><ul class="simple">
+<li><p>‘coupled’: parameter is coupled to the system.</p></li>
+<li><p>‘isolated’: parameter does not affect the system but does affect the element (if any).</p></li>
+<li><p>‘design’: parameter only affects design and cost of the element.</p></li>
+<li><p>‘cost’: parameter only affects cost of the element.</p></li>
 </ul>
 </dd>
-<dt><strong>name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd><p class="first last">Name of parameter. If None, default to argument name of setter.</p>
+<dt><strong>name</strong><span class="classifier">str</span></dt><dd><p>Name of parameter. If None, default to argument name of setter.</p>
 </dd>
-<dt><strong>distribution</strong> <span class="classifier-delimiter">:</span> <span class="classifier">chaospy.Dist</span></dt>
-<dd><p class="first last">Parameter distribution.</p>
+<dt><strong>distribution</strong><span class="classifier">chaospy.Dist</span></dt><dd><p>Parameter distribution.</p>
 </dd>
-<dt><strong>units</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd><p class="first last">Parameter units of measure</p>
+<dt><strong>units</strong><span class="classifier">str</span></dt><dd><p>Parameter units of measure</p>
 </dd>
-<dt><strong>baseline</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Baseline value of parameter.</p>
+<dt><strong>baseline</strong><span class="classifier">float</span></dt><dd><p>Baseline value of parameter.</p>
 </dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <p class="rubric">Notes</p>
 <p>If kind is ‘coupled’, account for downstream operations. Otherwise, only account for given element. If kind is ‘design’ or ‘cost’, element must be a Unit object.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.evaluation.State.sample">
-<code class="descname">sample</code><span class="sig-paren">(</span><em>N</em>, <em>rule</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.sample" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">sample</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">N</em>, <em class="sig-param">rule</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.sample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return N samples from parameter distribution at given rule.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>N</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd><p class="first last">Number of samples.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>N</strong><span class="classifier">int</span></dt><dd><p>Number of samples.</p>
 </dd>
-<dt><strong>rule</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd><p class="first last">Sampling rule.</p>
+<dt><strong>rule</strong><span class="classifier">str</span></dt><dd><p>Sampling rule.</p>
 </dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <p class="rubric">Notes</p>
 <p>Use the following <code class="docutils literal notranslate"><span class="pre">rule</span></code> flag for sampling:</p>
-<table border="1" class="docutils">
+<table class="docutils align-default">
 <colgroup>
-<col width="13%" />
-<col width="88%" />
+<col style="width: 13%" />
+<col style="width: 88%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">key</th>
-<th class="head">Description</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>key</p></th>
+<th class="head"><p>Description</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">C</span></code></td>
-<td>Roots of the first order Chebyshev polynomials.</td>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">C</span></code></p></td>
+<td><p>Roots of the first order Chebyshev polynomials.</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">NC</span></code></td>
-<td>Chebyshev nodes adjusted to ensure nested.</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">NC</span></code></p></td>
+<td><p>Chebyshev nodes adjusted to ensure nested.</p></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">K</span></code></td>
-<td>Korobov lattice.</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">K</span></code></p></td>
+<td><p>Korobov lattice.</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">R</span></code></td>
-<td>Classical (Pseudo-)Random samples.</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">R</span></code></p></td>
+<td><p>Classical (Pseudo-)Random samples.</p></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">RG</span></code></td>
-<td>Regular spaced grid.</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">RG</span></code></p></td>
+<td><p>Regular spaced grid.</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">NG</span></code></td>
-<td>Nested regular spaced grid.</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">NG</span></code></p></td>
+<td><p>Nested regular spaced grid.</p></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">L</span></code></td>
-<td>Latin hypercube samples.</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">L</span></code></p></td>
+<td><p>Latin hypercube samples.</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">S</span></code></td>
-<td>Sobol low-discrepancy sequence.</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">S</span></code></p></td>
+<td><p>Sobol low-discrepancy sequence.</p></td>
 </tr>
-<tr class="row-even"><td><code class="docutils literal notranslate"><span class="pre">H</span></code></td>
-<td>Halton low-discrepancy sequence.</td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">H</span></code></p></td>
+<td><p>Halton low-discrepancy sequence.</p></td>
 </tr>
-<tr class="row-odd"><td><code class="docutils literal notranslate"><span class="pre">M</span></code></td>
-<td>Hammersley low-discrepancy sequence.</td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">M</span></code></p></td>
+<td><p>Hammersley low-discrepancy sequence.</p></td>
 </tr>
 </tbody>
 </table>
@@ -400,13 +361,13 @@ distribution is applied to exponential factor “n” of cost items.</p>
 
 <dl class="method">
 <dt id="biosteam.evaluation.State.__call__">
-<code class="descname">__call__</code><span class="sig-paren">(</span><em>sample</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State.__call__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.__call__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__call__</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">sample</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State.__call__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.__call__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Update state given sample of parameters.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.evaluation.State.show">
-<code class="descname">show</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.show" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_state.html#State.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.State.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return information on metric parameters.</p>
 </dd></dl>
 

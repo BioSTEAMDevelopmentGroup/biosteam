@@ -20,20 +20,11 @@
   <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
   
     
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'./',
-              VERSION:'0.1',
-              LANGUAGE:'None',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  true,
-              SOURCELINK_SUFFIX: '.txt'
-          };
-      </script>
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -59,7 +50,7 @@
           
 
           
-            <a href="home.html" class="icon icon-home"> BioSTEAM
+            <a href="index.html" class="icon icon-home"> BioSTEAM
           
 
           
@@ -91,19 +82,20 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="Installation.html">1. Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Getting started.html">2. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/MixedStream objects and thermodynamic equilibrium.html">3. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="units/notebooks/examples.html">5. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis of a biorefinery.html">9. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Stoichiometric reactions.html">12. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Advanced simulation.html">13. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/MixedStream objects and thermodynamic equilibrium.html">4. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units/notebooks/examples.html">6. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Biorefineries.html">9. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis of a biorefinery.html">10. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -136,7 +128,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="home.html">BioSTEAM</a>
+          <a href="index.html">BioSTEAM</a>
         
       </nav>
 
@@ -165,7 +157,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="home.html">Docs</a> &raquo;</li>
+      <li><a href="index.html">Docs</a> &raquo;</li>
         
       <li>CombinedTEA</li>
     
@@ -209,146 +201,140 @@
 <span id="combinedtea"></span><h1>CombinedTEA<a class="headerlink" href="#module-biosteam" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.CombinedTEA">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">CombinedTEA</code><span class="sig-paren">(</span><em>TEAs</em>, <em>IRR</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#CombinedTEA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.CombinedTEA" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.</code><code class="sig-name descname">CombinedTEA</code><span class="sig-paren">(</span><em class="sig-param">TEAs</em>, <em class="sig-param">IRR</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#CombinedTEA"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.CombinedTEA" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="attribute">
 <dt id="biosteam.CombinedTEA.TEAs">
-<code class="descname">TEAs</code><a class="headerlink" href="#biosteam.CombinedTEA.TEAs" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">TEAs</code><a class="headerlink" href="#biosteam.CombinedTEA.TEAs" title="Permalink to this definition">¶</a></dt>
 <dd><p>iterable[TEA] All TEA objects for cashflow calculation</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.CombinedTEA.operating_days">
-<code class="descname">operating_days</code><a class="headerlink" href="#biosteam.CombinedTEA.operating_days" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">operating_days</code><a class="headerlink" href="#biosteam.CombinedTEA.operating_days" title="Permalink to this definition">¶</a></dt>
 <dd><p>[float] Number of operating days per year.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.CombinedTEA.utility_cost">
-<code class="descname">utility_cost</code><a class="headerlink" href="#biosteam.CombinedTEA.utility_cost" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">utility_cost</code><a class="headerlink" href="#biosteam.CombinedTEA.utility_cost" title="Permalink to this definition">¶</a></dt>
 <dd><p>Total utility cost (USD/yr).</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.CombinedTEA.purchase_cost">
-<code class="descname">purchase_cost</code><a class="headerlink" href="#biosteam.CombinedTEA.purchase_cost" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">purchase_cost</code><a class="headerlink" href="#biosteam.CombinedTEA.purchase_cost" title="Permalink to this definition">¶</a></dt>
 <dd><p>Total purchase cost (USD).</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.CombinedTEA.installation_cost">
-<code class="descname">installation_cost</code><a class="headerlink" href="#biosteam.CombinedTEA.installation_cost" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">installation_cost</code><a class="headerlink" href="#biosteam.CombinedTEA.installation_cost" title="Permalink to this definition">¶</a></dt>
 <dd><p>Total installation cost (USD).</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.CombinedTEA.NPV">
-<code class="descname">NPV</code><a class="headerlink" href="#biosteam.CombinedTEA.NPV" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">NPV</code><a class="headerlink" href="#biosteam.CombinedTEA.NPV" title="Permalink to this definition">¶</a></dt>
 <dd><p>Net present value.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.CombinedTEA.DPI">
-<code class="descname">DPI</code><a class="headerlink" href="#biosteam.CombinedTEA.DPI" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">DPI</code><a class="headerlink" href="#biosteam.CombinedTEA.DPI" title="Permalink to this definition">¶</a></dt>
 <dd><p>Direct permanent investment.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.CombinedTEA.TDC">
-<code class="descname">TDC</code><a class="headerlink" href="#biosteam.CombinedTEA.TDC" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">TDC</code><a class="headerlink" href="#biosteam.CombinedTEA.TDC" title="Permalink to this definition">¶</a></dt>
 <dd><p>Total depreciable capital.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.CombinedTEA.FCI">
-<code class="descname">FCI</code><a class="headerlink" href="#biosteam.CombinedTEA.FCI" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">FCI</code><a class="headerlink" href="#biosteam.CombinedTEA.FCI" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fixed capital investment.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.CombinedTEA.TCI">
-<code class="descname">TCI</code><a class="headerlink" href="#biosteam.CombinedTEA.TCI" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">TCI</code><a class="headerlink" href="#biosteam.CombinedTEA.TCI" title="Permalink to this definition">¶</a></dt>
 <dd><p>Total capital investment.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.CombinedTEA.FOC">
-<code class="descname">FOC</code><a class="headerlink" href="#biosteam.CombinedTEA.FOC" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">FOC</code><a class="headerlink" href="#biosteam.CombinedTEA.FOC" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fixed operating costs (USD/yr).</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.CombinedTEA.VOC">
-<code class="descname">VOC</code><a class="headerlink" href="#biosteam.CombinedTEA.VOC" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">VOC</code><a class="headerlink" href="#biosteam.CombinedTEA.VOC" title="Permalink to this definition">¶</a></dt>
 <dd><p>Variable operating costs (USD/yr).</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.CombinedTEA.AOC">
-<code class="descname">AOC</code><a class="headerlink" href="#biosteam.CombinedTEA.AOC" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">AOC</code><a class="headerlink" href="#biosteam.CombinedTEA.AOC" title="Permalink to this definition">¶</a></dt>
 <dd><p>Annual operating cost excluding depreciation (USD/yr).</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.CombinedTEA.material_cost">
-<code class="descname">material_cost</code><a class="headerlink" href="#biosteam.CombinedTEA.material_cost" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">material_cost</code><a class="headerlink" href="#biosteam.CombinedTEA.material_cost" title="Permalink to this definition">¶</a></dt>
 <dd><p>Annual material cost.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.CombinedTEA.annual_depreciation">
-<code class="descname">annual_depreciation</code><a class="headerlink" href="#biosteam.CombinedTEA.annual_depreciation" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">annual_depreciation</code><a class="headerlink" href="#biosteam.CombinedTEA.annual_depreciation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Depreciation (USD/yr) equivalent to FCI dived by the the duration of the venture.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.CombinedTEA.sales">
-<code class="descname">sales</code><a class="headerlink" href="#biosteam.CombinedTEA.sales" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">sales</code><a class="headerlink" href="#biosteam.CombinedTEA.sales" title="Permalink to this definition">¶</a></dt>
 <dd><p>Annual sales revenue.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.CombinedTEA.net_earnings">
-<code class="descname">net_earnings</code><a class="headerlink" href="#biosteam.CombinedTEA.net_earnings" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">net_earnings</code><a class="headerlink" href="#biosteam.CombinedTEA.net_earnings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Net earnings without accounting for annualized depreciation.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.CombinedTEA.ROI">
-<code class="descname">ROI</code><a class="headerlink" href="#biosteam.CombinedTEA.ROI" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">ROI</code><a class="headerlink" href="#biosteam.CombinedTEA.ROI" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return on investment (1/yr) without accounting for annualized depreciation.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.CombinedTEA.PBP">
-<code class="descname">PBP</code><a class="headerlink" href="#biosteam.CombinedTEA.PBP" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">PBP</code><a class="headerlink" href="#biosteam.CombinedTEA.PBP" title="Permalink to this definition">¶</a></dt>
 <dd><p>Pay back period (yr) without accounting for annualized depreciation.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.CombinedTEA.get_cashflow">
-<code class="descname">get_cashflow</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#CombinedTEA.get_cashflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.CombinedTEA.get_cashflow" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_cashflow</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#CombinedTEA.get_cashflow"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.CombinedTEA.get_cashflow" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return DataFrame of the cash flow analysis.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.CombinedTEA.production_cost">
-<code class="descname">production_cost</code><span class="sig-paren">(</span><em>products</em>, <em>with_annual_depreciation=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#CombinedTEA.production_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.CombinedTEA.production_cost" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">production_cost</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">products</em>, <em class="sig-param">with_annual_depreciation=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#CombinedTEA.production_cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.CombinedTEA.production_cost" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return production cost of products [USD/yr].</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>products</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Iterable[Stream]</span></dt>
-<dd><p class="first last">Main products of the system</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>products</strong><span class="classifier">Iterable[Stream]</span></dt><dd><p>Main products of the system</p>
 </dd>
-<dt><strong>with_annual_depreciation=True</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional</span></dt>
-<dd></dd>
+<dt><strong>with_annual_depreciation=True</strong><span class="classifier">bool, optional</span></dt><dd></dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <p class="rubric">Notes</p>
 <p>If there is more than one main product, The production cost is
 proportionally allocated to each of the main products with respect to
@@ -358,35 +344,29 @@ determined by the annual production multiplied by its selling price.</p>
 
 <dl class="method">
 <dt id="biosteam.CombinedTEA.solve_IRR">
-<code class="descname">solve_IRR</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#CombinedTEA.solve_IRR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.CombinedTEA.solve_IRR" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">solve_IRR</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#CombinedTEA.solve_IRR"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.CombinedTEA.solve_IRR" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the IRR at the break even point (NPV = 0) through cash flow analysis.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.CombinedTEA.solve_price">
-<code class="descname">solve_price</code><span class="sig-paren">(</span><em>stream</em>, <em>TEA=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#CombinedTEA.solve_price"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.CombinedTEA.solve_price" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">solve_price</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">stream</em>, <em class="sig-param">TEA=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#CombinedTEA.solve_price"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.CombinedTEA.solve_price" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the price (USD/kg) of stream at the break even point (NPV = 0) through cash flow analysis.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>stream</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Stream</span></dt>
-<dd><p class="first last">Stream with variable selling price.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>stream</strong><span class="classifier">Stream</span></dt><dd><p>Stream with variable selling price.</p>
 </dd>
-<dt><strong>TEA</strong> <span class="classifier-delimiter">:</span> <span class="classifier">TEA, optional</span></dt>
-<dd><p class="first last">Stream should belong here.</p>
+<dt><strong>TEA</strong><span class="classifier">TEA, optional</span></dt><dd><p>Stream should belong here.</p>
 </dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.CombinedTEA.show">
-<code class="descname">show</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#CombinedTEA.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.CombinedTEA.show" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_tea.html#CombinedTEA.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.CombinedTEA.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prints information on unit.</p>
 </dd></dl>
 

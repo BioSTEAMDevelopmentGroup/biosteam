@@ -20,20 +20,11 @@
   <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
   
     
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'../',
-              VERSION:'0.1',
-              LANGUAGE:'None',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  true,
-              SOURCELINK_SUFFIX: '.txt'
-          };
-      </script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -59,7 +50,7 @@
           
 
           
-            <a href="../home.html" class="icon icon-home"> BioSTEAM
+            <a href="../index.html" class="icon icon-home"> BioSTEAM
           
 
           
@@ -91,19 +82,20 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../Installation.html">1. Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Getting started.html">2. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/MixedStream objects and thermodynamic equilibrium.html">3. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/examples.html">5. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis of a biorefinery.html">9. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Stoichiometric reactions.html">12. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Advanced simulation.html">13. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/MixedStream objects and thermodynamic equilibrium.html">4. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/examples.html">6. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">9. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis of a biorefinery.html">10. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -157,7 +149,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../home.html">BioSTEAM</a>
+          <a href="../index.html">BioSTEAM</a>
         
       </nav>
 
@@ -186,7 +178,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../home.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html">Docs</a> &raquo;</li>
         
           <li><a href="units.html">units</a> &raquo;</li>
         
@@ -234,102 +226,72 @@
 <p>&#64;author: yoelr</p>
 <dl class="function">
 <dt id="biosteam.units.decorators.cost">
-<code class="descclassname">biosteam.units.decorators.</code><code class="descname">cost</code><span class="sig-paren">(</span><em>basis</em>, <em>ID=None</em>, <em>*</em>, <em>CE</em>, <em>cost</em>, <em>n</em>, <em>S=1</em>, <em>ub=0</em>, <em>kW=0</em>, <em>BM=1</em>, <em>units=None</em>, <em>fsize=None</em>, <em>N=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/decorators/_cost.html#cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.decorators.cost" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">biosteam.units.decorators.</code><code class="sig-name descname">cost</code><span class="sig-paren">(</span><em class="sig-param">basis</em>, <em class="sig-param">ID=None</em>, <em class="sig-param">*</em>, <em class="sig-param">CE</em>, <em class="sig-param">cost</em>, <em class="sig-param">n</em>, <em class="sig-param">S=1</em>, <em class="sig-param">ub=0</em>, <em class="sig-param">kW=0</em>, <em class="sig-param">BM=1</em>, <em class="sig-param">units=None</em>, <em class="sig-param">fsize=None</em>, <em class="sig-param">N=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/decorators/_cost.html#cost"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.decorators.cost" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add item (free-on-board) purchase cost based on exponential scale up:</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>basis</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd><p class="first last">Name of size parameter used for scaling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>basis</strong><span class="classifier">str</span></dt><dd><p>Name of size parameter used for scaling.</p>
 </dd>
-<dt><strong>ID</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd><p class="first last">Name of purchase item.</p>
+<dt><strong>ID</strong><span class="classifier">str</span></dt><dd><p>Name of purchase item.</p>
 </dd>
-<dt><strong>CE</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Chemical engineering plant cost index.</p>
+<dt><strong>CE</strong><span class="classifier">float</span></dt><dd><p>Chemical engineering plant cost index.</p>
 </dd>
-<dt><strong>cost</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Purchase cost of item.</p>
+<dt><strong>cost</strong><span class="classifier">float</span></dt><dd><p>Purchase cost of item.</p>
 </dd>
-<dt><strong>n</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Exponential factor.</p>
+<dt><strong>n</strong><span class="classifier">float</span></dt><dd><p>Exponential factor.</p>
 </dd>
-<dt><strong>S = 1</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Size.</p>
+<dt><strong>S = 1</strong><span class="classifier">float</span></dt><dd><p>Size.</p>
 </dd>
-<dt><strong>ub</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Size limit.</p>
+<dt><strong>ub</strong><span class="classifier">float</span></dt><dd><p>Size limit.</p>
 </dd>
-<dt><strong>kW</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Electricity rate.</p>
+<dt><strong>kW</strong><span class="classifier">float</span></dt><dd><p>Electricity rate.</p>
 </dd>
-<dt><strong>BM = 1: float</strong></dt>
-<dd><p class="first last">Bare module factor (installation factor).</p>
+<dt><strong>BM = 1: float</strong></dt><dd><p>Bare module factor (installation factor).</p>
 </dd>
-<dt><strong>units = None</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, optional</span></dt>
-<dd><p class="first last">Units of measure.</p>
+<dt><strong>units = None</strong><span class="classifier">str, optional</span></dt><dd><p>Units of measure.</p>
 </dd>
-<dt><strong>fsize = None</strong> <span class="classifier-delimiter">:</span> <span class="classifier">function, optional</span></dt>
-<dd><p class="first last">Accepts a Unit object argument and returns the size parameter. If None, defaults to function predefined for given name and units of measure.</p>
+<dt><strong>fsize = None</strong><span class="classifier">function, optional</span></dt><dd><p>Accepts a Unit object argument and returns the size parameter. If None, defaults to function predefined for given name and units of measure.</p>
 </dd>
-<dt><strong>N</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd><p class="first last">Attribute name for number of parallel units.</p>
+<dt><strong>N</strong><span class="classifier">str</span></dt><dd><p>Attribute name for number of parallel units.</p>
 </dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <p><a class="reference internal" href="../tutorial/Unit decorators.html"><span class="doc">Unit decorators</span></a></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="biosteam.units.decorators.CostItem">
-<em class="property">class </em><code class="descclassname">biosteam.units.decorators.</code><code class="descname">CostItem</code><span class="sig-paren">(</span><em>basis</em>, <em>units</em>, <em>S</em>, <em>ub</em>, <em>CE</em>, <em>cost</em>, <em>n</em>, <em>kW</em>, <em>BM</em>, <em>N</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/decorators/_cost.html#CostItem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.decorators.CostItem" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.decorators.</code><code class="sig-name descname">CostItem</code><span class="sig-paren">(</span><em class="sig-param">basis</em>, <em class="sig-param">units</em>, <em class="sig-param">S</em>, <em class="sig-param">ub</em>, <em class="sig-param">CE</em>, <em class="sig-param">cost</em>, <em class="sig-param">n</em>, <em class="sig-param">kW</em>, <em class="sig-param">BM</em>, <em class="sig-param">N</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/decorators/_cost.html#CostItem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.decorators.CostItem" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a CostItem object which defines exponential scaling factors for an item’s purchase cost.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>basis</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd><p class="first last">Name of size parameter used for scaling.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>basis</strong><span class="classifier">str</span></dt><dd><p>Name of size parameter used for scaling.</p>
 </dd>
-<dt><strong>units</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd><p class="first last">Units of measure.</p>
+<dt><strong>units</strong><span class="classifier">str</span></dt><dd><p>Units of measure.</p>
 </dd>
-<dt><strong>S</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Size.</p>
+<dt><strong>S</strong><span class="classifier">float</span></dt><dd><p>Size.</p>
 </dd>
-<dt><strong>ub</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Size limit.</p>
+<dt><strong>ub</strong><span class="classifier">float</span></dt><dd><p>Size limit.</p>
 </dd>
-<dt><strong>CE</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Chemical engineering plant cost index.</p>
+<dt><strong>CE</strong><span class="classifier">float</span></dt><dd><p>Chemical engineering plant cost index.</p>
 </dd>
-<dt><strong>cost</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Purchase cost of item.</p>
+<dt><strong>cost</strong><span class="classifier">float</span></dt><dd><p>Purchase cost of item.</p>
 </dd>
-<dt><strong>n</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Exponential factor.</p>
+<dt><strong>n</strong><span class="classifier">float</span></dt><dd><p>Exponential factor.</p>
 </dd>
-<dt><strong>kW</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Electricity rate.</p>
+<dt><strong>kW</strong><span class="classifier">float</span></dt><dd><p>Electricity rate.</p>
 </dd>
-<dt><strong>BM</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Bare module factor (installation factor).</p>
+<dt><strong>BM</strong><span class="classifier">float</span></dt><dd><p>Bare module factor (installation factor).</p>
 </dd>
-<dt><strong>N</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd><p class="first last">Attribute name for number of parallel units.</p>
+<dt><strong>N</strong><span class="classifier">str</span></dt><dd><p>Attribute name for number of parallel units.</p>
 </dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

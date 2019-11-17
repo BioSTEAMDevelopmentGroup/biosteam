@@ -20,20 +20,11 @@
   <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
   
     
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'./',
-              VERSION:'0.1',
-              LANGUAGE:'None',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  true,
-              SOURCELINK_SUFFIX: '.txt'
-          };
-      </script>
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -59,7 +50,7 @@
           
 
           
-            <a href="home.html" class="icon icon-home"> BioSTEAM
+            <a href="index.html" class="icon icon-home"> BioSTEAM
           
 
           
@@ -91,19 +82,20 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="Installation.html">1. Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Getting started.html">2. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/MixedStream objects and thermodynamic equilibrium.html">3. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="units/notebooks/examples.html">5. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis of a biorefinery.html">9. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Stoichiometric reactions.html">12. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Advanced simulation.html">13. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/MixedStream objects and thermodynamic equilibrium.html">4. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units/notebooks/examples.html">6. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Biorefineries.html">9. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis of a biorefinery.html">10. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -136,7 +128,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="home.html">BioSTEAM</a>
+          <a href="index.html">BioSTEAM</a>
         
       </nav>
 
@@ -165,7 +157,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="home.html">Docs</a> &raquo;</li>
+      <li><a href="index.html">Docs</a> &raquo;</li>
         
       <li>reaction</li>
     
@@ -210,30 +202,22 @@
 <p>The biosteam.reaction packages features objects to manage stoichiometric reactions and conversions. For a complete example, check out <a class="reference internal" href="tutorial/Stoichiometric reactions.html"><span class="doc">stoichiometric reactions</span></a>.</p>
 <dl class="class">
 <dt id="biosteam.reaction.Reaction">
-<em class="property">class </em><code class="descclassname">biosteam.reaction.</code><code class="descname">Reaction</code><span class="sig-paren">(</span><em>reaction</em>, <em>reactant</em>, <em>X</em>, <em>species=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/reaction/_reaction.html#Reaction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.reaction.Reaction" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.reaction.</code><code class="sig-name descname">Reaction</code><span class="sig-paren">(</span><em class="sig-param">reaction</em>, <em class="sig-param">reactant</em>, <em class="sig-param">X</em>, <em class="sig-param">species=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/reaction/_reaction.html#Reaction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.reaction.Reaction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Reaction object which defines a stoichiometric reaction and conversion. When called, it returns the change in material due to the reaction.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>reaction</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd><p class="first last">Stoichiometric equation written as:
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>reaction</strong><span class="classifier">str</span></dt><dd><p>Stoichiometric equation written as:
 ‘i1 R1 + … + in Rn -&gt; j1 P1 + … + jm Pm’</p>
 </dd>
-<dt><strong>reactant</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd><p class="first last">ID of reactant compound.</p>
+<dt><strong>reactant</strong><span class="classifier">str</span></dt><dd><p>ID of reactant compound.</p>
 </dd>
-<dt><strong>X</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Reactant conversion (fraction).</p>
+<dt><strong>X</strong><span class="classifier">float</span></dt><dd><p>Reactant conversion (fraction).</p>
 </dd>
-<dt><strong>species=None</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Species, defaults to Stream.species.</span></dt>
-<dd></dd>
+<dt><strong>species=None</strong><span class="classifier">Species, defaults to Stream.species.</span></dt><dd></dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>    
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">biosteam.reaction</span> <span class="k">as</span> <span class="nn">rn</span>
@@ -253,31 +237,31 @@
 </div>
 <dl class="method">
 <dt id="biosteam.reaction.Reaction.copy">
-<code class="descname">copy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/reaction/_reaction.html#Reaction.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.reaction.Reaction.copy" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">copy</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/reaction/_reaction.html#Reaction.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.reaction.Reaction.copy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return copy of Reaction object.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.reaction.Reaction.X">
-<code class="descname">X</code><a class="headerlink" href="#biosteam.reaction.Reaction.X" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">X</code><a class="headerlink" href="#biosteam.reaction.Reaction.X" title="Permalink to this definition">¶</a></dt>
 <dd><p>[float] Reaction converion as a fraction.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.reaction.Reaction.species">
-<code class="descname">species</code><a class="headerlink" href="#biosteam.reaction.Reaction.species" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">species</code><a class="headerlink" href="#biosteam.reaction.Reaction.species" title="Permalink to this definition">¶</a></dt>
 <dd><p>Species corresponing to each entry in the stoichiometry array.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.reaction.Reaction.stoichiometry">
-<code class="descname">stoichiometry</code><a class="headerlink" href="#biosteam.reaction.Reaction.stoichiometry" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">stoichiometry</code><a class="headerlink" href="#biosteam.reaction.Reaction.stoichiometry" title="Permalink to this definition">¶</a></dt>
 <dd><p>[array] Stoichiometry coefficients.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.reaction.Reaction.reactant">
-<code class="descname">reactant</code><a class="headerlink" href="#biosteam.reaction.Reaction.reactant" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">reactant</code><a class="headerlink" href="#biosteam.reaction.Reaction.reactant" title="Permalink to this definition">¶</a></dt>
 <dd><p>[str] Reactant associated to conversion.</p>
 </dd></dl>
 
@@ -285,11 +269,11 @@
 
 <dl class="class">
 <dt id="biosteam.reaction.ParallelReaction">
-<em class="property">class </em><code class="descclassname">biosteam.reaction.</code><code class="descname">ParallelReaction</code><span class="sig-paren">(</span><em>reactions</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/reaction/_reaction.html#ParallelReaction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.reaction.ParallelReaction" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.reaction.</code><code class="sig-name descname">ParallelReaction</code><span class="sig-paren">(</span><em class="sig-param">reactions</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/reaction/_reaction.html#ParallelReaction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.reaction.ParallelReaction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a ParallelReaction object from Reaction objects. When called, it returns the change in material due to all parallel reactions.</p>
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.reaction.ParallelReaction.X_net">
-<code class="descname">X_net</code><a class="headerlink" href="#biosteam.reaction.ParallelReaction.X_net" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">X_net</code><a class="headerlink" href="#biosteam.reaction.ParallelReaction.X_net" title="Permalink to this definition">¶</a></dt>
 <dd><p>[dict] Net reaction conversion of reactants.</p>
 </dd></dl>
 
@@ -297,11 +281,11 @@
 
 <dl class="class">
 <dt id="biosteam.reaction.SeriesReaction">
-<em class="property">class </em><code class="descclassname">biosteam.reaction.</code><code class="descname">SeriesReaction</code><span class="sig-paren">(</span><em>reactions</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/reaction/_reaction.html#SeriesReaction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.reaction.SeriesReaction" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.reaction.</code><code class="sig-name descname">SeriesReaction</code><span class="sig-paren">(</span><em class="sig-param">reactions</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/reaction/_reaction.html#SeriesReaction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.reaction.SeriesReaction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a ParallelReaction object from Reaction objects. When called, it returns the change in material due to all reactions in series.</p>
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.reaction.SeriesReaction.X_net">
-<code class="descname">X_net</code><a class="headerlink" href="#biosteam.reaction.SeriesReaction.X_net" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">X_net</code><a class="headerlink" href="#biosteam.reaction.SeriesReaction.X_net" title="Permalink to this definition">¶</a></dt>
 <dd><p>[dict] Net reaction conversion of reactants.</p>
 </dd></dl>
 

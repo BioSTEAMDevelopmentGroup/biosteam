@@ -20,20 +20,11 @@
   <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
   
     
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'../',
-              VERSION:'0.1',
-              LANGUAGE:'None',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  true,
-              SOURCELINK_SUFFIX: '.txt'
-          };
-      </script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -59,7 +50,7 @@
           
 
           
-            <a href="../home.html" class="icon icon-home"> BioSTEAM
+            <a href="../index.html" class="icon icon-home"> BioSTEAM
           
 
           
@@ -91,19 +82,20 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../Installation.html">1. Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Getting started.html">2. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/MixedStream objects and thermodynamic equilibrium.html">3. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/examples.html">5. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis of a biorefinery.html">9. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Stoichiometric reactions.html">12. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Advanced simulation.html">13. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/MixedStream objects and thermodynamic equilibrium.html">4. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/examples.html">6. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">9. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis of a biorefinery.html">10. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -157,7 +149,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../home.html">BioSTEAM</a>
+          <a href="../index.html">BioSTEAM</a>
         
       </nav>
 
@@ -186,7 +178,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../home.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html">Docs</a> &raquo;</li>
         
           <li><a href="units.html">units</a> &raquo;</li>
         
@@ -232,40 +224,29 @@
 <span id="distillation"></span><h1>Distillation<a class="headerlink" href="#module-biosteam.units" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.units.Distillation">
-<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">Distillation</code><span class="sig-paren">(</span><em>ID=''</em>, <em>ins=None</em>, <em>outs=()</em>, <em>P=101325</em>, <em>*</em>, <em>LHK</em>, <em>y_top</em>, <em>x_bot</em>, <em>k</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_distillation.html#Distillation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Distillation" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.</code><code class="sig-name descname">Distillation</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">P=101325</em>, <em class="sig-param">*</em>, <em class="sig-param">LHK</em>, <em class="sig-param">y_top</em>, <em class="sig-param">x_bot</em>, <em class="sig-param">k</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_distillation.html#Distillation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Distillation" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Distillation column that assumes all light and heavy non keys separate to the top and bottoms product respectively. McCabe-Thiele analysis is used to find both the number of stages and the reflux ratio given a ratio of actual reflux to minimum reflux [1]. This assumption is good for both binary distillation of highly polar compounds and ternary distillation assuming complete separation of light non-keys and heavy non-keys with large differences in boiling points. Preliminary analysis showed that the theoretical number of stages using this method on Methanol/Glycerol/Water systems is off by less than +-1 stage. Other methods, such as the Fenske-Underwood-Gilliland method, are more suitable for hydrocarbons. The Murphree efficiency is based on the modified O’Connell correlation [2]. The diameter is based on tray separation and flooding velocity [1]. Purchase costs are based on correlations by Mulet et al. [3, 4] as compiled by Warren et. al. [5].</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>ins</strong></dt>
-<dd><p class="first last">[:] All input streams</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<dt><strong>ins</strong></dt><dd><p>[:] All input streams</p>
 </dd>
-<dt><strong>outs</strong></dt>
-<dd><p class="first">[0] Distillate product</p>
-<p class="last">[1] Bottoms product</p>
+<dt><strong>outs</strong></dt><dd><p>[0] Distillate product</p>
+<p>[1] Bottoms product</p>
 </dd>
-<dt><strong>LHK</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple[str]</span></dt>
-<dd><p class="first last">Light and heavy keys.</p>
+<dt><strong>LHK</strong><span class="classifier">tuple[str]</span></dt><dd><p>Light and heavy keys.</p>
 </dd>
-<dt><strong>P=101325</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Operating pressure (Pa).</p>
+<dt><strong>P=101325</strong><span class="classifier">float</span></dt><dd><p>Operating pressure (Pa).</p>
 </dd>
-<dt><strong>y_top</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Molar fraction of light key in the distillate.</p>
+<dt><strong>y_top</strong><span class="classifier">float</span></dt><dd><p>Molar fraction of light key in the distillate.</p>
 </dd>
-<dt><strong>x_bot</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Molar fraction of light key in the bottoms.</p>
+<dt><strong>x_bot</strong><span class="classifier">float</span></dt><dd><p>Molar fraction of light key in the bottoms.</p>
 </dd>
-<dt><strong>k</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Ratio of reflux to minimum reflux.</p>
+<dt><strong>k</strong><span class="classifier">float</span></dt><dd><p>Ratio of reflux to minimum reflux.</p>
 </dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <p class="rubric">References</p>
 <p>[1] J.D. Seader, E.J. Henley, D.K. Roper. Separation Process Principles 3rd Edition. John Wiley &amp; Sons, Inc. (2011)</p>
 <p>[2] M. Duss, R. Taylor. Predict Distillation Tray Efficiency. AICHE (2018)</p>
@@ -274,139 +255,130 @@
 <p>[5] Seider, W. D., Lewin,  D. R., Seader, J. D., Widagdo, S., Gani, R., &amp; Ng, M. K. (2017). Product and Process Design Principles. Wiley. Cost Accounting and Capital Cost Estimation (Chapter 16)</p>
 <p class="rubric">Examples</p>
 <p><a class="reference internal" href="notebooks/Distillation Example.html"><span class="doc">Distillation</span></a></p>
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.units.Distillation.ID">
-<code class="descname">ID</code><a class="headerlink" href="#biosteam.units.Distillation.ID" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">ID</code><a class="headerlink" href="#biosteam.units.Distillation.ID" title="Permalink to this definition">¶</a></dt>
 <dd><p>Unique Identification (str). If set as ‘’, it will choose a default ID.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.units.Distillation.diagram">
-<code class="descname">diagram</code><span class="sig-paren">(</span><em>radius=0</em>, <em>upstream=True</em>, <em>downstream=True</em>, <em>file=None</em>, <em>format='png'</em>, <em>**graph_attrs</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.diagram" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">diagram</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">radius=0</em>, <em class="sig-param">upstream=True</em>, <em class="sig-param">downstream=True</em>, <em class="sig-param">file=None</em>, <em class="sig-param">format='png'</em>, <em class="sig-param">**graph_attrs</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.diagram" title="Permalink to this definition">¶</a></dt>
 <dd><p>Display a <a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz</a> diagram of the unit and all neighboring units within given radius.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>radius</strong> <span class="classifier-delimiter">:</span> <span class="classifier">int</span></dt>
-<dd><p class="first last">Maxium number streams between neighbors.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>radius</strong><span class="classifier">int</span></dt><dd><p>Maxium number streams between neighbors.</p>
 </dd>
-<dt><strong>downstream=True</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional</span></dt>
-<dd><p class="first last">Whether to show downstream operations</p>
+<dt><strong>downstream=True</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to show downstream operations</p>
 </dd>
-<dt><strong>upstream=True</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional</span></dt>
-<dd><p class="first last">Whether to show upstream operations</p>
+<dt><strong>upstream=True</strong><span class="classifier">bool, optional</span></dt><dd><p>Whether to show upstream operations</p>
 </dd>
-<dt><strong>file</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Must be one of the following:</span></dt>
-<dd><ul class="first last simple">
-<li>[str] File name to save diagram.</li>
-<li>[None] Display diagram in console.</li>
+<dt><strong>file</strong><span class="classifier">Must be one of the following:</span></dt><dd><ul class="simple">
+<li><p>[str] File name to save diagram.</p></li>
+<li><p>[None] Display diagram in console.</p></li>
 </ul>
 </dd>
-<dt><strong>format</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd><p class="first last">Format of file.</p>
+<dt><strong>format</strong><span class="classifier">str</span></dt><dd><p>Format of file.</p>
 </dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.units.Distillation.downcomer_area_factor">
-<code class="descname">downcomer_area_factor</code><a class="headerlink" href="#biosteam.units.Distillation.downcomer_area_factor" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">downcomer_area_factor</code><a class="headerlink" href="#biosteam.units.Distillation.downcomer_area_factor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Enforced ratio of downcomer area to net (total) area. If None, estimate ratio based on Oliver’s estimation [1].</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.units.Distillation.foaming_factor">
-<code class="descname">foaming_factor</code><a class="headerlink" href="#biosteam.units.Distillation.foaming_factor" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">foaming_factor</code><a class="headerlink" href="#biosteam.units.Distillation.foaming_factor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Foaming factor (0 to 1).</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.units.Distillation.installation_cost">
-<code class="descname">installation_cost</code><a class="headerlink" href="#biosteam.units.Distillation.installation_cost" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">installation_cost</code><a class="headerlink" href="#biosteam.units.Distillation.installation_cost" title="Permalink to this definition">¶</a></dt>
 <dd><p>Installation cost (USD).</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.units.Distillation.open_area_factor">
-<code class="descname">open_area_factor</code><a class="headerlink" href="#biosteam.units.Distillation.open_area_factor" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">open_area_factor</code><a class="headerlink" href="#biosteam.units.Distillation.open_area_factor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Ratio of open area, A_h, to active area, A_a.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.units.Distillation.purchase_cost">
-<code class="descname">purchase_cost</code><a class="headerlink" href="#biosteam.units.Distillation.purchase_cost" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">purchase_cost</code><a class="headerlink" href="#biosteam.units.Distillation.purchase_cost" title="Permalink to this definition">¶</a></dt>
 <dd><p>Total purchase cost (USD).</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.units.Distillation.results">
-<code class="descname">results</code><span class="sig-paren">(</span><em>with_units=True</em>, <em>include_utilities=True</em>, <em>include_total_cost=True</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.results" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">results</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">with_units=True</em>, <em class="sig-param">include_utilities=True</em>, <em class="sig-param">include_total_cost=True</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.results" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return key results from simulation as a DataFrame if <cite>with_units</cite> is True or as a Series otherwise.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.units.Distillation.show">
-<code class="descname">show</code><span class="sig-paren">(</span><em>T=None</em>, <em>P=None</em>, <em>flow=None</em>, <em>fraction=None</em>, <em>N=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.show" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">T=None</em>, <em class="sig-param">P=None</em>, <em class="sig-param">flow=None</em>, <em class="sig-param">fraction=None</em>, <em class="sig-param">N=None</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prints information on unit.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.units.Distillation.simulate">
-<code class="descname">simulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.simulate" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">simulate</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.units.Distillation.simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Run rigourous simulation and determine all design requirements.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.units.Distillation.stage_efficiency">
-<code class="descname">stage_efficiency</code><a class="headerlink" href="#biosteam.units.Distillation.stage_efficiency" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">stage_efficiency</code><a class="headerlink" href="#biosteam.units.Distillation.stage_efficiency" title="Permalink to this definition">¶</a></dt>
 <dd><p>Enforced user defined stage efficiency.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.units.Distillation.tray_material">
-<code class="descname">tray_material</code><a class="headerlink" href="#biosteam.units.Distillation.tray_material" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">tray_material</code><a class="headerlink" href="#biosteam.units.Distillation.tray_material" title="Permalink to this definition">¶</a></dt>
 <dd><p>Default ‘Carbon steel’</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.units.Distillation.tray_type">
-<code class="descname">tray_type</code><a class="headerlink" href="#biosteam.units.Distillation.tray_type" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">tray_type</code><a class="headerlink" href="#biosteam.units.Distillation.tray_type" title="Permalink to this definition">¶</a></dt>
 <dd><p>Default ‘Sieve’</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.units.Distillation.utility_cost">
-<code class="descname">utility_cost</code><a class="headerlink" href="#biosteam.units.Distillation.utility_cost" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">utility_cost</code><a class="headerlink" href="#biosteam.units.Distillation.utility_cost" title="Permalink to this definition">¶</a></dt>
 <dd><p>Total utility cost (USD/hr).</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.units.Distillation.velocity_factor">
-<code class="descname">velocity_factor</code><a class="headerlink" href="#biosteam.units.Distillation.velocity_factor" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">velocity_factor</code><a class="headerlink" href="#biosteam.units.Distillation.velocity_factor" title="Permalink to this definition">¶</a></dt>
 <dd><p>Ratio of actual velocity to maximum velocity allowable before flooding.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.units.Distillation.vessel_material">
-<code class="descname">vessel_material</code><a class="headerlink" href="#biosteam.units.Distillation.vessel_material" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">vessel_material</code><a class="headerlink" href="#biosteam.units.Distillation.vessel_material" title="Permalink to this definition">¶</a></dt>
 <dd><p>Default ‘Carbon steel’</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.units.Distillation.is_divided">
-<code class="descname">is_divided</code><a class="headerlink" href="#biosteam.units.Distillation.is_divided" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">is_divided</code><a class="headerlink" href="#biosteam.units.Distillation.is_divided" title="Permalink to this definition">¶</a></dt>
 <dd><p>[bool] True if the stripper and rectifier are two separate columns.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.units.Distillation.plot_stages">
-<code class="descname">plot_stages</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_distillation.html#Distillation.plot_stages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Distillation.plot_stages" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">plot_stages</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_distillation.html#Distillation.plot_stages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.Distillation.plot_stages" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the McCabe Thiele Diagram.</p>
 </dd></dl>
 

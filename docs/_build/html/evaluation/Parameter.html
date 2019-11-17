@@ -20,20 +20,11 @@
   <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
   
     
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'../',
-              VERSION:'0.1',
-              LANGUAGE:'None',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  true,
-              SOURCELINK_SUFFIX: '.txt'
-          };
-      </script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -59,7 +50,7 @@
           
 
           
-            <a href="../home.html" class="icon icon-home"> BioSTEAM
+            <a href="../index.html" class="icon icon-home"> BioSTEAM
           
 
           
@@ -91,19 +82,20 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../Installation.html">1. Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Getting started.html">2. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/MixedStream objects and thermodynamic equilibrium.html">3. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../units/notebooks/examples.html">5. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis of a biorefinery.html">9. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Stoichiometric reactions.html">12. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Advanced simulation.html">13. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/MixedStream objects and thermodynamic equilibrium.html">4. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../units/notebooks/examples.html">6. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">9. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis of a biorefinery.html">10. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -144,7 +136,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../home.html">BioSTEAM</a>
+          <a href="../index.html">BioSTEAM</a>
         
       </nav>
 
@@ -173,7 +165,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../home.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html">Docs</a> &raquo;</li>
         
           <li><a href="evaluation.html">evaluation</a> &raquo;</li>
         
@@ -219,42 +211,30 @@
 <span id="parameter"></span><h1>Parameter<a class="headerlink" href="#module-biosteam.evaluation" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.evaluation.Parameter">
-<em class="property">class </em><code class="descclassname">biosteam.evaluation.</code><code class="descname">Parameter</code><span class="sig-paren">(</span><em>name</em>, <em>setter</em>, <em>simulate</em>, <em>element</em>, <em>system</em>, <em>distribution</em>, <em>units</em>, <em>baseline</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_parameter.html#Parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Parameter" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.evaluation.</code><code class="sig-name descname">Parameter</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">setter</em>, <em class="sig-param">simulate</em>, <em class="sig-param">element</em>, <em class="sig-param">system</em>, <em class="sig-param">distribution</em>, <em class="sig-param">units</em>, <em class="sig-param">baseline</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/evaluation/_parameter.html#Parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.evaluation.Parameter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Parameter object that, when called, runs the setter and the simulate functions.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>name</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd><p class="first last">Name of parameter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>name</strong><span class="classifier">str</span></dt><dd><p>Name of parameter.</p>
 </dd>
-<dt><strong>setter</strong> <span class="classifier-delimiter">:</span> <span class="classifier">function</span></dt>
-<dd><p class="first last">Should set the parameter.</p>
+<dt><strong>setter</strong><span class="classifier">function</span></dt><dd><p>Should set the parameter.</p>
 </dd>
-<dt><strong>simulate</strong> <span class="classifier-delimiter">:</span> <span class="classifier">function</span></dt>
-<dd><p class="first last">Should simulate parameter effects.</p>
+<dt><strong>simulate</strong><span class="classifier">function</span></dt><dd><p>Should simulate parameter effects.</p>
 </dd>
-<dt><strong>element</strong> <span class="classifier-delimiter">:</span> <span class="classifier">object</span></dt>
-<dd><p class="first last">Element associated to parameter.</p>
+<dt><strong>element</strong><span class="classifier">object</span></dt><dd><p>Element associated to parameter.</p>
 </dd>
-<dt><strong>system</strong> <span class="classifier-delimiter">:</span> <span class="classifier">System</span></dt>
-<dd><p class="first last">System associated to parameter.</p>
+<dt><strong>system</strong><span class="classifier">System</span></dt><dd><p>System associated to parameter.</p>
 </dd>
-<dt><strong>distribution</strong> <span class="classifier-delimiter">:</span> <span class="classifier">chaospy.Dist</span></dt>
-<dd><p class="first last">Parameter distribution.</p>
+<dt><strong>distribution</strong><span class="classifier">chaospy.Dist</span></dt><dd><p>Parameter distribution.</p>
 </dd>
-<dt><strong>units</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd><p class="first last">Units of parameter.</p>
+<dt><strong>units</strong><span class="classifier">str</span></dt><dd><p>Units of parameter.</p>
 </dd>
-<dt><strong>baseline</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Baseline value of parameter.</p>
+<dt><strong>baseline</strong><span class="classifier">float</span></dt><dd><p>Baseline value of parameter.</p>
 </dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

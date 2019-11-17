@@ -20,20 +20,11 @@
   <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
   
     
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'../../../',
-              VERSION:'0.1',
-              LANGUAGE:'None',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  true,
-              SOURCELINK_SUFFIX: '.txt'
-          };
-      </script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
         <script type="text/javascript" src="../../../_static/jquery.js"></script>
         <script type="text/javascript" src="../../../_static/underscore.js"></script>
         <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -57,7 +48,7 @@
           
 
           
-            <a href="../../../home.html" class="icon icon-home"> BioSTEAM
+            <a href="../../../index.html" class="icon icon-home"> BioSTEAM
           
 
           
@@ -89,19 +80,20 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../Installation.html">1. Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Getting started.html">2. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/MixedStream objects and thermodynamic equilibrium.html">3. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">5. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis of a biorefinery.html">9. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Stoichiometric reactions.html">12. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Advanced simulation.html">13. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/MixedStream objects and thermodynamic equilibrium.html">4. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">6. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">9. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis of a biorefinery.html">10. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -134,7 +126,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../../home.html">BioSTEAM</a>
+          <a href="../../../index.html">BioSTEAM</a>
         
       </nav>
 
@@ -163,7 +155,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../../home.html">Docs</a> &raquo;</li>
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
         
           <li><a href="../../index.html">Module code</a> &raquo;</li>
         
@@ -192,10 +184,10 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">Stream</span>
-<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">brentq</span>
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">Mixer</span><span class="p">,</span> <span class="n">HXutility</span>
 <span class="kn">from</span> <span class="nn">._flash</span> <span class="k">import</span> <span class="n">Evaporator_PV</span><span class="p">,</span> <span class="n">Evaporator_PQ</span>
 <span class="kn">from</span> <span class="nn">.designtools</span> <span class="k">import</span> <span class="n">vacuum_system</span>
+<span class="kn">from</span> <span class="nn">..utils.solvers</span> <span class="k">import</span> <span class="n">IQ_interpolation</span>
 <span class="kn">from</span> <span class="nn">warnings</span> <span class="k">import</span> <span class="n">warn</span>
 <span class="kn">import</span> <span class="nn">ht</span>
 <span class="n">log</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span>
@@ -274,6 +266,8 @@
         <span class="n">Unit</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ID</span><span class="p">,</span> <span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">)</span>
         <span class="c1"># Unpack</span>
         <span class="n">out_wt_solids</span><span class="p">,</span> <span class="n">liq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">V</span> <span class="o">=</span> <span class="n">V</span> <span class="c1">#: [float] Overall molar fraction of component evaporated.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_V1</span> <span class="o">=</span> <span class="n">V</span><span class="o">/</span><span class="mf">2.</span>
         
         <span class="c1"># Create components</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_N_evap</span> <span class="o">=</span> <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">P</span><span class="p">)</span> <span class="c1"># Number of evaporators</span>
@@ -291,7 +285,7 @@
         <span class="n">evap0</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">condenser</span><span class="o">.</span><span class="n">_heat_utilities</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_heat_utilities</span>
         <span class="n">mixer</span> <span class="o">=</span> <span class="n">Mixer</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">outs</span><span class="o">=</span><span class="n">Stream</span><span class="p">(</span><span class="kc">None</span><span class="p">))</span>
         
-        <span class="k">def</span> <span class="nf">V_error</span><span class="p">(</span><span class="n">v1</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">V_final</span><span class="p">(</span><span class="n">v1</span><span class="p">):</span>
             <span class="c1"># Run first evaporator</span>
             <span class="n">v_test</span> <span class="o">=</span> <span class="n">v1</span>
             <span class="n">evap0</span><span class="o">.</span><span class="n">V</span> <span class="o">=</span> <span class="n">v1</span>
@@ -305,8 +299,8 @@
                 <span class="n">v_test</span> <span class="o">+=</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">v_test</span><span class="p">)</span> <span class="o">*</span> <span class="n">evap</span><span class="o">.</span><span class="n">_V</span>
                 <span class="c1"># Put liquid first, then vapor side stream</span>
                 <span class="n">ins</span> <span class="o">=</span> <span class="p">[</span><span class="n">evap</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">evap</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
-            <span class="k">return</span> <span class="n">V</span> <span class="o">-</span> <span class="n">v_test</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_V_error</span> <span class="o">=</span> <span class="n">V_error</span>
+            <span class="k">return</span> <span class="n">v_test</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_V_final</span> <span class="o">=</span> <span class="n">V_final</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">components</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;evaporators&#39;</span><span class="p">:</span> <span class="n">evaporators</span><span class="p">,</span>
                            <span class="s1">&#39;condenser&#39;</span><span class="p">:</span> <span class="n">condenser</span><span class="p">,</span>
                            <span class="s1">&#39;mixer&#39;</span><span class="p">:</span> <span class="n">mixer</span><span class="p">}</span>
@@ -324,10 +318,15 @@
         <span class="n">evaporators</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">ins</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="n">Stream</span><span class="o">.</span><span class="n">like</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ins</span><span class="p">]</span>
         <span class="n">condenser</span> <span class="o">=</span> <span class="n">components</span><span class="p">[</span><span class="s1">&#39;condenser&#39;</span><span class="p">]</span>
         <span class="n">mixer</span> <span class="o">=</span> <span class="n">components</span><span class="p">[</span><span class="s1">&#39;mixer&#39;</span><span class="p">]</span>
-        <span class="n">brentq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_V_error</span><span class="p">,</span> <span class="mf">0.0001</span><span class="p">,</span> <span class="mf">0.9909</span><span class="p">,</span> <span class="n">xtol</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">)</span>
+        <span class="n">V_final</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_V_final</span>
+        <span class="n">x0</span> <span class="o">=</span> <span class="mf">0.0001</span>
+        <span class="n">x1</span> <span class="o">=</span> <span class="mf">0.9910</span>
+        <span class="n">y0</span> <span class="o">=</span> <span class="n">V_final</span><span class="p">(</span><span class="n">x0</span><span class="p">)</span>
+        <span class="n">y1</span> <span class="o">=</span> <span class="n">V_final</span><span class="p">(</span><span class="n">x1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_V1</span> <span class="o">=</span> <span class="n">IQ_interpolation</span><span class="p">(</span><span class="n">V_final</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">y0</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_V1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">V</span><span class="p">,</span> 
+                                    <span class="n">xtol</span><span class="o">=</span><span class="mf">0.0001</span><span class="p">,</span> <span class="n">ytol</span><span class="o">=</span><span class="mf">0.001</span><span class="p">)</span>
         
         <span class="c1"># Condensing vapor from last effector</span>
-        
         <span class="n">outs_vap</span> <span class="o">=</span> <span class="n">evaporators</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">outs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">condenser</span><span class="o">.</span><span class="n">ins</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="n">outs_vap</span><span class="p">]</span>
         <span class="n">condenser</span><span class="o">.</span><span class="n">_run</span><span class="p">()</span>

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>12. Stoichiometric reactions &mdash; BioSTEAM 0.1 documentation</title>
+  <title>13. Stoichiometric reactions &mdash; BioSTEAM 0.1 documentation</title>
   
 
   
@@ -20,20 +20,11 @@
   <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
   
     
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'../',
-              VERSION:'0.1',
-              LANGUAGE:'None',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  true,
-              SOURCELINK_SUFFIX: '.txt'
-          };
-      </script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -44,8 +35,8 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="13. Advanced simulation" href="Advanced simulation.html" />
-    <link rel="prev" title="11. Unit decorators" href="Unit decorators.html" /> 
+    <link rel="next" title="14. Advanced simulation" href="Advanced simulation.html" />
+    <link rel="prev" title="12. Unit decorators" href="Unit decorators.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -59,7 +50,7 @@
           
 
           
-            <a href="../home.html" class="icon icon-home"> BioSTEAM
+            <a href="../index.html" class="icon icon-home"> BioSTEAM
           
 
           
@@ -91,26 +82,27 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../Installation.html">1. Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Getting started.html">2. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="MixedStream objects and thermodynamic equilibrium.html">3. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">4. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../units/notebooks/examples.html">5. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Managing flowsheets.html">6. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">7. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">9. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">12. Stoichiometric reactions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#Single-reaction">12.1. Single reaction</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Parallel-reactions">12.2. Parallel reactions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Reactions-in-series">12.3. Reactions in series</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Indexing-reactions">12.4. Indexing reactions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#References">12.5. References</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MixedStream objects and thermodynamic equilibrium.html">4. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">5. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../units/notebooks/examples.html">6. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Managing flowsheets.html">7. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">8. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Biorefineries.html">9. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">10. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">13. Stoichiometric reactions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Single-reaction">13.1. Single reaction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Parallel-reactions">13.2. Parallel reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Reactions-in-series">13.3. Reactions in series</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Indexing-reactions">13.4. Indexing reactions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#References">13.5. References</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">13. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">14. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -143,7 +135,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../home.html">BioSTEAM</a>
+          <a href="../index.html">BioSTEAM</a>
         
       </nav>
 
@@ -172,9 +164,9 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../home.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html">Docs</a> &raquo;</li>
         
-      <li>12. Stoichiometric reactions</li>
+      <li>13. Stoichiometric reactions</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -377,28 +369,28 @@ div.nboutput div.output_area.stderr {
 }
 </style>
 <div class="section" id="Stoichiometric-reactions">
-<h1>12. Stoichiometric reactions<a class="headerlink" href="#Stoichiometric-reactions" title="Permalink to this headline">¶</a></h1>
+<h1>13. Stoichiometric reactions<a class="headerlink" href="#Stoichiometric-reactions" title="Permalink to this headline">¶</a></h1>
 <p><strong>The biosteam.reaction package contains array based obejcts that can
 model stoichiometric reactions given a conversion.</strong></p>
 <div class="section" id="Single-reaction">
-<h2>12.1. Single reaction<a class="headerlink" href="#Single-reaction" title="Permalink to this headline">¶</a></h2>
+<h2>13.1. Single reaction<a class="headerlink" href="#Single-reaction" title="Permalink to this headline">¶</a></h2>
 <p>Create a Reaction object based on the transesterification reaction:</p>
-<table border="1" class="docutils">
+<table class="docutils align-default">
 <colgroup>
-<col width="63%" />
-<col width="16%" />
-<col width="21%" />
+<col style="width: 66%" />
+<col style="width: 15%" />
+<col style="width: 19%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Reaction</th>
-<th class="head">Reactant</th>
-<th class="head">% Converted</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>Reaction</p></th>
+<th class="head"><p>Reactant</p></th>
+<th class="head"><p>% Converted</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td>Lipid + 3Methanol -&gt; 3Biodiesel + Glycerol</td>
-<td>Lipid</td>
-<td>90</td>
+<tbody>
+<tr class="row-even"><td><p>Lipid + 3Methanol -&gt; 3Biodiesel + Glycerol</p></td>
+<td><p>Lipid</p></td>
+<td><p>90</p></td>
 </tr>
 </tbody>
 </table>
@@ -551,57 +543,57 @@ Stream: d1
 </div>
 </div>
 <div class="section" id="Parallel-reactions">
-<h2>12.2. Parallel reactions<a class="headerlink" href="#Parallel-reactions" title="Permalink to this headline">¶</a></h2>
+<h2>13.2. Parallel reactions<a class="headerlink" href="#Parallel-reactions" title="Permalink to this headline">¶</a></h2>
 <p>Model the pretreatment hydrolysis reactions and assumed conversions from
-Humbird et. al. as shown in the follwing table <a class="reference external" href="#References">[1]</a>:</p>
-<table border="1" class="docutils">
+Humbird et. al. as shown in the follwing table <a class="reference external" href="#References">[1]</a>:</p>
+<table class="docutils align-default">
 <colgroup>
-<col width="61%" />
-<col width="17%" />
-<col width="22%" />
+<col style="width: 63%" />
+<col style="width: 16%" />
+<col style="width: 21%" />
 </colgroup>
-<thead valign="bottom">
-<tr class="row-odd"><th class="head">Reaction</th>
-<th class="head">Reactant</th>
-<th class="head">% Converted</th>
+<thead>
+<tr class="row-odd"><th class="head"><p>Reaction</p></th>
+<th class="head"><p>Reactant</p></th>
+<th class="head"><p>% Converted</p></th>
 </tr>
 </thead>
-<tbody valign="top">
-<tr class="row-even"><td>(Glucan)n + n H2O→ n Glucose</td>
-<td>Glucan</td>
-<td>9.9</td>
+<tbody>
+<tr class="row-even"><td><p>(Glucan)n + n H2O→ n Glucose</p></td>
+<td><p>Glucan</p></td>
+<td><p>9.9</p></td>
 </tr>
-<tr class="row-odd"><td>(Glucan)n + n H2O → n Glucose Oligomer</td>
-<td>Glucan</td>
-<td>0.3</td>
+<tr class="row-odd"><td><p>(Glucan)n + n H2O → n Glucose Oligomer</p></td>
+<td><p>Glucan</p></td>
+<td><p>0.3</p></td>
 </tr>
-<tr class="row-even"><td>(Glucan)n → n HMF + 2n H2O</td>
-<td>Glucan</td>
-<td>0.3</td>
+<tr class="row-even"><td><p>(Glucan)n → n HMF + 2n H2O</p></td>
+<td><p>Glucan</p></td>
+<td><p>0.3</p></td>
 </tr>
-<tr class="row-odd"><td>Sucrose → HMF + Glucose + 2 H2O</td>
-<td>Sucrose</td>
-<td>100.0</td>
+<tr class="row-odd"><td><p>Sucrose → HMF + Glucose + 2 H2O</p></td>
+<td><p>Sucrose</p></td>
+<td><p>100.0</p></td>
 </tr>
-<tr class="row-even"><td>(Xylan)n + n H2O→ n Xylose</td>
-<td>Xylan</td>
-<td>90.0</td>
+<tr class="row-even"><td><p>(Xylan)n + n H2O→ n Xylose</p></td>
+<td><p>Xylan</p></td>
+<td><p>90.0</p></td>
 </tr>
-<tr class="row-odd"><td>(Xylan)n + m H2O → m Xylose Oligomer</td>
-<td>Xylan</td>
-<td>2.4</td>
+<tr class="row-odd"><td><p>(Xylan)n + m H2O → m Xylose Oligomer</p></td>
+<td><p>Xylan</p></td>
+<td><p>2.4</p></td>
 </tr>
-<tr class="row-even"><td>(Xylan)n → n Furfural + 2n H2O</td>
-<td>Xylan</td>
-<td>5.0</td>
+<tr class="row-even"><td><p>(Xylan)n → n Furfural + 2n H2O</p></td>
+<td><p>Xylan</p></td>
+<td><p>5.0</p></td>
 </tr>
-<tr class="row-odd"><td>Acetate → Acetic Acid</td>
-<td>Acetate</td>
-<td>100.0</td>
+<tr class="row-odd"><td><p>Acetate → Acetic Acid</p></td>
+<td><p>Acetate</p></td>
+<td><p>100.0</p></td>
 </tr>
-<tr class="row-even"><td>(Lignin)n → n Soluble Lignin</td>
-<td>Lignin</td>
-<td>5.0</td>
+<tr class="row-even"><td><p>(Lignin)n → n Soluble Lignin</p></td>
+<td><p>Lignin</p></td>
+<td><p>5.0</p></td>
 </tr>
 </tbody>
 </table>
@@ -734,7 +726,7 @@ Stream: d2
 </div>
 </div>
 <div class="section" id="Reactions-in-series">
-<h2>12.3. Reactions in series<a class="headerlink" href="#Reactions-in-series" title="Permalink to this headline">¶</a></h2>
+<h2>13.3. Reactions in series<a class="headerlink" href="#Reactions-in-series" title="Permalink to this headline">¶</a></h2>
 <p>SeriesReaction objects work the same way, but in series:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
@@ -883,7 +875,7 @@ Stream: d3
 </div>
 </div>
 <div class="section" id="Indexing-reactions">
-<h2>12.4. Indexing reactions<a class="headerlink" href="#Indexing-reactions" title="Permalink to this headline">¶</a></h2>
+<h2>13.4. Indexing reactions<a class="headerlink" href="#Indexing-reactions" title="Permalink to this headline">¶</a></h2>
 <p>Both SeriesReaction, and ParallelReaction objects are indexable:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
@@ -971,23 +963,23 @@ ParallelReaction:
 converion in the ParallelReaction object.</p>
 </div>
 <div class="section" id="References">
-<h2>12.5. References<a class="headerlink" href="#References" title="Permalink to this headline">¶</a></h2>
+<h2>13.5. References<a class="headerlink" href="#References" title="Permalink to this headline">¶</a></h2>
 <ol class="arabic simple">
-<li>Humbird, D., Davis, R., Tao, L., Kinchin, C., Hsu, D., Aden, A.,
+<li><p>Humbird, D., Davis, R., Tao, L., Kinchin, C., Hsu, D., Aden, A.,
 Dudgeon, D. (2011). Process Design and Economics for Biochemical
 Conversion of Lignocellulosic Biomass to Ethanol: Dilute-Acid
-Pretreatment and Enzymatic Hydrolysis of Corn Stover (No.
-NREL/TP-5100-47764, 1013269). <a class="reference external" href="https://doi.org/10.2172/1013269">https://doi.org/10.2172/1013269</a></li>
-<li>Hatakeyama, T., Nakamura, K., &amp; Hatakeyama, H. (1982). Studies on
+Pretreatment and Enzymatic Hydrolysis of Corn Stover
+(No. NREL/TP-5100-47764, 1013269). <a class="reference external" href="https://doi.org/10.2172/1013269">https://doi.org/10.2172/1013269</a></p></li>
+<li><p>Hatakeyama, T., Nakamura, K., &amp; Hatakeyama, H. (1982). Studies on
 heat capacity of cellulose and lignin by differential scanning
 calorimetry. Polymer, 23(12), 1801–1804.
-<a class="reference external" href="https://doi.org/10.1016/0032-3861(82)90125-2">https://doi.org/10.1016/0032-3861(82)90125-2</a></li>
-<li>Thybring, E. E. (2014). Explaining the heat capacity of wood
+<a class="reference external" href="https://doi.org/10.1016/0032-3861(82)90125-2">https://doi.org/10.1016/0032-3861(82)90125-2</a></p></li>
+<li><p>Thybring, E. E. (2014). Explaining the heat capacity of wood
 constituents by molecular vibrations. Journal of Materials Science,
-49(3), 1317–1327. <a class="reference external" href="https://doi.org/10.1007/s10853-013-7815-6">https://doi.org/10.1007/s10853-013-7815-6</a></li>
-<li>Murphy W. K., and K. R. Masters. (1978). Gross heat of combustion of
+49(3), 1317–1327. <a class="reference external" href="https://doi.org/10.1007/s10853-013-7815-6">https://doi.org/10.1007/s10853-013-7815-6</a></p></li>
+<li><p>Murphy W. K., and K. R. Masters. (1978). Gross heat of combustion of
 northern red oak (Quercus rubra) chemical components. Wood Sci.
-10:139-141.</li>
+10:139-141.</p></li>
 </ol>
 </div>
 </div>
@@ -1000,10 +992,10 @@ northern red oak (Quercus rubra) chemical components. Wood Sci.
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="Advanced simulation.html" class="btn btn-neutral float-right" title="13. Advanced simulation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="Advanced simulation.html" class="btn btn-neutral float-right" title="14. Advanced simulation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="Unit decorators.html" class="btn btn-neutral float-left" title="11. Unit decorators" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="Unit decorators.html" class="btn btn-neutral float-left" title="12. Unit decorators" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

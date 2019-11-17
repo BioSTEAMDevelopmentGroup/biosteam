@@ -20,20 +20,11 @@
   <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
   
     
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'./',
-              VERSION:'0.1',
-              LANGUAGE:'None',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  true,
-              SOURCELINK_SUFFIX: '.txt'
-          };
-      </script>
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -59,7 +50,7 @@
           
 
           
-            <a href="home.html" class="icon icon-home"> BioSTEAM
+            <a href="index.html" class="icon icon-home"> BioSTEAM
           
 
           
@@ -91,19 +82,20 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="Installation.html">1. Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Getting started.html">2. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/MixedStream objects and thermodynamic equilibrium.html">3. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="units/notebooks/examples.html">5. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis of a biorefinery.html">9. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Stoichiometric reactions.html">12. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Advanced simulation.html">13. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/MixedStream objects and thermodynamic equilibrium.html">4. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units/notebooks/examples.html">6. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Biorefineries.html">9. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis of a biorefinery.html">10. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -136,7 +128,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="home.html">BioSTEAM</a>
+          <a href="index.html">BioSTEAM</a>
         
       </nav>
 
@@ -165,7 +157,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="home.html">Docs</a> &raquo;</li>
+      <li><a href="index.html">Docs</a> &raquo;</li>
         
       <li>HeatUtility</li>
     
@@ -210,22 +202,17 @@
 <p>HeatUtility objects take care of finding utility requirements.</p>
 <span class="target" id="module-biosteam"></span><dl class="class">
 <dt id="biosteam.HeatUtility">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">HeatUtility</code><span class="sig-paren">(</span><em>efficiency=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_heat_utility.html#HeatUtility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.HeatUtility" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.</code><code class="sig-name descname">HeatUtility</code><span class="sig-paren">(</span><em class="sig-param">efficiency=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_heat_utility.html#HeatUtility"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.HeatUtility" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create an HeatUtility object that can choose a utility stream and calculate utility requirements. It can calculate required flow rate, temperature change, or phase change of utility. Calculations assume counter current flow rate.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>efficiency=None</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float, optional</span></dt>
-<dd><p class="first last">Enforced fraction of heat transfered from utility (due
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>efficiency=None</strong><span class="classifier">float, optional</span></dt><dd><p>Enforced fraction of heat transfered from utility (due
 to losses to environment).</p>
 </dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <p>Create a heat utility:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">hu</span> <span class="o">=</span> <span class="n">HeatUtility</span><span class="p">()</span>
@@ -253,101 +240,76 @@ to losses to environment).</p>
 <span class="go"> 0.006741981361808377)</span>
 </pre></div>
 </div>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Attributes:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>cooling_agents</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict[str: UtilityAgent]</span></dt>
-<dd><p class="first last">All cooling utilities available</p>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>cooling_agents</strong><span class="classifier">dict[str: UtilityAgent]</span></dt><dd><p>All cooling utilities available</p>
 </dd>
-<dt><strong>heating_agents</strong> <span class="classifier-delimiter">:</span> <span class="classifier">dict[str: UtilityAgent]</span></dt>
-<dd><p class="first last">All heating utilities available</p>
+<dt><strong>heating_agents</strong><span class="classifier">dict[str: UtilityAgent]</span></dt><dd><p>All heating utilities available</p>
 </dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <dl class="attribute">
 <dt id="biosteam.HeatUtility.dT">
-<code class="descname">dT</code><em class="property"> = 5</em><a class="headerlink" href="#biosteam.HeatUtility.dT" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">dT</code><em class="property"> = 5</em><a class="headerlink" href="#biosteam.HeatUtility.dT" title="Permalink to this definition">¶</a></dt>
 <dd><p>[float] Pinch temperature difference</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="biosteam.HeatUtility.display_units">
-<code class="descname">display_units</code><em class="property"> = DisplayUnits(duty='kJ/hr', flow='kmol/hr', cost='USD/hr')</em><a class="headerlink" href="#biosteam.HeatUtility.display_units" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">display_units</code><em class="property"> = DisplayUnits(duty='kJ/hr', flow='kmol/hr', cost='USD/hr')</em><a class="headerlink" href="#biosteam.HeatUtility.display_units" title="Permalink to this definition">¶</a></dt>
 <dd><p>[DisplayUnits] Units of measure for IPython display</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="biosteam.HeatUtility.UtilityAgent">
-<em class="property">class </em><code class="descname">UtilityAgent</code><span class="sig-paren">(</span><em>species</em>, <em>molfrac</em>, <em>T</em>, <em>P</em>, <em>phase</em>, <em>Hvap</em>, <em>T_limit</em>, <em>price_kJ</em>, <em>price_kmol</em>, <em>efficiency</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_heat_utility.html#HeatUtility.UtilityAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.HeatUtility.UtilityAgent" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-name descname">UtilityAgent</code><span class="sig-paren">(</span><em class="sig-param">species</em>, <em class="sig-param">molfrac</em>, <em class="sig-param">T</em>, <em class="sig-param">P</em>, <em class="sig-param">phase</em>, <em class="sig-param">Hvap</em>, <em class="sig-param">T_limit</em>, <em class="sig-param">price_kJ</em>, <em class="sig-param">price_kmol</em>, <em class="sig-param">efficiency</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_heat_utility.html#HeatUtility.UtilityAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.HeatUtility.UtilityAgent" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a UtilityAgent object that defines a utility option.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>species: Species</strong></dt>
-<dd></dd>
-<dt><strong>molfrac: tuple[float]</strong></dt>
-<dd><p class="first last">Molar fraction of species.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>species: Species</strong></dt><dd></dd>
+<dt><strong>molfrac: tuple[float]</strong></dt><dd><p>Molar fraction of species.</p>
 </dd>
-<dt><strong>phase</strong> <span class="classifier-delimiter">:</span> <span class="classifier">{‘g’, ‘l’}</span></dt>
-<dd><p class="first last">Either gas (“g”) or liquid (“l”).</p>
+<dt><strong>phase</strong><span class="classifier">{‘g’, ‘l’}</span></dt><dd><p>Either gas (“g”) or liquid (“l”).</p>
 </dd>
-<dt><strong>Hvap</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Latent heat of vaporization (kJ/kmol)</p>
+<dt><strong>Hvap</strong><span class="classifier">float</span></dt><dd><p>Latent heat of vaporization (kJ/kmol)</p>
 </dd>
-<dt><strong>T_limit</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Temperature limit (K)</p>
+<dt><strong>T_limit</strong><span class="classifier">float</span></dt><dd><p>Temperature limit (K)</p>
 </dd>
-<dt><strong>price_kJ</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Price (USD/kJ)</p>
+<dt><strong>price_kJ</strong><span class="classifier">float</span></dt><dd><p>Price (USD/kJ)</p>
 </dd>
-<dt><strong>price_kmol</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Price (USD/kmol)</p>
+<dt><strong>price_kmol</strong><span class="classifier">float</span></dt><dd><p>Price (USD/kmol)</p>
 </dd>
-<dt><strong>efficiency</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Heat transfer efficiency (between 0 to 1)</p>
+<dt><strong>efficiency</strong><span class="classifier">float</span></dt><dd><p>Heat transfer efficiency (between 0 to 1)</p>
 </dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.HeatUtility.__call__">
-<code class="descname">__call__</code><span class="sig-paren">(</span><em>duty</em>, <em>T_in</em>, <em>T_out=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_heat_utility.html#HeatUtility.__call__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.HeatUtility.__call__" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">__call__</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">duty</em>, <em class="sig-param">T_in</em>, <em class="sig-param">T_out=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_heat_utility.html#HeatUtility.__call__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.HeatUtility.__call__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate utility requirements given the essential parameters.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>duty</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Unit duty requirement (kJ/hr)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>duty</strong><span class="classifier">float</span></dt><dd><p>Unit duty requirement (kJ/hr)</p>
 </dd>
-<dt><strong>T_in</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Entering process stream temperature (K)</p>
+<dt><strong>T_in</strong><span class="classifier">float</span></dt><dd><p>Entering process stream temperature (K)</p>
 </dd>
-<dt><strong>T_out=None</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float, optional</span></dt>
-<dd><p class="first last">Exit process stream temperature (K)</p>
+<dt><strong>T_out=None</strong><span class="classifier">float, optional</span></dt><dd><p>Exit process stream temperature (K)</p>
 </dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.HeatUtility.show">
-<code class="descname">show</code><span class="sig-paren">(</span><em>duty=None</em>, <em>flow=None</em>, <em>cost=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_heat_utility.html#HeatUtility.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.HeatUtility.show" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">duty=None</em>, <em class="sig-param">flow=None</em>, <em class="sig-param">cost=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_heat_utility.html#HeatUtility.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.HeatUtility.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Print all specifications</p>
 </dd></dl>
 

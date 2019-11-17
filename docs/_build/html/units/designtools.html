@@ -20,20 +20,11 @@
   <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
   
     
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'../',
-              VERSION:'0.1',
-              LANGUAGE:'None',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  true,
-              SOURCELINK_SUFFIX: '.txt'
-          };
-      </script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -59,7 +50,7 @@
           
 
           
-            <a href="../home.html" class="icon icon-home"> BioSTEAM
+            <a href="../index.html" class="icon icon-home"> BioSTEAM
           
 
           
@@ -91,19 +82,20 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../Installation.html">1. Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Getting started.html">2. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/MixedStream objects and thermodynamic equilibrium.html">3. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/examples.html">5. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis of a biorefinery.html">9. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Stoichiometric reactions.html">12. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Advanced simulation.html">13. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/MixedStream objects and thermodynamic equilibrium.html">4. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/examples.html">6. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">9. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis of a biorefinery.html">10. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -157,7 +149,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../home.html">BioSTEAM</a>
+          <a href="../index.html">BioSTEAM</a>
         
       </nav>
 
@@ -186,7 +178,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../home.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html">Docs</a> &raquo;</li>
         
           <li><a href="units.html">units</a> &raquo;</li>
         
@@ -234,70 +226,53 @@
 <p>&#64;author: yoelr</p>
 <dl class="function">
 <dt id="biosteam.units.designtools.vacuum_system">
-<code class="descclassname">biosteam.units.designtools.</code><code class="descname">vacuum_system</code><span class="sig-paren">(</span><em>massflow: kg/hr</em>, <em>volflow: m3/hr</em>, <em>P_suction: Pa</em>, <em>vol: m3</em>, <em>vacuum_system_preference=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/designtools/_vacuum.html#vacuum_system"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.designtools.vacuum_system" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">biosteam.units.designtools.</code><code class="sig-name descname">vacuum_system</code><span class="sig-paren">(</span><em class="sig-param">massflow:'kg/hr'</em>, <em class="sig-param">volflow:'m3/hr'</em>, <em class="sig-param">P_suction:'Pa'</em>, <em class="sig-param">vol:'m3'</em>, <em class="sig-param">vacuum_system_preference=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/designtools/_vacuum.html#vacuum_system"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.designtools.vacuum_system" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return dictionary of results</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>massflow</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Vapor mass flow rate entering vacuum system from vessel (not including inleakage)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>massflow</strong><span class="classifier">float</span></dt><dd><p>Vapor mass flow rate entering vacuum system from vessel (not including inleakage)</p>
 </dd>
-<dt><strong>volflow</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Vapor volumetric flow rate entering vacuum system from vessel (not including inleakage)</p>
+<dt><strong>volflow</strong><span class="classifier">float</span></dt><dd><p>Vapor volumetric flow rate entering vacuum system from vessel (not including inleakage)</p>
 </dd>
-<dt><strong>P_suction</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Suction pressure</p>
+<dt><strong>P_suction</strong><span class="classifier">float</span></dt><dd><p>Suction pressure</p>
 </dd>
-<dt><strong>vol</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Vacuum volume</p>
+<dt><strong>vol</strong><span class="classifier">float</span></dt><dd><p>Vacuum volume</p>
 </dd>
-<dt><strong>vacuum_system_preference</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple[str] or str</span></dt>
-<dd><p class="first last">Name(s) of preferred vacuum systems</p>
+<dt><strong>vacuum_system_preference</strong><span class="classifier">tuple[str] or str</span></dt><dd><p>Name(s) of preferred vacuum systems</p>
 </dd>
 </dl>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>float</strong></dt>
-<dd><p class="first last">power (kW)</p>
 </dd>
-<dt><strong>float</strong></dt>
-<dd><p class="first last">cost (USD)</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>power (kW)</p>
+</dd>
+<dt>float</dt><dd><p>cost (USD)</p>
 </dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="biosteam.units.designtools.GTable">
-<code class="descclassname">biosteam.units.designtools.</code><code class="descname">GTable</code><span class="sig-paren">(</span><em>DRho</em>, <em>Hlr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/designtools/_tables.html#GTable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.designtools.GTable" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">biosteam.units.designtools.</code><code class="sig-name descname">GTable</code><span class="sig-paren">(</span><em class="sig-param">DRho</em>, <em class="sig-param">Hlr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/designtools/_tables.html#GTable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.designtools.GTable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the allowable downflow (baffle liquid load) in gph/ft2, usually used for vertical vessel.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>DRho</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Density difference between light liquid and vapor (lb/ft^3 ?)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>DRho</strong><span class="classifier">float</span></dt><dd><p>Density difference between light liquid and vapor (lb/ft^3 ?)</p>
 </dd>
-<dt><strong>Hlr</strong> <span class="classifier-delimiter">:</span> <span class="classifier">float</span></dt>
-<dd><p class="first last">Height of liquid level above the interphase of light liquid and heavy liquid (ft)</p>
+<dt><strong>Hlr</strong><span class="classifier">float</span></dt><dd><p>Height of liquid level above the interphase of light liquid and heavy liquid (ft)</p>
 </dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="biosteam.units.designtools.HNATable">
-<code class="descclassname">biosteam.units.designtools.</code><code class="descname">HNATable</code><span class="sig-paren">(</span><em>Type</em>, <em>X</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/designtools/_tables.html#HNATable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.designtools.HNATable" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">biosteam.units.designtools.</code><code class="sig-name descname">HNATable</code><span class="sig-paren">(</span><em class="sig-param">Type</em>, <em class="sig-param">X</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/designtools/_tables.html#HNATable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.designtools.HNATable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Table for cylindrical height and area conversions.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -308,13 +283,13 @@
 
 <dl class="function">
 <dt id="biosteam.units.designtools.FinalValue">
-<code class="descclassname">biosteam.units.designtools.</code><code class="descname">FinalValue</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/designtools/_tables.html#FinalValue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.designtools.FinalValue" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">biosteam.units.designtools.</code><code class="sig-name descname">FinalValue</code><span class="sig-paren">(</span><em class="sig-param">value</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/designtools/_tables.html#FinalValue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.designtools.FinalValue" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return value to the next/highest 0.5 units</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="biosteam.units.designtools.VesselWeightAndWallThickness">
-<code class="descclassname">biosteam.units.designtools.</code><code class="descname">VesselWeightAndWallThickness</code><span class="sig-paren">(</span><em>Pressure</em>, <em>Diameter</em>, <em>VesselLength</em>, <em>rho_M</em>, <em>Je=0.85</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/designtools/_tables.html#VesselWeightAndWallThickness"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.designtools.VesselWeightAndWallThickness" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">biosteam.units.designtools.</code><code class="sig-name descname">VesselWeightAndWallThickness</code><span class="sig-paren">(</span><em class="sig-param">Pressure</em>, <em class="sig-param">Diameter</em>, <em class="sig-param">VesselLength</em>, <em class="sig-param">rho_M</em>, <em class="sig-param">Je=0.85</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/designtools/_tables.html#VesselWeightAndWallThickness"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.designtools.VesselWeightAndWallThickness" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return vessel weight and wall thickness.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
@@ -328,53 +303,44 @@
 
 <dl class="function">
 <dt id="biosteam.units.designtools.Kvalue">
-<code class="descclassname">biosteam.units.designtools.</code><code class="descname">Kvalue</code><span class="sig-paren">(</span><em>P</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/designtools/_tables.html#Kvalue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.designtools.Kvalue" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">biosteam.units.designtools.</code><code class="sig-name descname">Kvalue</code><span class="sig-paren">(</span><em class="sig-param">P</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/designtools/_tables.html#Kvalue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.designtools.Kvalue" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return K-constant in Stoke’s Law using the York-Demister equation.</p>
 <p><strong>Parameters</strong></p>
 <blockquote>
-<div>P: [float] Pressure (psia)</div></blockquote>
+<div><p>P: [float] Pressure (psia)</p>
+</div></blockquote>
 </dd></dl>
 
 <dl class="function">
 <dt id="biosteam.units.designtools.size_batch">
-<code class="descclassname">biosteam.units.designtools.</code><code class="descname">size_batch</code><span class="sig-paren">(</span><em>v_0</em>, <em>tau</em>, <em>tau_0</em>, <em>N_reactors</em>, <em>V_wf</em><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/biosteam/units/designtools/_batch.html#size_batch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.designtools.size_batch" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">biosteam.units.designtools.</code><code class="sig-name descname">size_batch</code><span class="sig-paren">(</span><em class="sig-param">v_0</em>, <em class="sig-param">tau</em>, <em class="sig-param">tau_0</em>, <em class="sig-param">N_reactors</em>, <em class="sig-param">V_wf</em><span class="sig-paren">)</span> &#x2192; dict<a class="reference internal" href="../_modules/biosteam/units/designtools/_batch.html#size_batch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.designtools.size_batch" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solve for batch reactor volume, cycle time, and loading time</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first docutils">
-<dt><strong>v_0</strong></dt>
-<dd><p class="first last">Flow rate</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>v_0</strong></dt><dd><p>Flow rate</p>
 </dd>
-<dt><strong>tau</strong></dt>
-<dd><p class="first last">Reaction time</p>
+<dt><strong>tau</strong></dt><dd><p>Reaction time</p>
 </dd>
-<dt><strong>tau_0</strong></dt>
-<dd><p class="first last">Turnaround time</p>
+<dt><strong>tau_0</strong></dt><dd><p>Turnaround time</p>
 </dd>
-<dt><strong>N_reactors</strong></dt>
-<dd><p class="first last">Number of reactors</p>
+<dt><strong>N_reactors</strong></dt><dd><p>Number of reactors</p>
 </dd>
-<dt><strong>V_wf</strong></dt>
-<dd><p class="first last">Fraction of working volume</p>
+<dt><strong>V_wf</strong></dt><dd><p>Fraction of working volume</p>
 </dd>
 </dl>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>dict[str: float]</strong></dt>
-<dd><ul class="first last simple">
-<li>‘Reactor volume’</li>
-<li>‘Cycle time’</li>
-<li>‘Loading time’</li>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>dict[str: float]</dt><dd><ul class="simple">
+<li><p>‘Reactor volume’</p></li>
+<li><p>‘Cycle time’</p></li>
+<li><p>‘Loading time’</p></li>
 </ul>
 </dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 </div>

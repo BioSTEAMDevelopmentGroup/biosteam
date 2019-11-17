@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>3. MixedStream objects and thermodynamic equilibrium &mdash; BioSTEAM 0.1 documentation</title>
+  <title>4. MixedStream objects and thermodynamic equilibrium &mdash; BioSTEAM 0.1 documentation</title>
   
 
   
@@ -20,20 +20,11 @@
   <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
   
     
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'../',
-              VERSION:'0.1',
-              LANGUAGE:'None',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  true,
-              SOURCELINK_SUFFIX: '.txt'
-          };
-      </script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -44,8 +35,8 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="4. Creating a Unit" href="Creating a Unit.html" />
-    <link rel="prev" title="2. Getting started" href="Getting started.html" /> 
+    <link rel="next" title="5. Creating a Unit" href="Creating a Unit.html" />
+    <link rel="prev" title="3. Getting started" href="Getting started.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -59,7 +50,7 @@
           
 
           
-            <a href="../home.html" class="icon icon-home"> BioSTEAM
+            <a href="../index.html" class="icon icon-home"> BioSTEAM
           
 
           
@@ -91,28 +82,29 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../Installation.html">1. Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Getting started.html">2. Getting started</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">3. MixedStream objects and thermodynamic equilibrium</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#Create-MixedStream-Objects">3.1. Create MixedStream Objects</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Get-and-set-flow-rates">3.2. Get and set flow rates</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Single-phase-flow-properties">3.3. Single phase flow properties</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Overall-flow-properties">3.4. Overall flow properties</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Material-and-thermodynamic-properties">3.5. Material and thermodynamic properties</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Vapor-liquid-equilibrium">3.6. Vapor-liquid equilibrium</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#Liquid-liquid-equilibrium">3.7. Liquid-liquid equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">4. MixedStream objects and thermodynamic equilibrium</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#Create-MixedStream-Objects">4.1. Create MixedStream Objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Get-and-set-flow-rates">4.2. Get and set flow rates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Single-phase-flow-properties">4.3. Single phase flow properties</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Overall-flow-properties">4.4. Overall flow properties</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Material-and-thermodynamic-properties">4.5. Material and thermodynamic properties</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Vapor-liquid-equilibrium">4.6. Vapor-liquid equilibrium</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#Liquid-liquid-equilibrium">4.7. Liquid-liquid equilibrium</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">4. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../units/notebooks/examples.html">5. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Managing flowsheets.html">6. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">7. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">9. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">12. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">13. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">5. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../units/notebooks/examples.html">6. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Managing flowsheets.html">7. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">8. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Biorefineries.html">9. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">10. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">14. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -145,7 +137,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../home.html">BioSTEAM</a>
+          <a href="../index.html">BioSTEAM</a>
         
       </nav>
 
@@ -174,9 +166,9 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../home.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html">Docs</a> &raquo;</li>
         
-      <li>3. MixedStream objects and thermodynamic equilibrium</li>
+      <li>4. MixedStream objects and thermodynamic equilibrium</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -379,13 +371,13 @@ div.nboutput div.output_area.stderr {
 }
 </style>
 <div class="section" id="MixedStream-objects-and-thermodynamic-equilibrium">
-<h1>3. MixedStream objects and thermodynamic equilibrium<a class="headerlink" href="#MixedStream-objects-and-thermodynamic-equilibrium" title="Permalink to this headline">¶</a></h1>
+<h1>4. MixedStream objects and thermodynamic equilibrium<a class="headerlink" href="#MixedStream-objects-and-thermodynamic-equilibrium" title="Permalink to this headline">¶</a></h1>
 <p>MixedStream is an extention of
 <a class="reference external" href="https://biosteam.readthedocs.io/en/latest/Stream.html">Stream</a> with
 ‘s’ (solid), ‘l’ (liquid), ‘L’ (LIQUID), and ‘g’ (gas) flow rates. The
 upper case ‘LIQUID’ denotes that it is a distinct phase from ‘liquid’.</p>
 <div class="section" id="Create-MixedStream-Objects">
-<h2>3.1. Create MixedStream Objects<a class="headerlink" href="#Create-MixedStream-Objects" title="Permalink to this headline">¶</a></h2>
+<h2>4.1. Create MixedStream Objects<a class="headerlink" href="#Create-MixedStream-Objects" title="Permalink to this headline">¶</a></h2>
 <p>Before initializing MixedStream objects, first set the species:</p>
 <div class="nbinput nblast docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
@@ -449,7 +441,7 @@ MixedStream: ms1
 </div>
 </div>
 <div class="section" id="Get-and-set-flow-rates">
-<h2>3.2. Get and set flow rates<a class="headerlink" href="#Get-and-set-flow-rates" title="Permalink to this headline">¶</a></h2>
+<h2>4.2. Get and set flow rates<a class="headerlink" href="#Get-and-set-flow-rates" title="Permalink to this headline">¶</a></h2>
 <p>Flow rates are stored in solid_mol, liquid_mol, LIQUID_mol, and
 vapor_mol arrays:</p>
 <div class="nbinput docutils container">
@@ -659,7 +651,7 @@ MixedStream: ms1
 </div>
 </div>
 <div class="section" id="Single-phase-flow-properties">
-<h2>3.3. Single phase flow properties<a class="headerlink" href="#Single-phase-flow-properties" title="Permalink to this headline">¶</a></h2>
+<h2>4.3. Single phase flow properties<a class="headerlink" href="#Single-phase-flow-properties" title="Permalink to this headline">¶</a></h2>
 <p>Add ‘net’ to get the net flow rate</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
@@ -785,7 +777,7 @@ MixedStream: ms1
 <p>Note: When a phase has no flow rate, all specie fractions will be equal.</p>
 </div>
 <div class="section" id="Overall-flow-properties">
-<h2>3.4. Overall flow properties<a class="headerlink" href="#Overall-flow-properties" title="Permalink to this headline">¶</a></h2>
+<h2>4.4. Overall flow properties<a class="headerlink" href="#Overall-flow-properties" title="Permalink to this headline">¶</a></h2>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
 <span></span>In [19]:
@@ -850,7 +842,7 @@ MixedStream: ms1
 ‘molfrac’, ‘massfrac’, and ‘volfrac’ are also available.</p>
 </div>
 <div class="section" id="Material-and-thermodynamic-properties">
-<h2>3.5. Material and thermodynamic properties<a class="headerlink" href="#Material-and-thermodynamic-properties" title="Permalink to this headline">¶</a></h2>
+<h2>4.5. Material and thermodynamic properties<a class="headerlink" href="#Material-and-thermodynamic-properties" title="Permalink to this headline">¶</a></h2>
 <p>Access the same properties as Stream objects:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
@@ -944,7 +936,7 @@ MixedStream: ms1
 </div>
 </div>
 <div class="section" id="Vapor-liquid-equilibrium">
-<h2>3.6. Vapor-liquid equilibrium<a class="headerlink" href="#Vapor-liquid-equilibrium" title="Permalink to this headline">¶</a></h2>
+<h2>4.6. Vapor-liquid equilibrium<a class="headerlink" href="#Vapor-liquid-equilibrium" title="Permalink to this headline">¶</a></h2>
 <p>Set temperature and pressure:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
@@ -1085,7 +1077,7 @@ MixedStream: ms2
 calculate equilibrium using the <code class="docutils literal notranslate"><span class="pre">LNK</span></code> and <code class="docutils literal notranslate"><span class="pre">HNK</span></code> key word arguments.</p>
 </div>
 <div class="section" id="Liquid-liquid-equilibrium">
-<h2>3.7. Liquid-liquid equilibrium<a class="headerlink" href="#Liquid-liquid-equilibrium" title="Permalink to this headline">¶</a></h2>
+<h2>4.7. Liquid-liquid equilibrium<a class="headerlink" href="#Liquid-liquid-equilibrium" title="Permalink to this headline">¶</a></h2>
 <p>Initialize with MixedStream object with water and octane:</p>
 <div class="nbinput docutils container">
 <div class="prompt highlight-none notranslate"><div class="highlight"><pre>
@@ -1181,10 +1173,10 @@ MixedStream: ms3
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="Creating a Unit.html" class="btn btn-neutral float-right" title="4. Creating a Unit" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="Creating a Unit.html" class="btn btn-neutral float-right" title="5. Creating a Unit" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="Getting started.html" class="btn btn-neutral float-left" title="2. Getting started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="Getting started.html" class="btn btn-neutral float-left" title="3. Getting started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

@@ -20,20 +20,11 @@
   <script type="text/javascript" src="_static/js/modernizr.min.js"></script>
   
     
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'./',
-              VERSION:'0.1',
-              LANGUAGE:'None',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  true,
-              SOURCELINK_SUFFIX: '.txt'
-          };
-      </script>
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script type="text/javascript" src="_static/jquery.js"></script>
         <script type="text/javascript" src="_static/underscore.js"></script>
         <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
     
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
@@ -59,7 +50,7 @@
           
 
           
-            <a href="home.html" class="icon icon-home"> BioSTEAM
+            <a href="index.html" class="icon icon-home"> BioSTEAM
           
 
           
@@ -91,19 +82,20 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="Installation.html">1. Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Getting started.html">2. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/MixedStream objects and thermodynamic equilibrium.html">3. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="units/notebooks/examples.html">5. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis of a biorefinery.html">9. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Stoichiometric reactions.html">12. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="tutorial/Advanced simulation.html">13. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/MixedStream objects and thermodynamic equilibrium.html">4. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="units/notebooks/examples.html">6. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Biorefineries.html">9. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Techno-economic analysis of a biorefinery.html">10. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -136,7 +128,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="home.html">BioSTEAM</a>
+          <a href="index.html">BioSTEAM</a>
         
       </nav>
 
@@ -165,7 +157,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="home.html">Docs</a> &raquo;</li>
+      <li><a href="index.html">Docs</a> &raquo;</li>
         
       <li>System</li>
     
@@ -210,198 +202,169 @@
 <p>System objects manage recycle loops. It takes care of bringing a chemical process to steady state.</p>
 <span class="target" id="module-biosteam"></span><dl class="class">
 <dt id="biosteam.System">
-<em class="property">class </em><code class="descclassname">biosteam.</code><code class="descname">System</code><span class="sig-paren">(</span><em>ID</em>, <em>network</em>, <em>recycle=None</em>, <em>facilities=()</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_system.html#System"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.</code><code class="sig-name descname">System</code><span class="sig-paren">(</span><em class="sig-param">ID</em>, <em class="sig-param">network</em>, <em class="sig-param">recycle=None</em>, <em class="sig-param">facilities=()</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_system.html#System"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a System object that can iteratively run each element in a network of BioSTREAM objects until the recycle stream is converged. A network can have function, Unit and/or System objects. When the network contains an inner System object, it converges/solves it in each loop/iteration.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>ID</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd><p class="first last">A unique identification. If ID is None, instance will not be
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>ID</strong><span class="classifier">str</span></dt><dd><p>A unique identification. If ID is None, instance will not be
 registered in flowsheet.</p>
 </dd>
-<dt><strong>network</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple[Unit, function and/or System]</span></dt>
-<dd><p class="first last">A network that is run element by element until the recycle converges.</p>
+<dt><strong>network</strong><span class="classifier">tuple[Unit, function and/or System]</span></dt><dd><p>A network that is run element by element until the recycle converges.</p>
 </dd>
-<dt><strong>recycle=None</strong> <span class="classifier-delimiter">:</span> <span class="classifier">Stream, optional</span></dt>
-<dd><p class="first last">A tear stream for the recycle loop.</p>
+<dt><strong>recycle=None</strong><span class="classifier">Stream, optional</span></dt><dd><p>A tear stream for the recycle loop.</p>
 </dd>
-<dt><strong>facilities=()</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple[Unit, function, and/or System], optional</span></dt>
-<dd><p class="first last">Offsite facilities that are simulated only after
+<dt><strong>facilities=()</strong><span class="classifier">tuple[Unit, function, and/or System], optional</span></dt><dd><p>Offsite facilities that are simulated only after
 completing the network simulation.</p>
 </dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <dl class="attribute">
 <dt id="biosteam.System.maxiter">
-<code class="descname">maxiter</code><em class="property"> = 100</em><a class="headerlink" href="#biosteam.System.maxiter" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">maxiter</code><em class="property"> = 100</em><a class="headerlink" href="#biosteam.System.maxiter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Maximum number of iterations</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="biosteam.System.molar_tolerance">
-<code class="descname">molar_tolerance</code><em class="property"> = 0.01</em><a class="headerlink" href="#biosteam.System.molar_tolerance" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">molar_tolerance</code><em class="property"> = 0.01</em><a class="headerlink" href="#biosteam.System.molar_tolerance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Molar tolerance (kmol/hr)</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="biosteam.System.T_tolerance">
-<code class="descname">T_tolerance</code><em class="property"> = 0.1</em><a class="headerlink" href="#biosteam.System.T_tolerance" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">T_tolerance</code><em class="property"> = 0.1</em><a class="headerlink" href="#biosteam.System.T_tolerance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Temperature tolerance (K)</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="biosteam.System.network">
-<code class="descname">network</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.System.network" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">network</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.System.network" title="Permalink to this definition">¶</a></dt>
 <dd><p>tuple[Unit, function and/or System] A network that is run element by element until the recycle converges.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="biosteam.System.facilities">
-<code class="descname">facilities</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.System.facilities" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">facilities</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.System.facilities" title="Permalink to this definition">¶</a></dt>
 <dd><p>tuple[Unit, function, and/or System] Offsite facilities that are simulated only after completing the network simulation.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="biosteam.System.feeds">
-<code class="descname">feeds</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.System.feeds" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">feeds</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.System.feeds" title="Permalink to this definition">¶</a></dt>
 <dd><p>set[Stream] All feed streams in the system.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="biosteam.System.products">
-<code class="descname">products</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.System.products" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">products</code><em class="property"> = None</em><a class="headerlink" href="#biosteam.System.products" title="Permalink to this definition">¶</a></dt>
 <dd><p>set[Stream] All product streams in the system.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.System.save_report">
-<code class="descname">save_report</code><span class="sig-paren">(</span><em>file='report.xlsx'</em>, <em>**stream_properties</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.System.save_report" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">save_report</code><span class="sig-paren">(</span><em class="sig-param">system</em>, <em class="sig-param">file='report.xlsx'</em>, <em class="sig-param">**stream_properties</em><span class="sig-paren">)</span><a class="headerlink" href="#biosteam.System.save_report" title="Permalink to this definition">¶</a></dt>
 <dd><p>Save a system report as an xlsx file.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>file</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd><p class="first last">File name to save report</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>file</strong><span class="classifier">str</span></dt><dd><p>File name to save report</p>
 </dd>
-<dt><strong>**stream_properties</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd><p class="first last">Additional stream properties and units as key-value pairs (e.g. T=’degC’, flow=’gpm’, H=’kW’, etc..)</p>
+<dt><strong>**stream_properties</strong><span class="classifier">str</span></dt><dd><p>Additional stream properties and units as key-value pairs (e.g. T=’degC’, flow=’gpm’, H=’kW’, etc..)</p>
 </dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.System.ID">
-<code class="descname">ID</code><a class="headerlink" href="#biosteam.System.ID" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">ID</code><a class="headerlink" href="#biosteam.System.ID" title="Permalink to this definition">¶</a></dt>
 <dd><p>Identification.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.System.TEA">
-<code class="descname">TEA</code><a class="headerlink" href="#biosteam.System.TEA" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">TEA</code><a class="headerlink" href="#biosteam.System.TEA" title="Permalink to this definition">¶</a></dt>
 <dd><p>[TEA] System object for Techno-Economic Analysis.</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.System.recycle">
-<code class="descname">recycle</code><a class="headerlink" href="#biosteam.System.recycle" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">recycle</code><a class="headerlink" href="#biosteam.System.recycle" title="Permalink to this definition">¶</a></dt>
 <dd><p>A tear stream for the recycle loop</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.System.diagram">
-<code class="descname">diagram</code><span class="sig-paren">(</span><em>kind='surface'</em>, <em>file=None</em>, <em>format='png'</em>, <em>**graph_attrs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_system.html#System.diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.diagram" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">diagram</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">kind='surface'</em>, <em class="sig-param">file=None</em>, <em class="sig-param">format='png'</em>, <em class="sig-param">**graph_attrs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_system.html#System.diagram"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.diagram" title="Permalink to this definition">¶</a></dt>
 <dd><p>Display a <a class="reference external" href="https://pypi.org/project/graphviz/">Graphviz</a> diagram of the system.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>kind=’surface’</strong> <span class="classifier-delimiter">:</span> <span class="classifier">{‘thorough’, ‘surface’, ‘minimal’}:</span></dt>
-<dd><ul class="first last simple">
-<li><strong>‘thorough’:</strong> Display every unit within the network.</li>
-<li><strong>‘surface’:</strong> Display only elements listed in the network.</li>
-<li><strong>‘minimal’:</strong> Display network as a box.</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>kind=’surface’</strong><span class="classifier">{‘thorough’, ‘surface’, ‘minimal’}:</span></dt><dd><ul class="simple">
+<li><p><strong>‘thorough’:</strong> Display every unit within the network.</p></li>
+<li><p><strong>‘surface’:</strong> Display only elements listed in the network.</p></li>
+<li><p><strong>‘minimal’:</strong> Display network as a box.</p></li>
 </ul>
 </dd>
-<dt><strong>file=None</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str, display in console by default</span></dt>
-<dd><p class="first last">File name to save diagram.</p>
+<dt><strong>file=None</strong><span class="classifier">str, display in console by default</span></dt><dd><p>File name to save diagram.</p>
 </dd>
-<dt><strong>format=’png’</strong> <span class="classifier-delimiter">:</span> <span class="classifier">str</span></dt>
-<dd><p class="first last">File format (e.g. “png”, “svg”).</p>
+<dt><strong>format=’png’</strong><span class="classifier">str</span></dt><dd><p>File format (e.g. “png”, “svg”).</p>
 </dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.System.set_spec">
-<code class="descname">set_spec</code><span class="sig-paren">(</span><em>getter</em>, <em>setter</em>, <em>solver=&lt;function newton&gt;</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_system.html#System.set_spec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.set_spec" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">set_spec</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">getter</em>, <em class="sig-param">setter</em>, <em class="sig-param">solver=&lt;function newton at 0x000001EEEF3CE1E0&gt;</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_system.html#System.set_spec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.set_spec" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrap a solver around the converge method.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>getter</strong> <span class="classifier-delimiter">:</span> <span class="classifier">function</span></dt>
-<dd><p class="first last">Returns objective value.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>getter</strong><span class="classifier">function</span></dt><dd><p>Returns objective value.</p>
 </dd>
-<dt><strong>setter</strong> <span class="classifier-delimiter">:</span> <span class="classifier">function</span></dt>
-<dd><p class="first last">Changes independent variable.</p>
+<dt><strong>setter</strong><span class="classifier">function</span></dt><dd><p>Changes independent variable.</p>
 </dd>
-<dt><strong>solver=scipy.optimize.newton</strong> <span class="classifier-delimiter">:</span> <span class="classifier">function</span></dt>
-<dd><p class="first last">Solves objective function.</p>
+<dt><strong>solver=scipy.optimize.newton</strong><span class="classifier">function</span></dt><dd><p>Solves objective function.</p>
 </dd>
-<dt><strong>**kwargs</strong></dt>
-<dd><p class="first last">Key word arguments passed to solver.</p>
+<dt><strong>**kwargs</strong></dt><dd><p>Key word arguments passed to solver.</p>
 </dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.System.reset_names">
-<code class="descname">reset_names</code><span class="sig-paren">(</span><em>unit_format=None</em>, <em>stream_format=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_system.html#System.reset_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.reset_names" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">reset_names</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">unit_format=None</em>, <em class="sig-param">stream_format=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_system.html#System.reset_names"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.reset_names" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reset names of all streams and units according to the network order.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.System.reset_flows">
-<code class="descname">reset_flows</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_system.html#System.reset_flows"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.reset_flows" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">reset_flows</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_system.html#System.reset_flows"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.reset_flows" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reset all process streams to zero flow.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.System.simulate">
-<code class="descname">simulate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_system.html#System.simulate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.simulate" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">simulate</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_system.html#System.simulate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.simulate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Converge the network and simulate all units.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.System.debug">
-<code class="descname">debug</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_system.html#System.debug"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.debug" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">debug</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_system.html#System.debug"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.debug" title="Permalink to this definition">¶</a></dt>
 <dd><p>Converge in debug mode. Just try it!</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="biosteam.System.show">
-<code class="descname">show</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_system.html#System.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.show" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">show</code><span class="sig-paren">(</span><em class="sig-param">self</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/biosteam/_system.html#System.show"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.System.show" title="Permalink to this definition">¶</a></dt>
 <dd><p>Prints information on unit.</p>
 </dd></dl>
 

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>11. Unit decorators &mdash; BioSTEAM 0.1 documentation</title>
+  <title>12. Unit decorators &mdash; BioSTEAM 0.1 documentation</title>
   
 
   
@@ -20,20 +20,11 @@
   <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
   
     
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'../',
-              VERSION:'0.1',
-              LANGUAGE:'None',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  true,
-              SOURCELINK_SUFFIX: '.txt'
-          };
-      </script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -44,8 +35,8 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="12. Stoichiometric reactions" href="Stoichiometric reactions.html" />
-    <link rel="prev" title="10. Inheriting from Unit" href="Inheriting from Unit.html" /> 
+    <link rel="next" title="13. Stoichiometric reactions" href="Stoichiometric reactions.html" />
+    <link rel="prev" title="11. Inheriting from Unit" href="Inheriting from Unit.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -59,7 +50,7 @@
           
 
           
-            <a href="../home.html" class="icon icon-home"> BioSTEAM
+            <a href="../index.html" class="icon icon-home"> BioSTEAM
           
 
           
@@ -91,22 +82,23 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../Installation.html">1. Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Getting started.html">2. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="MixedStream objects and thermodynamic equilibrium.html">3. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">4. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../units/notebooks/examples.html">5. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Managing flowsheets.html">6. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">7. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">9. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">11. Unit decorators</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#cost-decorator">11.1. cost decorator</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="MixedStream objects and thermodynamic equilibrium.html">4. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Creating a Unit.html">5. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../units/notebooks/examples.html">6. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Managing flowsheets.html">7. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Using -pipe- notation.html">8. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Biorefineries.html">9. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Techno-economic analysis of a biorefinery.html">10. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">12. Unit decorators</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#cost-decorator">12.1. cost decorator</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">12. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">13. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Advanced simulation.html">14. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul>
@@ -139,7 +131,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../home.html">BioSTEAM</a>
+          <a href="../index.html">BioSTEAM</a>
         
       </nav>
 
@@ -168,9 +160,9 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../home.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html">Docs</a> &raquo;</li>
         
-      <li>11. Unit decorators</li>
+      <li>12. Unit decorators</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -373,34 +365,34 @@ div.nboutput div.output_area.stderr {
 }
 </style>
 <div class="section" id="Unit-decorators">
-<h1>11. Unit decorators<a class="headerlink" href="#Unit-decorators" title="Permalink to this headline">¶</a></h1>
+<h1>12. Unit decorators<a class="headerlink" href="#Unit-decorators" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="cost-decorator">
-<h2>11.1. cost decorator<a class="headerlink" href="#cost-decorator" title="Permalink to this headline">¶</a></h2>
+<h2>12.1. cost decorator<a class="headerlink" href="#cost-decorator" title="Permalink to this headline">¶</a></h2>
 <p>The cost decorator adds a free on board purchase cost based on the
 exponential scale up equation:</p>
 <div class="math">
-<p><img src="../_images/math/37593ef29cfdad3f78ea7a4d741881373bee83b5.png" alt="New\ cost = N \cdot cost \bigg(\frac{CE_{new}}{CE}\bigg) \bigg(\frac{S_{new}}{N \cdot S}\bigg)^{n}"/></p>
+<p><img src="../_images/math/3bb1c79cf23b5841d907589ddbe44678aef4897f.png" alt="New\ cost = N \cdot cost \bigg(\frac{CE_{new}}{CE}\bigg) \bigg(\frac{S_{new}}{N \cdot S}\bigg)^{n}"/></p>
 </div><div class="math">
-<p><img src="../_images/math/fed0c9fdec841473e70d225782e362198bdbc318.png" alt="Electricity\ rate = kW \bigg(\frac{S_{new}}{S}\bigg)"/></p>
+<p><img src="../_images/math/1362da3d3256cace1c79456562ef72ed3a41baac.png" alt="Electricity\ rate = kW \bigg(\frac{S_{new}}{S}\bigg)"/></p>
 </div><div class="math">
-<p><img src="../_images/math/87f9ad8f55fa88664ebff2615a3667e16e202301.png" alt="N = ceil \bigg( \frac{S_{new}}{ub} \bigg)"/></p>
-</div><p><img class="math" src="../_images/math/082274b2697a2754b3ec4da15ed10d3fa0e960aa.png" alt="N\text{: Number of units}"/></p>
-<p><img class="math" src="../_images/math/9961ef53f8ba5ee74fec444ec81b4ec0e7ad200c.png" alt="ub\text{: Upper bound of size}"/></p>
-<p><img class="math" src="../_images/math/8897d4143dcce971b7b02799e1b8870486130424.png" alt="CE\text{: New Chemical Engineering Plant Cost Index}"/></p>
-<p><img class="math" src="../_images/math/4d5084ccb1e23d6a3a64053d4876f9980f3f1ce3.png" alt="CE\text{: Chemical Engineering Plant Cost Index}"/></p>
-<p><img class="math" src="../_images/math/275d53766d45e119bda1162a48ca3f3e1b927d44.png" alt="S_{new}\text{: New size value}"/></p>
-<p><img class="math" src="../_images/math/874d8aec3d35989300f29c22de9630e8467c5a6a.png" alt="S\text{: Original size value}"/></p>
-<p><img class="math" src="../_images/math/2bb9eb43d482adc9f4d51e10e91baf8452c43af8.png" alt="cost\text{: Free on board purchase cost at size S}"/></p>
-<p><img class="math" src="../_images/math/257eb31c7cca0726271b0aa3015d2b4d4e552c43.png" alt="kW\text{: Electricity rate in kW at size S}"/></p>
-<p><img class="math" src="../_images/math/f4a9d8224f9c97467705c4254c7d223f401c6917.png" alt="n\text{: Exponential factor}"/></p>
+<p><img src="../_images/math/968aaddb003600bf52d933afca8c8a5416405aaa.png" alt="N = ceil \bigg( \frac{S_{new}}{ub} \bigg)"/></p>
+</div><p><img class="math" src="../_images/math/ab2a52091914815425a6d18580a99684130f2739.png" alt="N\text{: Number of units}"/></p>
+<p><img class="math" src="../_images/math/2f19d589ff97bfea3307c99c27ac8a8d96283fcc.png" alt="ub\text{: Upper bound of size}"/></p>
+<p><img class="math" src="../_images/math/130b09b2389c2764926ef53229d7703f2cf64932.png" alt="CE\text{: New Chemical Engineering Plant Cost Index}"/></p>
+<p><img class="math" src="../_images/math/89ab011d182e78bfd0aaa69eea8e8ad4d9e0f920.png" alt="CE\text{: Chemical Engineering Plant Cost Index}"/></p>
+<p><img class="math" src="../_images/math/fb1105dfab7e23c193bc0986065553dedb6ce948.png" alt="S_{new}\text{: New size value}"/></p>
+<p><img class="math" src="../_images/math/c008aa526dc0067bbf9e72b088dd01e85b43de84.png" alt="S\text{: Original size value}"/></p>
+<p><img class="math" src="../_images/math/a61a41ec622878732be11b11b47d2bc6bfec5456.png" alt="cost\text{: Free on board purchase cost at size S}"/></p>
+<p><img class="math" src="../_images/math/a458e1650f402c3da2fa89c5ad108f9763433f9c.png" alt="kW\text{: Electricity rate in kW at size S}"/></p>
+<p><img class="math" src="../_images/math/d39377fccab8629dcc8dd6b36a36021755ccb2e8.png" alt="n\text{: Exponential factor}"/></p>
 <p>Create a Shredder Unit subclass for sugar cane with the following
 exponential scale up factors <a class="reference external" href="#References">[1]</a>:</p>
 <ul class="simple">
-<li>Chemical Engineering Plant Cost Index: 567.3</li>
-<li>Size: 500,000 kg/hr flow rate</li>
-<li>Purchase cost: 2,500,000</li>
-<li>Electricity rate: 3,000 kW</li>
-<li>Exponential factor: 0.6</li>
+<li><p>Chemical Engineering Plant Cost Index: 567.3</p></li>
+<li><p>Size: 500,000 kg/hr flow rate</p></li>
+<li><p>Purchase cost: 2,500,000</p></li>
+<li><p>Electricity rate: 3,000 kW</p></li>
+<li><p>Exponential factor: 0.6</p></li>
 </ul>
 <p>Additionally, include a bare module factor of 1.39 as an approximation
 for this example <a class="reference external" href="#References">[2]</a>.</p>
@@ -751,13 +743,13 @@ CostItem: Flow rate (kg/hr)
 add multiple cost items.</p>
 <p><strong>References</strong></p>
 <ol class="arabic simple">
-<li>Huang, H., Long, S., &amp; Singh, V. (2016) “Techno-economic analysis of
+<li><p>Huang, H., Long, S., &amp; Singh, V. (2016) “Techno-economic analysis of
 biodiesel and ethanol co-production from lipid-producing sugarcane”
 Biofuels, Bioproducts and Biorefining, 10(3), 299–315.
-<a class="reference external" href="https://doi.org/10.1002/bbb.1640">https://doi.org/10.1002/bbb.1640</a></li>
-<li>Seider, W. D., Lewin, D. R., Seader, J. D., Widagdo, S., Gani, R., &amp;
+<a class="reference external" href="https://doi.org/10.1002/bbb.1640">https://doi.org/10.1002/bbb.1640</a></p></li>
+<li><p>Seider, W. D., Lewin, D. R., Seader, J. D., Widagdo, S., Gani, R., &amp;
 Ng, M. K. (2017). Product and Process Design Principles. Wiley. Cost
-Accounting and Capital Cost Estimation (Chapter 16)</li>
+Accounting and Capital Cost Estimation (Chapter 16)</p></li>
 </ol>
 </div>
 </div>
@@ -770,10 +762,10 @@ Accounting and Capital Cost Estimation (Chapter 16)</li>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="Stoichiometric reactions.html" class="btn btn-neutral float-right" title="12. Stoichiometric reactions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="Stoichiometric reactions.html" class="btn btn-neutral float-right" title="13. Stoichiometric reactions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="Inheriting from Unit.html" class="btn btn-neutral float-left" title="10. Inheriting from Unit" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="Inheriting from Unit.html" class="btn btn-neutral float-left" title="11. Inheriting from Unit" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

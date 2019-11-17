@@ -20,20 +20,11 @@
   <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
   
     
-      <script type="text/javascript">
-          var DOCUMENTATION_OPTIONS = {
-              URL_ROOT:'../',
-              VERSION:'0.1',
-              LANGUAGE:'None',
-              COLLAPSE_INDEX:false,
-              FILE_SUFFIX:'.html',
-              HAS_SOURCE:  true,
-              SOURCELINK_SUFFIX: '.txt'
-          };
-      </script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
         <script type="text/javascript" src="../_static/jquery.js"></script>
         <script type="text/javascript" src="../_static/underscore.js"></script>
         <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../_static/js/theme.js"></script>
 
@@ -59,7 +50,7 @@
           
 
           
-            <a href="../home.html" class="icon icon-home"> BioSTEAM
+            <a href="../index.html" class="icon icon-home"> BioSTEAM
           
 
           
@@ -91,19 +82,20 @@
             
               <p class="caption"><span class="caption-text">Tutorial</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../Installation.html">1. Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Getting started.html">2. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/MixedStream objects and thermodynamic equilibrium.html">3. MixedStream objects and thermodynamic equilibrium</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Creating a Unit.html">4. Creating a Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks/examples.html">5. Unit operation examples</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">6. Managing flowsheets</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">7. Using -pipe- notation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">8. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis of a biorefinery.html">9. Techno-economic analysis of a biorefinery</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">10. Inheriting from Unit</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">11. Unit decorators</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Stoichiometric reactions.html">12. Stoichiometric reactions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/Advanced simulation.html">13. Advanced simulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Overview.html">1. Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Installation.html">2. Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Getting started.html">3. Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/MixedStream objects and thermodynamic equilibrium.html">4. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks/examples.html">6. Unit operation examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Biorefineries.html">9. Bioferineries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Techno-economic analysis of a biorefinery.html">10. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Unit decorators.html">12. Unit decorators</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/Advanced simulation.html">14. Advanced simulation</a></li>
 </ul>
 <p class="caption"><span class="caption-text">BioSTEAM API</span></p>
 <ul class="current">
@@ -157,7 +149,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../home.html">BioSTEAM</a>
+          <a href="../index.html">BioSTEAM</a>
         
       </nav>
 
@@ -186,7 +178,7 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../home.html">Docs</a> &raquo;</li>
+      <li><a href="../index.html">Docs</a> &raquo;</li>
         
           <li><a href="units.html">units</a> &raquo;</li>
         
@@ -232,44 +224,36 @@
 <span id="massbalance"></span><h1>MassBalance<a class="headerlink" href="#module-biosteam.units" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biosteam.units.MassBalance">
-<em class="property">class </em><code class="descclassname">biosteam.units.</code><code class="descname">MassBalance</code><span class="sig-paren">(</span><em>ID=''</em>, <em>outs=()</em>, <em>ins=None</em>, <em>species=None</em>, <em>streams=None</em>, <em>exact=True</em>, <em>balance='flow'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_balance.html#MassBalance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.MassBalance" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">biosteam.units.</code><code class="sig-name descname">MassBalance</code><span class="sig-paren">(</span><em class="sig-param">ID=''</em>, <em class="sig-param">outs=()</em>, <em class="sig-param">ins=None</em>, <em class="sig-param">species=None</em>, <em class="sig-param">streams=None</em>, <em class="sig-param">exact=True</em>, <em class="sig-param">balance='flow'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/biosteam/units/_balance.html#MassBalance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#biosteam.units.MassBalance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Unit object that changes net input flow rates to satisfy output flow rates. This calculation is based on mass balance equations for specified species.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
-<dt><strong>species</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple[str]</span></dt>
-<dd><p class="first last">Species that will be used to solve mass balance linear equations. The number of species must be same as the number of input streams varied.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>species</strong><span class="classifier">tuple[str]</span></dt><dd><p>Species that will be used to solve mass balance linear equations. The number of species must be same as the number of input streams varied.</p>
 </dd>
-<dt><strong>streams</strong> <span class="classifier-delimiter">:</span> <span class="classifier">tuple[int]</span></dt>
-<dd><p class="first last">Indices of input streams that can vary in net flow rate</p>
+<dt><strong>streams</strong><span class="classifier">tuple[int]</span></dt><dd><p>Indices of input streams that can vary in net flow rate</p>
 </dd>
-<dt><strong>exact=True</strong> <span class="classifier-delimiter">:</span> <span class="classifier">bool, optional</span></dt>
-<dd><p class="first last">True if exact flow rate solution is required for the specified species.</p>
+<dt><strong>exact=True</strong><span class="classifier">bool, optional</span></dt><dd><p>True if exact flow rate solution is required for the specified species.</p>
 </dd>
-<dt><strong>balance=’flow’</strong> <span class="classifier-delimiter">:</span> <span class="classifier">{‘flow’, ‘fraction’}, optional</span></dt>
-<dd><ul class="first last simple">
-<li>‘flow’: Satisfy output flow rates</li>
-<li>‘fraction’: Satisfy net output molar fractions</li>
+<dt><strong>balance=’flow’</strong><span class="classifier">{‘flow’, ‘fraction’}, optional</span></dt><dd><ul class="simple">
+<li><p>‘flow’: Satisfy output flow rates</p></li>
+<li><p>‘fraction’: Satisfy net output molar fractions</p></li>
 </ul>
 </dd>
 </dl>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <p><a class="reference internal" href="notebooks/MassBalance Example.html"><span class="doc">MassBalance</span></a></p>
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.units.MassBalance.ins">
-<code class="descname">ins</code><a class="headerlink" href="#biosteam.units.MassBalance.ins" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">ins</code><a class="headerlink" href="#biosteam.units.MassBalance.ins" title="Permalink to this definition">¶</a></dt>
 <dd><p>[:] Input streams</p>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="method">
 <dt id="biosteam.units.MassBalance.outs">
-<code class="descname">outs</code><a class="headerlink" href="#biosteam.units.MassBalance.outs" title="Permalink to this definition">¶</a></dt>
+<em class="property">property </em><code class="sig-name descname">outs</code><a class="headerlink" href="#biosteam.units.MassBalance.outs" title="Permalink to this definition">¶</a></dt>
 <dd><p>[:] Output streams</p>
 </dd></dl>
 
