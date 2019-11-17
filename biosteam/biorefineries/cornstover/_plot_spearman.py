@@ -5,7 +5,8 @@ Created on Mon Sep 16 00:02:57 2019
 @author: yoelr
 """
 import pandas as pd
-from biosteam.evaluation.evaluation_tools import plot_spearman
+from biosteam import colors
+from biosteam.evaluation.evaluation_tools import plot_spearman, plot_vertical_line
 
 # %%  Plot Spearman correlations
 
@@ -56,7 +57,8 @@ def replace_label_text(label_text):
 
 # Get data
 rhos = pd.read_excel('Spearman correlation cornstover.xlsx',
-                     header=[0], dtype=float).iloc[:, 0]
+                     header=[0], index_col=0).iloc[:, 0]
+
 # Get only important parameters
 rhos = rhos[rhos.abs()>0.055] 
 

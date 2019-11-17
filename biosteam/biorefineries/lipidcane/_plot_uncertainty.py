@@ -14,6 +14,7 @@ from biosteam import colors
 from matplotlib.patches import Patch
 from matplotlib.lines import Line2D
 
+
 # %% Constants
      
 rho_etoh = 0.789 # kg/l
@@ -34,7 +35,7 @@ def set_x_axis(with_labels=True):
 # Plot metrics across lipid fraction
 
 readxl = lambda sheet: pd.read_excel('Monte Carlo across lipid fraction.xlsx',
-                                     sheet_name=sheet)
+                                     sheet_name=sheet, index_col=0)
 
 fig = plt.figure()
 
@@ -122,9 +123,15 @@ plot_single_points(x_superpro, [13.5, 13.7, 15.2, 17.5])
 IRR = get_metric('Internal rate of return') * 100 # To percent
 plot_montecarlo(IRR)
 plot_vertical_line(1)
-plt.ylim(0, 30)
-plt.yticks(np.arange(0, 31, 30/5))
+IRR_ub = 30
+plt.ylim(0, IRR_ub)
+IRR_yticks = np.arange(0, 31, 30/5)
+plt.yticks(IRR_yticks)
 set_x_axis(False)
+y_text = 0.85*IRR_ub
+plt.text(0.05, y_text, "A", color=colors.neutral_shade.RGBn,
+         horizontalalignment='center', fontsize=14, fontweight='bold')
+
 
 # TCI
 plt.sca(TCI_ax)
@@ -132,9 +139,15 @@ TCI = get_metric('Fixed capital investment')  * 1.05 / 1e6 # Account for working
 plot_single_points(x_superpro, [158.5, 172.9, 178.3, 195.0])
 plot_montecarlo(TCI)
 plot_vertical_line(1)
-plt.ylim(0, 260)
-plt.yticks(np.arange(0, 260, 260/5))
+TCI_ub = 300
+plt.ylim(0, TCI_ub)
+TCI_yticks = np.arange(0, 300, 300/5)
+plt.yticks(TCI_yticks)
 set_x_axis(False)
+y_text = 0.85*TCI_ub
+plt.text(0.05, y_text, "B", color=colors.neutral_shade.RGBn,
+         horizontalalignment='center', fontsize=14, fontweight='bold')
+
 
 # Production
 plt.sca(production_ax)
@@ -144,10 +157,16 @@ ethanol_production = get_metric('Ethanol production') / (1e6*rho_etoh)
 plot_montecarlo(ethanol_production,
                 colors.orange_tint.RGBn,
                 colors.orange_shade.RGBn)
-plt.ylim(0, 200)
-plt.yticks(np.arange(0, 201, 200/5))
+production_ub = 225
+plt.ylim(0, production_ub)
+production_yticks = np.arange(0, 226, 225/5)
+plt.yticks(production_yticks)
 set_x_axis(False)
 plot_vertical_line(1)
+y_text = 0.85*production_ub
+plt.text(0.05, y_text, "D", color=colors.neutral_shade.RGBn,
+         horizontalalignment='center', fontsize=14, fontweight='bold')
+
 
 # Production cost
 plt.sca(production_cost_ax)
@@ -158,9 +177,15 @@ plot_montecarlo(ethanol_production_cost,
                 colors.orange_tint.RGBn,
                 colors.orange_shade.RGBn)
 plot_vertical_line(1)
-plt.ylim(0, 1.2)
-plt.yticks(np.arange(0, 1.2, 1.2/5))
+production_cost_ub = 1.2
+plt.ylim(0, production_cost_ub)
+production_cost_yticks = np.arange(0, 1.2, 1.2/5)
+plt.yticks(production_cost_yticks)
 set_x_axis(False)
+y_text = 0.85*production_cost_ub
+plt.text(0.05, y_text, "E", color=colors.neutral_shade.RGBn,
+         horizontalalignment='center', fontsize=14, fontweight='bold')
+
 
 # Steam
 plt.sca(steam_ax)
@@ -168,10 +193,16 @@ plot_single_points([0, 10], [686.056, 656.000])
 steam = get_metric('Steam')/1000
 plot_montecarlo(steam)
 plot_vertical_line(1)
-plt.ylim(0, 800)
-plt.yticks(np.arange(0, 800, 800/5))
+steam_ub = 900
+plt.ylim(0, steam_ub)
+steam_yticks = np.arange(0, 900, 900/5)
+plt.yticks(steam_yticks)
 set_x_axis(True)
 plt.xlabel('Feedstock lipid content [%]')
+y_text = 0.85*steam_ub
+plt.text(0.05, y_text, "C", color=colors.neutral_shade.RGBn,
+         horizontalalignment='center', fontsize=14, fontweight='bold')
+
 
 # Electricity
 plt.sca(electricity_ax)
@@ -186,15 +217,20 @@ plot_montecarlo(excess_electricity,
                 colors.yellow_tint.RGBn,
                 colors.yellow_shade.RGBn)
 plot_vertical_line(1)
-plt.ylim(0, 575)
-plt.yticks(np.arange(0, 575, 575/5))
+electricity_ub = 575
+plt.ylim(0, electricity_ub)
+electricity_yticks = np.arange(0, 575, 575/5)
+plt.yticks(electricity_yticks)
 set_x_axis(True)
 plt.xlabel('Feedstock lipid content [%]')
+y_text = 0.85*electricity_ub
+plt.text(0.05, y_text, "F", color=colors.neutral_shade.RGBn,
+         horizontalalignment='center', fontsize=14, fontweight='bold')
+
 
 
 plt.subplots_adjust(hspace=.0)
 plt.subplots_adjust(wspace=0.3)
-TCI_ax.set_yticks(np.linspace(0, 200, 5))
 IRR_ax.tick_params(axis="x", direction="inout", length=4)
 IRR_ax.set_zorder(2)
 TCI_ax.tick_params(axis="x", direction="inout", length=4)
@@ -203,10 +239,29 @@ production_ax.tick_params(axis="x", direction="inout", length=4)
 production_ax.set_zorder(2)
 production_cost_ax.tick_params(axis="x", direction="inout", length=4)
 production_cost_ax.set_zorder(1)
+steam_ax.tick_params(axis="x", direction="inout", length=4)
+electricity_ax.tick_params(axis="x", direction="inout", length=4)
 axs = [TCI_ax, IRR_ax, production_ax, production_cost_ax, electricity_ax, steam_ax]
-for ax in axs:
-    ax.tick_params(axis='y', right=True, direction="in", length=4)
-    
+yticks = [TCI_yticks, IRR_yticks, production_yticks, 
+          production_cost_yticks, electricity_yticks, steam_yticks]
+ubs = [TCI_ub, IRR_ub, production_ub, 
+       production_cost_ub, electricity_ub, steam_ub]
+ax2s = [ax.twinx() for ax in axs]
+for ub, yt, ax, ax2 in zip(ubs, yticks, axs, ax2s):
+    ax.tick_params(axis='y', right=False, direction="inout", length=4)
+    plt.sca(ax2)
+    plt.yticks(yt, ['']*len(yt))
+    plt.ylim(0, ub)
+    ax2.zorder = 1000
+    ax2.tick_params(direction="in")
+
+for ax in (IRR_ax, production_ax):
+    ax2 = ax.twiny()
+    plt.sca(ax2)
+    plt.xticks(x_ticks, ())
+    ax2.zorder = 1000
+    ax2.tick_params(direction="in")
+
 
 plt.sca(production_ax)
 BioSTEAM_patch = Patch(facecolor=colors.neutral_tint.RGBn, 
@@ -222,8 +277,9 @@ frame = legend.get_frame()
 frame.set_linewidth(0.0)
 frame.set_facecolor('none')
 
-fig.align_ylabels([IRR_ax, TCI_ax, steam_ax, IRR_ax])
+fig.align_ylabels([IRR_ax, TCI_ax, steam_ax])
 fig.align_ylabels([production_ax, production_cost_ax, electricity_ax])
+fig.align_ylabels([IRR_ax, TCI_ax])
 
 # plt.sca(electricity_ax)
 # legend = DoubleColorLegend()

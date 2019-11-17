@@ -39,7 +39,7 @@ def plot_spearman(rhos, top=None, name=None):
         index = index[-top:]
     
     xranges = [(0, i) for i in rhos]
-    yranges = [(i, 1) for i in range(len(rhos))]
+    yranges = [(i, 0.65) for i in range(len(rhos))]
     
     # Plot bars one by one
     fig, ax = plt.subplots()
@@ -47,11 +47,32 @@ def plot_spearman(rhos, top=None, name=None):
         ax.broken_barh([x], y, facecolors=colors.blue_tint.RGBn,
                        edgecolors=colors.blue_dark.RGBn)
     
+    # Plot central line
+    plot_vertical_line(0, color=colors.neutral_shade.RGBn, lw=1)
+    
+    xticks = [-1, -0.5, 0, 0.5, 1]
+    yticks = [i[0]+i[1]/2 for i in yranges]
     ax.set_xlim(-1, 1)
     ax.set_xlabel(f"Spearman's correlation with {name}")
-    ax.set_yticks([i[0]+i[1]/2 for i in yranges])
+    ax.set_xticks(xticks)
+    ax.set_yticks(yticks)
+    ax.tick_params(axis='y', right=False, direction="inout", length=4)
     ax.set_yticklabels(index)
     ax.grid(False)
+    ylim = plt.ylim()
+    
+    ax2 = ax.twinx()
+    plt.sca(ax2)
+    plt.yticks(yticks, [])
+    plt.ylim(*ylim)
+    ax2.zorder = 1000
+    ax2.tick_params(direction="in")
+    
+    ax3 = ax.twiny()
+    plt.sca(ax3)
+    plt.xticks(xticks)
+    ax3.zorder = 1000
+    ax3.tick_params(direction="in", labeltop=False)
     
     return fig, ax
 

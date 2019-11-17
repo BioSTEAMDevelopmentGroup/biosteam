@@ -4,7 +4,6 @@ Created on Sun Sep  1 04:37:16 2019
 
 @author: yoelr
 """
-import pandas as pd
 import numpy as np
 from biosteam.biorefineries import lipidcane as lc
 from biosteam.biorefineries import sugarcane as sc

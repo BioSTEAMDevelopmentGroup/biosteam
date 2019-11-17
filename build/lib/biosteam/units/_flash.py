@@ -453,9 +453,7 @@ class Flash(Unit):
         else:
             D = FinalValue(D)
 
-        outerIter = 0
-        while outerIter < 50:
-            outerIter += 1
+        for outerIter in range(50):
             At = pi*(D**2)/4.0 # Total area
 
             # Calculate Lower Liquid Area
@@ -482,8 +480,7 @@ class Flash(Unit):
             Lmin = Uva*Phi
             Li = L
             
-            innerIter = 0
-            while innerIter < 50:
+            for innerIter in range(50):
                 if L < 0.8*Lmin: Hv += 0.5
                 elif L > 1.2*Lmin:
                     if Mist and Hv <= 2.0: Hv = 2.0
@@ -495,8 +492,7 @@ class Flash(Unit):
                 Li = (Vh + Vs)/(At - Av - Alll)
                 Phi = Hv/Uv
                 Uva = Qv/Av
-                Lmin = Uva*Phi                
-                innerIter += 1
+                Lmin = Uva*Phi
             
             L = Li
             LD = L/D
@@ -697,7 +693,7 @@ class Evaporator_PQ(Unit):
         index = species.index(component)
         vapor.mol[index] = 1
         vapor._phase = 'g'
-        vapor.T = vapor.T = Tf
+        liquid.T = vapor.T = Tf
 
         liquid.empty()
         liquid.mol[index] = 1
@@ -707,7 +703,6 @@ class Evaporator_PQ(Unit):
         self._liquid_H = liquid.H
         self._no_ph_ch = no_ph_ch
         self._index = species.index(component)
-        self._V = 0.5
 
     def _run(self):
         feed = self.ins[0]
@@ -733,13 +728,9 @@ class Evaporator_PQ(Unit):
 
         # Energy balance to find vapor fraction
         f = feed.mol[index]
-        H_actual = lambda v:  vapor_H*(v*f) + liquid_H*((1-v)*f)
-
-        # Final vapor fraction
-        V = self._V
         H = feed_H + Q - no_ph_ch_H
-        V = IQ_interpolation(H_actual, 0, 1, liquid_H, vapor_H,
-                             V, H, xtol=1e-4, ytol=1e-3)
+        V = (H/f - liquid_H)/(vapor_H + liquid_H)
+        
         liquid._mol[:] = no_ph_ch._mol
         if V < 0:
             V = 0

@@ -13,13 +13,13 @@ BioSTEAM is an open source process simulation package in Python for fast and fle
    Overview
    Installation
    tutorial/Getting started
-   tutorial/MixedStream objects and thermodynamic equilibrium
+   tutorial/Thermodynamic equilibrium
    tutorial/Creating a Unit
    units/notebooks/examples
    tutorial/Managing flowsheets
    tutorial/Using -pipe- notation
    tutorial/Biorefineries
-   tutorial/Techno-economic analysis of a biorefinery
+   tutorial/Techno-economic analysis
    tutorial/Inheriting from Unit
    tutorial/Unit decorators
    tutorial/Stoichiometric reactions

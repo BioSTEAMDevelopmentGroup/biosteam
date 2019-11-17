@@ -158,7 +158,7 @@ class TEA:
     
     Examples
     --------
-    :doc:`tutorial/Techno-economic analysis of a biorefinery` 
+    :doc:`tutorial/Techno-economic analysis` 
 
     """
     

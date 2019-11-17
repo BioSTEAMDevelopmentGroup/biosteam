@@ -57,7 +57,7 @@ def replace_label_text(label_text):
 
 # Get data
 rhos = pd.read_excel('Spearman correlation lipidcane.xlsx',
-                      header=[0])["('Biorefinery', 'Internal rate of return')"]
+                      header=[0], index_col=0).iloc[:, 0]
 rhos.name = 'IRR'
 # Sort most important
 rhos = rhos[(rhos.abs()>0.050)] 
