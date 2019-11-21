@@ -16,3 +16,4 @@ coolprop==6.3.0
 numpy==1.17.3
 xlrd==1.2.0
 openpyxl==3.0.0
+flexsolve

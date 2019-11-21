@@ -6,7 +6,7 @@ Created on Mon Sep 16 00:02:57 2019
 """
 import pandas as pd
 from biosteam import colors
-from biosteam.evaluation.evaluation_tools import plot_spearman, plot_vertical_line
+from biosteam.evaluation.evaluation_tools import plot_spearman
 
 # %%  Plot Spearman correlations
 

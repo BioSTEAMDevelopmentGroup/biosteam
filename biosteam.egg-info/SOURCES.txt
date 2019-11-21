@@ -257,6 +257,9 @@ biosteam/thermo/Viscosity/VDI PPDS Dynamic viscosity of saturated liquids polyno
 biosteam/thermo/Viscosity/Viswanath Natarajan Dynamic 2 term Exponential.tsv
 biosteam/thermo/Viscosity/Viswanath Natarajan Dynamic 2 term.tsv
 biosteam/thermo/Viscosity/Viswanath Natarajan Dynamic 3 term.tsv
+biosteam/units/Monte Carlo across lipid fraction.xlsx
+biosteam/units/Monte Carlo sugarcane.xlsx
+biosteam/units/Spearman correlation lipidcane.xlsx
 biosteam/units/__init__.py
 biosteam/units/_balance.py
 biosteam/units/_centrifuge_LLE.py
@@ -311,6 +314,5 @@ biosteam/utils/not_implemented_method.py
 biosteam/utils/other_utils.py
 biosteam/utils/plot_utils.py
 biosteam/utils/register.py
-biosteam/utils/solvers.py
 biosteam/utils/stream_utils.py
 biosteam/utils/tictoc.py

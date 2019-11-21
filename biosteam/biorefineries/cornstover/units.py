@@ -15,7 +15,7 @@ path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '_humbird2011.x
 xl2mod(path, sys.modules[__name__])
 del sys, xl2mod, os, path
 
-from biosteam.utils.solvers import aitken_secant
+from flexsolve import aitken_secant
 from biosteam import Unit, MixedStream, Stream
 from biosteam.units.decorators import cost
 from biosteam.units.designtools import size_batch

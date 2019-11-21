@@ -11,7 +11,8 @@ from .utils import property_array, PropertyFactory, DisplayUnits, \
                     tuple_array, fraction, Sink, Source, MissingStream
 from ._flowsheet import find
 from ._species import Species, WorkingSpecies
-from ._exceptions import SolverError, EquilibriumError, DimensionError
+from ._exceptions import EquilibriumError, DimensionError
+from flexsolve import SolverError
 from ._equilibrium import Dortmund, VLE, BubblePoint, DewPoint
 
 

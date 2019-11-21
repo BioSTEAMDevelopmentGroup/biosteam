@@ -121,7 +121,7 @@ plt.text(15.75, y_letter, "E", color=colors.neutral_shade.RGBn,
 plt.xlim(-0.5, 18.5)
 plt.ylabel("Metric over benchmark [%]")
 area_marks = [i.replace(' ', '\n') for i in areas]
-xmarks = area_marks + ['Excess'] + area_marks[1:] + ['Steam', 'EtOH', 'MESP']
+xmarks = area_marks + ['Excess'] + area_marks[1:] + ['Steam\ndemand', '   EtOH\n    prod.', '  MESP']
 xticks = positions_electricity + positions_installation + positions_other
 plt.xticks(xticks, xmarks)
 metric_over_benchmark_ax.set_zorder(1e6)

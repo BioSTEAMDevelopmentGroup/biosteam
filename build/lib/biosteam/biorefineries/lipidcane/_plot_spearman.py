@@ -11,14 +11,14 @@ from biosteam.evaluation.evaluation_tools import plot_spearman
 
 # Replacement parameter labels
 replacement_labels = {
-        'Stream-Ethanol price': 'Ethanol price',
+        'Stream-ethanol price': 'Ethanol price',
         'TEA operating days': 'Operating days',
-        'Stream-Lipid cane price': 'Lipid cane price',
-        'Fermentation-U34 efficiency': 'Fermentation efficiency',
-        'Stream-Biodiesel price': 'Biodiesel price',
-        'Stream-Crude glycerol price': 'Crude glycerol price',
-        'Stream-Lime price': 'Lime price',
-        'Stream-Lipid cane flow rate': 'Lipid cane flow rate',
+        'Stream-lipid cane price': 'Lipid cane price',
+        'Fermentation-R301 efficiency': 'Fermentation efficiency',
+        'Stream-biodiesel price': 'Biodiesel price',
+        'Stream-crude glycerol price': 'Crude glycerol price',
+        'Stream-lime price': 'Lime price',
+        'Stream-lipid cane flow rate': 'Lipid cane flow rate',
         'TEA income tax': 'Income tax',
         'Boiler turbogenerator-BT boiler efficiency': 'Boiler efficiency',
         'Boiler turbogenerator boiler exponent': 'Boiler cost exponent',
@@ -26,7 +26,7 @@ replacement_labels = {
         'Boiler turbogenerator turbogenerator electricity rate': 'Turbogenerator electricity rate',
         'Boiler turbogenerator turbogenerator base cost': 'Turbogenerator base cost',
         'Mix tank exponent': 'Mix tank cost exponent',
-        'Stream-Lipid cane lipid fraction': 'Lipid cane lipid fraction',
+        'Stream-lipid cane lipid fraction': 'Lipid cane lipid fraction',
         'Transesterification-U61 efficiency': 'Transesterification efficiency',
         'Power utility price': 'Electricity price',
         'Cooling tower base cost': 'Cooling tower base cost'}
@@ -57,7 +57,7 @@ def replace_label_text(label_text):
 
 # Get data
 rhos = pd.read_excel('Spearman correlation lipidcane.xlsx',
-                      header=[0])["('Biorefinery', 'Internal rate of return')"]
+                      header=[0], index_col=0).iloc[:, 0]
 rhos.name = 'IRR'
 # Sort most important
 rhos = rhos[(rhos.abs()>0.050)] 

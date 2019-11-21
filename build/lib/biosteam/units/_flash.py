@@ -11,7 +11,7 @@ from scipy.optimize import brentq, newton
 from ..thermo import activity
 from .designtools import vacuum_system, HNATable, FinalValue, \
                           VesselWeightAndWallThickness, Kvalue
-from ..utils.solvers import IQ_interpolation
+from flexsolve import IQ_interpolation
 from .._equilibrium import V_3N, V_2N, V_error
 from ._splitter import Splitter
 from ._hx import HX, HXutility

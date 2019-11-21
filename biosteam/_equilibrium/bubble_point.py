@@ -5,7 +5,7 @@ Created on Sun Jul 21 21:30:33 2019
 @author: yoelr
 """
 from numpy import asarray, array
-from biosteam.utils import wegstein_secant, aitken_secant
+from flexsolve import wegstein_secant, aitken_secant
 
 __all__ = ('BubblePoint',)
 

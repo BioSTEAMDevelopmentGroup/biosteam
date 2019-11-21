@@ -7,7 +7,7 @@ Created on Mon Feb  4 19:38:37 2019
 
 import pandas as pd
 import numpy as np
-from .utils import wegstein_secant, aitken_secant, secant
+from flexsolve import wegstein_secant, aitken_secant, secant
 from copy import copy as copy_
 from numba import njit
 
@@ -158,7 +158,7 @@ class TEA:
     
     Examples
     --------
-    :doc:`tutorial/Techno-economic analysis of a biorefinery` 
+    :doc:`tutorial/Techno-economic analysis` 
 
     """
     

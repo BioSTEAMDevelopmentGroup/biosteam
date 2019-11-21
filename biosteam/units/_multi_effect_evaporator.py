@@ -10,7 +10,7 @@ from .. import Unit, Stream
 from . import Mixer, HXutility
 from ._flash import Evaporator_PV, Evaporator_PQ
 from .designtools import vacuum_system
-from ..utils.solvers import IQ_interpolation
+from flexsolve import IQ_interpolation
 from warnings import warn
 import ht
 log = np.log

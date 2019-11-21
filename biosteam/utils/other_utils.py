@@ -9,27 +9,7 @@ This module includes arbitrary classes and functions.
 import biosteam as bst
 
 __all__ = ('factor', 'checkbounds', 'approx2step', 'strtuple',
-           'Counter', 'format_unit_line', 'format_unit_name')
-
-class Counter:
-    __slots__ = ('msg', 'N')
-    def __init__(self, msg=None, N=0):
-        self.msg = msg
-        self.N = N
-        
-    def notify(self):
-        print(f"{self.msg or 'counter'}: {self.N}")
-        
-    def restart(self, msg=None, N=0, notify=True):
-        if notify: self.notify()
-        self.msg = msg or self.msg
-        self.N = N
-        
-    def count(self):
-        self.N += 1
-        
-    def __repr__(self):
-        return f"<Counter: msg={repr(self.msg)}, N={self.N}>"
+           'format_unit_line', 'format_unit_name')
 
 # %% Number functions
 

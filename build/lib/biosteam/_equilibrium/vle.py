@@ -4,8 +4,8 @@ Created on Wed Mar 20 18:40:05 2019
 
 @author: yoelr
 """
-from ..utils import bounded_wegstein, wegstein, aitken, \
-                     bounded_aitken, IQ_interpolation
+from flexsolve import bounded_wegstein, wegstein, aitken, \
+                      bounded_aitken, IQ_interpolation
 from numba import njit
 import numpy as np
 

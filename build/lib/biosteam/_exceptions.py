@@ -9,15 +9,12 @@ This module includes classes and functions relating exception handling.
 """
 import sys as _sys
 
-__all__ = ('DesignError', 'SolverError', 'EquilibriumError','DimensionError', 'DesignWarning')
+__all__ = ('DesignError', 'EquilibriumError','DimensionError', 'DesignWarning')
 
 # %% Biosteam errors
 
 class DesignError(RuntimeError):
     """RuntimeError regarding unit design."""
-
-class SolverError(RuntimeError):
-    """RuntimeError regarding solvers."""
 
 class EquilibriumError(RuntimeError):
     """RuntimeError regarding equilibrium."""

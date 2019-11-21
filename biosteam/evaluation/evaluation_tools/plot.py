@@ -57,6 +57,7 @@ def plot_spearman(rhos, top=None, name=None):
     ax.set_xticks(xticks)
     ax.set_yticks(yticks)
     ax.tick_params(axis='y', right=False, direction="inout", length=4)
+    ax.tick_params(axis='x', direction="inout", length=4)
     ax.set_yticklabels(index)
     ax.grid(False)
     ylim = plt.ylim()

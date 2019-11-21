@@ -83,7 +83,7 @@ class MixedStream(Stream):
 
     Examples
     --------
-    :doc:`tutorial/MixedStream objects and thermodynamic equilibrium`
+    :doc:`tutorial/Thermodynamic equilibrium`
     
     """
     __slots__ = ()

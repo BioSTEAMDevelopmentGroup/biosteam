@@ -5,15 +5,14 @@ Created on Sat Aug 18 15:04:55 2018
 @author: yoelr
 """
 from scipy.optimize import newton
-from ._exceptions import SolverError, _try_method
+from flexsolve import SolverError, conditional_wegstein, conditional_aitken
+from ._exceptions import _try_method
 from ._flowsheet import find, make_digraph, save_digraph
 from ._stream import Stream
 from ._facility import Facility
 from ._unit import Unit
 from ._report import save_report
-from .utils import colors, MissingStream, strtuple, \
-                   conditional_wegstein, conditional_aitken, \
-                   build_network
+from .utils import colors, MissingStream, strtuple, build_network
 import biosteam as bst
 
 __all__ = ('System',)
