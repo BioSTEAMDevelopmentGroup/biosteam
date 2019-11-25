@@ -61,18 +61,16 @@ class Dortmund:
         for group in gckeys:
             tot_numerator = sum_([x*g[group] for x, g in xs_chemgroups if group in g])
             group_count_xs[group] = tot_numerator/group_sum
-    
         loggammacs = self.loggammacs(self.qs, self.rs, xs)
         subgroups = self.subgroups
         Q_sum_term = sum_([subgroups[group].Q*group_count_xs[group] for group in gckeys])
         area_fractions = {group: subgroups[group].Q*group_count_xs[group]/Q_sum_term
                           for group in gckeys}
-    
         psi = self.psi
         interactions = self.interactions
         UNIFAC_psis = {k: {m: (psi(T, m, k, subgroups, interactions))
                            for m in gckeys} for k in gckeys}
-    
+        
         loggamma_groups = {}
         for k in gckeys:
             sum1, sum2 = 0., 0.
@@ -82,7 +80,6 @@ class Dortmund:
                             for n in groupcounts])
                 sum2 -= area_fractions[m]*UNIFAC_psis[m][k]/sum3
             loggamma_groups[k] = subgroups[k].Q*(1. - log(sum1) + sum2)
-    
         loggammars = []
         for groups in self.chemgroups:
             gkeys = groups.keys()
@@ -102,13 +99,10 @@ class Dortmund:
                     sum3 = sum_([chem_area_fractions[n]
                                 * UNIFAC_psis[m][n] for n in groups])
                     sum2 -= chem_area_fractions[m]*UNIFAC_psis[m][k]/sum3
-    
                 chem_loggamma_groups[k] = subgroups[k].Q*(1. - log(sum1) + sum2)
-    
             tot = sum_([count*(loggamma_groups[group] - chem_loggamma_groups[group])
                        for group, count in groups.items()])
             loggammars.append(tot)
-    
         return [exp(sum_(ij)) for ij in zip(loggammacs, loggammars)]
     
     def _load_species(self, species):

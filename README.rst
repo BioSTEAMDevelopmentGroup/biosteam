@@ -73,10 +73,3 @@ This work was funded by the DOE Center for Advanced Bioenergy and Bioproducts In
 This material is based upon work supported by the National Science Foundation Graduate Research Fellowship Program under Grant No. DGE - 1144245
 
 
-Citation
---------
-
-To cite BioSTEAM in publications use::
-
-    Yoel Cortes-Pena, Jeremy Guest (2019). BioSTEAM: The Biorefinery Simulation and Techno-Economic Analysis Modules.
-    https://github.com/yoelcortes/biosteam
