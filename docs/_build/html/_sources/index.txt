@@ -3,7 +3,17 @@
 Key Features & Capabilities
 ---------------------------
 
-BioSTEAM is an open source process simulation package in Python for fast and flexible techno-economic analysis. BioSTEAM objects serve as basic building blocks to design and simulate a biorefinery. These include objects that handle material properties, material flows, unit operations, recycle loops and process specifications. BioSTEAM is capable of streamlining and automating process and technology evaluations for rigorous uncertainty and sensitivity analyses. BioSTEAM does not yet have a GUI, but flowsheets of all streams, unit operations, and recycle systems can be instantaneously generated. Two complete biorefineries models are included in BioSTEAM: the co-production of ethanol and biodiesel from lipid-cane, and 2nd generation ethanol production from corn stover. Please refer to the tutorial to get started.
+* **Fast and flexible techno-economic analysis.** 
+  BioSTEAM presents basic building blocks to design and simulate a biorefinery. These include objects that handle material properties, material flows, unit operations, and recycle loops.
+
+* **Clear representation of streams, unit operations, and recycle systems.**
+  Instantaneous generation of flowsheets and a clear representation of data allows users to visualize biorefineries in detail. BioSTEAM does not yet have a GUI but we are on our way to building one.
+
+* **Automated process and technology evaluations.**
+  The evaluation of thousands of biorefinery designs is streamlined through smart and efficient management of biorefinery parameters to evaluate sets of design decisions and scenarios.
+
+* **Complete biorefinery examples.**
+  Two complete biorefineries models are included in BioSTEAM: the co-production of ethanol and biodiesel from lipid-cane, and 2nd generation ethanol production from corn stover. Please refer to the tutorial to get started.
 
 .. toctree::
    :maxdepth: 1
@@ -13,13 +23,13 @@ BioSTEAM is an open source process simulation package in Python for fast and fle
    Overview
    Installation
    tutorial/Getting started
-   tutorial/MixedStream objects and thermodynamic equilibrium
+   tutorial/Thermodynamic equilibrium
    tutorial/Creating a Unit
    units/notebooks/examples
    tutorial/Managing flowsheets
    tutorial/Using -pipe- notation
    tutorial/Biorefineries
-   tutorial/Techno-economic analysis of a biorefinery
+   tutorial/Techno-economic analysis
    tutorial/Inheriting from Unit
    tutorial/Unit decorators
    tutorial/Stoichiometric reactions

@@ -83,13 +83,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../Overview.html">1. Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../Installation.html">2. Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Getting started.html">3. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/MixedStream objects and thermodynamic equilibrium.html">4. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Thermodynamic equilibrium.html">4. Thermodynamic equilibrium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../units/notebooks/examples.html">6. Unit operation examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Biorefineries.html">9. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis of a biorefinery.html">10. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
@@ -184,12 +184,8 @@
 <span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Stream</span><span class="p">,</span> <span class="n">Unit</span><span class="p">,</span> <span class="n">MixedStream</span><span class="p">,</span> <span class="n">PowerUtility</span>
 <span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">pi</span><span class="p">,</span> <span class="n">ceil</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">brentq</span><span class="p">,</span> <span class="n">newton</span>
-<span class="kn">from</span> <span class="nn">..thermo</span> <span class="k">import</span> <span class="n">activity</span>
 <span class="kn">from</span> <span class="nn">.designtools</span> <span class="k">import</span> <span class="n">vacuum_system</span><span class="p">,</span> <span class="n">HNATable</span><span class="p">,</span> <span class="n">FinalValue</span><span class="p">,</span> \
                           <span class="n">VesselWeightAndWallThickness</span><span class="p">,</span> <span class="n">Kvalue</span>
-<span class="kn">from</span> <span class="nn">..utils.solvers</span> <span class="k">import</span> <span class="n">IQ_interpolation</span>
-<span class="kn">from</span> <span class="nn">.._equilibrium</span> <span class="k">import</span> <span class="n">V_3N</span><span class="p">,</span> <span class="n">V_2N</span><span class="p">,</span> <span class="n">V_error</span>
 <span class="kn">from</span> <span class="nn">._splitter</span> <span class="k">import</span> <span class="n">Splitter</span>
 <span class="kn">from</span> <span class="nn">._hx</span> <span class="k">import</span> <span class="n">HX</span><span class="p">,</span> <span class="n">HXutility</span>
 <span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
@@ -630,9 +626,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">D</span> <span class="o">=</span> <span class="n">FinalValue</span><span class="p">(</span><span class="n">D</span><span class="p">)</span>
 
-        <span class="n">outerIter</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">while</span> <span class="n">outerIter</span> <span class="o">&lt;</span> <span class="mi">50</span><span class="p">:</span>
-            <span class="n">outerIter</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">for</span> <span class="n">outerIter</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">50</span><span class="p">):</span>
             <span class="n">At</span> <span class="o">=</span> <span class="n">pi</span><span class="o">*</span><span class="p">(</span><span class="n">D</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="mf">4.0</span> <span class="c1"># Total area</span>
 
             <span class="c1"># Calculate Lower Liquid Area</span>
@@ -659,8 +653,7 @@
             <span class="n">Lmin</span> <span class="o">=</span> <span class="n">Uva</span><span class="o">*</span><span class="n">Phi</span>
             <span class="n">Li</span> <span class="o">=</span> <span class="n">L</span>
             
-            <span class="n">innerIter</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="k">while</span> <span class="n">innerIter</span> <span class="o">&lt;</span> <span class="mi">50</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">innerIter</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">50</span><span class="p">):</span>
                 <span class="k">if</span> <span class="n">L</span> <span class="o">&lt;</span> <span class="mf">0.8</span><span class="o">*</span><span class="n">Lmin</span><span class="p">:</span> <span class="n">Hv</span> <span class="o">+=</span> <span class="mf">0.5</span>
                 <span class="k">elif</span> <span class="n">L</span> <span class="o">&gt;</span> <span class="mf">1.2</span><span class="o">*</span><span class="n">Lmin</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">Mist</span> <span class="ow">and</span> <span class="n">Hv</span> <span class="o">&lt;=</span> <span class="mf">2.0</span><span class="p">:</span> <span class="n">Hv</span> <span class="o">=</span> <span class="mf">2.0</span>
@@ -672,8 +665,7 @@
                 <span class="n">Li</span> <span class="o">=</span> <span class="p">(</span><span class="n">Vh</span> <span class="o">+</span> <span class="n">Vs</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">At</span> <span class="o">-</span> <span class="n">Av</span> <span class="o">-</span> <span class="n">Alll</span><span class="p">)</span>
                 <span class="n">Phi</span> <span class="o">=</span> <span class="n">Hv</span><span class="o">/</span><span class="n">Uv</span>
                 <span class="n">Uva</span> <span class="o">=</span> <span class="n">Qv</span><span class="o">/</span><span class="n">Av</span>
-                <span class="n">Lmin</span> <span class="o">=</span> <span class="n">Uva</span><span class="o">*</span><span class="n">Phi</span>                
-                <span class="n">innerIter</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">Lmin</span> <span class="o">=</span> <span class="n">Uva</span><span class="o">*</span><span class="n">Phi</span>
             
             <span class="n">L</span> <span class="o">=</span> <span class="n">Li</span>
             <span class="n">LD</span> <span class="o">=</span> <span class="n">L</span><span class="o">/</span><span class="n">D</span>
@@ -874,7 +866,7 @@
         <span class="n">index</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
         <span class="n">vapor</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="n">vapor</span><span class="o">.</span><span class="n">_phase</span> <span class="o">=</span> <span class="s1">&#39;g&#39;</span>
-        <span class="n">vapor</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">vapor</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">Tf</span>
+        <span class="n">liquid</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">vapor</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">Tf</span>
 
         <span class="n">liquid</span><span class="o">.</span><span class="n">empty</span><span class="p">()</span>
         <span class="n">liquid</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
@@ -884,7 +876,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_liquid_H</span> <span class="o">=</span> <span class="n">liquid</span><span class="o">.</span><span class="n">H</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_no_ph_ch</span> <span class="o">=</span> <span class="n">no_ph_ch</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_V</span> <span class="o">=</span> <span class="mf">0.5</span>
 
     <span class="k">def</span> <span class="nf">_run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">feed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ins</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -910,13 +901,9 @@
 
         <span class="c1"># Energy balance to find vapor fraction</span>
         <span class="n">f</span> <span class="o">=</span> <span class="n">feed</span><span class="o">.</span><span class="n">mol</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
-        <span class="n">H_actual</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">v</span><span class="p">:</span>  <span class="n">vapor_H</span><span class="o">*</span><span class="p">(</span><span class="n">v</span><span class="o">*</span><span class="n">f</span><span class="p">)</span> <span class="o">+</span> <span class="n">liquid_H</span><span class="o">*</span><span class="p">((</span><span class="mi">1</span><span class="o">-</span><span class="n">v</span><span class="p">)</span><span class="o">*</span><span class="n">f</span><span class="p">)</span>
-
-        <span class="c1"># Final vapor fraction</span>
-        <span class="n">V</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_V</span>
         <span class="n">H</span> <span class="o">=</span> <span class="n">feed_H</span> <span class="o">+</span> <span class="n">Q</span> <span class="o">-</span> <span class="n">no_ph_ch_H</span>
-        <span class="n">V</span> <span class="o">=</span> <span class="n">IQ_interpolation</span><span class="p">(</span><span class="n">H_actual</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">liquid_H</span><span class="p">,</span> <span class="n">vapor_H</span><span class="p">,</span>
-                             <span class="n">V</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">xtol</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span> <span class="n">ytol</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">)</span>
+        <span class="n">V</span> <span class="o">=</span> <span class="p">(</span><span class="n">H</span><span class="o">/</span><span class="n">f</span> <span class="o">-</span> <span class="n">liquid_H</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">vapor_H</span> <span class="o">+</span> <span class="n">liquid_H</span><span class="p">)</span>
+        
         <span class="n">liquid</span><span class="o">.</span><span class="n">_mol</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">no_ph_ch</span><span class="o">.</span><span class="n">_mol</span>
         <span class="k">if</span> <span class="n">V</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">V</span> <span class="o">=</span> <span class="mi">0</span>

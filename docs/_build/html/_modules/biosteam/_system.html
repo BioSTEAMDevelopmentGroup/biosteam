@@ -83,13 +83,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../Overview.html">1. Overview</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../Installation.html">2. Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Getting started.html">3. Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/MixedStream objects and thermodynamic equilibrium.html">4. MixedStream objects and thermodynamic equilibrium</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Thermodynamic equilibrium.html">4. Thermodynamic equilibrium</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Creating a Unit.html">5. Creating a Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../units/notebooks/examples.html">6. Unit operation examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Managing flowsheets.html">7. Managing flowsheets</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Using -pipe- notation.html">8. Using -pipe- notation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Biorefineries.html">9. Bioferineries</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Techno-economic analysis of a biorefinery.html">10. Techno-economic analysis of a biorefinery</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/Techno-economic analysis.html">10. Techno-economic analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Inheriting from Unit.html">11. Inheriting from Unit</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Unit decorators.html">12. Unit decorators</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../tutorial/Stoichiometric reactions.html">13. Stoichiometric reactions</a></li>
@@ -182,15 +182,14 @@
 <span class="sd">@author: yoelr</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="k">import</span> <span class="n">newton</span>
-<span class="kn">from</span> <span class="nn">._exceptions</span> <span class="k">import</span> <span class="n">SolverError</span><span class="p">,</span> <span class="n">_try_method</span>
+<span class="kn">from</span> <span class="nn">flexsolve</span> <span class="k">import</span> <span class="n">SolverError</span><span class="p">,</span> <span class="n">conditional_wegstein</span><span class="p">,</span> <span class="n">conditional_aitken</span>
+<span class="kn">from</span> <span class="nn">._exceptions</span> <span class="k">import</span> <span class="n">_try_method</span>
 <span class="kn">from</span> <span class="nn">._flowsheet</span> <span class="k">import</span> <span class="n">find</span><span class="p">,</span> <span class="n">make_digraph</span><span class="p">,</span> <span class="n">save_digraph</span>
 <span class="kn">from</span> <span class="nn">._stream</span> <span class="k">import</span> <span class="n">Stream</span>
 <span class="kn">from</span> <span class="nn">._facility</span> <span class="k">import</span> <span class="n">Facility</span>
 <span class="kn">from</span> <span class="nn">._unit</span> <span class="k">import</span> <span class="n">Unit</span>
 <span class="kn">from</span> <span class="nn">._report</span> <span class="k">import</span> <span class="n">save_report</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">colors</span><span class="p">,</span> <span class="n">MissingStream</span><span class="p">,</span> <span class="n">strtuple</span><span class="p">,</span> \
-                   <span class="n">conditional_wegstein</span><span class="p">,</span> <span class="n">conditional_aitken</span><span class="p">,</span> \
-                   <span class="n">build_network</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">colors</span><span class="p">,</span> <span class="n">MissingStream</span><span class="p">,</span> <span class="n">strtuple</span><span class="p">,</span> <span class="n">build_network</span>
 <span class="kn">import</span> <span class="nn">biosteam</span> <span class="k">as</span> <span class="nn">bst</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;System&#39;</span><span class="p">,)</span>
