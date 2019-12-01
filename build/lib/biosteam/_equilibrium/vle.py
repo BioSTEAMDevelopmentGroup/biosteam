@@ -299,10 +299,10 @@ class VLE:
         P_bubble, y_bubble = self._bubble_point.solve_Py(self._zs, T)
         
         # Check if there is equilibrium
-        if T >= P_dew:
+        if P >= P_dew:
             self._vapor_mol[self._index] = self._mol
             self._liquid_mol[self._index] = 0
-        elif T <= P_bubble:
+        elif P <= P_bubble:
             self._vapor_mol[self._index] = 0
             self._liquid_mol[self._index] = self._mol
         else:
